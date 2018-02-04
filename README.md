@@ -1,14 +1,7 @@
-# memefactory
+# MemeFactory
 
-A Clojure library designed to ... well, that part is up to you.
+Create and trade provably rare digital assets on the Ethereum blockchain
 
-## Usage
+See at [https://memefactory.io](https://memefactory.io/)
 
-FIXME
-
-## License
-
-Copyright © 2018 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Smart-contracts can be found [here](https://github.com/district0x/memefactory/tree/master/resources/public/contracts/src).
