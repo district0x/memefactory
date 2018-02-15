@@ -5,13 +5,10 @@ function solc-err-only {
     solc "$@" 2>&1 | grep -A 2 -i "Error"
 }
 
-solc-err-only --overwrite --optimize --bin --abi Registry.sol -o ../build/
-solc-err-only --overwrite --optimize --bin --abi MemeFactory.sol -o ../build/
+solc-err-only --overwrite --optimize --bin --abi RegistryFactory.sol -o ../build/
 
 cd ../build
-wc -c AttributeStore.bin | awk '{print "AttributeStore: " $1}'
-wc -c DLL.bin | awk '{print "DLL: " $1}'
-wc -c Parameterizer.bin | awk '{print "Parameterizer: " $1}'
-wc -c PLCRVoting.bin | awk '{print "PLCRVoting: " $1}'
 wc -c Registry.bin | awk '{print "Registry: " $1}'
-wc -c MemeFactory.bin | awk '{print "MemeFactory: " $1}'
+wc -c RegistryFactory.bin | awk '{print "RegistryFactory: " $1}'
+wc -c RegistryEntry.bin | awk '{print "RegistryEntry: " $1}'
+wc -c RegistryEntryToken.bin | awk '{print "RegistryEntryToken: " $1}'
