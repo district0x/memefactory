@@ -9,6 +9,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
   Registry public constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
   EternalStorage public constant parametrizer = EternalStorage(0xDeEDdeeDDEeDDEEdDEedDEEdDEeDdEeDDEEDDeed);
   MiniMeToken public constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
+
+  bytes32 public constant applicationPeriodDurationKey = "";
+  bytes32 public constant commitPeriodDurationKey = "";
+  bytes32 public constant revealPeriodDurationKey = "";
+  bytes32 public constant depositKey = "";
+  bytes32 public constant challengeDispensationKey = "";
+
   uint public version;
 
   enum Status {ApplicationPeriod, CommitVotePeriod, RevealVotePeriod, VotedAgainst, Whitelisted}
@@ -63,9 +70,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
   {
     require(entry.applicationEndDate == 0);
 
-    uint deposit = parametrizer.getUIntValue(sha3("registryEntryDeposit"));
+    uint deposit = parametrizer.getUIntValue(depositKey);
     require(registryToken.transferFrom(_creator, this, deposit));
-    entry.applicationEndDate = now + parametrizer.getUIntValue(sha3("registryEntryApplicationDuration"));
+    entry.applicationEndDate = now + parametrizer.getUIntValue(applicationPeriodDurationKey);
     entry.deposit = deposit;
     entry.creator = _creator;
 
@@ -87,12 +94,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     challenge.challenger = msg.sender;
     challenge.votingToken = MiniMeToken(registryToken.createCloneToken("", 18, "", 0, true));
-    uint commitDuration = parametrizer.getUIntValue(sha3("registryEntryChallengeCommitDuration"));
-    uint revealDuration = parametrizer.getUIntValue(sha3("registryEntryChallengeRevealDuration"));
-    uint deposit = parametrizer.getUIntValue(sha3("registryEntryDeposit"));
+    uint commitDuration = parametrizer.getUIntValue(commitPeriodDurationKey);
+    uint revealDuration = parametrizer.getUIntValue(revealPeriodDurationKey);
+    uint deposit = parametrizer.getUIntValue(depositKey);
     challenge.commitEndDate = now + commitDuration;
     challenge.revealEndDate = challenge.commitEndDate + revealDuration;
-    challenge.rewardPool = ((100 - parametrizer.getUIntValue(sha3("registryEntryChallengeDispensation"))) * deposit) / 100;
+    challenge.rewardPool = ((100 - parametrizer.getUIntValue(challengeDispensationKey)) * deposit) / 100;
     challenge.metaHash = _challengeMetaHash;
 
     registry.fireRegistryEntryEvent("challengeCreated", version);

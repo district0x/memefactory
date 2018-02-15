@@ -5,6 +5,15 @@ import "MemeToken.sol";
 
 contract Meme is RegistryEntry {
 
+  bytes32 public constant applicationPeriodDurationKey = sha3("memeApplicationPeriodDuration");
+  bytes32 public constant commitPeriodDurationKey = sha3("memeCommitPeriodDuration");
+  bytes32 public constant revealPeriodDurationKey = sha3("memeRevealPeriodDuration");
+  bytes32 public constant depositKey = sha3("memeDeposit");
+  bytes32 public constant challengeDispensationKey = sha3("memeChallengeDispensation");
+
+  bytes32 public constant maxStartPriceKey = sha3("memeMaxStartPrice");
+  bytes32 public constant saleDurationKey = sha3("memeSaleDuration");
+
   struct Sale {
     uint startPrice;
     uint64 duration;
@@ -39,8 +48,8 @@ contract Meme is RegistryEntry {
     meta.imageHash = _imageHash;
     meta.metaHash = _metaHash;
 
-    require(_startPrice <= parametrizer.getUIntValue(sha3("registryEntryMaxStartPrice")));
-    sale = Sale(_startPrice, uint64(parametrizer.getUIntValue(sha3("registryEntrySaleDuration"))));
+    require(_startPrice <= parametrizer.getUIntValue(maxStartPriceKey));
+    sale = Sale(_startPrice, uint64(parametrizer.getUIntValue(saleDurationKey)));
   }
 
   function buy(uint _amount)
