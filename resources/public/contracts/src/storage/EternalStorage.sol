@@ -4,8 +4,9 @@ import "../ownership/Ownable.sol";
 
 contract EternalStorage is Ownable {
 
-  function EternalStorage(){
+  enum Types {UInt, String, Address, Bytes, Bytes32, Boolean, Int}
 
+  function EternalStorage(){
   }
 
   ////////////

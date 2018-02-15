@@ -2,7 +2,7 @@ pragma solidity ^0.4.18;
 
 import "token/MintableToken.sol";
 
-contract RegistryEntryToken is MintableToken {
+contract MemeToken is MintableToken {
   string public name;
   uint8 public decimals = 0;
 

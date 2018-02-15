@@ -2,8 +2,10 @@ pragma solidity ^0.4.18;
 
 import "Registry.sol";
 import "forwarder/Forwarder.sol";
+import "RegistryEntryToken.sol";
 import "storage/EternalStorage.sol";
 import "token/minime/MiniMeToken.sol";
+import "token/MintableToken.sol";
 
 contract RegistryEntry is ApproveAndCallFallBack {
   Registry public constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
@@ -17,6 +19,17 @@ contract RegistryEntry is ApproveAndCallFallBack {
     uint applicationEndDate;      // Expiration date of apply stage
     address creator;              // Owner of Listing
     uint deposit;                 // Number of tokens deposited when applying
+  }
+
+  struct Sale {
+    uint startPrice;
+    uint64 duration;
+  }
+
+  struct Meta {
+    MintableToken token;
+    bytes imageHash;
+    bytes metaHash;
   }
 
   struct Challenge {
@@ -43,6 +56,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
   enum VoteOption {NoVote, VoteFor, VoteAgainst}
 
   Entry public entry;
+  Sale public sale;
+  Meta public meta;
   Challenge public challenge;
 
   modifier notEmergency() {
@@ -57,11 +72,27 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
   function construct(
     uint _version,
-    address _creator
+    address _creator,
+    string _name,
+    bytes _imageHash,
+    bytes _metaHash,
+    uint _totalSupply,
+    uint _startPrice
   )
   public
   {
     require(entry.applicationEndDate == 0);
+
+    meta.token = MintableToken(new Forwarder());
+    MemeToken(meta.token).construct(_name);
+    MemeToken(meta.token).mint(this, _totalSupply);
+    MintableToken(meta.token).finishMinting();
+
+    meta.imageHash = _imageHash;
+    meta.metaHash = _metaHash;
+
+    require(_startPrice <= parametrizer.getUIntValue(sha3("registryEntryMaxStartPrice")));
+    sale = Sale(_startPrice, uint64(parametrizer.getUIntValue(sha3("registryEntrySaleDuration"))));
 
     uint deposit = parametrizer.getUIntValue(sha3("registryEntryDeposit"));
     require(registryToken.transferFrom(_creator, this, deposit));
@@ -158,6 +189,26 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.voter[_voter].claimedRewardOn = now;
 
     registry.fireRegistryEntryEvent("voterRewardClaimed", version);
+  }
+
+  function buy(uint _amount)
+  payable
+  public
+  notEmergency
+  onlyConstructed
+  {
+    require(isWhitelisted());
+    require(_amount > 0);
+
+    var price = currentPrice() * _amount;
+
+    require(msg.value >= price);
+    require(meta.token.transfer(msg.sender, _amount));
+    entry.creator.transfer(msg.value);
+    if (msg.value > price) {
+      msg.sender.transfer(msg.value - price);
+    }
+    registry.fireRegistryEntryEvent("buy", version);
   }
 
   function receiveApproval(
@@ -271,4 +322,43 @@ contract RegistryEntry is ApproveAndCallFallBack {
   function votedWinningVoteOption(address _voter) public constant returns (bool) {
     return challenge.voter[_voter].voteOption == winningVoteOption();
   }
+
+  function currentPrice() constant returns (uint) {
+    uint secondsPassed = 0;
+    uint listedOn = whitelistedOn();
+
+    if (now > listedOn && listedOn > 0) {
+      secondsPassed = now - listedOn;
+    }
+
+    return computeCurrentPrice(
+      sale.startPrice,
+      sale.duration,
+      secondsPassed
+    );
+  }
+
+  function computeCurrentPrice(uint _startPrice, uint _duration, uint _secondsPassed) constant returns (uint) {
+    if (_secondsPassed >= _duration) {
+      // We've reached the end of the dynamic pricing portion
+      // of the auction, just return the end price.
+      return 0;
+    } else {
+      // Starting price can be higher than ending price (and often is!), so
+      // this delta can be negative.
+      int totalPriceChange = 0 - int(_startPrice);
+
+      // This multiplication can't overflow, _secondsPassed will easily fit within
+      // 64-bits, and totalPriceChange will easily fit within 128-bits, their product
+      // will always fit within -bits.
+      int currentPriceChange = totalPriceChange * int(_secondsPassed) / int(_duration);
+
+      // currentPriceChange can be negative, but if so, will have a magnitude
+      // less that _startingPrice. Thus, this result will always end up positive.
+      int currentPrice = int(_startPrice) + currentPriceChange;
+
+      return uint(currentPrice);
+    }
+  }
+
 }
