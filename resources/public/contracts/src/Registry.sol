@@ -6,14 +6,11 @@ import "./storage/EternalStorage.sol";
 contract Registry is Ownable {
   event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version, uint[] data);
 
-  EternalStorage public eternalStorage;
+  EternalStorage public db;
 
-  function Registry(address _eternalStorage) {
-    if (_eternalStorage == 0x0) {
-      eternalStorage = new EternalStorage();
-    } else {
-      eternalStorage = EternalStorage(_eternalStorage);
-    }
+  function Registry(EternalStorage _db) {
+    require(address(_db) != 0x0);
+    db = _db;
   }
 
   modifier onlyFactory() {
@@ -34,20 +31,21 @@ contract Registry is Ownable {
   function setFactory(address factory, bool _isFactory)
   onlyOwner
   {
-    eternalStorage.setBooleanValue(sha3("isFactory", factory), _isFactory);
+    require(owner == db.owner());
+    //    db.setBooleanValue(sha3("isFactory", factory), _isFactory);
   }
 
   function addRegistryEntry(address _registryEntry)
   onlyFactory
   notEmergency
   {
-    eternalStorage.setBooleanValue(sha3("isRegistryEntry", _registryEntry), true);
+    db.setBooleanValue(sha3("isRegistryEntry", _registryEntry), true);
   }
 
   function setEmergency(bool _isEmergency)
   onlyOwner
   {
-    eternalStorage.setBooleanValue(sha3("isEmergency"), _isEmergency);
+    db.setBooleanValue(sha3("isEmergency"), _isEmergency);
   }
 
   function fireRegistryEntryEvent(bytes32 eventType, uint version)
@@ -64,18 +62,18 @@ contract Registry is Ownable {
   function transferEternalStorageOwnership(address newOwner)
   onlyOwner
   {
-    eternalStorage.transferOwnership(newOwner);
+    db.transferOwnership(newOwner);
   }
 
   function isFactory(address factory) public constant returns (bool) {
-    return eternalStorage.getBooleanValue(sha3("isFactory", factory));
+    return db.getBooleanValue(sha3("isFactory", factory));
   }
 
   function isRegistryEntry(address registryEntry) public constant returns (bool) {
-    return eternalStorage.getBooleanValue(sha3("isFactory", registryEntry));
+    return db.getBooleanValue(sha3("isFactory", registryEntry));
   }
 
   function isEmergency() public constant returns (bool) {
-    return eternalStorage.getBooleanValue("isEmergency");
+    return db.getBooleanValue("isEmergency");
   }
 }

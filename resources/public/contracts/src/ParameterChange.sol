@@ -5,12 +5,6 @@ import "./storage/EternalStorage.sol";
 
 contract ParameterChange is RegistryEntry {
 
-  bytes32 public constant applicationPeriodDurationKey = sha3("paramApplicationPeriodDuration");
-  bytes32 public constant commitPeriodDurationKey = sha3("paramCommitPeriodDuration");
-  bytes32 public constant revealPeriodDurationKey = sha3("paramRevealPeriodDuration");
-  bytes32 public constant depositKey = sha3("paramDeposit");
-  bytes32 public constant challengeDispensationKey = sha3("paramChallengeDispensation");
-
   struct Change {
     bytes32 key;
     uint uintValue;

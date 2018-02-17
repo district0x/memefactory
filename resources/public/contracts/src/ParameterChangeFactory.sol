@@ -1,14 +1,14 @@
 pragma solidity ^0.4.18;
 
-import "Registry.sol";
+import "ParameterRegistry.sol";
 import "ParameterChange.sol";
 import "forwarder/Forwarder.sol";
 
 contract ParameterChangeFactory {
-  Registry public registry;
+  ParameterRegistry public registry;
   uint public constant version = 1;
 
-  function ParameterChangeFactory(Registry _registry) {
+  function ParameterChangeFactory(ParameterRegistry _registry) {
     registry = _registry;
   }
 

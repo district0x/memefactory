@@ -2,17 +2,12 @@ pragma solidity ^0.4.18;
 
 import "RegistryEntry.sol";
 import "MemeToken.sol";
+import "forwarder/Forwarder.sol";
 
 contract Meme is RegistryEntry {
 
-  bytes32 public constant applicationPeriodDurationKey = sha3("memeApplicationPeriodDuration");
-  bytes32 public constant commitPeriodDurationKey = sha3("memeCommitPeriodDuration");
-  bytes32 public constant revealPeriodDurationKey = sha3("memeRevealPeriodDuration");
-  bytes32 public constant depositKey = sha3("memeDeposit");
-  bytes32 public constant challengeDispensationKey = sha3("memeChallengeDispensation");
-
-  bytes32 public constant maxStartPriceKey = sha3("memeMaxStartPrice");
-  bytes32 public constant saleDurationKey = sha3("memeSaleDuration");
+  bytes32 public constant maxStartPriceKey = sha3("maxStartPrice");
+  bytes32 public constant saleDurationKey = sha3("saleDuration");
 
   struct Sale {
     uint startPrice;
@@ -48,8 +43,8 @@ contract Meme is RegistryEntry {
     meta.imageHash = _imageHash;
     meta.metaHash = _metaHash;
 
-    require(_startPrice <= parametrizer.getUIntValue(maxStartPriceKey));
-    sale = Sale(_startPrice, uint64(parametrizer.getUIntValue(saleDurationKey)));
+    require(_startPrice <= registry.db().getUIntValue(maxStartPriceKey));
+    sale = Sale(_startPrice, uint64(registry.db().getUIntValue(saleDurationKey)));
   }
 
   function buy(uint _amount)

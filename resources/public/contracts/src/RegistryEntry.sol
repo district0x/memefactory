@@ -7,14 +7,13 @@ import "token/minime/MiniMeToken.sol";
 
 contract RegistryEntry is ApproveAndCallFallBack {
   Registry public constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
-  EternalStorage public constant parametrizer = EternalStorage(0xDeEDdeeDDEeDDEEdDEedDEEdDEeDdEeDDEEDDeed);
   MiniMeToken public constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
 
-  bytes32 public constant applicationPeriodDurationKey = "";
-  bytes32 public constant commitPeriodDurationKey = "";
-  bytes32 public constant revealPeriodDurationKey = "";
-  bytes32 public constant depositKey = "";
-  bytes32 public constant challengeDispensationKey = "";
+  bytes32 public constant applicationPeriodDurationKey = sha3("applicationPeriodDuration");
+  bytes32 public constant commitPeriodDurationKey = sha3("commitPeriodDuration");
+  bytes32 public constant revealPeriodDurationKey = sha3("revealPeriodDuration");
+  bytes32 public constant depositKey = sha3("deposit");
+  bytes32 public constant challengeDispensationKey = sha3("challengeDispensation");
 
   uint public version;
 
@@ -70,9 +69,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
   {
     require(entry.applicationEndDate == 0);
 
-    uint deposit = parametrizer.getUIntValue(depositKey);
+    uint deposit = registry.db().getUIntValue(depositKey);
     require(registryToken.transferFrom(_creator, this, deposit));
-    entry.applicationEndDate = now + parametrizer.getUIntValue(applicationPeriodDurationKey);
+    entry.applicationEndDate = now + registry.db().getUIntValue(applicationPeriodDurationKey);
     entry.deposit = deposit;
     entry.creator = _creator;
 
@@ -94,12 +93,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     challenge.challenger = msg.sender;
     challenge.votingToken = MiniMeToken(registryToken.createCloneToken("", 18, "", 0, true));
-    uint commitDuration = parametrizer.getUIntValue(commitPeriodDurationKey);
-    uint revealDuration = parametrizer.getUIntValue(revealPeriodDurationKey);
-    uint deposit = parametrizer.getUIntValue(depositKey);
+    uint commitDuration = registry.db().getUIntValue(commitPeriodDurationKey);
+    uint revealDuration = registry.db().getUIntValue(revealPeriodDurationKey);
+    uint deposit = registry.db().getUIntValue(depositKey);
     challenge.commitEndDate = now + commitDuration;
     challenge.revealEndDate = challenge.commitEndDate + revealDuration;
-    challenge.rewardPool = ((100 - parametrizer.getUIntValue(challengeDispensationKey)) * deposit) / 100;
+    challenge.rewardPool = ((100 - registry.db().getUIntValue(challengeDispensationKey)) * deposit) / 100;
     challenge.metaHash = _challengeMetaHash;
 
     registry.fireRegistryEntryEvent("challengeCreated", version);

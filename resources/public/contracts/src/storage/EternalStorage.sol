@@ -25,6 +25,14 @@ contract EternalStorage is Ownable {
     UIntStorage[record] = value;
   }
 
+  function setUIntValues(bytes32[] records, uint[] values)
+  onlyOwner
+  {
+    for (uint i = 0; i < records.length; i++) {
+      UIntStorage[records[i]] = values[i];
+    }
+  }
+
   function deleteUIntValue(bytes32 record)
   onlyOwner
   {
@@ -63,6 +71,14 @@ contract EternalStorage is Ownable {
     return AddressStorage[record];
   }
 
+  function setAddressValues(bytes32[] records, address[] values)
+  onlyOwner
+  {
+    for (uint i = 0; i < records.length; i++) {
+      AddressStorage[records[i]] = values[i];
+    }
+  }
+
   function setAddressValue(bytes32 record, address value)
   onlyOwner
   {
@@ -91,6 +107,14 @@ contract EternalStorage is Ownable {
     BytesStorage[record] = value;
   }
 
+  //  function setBytesValues(bytes32[] records, bytes[] values)
+  //  onlyOwner
+  //  {
+  //    for (uint i = 0; i < records.length; i++) {
+  //      BytesStorage[records[i]] = values[i];
+  //    }
+  //  }
+
   function deleteBytesValue(bytes32 record)
   onlyOwner
   {
@@ -111,6 +135,14 @@ contract EternalStorage is Ownable {
   onlyOwner
   {
     Bytes32Storage[record] = value;
+  }
+
+  function setBytes32Values(bytes32[] records, bytes32[] values)
+  onlyOwner
+  {
+    for (uint i = 0; i < records.length; i++) {
+      Bytes32Storage[records[i]] = values[i];
+    }
   }
 
   function deleteBytes32Value(bytes32 record)
@@ -135,6 +167,14 @@ contract EternalStorage is Ownable {
     BooleanStorage[record] = value;
   }
 
+  function setBooleanValues(bytes32[] records, bool[] values)
+  onlyOwner
+  {
+    for (uint i = 0; i < records.length; i++) {
+      BooleanStorage[records[i]] = values[i];
+    }
+  }
+
   function deleteBooleanValue(bytes32 record)
   onlyOwner
   {
@@ -154,6 +194,14 @@ contract EternalStorage is Ownable {
   onlyOwner
   {
     IntStorage[record] = value;
+  }
+
+  function setIntValues(bytes32[] records, int[] values)
+  onlyOwner
+  {
+    for (uint i = 0; i < records.length; i++) {
+      IntStorage[records[i]] = values[i];
+    }
   }
 
   function deleteIntValue(bytes32 record)

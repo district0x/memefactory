@@ -5,11 +5,13 @@ function solc-err-only {
     solc "$@" 2>&1 | grep -A 2 -i "Error"
 }
 
+solc-err-only --overwrite --optimize --bin --abi MemeFactoryMoola.sol -o ../build/
 solc-err-only --overwrite --optimize --bin --abi MemeFactory.sol -o ../build/
 solc-err-only --overwrite --optimize --bin --abi ParameterChangeFactory.sol -o ../build/
-solc-err-only --overwrite --optimize --bin --abi ParameterRegistry.sol -o ../build/
+solc-err-only --overwrite --optimize --bin --abi MutableForwarder.sol -o ../build/
 
 cd ../build
+wc -c MutableForwarder.bin | awk '{print "MutableForwarder: " $1}'
 wc -c Registry.bin | awk '{print "Registry: " $1}'
 wc -c MemeFactory.bin | awk '{print "MemeFactory: " $1}'
 wc -c Meme.bin | awk '{print "Meme: " $1}'

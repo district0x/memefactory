@@ -5,24 +5,24 @@ import "ParameterChange.sol";
 
 contract ParameterRegistry is Registry {
 
-  function ParameterRegistry(address _eternalStorage)
-  Registry(_eternalStorage)
+  function ParameterRegistry(EternalStorage _db)
+  Registry(_db)
   {}
 
   function addRegistryEntry(address _registryEntry) {
     super.addRegistryEntry(_registryEntry);
-    address lastEntry = eternalStorage.getAddressValue(sha3("lastRegistryEntry"));
+    address lastEntry = db.getAddressValue(sha3("lastRegistryEntry"));
     if (lastEntry != 0x0) {
-      eternalStorage.setAddressValue(sha3("previousRegistryEntry", _registryEntry), lastEntry);
+      db.setAddressValue(sha3("previousRegistryEntry", _registryEntry), lastEntry);
     }
-    eternalStorage.setAddressValue(sha3("lastRegistryEntry"), _registryEntry);
+    db.setAddressValue(sha3("lastRegistryEntry"), _registryEntry);
   }
 
   function applyParameterChange(address _parameterChange) {
-    address prevParamChange = eternalStorage.getAddressValue(sha3("previousRegistryEntry", _parameterChange));
+    address prevParamChange = db.getAddressValue(sha3("previousRegistryEntry", _parameterChange));
     require(prevParamChange == 0x0 || ParameterChange(prevParamChange).wasApplied());
-    eternalStorage.transferOwnership(_parameterChange);
-    ParameterChange(prevParamChange).applyChange(eternalStorage);
+    db.transferOwnership(_parameterChange);
+    ParameterChange(prevParamChange).applyChange(db);
   }
 }
 

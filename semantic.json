@@ -1,0 +1,41 @@
+{
+  "base": "resources/semantic/",
+  "paths": {
+    "source": {
+      "config": "src/theme.config",
+      "definitions": "src/definitions/",
+      "site": "src/site/",
+      "themes": "src/themes/"
+    },
+    "output": {
+      "packaged": "../public/css/",
+      "uncompressed": "dist/components/",
+      "compressed": "dist/components/",
+      "themes": "dist/themes/"
+    },
+    "clean": "dist/"
+  },
+  "permission": false,
+  "autoInstall": false,
+  "rtl": false,
+  "components": [
+    "reset",
+    "site",
+    "button",
+    "header",
+    "icon",
+    "input",
+    "label",
+    "segment",
+    "menu",
+    "item",
+    "checkbox",
+    "dropdown",
+    "modal",
+    "search",
+    "sidebar",
+    "sticky",
+    "transition"
+  ],
+  "version": "2.2.13"
+}
