@@ -1,17 +1,18 @@
 (ns memefactory.server.dev
   (:require
+    [cljs-time.core :as t]
     [cljs-web3.core :as web3]
     [cljs.nodejs :as nodejs]
     [cljs.pprint :as pprint]
     [district.server.config :refer [config]]
     [district.server.db :refer [db]]
-    [district.server.endpoints]
     [district.server.endpoints.middleware.logging :refer [logging-middlewares]]
+    [district.server.endpoints]
     [district.server.logging :refer [logging]]
     [district.server.smart-contracts]
     [district.server.web3 :refer [web3]]
     [district.server.web3-watcher]
-    [mount.core :as mount]
+    [goog.date.Date]
     [memefactory.server.api]
     [memefactory.server.db]
     [memefactory.server.deployer]
@@ -19,6 +20,7 @@
     [memefactory.server.generator]
     [memefactory.server.syncer]
     [memefactory.shared.smart-contracts]
+    [mount.core :as mount]
     [print.foo :include-macros true]))
 
 (nodejs/enable-util-print!)
@@ -43,7 +45,7 @@
   (-> (mount/with-args
         (merge
           (mount/args)
-          {:deployer {:write? true}}))
+          {:deployer {:write? false}}))
     (mount/start)
     pprint/pprint))
 
@@ -54,11 +56,26 @@
                             :endpoints {:port 6300
                                         :middlewares [logging-middlewares]}
                             :web3 {:port 8549}
-                            :generator {}}}
+                            :generator {:use-accounts 1
+                                        :memes-per-account 1}
+                            :deployer {:transfer-mfm-to-accounts 1
+                                       :initial-registry-params
+                                       {:meme-registry {:apply-period-duration (t/in-seconds (t/minutes 10))
+                                                        :commit-period-duration (t/in-seconds (t/minutes 2))
+                                                        :reveal-period-duration (t/in-seconds (t/minutes 1))
+                                                        :deposit (web3/to-wei 1000 :ether)
+                                                        :challenge-dispensation 50
+                                                        :max-start-price (web3/to-wei 1000 :ether)
+                                                        :max-total-supply 10000
+                                                        :sale-duration (t/in-seconds (t/minutes 10))}
+                                        :parameter-registry {:apply-period-duration (t/in-seconds (t/minutes 10))
+                                                             :commit-period-duration (t/in-seconds (t/minutes 2))
+                                                             :reveal-period-duration (t/in-seconds (t/minutes 1))
+                                                             :deposit (web3/to-wei 1000 :ether)
+                                                             :challenge-dispensation 50}}}}}
          :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                            :print-gas-usage? true
-                           :auto-mining? true}
-         :deployer {:write? true}})
+                           :auto-mining? true}})
     (mount/except [#'memefactory.server.deployer/deployer
                    #'memefactory.server.generator/generator])
     (mount/start)

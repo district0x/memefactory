@@ -5,7 +5,7 @@ import "./ownership/Ownable.sol";
 
 contract MutableForwarder is Forwarder, Ownable {
 
-  address target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef;
+  address target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef; // checksumed to silence warning
 
   function replaceTarget(address _target) public onlyOwner {
     target = _target;

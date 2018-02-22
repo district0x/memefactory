@@ -5,10 +5,6 @@ import "ParameterChange.sol";
 
 contract ParameterRegistry is Registry {
 
-  function ParameterRegistry(EternalStorage _db)
-  Registry(_db)
-  {}
-
   function addRegistryEntry(address _registryEntry) {
     super.addRegistryEntry(_registryEntry);
     address lastEntry = db.getAddressValue(sha3("lastRegistryEntry"));

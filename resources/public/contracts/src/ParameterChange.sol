@@ -1,14 +1,14 @@
 pragma solidity ^0.4.18;
 
 import "RegistryEntry.sol";
-import "./storage/EternalStorage.sol";
+import "db/EternalDb.sol";
 
 contract ParameterChange is RegistryEntry {
 
   struct Change {
     bytes32 key;
     uint uintValue;
-    EternalStorage.Types valueType;
+    EternalDb.Types valueType;
     bool wasApplied;
   }
 
@@ -23,13 +23,13 @@ contract ParameterChange is RegistryEntry {
   public
   {
     super.construct(_version, _creator);
-    change = Change(_key, _uintValue, EternalStorage.Types.UInt, false);
+    change = Change(_key, _uintValue, EternalDb.Types.UInt, false);
   }
 
-  function applyChange(EternalStorage paramStorage) public {
-    paramStorage.setUIntValue(change.key, change.uintValue);
+  function applyChange(EternalDb _db) public {
+    _db.setUIntValue(change.key, change.uintValue);
     change.wasApplied = true;
-    paramStorage.transferOwnership(msg.sender);
+    _db.transferOwnership(msg.sender);
   }
 
   function wasApplied() public constant returns (bool) {

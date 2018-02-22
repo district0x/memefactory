@@ -4,10 +4,13 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[cljs-web3 "0.19.0-0-9"]
+  :dependencies [[camel-snake-kebab "0.4.0"]
+                 [cljs-web3 "0.19.0-0-10"]
+                 [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [district0x/bignumber "1.0.1"]
+                 [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.0"]
                  [district0x/district-encryption "1.0.0"]
                  [district0x/district-sendgrid "1.0.0"]
@@ -15,7 +18,7 @@
                  [district0x/district-server-db "1.0.1"]
                  [district0x/district-server-endpoints "1.0.2"]
                  [district0x/district-server-logging "1.0.1"]
-                 [district0x/district-server-smart-contracts "1.0.4"]
+                 [district0x/district-server-smart-contracts "1.0.5"]
                  [district0x/district-server-web3 "1.0.1"]
                  [district0x/district-server-web3-watcher "1.0.2"]
                  [medley "1.0.0"]

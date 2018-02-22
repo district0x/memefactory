@@ -7,6 +7,7 @@ import "forwarder/Forwarder.sol";
 contract Meme is RegistryEntry {
 
   bytes32 public constant maxStartPriceKey = sha3("maxStartPrice");
+  bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
   bytes32 public constant saleDurationKey = sha3("saleDuration");
 
   struct Sale {
@@ -35,6 +36,9 @@ contract Meme is RegistryEntry {
   public
   {
     super.construct(_version, _creator);
+
+    require(_totalSupply > 0);
+    require(_totalSupply <= registry.db().getUIntValue(maxTotalSupplyKey));
     meta.token = MemeToken(new Forwarder());
     meta.token.construct(_name);
     meta.token.mint(this, _totalSupply);

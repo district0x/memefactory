@@ -12,6 +12,7 @@ contract MemeToken is MintableToken {
     require(bytes(name).length == 0);
     require(bytes(_name).length != 0);
     name = _name;
+    owner = msg.sender;
   }
 
   function symbol() public constant returns (string) {

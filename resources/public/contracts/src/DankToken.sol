@@ -2,15 +2,15 @@ pragma solidity ^0.4.18;
 
 import "./token/minime/MiniMeToken.sol";
 
-contract MemeFactoryMoola is MiniMeToken {
-  function MemeFactoryMoola(address _tokenFactory, uint _mintedAmount)
+contract DankToken is MiniMeToken {
+  function DankToken(address _tokenFactory, uint _mintedAmount)
   MiniMeToken(
     _tokenFactory,
     0x0,
     0,
-    "MemeFactory Moola",
+    "Dank Token",
     18,
-    "MFM",
+    "DANK",
     true
   )
   {

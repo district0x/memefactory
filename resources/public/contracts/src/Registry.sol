@@ -1,16 +1,20 @@
 pragma solidity ^0.4.18;
 
 import "./ownership/Ownable.sol";
-import "./storage/EternalStorage.sol";
+import "./db/EternalDb.sol";
 
 contract Registry is Ownable {
+  event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version);
   event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version, uint[] data);
 
-  EternalStorage public db;
+  EternalDb public db;
+  bool wasConstructed;
 
-  function Registry(EternalStorage _db) {
+  function construct(EternalDb _db) {
+    require(!wasConstructed);
     require(address(_db) != 0x0);
     db = _db;
+    wasConstructed = true;
   }
 
   modifier onlyFactory() {
@@ -18,8 +22,8 @@ contract Registry is Ownable {
     _;
   }
 
-  modifier onlyRegistryEntry() {
-    require(isRegistryEntry(msg.sender));
+  modifier onlyRegistryEntryOrFactory() {
+    require(isRegistryEntry(msg.sender) || isFactory(msg.sender));
     _;
   }
 
@@ -31,8 +35,7 @@ contract Registry is Ownable {
   function setFactory(address factory, bool _isFactory)
   onlyOwner
   {
-    require(owner == db.owner());
-    //    db.setBooleanValue(sha3("isFactory", factory), _isFactory);
+    db.setBooleanValue(sha3("isFactory", factory), _isFactory);
   }
 
   function addRegistryEntry(address _registryEntry)
@@ -49,17 +52,24 @@ contract Registry is Ownable {
   }
 
   function fireRegistryEntryEvent(bytes32 eventType, uint version)
+  onlyRegistryEntryOrFactory
   {
     fireRegistryEntryEvent(eventType, version, new uint[](0));
   }
 
   function fireRegistryEntryEvent(bytes32 eventType, uint version, uint[] data)
-  onlyRegistryEntry
+  onlyRegistryEntryOrFactory
   {
-    RegistryEntryEvent(msg.sender, eventType, version, data);
+    fireRegistryEntryEvent(msg.sender, eventType, version, data);
   }
 
-  function transferEternalStorageOwnership(address newOwner)
+  function fireRegistryEntryEvent(address _registryEntry, bytes32 eventType, uint version, uint[] data)
+  onlyRegistryEntryOrFactory
+  {
+    RegistryEntryEvent(_registryEntry, eventType, version, data);
+  }
+
+  function transferEternalDbOwnership(address newOwner)
   onlyOwner
   {
     db.transferOwnership(newOwner);

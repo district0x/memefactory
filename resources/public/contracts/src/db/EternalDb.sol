@@ -2,11 +2,11 @@ pragma solidity ^0.4.18;
 
 import "../ownership/Ownable.sol";
 
-contract EternalStorage is Ownable {
+contract EternalDb is Ownable {
 
   enum Types {UInt, String, Address, Bytes, Bytes32, Boolean, Int}
 
-  function EternalStorage(){
+  function EternalDb(){
   }
 
   ////////////
@@ -17,6 +17,13 @@ contract EternalStorage is Ownable {
 
   function getUIntValue(bytes32 record) constant returns (uint){
     return UIntStorage[record];
+  }
+
+  function getUIntValues(bytes32[] records) constant returns (uint[] results){
+    results = new uint[](records.length);
+    for (uint i = 0; i < records.length; i++) {
+      results[i] = UIntStorage[records[i]];
+    }
   }
 
   function setUIntValue(bytes32 record, uint value)
@@ -107,14 +114,6 @@ contract EternalStorage is Ownable {
     BytesStorage[record] = value;
   }
 
-  //  function setBytesValues(bytes32[] records, bytes[] values)
-  //  onlyOwner
-  //  {
-  //    for (uint i = 0; i < records.length; i++) {
-  //      BytesStorage[records[i]] = values[i];
-  //    }
-  //  }
-
   function deleteBytesValue(bytes32 record)
   onlyOwner
   {
@@ -129,6 +128,13 @@ contract EternalStorage is Ownable {
 
   function getBytes32Value(bytes32 record) constant returns (bytes32){
     return Bytes32Storage[record];
+  }
+
+  function getBytes32Values(bytes32[] records) constant returns (bytes32[] results){
+    results = new bytes32[](records.length);
+    for (uint i = 0; i < records.length; i++) {
+      results[i] = Bytes32Storage[records[i]];
+    }
   }
 
   function setBytes32Value(bytes32 record, bytes32 value)
@@ -161,6 +167,13 @@ contract EternalStorage is Ownable {
     return BooleanStorage[record];
   }
 
+  function getBooleanValues(bytes32[] records) constant returns (bool[] results){
+    results = new bool[](records.length);
+    for (uint i = 0; i < records.length; i++) {
+      results[i] = BooleanStorage[records[i]];
+    }
+  }
+
   function setBooleanValue(bytes32 record, bool value)
   onlyOwner
   {
@@ -188,6 +201,13 @@ contract EternalStorage is Ownable {
 
   function getIntValue(bytes32 record) constant returns (int){
     return IntStorage[record];
+  }
+
+  function getIntValues(bytes32[] records) constant returns (int[] results){
+    results = new int[](records.length);
+    for (uint i = 0; i < records.length; i++) {
+      results[i] = IntStorage[records[i]];
+    }
   }
 
   function setIntValue(bytes32 record, int value)

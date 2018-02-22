@@ -2,19 +2,17 @@ pragma solidity ^0.4.18;
 
 import "Registry.sol";
 import "forwarder/Forwarder.sol";
-import "storage/EternalStorage.sol";
+import "db/EternalDb.sol";
 import "token/minime/MiniMeToken.sol";
 
 contract RegistryEntry is ApproveAndCallFallBack {
   Registry public constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
   MiniMeToken public constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
-
-  bytes32 public constant applicationPeriodDurationKey = sha3("applicationPeriodDuration");
+  bytes32 public constant applyPeriodDurationKey = sha3("applyPeriodDuration");
   bytes32 public constant commitPeriodDurationKey = sha3("commitPeriodDuration");
   bytes32 public constant revealPeriodDurationKey = sha3("revealPeriodDuration");
   bytes32 public constant depositKey = sha3("deposit");
   bytes32 public constant challengeDispensationKey = sha3("challengeDispensation");
-
   uint public version;
 
   enum Status {ApplicationPeriod, CommitVotePeriod, RevealVotePeriod, VotedAgainst, Whitelisted}
@@ -68,40 +66,38 @@ contract RegistryEntry is ApproveAndCallFallBack {
   public
   {
     require(entry.applicationEndDate == 0);
-
     uint deposit = registry.db().getUIntValue(depositKey);
-    require(registryToken.transferFrom(_creator, this, deposit));
-    entry.applicationEndDate = now + registry.db().getUIntValue(applicationPeriodDurationKey);
+
+    require(registryToken.transferFrom(msg.sender, this, deposit));
+    entry.applicationEndDate = now + registry.db().getUIntValue(applyPeriodDurationKey);
     entry.deposit = deposit;
     entry.creator = _creator;
 
     version = _version;
-
-    registry.fireRegistryEntryEvent("construct", _version);
   }
 
   function createChallenge(
     bytes _challengeMetaHash
   )
   public
-  notEmergency
-  onlyConstructed
+//  notEmergency
+//  onlyConstructed
   {
-    require(isApplicationPeriodActive());
-    require(!wasChallenged());
-    require(registryToken.transferFrom(msg.sender, this, entry.deposit));
+//    require(isApplicationPeriodActive());
+//    require(!wasChallenged());
+//    require(registryToken.transferFrom(msg.sender, this, entry.deposit));
+//
+//    challenge.challenger = msg.sender;
+//    challenge.votingToken = MiniMeToken(registryToken.createCloneToken("", 18, "", 0, true));
+//    uint commitDuration = registry.db().getUIntValue(commitPeriodDurationKey);
+//    uint revealDuration = registry.db().getUIntValue(revealPeriodDurationKey);
+//    uint deposit = registry.db().getUIntValue(depositKey);
+//    challenge.commitEndDate = now + commitDuration;
+//    challenge.revealEndDate = challenge.commitEndDate + revealDuration;
+//    challenge.rewardPool = ((100 - registry.db().getUIntValue(challengeDispensationKey)) * deposit) / 100;
+//    challenge.metaHash = _challengeMetaHash;
 
-    challenge.challenger = msg.sender;
-    challenge.votingToken = MiniMeToken(registryToken.createCloneToken("", 18, "", 0, true));
-    uint commitDuration = registry.db().getUIntValue(commitPeriodDurationKey);
-    uint revealDuration = registry.db().getUIntValue(revealPeriodDurationKey);
-    uint deposit = registry.db().getUIntValue(depositKey);
-    challenge.commitEndDate = now + commitDuration;
-    challenge.revealEndDate = challenge.commitEndDate + revealDuration;
-    challenge.rewardPool = ((100 - registry.db().getUIntValue(challengeDispensationKey)) * deposit) / 100;
-    challenge.metaHash = _challengeMetaHash;
-
-    registry.fireRegistryEntryEvent("challengeCreated", version);
+//    registry.fireRegistryEntryEvent("challengeCreated", version);
   }
 
   function commitVote(
@@ -173,7 +169,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     bytes _data)
   public
   {
-    this.call(_data);
+//    require(this.call(_data));
   }
 
   function status() public constant returns (Status) {
