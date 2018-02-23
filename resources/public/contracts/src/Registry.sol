@@ -4,7 +4,6 @@ import "./ownership/Ownable.sol";
 import "./db/EternalDb.sol";
 
 contract Registry is Ownable {
-  event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version);
   event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version, uint[] data);
 
   EternalDb public db;
@@ -15,6 +14,7 @@ contract Registry is Ownable {
     require(address(_db) != 0x0);
     db = _db;
     wasConstructed = true;
+    owner = msg.sender;
   }
 
   modifier onlyFactory() {
@@ -60,13 +60,7 @@ contract Registry is Ownable {
   function fireRegistryEntryEvent(bytes32 eventType, uint version, uint[] data)
   onlyRegistryEntryOrFactory
   {
-    fireRegistryEntryEvent(msg.sender, eventType, version, data);
-  }
-
-  function fireRegistryEntryEvent(address _registryEntry, bytes32 eventType, uint version, uint[] data)
-  onlyRegistryEntryOrFactory
-  {
-    RegistryEntryEvent(_registryEntry, eventType, version, data);
+    RegistryEntryEvent(msg.sender, eventType, version, data);
   }
 
   function transferEternalDbOwnership(address newOwner)
@@ -80,7 +74,7 @@ contract Registry is Ownable {
   }
 
   function isRegistryEntry(address registryEntry) public constant returns (bool) {
-    return db.getBooleanValue(sha3("isFactory", registryEntry));
+    return db.getBooleanValue(sha3("isRegistryEntry", registryEntry));
   }
 
   function isEmergency() public constant returns (bool) {

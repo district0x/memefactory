@@ -15,14 +15,14 @@ contract ParameterChange is RegistryEntry {
   Change public change;
 
   function construct(
-    uint _version,
     address _creator,
+    uint _version,
     bytes32 _key,
     uint _uintValue
   )
   public
   {
-    super.construct(_version, _creator);
+    super.construct(_creator, _version);
     change = Change(_key, _uintValue, EternalDb.Types.UInt, false);
   }
 

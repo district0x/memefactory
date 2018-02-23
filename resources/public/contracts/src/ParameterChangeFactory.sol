@@ -13,18 +13,20 @@ contract ParameterChangeFactory {
   }
 
   function createParameterChange(
+    address _creator,
     bytes32 _key,
     uint _value
   )
   public
   {
     address paramChange = ParameterChange(new Forwarder());
+    registry.addRegistryEntry(paramChange);
+
     ParameterChange(paramChange).construct(
+      _creator,
       version,
-      msg.sender,
       _key,
       _value
     );
-    registry.addRegistryEntry(paramChange);
   }
 }

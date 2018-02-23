@@ -58,9 +58,9 @@
                             :web3 {:port 8549}
                             :generator {:use-accounts 1
                                         :memes-per-account 1}
-                            :deployer {:transfer-mfm-to-accounts 1
+                            :deployer {:transfer-dank-token-to-accounts 1
                                        :initial-registry-params
-                                       {:meme-registry {:apply-period-duration (t/in-seconds (t/minutes 10))
+                                       {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
                                                         :commit-period-duration (t/in-seconds (t/minutes 2))
                                                         :reveal-period-duration (t/in-seconds (t/minutes 1))
                                                         :deposit (web3/to-wei 1000 :ether)
@@ -68,7 +68,7 @@
                                                         :max-start-price (web3/to-wei 1000 :ether)
                                                         :max-total-supply 10000
                                                         :sale-duration (t/in-seconds (t/minutes 10))}
-                                        :parameter-registry {:apply-period-duration (t/in-seconds (t/minutes 10))
+                                        :parameter-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
                                                              :commit-period-duration (t/in-seconds (t/minutes 2))
                                                              :reveal-period-duration (t/in-seconds (t/minutes 1))
                                                              :deposit (web3/to-wei 1000 :ether)

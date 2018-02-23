@@ -1,13 +1,8 @@
 (ns memefactory.server.contract.dank-token
   (:require
-    [bignumber.core :as bn]
-    [district.server.smart-contracts :refer [contract-call]]))
+    [memefactory.server.contract.minime-token :as minime-token]))
 
-(defn approve-and-call [{:keys [:spender :amount :extra-data]} & [opts]]
-  (contract-call :DANK :approve-and-call spender (bn/number amount) extra-data (merge opts {:gas 4000000})))
-
-(defn approve [{:keys [:spender :amount]} & [opts]]
-  (contract-call :DANK :approve spender (bn/number amount) (merge opts {:gas 1000000})))
-
-(defn transfer [{:keys [:to :amount]} & [opts]]
-  (contract-call :DANK :transfer to (bn/number amount) (merge opts {:gas 200000})))
+(def approve-and-call (partial minime-token/approve-and-call :DANK))
+(def approve (partial minime-token/approve :DANK))
+(def transfer (partial minime-token/transfer :DANK))
+(def balance-of (partial minime-token/balance-of :DANK))

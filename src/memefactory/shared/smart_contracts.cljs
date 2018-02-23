@@ -35,4 +35,7 @@
   :address "0xbae815bc7ab4b1f09707082702a72702b6c1a523"},
  :parameter-registry-db
  {:name "EternalDb",
-  :address "0x358bca32f9fe51a2d30b04d7ab292981b69cc334"}})
+  :address "0x358bca32f9fe51a2d30b04d7ab292981b69cc334"}
+ :minime-token-factory
+ {:name "MiniMeTokenFactory"
+  :address "0x0000000000000000000000000000000000000000"}})

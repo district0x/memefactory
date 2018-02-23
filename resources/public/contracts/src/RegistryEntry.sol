@@ -8,46 +8,41 @@ import "token/minime/MiniMeToken.sol";
 contract RegistryEntry is ApproveAndCallFallBack {
   Registry public constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
   MiniMeToken public constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
-  bytes32 public constant applyPeriodDurationKey = sha3("applyPeriodDuration");
+  bytes32 public constant challengePeriodDurationKey = sha3("challengePeriodDuration");
   bytes32 public constant commitPeriodDurationKey = sha3("commitPeriodDuration");
   bytes32 public constant revealPeriodDurationKey = sha3("revealPeriodDuration");
   bytes32 public constant depositKey = sha3("deposit");
   bytes32 public constant challengeDispensationKey = sha3("challengeDispensation");
+
+  enum Status {ChallengePeriod, CommitPeriod, RevealPeriod, Blacklisted, Whitelisted}
+
+  address public creator;
   uint public version;
-
-  enum Status {ApplicationPeriod, CommitVotePeriod, RevealVotePeriod, VotedAgainst, Whitelisted}
-
-  struct Entry {
-    uint applicationEndDate;      // Expiration date of apply stage
-    address creator;              // Owner of Listing
-    uint deposit;                 // Number of tokens deposited when applying
-  }
+  uint public deposit;
+  uint public challengePeriodEnd;
+  Challenge public challenge;
 
   struct Challenge {
-    MiniMeToken votingToken;    // Address of MiniMeToken fork
-    uint rewardPool;            // (remaining) Pool of tokens to be distributed to winning voters
-    address challenger;         // Owner of Challenge
+    address challenger;
+    MiniMeToken votingToken;
+    uint rewardPool;
     bytes metaHash;
-    uint resolvedOn;            // Indication of if challenge is resolved
-    uint commitEndDate;         /// expiration date of commit period for poll
-    uint revealEndDate;         /// expiration date of reveal period for poll
-    uint votesFor;              /// tally of votes supporting entry
-    uint votesAgainst;          /// tally of votes countering entry
+    uint commitPeriodEnd;
+    uint revealPeriodEnd;
+    uint votesFor;
+    uint votesAgainst;
     mapping(address => Voter) voter;
   }
 
   struct Voter {
-    uint claimedRewardOn;
-    uint revealedOn;
     bytes32 secretHash;
     VoteOption voteOption;
     uint amount;
+    uint revealedOn;
+    uint claimedRewardOn;
   }
 
   enum VoteOption {NoVote, VoteFor, VoteAgainst}
-
-  Entry public entry;
-  Challenge public challenge;
 
   modifier notEmergency() {
     require(!registry.isEmergency());
@@ -55,52 +50,56 @@ contract RegistryEntry is ApproveAndCallFallBack {
   }
 
   modifier onlyConstructed() {
-    require(entry.applicationEndDate > 0);
+    require(challengePeriodEnd > 0);
     _;
   }
 
   function construct(
-    uint _version,
-    address _creator
+    address _creator,
+    uint _version
   )
   public
   {
-    require(entry.applicationEndDate == 0);
-    uint deposit = registry.db().getUIntValue(depositKey);
+    require(challengePeriodEnd == 0);
+    deposit = registry.db().getUIntValue(depositKey);
 
     require(registryToken.transferFrom(msg.sender, this, deposit));
-    entry.applicationEndDate = now + registry.db().getUIntValue(applyPeriodDurationKey);
-    entry.deposit = deposit;
-    entry.creator = _creator;
+    challengePeriodEnd = now + registry.db().getUIntValue(challengePeriodDurationKey);
+    creator = _creator;
 
     version = _version;
+
+    registry.fireRegistryEntryEvent("constructed", version);
   }
 
   function createChallenge(
+    address _challenger,
     bytes _challengeMetaHash
   )
   public
-//  notEmergency
-//  onlyConstructed
+  notEmergency
+  onlyConstructed
   {
-//    require(isApplicationPeriodActive());
-//    require(!wasChallenged());
-//    require(registryToken.transferFrom(msg.sender, this, entry.deposit));
-//
-//    challenge.challenger = msg.sender;
-//    challenge.votingToken = MiniMeToken(registryToken.createCloneToken("", 18, "", 0, true));
-//    uint commitDuration = registry.db().getUIntValue(commitPeriodDurationKey);
-//    uint revealDuration = registry.db().getUIntValue(revealPeriodDurationKey);
-//    uint deposit = registry.db().getUIntValue(depositKey);
-//    challenge.commitEndDate = now + commitDuration;
-//    challenge.revealEndDate = challenge.commitEndDate + revealDuration;
-//    challenge.rewardPool = ((100 - registry.db().getUIntValue(challengeDispensationKey)) * deposit) / 100;
-//    challenge.metaHash = _challengeMetaHash;
+    require(isChallengePeriodActive());
+    require(!wasChallenged());
+    require(registryToken.transferFrom(_challenger, this, deposit));
 
-//    registry.fireRegistryEntryEvent("challengeCreated", version);
+    challenge.challenger = _challenger;
+    challenge.votingToken = MiniMeToken(registryToken.createCloneToken("", 18, "", 0, true));
+    challenge.votingToken.changeController(0x0);
+    uint commitDuration = registry.db().getUIntValue(commitPeriodDurationKey);
+    uint revealDuration = registry.db().getUIntValue(revealPeriodDurationKey);
+    uint deposit = registry.db().getUIntValue(depositKey);
+    challenge.commitPeriodEnd = now + commitDuration;
+    challenge.revealPeriodEnd = challenge.commitPeriodEnd + revealDuration;
+    challenge.rewardPool = ((100 - registry.db().getUIntValue(challengeDispensationKey)) * deposit) / 100;
+    challenge.metaHash = _challengeMetaHash;
+
+    registry.fireRegistryEntryEvent("challengeCreated", version);
   }
 
   function commitVote(
+    address _voter,
     bytes32 _secretHash
   )
   public
@@ -108,24 +107,26 @@ contract RegistryEntry is ApproveAndCallFallBack {
   onlyConstructed
   {
     require(isVoteCommitPeriodActive());
-    uint amount = challenge.votingToken.balanceOf(msg.sender);
-    require(challenge.votingToken.transferFrom(msg.sender, this, amount));
-    challenge.voter[msg.sender].secretHash = _secretHash;
-    challenge.voter[msg.sender].amount = amount;
+    uint amount = challenge.votingToken.balanceOf(_voter);
+    require(amount > 0);
+    require(challenge.votingToken.transferFrom(_voter, this, amount));
+    challenge.voter[_voter].secretHash = _secretHash;
+    challenge.voter[_voter].amount = amount;
     registry.fireRegistryEntryEvent("voteCommited", version);
   }
 
   function revealVote(
     VoteOption _voteOption,
-    uint _salt
+    string _salt
   )
   public
   notEmergency
   onlyConstructed
   {
     require(isVoteRevealPeriodActive());
-    require(sha3(_voteOption, _salt) == challenge.voter[msg.sender].secretHash);
+    require(sha3(uint(_voteOption), _salt) == challenge.voter[msg.sender].secretHash);
     require(!hasVoterRevealed(msg.sender));
+
     challenge.voter[msg.sender].revealedOn = now;
     uint amount = challenge.voter[msg.sender].amount;
     challenge.voter[msg.sender].voteOption = _voteOption;
@@ -155,10 +156,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(hasVoterRevealed(_voter));
     require(votedWinningVoteOption(_voter));
     uint reward = voterReward(_voter);
-    require(registryToken.transferFrom(this, _voter, reward));
-
+    require(registryToken.transfer(_voter, reward));
     challenge.voter[_voter].claimedRewardOn = now;
-
     registry.fireRegistryEntryEvent("voterRewardClaimed", version);
   }
 
@@ -169,29 +168,29 @@ contract RegistryEntry is ApproveAndCallFallBack {
     bytes _data)
   public
   {
-//    require(this.call(_data));
+    require(this.call(_data));
   }
 
   function status() public constant returns (Status) {
-    if (isApplicationPeriodActive() && !wasChallenged()) {
-      return Status.ApplicationPeriod;
+    if (isChallengePeriodActive() && !wasChallenged()) {
+      return Status.ChallengePeriod;
     } else if (isVoteCommitPeriodActive()) {
-      return Status.CommitVotePeriod;
+      return Status.CommitPeriod;
     } else if (isVoteRevealPeriodActive()) {
-      return Status.RevealVotePeriod;
+      return Status.RevealPeriod;
     } else if (isVoteRevealPeriodOver()) {
       if (winningVoteIsFor()) {
         return Status.Whitelisted;
       } else {
-        return Status.VotedAgainst;
+        return Status.Blacklisted;
       }
     } else {
       return Status.Whitelisted;
     }
   }
 
-  function isApplicationPeriodActive() public constant returns (bool) {
-    return now <= entry.applicationEndDate;
+  function isChallengePeriodActive() public constant returns (bool) {
+    return now <= challengePeriodEnd;
   }
 
   function isWhitelisted() public constant returns (bool) {
@@ -203,9 +202,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
       return 0;
     }
     if (wasChallenged()) {
-      return challenge.revealEndDate;
+      return challenge.revealPeriodEnd;
     } else {
-      return entry.applicationEndDate;
+      return challengePeriodEnd;
     }
   }
 
@@ -214,15 +213,26 @@ contract RegistryEntry is ApproveAndCallFallBack {
   }
 
   function isVoteCommitPeriodActive() public constant returns (bool) {
-    return now <= challenge.commitEndDate;
+    return now <= challenge.commitPeriodEnd;
   }
 
   function isVoteRevealPeriodActive() public constant returns (bool) {
-    return !isVoteCommitPeriodActive() && now <= challenge.revealEndDate;
+    return !isVoteCommitPeriodActive() && now <= challenge.revealPeriodEnd;
   }
 
   function isVoteRevealPeriodOver() public constant returns (bool) {
-    return challenge.revealEndDate > 0 && now > challenge.revealEndDate;
+    return challenge.revealPeriodEnd > 0 && now > challenge.revealPeriodEnd;
+  }
+
+  function voter(address _voter) public constant returns (bytes32, VoteOption, uint, uint, uint) {
+    Voter vtr = challenge.voter[_voter];
+    return (
+    vtr.secretHash,
+    vtr.voteOption,
+    vtr.amount,
+    vtr.revealedOn,
+    vtr.claimedRewardOn
+    );
   }
 
   function hasVoterRevealed(address _voter) public constant returns (bool) {
@@ -272,5 +282,23 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
   function votedWinningVoteOption(address _voter) public constant returns (bool) {
     return challenge.voter[_voter].voteOption == winningVoteOption();
+  }
+
+  function loadRegistryEntry() public constant returns (uint, Status, address, uint, uint, address, address, uint, bytes, uint, uint, uint, uint) {
+    return (
+    version,
+    status(),
+    creator,
+    deposit,
+    challengePeriodEnd,
+    challenge.challenger,
+    challenge.votingToken,
+    challenge.rewardPool,
+    challenge.metaHash,
+    challenge.commitPeriodEnd,
+    challenge.revealPeriodEnd,
+    challenge.votesFor,
+    challenge.votesAgainst
+    );
   }
 }

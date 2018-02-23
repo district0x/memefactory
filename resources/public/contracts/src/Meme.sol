@@ -9,24 +9,16 @@ contract Meme is RegistryEntry {
   bytes32 public constant maxStartPriceKey = sha3("maxStartPrice");
   bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
   bytes32 public constant saleDurationKey = sha3("saleDuration");
-
-  struct Sale {
-    uint startPrice;
-    uint64 duration;
-  }
-
-  struct Meta {
-    MemeToken token;
-    bytes imageHash;
-    bytes metaHash;
-  }
-
-  Sale public sale;
-  Meta public meta;
+  
+  MemeToken token;
+  bytes imageHash;
+  bytes metaHash;
+  uint startPrice;
+  uint saleDuration;
 
   function construct(
-    uint _version,
     address _creator,
+    uint _version,
     string _name,
     bytes _imageHash,
     bytes _metaHash,
@@ -35,20 +27,21 @@ contract Meme is RegistryEntry {
   )
   public
   {
-    super.construct(_version, _creator);
+    super.construct(_creator, _version);
 
     require(_totalSupply > 0);
     require(_totalSupply <= registry.db().getUIntValue(maxTotalSupplyKey));
-    meta.token = MemeToken(new Forwarder());
-    meta.token.construct(_name);
-    meta.token.mint(this, _totalSupply);
-    meta.token.finishMinting();
+    token = MemeToken(new Forwarder());
+    token.construct(_name);
+    token.mint(this, _totalSupply);
+    token.finishMinting();
 
-    meta.imageHash = _imageHash;
-    meta.metaHash = _metaHash;
+    imageHash = _imageHash;
+    metaHash = _metaHash;
 
     require(_startPrice <= registry.db().getUIntValue(maxStartPriceKey));
-    sale = Sale(_startPrice, uint64(registry.db().getUIntValue(saleDurationKey)));
+    startPrice = _startPrice;
+    saleDuration = registry.db().getUIntValue(saleDurationKey);
   }
 
   function buy(uint _amount)
@@ -63,8 +56,8 @@ contract Meme is RegistryEntry {
     var price = currentPrice() * _amount;
 
     require(msg.value >= price);
-    require(meta.token.transfer(msg.sender, _amount));
-    entry.creator.transfer(msg.value);
+    require(token.transfer(msg.sender, _amount));
+    creator.transfer(msg.value);
     if (msg.value > price) {
       msg.sender.transfer(msg.value - price);
     }
@@ -80,8 +73,8 @@ contract Meme is RegistryEntry {
     }
 
     return computeCurrentPrice(
-      sale.startPrice,
-      sale.duration,
+      startPrice,
+      saleDuration,
       secondsPassed
     );
   }
@@ -107,5 +100,15 @@ contract Meme is RegistryEntry {
 
       return uint(currentPrice);
     }
+  }
+
+  function loadMeme() public constant returns (uint, uint, address, bytes, bytes) {
+    return (
+    startPrice,
+    saleDuration,
+    token,
+    imageHash,
+    metaHash
+    );
   }
 }

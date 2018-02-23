@@ -31,18 +31,17 @@ contract MemeFactory is ApproveAndCallFallBack {
     require(registryToken.transferFrom(_creator, this, deposit));
     require(registryToken.approve(meme, deposit));
 
+    registry.addRegistryEntry(meme);
+
     meme.construct(
+      _creator,
       version,
-      msg.sender,
       _name,
       _imageHash,
       _metaHash,
       _totalSupply,
       _startPrice
     );
-
-    registry.addRegistryEntry(meme);
-    registry.fireRegistryEntryEvent(meme, "added", version, new uint[](0));
   }
 
   function receiveApproval(

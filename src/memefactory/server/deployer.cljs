@@ -7,7 +7,7 @@
     [district.server.smart-contracts :refer [contract-address deploy-smart-contract! write-smart-contracts!]]
     [district.server.web3 :refer [web3]]
     [memefactory.server.contract.eternal-db :as eternal-db]
-    [memefactory.server.contract.dank-token :as mfm]
+    [memefactory.server.contract.dank-token :as dank-token]
     [memefactory.server.contract.ownable :as ownable]
     [memefactory.server.contract.registry :as registry]
     [mount.core :as mount :refer [defstate]]))
@@ -21,11 +21,13 @@
 (def dank-token-placeholder "deaddeaddeaddeaddeaddeaddeaddeaddeaddead")
 (def forwarder-target-placeholder "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
 
-(defn deploy-dank-token! [{:keys [:minime-factory-address] :as default-opts
-                           :or {minime-factory-address 0}}]
+(defn deploy-dank-token! [default-opts]
   (deploy-smart-contract! :DANK (merge default-opts {:gas 2200000
-                                                     :arguments [minime-factory-address
+                                                     :arguments [(contract-address :minime-token-factory)
                                                                  (web3/to-wei 1000000000 :ether)]})))
+
+(defn deploy-minime-token-factory! [default-opts]
+  (deploy-smart-contract! :minime-token-factory (merge default-opts {:gas 2300000})))
 
 (defn deploy-meme-registry-db! [default-opts]
   (deploy-smart-contract! :meme-registry-db (merge default-opts {:gas 1700000})))
@@ -38,7 +40,7 @@
   (deploy-smart-contract! :meme-registry (merge default-opts {:gas 1000000})))
 
 (defn deploy-parameter-registry! [default-opts]
-  (deploy-smart-contract! :parameter-registry (merge default-opts {:gas 1000000})))
+  (deploy-smart-contract! :parameter-registry (merge default-opts {:gas 1200000})))
 
 (defn deploy-meme-registry-fwd! [default-opts]
   (deploy-smart-contract! :meme-registry-fwd (merge default-opts {:gas 500000
@@ -82,10 +84,11 @@
                                                                          {forwarder-target-placeholder :parameter-change}})))
 
 
-(defn deploy [{:keys [:write? :initial-registry-params :transfer-mfm-to-accounts]
+(defn deploy [{:keys [:write? :initial-registry-params :transfer-dank-token-to-accounts]
                :as deploy-opts}]
   (let [accounts (web3-eth/accounts @web3)
         deploy-opts (merge {:from (first accounts)} deploy-opts)]
+    (deploy-minime-token-factory! deploy-opts)
     (deploy-dank-token! deploy-opts)
     (deploy-meme-registry-db! deploy-opts)
     (deploy-parameter-registry-db! deploy-opts)
@@ -122,10 +125,10 @@
     (registry/set-factory [:parameter-registry :parameter-registry-fwd]
                           {:factory (contract-address :parameter-factory) :factory? true})
 
-    (when (pos? transfer-mfm-to-accounts)
-      (doseq [account (take transfer-mfm-to-accounts (rest accounts))]
-        (mfm/transfer {:to account :amount (web3/to-wei 15000 :ether)}
-                      {:from (first accounts)})))
+    (when (pos? transfer-dank-token-to-accounts)
+      (doseq [account (take transfer-dank-token-to-accounts (rest accounts))]
+        (dank-token/transfer {:to account :amount (web3/to-wei 15000 :ether)}
+                             {:from (first accounts)})))
 
     (when write?
       (write-smart-contracts!))))
