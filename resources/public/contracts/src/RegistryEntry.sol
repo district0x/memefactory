@@ -4,8 +4,11 @@ import "Registry.sol";
 import "forwarder/Forwarder.sol";
 import "db/EternalDb.sol";
 import "token/minime/MiniMeToken.sol";
+import "math/SafeMath.sol";
 
 contract RegistryEntry is ApproveAndCallFallBack {
+  using SafeMath for uint;
+
   Registry public constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
   MiniMeToken public constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
   bytes32 public constant challengePeriodDurationKey = sha3("challengePeriodDuration");
@@ -13,6 +16,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
   bytes32 public constant revealPeriodDurationKey = sha3("revealPeriodDuration");
   bytes32 public constant depositKey = sha3("deposit");
   bytes32 public constant challengeDispensationKey = sha3("challengeDispensation");
+  bytes32 public constant voteQuorumKey = sha3("voteQuorum");
 
   enum Status {ChallengePeriod, CommitPeriod, RevealPeriod, Blacklisted, Whitelisted}
 
@@ -25,6 +29,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
   struct Challenge {
     address challenger;
     MiniMeToken votingToken;
+    uint voteQuorum;
     uint rewardPool;
     bytes metaHash;
     uint commitPeriodEnd;
@@ -64,7 +69,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     deposit = registry.db().getUIntValue(depositKey);
 
     require(registryToken.transferFrom(msg.sender, this, deposit));
-    challengePeriodEnd = now + registry.db().getUIntValue(challengePeriodDurationKey);
+    challengePeriodEnd = now.add(registry.db().getUIntValue(challengePeriodDurationKey));
     creator = _creator;
 
     version = _version;
@@ -87,12 +92,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.challenger = _challenger;
     challenge.votingToken = MiniMeToken(registryToken.createCloneToken("", 18, "", 0, true));
     challenge.votingToken.changeController(0x0);
+    challenge.voteQuorum = registry.db().getUIntValue(voteQuorumKey);
     uint commitDuration = registry.db().getUIntValue(commitPeriodDurationKey);
     uint revealDuration = registry.db().getUIntValue(revealPeriodDurationKey);
     uint deposit = registry.db().getUIntValue(depositKey);
-    challenge.commitPeriodEnd = now + commitDuration;
-    challenge.revealPeriodEnd = challenge.commitPeriodEnd + revealDuration;
-    challenge.rewardPool = ((100 - registry.db().getUIntValue(challengeDispensationKey)) * deposit) / 100;
+    challenge.commitPeriodEnd = now.add(commitDuration);
+    challenge.revealPeriodEnd = challenge.commitPeriodEnd.add(revealDuration);
+    challenge.rewardPool = ((100 - registry.db().getUIntValue(challengeDispensationKey)).mul(deposit)) / 100;
     challenge.metaHash = _challengeMetaHash;
 
     registry.fireRegistryEntryEvent("challengeCreated", version);
@@ -131,9 +137,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
     uint amount = challenge.voter[msg.sender].amount;
     challenge.voter[msg.sender].voteOption = _voteOption;
     if (_voteOption == VoteOption.VoteFor) {
-      challenge.votesFor += amount;
+      challenge.votesFor = challenge.votesFor.add(amount);
     } else if (_voteOption == VoteOption.VoteAgainst) {
-      challenge.votesAgainst += amount;
+      challenge.votesAgainst = challenge.votesAgainst.add(amount);
     } else {
       revert();
     }
@@ -197,6 +203,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
     return status() == Status.Whitelisted;
   }
 
+  function isBlacklisted() public constant returns (bool) {
+    return status() == Status.Blacklisted;
+  }
+
   function whitelistedOn() public constant returns (uint) {
     if (!isWhitelisted()) {
       return 0;
@@ -248,7 +258,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
       return VoteOption.NoVote;
     }
 
-    if (challenge.votesFor > challenge.votesAgainst) {
+    if (challenge.votesFor.mul(100) > challenge.voteQuorum.mul(challenge.votesFor.add(challenge.votesAgainst))) {
       return VoteOption.VoteFor;
     } else {
       return VoteOption.VoteAgainst;
@@ -277,7 +287,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     if (votedWinningVoteOption(_voter)) {
       voterAmount = challenge.voter[_voter].amount;
     }
-    return (voterAmount * challenge.rewardPool) / tokensCount;
+    return (voterAmount.mul(challenge.rewardPool)) / tokensCount;
   }
 
   function votedWinningVoteOption(address _voter) public constant returns (bool) {

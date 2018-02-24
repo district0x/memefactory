@@ -1,9 +1,9 @@
 pragma solidity ^0.4.18;
 
-import "./ownership/Ownable.sol";
-import "./db/EternalDb.sol";
+import "auth/DSAuth.sol";
+import "db/EternalDb.sol";
 
-contract Registry is Ownable {
+contract Registry is DSAuth {
   event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version, uint[] data);
 
   EternalDb public db;
@@ -22,8 +22,8 @@ contract Registry is Ownable {
     _;
   }
 
-  modifier onlyRegistryEntryOrFactory() {
-    require(isRegistryEntry(msg.sender) || isFactory(msg.sender));
+  modifier onlyRegistryEntry() {
+    require(isRegistryEntry(msg.sender));
     _;
   }
 
@@ -33,7 +33,7 @@ contract Registry is Ownable {
   }
 
   function setFactory(address factory, bool _isFactory)
-  onlyOwner
+  auth
   {
     db.setBooleanValue(sha3("isFactory", factory), _isFactory);
   }
@@ -46,27 +46,21 @@ contract Registry is Ownable {
   }
 
   function setEmergency(bool _isEmergency)
-  onlyOwner
+  auth
   {
     db.setBooleanValue(sha3("isEmergency"), _isEmergency);
   }
 
   function fireRegistryEntryEvent(bytes32 eventType, uint version)
-  onlyRegistryEntryOrFactory
+  onlyRegistryEntry
   {
     fireRegistryEntryEvent(eventType, version, new uint[](0));
   }
 
   function fireRegistryEntryEvent(bytes32 eventType, uint version, uint[] data)
-  onlyRegistryEntryOrFactory
+  onlyRegistryEntry
   {
     RegistryEntryEvent(msg.sender, eventType, version, data);
-  }
-
-  function transferEternalDbOwnership(address newOwner)
-  onlyOwner
-  {
-    db.transferOwnership(newOwner);
   }
 
   function isFactory(address factory) public constant returns (bool) {

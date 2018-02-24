@@ -56,8 +56,10 @@
                             :endpoints {:port 6300
                                         :middlewares [logging-middlewares]}
                             :web3 {:port 8549}
-                            :generator {:use-accounts 1
-                                        :memes-per-account 1}
+                            :generator {:memes/use-accounts 1
+                                        :memes/items-per-account 1
+                                        :param-changes/use-accounts 1
+                                        :param-changes/items-per-account 1}
                             :deployer {:transfer-dank-token-to-accounts 1
                                        :initial-registry-params
                                        {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
@@ -65,14 +67,16 @@
                                                         :reveal-period-duration (t/in-seconds (t/minutes 1))
                                                         :deposit (web3/to-wei 1000 :ether)
                                                         :challenge-dispensation 50
-                                                        :max-start-price (web3/to-wei 1000 :ether)
+                                                        :vote-quorum 50
+                                                        :max-start-price (web3/to-wei 1 :ether)
                                                         :max-total-supply 10000
                                                         :sale-duration (t/in-seconds (t/minutes 10))}
-                                        :parameter-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                                                             :commit-period-duration (t/in-seconds (t/minutes 2))
-                                                             :reveal-period-duration (t/in-seconds (t/minutes 1))
-                                                             :deposit (web3/to-wei 1000 :ether)
-                                                             :challenge-dispensation 50}}}}}
+                                        :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                                                                :commit-period-duration (t/in-seconds (t/minutes 2))
+                                                                :reveal-period-duration (t/in-seconds (t/minutes 1))
+                                                                :deposit (web3/to-wei 1000 :ether)
+                                                                :challenge-dispensation 50
+                                                                :vote-quorum 50}}}}}
          :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                            :print-gas-usage? true
                            :auto-mining? true}})

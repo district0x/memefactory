@@ -6,9 +6,10 @@
     [district.server.config :refer [config]]
     [district.server.smart-contracts :refer [contract-address deploy-smart-contract! write-smart-contracts!]]
     [district.server.web3 :refer [web3]]
-    [memefactory.server.contract.eternal-db :as eternal-db]
     [memefactory.server.contract.dank-token :as dank-token]
-    [memefactory.server.contract.ownable :as ownable]
+    [memefactory.server.contract.ds-auth :as ds-auth]
+    [memefactory.server.contract.ds-guard :as ds-guard]
+    [memefactory.server.contract.eternal-db :as eternal-db]
     [memefactory.server.contract.registry :as registry]
     [mount.core :as mount :refer [defstate]]))
 
@@ -29,45 +30,48 @@
 (defn deploy-minime-token-factory! [default-opts]
   (deploy-smart-contract! :minime-token-factory (merge default-opts {:gas 2300000})))
 
+(defn deploy-ds-guard! [default-opts]
+  (deploy-smart-contract! :ds-guard (merge default-opts {:gas 1000000})))
+
 (defn deploy-meme-registry-db! [default-opts]
   (deploy-smart-contract! :meme-registry-db (merge default-opts {:gas 1700000})))
 
-(defn deploy-parameter-registry-db! [default-opts]
-  (deploy-smart-contract! :parameter-registry-db (merge default-opts {:gas 1700000})))
+(defn deploy-param-change-registry-db! [default-opts]
+  (deploy-smart-contract! :param-change-registry-db (merge default-opts {:gas 1700000})))
 
 
 (defn deploy-meme-registry! [default-opts]
   (deploy-smart-contract! :meme-registry (merge default-opts {:gas 1000000})))
 
-(defn deploy-parameter-registry! [default-opts]
-  (deploy-smart-contract! :parameter-registry (merge default-opts {:gas 1200000})))
+(defn deploy-param-change-registry! [default-opts]
+  (deploy-smart-contract! :param-change-registry (merge default-opts {:gas 1700000})))
 
 (defn deploy-meme-registry-fwd! [default-opts]
   (deploy-smart-contract! :meme-registry-fwd (merge default-opts {:gas 500000
                                                                   :placeholder-replacements
                                                                   {forwarder-target-placeholder :meme-registry}})))
 
-(defn deploy-parameter-registry-fwd! [default-opts]
-  (deploy-smart-contract! :parameter-registry-fwd (merge default-opts
-                                                         {:gas 500000
-                                                          :placeholder-replacements
-                                                          {forwarder-target-placeholder :parameter-registry}})))
+(defn deploy-param-change-registry-fwd! [default-opts]
+  (deploy-smart-contract! :param-change-registry-fwd (merge default-opts
+                                                            {:gas 500000
+                                                             :placeholder-replacements
+                                                             {forwarder-target-placeholder :param-change-registry}})))
 
 (defn deploy-meme-token! [default-opts]
   (deploy-smart-contract! :meme-token (merge default-opts {:gas 1300000})))
 
 (defn deploy-meme! [default-opts]
-  (deploy-smart-contract! :meme (merge default-opts {:gas 3200000
+  (deploy-smart-contract! :meme (merge default-opts {:gas 3700000
                                                      :placeholder-replacements
                                                      {dank-token-placeholder :DANK
                                                       registry-placeholder :meme-registry-fwd
                                                       forwarder-target-placeholder :meme-token}})))
 
-(defn deploy-parameter-change! [default-opts]
-  (deploy-smart-contract! :parameter-change (merge default-opts {:gas 2500000
-                                                                 :placeholder-replacements
-                                                                 {dank-token-placeholder :DANK
-                                                                  registry-placeholder :meme-registry-fwd}})))
+(defn deploy-param-change! [default-opts]
+  (deploy-smart-contract! :param-change (merge default-opts {:gas 3000000
+                                                             :placeholder-replacements
+                                                             {dank-token-placeholder :DANK
+                                                              registry-placeholder :meme-registry-fwd}})))
 
 
 (defn deploy-meme-factory! [default-opts]
@@ -77,53 +81,73 @@
                                                              :placeholder-replacements
                                                              {forwarder-target-placeholder :meme}})))
 
-(defn deploy-parameter-change-factory! [default-opts]
-  (deploy-smart-contract! :parameter-change-factory (merge default-opts {:gas 1000000
-                                                                         :arguments [(contract-address :parameter-registry-fwd)]
-                                                                         :placeholder-replacements
-                                                                         {forwarder-target-placeholder :parameter-change}})))
+(defn deploy-param-change-factory! [default-opts]
+  (deploy-smart-contract! :param-change-factory (merge default-opts {:gas 1000000
+                                                                     :arguments [(contract-address :param-change-registry-fwd)]
+                                                                     :placeholder-replacements
+                                                                     {forwarder-target-placeholder :param-change}})))
 
 
 (defn deploy [{:keys [:write? :initial-registry-params :transfer-dank-token-to-accounts]
                :as deploy-opts}]
   (let [accounts (web3-eth/accounts @web3)
         deploy-opts (merge {:from (first accounts)} deploy-opts)]
+    (deploy-ds-guard! deploy-opts)
     (deploy-minime-token-factory! deploy-opts)
     (deploy-dank-token! deploy-opts)
     (deploy-meme-registry-db! deploy-opts)
-    (deploy-parameter-registry-db! deploy-opts)
+    (deploy-param-change-registry-db! deploy-opts)
 
     (deploy-meme-registry! deploy-opts)
-    (deploy-parameter-registry! deploy-opts)
+    (deploy-param-change-registry! deploy-opts)
 
     (deploy-meme-registry-fwd! deploy-opts)
-    (deploy-parameter-registry-fwd! deploy-opts)
+    (deploy-param-change-registry-fwd! deploy-opts)
 
     (registry/construct [:meme-registry :meme-registry-fwd]
-                        {:db (contract-address :meme-registry-db)})
+                        {:db (contract-address :meme-registry-db)}
+                        deploy-opts)
 
-    (registry/construct [:parameter-registry :parameter-registry-fwd]
-                        {:db (contract-address :parameter-registry-db)})
+    (registry/construct [:param-change-registry :param-change-registry-fwd]
+                        {:db (contract-address :param-change-registry-db)}
+                        deploy-opts)
 
     (deploy-meme-token! deploy-opts)
 
     (deploy-meme! deploy-opts)
-    (deploy-parameter-change! deploy-opts)
+    (deploy-param-change! deploy-opts)
 
     (deploy-meme-factory! deploy-opts)
-    (deploy-parameter-change-factory! deploy-opts)
+    (deploy-param-change-factory! deploy-opts)
 
-    (eternal-db/set-uint-values :meme-registry-db (:meme-registry initial-registry-params))
-    (eternal-db/set-uint-values :parameter-registry-db (:parameter-registry initial-registry-params))
+    (eternal-db/set-uint-values :meme-registry-db (:meme-registry initial-registry-params) deploy-opts)
+    (eternal-db/set-uint-values :param-change-registry-db (:param-change-registry initial-registry-params) deploy-opts)
 
-    (ownable/transfer-ownership :meme-registry-db {:new-owner (contract-address :meme-registry-fwd)})
-    (ownable/transfer-ownership :parameter-registry-db {:new-owner (contract-address :parameter-registry-fwd)})
+    (ds-auth/set-authority :meme-registry-db (contract-address :ds-guard) deploy-opts)
+    (ds-auth/set-authority :param-change-registry-db (contract-address :ds-guard) deploy-opts)
+    (ds-auth/set-owner :meme-registry-db 0)
+    (ds-auth/set-owner :param-change-registry-db 0)
+
+    (ds-guard/permit {:src (contract-address :meme-registry-fwd)
+                      :dst (contract-address :meme-registry-db)
+                      :sig ds-guard/ANY}
+                     deploy-opts)
+
+    (ds-guard/permit {:src (contract-address :param-change-registry-fwd)
+                      :dst (contract-address :meme-registry-db)
+                      :sig ds-guard/ANY}
+                     deploy-opts)
+
+    (ds-guard/permit {:src (contract-address :param-change-registry-fwd)
+                      :dst (contract-address :param-change-registry-db)
+                      :sig ds-guard/ANY}
+                     deploy-opts)
 
     (registry/set-factory [:meme-registry :meme-registry-fwd]
                           {:factory (contract-address :meme-factory) :factory? true})
 
-    (registry/set-factory [:parameter-registry :parameter-registry-fwd]
-                          {:factory (contract-address :parameter-factory) :factory? true})
+    (registry/set-factory [:param-change-registry :param-change-registry-fwd]
+                          {:factory (contract-address :param-factory) :factory? true})
 
     (when (pos? transfer-dank-token-to-accounts)
       (doseq [account (take transfer-dank-token-to-accounts (rest accounts))]
@@ -132,4 +156,3 @@
 
     (when write?
       (write-smart-contracts!))))
-

@@ -1,7 +1,7 @@
 (ns memefactory.server.contract.meme
   (:require
-    [camel-snake-kebab.core :as cs :include-macros true]
-    [cljs-web3.eth :as web3-eth]
-    [district.server.smart-contracts :refer [contract-call instance contract-address]]
-    [memefactory.server.contract.dank-token :as dank-token]))
+    [district.server.smart-contracts :refer [contract-call instance contract-address]]))
+
+(defn buy [contract-addr amount & [opts]]
+  (contract-call (instance :meme contract-addr) :buy amount (merge opts {:gas 500000})))
 

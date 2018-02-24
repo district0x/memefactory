@@ -1,20 +1,14 @@
 pragma solidity ^0.4.18;
 
-import "Registry.sol";
+import "RegistryEntryFactory.sol";
 import "Meme.sol";
-import "forwarder/Forwarder.sol";
-import "token/minime/MiniMeToken.sol";
 
-contract MemeFactory is ApproveAndCallFallBack {
-  Registry public registry;
-  MiniMeToken public registryToken;
-  bytes32 public constant depositKey = sha3("deposit");
+contract MemeFactory is RegistryEntryFactory {
   uint public constant version = 1;
 
-  function MemeFactory(Registry _registry, MiniMeToken _registryToken) {
-    registry = _registry;
-    registryToken = _registryToken;
-  }
+  function MemeFactory(Registry _registry, MiniMeToken _registryToken)
+  RegistryEntryFactory(_registry, _registryToken)
+  {}
 
   function createMeme(
     address _creator,
@@ -26,12 +20,7 @@ contract MemeFactory is ApproveAndCallFallBack {
   )
   public
   {
-    uint deposit = registry.db().getUIntValue(depositKey);
-    Meme meme = Meme(new Forwarder());
-    require(registryToken.transferFrom(_creator, this, deposit));
-    require(registryToken.approve(meme, deposit));
-
-    registry.addRegistryEntry(meme);
+    Meme meme = Meme(createRegistryEntry(_creator));
 
     meme.construct(
       _creator,
@@ -42,16 +31,5 @@ contract MemeFactory is ApproveAndCallFallBack {
       _totalSupply,
       _startPrice
     );
-  }
-
-  function receiveApproval(
-    address from,
-    uint256 _amount,
-    address _token,
-    bytes _data)
-  public
-  {
-    require(_token == address(registryToken));
-    require(this.call(_data));
   }
 }

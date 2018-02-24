@@ -11,6 +11,7 @@
     [district.server.web3 :refer [web3]]
     [memefactory.server.contract.dank-token :as dank-token]
     [memefactory.server.contract.eternal-db :as eternal-db]
+    [memefactory.server.contract.meme :as meme]
     [memefactory.server.contract.meme-factory :as meme-factory]
     [memefactory.server.contract.meme-registry :as meme-registry]
     [memefactory.server.contract.minime-token :as minime-token]
@@ -24,65 +25,82 @@
 
 (defonce *registry-entry* (atom nil))
 
-(defn start [{:keys [:use-accounts :memes-per-account]}]
-  (let [accounts (web3-eth/accounts @web3)
-        [max-total-supply max-start-price deposit commit-period-duration reveal-period-duration]
-        (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-start-price :deposit :commit-period-duration
-                                                            :reveal-period-duration])
-          (map bn/number))]
-    (dotimes [address-index use-accounts]
-      (dotimes [_ memes-per-account]
-        (let [owner (nth accounts address-index)
-              name (rand-str 10)
-              image-hash (rand-str 32)
-              meta-hash (rand-str 32)
-              total-supply (inc (rand-int max-total-supply))
-              start-price (inc (rand-int max-start-price))]
+(defn generate-memes [{:keys [:memes/use-accounts :memes/items-per-account]}]
+  (when (and (pos? use-accounts) (pos? items-per-account))
+    (let [accounts (web3-eth/accounts @web3)
+          [max-total-supply max-start-price deposit commit-period-duration reveal-period-duration]
+          (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-start-price :deposit :commit-period-duration
+                                                              :reveal-period-duration])
+            (map bn/number))]
+      (dotimes [address-index use-accounts]
+        (dotimes [_ items-per-account]
+          (let [creator (nth accounts address-index)
+                name (rand-str 10)
+                image-hash (rand-str 32)
+                meta-hash (rand-str 32)
+                total-supply (inc (rand-int max-total-supply))
+                start-price (inc (rand-int max-start-price))]
 
-          (let [tx-hash (meme-factory/approve-and-create-meme {:name name
-                                                               :image-hash image-hash
-                                                               :meta-hash meta-hash
-                                                               :total-supply total-supply
-                                                               :start-price start-price
-                                                               :amount deposit}
-                                                              {:from owner})]
+            (let [tx-hash (meme-factory/approve-and-create-meme {:name name
+                                                                 :image-hash image-hash
+                                                                 :meta-hash meta-hash
+                                                                 :total-supply total-supply
+                                                                 :start-price start-price
+                                                                 :amount deposit}
+                                                                {:from creator})]
 
-            (let [{{:keys [:registryEntry]} :args} (meme-registry/registry-entry-event-in-tx tx-hash)]
+              (let [{{:keys [:registryEntry]} :args} (meme-registry/registry-entry-event-in-tx tx-hash)]
 
-              (registry-entry/approve-and-create-challenge registryEntry
-                                                           {:meta-hash (rand-str 32)
-                                                            :amount deposit}
-                                                           {:from owner})
+                (registry-entry/approve-and-create-challenge registryEntry
+                                                             {:meta-hash (rand-str 32)
+                                                              :amount deposit}
+                                                             {:from creator})
 
-              (let [{:keys [:challenge/voting-token :reg-entry/creator]} (registry-entry/load-registry-entry registryEntry)
-                    balance (minime-token/balance-of [:DANK voting-token] creator)]
+                (let [{:keys [:challenge/voting-token :reg-entry/creator]} (registry-entry/load-registry-entry registryEntry)
+                      balance (minime-token/balance-of [:DANK voting-token] creator)]
 
-                (registry-entry/approve-and-commit-vote registryEntry
-                                                        {:voting-token voting-token
-                                                         :amount balance
-                                                         :salt "abc"
-                                                         :vote-option :vote-option/vote-for}
-                                                        {:from creator})
+                  (registry-entry/approve-and-commit-vote registryEntry
+                                                          {:voting-token voting-token
+                                                           :amount balance
+                                                           :salt "abc"
+                                                           :vote-option :vote-option/vote-for}
+                                                          {:from creator})
 
-                (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
-                (web3-evm/mine! @web3)
+                  (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
+                  (web3-evm/mine! @web3)
 
-                (registry-entry/reveal-vote registryEntry
-                                            {:vote-option :vote-option/vote-for
-                                             :salt "abc"}
-                                            {:from creator})
+                  (registry-entry/reveal-vote registryEntry
+                                              {:vote-option :vote-option/vote-for
+                                               :salt "abc"}
+                                              {:from creator})
 
-                (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
-                (web3-evm/mine! @web3)
+                  (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
+                  (web3-evm/mine! @web3)
 
-                (registry-entry/claim-voter-reward registryEntry {:from creator})
+                  (registry-entry/claim-voter-reward registryEntry {:from creator})
 
-                (print.foo/look (registry-entry/voter registryEntry creator))
-                (print.foo/look (registry-entry/load-registry-entry registryEntry)))
+                  (meme/buy registryEntry 1 {:from creator :value start-price})
 
-              (reset! *registry-entry* registryEntry))))
-        ))))
+                  (print.foo/look (registry-entry/load-registry-entry registryEntry)))
 
+                (reset! *registry-entry* registryEntry)))))))))
+
+
+(defn generate-param-changes [{:keys [:param-changes/use-accounts :param-changes/items-per-account]}]
+  (when (and (pos? use-accounts) (pos? items-per-account))
+    (let [accounts (web3-eth/accounts @web3)
+          [deposit commit-period-duration reveal-period-duration]
+          (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :commit-period-duration :reveal-period-duration])
+            (map bn/number))]
+      (dotimes [address-index use-accounts]
+        (dotimes [_ items-per-account]
+          (let [creator (nth accounts address-index)]
+            ))))))
+
+
+(defn start [opts]
+  (generate-memes opts)
+  (generate-param-changes opts))
 
 
 (comment

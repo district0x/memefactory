@@ -9,7 +9,6 @@ contract Meme is RegistryEntry {
   bytes32 public constant maxStartPriceKey = sha3("maxStartPrice");
   bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
   bytes32 public constant saleDurationKey = sha3("saleDuration");
-  
   MemeToken token;
   bytes imageHash;
   bytes metaHash;
@@ -53,13 +52,13 @@ contract Meme is RegistryEntry {
     require(isWhitelisted());
     require(_amount > 0);
 
-    var price = currentPrice() * _amount;
+    var price = currentPrice().mul(_amount);
 
     require(msg.value >= price);
     require(token.transfer(msg.sender, _amount));
-    creator.transfer(msg.value);
+    creator.transfer(price);
     if (msg.value > price) {
-      msg.sender.transfer(msg.value - price);
+      msg.sender.transfer(msg.value.sub(price));
     }
     registry.fireRegistryEntryEvent("buy", version);
   }
@@ -69,7 +68,7 @@ contract Meme is RegistryEntry {
     uint listedOn = whitelistedOn();
 
     if (now > listedOn && listedOn > 0) {
-      secondsPassed = now - listedOn;
+      secondsPassed = now.sub(listedOn);
     }
 
     return computeCurrentPrice(

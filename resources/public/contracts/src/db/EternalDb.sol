@@ -1,8 +1,8 @@
 pragma solidity ^0.4.18;
 
-import "../ownership/Ownable.sol";
+import "../auth/DSAuth.sol";
 
-contract EternalDb is Ownable {
+contract EternalDb is DSAuth {
 
   enum Types {UInt, String, Address, Bytes, Bytes32, Boolean, Int}
 
@@ -27,13 +27,13 @@ contract EternalDb is Ownable {
   }
 
   function setUIntValue(bytes32 record, uint value)
-  onlyOwner
+  auth
   {
     UIntStorage[record] = value;
   }
 
   function setUIntValues(bytes32[] records, uint[] values)
-  onlyOwner
+  auth
   {
     for (uint i = 0; i < records.length; i++) {
       UIntStorage[records[i]] = values[i];
@@ -41,7 +41,7 @@ contract EternalDb is Ownable {
   }
 
   function deleteUIntValue(bytes32 record)
-  onlyOwner
+  auth
   {
     delete UIntStorage[record];
   }
@@ -57,13 +57,13 @@ contract EternalDb is Ownable {
   }
 
   function setStringValue(bytes32 record, string value)
-  onlyOwner
+  auth
   {
     StringStorage[record] = value;
   }
 
   function deleteStringValue(bytes32 record)
-  onlyOwner
+  auth
   {
     delete StringStorage[record];
   }
@@ -79,7 +79,7 @@ contract EternalDb is Ownable {
   }
 
   function setAddressValues(bytes32[] records, address[] values)
-  onlyOwner
+  auth
   {
     for (uint i = 0; i < records.length; i++) {
       AddressStorage[records[i]] = values[i];
@@ -87,13 +87,13 @@ contract EternalDb is Ownable {
   }
 
   function setAddressValue(bytes32 record, address value)
-  onlyOwner
+  auth
   {
     AddressStorage[record] = value;
   }
 
   function deleteAddressValue(bytes32 record)
-  onlyOwner
+  auth
   {
     delete AddressStorage[record];
   }
@@ -109,13 +109,13 @@ contract EternalDb is Ownable {
   }
 
   function setBytesValue(bytes32 record, bytes value)
-  onlyOwner
+  auth
   {
     BytesStorage[record] = value;
   }
 
   function deleteBytesValue(bytes32 record)
-  onlyOwner
+  auth
   {
     delete BytesStorage[record];
   }
@@ -138,13 +138,13 @@ contract EternalDb is Ownable {
   }
 
   function setBytes32Value(bytes32 record, bytes32 value)
-  onlyOwner
+  auth
   {
     Bytes32Storage[record] = value;
   }
 
   function setBytes32Values(bytes32[] records, bytes32[] values)
-  onlyOwner
+  auth
   {
     for (uint i = 0; i < records.length; i++) {
       Bytes32Storage[records[i]] = values[i];
@@ -152,7 +152,7 @@ contract EternalDb is Ownable {
   }
 
   function deleteBytes32Value(bytes32 record)
-  onlyOwner
+  auth
   {
     delete Bytes32Storage[record];
   }
@@ -175,13 +175,13 @@ contract EternalDb is Ownable {
   }
 
   function setBooleanValue(bytes32 record, bool value)
-  onlyOwner
+  auth
   {
     BooleanStorage[record] = value;
   }
 
   function setBooleanValues(bytes32[] records, bool[] values)
-  onlyOwner
+  auth
   {
     for (uint i = 0; i < records.length; i++) {
       BooleanStorage[records[i]] = values[i];
@@ -189,7 +189,7 @@ contract EternalDb is Ownable {
   }
 
   function deleteBooleanValue(bytes32 record)
-  onlyOwner
+  auth
   {
     delete BooleanStorage[record];
   }
@@ -211,13 +211,13 @@ contract EternalDb is Ownable {
   }
 
   function setIntValue(bytes32 record, int value)
-  onlyOwner
+  auth
   {
     IntStorage[record] = value;
   }
 
   function setIntValues(bytes32[] records, int[] values)
-  onlyOwner
+  auth
   {
     for (uint i = 0; i < records.length; i++) {
       IntStorage[records[i]] = values[i];
@@ -225,7 +225,7 @@ contract EternalDb is Ownable {
   }
 
   function deleteIntValue(bytes32 record)
-  onlyOwner
+  auth
   {
     delete IntStorage[record];
   }
