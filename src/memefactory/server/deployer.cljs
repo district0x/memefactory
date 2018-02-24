@@ -71,7 +71,7 @@
   (deploy-smart-contract! :param-change (merge default-opts {:gas 3000000
                                                              :placeholder-replacements
                                                              {dank-token-placeholder :DANK
-                                                              registry-placeholder :meme-registry-fwd}})))
+                                                              registry-placeholder :param-change-registry-fwd}})))
 
 
 (defn deploy-meme-factory! [default-opts]
@@ -83,7 +83,8 @@
 
 (defn deploy-param-change-factory! [default-opts]
   (deploy-smart-contract! :param-change-factory (merge default-opts {:gas 1000000
-                                                                     :arguments [(contract-address :param-change-registry-fwd)]
+                                                                     :arguments [(contract-address :param-change-registry-fwd)
+                                                                                 (contract-address :DANK)]
                                                                      :placeholder-replacements
                                                                      {forwarder-target-placeholder :param-change}})))
 
@@ -93,6 +94,8 @@
   (let [accounts (web3-eth/accounts @web3)
         deploy-opts (merge {:from (first accounts)} deploy-opts)]
     (deploy-ds-guard! deploy-opts)
+    (ds-auth/set-authority :ds-guard (contract-address :ds-guard))
+
     (deploy-minime-token-factory! deploy-opts)
     (deploy-dank-token! deploy-opts)
     (deploy-meme-registry-db! deploy-opts)
@@ -111,6 +114,11 @@
     (registry/construct [:param-change-registry :param-change-registry-fwd]
                         {:db (contract-address :param-change-registry-db)}
                         deploy-opts)
+
+    (ds-guard/permit {:src (contract-address :param-change-registry-fwd)
+                      :dst (contract-address :ds-guard)
+                      :sig ds-guard/ANY}
+                     deploy-opts)
 
     (deploy-meme-token! deploy-opts)
 
@@ -147,7 +155,7 @@
                           {:factory (contract-address :meme-factory) :factory? true})
 
     (registry/set-factory [:param-change-registry :param-change-registry-fwd]
-                          {:factory (contract-address :param-factory) :factory? true})
+                          {:factory (contract-address :param-change-factory) :factory? true})
 
     (when (pos? transfer-dank-token-to-accounts)
       (doseq [account (take transfer-dank-token-to-accounts (rest accounts))]

@@ -53,6 +53,7 @@
         (update :challenge/challenger #(when-not (empty-address? %) %))
         (update :challenge/voting-token #(when-not (empty-address? %) %))
         (update :challenge/reward-pool bn/number)
+        (update :challenge/meta-hash #(when-not (empty-address? %) %))
         (update :challenge/commit-period-end (if parse-dates? web3-time->local-date-time bn/number))
         (update :challenge/reveal-period-end (if parse-dates? web3-time->local-date-time bn/number))
         (update :challenge/votes-for bn/number)

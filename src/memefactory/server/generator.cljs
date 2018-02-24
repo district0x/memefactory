@@ -15,6 +15,9 @@
     [memefactory.server.contract.meme-factory :as meme-factory]
     [memefactory.server.contract.meme-registry :as meme-registry]
     [memefactory.server.contract.minime-token :as minime-token]
+    [memefactory.server.contract.param-change-factory :as param-change-factory]
+    [memefactory.server.contract.param-change-registry :as param-change-registry]
+    [memefactory.server.contract.registry :as registry]
     [memefactory.server.contract.registry-entry :as registry-entry]
     [memefactory.server.deployer]
     [mount.core :as mount :refer [defstate]]))
@@ -89,12 +92,32 @@
 (defn generate-param-changes [{:keys [:param-changes/use-accounts :param-changes/items-per-account]}]
   (when (and (pos? use-accounts) (pos? items-per-account))
     (let [accounts (web3-eth/accounts @web3)
-          [deposit commit-period-duration reveal-period-duration]
-          (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :commit-period-duration :reveal-period-duration])
+          [deposit challenge-period-duration]
+          (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
             (map bn/number))]
       (dotimes [address-index use-accounts]
         (dotimes [_ items-per-account]
-          (let [creator (nth accounts address-index)]
+          (let [creator (nth accounts address-index)
+                tx-hash1 (param-change-factory/approve-and-create-param-change {:db (contract-address :meme-registry-db)
+                                                                                :key :deposit
+                                                                                :value (web3/to-wei 800 :ether)
+                                                                                :amount deposit}
+                                                                               {:from creator})
+
+                tx-hash2 (param-change-factory/approve-and-create-param-change {:db (contract-address :param-change-registry-db)
+                                                                                :key :challenge-dispensation
+                                                                                :value 60
+                                                                                :amount deposit}
+                                                                               {:from creator})
+                registry-entry1 (:registryEntry (:args (param-change-registry/registry-entry-event-in-tx tx-hash1)))
+                registry-entry2 (:registryEntry (:args (param-change-registry/registry-entry-event-in-tx tx-hash2)))]
+
+            (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
+            (web3-evm/mine! @web3)
+
+            (param-change-registry/apply-param-change registry-entry1 {:from creator})
+            (param-change-registry/apply-param-change registry-entry2 {:from creator})
+
             ))))))
 
 

@@ -21,7 +21,7 @@ contract ParamChangeRegistry is Registry {
     require(address(prevParamChange) == 0x0 || prevParamChange.wasApplied() || prevParamChange.isBlacklisted());
     DSGuard guard = DSGuard(_paramChange.db().authority());
     guard.permit(_paramChange, _paramChange.db(), guard.ANY());
-    prevParamChange.applyChange();
+    _paramChange.applyChange();
     guard.forbid(_paramChange, _paramChange.db(), guard.ANY());
   }
 }

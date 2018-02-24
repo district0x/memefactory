@@ -25,7 +25,6 @@ contract DSGuardEvents {
     bytes32 indexed dst,
     bytes32 indexed sig
   );
-
   event LogForbid(
     bytes32 indexed src,
     bytes32 indexed dst,
@@ -34,9 +33,8 @@ contract DSGuardEvents {
 }
 
 contract DSGuard is DSAuth, DSAuthority, DSGuardEvents {
-  bytes32 constant public ANY = bytes32(uint(-1));
-
-  mapping (bytes32 => mapping (bytes32 => mapping (bytes32 => bool))) acl;
+  bytes32 constant public ANY = bytes32(uint(- 1));
+  mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => bool))) acl;
 
   function canCall(
     address src_, address dst_, bytes4 sig
@@ -67,13 +65,14 @@ contract DSGuard is DSAuth, DSAuthority, DSGuardEvents {
   function permit(address src, address dst, bytes32 sig) public {
     permit(bytes32(src), bytes32(dst), sig);
   }
+
   function forbid(address src, address dst, bytes32 sig) public {
     forbid(bytes32(src), bytes32(dst), sig);
   }
 }
 
 contract DSGuardFactory {
-  mapping (address => bool)  public  isGuard;
+  mapping(address => bool)  public  isGuard;
 
   function newGuard() public returns (DSGuard guard) {
     guard = new DSGuard();

@@ -30,6 +30,7 @@ contract ParamChange is RegistryEntry {
   function applyChange() public {
     require(!wasApplied());
     require(isWhitelisted());
+//    require(registryToken.transferFrom(this, creator, deposit)); ???
     db.setUIntValue(sha3(key), value);
     appliedOn = now;
   }
