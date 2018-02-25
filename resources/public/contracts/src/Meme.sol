@@ -4,6 +4,15 @@ import "RegistryEntry.sol";
 import "MemeToken.sol";
 import "forwarder/Forwarder.sol";
 
+/**
+ * @title Contract created for each submitted Meme into the MemeFactory TCR.
+ *
+ * @dev It extends base RegistryEntry with additional state for storing IPFS hashes for a meme image and meta data.
+ * It also contains state and logic for handling initial meme offering.
+ * Full copy of this contract is NOT deployed with each submission in order to save gas. Only forwarder contracts
+ * pointing into single intance of it.
+ */
+
 contract Meme is RegistryEntry {
 
   bytes32 public constant maxStartPriceKey = sha3("maxStartPrice");
@@ -15,6 +24,18 @@ contract Meme is RegistryEntry {
   uint startPrice;
   uint saleDuration;
 
+  /**
+   * @dev Constructor for this contract.
+   * Native constructor is not used, because users create only forwarders into single instance of this contract,
+   * therefore constructor must be called explicitly.
+
+   * @param _creator Creator of a meme
+   * @param _version Version of Meme contract
+   * @param _imageHash IPFS hash of meme image
+   * @param _metaHash IPFS hash of meta data related to a meme
+   * @param _totalSupply This meme's token total supply
+   * @param _startPrice Start price for initial meme offering
+   */
   function construct(
     address _creator,
     uint _version,
@@ -43,11 +64,17 @@ contract Meme is RegistryEntry {
     saleDuration = registry.db().getUIntValue(saleDurationKey);
   }
 
+  /**
+   * @dev Buys meme token from initial meme offering
+   * Creator of a meme gets ETH paid for a meme token
+   * If buyer sends more than is current price, extra ETH is sent back to the buyer
+
+   * @param _amount Amount of meme token desired to buy
+   */
   function buy(uint _amount)
   payable
   public
   notEmergency
-  onlyConstructed
   {
     require(isWhitelisted());
     require(_amount > 0);
@@ -63,6 +90,11 @@ contract Meme is RegistryEntry {
     registry.fireRegistryEntryEvent("buy", version);
   }
 
+  /**
+   * @dev Returns current price of a meme in initial meme offering.
+
+   * @return Current price of a meme
+   */
   function currentPrice() constant returns (uint) {
     uint secondsPassed = 0;
     uint listedOn = whitelistedOn();
@@ -78,14 +110,22 @@ contract Meme is RegistryEntry {
     );
   }
 
+  /**
+   * @dev Calculates current price of decreasing-price style auction
+
+   * @param _startPrice Start price of an auction
+   * @param _duration Total duration of an auction in seconds
+   * @param _secondsPassed Amount of seconds passed from the beginning of an auction
+
+   * @return Calculated price
+   */
   function computeCurrentPrice(uint _startPrice, uint _duration, uint _secondsPassed) constant returns (uint) {
     if (_secondsPassed >= _duration) {
       // We've reached the end of the dynamic pricing portion
       // of the auction, just return the end price.
       return 0;
     } else {
-      // Starting price can be higher than ending price (and often is!), so
-      // this delta can be negative.
+      // Starting price is higher than ending price, so this delta is negative.
       int totalPriceChange = 0 - int(_startPrice);
 
       // This multiplication can't overflow, _secondsPassed will easily fit within
@@ -101,6 +141,9 @@ contract Meme is RegistryEntry {
     }
   }
 
+  /**
+   * @dev Returns all state related to this contract for simpler offchain access
+   */
   function loadMeme() public constant returns (uint, uint, address, bytes, bytes) {
     return (
     startPrice,

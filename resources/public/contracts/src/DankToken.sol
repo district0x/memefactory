@@ -2,6 +2,12 @@ pragma solidity ^0.4.18;
 
 import "./token/minime/MiniMeToken.sol";
 
+/**
+ * @title Token used for curation of MemeFactory TCR
+ *
+ * @dev Standard MiniMe Token with pre-minted supply and with dead controller.
+ */
+
 contract DankToken is MiniMeToken {
   function DankToken(address _tokenFactory, uint _mintedAmount)
   MiniMeToken(

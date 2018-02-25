@@ -6,6 +6,15 @@ import "db/EternalDb.sol";
 import "token/minime/MiniMeToken.sol";
 import "math/SafeMath.sol";
 
+/**
+ * @title Contract created with each submission to a TCR
+ *
+ * @dev It contains all state and logic related to TCR challenging and voting
+ * Full copy of this contract is NOT deployed with each submission in order to save gas. Only forwarder contracts
+ * pointing into single intance of it.
+ * This contract is meant to be extended by domain specific registry entry contracts (Meme, ParamChange)
+ */
+
 contract RegistryEntry is ApproveAndCallFallBack {
   using SafeMath for uint;
 
@@ -49,16 +58,24 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
   enum VoteOption {NoVote, VoteFor, VoteAgainst}
 
+  /**
+   * @dev Modifier that disables function if registry is in emergency state
+   */
   modifier notEmergency() {
     require(!registry.isEmergency());
     _;
   }
 
-  modifier onlyConstructed() {
-    require(challengePeriodEnd > 0);
-    _;
-  }
+  /**
+   * @dev Constructor for this contract.
+   * Native constructor is not used, because users create only forwarders into single instance of this contract,
+   * therefore constructor must be called explicitly.
+   * Must NOT be callable multiple times
+   * Transfers TCR entry token deposit from sender into this contract
 
+   * @param _creator Creator of a meme
+   * @param _version Version of Meme contract
+   */
   function construct(
     address _creator,
     uint _version
@@ -77,13 +94,22 @@ contract RegistryEntry is ApproveAndCallFallBack {
     registry.fireRegistryEntryEvent("constructed", version);
   }
 
+  /**
+   * @dev Creates a challenge for this TCR entry
+   * Must be within challenge period
+   * Entry can be challenged only once
+   * Transfers token deposit from challenger into this contract
+   * Forks registry token (DankToken) in order to create single purpose voting token to vote about this challenge
+
+   * @param _challenger Address of a challenger
+   * @param _challengeMetaHash IPFS hash of meta data related to this challenge
+   */
   function createChallenge(
     address _challenger,
     bytes _challengeMetaHash
   )
   public
   notEmergency
-  onlyConstructed
   {
     require(isChallengePeriodActive());
     require(!wasChallenged());
@@ -104,13 +130,20 @@ contract RegistryEntry is ApproveAndCallFallBack {
     registry.fireRegistryEntryEvent("challengeCreated", version);
   }
 
+  /**
+   * @dev Commits encrypted vote to challenged entry
+   * Must be within commit period
+   * Voting takes full balance of voter's voting token
+
+   * @param _voter Address of a voter
+   * @param _secretHash Encrypted vote option with salt. sha3(voteOption, salt)
+   */
   function commitVote(
     address _voter,
     bytes32 _secretHash
   )
   public
   notEmergency
-  onlyConstructed
   {
     require(isVoteCommitPeriodActive());
     uint amount = challenge.votingToken.balanceOf(_voter);
@@ -121,13 +154,19 @@ contract RegistryEntry is ApproveAndCallFallBack {
     registry.fireRegistryEntryEvent("voteCommited", version);
   }
 
+  /**
+   * @dev Reveals previously committed vote
+   * Must be within reveal period
+
+   * @param _voteOption Vote option voter previously voted with
+   * @param _salt Salt with which user previously encrypted his vote option
+   */
   function revealVote(
     VoteOption _voteOption,
     string _salt
   )
   public
   notEmergency
-  onlyConstructed
   {
     require(isVoteRevealPeriodActive());
     require(sha3(uint(_voteOption), _salt) == challenge.voter[msg.sender].secretHash);
@@ -147,12 +186,19 @@ contract RegistryEntry is ApproveAndCallFallBack {
     registry.fireRegistryEntryEvent("voteRevealed", version);
   }
 
+  /**
+   * @dev Claims voter's reward after reveal period
+   * Voter has reward only if voted for winning option
+   * Voter has reward only when revealed the vote
+   * Can be called by anybody, to claim voter's reward to him
+
+   * @param _voter Address of a voter
+   */
   function claimVoterReward(
     address _voter
   )
   public
   notEmergency
-  onlyConstructed
   {
     if (_voter == 0x0) {
       _voter = msg.sender;
@@ -167,8 +213,18 @@ contract RegistryEntry is ApproveAndCallFallBack {
     registry.fireRegistryEntryEvent("voterRewardClaimed", version);
   }
 
+  /**
+   * @dev Function called by MiniMeToken when somebody calls approveAndCall on it.
+   * This way token can be transferred to a recipient in a single transaction together with execution
+   * of additional logic
+
+   * @param _from Sender of transaction approval
+   * @param _amount Amount of approved tokens to transfer
+   * @param _token Token that received the approval
+   * @param _data Bytecode of a function and passed parameters, that should be called after token approval
+   */
   function receiveApproval(
-    address from,
+    address _from,
     uint256 _amount,
     address _token,
     bytes _data)
@@ -177,6 +233,11 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(this.call(_data));
   }
 
+  /**
+   * @dev Returns current status of a registry entry
+
+   * @return Status
+   */
   function status() public constant returns (Status) {
     if (isChallengePeriodActive() && !wasChallenged()) {
       return Status.ChallengePeriod;
@@ -207,6 +268,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
     return status() == Status.Blacklisted;
   }
 
+  /**
+   * @dev Returns date when registry entry was whitelisted
+   * Since this doesn't happen with any transaction, it's either reveal or challenge period end
+
+   * @return UNIX time of whitelisting
+   */
   function whitelistedOn() public constant returns (uint) {
     if (!isWhitelisted()) {
       return 0;
@@ -234,6 +301,11 @@ contract RegistryEntry is ApproveAndCallFallBack {
     return challenge.revealPeriodEnd > 0 && now > challenge.revealPeriodEnd;
   }
 
+  /**
+   * @dev Returns all state related to voter for simpler offchain access
+   *
+   * @param _voter Address of a voter
+   */
   function voter(address _voter) public constant returns (bytes32, VoteOption, uint, uint, uint) {
     Voter vtr = challenge.voter[_voter];
     return (
@@ -253,6 +325,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
     return challenge.voter[_voter].claimedRewardOn > 0;
   }
 
+  /**
+   * @dev Returns winning vote option in held voting according to vote quorum
+   * If voteQuorum is 50, any majority of votes will win
+   * If voteQuorum is 24, only 25 votes out of 100 is enough to VoteFor be winning option
+   *
+   * @return Winning vote option
+   */
   function winningVoteOption() public constant returns (VoteOption) {
     if (!isVoteRevealPeriodOver()) {
       return VoteOption.NoVote;
@@ -265,11 +344,21 @@ contract RegistryEntry is ApproveAndCallFallBack {
     }
   }
 
+  /**
+   * @dev Returns whether VoteFor is winning vote option
+   *
+   * @return True if VoteFor is winning option
+   */
   function winningVoteIsFor() public constant returns (bool) {
     return winningVoteOption() == VoteOption.VoteFor;
   }
 
-  function winningVotesCount() public constant returns (uint) {
+  /**
+   * @dev Returns amount of votes for winning vote option
+   *
+   * @return Amount of votes
+   */
+  function winningVotesAmount() public constant returns (uint) {
     VoteOption voteOption = winningVoteOption();
 
     if (voteOption == VoteOption.VoteFor) {
@@ -281,19 +370,34 @@ contract RegistryEntry is ApproveAndCallFallBack {
     }
   }
 
+  /**
+   * @dev Returns token reward amount belonging to a voter for voting for a winning option
+   * @param _voter Address of a voter
+   *
+   * @return Amount of tokens
+   */
   function voterReward(address _voter) public constant returns (uint) {
-    uint tokensCount = winningVotesCount();
+    uint winningAmount = winningVotesAmount();
     uint voterAmount = 0;
     if (votedWinningVoteOption(_voter)) {
       voterAmount = challenge.voter[_voter].amount;
     }
-    return (voterAmount.mul(challenge.rewardPool)) / tokensCount;
+    return (voterAmount.mul(challenge.rewardPool)) / winningAmount;
   }
 
+  /**
+   * @dev Returns whether voter voted for winning vote option
+   * @param _voter Address of a voter
+   *
+   * @return True if voter voted for a winning vote option
+   */
   function votedWinningVoteOption(address _voter) public constant returns (bool) {
     return challenge.voter[_voter].voteOption == winningVoteOption();
   }
 
+  /**
+   * @dev Returns all state related to this contract for simpler offchain access
+   */
   function loadRegistryEntry() public constant returns (uint, Status, address, uint, uint, address, address, uint, bytes, uint, uint, uint, uint) {
     return (
     version,

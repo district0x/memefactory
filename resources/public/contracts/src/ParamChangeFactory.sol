@@ -3,6 +3,12 @@ pragma solidity ^0.4.18;
 import "RegistryEntryFactory.sol";
 import "ParamChange.sol";
 
+/**
+ * @title Factory contract for creating ParamChange contracts
+ *
+ * @dev Users submit new TCR parameter changes into this contract.
+ */
+
 contract ParamChangeFactory is RegistryEntryFactory {
   uint public constant version = 1;
 
@@ -10,6 +16,10 @@ contract ParamChangeFactory is RegistryEntryFactory {
   RegistryEntryFactory(_registry, _registryToken)
   {}
 
+  /**
+   * @dev Creates new ParamChange forwarder contract and add it into the registry
+   * It initializes forwarder contract with initial state. For comments on each param, see ParamChange::construct
+   */
   function createParamChange(
     address _creator,
     address _db,

@@ -2,6 +2,14 @@ pragma solidity ^0.4.18;
 
 import "../auth/DSAuth.sol";
 
+/**
+ * @title Contract to store arbitrary state data, decoupled from any logic related to it
+ *
+ * @dev Original implementation: https://blog.colony.io/writing-upgradeable-contracts-in-solidity-6743f0eecc88
+ * In addition to original implementation, this contract uses DSAuth for more advanced authentication options
+ * It also provides way set/get multiple values in single transaction
+ */
+
 contract EternalDb is DSAuth {
 
   enum Types {UInt, String, Address, Bytes, Bytes32, Boolean, Int}
