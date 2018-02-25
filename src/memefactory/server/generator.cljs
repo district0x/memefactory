@@ -15,6 +15,7 @@
     [memefactory.server.contract.meme-factory :as meme-factory]
     [memefactory.server.contract.meme-registry :as meme-registry]
     [memefactory.server.contract.minime-token :as minime-token]
+    [memefactory.server.contract.param-change :as param-change]
     [memefactory.server.contract.param-change-factory :as param-change-factory]
     [memefactory.server.contract.param-change-registry :as param-change-registry]
     [memefactory.server.contract.registry :as registry]
@@ -84,9 +85,10 @@
 
                   (meme/buy registryEntry 1 {:from creator :value start-price})
 
-                  (print.foo/look (registry-entry/load-registry-entry registryEntry)))
+                  (print.foo/look (registry-entry/load-registry-entry registryEntry))
+                  (print.foo/look (meme/load-meme registryEntry))
 
-                (reset! *registry-entry* registryEntry)))))))))
+                  (reset! *registry-entry* registryEntry))))))))))
 
 
 (defn generate-param-changes [{:keys [:param-changes/use-accounts :param-changes/items-per-account]}]
@@ -117,6 +119,9 @@
 
             (param-change-registry/apply-param-change registry-entry1 {:from creator})
             (param-change-registry/apply-param-change registry-entry2 {:from creator})
+
+            (print.foo/look (param-change/load-param-change registry-entry1))
+            (print.foo/look (param-change/load-param-change registry-entry2))
 
             ))))))
 

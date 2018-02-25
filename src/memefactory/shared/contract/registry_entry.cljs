@@ -11,19 +11,19 @@
    3 :reg-entry.status/blacklisted
    4 :reg-entry.status/whitelisted})
 
-(def load-result-props [:reg-entry/version
-                        :reg-entry/status
-                        :reg-entry/creator
-                        :reg-entry/deposit
-                        :reg-entry/challenge-period-end
-                        :challenge/challenger
-                        :challenge/voting-token
-                        :challenge/reward-pool
-                        :challenge/meta-hash
-                        :challenge/commit-period-end
-                        :challenge/reveal-period-end
-                        :challenge/votes-for
-                        :challenge/votes-against])
+(def load-registry-entry-keys [:reg-entry/version
+                               :reg-entry/status
+                               :reg-entry/creator
+                               :reg-entry/deposit
+                               :reg-entry/challenge-period-end
+                               :challenge/challenger
+                               :challenge/voting-token
+                               :challenge/reward-pool
+                               :challenge/meta-hash
+                               :challenge/commit-period-end
+                               :challenge/reveal-period-end
+                               :challenge/votes-for
+                               :challenge/votes-against])
 
 (def voter-props [:voter/secret-hash
                   :voter/vote-option
@@ -43,7 +43,7 @@
 
 (defn parse-load-registry-entry [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]]
   (when registry-entry
-    (let [registry-entry (zipmap load-result-props registry-entry)]
+    (let [registry-entry (zipmap load-registry-entry-keys registry-entry)]
       (-> registry-entry
         (assoc :reg-entry/address reg-entry-addr)
         (update :reg-entry/version bn/number)
