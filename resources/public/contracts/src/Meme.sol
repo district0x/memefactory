@@ -15,6 +15,7 @@ import "forwarder/Forwarder.sol";
 
 contract Meme is RegistryEntry {
 
+  address public constant depositCollector = Registry(0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd);
   bytes32 public constant maxStartPriceKey = sha3("maxStartPrice");
   bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
   bytes32 public constant saleDurationKey = sha3("saleDuration");
@@ -26,7 +27,7 @@ contract Meme is RegistryEntry {
 
   /**
    * @dev Constructor for this contract.
-   * Native constructor is not used, because users create only forwarders into single instance of this contract,
+   * Native constructor is not used, because users create only forwarders pointing into single instance of this contract,
    * therefore constructor must be called explicitly.
 
    * @param _creator Creator of a meme
@@ -65,6 +66,20 @@ contract Meme is RegistryEntry {
   }
 
   /**
+   * @dev Transfers deposit to depositCollector
+   * Must be callable only for whitelisted unchallenged registry entries
+   */
+  function transferDeposit()
+  public
+  notEmergency
+  onlyWhitelisted
+  {
+    require(!wasChallenged());
+    require(registryToken.transfer(depositCollector, deposit));
+    registry.fireRegistryEntryEvent("depositTransferred", version);
+  }
+
+  /**
    * @dev Buys meme token from initial meme offering
    * Creator of a meme gets ETH paid for a meme token
    * If buyer sends more than is current price, extra ETH is sent back to the buyer
@@ -75,8 +90,8 @@ contract Meme is RegistryEntry {
   payable
   public
   notEmergency
+  onlyWhitelisted
   {
-    require(isWhitelisted());
     require(_amount > 0);
 
     var price = currentPrice().mul(_amount);

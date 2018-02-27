@@ -58,11 +58,14 @@ contract ParamChange is RegistryEntry {
    * Can be called only when original value is still current value
    * Creator gets deposit back
    */
-  function applyChange() public {
+  function applyChange()
+  public
+  notEmergency
+  {
     require(isOriginalValueCurrentValue());
     require(!wasApplied());
     require(isWhitelisted());
-    //    require(registryToken.transferFrom(this, creator, deposit)); ???
+    require(registryToken.transfer(creator, deposit));
     db.setUIntValue(sha3(key), value);
     appliedOn = now;
   }

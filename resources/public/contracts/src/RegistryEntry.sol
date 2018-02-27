@@ -67,6 +67,14 @@ contract RegistryEntry is ApproveAndCallFallBack {
   }
 
   /**
+   * @dev Modifier that disables function if registry is in emergency state
+   */
+  modifier onlyWhitelisted() {
+    require(isWhitelisted());
+    _;
+  }
+
+  /**
    * @dev Constructor for this contract.
    * Native constructor is not used, because users create only forwarders into single instance of this contract,
    * therefore constructor must be called explicitly.

@@ -21,6 +21,7 @@
 (def registry-placeholder "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed")
 (def dank-token-placeholder "deaddeaddeaddeaddeaddeaddeaddeaddeaddead")
 (def forwarder-target-placeholder "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
+(def deposit-collector-placeholder "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd")
 
 (defn deploy-dank-token! [default-opts]
   (deploy-smart-contract! :DANK (merge default-opts {:gas 2200000
@@ -60,15 +61,16 @@
 (defn deploy-meme-token! [default-opts]
   (deploy-smart-contract! :meme-token (merge default-opts {:gas 1300000})))
 
-(defn deploy-meme! [default-opts]
+(defn deploy-meme! [{:keys [:deposit-collector] :as default-opts}]
   (deploy-smart-contract! :meme (merge default-opts {:gas 3700000
                                                      :placeholder-replacements
                                                      {dank-token-placeholder :DANK
                                                       registry-placeholder :meme-registry-fwd
-                                                      forwarder-target-placeholder :meme-token}})))
+                                                      forwarder-target-placeholder :meme-token
+                                                      deposit-collector-placeholder deposit-collector}})))
 
 (defn deploy-param-change! [default-opts]
-  (deploy-smart-contract! :param-change (merge default-opts {:gas 3000000
+  (deploy-smart-contract! :param-change (merge default-opts {:gas 3700000
                                                              :placeholder-replacements
                                                              {dank-token-placeholder :DANK
                                                               registry-placeholder :param-change-registry-fwd}})))
@@ -92,7 +94,9 @@
 (defn deploy [{:keys [:write? :initial-registry-params :transfer-dank-token-to-accounts]
                :as deploy-opts}]
   (let [accounts (web3-eth/accounts @web3)
-        deploy-opts (merge {:from (first accounts)} deploy-opts)]
+        deploy-opts (merge {:from (first accounts)
+                            :deposit-collector (first accounts)}
+                           deploy-opts)]
     (deploy-ds-guard! deploy-opts)
     (ds-auth/set-authority :ds-guard (contract-address :ds-guard))
 
