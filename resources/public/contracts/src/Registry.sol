@@ -12,7 +12,7 @@ import "db/EternalDb.sol";
  */
 
 contract Registry is DSAuth {
-  event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version, uint[] data);
+  event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version, uint timestamp, uint[] data);
 
   EternalDb public db;
   bool wasConstructed;
@@ -102,7 +102,7 @@ contract Registry is DSAuth {
   function fireRegistryEntryEvent(bytes32 _eventType, uint _version, uint[] _data)
   onlyRegistryEntry
   {
-    RegistryEntryEvent(msg.sender, _eventType, _version, _data);
+    RegistryEntryEvent(msg.sender, _eventType, _version, now, _data);
   }
 
   /**

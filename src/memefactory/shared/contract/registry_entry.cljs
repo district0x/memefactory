@@ -1,6 +1,7 @@
 (ns memefactory.shared.contract.registry-entry
   (:require
     [bignumber.core :as bn]
+    [cljs-web3.core :as web3]
     [clojure.set :as set]
     [district.web3-utils :refer [web3-time->local-date-time empty-address? wei->eth-number]]))
 
@@ -23,18 +24,19 @@
                                :challenge/commit-period-end
                                :challenge/reveal-period-end
                                :challenge/votes-for
-                               :challenge/votes-against])
+                               :challenge/votes-against
+                               :challenge/claimed-reward-on])
 
-(def voter-props [:voter/secret-hash
-                  :voter/vote-option
-                  :voter/amount
-                  :voter/revealed-on
-                  :voter/claimed-reward-on])
+(def vote-props [:vote/secret-hash
+                 :vote/option
+                 :vote/amount
+                 :vote/revealed-on
+                 :vote/claimed-reward-on])
 
 (def vote-options
-  {0 :vote-option/no-vote
-   1 :vote-option/vote-for
-   2 :vote-option/vote-against})
+  {0 :vote.option/no-vote
+   1 :vote.option/vote-for
+   2 :vote.option/vote-against})
 
 (def vote-option->num (set/map-invert vote-options))
 
@@ -52,22 +54,24 @@
         (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))
         (update :challenge/challenger #(when-not (empty-address? %) %))
         (update :challenge/voting-token #(when-not (empty-address? %) %))
-        (update :challenge/reward-pool bn/number)
-        (update :challenge/meta-hash #(when-not (empty-address? %) %))
+        (update :challenge/reward-pool wei->eth-number)
+        (update :challenge/meta-hash #(when-not (empty-address? %) (web3/to-ascii %)))
         (update :challenge/commit-period-end (if parse-dates? web3-time->local-date-time bn/number))
         (update :challenge/reveal-period-end (if parse-dates? web3-time->local-date-time bn/number))
         (update :challenge/votes-for bn/number)
-        (update :challenge/votes-against bn/number)))))
+        (update :challenge/votes-against bn/number)
+        (update :challenge/claimed-reward-on (if parse-dates? web3-time->local-date-time bn/number))))))
 
 (defn parse-vote-option [vote-option]
   (vote-options (bn/number vote-option)))
 
-(defn parse-voter [voter-address voter & [{:keys [:parse-dates?]}]]
+(defn parse-load-vote [contract-addr voter-address voter & [{:keys [:parse-dates? :parse-vote-option?]}]]
   (when voter
-    (let [voter (zipmap voter-props voter)]
+    (let [voter (zipmap vote-props voter)]
       (-> voter
-        (assoc :voter/address voter-address)
-        (update :voter/vote-option parse-vote-option)
-        (update :voter/amount bn/number)
-        (update :voter/revealed-on (if parse-dates? web3-time->local-date-time bn/number))
-        (update :voter/claimed-reward-on (if parse-dates? web3-time->local-date-time bn/number))))))
+        (assoc :reg-entry/address contract-addr)
+        (assoc :vote/voter voter-address)
+        (update :vote/option (if parse-vote-option? parse-vote-option bn/number))
+        (update :vote/amount bn/number)
+        (update :vote/revealed-on (if parse-dates? web3-time->local-date-time bn/number))
+        (update :vote/claimed-reward-on (if parse-dates? web3-time->local-date-time bn/number))))))

@@ -21,7 +21,7 @@
                  [district0x/district-server-smart-contracts "1.0.6"]
                  [district0x/district-server-web3 "1.0.1"]
                  [district0x/district-server-web3-watcher "1.0.2"]
-                 [district0x/district-web3-utils "1.0.0"]
+                 [district0x/district-web3-utils "1.0.2"]
                  [medley "1.0.0"]
                  [mount "0.1.12"]
                  [org.clojure/clojurescript "1.9.946"]

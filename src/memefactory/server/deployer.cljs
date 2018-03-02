@@ -62,7 +62,7 @@
   (deploy-smart-contract! :meme-token (merge default-opts {:gas 1300000})))
 
 (defn deploy-meme! [{:keys [:deposit-collector] :as default-opts}]
-  (deploy-smart-contract! :meme (merge default-opts {:gas 3700000
+  (deploy-smart-contract! :meme (merge default-opts {:gas 4000000
                                                      :placeholder-replacements
                                                      {dank-token-placeholder :DANK
                                                       registry-placeholder :meme-registry-fwd
@@ -98,6 +98,7 @@
                             :deposit-collector (first accounts)}
                            deploy-opts)]
     (deploy-ds-guard! deploy-opts)
+    ;; make deployed :ds-guard its own autority
     (ds-auth/set-authority :ds-guard (contract-address :ds-guard))
 
     (deploy-minime-token-factory! deploy-opts)
@@ -119,6 +120,7 @@
                         {:db (contract-address :param-change-registry-db)}
                         deploy-opts)
 
+    ;; Allow :param-change-registry-fwd to grand permissions to other contracts (for ParamChanges to apply changes)
     (ds-guard/permit {:src (contract-address :param-change-registry-fwd)
                       :dst (contract-address :ds-guard)
                       :sig ds-guard/ANY}
@@ -135,21 +137,26 @@
     (eternal-db/set-uint-values :meme-registry-db (:meme-registry initial-registry-params) deploy-opts)
     (eternal-db/set-uint-values :param-change-registry-db (:param-change-registry initial-registry-params) deploy-opts)
 
+    ;; make :ds-guard authority of both :meme-registry-db and :param-change-registry-db
     (ds-auth/set-authority :meme-registry-db (contract-address :ds-guard) deploy-opts)
     (ds-auth/set-authority :param-change-registry-db (contract-address :ds-guard) deploy-opts)
+    ;; After authority is set, we can clean owner. Not really essential, but extra safety measure
     (ds-auth/set-owner :meme-registry-db 0)
     (ds-auth/set-owner :param-change-registry-db 0)
 
+    ;; Allow :meme-registry-fwd to make changes into :meme-registry-db
     (ds-guard/permit {:src (contract-address :meme-registry-fwd)
                       :dst (contract-address :meme-registry-db)
                       :sig ds-guard/ANY}
                      deploy-opts)
 
+    ;; Allow :param-change-registry-fwd to make changes into :meme-registry-db (to apply ParamChanges)
     (ds-guard/permit {:src (contract-address :param-change-registry-fwd)
                       :dst (contract-address :meme-registry-db)
                       :sig ds-guard/ANY}
                      deploy-opts)
 
+    ;; Allow :param-change-registry-fwd to make changes into :param-change-registry-db
     (ds-guard/permit {:src (contract-address :param-change-registry-fwd)
                       :dst (contract-address :param-change-registry-db)
                       :sig ds-guard/ANY}

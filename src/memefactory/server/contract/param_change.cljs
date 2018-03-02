@@ -4,5 +4,7 @@
     [memefactory.shared.contract.param-change :refer [parse-load-param-change]]))
 
 (defn load-param-change [contract-addr]
-  (parse-load-param-change (contract-call (instance :param-change contract-addr) :load-param-change)))
+  (parse-load-param-change
+    contract-addr
+    (contract-call (instance :param-change contract-addr) :load-param-change)))
 

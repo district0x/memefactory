@@ -68,6 +68,7 @@ contract ParamChange is RegistryEntry {
     require(registryToken.transfer(creator, deposit));
     db.setUIntValue(sha3(key), value);
     appliedOn = now;
+    registry.fireRegistryEntryEvent("changeApplied", version);
   }
 
   /**

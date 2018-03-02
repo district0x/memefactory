@@ -9,9 +9,10 @@
                              :param-change/value
                              :param-change/applied-on])
 
-(defn parse-load-param-change [param-change & [{:keys [:parse-dates?]}]]
+(defn parse-load-param-change [contract-addr param-change & [{:keys [:parse-dates?]}]]
   (when param-change
     (let [param-change (zipmap load-param-change-keys param-change)]
       (-> param-change
+        (assoc :reg-entry/address contract-addr)
         (update :param-change/value bn/number)
         (update :param-change/applied-on (if parse-dates? web3-time->local-date-time bn/number))))))

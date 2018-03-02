@@ -7,7 +7,7 @@
   (contract-call (instance :meme contract-addr) :buy amount (merge opts {:gas 500000})))
 
 (defn load-meme [contract-addr]
-  (parse-load-meme (contract-call (instance :meme contract-addr) :load-meme)))
+  (parse-load-meme contract-addr (contract-call (instance :meme contract-addr) :load-meme)))
 
 (defn transfer-deposit [contract-addr & [opts]]
   (contract-call (instance :meme contract-addr) :transfer-deposit (merge opts {:gas 300000})))

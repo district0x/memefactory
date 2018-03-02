@@ -45,12 +45,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
     uint revealPeriodEnd;
     uint votesFor;
     uint votesAgainst;
-    mapping(address => Voter) voter;
+    uint claimedRewardOn;
+    mapping(address => Vote) vote;
   }
 
-  struct Voter {
+  struct Vote {
     bytes32 secretHash;
-    VoteOption voteOption;
+    VoteOption option;
     uint amount;
     uint revealedOn;
     uint claimedRewardOn;
@@ -157,9 +158,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
     uint amount = challenge.votingToken.balanceOf(_voter);
     require(amount > 0);
     require(challenge.votingToken.transferFrom(_voter, this, amount));
-    challenge.voter[_voter].secretHash = _secretHash;
-    challenge.voter[_voter].amount = amount;
-    registry.fireRegistryEntryEvent("voteCommited", version);
+    challenge.vote[_voter].secretHash = _secretHash;
+    challenge.vote[_voter].amount = amount;
+
+    var eventData = new uint[](1);
+    eventData[0] = uint(_voter);
+    registry.fireRegistryEntryEvent("voteCommitted", version, eventData);
   }
 
   /**
@@ -177,12 +181,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
   notEmergency
   {
     require(isVoteRevealPeriodActive());
-    require(sha3(uint(_voteOption), _salt) == challenge.voter[msg.sender].secretHash);
-    require(!hasVoterRevealed(msg.sender));
+    require(sha3(uint(_voteOption), _salt) == challenge.vote[msg.sender].secretHash);
+    require(!isVoteRevealed(msg.sender));
 
-    challenge.voter[msg.sender].revealedOn = now;
-    uint amount = challenge.voter[msg.sender].amount;
-    challenge.voter[msg.sender].voteOption = _voteOption;
+    challenge.vote[msg.sender].revealedOn = now;
+    uint amount = challenge.vote[msg.sender].amount;
+    challenge.vote[msg.sender].option = _voteOption;
     if (_voteOption == VoteOption.VoteFor) {
       challenge.votesFor = challenge.votesFor.add(amount);
     } else if (_voteOption == VoteOption.VoteAgainst) {
@@ -191,18 +195,20 @@ contract RegistryEntry is ApproveAndCallFallBack {
       revert();
     }
 
-    registry.fireRegistryEntryEvent("voteRevealed", version);
+    var eventData = new uint[](1);
+    eventData[0] = uint(msg.sender);
+    registry.fireRegistryEntryEvent("voteRevealed", version, eventData);
   }
 
   /**
-   * @dev Claims voter's reward after reveal period
+   * @dev Claims vote reward after reveal period
    * Voter has reward only if voted for winning option
    * Voter has reward only when revealed the vote
    * Can be called by anybody, to claim voter's reward to him
 
    * @param _voter Address of a voter
    */
-  function claimVoterReward(
+  function claimVoteReward(
     address _voter
   )
   public
@@ -212,13 +218,35 @@ contract RegistryEntry is ApproveAndCallFallBack {
       _voter = msg.sender;
     }
     require(isVoteRevealPeriodOver());
-    require(!hasVoterClaimedReward(_voter));
-    require(hasVoterRevealed(_voter));
+    require(!isVoteRewardClaimed(_voter));
+    require(isVoteRevealed(_voter));
     require(votedWinningVoteOption(_voter));
-    uint reward = voterReward(_voter);
+    uint reward = voteReward(_voter);
+    require(reward > 0);
     require(registryToken.transfer(_voter, reward));
-    challenge.voter[_voter].claimedRewardOn = now;
-    registry.fireRegistryEntryEvent("voterRewardClaimed", version);
+    challenge.vote[_voter].claimedRewardOn = now;
+
+    var eventData = new uint[](1);
+    eventData[0] = uint(_voter);
+    registry.fireRegistryEntryEvent("voteRewardClaimed", version, eventData);
+  }
+
+  /**
+   * @dev Claims challenger's reward after reveal period
+   * Challenger has reward only if winning option is VoteAgainst
+   * Can be called by anybody, to claim challenger's reward to him/her
+   */
+  function claimChallengeReward()
+  public
+  notEmergency
+  {
+    require(isVoteRevealPeriodOver());
+    require(!isChallengeRewardClaimed());
+    require(!isWinningOptionVoteFor());
+    require(registryToken.transfer(challenge.challenger, challengeReward()));
+    challenge.claimedRewardOn = now;
+
+    registry.fireRegistryEntryEvent("challengeRewardClaimed", version);
   }
 
   /**
@@ -254,7 +282,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     } else if (isVoteRevealPeriodActive()) {
       return Status.RevealPeriod;
     } else if (isVoteRevealPeriodOver()) {
-      if (winningVoteIsFor()) {
+      if (isWinningOptionVoteFor()) {
         return Status.Whitelisted;
       } else {
         return Status.Blacklisted;
@@ -309,28 +337,16 @@ contract RegistryEntry is ApproveAndCallFallBack {
     return challenge.revealPeriodEnd > 0 && now > challenge.revealPeriodEnd;
   }
 
-  /**
-   * @dev Returns all state related to voter for simpler offchain access
-   *
-   * @param _voter Address of a voter
-   */
-  function voter(address _voter) public constant returns (bytes32, VoteOption, uint, uint, uint) {
-    Voter vtr = challenge.voter[_voter];
-    return (
-    vtr.secretHash,
-    vtr.voteOption,
-    vtr.amount,
-    vtr.revealedOn,
-    vtr.claimedRewardOn
-    );
+  function isVoteRevealed(address _voter) public constant returns (bool) {
+    return challenge.vote[_voter].revealedOn > 0;
   }
 
-  function hasVoterRevealed(address _voter) public constant returns (bool) {
-    return challenge.voter[_voter].revealedOn > 0;
+  function isVoteRewardClaimed(address _voter) public constant returns (bool) {
+    return challenge.vote[_voter].claimedRewardOn > 0;
   }
 
-  function hasVoterClaimedReward(address _voter) public constant returns (bool) {
-    return challenge.voter[_voter].claimedRewardOn > 0;
+  function isChallengeRewardClaimed() public constant returns (bool) {
+    return challenge.claimedRewardOn > 0;
   }
 
   /**
@@ -357,7 +373,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
    *
    * @return True if VoteFor is winning option
    */
-  function winningVoteIsFor() public constant returns (bool) {
+  function isWinningOptionVoteFor() public constant returns (bool) {
     return winningVoteOption() == VoteOption.VoteFor;
   }
 
@@ -384,13 +400,22 @@ contract RegistryEntry is ApproveAndCallFallBack {
    *
    * @return Amount of tokens
    */
-  function voterReward(address _voter) public constant returns (uint) {
+  function voteReward(address _voter) public constant returns (uint) {
     uint winningAmount = winningVotesAmount();
     uint voterAmount = 0;
     if (votedWinningVoteOption(_voter)) {
-      voterAmount = challenge.voter[_voter].amount;
+      voterAmount = challenge.vote[_voter].amount;
     }
     return (voterAmount.mul(challenge.rewardPool)) / winningAmount;
+  }
+
+  /**
+   * @dev Returns token reward amount belonging to a challenger
+   *
+   * @return Amount of token
+   */
+  function challengeReward() public constant returns (uint) {
+    return deposit.sub(challenge.rewardPool);
   }
 
   /**
@@ -400,13 +425,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @return True if voter voted for a winning vote option
    */
   function votedWinningVoteOption(address _voter) public constant returns (bool) {
-    return challenge.voter[_voter].voteOption == winningVoteOption();
+    return challenge.vote[_voter].option == winningVoteOption();
   }
 
   /**
    * @dev Returns all state related to this contract for simpler offchain access
    */
-  function loadRegistryEntry() public constant returns (uint, Status, address, uint, uint, address, address, uint, bytes, uint, uint, uint, uint) {
+  function loadRegistryEntry() public constant returns (uint, Status, address, uint, uint, address, address, uint, bytes, uint, uint, uint, uint, uint) {
     return (
     version,
     status(),
@@ -420,7 +445,24 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.commitPeriodEnd,
     challenge.revealPeriodEnd,
     challenge.votesFor,
-    challenge.votesAgainst
+    challenge.votesAgainst,
+    challenge.claimedRewardOn
+    );
+  }
+
+  /**
+   * @dev Returns all state related to vote for simpler offchain access
+   *
+   * @param _voter Address of a voter
+   */
+  function loadVote(address _voter) public constant returns (bytes32, VoteOption, uint, uint, uint) {
+    Vote vtr = challenge.vote[_voter];
+    return (
+    vtr.secretHash,
+    vtr.option,
+    vtr.amount,
+    vtr.revealedOn,
+    vtr.claimedRewardOn
     );
   }
 }

@@ -7,7 +7,7 @@
     [district.server.smart-contracts :refer [contract-call instance contract-address]]
     [memefactory.server.contract.dank-token :as dank-token]
     [memefactory.server.contract.minime-token :as minime-token]
-    [memefactory.shared.contract.registry-entry :refer [parse-status parse-load-registry-entry parse-voter vote-option->num]]))
+    [memefactory.shared.contract.registry-entry :refer [parse-status parse-load-registry-entry parse-load-vote vote-option->num]]))
 
 (defn registry [contract-addr]
   (contract-call [:meme contract-addr] :registry))
@@ -49,12 +49,18 @@
 (defn reveal-vote [contract-addr {:keys [:vote-option :salt]} & [opts]]
   (contract-call (instance :meme contract-addr) :reveal-vote (vote-option->num vote-option) salt (merge opts {:gas 500000})))
 
-(defn claim-voter-reward [contract-addr & [opts]]
-  (contract-call (instance :meme contract-addr) :claim-voter-reward (:from opts) (merge opts {:gas 500000})))
+(defn claim-vote-reward [contract-addr & [opts]]
+  (contract-call (instance :meme contract-addr) :claim-vote-reward (:from opts) (merge opts {:gas 500000})))
 
-(defn voter [contract-addr voter-address]
-  (parse-voter voter-address (contract-call (instance :meme contract-addr) :voter voter-address)))
+(defn load-vote [contract-addr voter-address]
+  (parse-load-vote
+    contract-addr
+    voter-address
+    (contract-call (instance :meme contract-addr) :load-vote voter-address)))
 
-(defn voter-reward [contract-addr voter-address]
-  (contract-call (instance :meme contract-addr) :voter-reward voter-address))
+(defn vote-reward [contract-addr voter-address]
+  (contract-call (instance :meme contract-addr) :vote-reward voter-address))
+
+(defn claim-challenge-reward [contract-addr & [opts]]
+  (contract-call (instance :meme contract-addr) :claim-challenge-reward (merge opts {:gas 500000})))
 

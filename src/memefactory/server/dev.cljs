@@ -45,9 +45,18 @@
   (-> (mount/with-args
         (merge
           (mount/args)
-          {:deployer {:write? false}}))
+          {:deployer {:write? true}}))
     (mount/start)
     pprint/pprint))
+
+
+(defn resync []
+  (mount.core/stop #'memefactory.server.db/memefactory-db
+                   #'memefactory.server.syncer/syncer)
+  (-> (mount.core/start #'memefactory.server.db/memefactory-db
+                        #'memefactory.server.syncer/syncer)
+    pprint/pprint))
+
 
 (defn -main [& _]
   (-> (mount/with-args
@@ -58,8 +67,10 @@
                             :web3 {:port 8549}
                             :generator {:memes/use-accounts 1
                                         :memes/items-per-account 1
+                                        :memes/scenarios [:scenario/buy]
                                         :param-changes/use-accounts 1
-                                        :param-changes/items-per-account 1}
+                                        :param-changes/items-per-account 1
+                                        :param-changes/scenarios [:scenario/apply-param-change]}
                             :deployer {:transfer-dank-token-to-accounts 1
                                        :initial-registry-params
                                        {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))

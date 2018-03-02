@@ -23,7 +23,6 @@ contract MemeFactory is RegistryEntryFactory {
   function createMeme(
     address _creator,
     string _name,
-    bytes _imageHash,
     bytes _metaHash,
     uint _totalSupply,
     uint _startPrice
@@ -36,7 +35,6 @@ contract MemeFactory is RegistryEntryFactory {
       _creator,
       version,
       _name,
-      _imageHash,
       _metaHash,
       _totalSupply,
       _startPrice

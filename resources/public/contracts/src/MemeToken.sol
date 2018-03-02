@@ -1,6 +1,7 @@
 pragma solidity ^0.4.18;
 
 import "token/MintableToken.sol";
+import "Meme.sol";
 
 /**
  * @title Token of a Meme. Contract is deployed with each Meme submission.
@@ -28,6 +29,18 @@ contract MemeToken is MintableToken {
     require(bytes(_name).length != 0);
     name = _name;
     owner = msg.sender;
+  }
+
+  function transfer(address _to, uint256 _value) public returns (bool) {
+    require(super.transfer(_to, _value));
+    Meme(owner).fireTokenTransferEvent(msg.sender, _to, _value);
+    return true;
+  }
+
+  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+    require(super.transferFrom(_from, _to, _value));
+    Meme(owner).fireTokenTransferEvent(_from, _to, _value);
+    return true;
   }
 
   /**

@@ -20,10 +20,17 @@ contract Meme is RegistryEntry {
   bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
   bytes32 public constant saleDurationKey = sha3("saleDuration");
   MemeToken token;
-  bytes imageHash;
   bytes metaHash;
   uint startPrice;
   uint saleDuration;
+
+  /**
+   * @dev Modifier that allows function only when sender is this meme's token
+   */
+  modifier onlyToken() {
+    require(msg.sender == address(token));
+    _;
+  }
 
   /**
    * @dev Constructor for this contract.
@@ -32,7 +39,6 @@ contract Meme is RegistryEntry {
 
    * @param _creator Creator of a meme
    * @param _version Version of Meme contract
-   * @param _imageHash IPFS hash of meme image
    * @param _metaHash IPFS hash of meta data related to a meme
    * @param _totalSupply This meme's token total supply
    * @param _startPrice Start price for initial meme offering
@@ -41,7 +47,6 @@ contract Meme is RegistryEntry {
     address _creator,
     uint _version,
     string _name,
-    bytes _imageHash,
     bytes _metaHash,
     uint _totalSupply,
     uint _startPrice
@@ -57,7 +62,6 @@ contract Meme is RegistryEntry {
     token.mint(this, _totalSupply);
     token.finishMinting();
 
-    imageHash = _imageHash;
     metaHash = _metaHash;
 
     require(_startPrice <= registry.db().getUIntValue(maxStartPriceKey));
@@ -77,6 +81,25 @@ contract Meme is RegistryEntry {
     require(!wasChallenged());
     require(registryToken.transfer(depositCollector, deposit));
     registry.fireRegistryEntryEvent("depositTransferred", version);
+  }
+
+  /**
+   * @dev Fires event when meme token did any transfer, for simpler tracking of meme token balances offchain
+   * Only this meme's token can call this function
+   *
+   * @param _from Token transferred from
+   * @param _to Token transferred to
+   * @param _value Amount of tokens transferred
+   */
+  function fireTokenTransferEvent(address _from, address _to, uint _value)
+  public
+  onlyToken
+  {
+    var eventData = new uint[](3);
+    eventData[0] = uint(_from);
+    eventData[1] = uint(_to);
+    eventData[2] = _value;
+    registry.fireRegistryEntryEvent("memeTokenTransfer", version, eventData);
   }
 
   /**
@@ -102,7 +125,12 @@ contract Meme is RegistryEntry {
     if (msg.value > price) {
       msg.sender.transfer(msg.value.sub(price));
     }
-    registry.fireRegistryEntryEvent("buy", version);
+
+    var eventData = new uint[](3);
+    eventData[0] = uint(msg.sender);
+    eventData[1] = price;
+    eventData[2] = _amount;
+    registry.fireRegistryEntryEvent("buy", version, eventData);
   }
 
   /**
@@ -159,12 +187,13 @@ contract Meme is RegistryEntry {
   /**
    * @dev Returns all state related to this contract for simpler offchain access
    */
-  function loadMeme() public constant returns (uint, uint, address, bytes, bytes) {
+  function loadMeme() public constant returns (uint, uint, address, uint, uint, bytes) {
     return (
     startPrice,
     saleDuration,
     token,
-    imageHash,
+    token.totalSupply(),
+    token.balanceOf(this),
     metaHash
     );
   }
