@@ -6,28 +6,30 @@
     [cljs.pprint :as pprint]
     [district.server.config :refer [config]]
     [district.server.db :refer [db]]
-    [district.server.endpoints.middleware.logging :refer [logging-middlewares]]
-    [district.server.endpoints]
+    [district.server.graphql :as graphql]
     [district.server.logging :refer [logging]]
+    [district.server.middleware.logging :refer [logging-middlewares]]
     [district.server.smart-contracts]
     [district.server.web3 :refer [web3]]
     [district.server.web3-watcher]
     [goog.date.Date]
-    [memefactory.server.api]
     [memefactory.server.db]
     [memefactory.server.deployer]
     [memefactory.server.emailer]
     [memefactory.server.generator]
+    [memefactory.server.graphql-root :refer [graphql-root]]
     [memefactory.server.syncer]
+    [memefactory.shared.graphql-schema :refer [graphql-schema]]
     [memefactory.shared.smart-contracts]
     [mount.core :as mount]
+    [venia.core :as v]
     [print.foo :include-macros true]))
 
 (nodejs/enable-util-print!)
 
 (defn on-jsload []
-  (mount/stop #'district.server.endpoints/endpoints)
-  (mount/start #'district.server.endpoints/endpoints))
+  (graphql/restart {:root-value graphql-root :schema graphql-schema}))
+
 
 (defn deploy-to-mainnet []
   (mount/stop #'district.server.web3/web3
@@ -39,6 +41,7 @@
                                        :gas-price (web3/to-wei 4 :gwei)}})
                          #'district.server.web3/web3
                          #'district.server.smart-contracts/smart-contracts))
+
 
 (defn redeploy []
   (mount/stop)
@@ -62,8 +65,12 @@
   (-> (mount/with-args
         {:config {:default {:logging {:level "info"
                                       :console? true}
-                            :endpoints {:port 6300
-                                        :middlewares [logging-middlewares]}
+                            :graphql {:port 6300
+                                      :middlewares [logging-middlewares]
+                                      :schema graphql-schema
+                                      :root-value graphql-root
+                                      :path "/graphql"
+                                      :graphiql true}
                             :web3 {:port 8549}
                             :generator {:memes/use-accounts 1
                                         :memes/items-per-account 1
@@ -97,3 +104,8 @@
     pprint/pprint))
 
 (set! *main-cli-fn* -main)
+
+(comment
+  (graphql/run-query "{search {title}}" println))
+
+

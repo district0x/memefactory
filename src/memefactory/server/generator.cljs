@@ -38,23 +38,6 @@
           scenarios-repeated (take (* use-accounts items-per-account) (cycle scenarios))]
       (partition 2 (interleave accounts-repeated scenarios-repeated)))))
 
-(comment
-  :scenario/create
-  :scenario/challenge
-  :scenario/commit-vote
-  :scenario/reveal-vote
-  :scenario/claim-vote-reward
-  :scenario/buy
-  :scenario/apply-param-change
-
-  (get-screnarios {:use-accounts 2
-                   :items-per-account 1
-                   :scenarios [:scenario/create :scenario/buy]
-                   :accounts ["0xccaca6119493350e670f740b89e028bad6b00041"
-                              "0xcea88e5816cf24a137a0a4c925ab2ad6295b5a85"]}))
-
-
-
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [[max-total-supply max-start-price deposit commit-period-duration reveal-period-duration]

@@ -2,11 +2,10 @@
   (:require
     [cljs.nodejs :as nodejs]
     [district.server.config :refer [config]]
-    [district.server.endpoints.middleware.logging :refer [logging-middlewares]]
+    [district.server.middleware.logging :refer [logging-middlewares]]
     [district.server.logging]
     [district.server.web3-watcher]
     [mount.core :as mount]
-    [memefactory.server.api]
     [memefactory.server.db]
     [memefactory.server.deployer]
     [memefactory.server.generator]
@@ -20,7 +19,11 @@
   (-> (mount/with-args
         {:config {:default {:web3 {:port 8545}}}
          :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
-         :endpoints {:middlewares [logging-middlewares]}
+         :graphql {:port 6300
+                   :middlewares [logging-middlewares]
+                   :schema "type Query { hello: String}"
+                   :root-value {:hello (constantly "Hello world")}
+                   :path "/graphql"}
          :web3-watcher {:on-online (fn []
                                      (warn "Ethereum node went online again")
                                      (mount/stop #'memefactory.server.db/memefactory-db)
