@@ -93,11 +93,11 @@
   (try
     (let [[buyer price amount] data]
       (db/update-meme! (meme/load-meme registry-entry))
-      (db/insert-meme-sale! {:reg-entry/address registry-entry
-                             :buyer (web3-utils/uint->address buyer)
-                             :price (bn/number price)
-                             :amount (bn/number amount)
-                             :bought-on timestamp}))
+      (db/insert-meme-purchase! {:reg-entry/address registry-entry
+                                 :buyer (web3-utils/uint->address buyer)
+                                 :price (bn/number price)
+                                 :amount (bn/number amount)
+                                 :bought-on timestamp}))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-buy))))
 

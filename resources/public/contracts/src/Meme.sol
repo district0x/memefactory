@@ -18,11 +18,11 @@ contract Meme is RegistryEntry {
   address public constant depositCollector = Registry(0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd);
   bytes32 public constant maxStartPriceKey = sha3("maxStartPrice");
   bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
-  bytes32 public constant saleDurationKey = sha3("saleDuration");
+  bytes32 public constant offeringDurationKey = sha3("offeringDuration");
   MemeToken token;
   bytes metaHash;
-  uint startPrice;
-  uint saleDuration;
+  uint offeringStartPrice;
+  uint offeringDuration;
 
   /**
    * @dev Modifier that allows function only when sender is this meme's token
@@ -65,8 +65,8 @@ contract Meme is RegistryEntry {
     metaHash = _metaHash;
 
     require(_startPrice <= registry.db().getUIntValue(maxStartPriceKey));
-    startPrice = _startPrice;
-    saleDuration = registry.db().getUIntValue(saleDurationKey);
+    offeringStartPrice = _startPrice;
+    offeringDuration = registry.db().getUIntValue(offeringDurationKey);
   }
 
   /**
@@ -147,8 +147,8 @@ contract Meme is RegistryEntry {
     }
 
     return computeCurrentPrice(
-      startPrice,
-      saleDuration,
+      offeringStartPrice,
+      offeringDuration,
       secondsPassed
     );
   }
@@ -189,8 +189,8 @@ contract Meme is RegistryEntry {
    */
   function loadMeme() public constant returns (uint, uint, address, uint, uint, bytes) {
     return (
-    startPrice,
-    saleDuration,
+    offeringStartPrice,
+    offeringDuration,
     token,
     token.totalSupply(),
     token.balanceOf(this),

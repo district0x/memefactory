@@ -1,5 +1,6 @@
 (ns memefactory.server.dev
   (:require
+    [camel-snake-kebab.core :as cs :include-macros true]
     [cljs-time.core :as t]
     [cljs-web3.core :as web3]
     [cljs.nodejs :as nodejs]
@@ -17,7 +18,7 @@
     [memefactory.server.deployer]
     [memefactory.server.emailer]
     [memefactory.server.generator]
-    [memefactory.server.graphql-root :refer [graphql-root]]
+    [memefactory.server.graphql-resolvers :refer [graphql-resolvers]]
     [memefactory.server.syncer]
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
     [memefactory.shared.smart-contracts]
@@ -28,7 +29,7 @@
 (nodejs/enable-util-print!)
 
 (defn on-jsload []
-  (graphql/restart {:root-value graphql-root :schema graphql-schema}))
+  (graphql/restart {:root-value graphql-resolvers :schema graphql-schema}))
 
 
 (defn deploy-to-mainnet []
@@ -68,7 +69,7 @@
                             :graphql {:port 6300
                                       :middlewares [logging-middlewares]
                                       :schema graphql-schema
-                                      :root-value graphql-root
+                                      :root-value graphql-resolvers
                                       :path "/graphql"
                                       :graphiql true}
                             :web3 {:port 8549}
@@ -88,7 +89,7 @@
                                                         :vote-quorum 50
                                                         :max-start-price (web3/to-wei 1 :ether)
                                                         :max-total-supply 10000
-                                                        :sale-duration (t/in-seconds (t/minutes 10))}
+                                                        :offering-duration (t/in-seconds (t/minutes 10))}
                                         :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
                                                                 :commit-period-duration (t/in-seconds (t/minutes 2))
                                                                 :reveal-period-duration (t/in-seconds (t/minutes 1))
@@ -106,6 +107,9 @@
 (set! *main-cli-fn* -main)
 
 (comment
-  (graphql/run-query "{search {title}}" println))
-
-
+  (graphql/run-query
+    (v/graphql-query {:venia/queries [[:searchMemes [:reg-entry/address
+                                                     :reg-entry/createdOn
+                                                     [:availableVoteAmount {:voter "0x987"}]
+                                                     [:vote {:voter "0x987"} [:amount :option]]]]]})
+    println))

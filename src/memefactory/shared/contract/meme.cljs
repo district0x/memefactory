@@ -4,11 +4,11 @@
     [cljs-web3.core :as web3]
     [district.web3-utils :refer [web3-time->local-date-time empty-address? wei->eth-number]]))
 
-(def load-meme-keys [:meme/start-price
-                     :meme/sale-duration
+(def load-meme-keys [:meme/offering-start-price
+                     :meme/offering-duration
                      :meme/token
                      :meme/total-supply
-                     :meme/sale-supply
+                     :meme/offering-supply
                      :meme/meta-hash])
 
 (defn parse-load-meme [contract-addr meme & [{:keys [:parse-dates?]}]]
@@ -16,8 +16,8 @@
     (let [meme (zipmap load-meme-keys meme)]
       (-> meme
         (assoc :reg-entry/address contract-addr)
-        (update :meme/start-price bn/number)
-        (update :meme/sale-duration bn/number)
         (update :meme/total-supply bn/number)
-        (update :meme/sale-supply bn/number)
-        (update :meme/meta-hash web3/to-ascii)))))
+        (update :meme/meta-hash web3/to-ascii)
+        (update :meme/offering-duration bn/number)
+        (update :meme/offering-start-price bn/number)
+        (update :meme/offering-supply bn/number)))))

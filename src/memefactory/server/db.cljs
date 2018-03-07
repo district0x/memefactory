@@ -38,13 +38,13 @@
 (def meme-columns
   [[:reg-entry/address address not-nil]
    [:meme/title :varchar not-nil]
-   [:meme/start-price :BIG :INT not-nil]
-   [:meme/sale-duration :unsigned :integer not-nil]
+   [:meme/offering-start-price :BIG :INT not-nil]
+   [:meme/offering-duration :unsigned :integer not-nil]
    [:meme/token address not-nil]
    [:meme/image-hash ipfs-hash not-nil]
    [:meme/meta-hash ipfs-hash not-nil]
    [:meme/total-supply :unsigned :integer not-nil]
-   [:meme/sale-supply :unsigned :integer not-nil]
+   [:meme/offering-supply :unsigned :integer not-nil]
    [:meme/sold-for-total :BIG :INT default-zero]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
 
@@ -55,14 +55,18 @@
    [(sql/call :primary-key :reg-entry/address :owner)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
 
+(def tags-columns
+  [[:tag/id :unsigned :integer primary-key not-nil]
+   [:tag/name :varchar :unique not-nil]])
+
 (def meme-tags-columns
   [[:reg-entry/address address not-nil]
-   [:id :unsigned :integer not-nil]
-   [:name :varchar not-nil]
-   [(sql/call :primary-key :reg-entry/address :id)]
-   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
+   [:tag/id :varchar not-nil]
+   [(sql/call :primary-key :reg-entry/address :tag/id)]
+   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]
+   [(sql/call :foreign-key :tag/id) (sql/call :references :tags :tag/id)]])
 
-(def meme-sales-columns
+(def meme-purchases-columns
   [[:reg-entry/address address not-nil]
    [:buyer address not-nil]
    [:amount :unsigned :integer not-nil]
@@ -91,9 +95,10 @@
 (def meme-column-names (map first meme-columns))
 (def meme-token-balances-column-names (map first meme-token-balances-columns))
 (def meme-tags-column-names (map first meme-tags-columns))
-(def meme-sales-column-names (map first meme-sales-columns))
+(def meme-purchases-column-names (map first meme-purchases-columns))
 (def param-change-column-names (map first param-change-columns))
 (def votes-column-names (map first votes-columns))
+(def tags-column-names (map first tags-columns))
 
 (defn- index-name [col-name]
   (keyword (namespace col-name) (str (name col-name) "-index")))
@@ -109,11 +114,14 @@
   (db/run! {:create-table [:meme-token-balances]
             :with-columns [meme-token-balances-columns]})
 
+  (db/run! {:create-table [:tags]
+            :with-columns [tags-columns]})
+
   (db/run! {:create-table [:meme-tags]
             :with-columns [meme-tags-columns]})
 
-  (db/run! {:create-table [:meme-sales]
-            :with-columns [meme-sales-columns]})
+  (db/run! {:create-table [:meme-purchases]
+            :with-columns [meme-purchases-columns]})
 
   (db/run! {:create-table [:param-changes]
             :with-columns [param-change-columns]})
@@ -129,8 +137,9 @@
 
 (defn stop []
   (db/run! {:drop-table [:votes]})
-  (db/run! {:drop-table [:meme-sales]})
+  (db/run! {:drop-table [:meme-purchases]})
   (db/run! {:drop-table [:meme-tags]})
+  (db/run! {:drop-table [:tags]})
   (db/run! {:drop-table [:meme-token-balances]})
   (db/run! {:drop-table [:memes]})
   (db/run! {:drop-table [:param-changes]})
@@ -160,7 +169,7 @@
 (def insert-meme! (create-insert-fn :memes meme-column-names))
 (def update-meme! (create-update-fn :memes meme-column-names :reg-entry/address))
 
-(def insert-meme-sale! (create-insert-fn :meme-sales meme-sales-column-names))
+(def insert-meme-purchase! (create-insert-fn :meme-purchases meme-purchases-column-names))
 
 (def insert-param-change! (create-insert-fn :param-changes param-change-column-names))
 (def update-param-change! (create-update-fn :param-changes param-change-column-names :reg-entry/address))
