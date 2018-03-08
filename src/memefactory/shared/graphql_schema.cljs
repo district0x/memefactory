@@ -4,13 +4,13 @@
   scalar Date
 
   type Query {
-    meme(address: ID!): Meme
+    meme(regEntry_address: ID!): Meme
     searchMemes: [Meme]
 
-    paramChange(address: ID!): ParamChange
+    paramChange(regEntry_address: ID!): ParamChange
     searchParamChanges: [ParamChange]
 
-    user(address: ID!): User
+    user(user_address: ID!): User
     searchUsers: [User]
 
     searchTags: [Tag]
@@ -19,157 +19,157 @@
   }
 
   enum RegEntryStatus {
-    challengePeriod
-    commitPeriod
-    revealPeriod
-    blacklisted
-    whitelisted
+    regEntry_status_challengePeriod
+    regEntry_status_commitPeriod
+    regEntry_status_revealPeriod
+    regEntry_status_blacklisted
+    regEntry_status_whitelisted
   }
 
   interface RegEntry {
-    address: ID
-    version: Int
-    status: RegEntryStatus
-    creator: User
-    deposit: Int
-    createdOn: Date
-    challengePeriodEnd: Date
-    challenger: User
-    challengeComment: String
-    votingToken: String
-    rewardPool: Int
-    commitPeriodEnd: Date
-    revealPeriodEnd: Date
-    votesFor: Int
-    votesAgainst: Int
-    votesTotal: Int
-    claimedRewardOn: Date
-    vote(voter: ID!): Vote
-    availableVoteAmount(voter: ID!): Int
+    regEntry_address: ID
+    regEntry_version: Int
+    regEntry_status: RegEntryStatus
+    regEntry_creator: User
+    regEntry_deposit: Int
+    regEntry_createdOn: Date
+    regEntry_challengePeriodEnd: Date
+    challenge_challenger: User
+    challenge_comment: String
+    challenge_votingToken: String
+    challenge_rewardPool: Int
+    challenge_commitPeriodEnd: Date
+    challenge_revealPeriodEnd: Date
+    challenge_votesFor: Int
+    challenge_votesAgainst: Int
+    challenge_votesTotal: Int
+    challenge_claimedRewardOn: Date
+    challenge_vote(voter: ID!): Vote
+    challenge_availableVoteAmount(voter: ID!): Int
   }
 
   enum VoteOption {
-    NoVote
-    VoteFor
-    VoteAgainst
+    voteOption_noVote
+    voteOption_voteFor
+    voteOption_voteAgainst
   }
 
   type Vote {
-    secretHash: String
-    option: VoteOption
-    amount: Int
-    revealedOn: Date
-    claimedRewardOn: Date
-    reward: Int
+    vote_secretHash: String
+    vote_option: VoteOption
+    vote_amount: Int
+    vote_revealedOn: Date
+    vote_claimedRewardOn: Date
+    vote_reward: Int
   }
 
   type Tag {
-    id: ID
-    name: String
+    tag_id: ID
+    tag_name: String
   }
 
   type Meme implements RegEntry {
-    address: ID
-    version: Int
-    status: RegEntryStatus
-    creator: User
-    deposit: Int
-    createdOn: Date
-    challengePeriodEnd: Date
-    challenger: User
-    challengeComment: String
-    votingToken: String
-    rewardPool: Int
-    commitPeriodEnd: Date
-    revealPeriodEnd: Date
-    votesFor: Int
-    votesAgainst: Int
-    votesTotal: Int
-    claimedRewardOn: Date
-    vote(voter: ID!): Vote
-    availableVoteAmount(voter: ID!): Int
+    regEntry_address: ID
+    regEntry_version: Int
+    regEntry_status: RegEntryStatus
+    regEntry_creator: User
+    regEntry_deposit: Int
+    regEntry_createdOn: Date
+    regEntry_challengePeriodEnd: Date
+    challenge_challenger: User
+    challenge_comment: String
+    challenge_votingToken: String
+    challenge_rewardPool: Int
+    challenge_commitPeriodEnd: Date
+    challenge_revealPeriodEnd: Date
+    challenge_votesFor: Int
+    challenge_votesAgainst: Int
+    challenge_votesTotal: Int
+    challenge_claimedRewardOn: Date
+    challenge_vote(voter: ID!): Vote
+    challenge_availableVoteAmount(voter: ID!): Int
 
-    title: String
-    number: Int
-    token: String
-    totalSupply: Int
-    imageHash: String
-    offeringStartPrice: Int
-    offeringDuration: Int
-    offeringSupply: Int
-    offeringEarnings: Int
-    offeringRank: Int
-    tags: [Tag]
+    meme_title: String
+    meme_number: Int
+    meme_token: String
+    meme_totalSupply: Int
+    meme_imageHash: String
+    meme_offeringStartPrice: Int
+    meme_offeringDuration: Int
+    meme_offeringSupply: Int
+    meme_offeringEarnings: Int
+    meme_offeringRank: Int
+    meme_tags: [Tag]
   }
 
   type ParamChange implements RegEntry {
-    address: ID
-    version: Int
-    status: RegEntryStatus
-    creator: User
-    deposit: Int
-    createdOn: Date
-    challengePeriodEnd: Date
-    challenger: User
-    challengeComment: String
-    votingToken: String
-    rewardPool: Int
-    commitPeriodEnd: Date
-    revealPeriodEnd: Date
-    votesFor: Int
-    votesAgainst: Int
-    votesTotal: Int
-    claimedRewardOn: Date
-    vote(voter: ID!): Vote
-    availableVoteAmount(voter: ID!): Int
+    regEntry_address: ID
+    regEntry_version: Int
+    regEntry_status: RegEntryStatus
+    regEntry_creator: User
+    regEntry_deposit: Int
+    regEntry_createdOn: Date
+    regEntry_challengePeriodEnd: Date
+    challenge_challenger: User
+    challenge_comment: String
+    challenge_votingToken: String
+    challenge_rewardPool: Int
+    challenge_commitPeriodEnd: Date
+    challenge_revealPeriodEnd: Date
+    challenge_votesFor: Int
+    challenge_votesAgainst: Int
+    challenge_votesTotal: Int
+    challenge_claimedRewardOn: Date
+    challenge_vote(voter: ID!): Vote
+    challenge_availableVoteAmount(voter: ID!): Int
 
-    db: String
-    key: String
-    value: Int
-    originalValue: Int
-    appliedOn: Date
+    paramChange_db: String
+    paramChange_key: String
+    paramChange_value: Int
+    paramChange_originalValue: Int
+    paramChange_appliedOn: Date
   }
 
   type MemePurchase {
-    address: RegEntry
-    buyer: User
-    amount: Int
-    price: Int
-    boughtOn: Date
+    memePurchase_regEntry: RegEntry
+    memePurchase_buyer: User
+    memePurchase_amount: Int
+    memePurchase_price: Int
+    memePurchase_boughtOn: Date
   }
 
   type User {
-    address: ID
+    user_address: ID
 
-    createdMemes: Int
-    createdMemesWhitelisted: Int
-    creatorEarnings: Int
-    creatorRank: Int
+    user_createdMemes: Int
+    user_createdMemesWhitelisted: Int
+    user_creatorEarnings: Int
+    user_creatorRank: Int
 
-    largestMemeOffering: Meme
-    largestMemeSale: MemePurchase
+    user_largestMemeOffering: Meme
+    user_largestMemeSale: MemePurchase
 
-    collectedMemes: Int
-    collectedMemesUnique: Int
-    largestMemePurchase: MemePurchase
+    user_collectedMemes: Int
+    user_collectedMemesUnique: Int
+    user_largestMemePurchase: MemePurchase
 
-    createdChallenges: Int
-    createdChallengesSuccess: Int
-    challengerRank: Int
+    user_createdChallenges: Int
+    user_createdChallengesSuccess: Int
+    user_challengerRank: Int
 
-    participatedVotes: Int
-    participatedVotesSuccess: Int
-    voterEarnings: Int
-    voterRank: Int
+    user_participatedVotes: Int
+    user_participatedVotesSuccess: Int
+    user_voterEarnings: Int
+    user_voterRank: Int
 
-    curatorEarnings: Int
-    curatorRank: Int
+    user_curatorEarnings: Int
+    user_curatorRank: Int
   }
 
   type Parameter {
-    key: String
-    value: Int
-    db: String
+    param_key: String
+    param_value: Int
+    param_db: String
   }
 
 

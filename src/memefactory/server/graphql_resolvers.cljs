@@ -1,44 +1,67 @@
 (ns memefactory.server.graphql-resolvers
-  (:require
-    [camel-snake-kebab.core :as cs :include-macros true]
-    [camel-snake-kebab.extras :refer [transform-keys]]))
-
-(enable-console-print!)
-
-(def GraphQLEnumType (aget (js/require "graphql") "GraphQLEnumType"))
-
-(defn transform-resolvers [resolver]
-  (if (map? resolver)
-    (clj->js (into {} (map (fn [[k v]]
-                             [(cs/->camelCase (name k))
-                              (if (fn? v)
-                                (fn [params context schema]
-                                  (let [params (transform-keys cs/->kebab-case-keyword (js->clj params))]
-                                    (transform-resolvers (v params context schema))))
-                                v)])
-                           resolver)))
-    (if (sequential? resolver)
-      (clj->js (map transform-resolvers resolver))
-      resolver)))
+  (:require [memefactory.shared.graphql-utils :as graphql-utils]))
 
 (def graphql-resolvers
-  #_{:searchMemes (fn [params]
-                    (clj->js [{:address "0x123"
-                               :vote (fn []
-                                       (clj->js {:amount 2
-                                                 :voteOption "NoVote"}))}]))}
-
-  (transform-resolvers
-    {:search-memes (fn [params _ info]
-                     #_(print.foo/look
-                         (:selections (:selectionSet (first (:fieldNodes (js->clj info :keywordize-keys true))))))
-                     [{:reg-entry/address "0x123"
-                       :reg-entry/created-on "123"
-                       :vote (fn [{:keys [:voter]} _ info]
-                               #_(print.foo/look (map
-                                                   (comp :value :name)
-                                                   (:selections (:selectionSet (first (:fieldNodes (js->clj info :keywordize-keys true)))))))
-                               {:amount (fn []
-                                          (println "keket")
-                                          voter)
-                                :vote/option "NoVote"})}])}))
+  (graphql-utils/transform-resolvers
+    {:search-memes (fn []
+                     [{:reg-entry/address "0x3f8cc2f7a4ed8c386b1339712366465c61073e8c",
+                       :reg-entry/challenge-period-end 1520371829,
+                       :reg-entry/created-on 1520371229,
+                       :reg-entry/creator "0xd98afc1dd919ee845d9f07dd6e9f31a2d00c0866"
+                       :reg-entry/deposit 1000,
+                       :reg-entry/version 1,
+                       :challenge/challenger "0xd98afc1dd919ee845d9f07dd6e9f31a2d00c0866",
+                       :challenge/claimed-reward-on 0,
+                       :challenge/commit-period-end 1520371349,
+                       :challenge/created-on 1520371229,
+                       :challenge/comment "Not a good meme",
+                       :challenge/reveal-period-end 1520371409,
+                       :challenge/reward-pool 500,
+                       :challenge/votes-against 0,
+                       :challenge/votes-for 9.99984e+26,
+                       :challenge/votes-total 9.99984e+26,
+                       :challenge/voting-token "0x8f450e039605ff48d32bcdab11dc111b98854577",
+                       :meme/image-hash "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH",
+                       :meme/meta-hash "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH",
+                       :meme/offering-duration 0,
+                       :meme/offering-start-price 929572691330084000,
+                       :meme/offering-supply 2341,
+                       :meme/offering-earnings 0
+                       :meme/offering-rank 3
+                       :meme/sold-for-total 0,
+                       :meme/title "HapplyHarambe"
+                       :meme/number 2
+                       :meme/token "0xe1aeac8013624b928051ccec98517b6a455da68d",
+                       :meme/total-supply 2342
+                       :meme/tags [{:tag/name "Harambe"} {:tag/name "Some Tag"}]}])
+     :meme (fn [{:keys [:reg-entry/address]}]
+             {:reg-entry/address address
+              :reg-entry/challenge-period-end 1520371829,
+              :reg-entry/created-on 1520371229,
+              :reg-entry/creator "0xd98afc1dd919ee845d9f07dd6e9f31a2d00c0866"
+              :reg-entry/deposit 1000,
+              :reg-entry/version 1,
+              :challenge/challenger "0xd98afc1dd919ee845d9f07dd6e9f31a2d00c0866",
+              :challenge/claimed-reward-on 0,
+              :challenge/commit-period-end 1520371349,
+              :challenge/created-on 1520371229,
+              :challenge/comment "Not a good meme",
+              :challenge/reveal-period-end 1520371409,
+              :challenge/reward-pool 500,
+              :challenge/votes-against 0,
+              :challenge/votes-for 9.99984e+26,
+              :challenge/votes-total 9.99984e+26,
+              :challenge/voting-token "0x8f450e039605ff48d32bcdab11dc111b98854577",
+              :meme/image-hash "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH",
+              :meme/meta-hash "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH",
+              :meme/offering-duration 0,
+              :meme/offering-start-price 929572691330084000,
+              :meme/offering-supply 2341,
+              :meme/offering-earnings 0
+              :meme/offering-rank 3
+              :meme/sold-for-total 0,
+              :meme/title "HapplyHarambe"
+              :meme/number 2
+              :meme/token "0xe1aeac8013624b928051ccec98517b6a455da68d",
+              :meme/total-supply 2342
+              :meme/tags [{:tag/name "Harambe"} {:tag/name "Some Tag"}]})}))

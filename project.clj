@@ -27,7 +27,7 @@
                  [mount "0.1.12"]
                  [org.clojure/clojurescript "1.9.946"]
                  [print-foo-cljs "2.0.3"]
-                 [vincit/venia "0.2.5"]]
+                 [madvas/venia "0.2.6"]]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
