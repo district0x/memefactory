@@ -2,15 +2,15 @@
   (:require
     [cljs.nodejs :as nodejs]
     [district.server.config :refer [config]]
-    [district.server.middleware.logging :refer [logging-middlewares]]
     [district.server.logging]
+    [district.server.middleware.logging :refer [logging-middlewares]]
     [district.server.web3-watcher]
-    [mount.core :as mount]
     [memefactory.server.db]
     [memefactory.server.deployer]
     [memefactory.server.generator]
     [memefactory.server.syncer]
     [memefactory.shared.smart-contracts]
+    [mount.core :as mount]
     [taoensso.timbre :refer-macros [info warn error]]))
 
 (nodejs/enable-util-print!)

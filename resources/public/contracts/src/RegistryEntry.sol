@@ -465,4 +465,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
     vtr.claimedRewardOn
     );
   }
+
+  /**
+   * @dev Returns balance of voting token for a potential voter
+   *
+   * @param _voter Address of a potential voter
+   */
+  function votingTokenBalanceOf(address _voter) public constant returns (uint) {
+    return challenge.votingToken.balanceOf(_voter);
+  }
 }

@@ -5,20 +5,21 @@
 
   type Query {
     meme(regEntry_address: ID!): Meme
-    searchMemes: [Meme]
+    searchMemes(a: Int!): MemeList
 
     paramChange(regEntry_address: ID!): ParamChange
-    searchParamChanges: [ParamChange]
+    searchParamChanges: ParamChangeList
 
     user(user_address: ID!): User
-    searchUsers: [User]
+    searchUsers: UserList
 
-    searchTags: [Tag]
+    searchTags: TagList
 
-    parameters(db: String!, keys: [String!]): [Parameter]
+    param(db: String!, key: String!): Parameter
+    params(db: String!, keys: [String!]): [Parameter]
   }
 
-  enum RegEntryStatus {
+  enum RegEntryStatus {c
     regEntry_status_challengePeriod
     regEntry_status_commitPeriod
     regEntry_status_revealPeriod
@@ -27,6 +28,8 @@
   }
 
   interface RegEntry {
+    id: ID
+    graphql_args: String
     regEntry_address: ID
     regEntry_version: Int
     regEntry_status: RegEntryStatus
@@ -44,7 +47,7 @@
     challenge_votesAgainst: Int
     challenge_votesTotal: Int
     challenge_claimedRewardOn: Date
-    challenge_vote(voter: ID!): Vote
+    challenge_vote(vote_voter: ID!): Vote
     challenge_availableVoteAmount(voter: ID!): Int
   }
 
@@ -55,6 +58,8 @@
   }
 
   type Vote {
+    id: ID
+    graphql_args: String
     vote_secretHash: String
     vote_option: VoteOption
     vote_amount: Int
@@ -64,11 +69,24 @@
   }
 
   type Tag {
+    id: ID
+    graphql_args: String
     tag_id: ID
     tag_name: String
   }
 
+  type MemeList  {
+    id: ID
+    graphql_args: String
+    items: [Meme]
+    totalCount: Int
+    endCursor: ID
+    hasNextPage: Boolean
+  }
+
   type Meme implements RegEntry {
+    id: ID
+    graphql_args: String
     regEntry_address: ID
     regEntry_version: Int
     regEntry_status: RegEntryStatus
@@ -86,7 +104,7 @@
     challenge_votesAgainst: Int
     challenge_votesTotal: Int
     challenge_claimedRewardOn: Date
-    challenge_vote(voter: ID!): Vote
+    challenge_vote(vote_voter: ID!): Vote
     challenge_availableVoteAmount(voter: ID!): Int
 
     meme_title: String
@@ -99,10 +117,22 @@
     meme_offeringSupply: Int
     meme_offeringEarnings: Int
     meme_offeringRank: Int
+
     meme_tags: [Tag]
   }
 
+  type TagList  {
+    id: ID
+    graphql_args: String
+    items: [Tag]
+    totalCount: Int
+    endCursor: ID
+    hasNextPage: Boolean
+  }
+
   type ParamChange implements RegEntry {
+    id: ID
+    graphql_args: String
     regEntry_address: ID
     regEntry_version: Int
     regEntry_status: RegEntryStatus
@@ -120,7 +150,7 @@
     challenge_votesAgainst: Int
     challenge_votesTotal: Int
     challenge_claimedRewardOn: Date
-    challenge_vote(voter: ID!): Vote
+    challenge_vote(vote_voter: ID!): Vote
     challenge_availableVoteAmount(voter: ID!): Int
 
     paramChange_db: String
@@ -129,8 +159,20 @@
     paramChange_originalValue: Int
     paramChange_appliedOn: Date
   }
+  
+  type ParamChangeList {
+    id: ID
+    graphql_args: String
+    items: [ParamChange]
+    totalCount: Int
+    endCursor: ID
+    hasNextPage: Boolean
+  }  
 
   type MemePurchase {
+    id: ID
+    graphql_args: String
+
     memePurchase_regEntry: RegEntry
     memePurchase_buyer: User
     memePurchase_amount: Int
@@ -139,8 +181,10 @@
   }
 
   type User {
-    user_address: ID
+    id: ID
+    graphql_args: String
 
+    user_address: ID
     user_createdMemes: Int
     user_createdMemesWhitelisted: Int
     user_creatorEarnings: Int
@@ -165,12 +209,22 @@
     user_curatorEarnings: Int
     user_curatorRank: Int
   }
+  
+  type UserList {
+    id: ID
+    graphql_args: String
+    items: [User]
+    totalCount: Int
+    endCursor: ID
+    hasNextPage: Boolean
+  }
 
   type Parameter {
+    id: ID
+    graphql_args: String
     param_key: String
     param_value: Int
     param_db: String
   }
-
 
 ")

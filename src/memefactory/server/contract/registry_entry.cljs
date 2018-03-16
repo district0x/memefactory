@@ -61,6 +61,9 @@
 (defn vote-reward [contract-addr voter-address]
   (contract-call (instance :meme contract-addr) :vote-reward voter-address))
 
+(defn voting-token-balance-of [contract-addr voter-address]
+  (contract-call (instance :meme contract-addr) :voting-token-balance-of voter-address))
+
 (defn claim-challenge-reward [contract-addr & [opts]]
   (contract-call (instance :meme contract-addr) :claim-challenge-reward (merge opts {:gas 500000})))
 
