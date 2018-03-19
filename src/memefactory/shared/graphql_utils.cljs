@@ -78,13 +78,17 @@
     (update resp :data transform-response-keys)))
 
 
-(defn create-field [name]
+(defn create-field-node [name]
   {:kind "Field"
    :name {:kind "Name"
           :value name}})
 
-(def id-field (create-field "id"))
-(def typename-field (create-field "__typename"))
+(defn create-name-node [name]
+  {:kind "Name"
+   :value name})
+
+(def id-field (create-field-node "id"))
+(def typename-field (create-field-node "__typename"))
 
 (defn selection-set-has-field? [SelectionSet Field]
   (.some (aget SelectionSet "selections")
@@ -96,7 +100,7 @@
 
 (defn add-field-to-query [query-ast field]
   (let [Field (clj->js (if (string? field)
-                         (create-field field)
+                         (create-field-node field)
                          field))]
     (visit query-ast
            #js {:leave (fn [node key parent path ancestors]
@@ -220,6 +224,7 @@
                            "FragmentSpread" {(keyword :fragment (aget node "name")) nil}
                            js/undefined))})))
 
+
 (defn- query-resolver [args context document]
   (print.foo/look document)
   (if (= (aget document "fieldName") "searchMemes")
@@ -266,40 +271,6 @@
     nil))
 
 
-(declare create-proxy)
-
-(defn create-proxy-handler [& [{:keys [:transform-name-fn]
-                                :or {transform-name-fn identity} :as opts}]]
-  {:get (fn [{:keys [:query-results :entities]} name]
-          (when-not (= name "then")
-            (fn [args]
-              (let [args (js->clj args)
-                    args (when (seq args) (transform-keys transform-name-fn args))
-                    value (get-in (print.foo/look query-results) (print.foo/look (remove nil? [(transform-name-fn name) args])))
-                    value (if (ref? value)
-                            (get-entity entities value)
-                            value)
-                    state {:query-results value :entities entities}]
-                (print.foo/look name)
-                (print.foo/look value)
-                (cond
-                  (map? value)
-                  (create-proxy state opts)
-
-                  (sequential? value)
-                  (clj->js
-                    (for [item value]
-                      (create-proxy {:query-results item :entities entities} opts)))
-
-                  :else value)))))})
-
-(defn create-proxy [state opts]
-  (js/Proxy. state (clj->js (create-proxy-handler opts))))
-
-(defn create-resolver [state opts]
-  (create-proxy state opts))
-
-
 (defn create-field-resolver [{:keys [:transform-name-fn]
                               :or {transform-name-fn identity}}]
   (fn [{:keys [:query-results :entities]} args _ info]
@@ -320,3 +291,20 @@
           array)
 
         :else value))))
+
+(defn merge-queries [query-asts]
+  (let [query-asts (js->clj query-asts :keywordize-keys true)]
+    (clj->js
+      (reduce (fn [acc query]
+                (let [variables (get-in query [:definitions 0 :variableDefinitions])
+                      selections (->> (get-in query [:definitions 0 :selectionSet :selections])
+                                   (map (fn [sel]
+                                          (if-not (:alias sel)
+                                            (assoc sel :alias (create-name-node
+                                                                (str (:value (:name sel)) (rand-int 99999))))
+                                            sel))))]
+                  (-> acc
+                    (update-in [:definitions 0 :selectionSet :selections] concat selections)
+                    (update-in [:definitions 0 :variableDefinitions] concat variables))))
+              (first query-asts)
+              (rest query-asts)))))

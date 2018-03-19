@@ -1,24 +1,37 @@
 (ns memefactory.ui.graphql.effects
   (:require
     [memefactory.shared.graphql-utils :as graphql-utils]
-    [re-frame.core :as re-frame :refer [reg-fx dispatch]]
+    [re-frame.core :refer [reg-fx dispatch]]
     [venia.core :as v]))
+
+(def print-str-graphql (aget js/GraphQL "print"))
+
+(defn query [{:keys [:fetcher :schema :query :variables :operation-name :on-success :on-error :on-response]
+              :as opts}]
+  (.catch (.then (fetcher (clj->js {:query query :variables variables :operationName operation-name}))
+                 (fn [res]
+                   (let [res (-> (graphql-utils/transform-response res))]
+                     (when (and on-success (empty? (:errors res)))
+                       (dispatch (vec (concat on-success [res opts]))))
+                     (when (and on-error (not (empty? (:errors res))))
+                       (dispatch (vec (concat on-error [res opts]))))
+                     (when on-response
+                       (dispatch (vec (concat on-response [res opts])))))))
+          (fn [error]
+            (when on-error
+              (dispatch (vec (concat on-error [error opts])))))))
+
 
 (reg-fx
   ::query
-  (fn [{:keys [:fetcher :schema :query :variables :operation-name :on-success :on-error :on-response] :as opts}]
-    (.catch (.then (fetcher (clj->js {:query query :variables variables :operationName operation-name}))
-                   (fn [res]
-                     (let [res (-> (graphql-utils/transform-response res))]
-                       (when (and on-success (empty? (:errors res)))
-                         (dispatch (vec (concat on-success [res opts]))))
-                       (when (and on-error (not (empty? (:errors res))))
-                         (dispatch (vec (concat on-error [res opts]))))
-                       (when on-response
-                         (dispatch (vec (concat on-response [res opts])))))))
-            (fn [error]
-              (when on-error
-                (dispatch (vec (concat on-error [error opts]))))))))
+  query)
+
+
+(reg-fx
+  ::enqueue-query
+  (fn [{:keys [:fetcher :dataloader :schema :query :variables] :as opts}]
+    (js-invoke dataloader "load" opts)))
+
 
 (defn- create-middleware-fn [method]
   (fn [{:keys [:fetcher :middlewares :afterwares]}]

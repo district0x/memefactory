@@ -1,6 +1,7 @@
 (ns memefactory.ui.core
   (:require
     [cljs.spec.alpha :as s]
+    [clojure.string :as str]
     [district.ui.component.router :refer [router]]
     [district.ui.notification]
     [district.ui.now]
@@ -25,8 +26,7 @@
     [memefactory.ui.home.page]
     [mount.core :as mount]
     [print.foo :include-macros true]
-    [venia.core :as v]
-    [clojure.string :as str]))
+    [venia.core :as v]))
 
 (def debug? ^boolean js/goog.DEBUG)
 
@@ -61,8 +61,13 @@
   (re-frame.core/dispatch [::graphql-events/query
                            {:query {:venia/queries [{:query/data [:search-memes
                                                                   {:a 1}
-                                                                  [[:items [:reg-entry/created-on]]]]
-                                                     :query/alias :kek}]}
+                                                                  :fragment/comparisonFields
+                                                                  #_[[:items [:reg-entry/created-on]]]
+                                                                  ]
+                                                     :query/alias :kek}]
+                                    :venia/fragments [{:fragment/name "comparisonFields"
+                                                       :fragment/type :MemeList
+                                                       :fragment/fields [[:items [:reg-entry/created-on]]]}]}
                             :on-success [::print]
                             :on-error [::print]}])
 

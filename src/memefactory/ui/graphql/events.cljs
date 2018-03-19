@@ -5,6 +5,7 @@
     [memefactory.shared.graphql-utils :as graphql-utils]
     [memefactory.ui.graphql.effects :as effects]
     [memefactory.ui.graphql.queries :as queries]
+    [memefactory.ui.graphql.utils :as utils]
     [print.foo :include-macros true]
     [re-frame.core :refer [reg-event-fx trim-v]]
     [venia.core :as v]))
@@ -26,72 +27,50 @@
              (queries/assoc-schema (build-schema schema))
              (queries/assoc-fetcher fetcher)
              (queries/assoc-typename-field typename-field)
-             (queries/assoc-id-field id-field))
-       })))
+             (queries/assoc-id-field id-field)
+             (queries/assoc-dataloader (utils/create-dataloader {:on-success [::normalize-response]
+                                                                 :transform-name-fn graphql-utils/graphql->clj})))})))
+
 
 (reg-event-fx
   ::query
   interceptors
-  (fn [{:keys [:db]} [{:keys [:query :variables :on-success :on-error :on-response]}]]
-    (let [query-ast (parse-graphql (v/graphql-query query))
+  (fn [{:keys [:db]} [{:keys [:query :variables :on-success :on-error :on-response :enqueue?]}]]
+    (let [query-ast (cond
+                      (map? query) (parse-graphql (v/graphql-query query))
+                      (string? query) (parse-graphql query)
+                      :else query)
           query (-> query-ast
                   (graphql-utils/add-field-to-query (graphql-utils/clj->graphql (queries/typename-field db)))
                   (graphql-utils/add-field-to-query (graphql-utils/clj->graphql (queries/id-field db)))
                   print-str-graphql)]
 
-      #_(print.foo/look query)
-
-      #_(print.foo/look (graphql-utils/query-ast->query-clj (parse-graphql query)
-                                                            {:transform-name-fn graphql-utils/graphql->clj
-                                                             :variables variables}))
-
-      #_(print.foo/look (graphql-utils/transform-response
-                          (gql-sync (queries/schema db) query (fn [& args]
-                                                                (println "heyu")))))
-
-
-      {}
-      {::effects/query {:schema (queries/schema db)
-                        :fetcher (queries/fetcher db)
-                        :query query
-                        :query-ast query-ast
-                        :variables variables
-                        :on-success [::query-success* {:on-success on-success}]
-                        :on-error [::query-error* {:on-error on-error}]
-                        :on-response on-response}})))
+      {(if enqueue? ::effects/enqueue-query ::effects/query)
+       {:schema (queries/schema db)
+        :fetcher (queries/fetcher db)
+        :dataloader (queries/dataloader db)
+        :query query
+        :query-ast query-ast
+        :variables variables
+        :on-success [::query-success* {:on-success on-success}]
+        :on-error [::query-error* {:on-error on-error}]
+        :on-response on-response}})))
 
 
 (reg-event-fx
-  ::store-response
+  ::normalize-response
   interceptors
-  (fn [{:keys [:db]} [response {:keys [:query :query-ast :variables] :as opts}]]
-    (let [query-ast (if-not query-ast (parse-graphql query) query-ast)
-          query-clj (graphql-utils/query-ast->query-clj query-ast {:transform-name-fn graphql-utils/graphql->clj
-                                                                   :variables variables})
-          results (print.foo/look (graphql-utils/normalize-response response
-                                                                    (print.foo/look query-clj)
-                                                                    {:typename-field (queries/typename-field db)
-                                                                     :id-field (queries/id-field db)}))]
-      {:db (queries/merge-results db results)
-       :dispatch [::print-query opts]})))
-
-
-(reg-event-fx
-  ::print-query
-  interceptors
-  (fn [{:keys [:db]} [{:keys [:query :variables]}]]
-    (print.foo/look (graphql-utils/transform-response
-                      (gql-sync (queries/schema db)
-                                query
-                                (queries/graphql db)
-                                #_(graphql-utils/create-resolver (queries/graphql db)
-                                                                 {:transform-name-fn graphql-utils/graphql->clj})
-                                {}
-                                variables
-                                nil
-                                (graphql-utils/create-field-resolver
-                                  {:transform-name-fn graphql-utils/graphql->clj}))))
-    nil))
+  (fn [{:keys [:db]} [response {:keys [:query :query-ast :query-clj :variables]}]]
+    (let [query-clj (if-not query-clj
+                      (graphql-utils/query-ast->query-clj query-ast
+                                                          {:transform-name-fn graphql-utils/graphql->clj
+                                                           :variables variables})
+                      query-clj)
+          results (graphql-utils/normalize-response response
+                                                    query-clj
+                                                    {:typename-field (queries/typename-field db)
+                                                     :id-field (queries/id-field db)})]
+      {:db (print.foo/look (queries/merge-results db results))})))
 
 
 (reg-event-fx
@@ -99,7 +78,7 @@
   interceptors
   (fn [{:keys [:db]} [{:keys [:on-success]} {:keys [:data]} opts]]
     (merge
-      {:dispatch-n [[::store-response data opts]]}
+      {:dispatch-n [[::normalize-response data opts]]}
       (when on-success
         {:dispatch (vec (concat on-success [data opts]))}))))
 

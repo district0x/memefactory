@@ -8,6 +8,7 @@
                  [cljs-web3 "0.19.0-0-10"]
                  [cljsjs/apollo-fetch "0.7.0-0"]
                  [cljsjs/graphql "0.13.1-0"]
+                 [cljsjs/dataloader "1.4.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]
