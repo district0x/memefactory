@@ -5,7 +5,6 @@
     [cljs-web3.core :as web3]
     [cljs.nodejs :as nodejs]
     [cljs.pprint :as pprint]
-    [cljsjs.graphql]
     [district.server.config :refer [config]]
     [district.server.db :refer [db]]
     [district.server.graphql :as graphql]
@@ -15,6 +14,7 @@
     [district.server.web3 :refer [web3]]
     [district.server.web3-watcher]
     [goog.date.Date]
+    [graphql-query.core :refer [graphql-query]]
     [memefactory.server.db]
     [memefactory.server.deployer]
     [memefactory.server.emailer]
@@ -22,19 +22,15 @@
     [memefactory.server.graphql-resolvers :refer [graphql-resolvers]]
     [memefactory.server.syncer]
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
-    [memefactory.shared.graphql-utils :as graphql-utils]
     [memefactory.shared.smart-contracts]
     [mount.core :as mount]
-    [print.foo :include-macros true]
-    [venia.core :as v]))
+    [print.foo :include-macros true]))
 
 (nodejs/enable-util-print!)
 
 (def graphql-module (nodejs/require "graphql"))
 (def parse-graphql (aget graphql-module "parse"))
 (def visit (aget graphql-module "visit"))
-
-(set! v/*keyword-transform-fn* graphql-utils/clj->graphql)
 
 (defn on-jsload []
   (graphql/restart {:root-value graphql-resolvers :schema graphql-schema}))
@@ -115,32 +111,9 @@
 (set! *main-cli-fn* -main)
 
 (comment
-  (let [q (v/graphql-query {:venia/queries [[:search-memes [:reg-entry/address
-                                                            :reg-entry/created-on
-                                                            [:challenge/available-vote-amount {:voter "0x987"}]
-                                                            [:challenge/vote {:voter "0x987"}
-                                                             [:vote/amount :vote/option]]]]]})]
-    (visit (parse-graphql q)
-           (clj->js
-             {:enter (fn [node key parent path ancestors]
-                       (print.foo/look (parse-fields node))
-                       js/undefined)})))
+  (graphql/run-query {:queries [[:search-memes
+                                 {:a 1}
+                                 [[:items [:meme/title]]]]]}))
 
-
-  (let []
-    (parse-fields (parse-graphql q)))
-
-
-  (v/graphql-query {:venia/queries [[:search-memes [:reg-entry/address
-                                                    :reg-entry/created-on
-                                                    [:challenge/available-vote-amount {:voter "0x987"}]
-                                                    [:challenge/vote {:voter "0x987"}
-                                                     [:vote/amount :vote/option]]]]]})
-  (comp println graphql-utils/transform-response)
-
-  (graphql/run-query
-    (v/graphql-query {:venia/queries [[:meme {:reg-entry/address "0x222"}
-                                       [:reg-entry/address]]]})
-    (comp println graphql-utils/transform-response)))
 
 

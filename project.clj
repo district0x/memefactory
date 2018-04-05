@@ -6,21 +6,20 @@
 
   :dependencies [[camel-snake-kebab "0.4.0"]
                  [cljs-web3 "0.19.0-0-10"]
-                 [cljsjs/apollo-fetch "0.7.0-0"]
-                 [cljsjs/graphql "0.13.1-0"]
-                 [cljsjs/dataloader "1.4.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]
+                 [day8.re-frame/re-frame-10x "0.3.1"]
                  [district0x/bignumber "1.0.1"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
-                 [district0x/district-cljs-utils "1.0.0"]
+                 [district0x/district-cljs-utils "1.0.3"]
                  [district0x/district-encryption "1.0.0"]
                  [district0x/district-format "1.0.0"]
+                 [district0x/district-graphql-utils "1.0.5"]
                  [district0x/district-sendgrid "1.0.0"]
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.1"]
-                 [district0x/district-server-graphql "1.0.4"]
+                 [district0x/district-server-graphql "1.0.12"]
                  [district0x/district-server-logging "1.0.1"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.0.6"]
@@ -29,28 +28,28 @@
                  [district0x/district-ui-component-active-account "1.0.0"]
                  [district0x/district-ui-component-active-account-balance "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
+                 [district0x/district-ui-graphql "1.0.0"]
                  [district0x/district-ui-logging "1.0.0"]
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.1"]
-                 [district0x/district-ui-reagent-render "1.0.0"]
+                 [district0x/district-ui-reagent-render "1.0.1"]
                  [district0x/district-ui-router "1.0.3"]
                  [district0x/district-ui-router-google-analytics "1.0.0"]
-                 [district0x/district-ui-smart-contracts "1.0.4"]
+                 [district0x/district-ui-smart-contracts "1.0.5"]
                  [district0x/district-ui-web3 "1.0.1"]
-                 [district0x/district-ui-web3-account-balances "1.0.1"]
-                 [district0x/district-ui-web3-accounts "1.0.3"]
-                 [district0x/district-ui-web3-balances "1.0.0"]
-                 [district0x/district-ui-web3-tx "1.0.7"]
-                 [district0x/district-ui-web3-tx-id "1.0.0"]
-                 [district0x/district-ui-web3-tx-log "1.0.1"]
+                 [district0x/district-ui-web3-account-balances "1.0.2"]
+                 [district0x/district-ui-web3-accounts "1.0.5"]
+                 [district0x/district-ui-web3-balances "1.0.2"]
+                 [district0x/district-ui-web3-tx "1.0.8"]
+                 [district0x/district-ui-web3-tx-id "1.0.1"]
+                 [district0x/district-ui-web3-tx-log "1.0.2"]
                  [district0x/district-ui-window-size "1.0.1"]
                  [district0x/district-web3-utils "1.0.2"]
-                 [madvas/contextual "0.1.0"]
-                 [madvas/venia "0.2.6-1"]
                  [medley "1.0.0"]
                  [mount "0.1.12"]
-                 [org.clojure/clojurescript "1.9.946"]
-                 [print-foo-cljs "2.0.3"]]
+                 [org.clojure/clojurescript "1.10.238"]
+                 [print-foo-cljs "2.0.3"]
+                 [re-frame "0.10.5"]]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
@@ -61,7 +60,6 @@
             [lein-pdo "0.1.1"]]
 
   :npm {:dependencies [                                     ;[semantic-ui "2.2.14"]
-                       [graphql "0.13.1"]
                        [solc "0.4.20"]
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]]}
@@ -99,8 +97,10 @@
                                    :output-dir "resources/public/js/compiled/out"
                                    :asset-path "js/compiled/out"
                                    :source-map-timestamp true
-                                   :preloads [print.foo.preloads.devtools]
-                                   :closure-defines {goog.DEBUG true}
+                                   :preloads [print.foo.preloads.devtools
+                                              day8.re-frame-10x.preload]
+                                   :closure-defines {goog.DEBUG true
+                                                     "re_frame.trace.trace_enabled_QMARK_" true}
                                    :external-config {:devtools/config {:features-to-install :all}}}}
                        {:id "dev-server"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared"]

@@ -128,7 +128,3 @@
   (let [opts (assoc opts :accounts (web3-eth/accounts @web3))]
     (generate-memes opts)
     (generate-param-changes opts)))
-
-
-(comment
-  (registry-entry/status @*registry-entry*))
