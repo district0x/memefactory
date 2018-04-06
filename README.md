@@ -11,6 +11,11 @@ Following diagram shows interaction flow of MemeFactory smart-contracts. For fur
 ![MemeFactory SmartContracts](https://user-images.githubusercontent.com/3857155/36697475-00a2fc00-1afc-11e8-9b72-9a308d6e85d6.png)
 
 ## Development
+Auto compile contracts: (assumes you have `solc` installed)
+```bash
+lein auto compile-solidity
+```
+
 Start server: 
 ```bash
 ganache-cli -p 8549
