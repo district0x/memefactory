@@ -1,5 +1,7 @@
 language: clojure
 script: lein test
 before_script:
+  - sudo apt-get --yes install solc
+  - lein compile-solidity
   - npm install -g ganache-cli
   - ganache-cli -p 8549 > /dev/null &
