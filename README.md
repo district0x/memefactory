@@ -1,14 +1,74 @@
-# MemeFactory
+# [MemeFactory](https://memefactory.io)
 
 [![Build Status](https://travis-ci.org/district0x/memefactory.svg?branch=master)](https://travis-ci.org/district0x/memefactory)
 
-Create and trade provably rare digital assets on the Ethereum blockchain
+MemeFactory is a platform for the decentralized creation, issuance, and exchange of provably rare digital collectibles on the Ethereum blockchain. Meme Factory strives to be the first self-governing digital collectibles marketplace. By utilizing a “token curated registry”, called the Dank Registry, Meme Factory users will be able to submit original memes to a community run list, where token holders of a newly minted token, the DANK token, decide what makes the cut.
 
-See at [https://memefactory.io](https://memefactory.io/)
+## How it Works
+The easiest way to explain how Meme Factory works is from the perspective of each kind of user - creators, curators, and collectors. It’s important to note that users can be any or all of the following roles at the same time, they’re not locked in to a single one.
 
-Smart-contracts can be found [here](https://github.com/district0x/memefactory/tree/master/resources/public/contracts/src).  
-Following diagram shows interaction flow of MemeFactory smart-contracts. For further explanations, feel free to read comments in smart-contract files. 
+### Creators
+Creators are the most familiar of all the roles. Their job is simple - they bring memes to the Dank Registry in hopes of listing them for sale. Valid submissions to the registry must include: the meme itself, a starting price (in ETH) for the auction, the total supply of memes issued for sale, along with a fixed amount of DANK. By requiring this deposit, low quality submissions and spam are easily avoided. Creators with genuinely dank memes are incentivized to risk DANK deposits in return for the opportunity to sell the newly issued memes for ETH. Their success is measured in the number of memes they sell, or the total amount they sell them for. 
+
+### Curators
+Curators run the DANK registry, and can be split into two subcategories: challengers and voters. A challenger’s job is to find recent submissions from creators that are disagreeable for some reason (meme isn’t funny, title or tags are inappropriate, etc.). They can then initiate challenge to any submissions inclusion in the registry by depositing an equivalent fixed amount of DANK as the creator. This places their DANK at risk.
+
+When a challenge is initiated, a voting period begins. This is where the voters come in. Using their DANK tokens, voters can privately signal their DANK balance either in favor of or against the challenge. At the end of the voting period, all votes are made public and voters receive their DANK in return. 
+
+If the challenge fails, the meme remains in the registry, and moves on to the initial meme offering. Additionally, the challenger’s DANK deposit is dispensed as a reward to winning voters. Vice versa, if the challenge succeeds, the meme is rejected from the registry, and the creator’s DANK is forfeited as a reward to both the challenger and winning voters.
+
+In this way, challengers are incentivized to make only prudent challenges, else they risk their initial deposit by needlessly challenging an obviously popular meme or spamming challenges across all new submissions. Voters risk nothing, and are incentivized to vote as often as possible and only in their best interest - which means voting the way they *think* will be the most popular with others. These incentive alignments together are what produce the “curation” powers of Meme Factory. Popular content churns to the top.
+
+### Collectors
+Collectors are a class completely on their own - they deal only with the aftermath of the creator’s and the curator’s actions. When a meme has secured a spot in the registry (either successfully exiting a challenge, or lasting the entire challenge period unchallenged) the Initial Meme Offering begins. Using the initial price and total supply provided by the creator, the Meme is offered for sale and begins decaying down to a lower and lower price over time, until either supply runs out or the offering ends.
+
+During this time, any collector visiting the site, even someone who has never owned DANK, can purchase a meme using ETH. Just like a cryptokitty, these memes will themselves be tradable and resellable on a secondary market provided on Meme Factory. For any given meme that makes it through the Dank registry, there will only ever be a finite number issued. These provably rare memes will exist indefinitely on the blockchain, and can be accessed via smart contract even if Meme Factory disappeared altogether. This gives as strong an incentive to collect as any.
+
+## Technical Overview
+Following section is written for developers working on MF or related applications. Programming knowledge is assumed. 
+
+To be able to easily pick up MF stack, one should be familiar with following topics: 
+* [Clojurescript](https://clojurescript.org/)
+* [d0x-INFRA](https://github.com/district0x/d0x-INFRA), [re-mount](https://github.com/district0x/d0x-INFRA/blob/master/re-mount.md)
+* [Solidity](http://solidity.readthedocs.io/en/develop/)
+* [Proxy Contracts in Solidity](https://blog.zeppelin.solutions/proxy-libraries-in-solidity-79fbe4b970fd)
+* [Token Curated Registries (TCR)](https://medium.com/@ilovebagels/token-curated-registries-1-0-61a232f8dac7)
+* [0x Protocol](https://blog.0xproject.com/a-beginners-guide-to-0x-81d30298a5e0)
+* [GraphQL](https://graphql.org/)
+
+### Smart Contracts
+MemeFactory smart-contracts are mostly an implementation of TCR. In our own implementation, each registry entry is deployed as separate contract via a factory contract. This model provides us with straightforward path to add new features for future registry entries, while immutability guarantees of existing ones are preserved. Registry entry contract is not deployed each time as a full copy of source code, but only as forwarder proxy contract. This is to ensure gas efficiency. Registry contract groups together events of all registry entries, so MF server can listen to just single contract to keep up with all updates throughout all registry entries. 
+
+Following diagram shows high-level overview of smart-contracts. Each Solidity file contains detailed comments, proceed [there](https://github.com/district0x/memefactory/tree/master/resources/public/contracts/src) to study further. 
+
 ![MemeFactory SmartContracts](https://user-images.githubusercontent.com/3857155/36697475-00a2fc00-1afc-11e8-9b72-9a308d6e85d6.png)
+
+### Server
+Server part of MF is written in ClojureScript compiled into Node.js. It consists of several "microservices" provided as [mount](https://github.com/tolitius/mount) modules: 
+
+##### Deployment
+Server is be able to deploy all smart-contracts and set up initial properties "in one go". 
+
+##### Data Generation
+Server is be able to generate mock data by sending transactions into blockchain. 
+
+##### Syncing
+Server listens to MF-related blockchain events and reconstruct SQL database using data on blockchain & IPFS. 
+
+##### GraphQL Server
+Server provides data stored in SQL database via GraphQL protocol. 
+
+##### Email Notifications
+Server listens to MF-related blockchain events and sends email notifications to subscribed users.
+
+### UI
+UI part of MF is written in ClojurScript, using these most notable technologies: 
+* [re-frame](https://github.com/Day8/re-frame) as main web application framework
+* [re-mount](https://github.com/district0x/d0x-INFRA/blob/master/re-mount.md) modularisation pattern
+* [district-ui-modules](https://github.com/search?q=topic%3Adistrict-ui-module+org%3Adistrict0x&type=Repositories) to provide general purpose features for decentralised applications
+* [GraphQL](https://graphql.org/) for communication between server and client
+* [ReactSemanticUI](https://react.semantic-ui.com/introduction) for simpler styling of components
+* [CSS Grid Layout](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout) as layout systen
 
 ## Development
 Auto compile contracts: (assumes you have `solc` installed)
