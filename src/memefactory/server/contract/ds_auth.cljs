@@ -10,3 +10,6 @@
 
 (defn set-authority [contract-key new-authority & [opts]]
   (contract-call contract-key :set-authority new-authority (merge opts {:gas 100000})))
+
+(defn authority [contract-key]
+  (contract-call contract-key :authority))

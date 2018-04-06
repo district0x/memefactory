@@ -15,3 +15,6 @@
 
 (defn registry-entry-event-in-tx [contract-key tx-hash & args]
   (apply contract-event-in-tx tx-hash contract-key :RegistryEntryEvent args))
+
+(defn factory? [contract-key factory]
+  (contract-call contract-key :is-factory factory))

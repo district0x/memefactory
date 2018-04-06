@@ -14,3 +14,9 @@
 
 (defn balance-of [contract-key owner]
   (contract-call contract-key :balance-of owner))
+
+(defn total-supply [contract-key]
+  (contract-call contract-key :total-supply))
+
+(defn controller [contract-key]
+  (contract-call contract-key :controller))

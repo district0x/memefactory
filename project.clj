@@ -79,7 +79,10 @@
             "build-css" ["shell" "./semantic.sh" "build-css"]
             "build-prod-server" ["do" ["clean-prod-server"] ["cljsbuild" "once" "server"]]
             "build-prod-ui" ["do" ["clean"] ["cljsbuild" "once" "ui"]]
-            "build-prod" ["pdo" ["build-prod-server"] ["build-prod-ui"] ["build-css"]]}
+            "build-prod" ["pdo" ["build-prod-server"] ["build-prod-ui"] ["build-css"]]
+            "test" ["do" ["build-tests"] ["shell" "node" "smart-contracts-tests/smart-contracts-tests.js"]]
+            "build-tests" ["cljsbuild" "once" "smart-contracts-tests"]
+            "test-dev" ["doo" "node" "smart-contracts-tests"]}
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0"]
                                   [binaryage/devtools "0.9.9"]
@@ -130,12 +133,12 @@
                                    :closure-defines {goog.DEBUG false}
                                    :pretty-print false
                                    :pseudo-names false}}
-                       {:id "server-tests"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/server"]
+                       {:id "smart-contracts-tests"
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared" "test"]
                         :figwheel true
-                        :compiler {:main "server.run-tests"
-                                   :output-to "server-tests/server-tests.js",
-                                   :output-dir "server-tests",
+                        :compiler {:main "memefactory.tests.runner"
+                                   :output-to "smart-contracts-tests/smart-contracts-tests.js",
+                                   :output-dir "smart-contracts-tests",
                                    :target :nodejs,
                                    :optimizations :none,
                                    :verbose false
