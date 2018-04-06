@@ -1,2 +1,5 @@
 language: clojure
 script: lein test
+before_script:
+  - npm install -g ganache-cli
+  - ganache-cli -p 8549 > /dev/null &
