@@ -1,5 +1,7 @@
 # MemeFactory
 
+[![Build Status](https://travis-ci.org/district0x/memefactory.svg?branch=master)](https://travis-ci.org/district0x/memefactory)
+
 Create and trade provably rare digital assets on the Ethereum blockchain
 
 See at [https://memefactory.io](https://memefactory.io/)
