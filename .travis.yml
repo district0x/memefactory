@@ -1,5 +1,8 @@
 language: clojure
 script: lein test
+before_install:
+ - sudo add-apt-repository --yes ppa:ethereum/ethereum
+ - sudo apt-get -qq update
 before_script:
   - sudo apt-get --yes install solc
   - lein compile-solidity
