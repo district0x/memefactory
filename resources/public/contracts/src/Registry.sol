@@ -2,6 +2,7 @@ pragma solidity ^0.4.18;
 
 import "auth/DSAuth.sol";
 import "db/EternalDb.sol";
+import "proxy/MutableForwarder.sol"; // Keep it included despite not being used (for compiler)
 
 /**
  * @title Central contract for TCR registry
@@ -12,6 +13,8 @@ import "db/EternalDb.sol";
  */
 
 contract Registry is DSAuth {
+  address public target; // Keep it here, because this contract is deployed as MutableForwarder
+
   event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version, uint timestamp, uint[] data);
 
   EternalDb public db;
@@ -25,7 +28,6 @@ contract Registry is DSAuth {
    * @param _db Address of EternalDb related to this registry
    */
   function construct(EternalDb _db) {
-    require(!wasConstructed);
     require(address(_db) != 0x0);
     db = _db;
     wasConstructed = true;

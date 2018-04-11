@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
 import "Registry.sol";
-import "forwarder/Forwarder.sol";
+import "proxy/Forwarder.sol";
 import "token/minime/MiniMeToken.sol";
 
 /**

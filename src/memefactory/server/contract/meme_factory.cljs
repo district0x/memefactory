@@ -4,14 +4,14 @@
     [district.server.smart-contracts :refer [contract-call instance contract-address]]
     [memefactory.server.contract.dank-token :as dank-token]))
 
-(defn create-meme [{:keys [:creator :name :meta-hash :total-supply :start-price]} & [opts]]
-  (contract-call :meme-factory :create-meme creator name meta-hash total-supply start-price (merge opts {:gas 3000000})))
+(defn create-meme [{:keys [:creator :meta-hash :total-supply]} & [opts]]
+  (contract-call :meme-factory :create-meme creator meta-hash total-supply (merge {:gas 3000000} opts)))
 
-(defn create-meme-data [{:keys [:creator :name :meta-hash :total-supply :start-price]}]
-  (web3-eth/contract-get-data (instance :meme-factory) :create-meme creator name meta-hash total-supply start-price))
+(defn create-meme-data [{:keys [:creator :meta-hash :total-supply]}]
+  (web3-eth/contract-get-data (instance :meme-factory) :create-meme creator meta-hash total-supply))
 
 (defn approve-and-create-meme [{:keys [:amount] :as args} & [opts]]
   (dank-token/approve-and-call {:spender (contract-address :meme-factory)
                                 :amount amount
                                 :extra-data (create-meme-data (merge {:creator (:from opts)} args))}
-                               (merge opts {:gas 1200000})))
+                               (merge {:gas 1200000} opts)))

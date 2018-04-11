@@ -7,5 +7,5 @@
 (def registry-entry-event-in-tx (partial registry/registry-entry-event-in-tx [:param-change-registry :param-change-registry-fwd]))
 
 (defn apply-param-change [param-change-address & [opts]]
-  (contract-call [:param-change-registry :param-change-registry-fwd] :apply-param-change param-change-address (merge opts {:gas 700000})))
+  (contract-call [:param-change-registry :param-change-registry-fwd] :apply-param-change param-change-address (merge {:gas 700000} opts)))
 

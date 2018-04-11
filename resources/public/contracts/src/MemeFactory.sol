@@ -2,6 +2,7 @@ pragma solidity ^0.4.18;
 
 import "RegistryEntryFactory.sol";
 import "Meme.sol";
+import "MemeToken.sol";
 
 /**
  * @title Factory contract for creating Meme contracts
@@ -11,10 +12,13 @@ import "Meme.sol";
 
 contract MemeFactory is RegistryEntryFactory {
   uint public constant version = 1;
+  MemeToken public memeToken;
 
-  function MemeFactory(Registry _registry, MiniMeToken _registryToken)
+  function MemeFactory(Registry _registry, MiniMeToken _registryToken, MemeToken _memeToken)
   RegistryEntryFactory(_registry, _registryToken)
-  {}
+  {
+    memeToken = _memeToken;
+  }
 
   /**
    * @dev Creates new Meme forwarder contract and add it into the registry
@@ -22,10 +26,8 @@ contract MemeFactory is RegistryEntryFactory {
    */
   function createMeme(
     address _creator,
-    string _name,
     bytes _metaHash,
-    uint _totalSupply,
-    uint _startPrice
+    uint _totalSupply
   )
   public
   {
@@ -34,10 +36,8 @@ contract MemeFactory is RegistryEntryFactory {
     meme.construct(
       _creator,
       version,
-      _name,
       _metaHash,
-      _totalSupply,
-      _startPrice
+      _totalSupply
     );
   }
 }

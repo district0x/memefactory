@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
 import "Registry.sol";
-import "forwarder/Forwarder.sol";
+import "proxy/Forwarder.sol";
 import "db/EternalDb.sol";
 import "token/minime/MiniMeToken.sol";
 import "math/SafeMath.sol";
@@ -125,6 +125,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(registryToken.transferFrom(_challenger, this, deposit));
 
     challenge.challenger = _challenger;
+    registryToken.createCloneToken("", 18, "", 0, true);
     challenge.votingToken = MiniMeToken(registryToken.createCloneToken("", 18, "", 0, true));
     challenge.votingToken.changeController(0x0);
     challenge.voteQuorum = registry.db().getUIntValue(voteQuorumKey);

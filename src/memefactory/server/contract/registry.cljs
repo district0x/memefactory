@@ -5,7 +5,7 @@
   (contract-call contract-key :db))
 
 (defn construct [contract-key {:keys [:db]} & [opts]]
-  (contract-call contract-key :construct db (merge opts {:gas 100000})))
+  (contract-call contract-key :construct db (merge {:gas 100000} opts)))
 
 (defn set-factory [contract-key {:keys [:factory :factory?]} & [opts]]
   (contract-call contract-key :set-factory factory factory? (merge opts {:gas 100000})))

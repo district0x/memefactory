@@ -6,7 +6,7 @@
     [memefactory.server.contract.dank-token :as dank-token]))
 
 (defn create-param-change [{:keys [:creator :db :key :value]} & [opts]]
-  (contract-call :param-change-factory :create-param-change creator db (cs/->camelCaseString key) value (merge opts {:gas 700000})))
+  (contract-call :param-change-factory :create-param-change creator db (cs/->camelCaseString key) value (merge {:gas 700000} opts)))
 
 (defn create-param-change-data [{:keys [:creator :db :key :value]}]
   (web3-eth/contract-get-data (instance :param-change-factory) :create-param-change creator db (cs/->camelCaseString key) value))
@@ -15,4 +15,4 @@
   (dank-token/approve-and-call {:spender (contract-address :param-change-factory)
                                 :amount amount
                                 :extra-data (create-param-change-data (merge {:creator (:from opts)} args))}
-                               (merge opts {:gas 700000})))
+                               (merge {:gas 700000} opts)))

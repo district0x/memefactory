@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
-import "forwarder/Forwarder.sol";
-import "auth/DSAuth.sol";
+import "../proxy/DelegateProxy.sol";
+import "../auth/DSAuth.sol";
 
 /**
  * @title Forwarder proxy contract with editable target
@@ -13,9 +13,9 @@ import "auth/DSAuth.sol";
  * and all events stay still accessible on the same address.
  */
 
-contract MutableForwarder is Forwarder, DSAuth {
+contract MutableForwarder is DelegateProxy, DSAuth {
 
-  address target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef; // checksumed to silence warning
+  address public target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef; // checksumed to silence warning
 
   /**
    * @dev Replaces targer forwarder contract is pointing to
@@ -23,8 +23,12 @@ contract MutableForwarder is Forwarder, DSAuth {
 
    * @param _target New target to proxy into
   */
-  function replaceTarget(address _target) public auth {
+  function setTarget(address _target) public auth {
     target = _target;
+  }
+
+  function() payable {
+    delegatedFwd(target, msg.data);
   }
 
 }

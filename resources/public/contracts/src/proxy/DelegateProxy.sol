@@ -28,15 +28,3 @@ contract DelegateProxy {
     return size > 0;
   }
 }
-
-contract Forwarder is DelegateProxy {
-  // After compiling contract, `beefbeef...` is replaced in the bytecode by the real target address
-  address constant target = 0xBEeFbeefbEefbeEFbeEfbEEfBEeFbeEfBeEfBeef; // checksumed to silence warning
-
-  /*
-  * @dev Forwards all calls to target
-  */
-  function() payable {
-    delegatedFwd(target, msg.data);
-  }
-}

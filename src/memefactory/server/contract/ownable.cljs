@@ -5,4 +5,4 @@
   (contract-call contract-key :owner))
 
 (defn transfer-ownership [contract-key {:keys [:new-owner]} & [opts]]
-  (contract-call contract-key :transfer-ownership new-owner (merge opts {:gas 100000})))
+  (contract-call contract-key :transfer-ownership new-owner (merge {:gas 100000} opts)))

@@ -9,6 +9,7 @@
     [district.server.web3 :refer [web3]]
     [district.web3-utils :as web3-utils]
     [memefactory.server.contract.meme :as meme]
+    [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
     [memefactory.server.contract.param-change :as param-change]
     [memefactory.server.contract.registry :as registry]
     [memefactory.server.contract.registry-entry :as registry-entry]
@@ -149,7 +150,10 @@
   [(-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-block 0 :to-block "latest"})
      (replay-past-events (partial dispatch-registry-entry-event :meme)))
    (-> (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} {:from-block 0 :to-block "latest"})
-     (replay-past-events (partial dispatch-registry-entry-event :param-change)))])
+     (replay-past-events (partial dispatch-registry-entry-event :param-change)))
+   (-> (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block "latest"})
+     (replay-past-events (fn [& args]
+                           (print.foo/look ["HERE: " args]))))])
 
 
 (defn stop [syncer]
