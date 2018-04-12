@@ -23,7 +23,6 @@
 (def registry-placeholder "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed")
 (def dank-token-placeholder "deaddeaddeaddeaddeaddeaddeaddeaddeaddead")
 (def forwarder-target-placeholder "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef")
-(def deposit-collector-placeholder "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd")
 (def district-config-placeholder "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd")
 (def meme-token-placeholder "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb")
 (def meme-auction-factory-placeholder "daffdaffdaffdaffdaffdaffdaffdaffdaffdaff")
@@ -43,9 +42,10 @@
 (defn deploy-ds-guard! [default-opts]
   (deploy-smart-contract! :ds-guard (merge default-opts {:gas 1000000})))
 
-(defn deploy-district-config! [{:keys [:meme-auction-cut-collector :meme-auction-cut] :as default-opts}]
+(defn deploy-district-config! [{:keys [:deposit-collector :meme-auction-cut-collector :meme-auction-cut] :as default-opts}]
   (deploy-smart-contract! :district-config (merge default-opts {:gas 1000000
-                                                                :arguments [meme-auction-cut-collector
+                                                                :arguments [deposit-collector
+                                                                            meme-auction-cut-collector
                                                                             meme-auction-cut]})))
 
 (defn deploy-meme-registry-db! [default-opts]
@@ -72,12 +72,12 @@
                                                              :placeholder-replacements
                                                              {forwarder-target-placeholder :param-change-registry}})))
 
-(defn deploy-meme! [{:keys [:deposit-collector] :as default-opts}]
+(defn deploy-meme! [default-opts]
   (deploy-smart-contract! :meme (merge default-opts {:gas 4000000
                                                      :placeholder-replacements
                                                      {dank-token-placeholder :DANK
                                                       registry-placeholder :meme-registry-fwd
-                                                      deposit-collector-placeholder deposit-collector
+                                                      district-config-placeholder :district-config
                                                       meme-token-placeholder :meme-token}})))
 
 (defn deploy-param-change! [default-opts]

@@ -196,6 +196,6 @@ contract MemeAuction is ERC721Receiver {
   }
 
   function() public payable {
-    revert();
+    buy();
   }
 }

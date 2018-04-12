@@ -3,6 +3,7 @@ pragma solidity ^0.4.18;
 import "RegistryEntry.sol";
 import "MemeToken.sol";
 import "proxy/Forwarder.sol";
+import "./DistrictConfig.sol";
 
 /**
  * @title Contract created for each submitted Meme into the MemeFactory TCR.
@@ -15,7 +16,7 @@ import "proxy/Forwarder.sol";
 
 contract Meme is RegistryEntry {
 
-  address public constant depositCollector = 0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd;
+  DistrictConfig public constant districtConfig = DistrictConfig(0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd);
   bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
   MemeToken public constant memeToken = MemeToken(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
   bytes public metaHash;
@@ -49,7 +50,7 @@ contract Meme is RegistryEntry {
   }
 
   /**
-   * @dev Transfers deposit to depositCollector
+   * @dev Transfers deposit to deposit collector
    * Must be callable only for whitelisted unchallenged registry entries
    */
   function transferDeposit()
@@ -58,7 +59,7 @@ contract Meme is RegistryEntry {
   onlyWhitelisted
   {
     require(!wasChallenged());
-    require(registryToken.transfer(depositCollector, deposit));
+    require(registryToken.transfer(districtConfig.depositCollector(), deposit));
     registry.fireRegistryEntryEvent("depositTransferred", version);
   }
 
