@@ -153,7 +153,7 @@
      (replay-past-events (partial dispatch-registry-entry-event :param-change)))
    (-> (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block "latest"})
      (replay-past-events (fn [& args]
-                           (print.foo/look ["HERE: " args]))))])
+                           )))])
 
 
 (defn stop [syncer]

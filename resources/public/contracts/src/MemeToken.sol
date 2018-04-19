@@ -13,8 +13,6 @@ import "auth/DSAuth.sol";
 
 contract MemeToken is ERC721Token {
   Registry public registry;
-  // Optional mapping for token URIs
-  mapping(uint256 => address) internal registryEntries;
 
   modifier onlyRegistryEntry() {
     require(registry.isRegistryEntry(msg.sender));
@@ -27,22 +25,12 @@ contract MemeToken is ERC721Token {
     registry = _registry;
   }
 
-  /**
-  * @dev Returns a registry entry for a given token ID
-  * @dev Throws if the token ID does not exist. May return an empty string.
-  * @param _tokenId uint256 ID of the token to query
-  */
-  function registryEntry(uint256 _tokenId) public view returns (address) {
-    require(exists(_tokenId));
-    return registryEntries[_tokenId];
-  }
-
   function mint(address _to, uint256 _tokenId)
   onlyRegistryEntry
   public
   {
     super._mint(_to, _tokenId);
-    registryEntries[_tokenId] = msg.sender;
+    tokenURIs[_tokenId] = msg.sender;
   }
 
   function safeTransferFromMulti(

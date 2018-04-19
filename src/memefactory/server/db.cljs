@@ -38,14 +38,11 @@
 (def meme-columns
   [[:reg-entry/address address not-nil]
    [:meme/title :varchar not-nil]
-   [:meme/offering-start-price :BIG :INT not-nil]
-   [:meme/offering-duration :unsigned :integer not-nil]
    [:meme/token address not-nil]
    [:meme/image-hash ipfs-hash not-nil]
    [:meme/meta-hash ipfs-hash not-nil]
    [:meme/total-supply :unsigned :integer not-nil]
-   [:meme/offering-supply :unsigned :integer not-nil]
-   [:meme/sold-for-total :BIG :INT default-zero]
+   [:meme/total-minted :unsigned :integer not-nil]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
 
 (def meme-token-balances-columns

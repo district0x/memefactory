@@ -191,7 +191,7 @@ contract MemeAuction is ERC721Receiver {
     endPrice,
     duration,
     startedOn,
-    memeToken.registryEntry(tokenId)
+    memeToken.tokenURI(tokenId)
     );
   }
 

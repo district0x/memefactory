@@ -27,9 +27,8 @@
                                        :deposit (web3/to-wei 1000 :ether)
                                        :challenge-dispensation 50
                                        :vote-quorum 50
-                                       :max-start-price (web3/to-wei 1 :ether)
                                        :max-total-supply 10
-                                       :offering-duration (t/in-seconds (t/minutes 10))}
+                                       :max-auction-duration (t/in-seconds (t/minutes 10))}
                        :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
                                                :commit-period-duration (t/in-seconds (t/minutes 2))
                                                :reveal-period-duration (t/in-seconds (t/minutes 1))

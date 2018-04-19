@@ -6,8 +6,8 @@
 (defn total-supply []
   (contract-call :meme-token :total-supply))
 
-(defn registry-entry [token-id]
-  (contract-call :meme-token token-id))
+(defn token-uri [token-id]
+  (contract-call :meme-token token-id :token-uri))
 
 (defn owner-of [token-id]
   (contract-call :meme-token :owner-of token-id))

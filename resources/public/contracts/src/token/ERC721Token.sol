@@ -30,7 +30,7 @@ contract ERC721Token is ERC721, ERC721BasicToken {
   mapping(uint256 => uint256) internal allTokensIndex;
 
   // Optional mapping for token URIs
-  mapping(uint256 => string) internal tokenURIs;
+  mapping(uint256 => address) internal tokenURIs;
 
   /**
   * @dev Constructor function
@@ -61,7 +61,7 @@ contract ERC721Token is ERC721, ERC721BasicToken {
   * @dev Throws if the token ID does not exist. May return an empty string.
   * @param _tokenId uint256 ID of the token to query
   */
-  function tokenURI(uint256 _tokenId) public view returns (string) {
+  function tokenURI(uint256 _tokenId) public view returns (address) {
     require(exists(_tokenId));
     return tokenURIs[_tokenId];
   }
@@ -102,7 +102,7 @@ contract ERC721Token is ERC721, ERC721BasicToken {
   * @param _tokenId uint256 ID of the token to set its URI
   * @param _uri string URI to assign
   */
-  function _setTokenURI(uint256 _tokenId, string _uri) internal {
+  function _setTokenURI(uint256 _tokenId, address _uri) internal {
     require(exists(_tokenId));
     tokenURIs[_tokenId] = _uri;
   }
@@ -154,32 +154,4 @@ contract ERC721Token is ERC721, ERC721BasicToken {
     allTokensIndex[_tokenId] = allTokens.length;
     allTokens.push(_tokenId);
   }
-
-  /**
-  * @dev Internal function to burn a specific token
-  * @dev Reverts if the token does not exist
-  * @param _owner owner of the token to burn
-  * @param _tokenId uint256 ID of the token being burned by the msg.sender
-  */
-  function _burn(address _owner, uint256 _tokenId) internal {
-    super._burn(_owner, _tokenId);
-
-    // Clear metadata (if any)
-    if (bytes(tokenURIs[_tokenId]).length != 0) {
-      delete tokenURIs[_tokenId];
-    }
-
-    // Reorg all tokens array
-    uint256 tokenIndex = allTokensIndex[_tokenId];
-    uint256 lastTokenIndex = allTokens.length.sub(1);
-    uint256 lastToken = allTokens[lastTokenIndex];
-
-    allTokens[tokenIndex] = lastToken;
-    allTokens[lastTokenIndex] = 0;
-
-    allTokens.length--;
-    allTokensIndex[_tokenId] = 0;
-    allTokensIndex[lastToken] = tokenIndex;
-  }
-
 }
