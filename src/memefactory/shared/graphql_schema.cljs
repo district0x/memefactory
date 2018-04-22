@@ -6,13 +6,18 @@
 
   type Query {
     meme(regEntry_address: ID!): Meme
-    searchMemes(a: Int!): MemeList
+    searchMemes: MemeList
 
     paramChange(regEntry_address: ID!): ParamChange
     searchParamChanges: ParamChangeList
 
     user(user_address: ID!): User
     searchUsers: UserList
+
+    memeAuction(memeAuction_address: ID!): MemeAuction
+    searchMemeAuctions: MemeAuctionList
+
+    searchMemeTokens: MemeTokenList
 
     searchTags: TagList
 
@@ -70,7 +75,7 @@
     tag_name: String
   }
 
-  type MemeList  {
+  type MemeList {
     items: [Meme]
     totalCount: Int
     endCursor: String
@@ -100,16 +105,30 @@
 
     meme_title: String
     meme_number: Int
-    meme_token: String
-    meme_totalSupply: Int
+    meme_metaHash: String
     meme_imageHash: String
-    meme_offeringStartPrice: Int
-    meme_offeringDuration: Int
-    meme_offeringSupply: Int
-    meme_offeringEarnings: Int
-    meme_offeringRank: Int
+    meme_totalSupply: Int
+    meme_totalMinted: Int
+    meme_tokenIdStart: Int
+
+    meme_totalTrades: Int
+    meme_tradesRank: Int
 
     meme_tags: [Tag]
+  }
+
+  type MemeToken {
+    memeToken_tokenId: ID
+    memeToken_number: Int
+    memeToken_owner: User
+    memeToken_meme: Meme
+  }
+
+  type MemeTokenList  {
+    items: [MemeToken]
+    totalCount: Int
+    endCursor: ID
+    hasNextPage: Boolean
   }
 
   type TagList  {
@@ -154,12 +173,23 @@
     hasNextPage: Boolean
   }  
 
-  type MemePurchase {
-    memePurchase_regEntry: RegEntry
-    memePurchase_buyer: User
-    memePurchase_amount: Int
-    memePurchase_price: Int
-    memePurchase_boughtOn: Date
+  type MemeAuctionList {
+    items: [MemeAuction]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
+  }
+
+  type MemeAuction {
+    memeAuction_address: ID
+    memeAuction_seller: User
+    memeAuction_buyer: User
+    memeAuction_startPrice: Int
+    memeAuction_endPrice: Int
+    memeAuction_duration: Int
+    memeAuction_startedOn: Date
+    memeAuction_boughtOn: Date
+    memeAuction_memeToken: MemeToken
   }
 
   type User {
@@ -169,12 +199,11 @@
     user_creatorEarnings: Int
     user_creatorRank: Int
 
-    user_largestMemeOffering: Meme
-    user_largestMemeSale: MemePurchase
+    user_largestMemeAuctionSale: MemeAuction
 
+    user_collectedTokenIds: Int
     user_collectedMemes: Int
-    user_collectedMemesUnique: Int
-    user_largestMemePurchase: MemePurchase
+    user_largestMemeAuctionBuy: MemeAuction
 
     user_createdChallenges: Int
     user_createdChallengesSuccess: Int

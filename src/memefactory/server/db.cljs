@@ -45,6 +45,7 @@
    [:meme/meta-hash ipfs-hash not-nil]
    [:meme/total-supply :unsigned :integer not-nil]
    [:meme/total-minted :unsigned :integer not-nil]
+   [:meme/token-id-start :unsigned :integer not-nil]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
 
 (def meme-tokens-columns
@@ -78,6 +79,7 @@
    [:meme-auction/start-price :BIG :INT not-nil]
    [:meme-auction/end-price :BIG :INT not-nil]
    [:meme-auction/started-on :unsigned :integer default-nil]
+   [:meme-auction/duration :unsigned :integer default-nil]
    [:meme-auction/bought-on :unsigned :integer default-nil]
    [(sql/call :primary-key :meme-auction/address)]])
 
