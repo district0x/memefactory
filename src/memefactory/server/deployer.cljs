@@ -212,6 +212,7 @@
     (deploy-meme-auction! deploy-opts)
     (deploy-meme-auction-factory! deploy-opts)
     (mutable-forwarder/set-target :meme-auction-factory-fwd (contract-address :meme-auction-factory))
+    (mutable-forwarder/target :meme-auction-factory-fwd)
     (meme-auction-factory/construct {:meme-token (contract-address :meme-token)})
 
     (when (pos? transfer-dank-token-to-accounts)

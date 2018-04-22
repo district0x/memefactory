@@ -9,7 +9,9 @@
     [district.server.web3 :refer [web3]]
     [district.web3-utils :as web3-utils]
     [memefactory.server.contract.meme :as meme]
+    [memefactory.server.contract.meme-auction :as meme-auction]
     [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
+    [memefactory.server.contract.meme-token :as meme-token]
     [memefactory.server.contract.param-change :as param-change]
     [memefactory.server.contract.registry :as registry]
     [memefactory.server.contract.registry-entry :as registry-entry]
@@ -89,37 +91,33 @@
       (error error-text {:args args :error (ex-message e)} ::on-challenge-reward-claimed))))
 
 
-(defn on-buy [{:keys [:registry-entry :timestamp :data] :as args}]
-  (info info-text {:args args} ::on-buy)
+(defn on-minted [{:keys [:registry-entry :timestamp :data] :as args}]
+  (info info-text {:args args} ::on-minted)
   (try
-    (let [[buyer price amount] data]
-      (db/update-meme! (meme/load-meme registry-entry))
-      (db/insert-meme-purchase! {:reg-entry/address registry-entry
-                                 :buyer (web3-utils/uint->address buyer)
-                                 :price (bn/number price)
-                                 :amount (bn/number amount)
-                                 :bought-on timestamp}))
+    (let [[_ token-id-start token-id-end] data]
+      (db/insert-meme-tokens! {:token-id-start (bn/number token-id-start)
+                               :token-id-end (bn/number token-id-end)
+                               :reg-entry/address registry-entry}))
     (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-buy))))
+      (error error-text {:args args :error (ex-message e)} ::on-minted))))
 
 
-(defn on-meme-token-transfer [{:keys [:registry-entry :timestamp :data] :as args}]
+(defn on-auction-started [{:keys [:meme-auction :timestamp :data] :as args}]
+  (info info-text {:args args} ::on-auction-started)
+  (try
+    (db/insert-meme-auction! (meme-auction/load-meme-auction meme-auction))
+    (catch :default e
+      (error error-text {:args args :error (ex-message e)} ::on-auction-started))))
+
+
+(defn on-meme-token-transfer [err {:keys [:args]}]
   (info info-text {:args args} ::on-meme-token-transfer)
   (try
-    (let [[from to value] data
-          from (web3-utils/uint->address from)
-          to (web3-utils/uint->address to)]
-      (when-not (= registry-entry to)                       ;; Initial mint, skip increasing balance
-        (db/inc-meme-token-balance {:reg-entry/address registry-entry
-                                    :owner to
-                                    :amount (bn/number value)}))
-
-      (when-not (= registry-entry from)                     ;; Initial meme offering, skip decrementing balance
-        (db/dec-meme-token-balance {:reg-entry/address registry-entry
-                                    :owner from
-                                    :amount (bn/number value)})))
+    (let [{:keys [:_to :_token-id]} args]
+      (db/insert-or-replace-meme-token-owner {:meme-token/token-id (bn/number _token-id)
+                                              :meme-token/owner _to}))
     (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-buy))))
+      (error error-text {:args args :error (ex-message e)} ::on-meme-token-transfer))))
 
 
 (def registry-entry-events
@@ -129,8 +127,8 @@
    :vote-revealed on-vote-revealed
    :vote-reward-claimed on-vote-reward-claimed
    :challenge-reward-claimed on-challenge-reward-claimed
-   :buy on-buy
-   :meme-token-transfer on-meme-token-transfer})
+   :minted on-minted
+   :auction-started on-auction-started})
 
 
 (defn dispatch-registry-entry-event [type err {{:keys [:event-type] :as args} :args :as event}]
@@ -152,8 +150,9 @@
    (-> (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} {:from-block 0 :to-block "latest"})
      (replay-past-events (partial dispatch-registry-entry-event :param-change)))
    (-> (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block "latest"})
-     (replay-past-events (fn [& args]
-                           )))])
+     (replay-past-events (partial dispatch-registry-entry-event :meme-auction)))
+   (-> (meme-token/transfer-event {} {:from-block 0 :to-block "latest"})
+     (replay-past-events on-meme-token-transfer))])
 
 
 (defn stop [syncer]

@@ -6,7 +6,8 @@
 
 (def load-meme-keys [:meme/meta-hash
                      :meme/total-supply
-                     :meme/total-minted])
+                     :meme/total-minted
+                     :meme/token-id-start])
 
 (defn parse-load-meme [contract-addr meme & [{:keys [:parse-dates?]}]]
   (when meme
@@ -15,4 +16,5 @@
         (assoc :reg-entry/address contract-addr)
         (update :meme/meta-hash web3/to-ascii)
         (update :meme/total-supply bn/number)
-        (update :meme/total-minted bn/number)))))
+        (update :meme/total-minted bn/number)
+        (update :meme/token-id-start bn/number)))))

@@ -46,6 +46,9 @@ contract MemeAuction is ERC721Receiver {
 //    // Require that all auctions have a duration of
 //    // at least one minute. (Keeps our math from getting hairy!)
     require(_duration >= 1 minutes);
+    startPrice = _startPrice;
+    endPrice = _endPrice;
+    duration = _duration;
     startedOn = now;
     memeAuctionFactory.fireMemeAuctionEvent("auctionStarted");
   }

@@ -20,6 +20,7 @@ contract Meme is RegistryEntry {
   bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
   MemeToken public constant memeToken = MemeToken(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
   bytes public metaHash;
+  uint public tokenIdStart;
   uint public totalSupply;
   uint public totalMinted;
 
@@ -73,26 +74,28 @@ contract Meme is RegistryEntry {
       _amount = restSupply;
     }
     require(_amount > 0);
-    uint tokenIdStart = memeToken.totalSupply().add(1);
+    tokenIdStart = memeToken.totalSupply().add(1);
     uint tokenIdEnd = tokenIdStart.add(_amount);
     for (uint i = tokenIdStart; i < tokenIdEnd; i++) {
       memeToken.mint(creator, i);
       totalMinted = totalMinted + 1;
     }
-    var eventData = new uint[](2);
-    eventData[0] = tokenIdStart;
-    eventData[1] = tokenIdEnd - 1;
+    var eventData = new uint[](3);
+    eventData[0] = uint(creator);
+    eventData[1] = tokenIdStart;
+    eventData[2] = tokenIdEnd - 1;
     registry.fireRegistryEntryEvent("minted", version, eventData);
   }
 
   /**
    * @dev Returns all state related to this contract for simpler offchain access
    */
-  function loadMeme() public constant returns (bytes, uint, uint) {
+  function loadMeme() public constant returns (bytes, uint, uint, uint) {
     return (
     metaHash,
     totalSupply,
-    totalMinted
+    totalMinted,
+    tokenIdStart
     );
   }
 }

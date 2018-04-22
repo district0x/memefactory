@@ -96,11 +96,14 @@
 
                       (when-not (= :scenario/claim-vote-reward scenario-type)
                         (let [tx-hash (meme/mint registry-entry total-supply {:from creator})
-                              [first-token-id last-token-id] (-> (meme-registry/registry-entry-event-in-tx tx-hash)
-                                                               :args
-                                                               :data
-                                                               (->> (map bn/number)))
+                              [_ first-token-id last-token-id] (-> (meme-registry/registry-entry-event-in-tx tx-hash)
+                                                                 :args
+                                                                 :data
+                                                                 (->> (map bn/number)))
                               token-ids (range first-token-id (inc last-token-id))]
+
+                          (when (empty? token-ids)
+                            (throw (js/Error. "Token IDs weren't found")))
 
                           (let [tx-hash (meme-token/transfer-multi-and-start-auction {:from creator
                                                                                       :token-ids token-ids

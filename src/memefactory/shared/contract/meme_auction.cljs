@@ -9,13 +9,13 @@
                              :meme-auction/end-price
                              :meme-auction/duration
                              :meme-auction/started-on
-                             :meme-auction/registry-entry])
+                             :reg-entry/address])
 
 (defn parse-load-meme-auction [contract-addr meme & [{:keys [:parse-dates?]}]]
   (when meme
     (let [meme (zipmap load-meme-auction-keys meme)]
       (-> meme
-        (assoc :reg-entry/address contract-addr)
+        (assoc :meme-auction/address contract-addr)
         (update :meme-auction/token-id bn/number)
         (update :meme-auction/start-price bn/number)
         (update :meme-auction/end-price bn/number)
