@@ -6,20 +6,27 @@
 
   type Query {
     meme(regEntry_address: ID!): Meme
-    searchMemes: MemeList
+    searchMemes(statuses: [RegEntryStatus], orderBy: Keyword, owner: String, creator: String, curator: String): MemeList
+    searchMemeTokens(statuses: [RegEntryStatus], orderBy: Keyword, owner: String): MemeTokenList
+
+    memeAuction(memeAuction_address: ID!): MemeAuction
+    searchMemeAuctions(
+      title: String,
+      tags: [Tag],
+      tagsOr: [Tag],
+      orderBy: Keyword,
+      groupBy: Keyword,
+      statuses: [MemeAuctionStatus],
+      seller: String
+    ): MemeAuctionList
+
+    searchTags: TagList
 
     paramChange(regEntry_address: ID!): ParamChange
     searchParamChanges: ParamChangeList
 
     user(user_address: ID!): User
-    searchUsers: UserList
-
-    memeAuction(memeAuction_address: ID!): MemeAuction
-    searchMemeAuctions: MemeAuctionList
-
-    searchMemeTokens: MemeTokenList
-
-    searchTags: TagList
+    searchUsers(orderBy: Keyword): UserList
 
     param(db: String!, key: String!): Parameter
     params(db: String!, keys: [String!]): [Parameter]
@@ -70,18 +77,6 @@
     vote_reward: Int
   }
 
-  type Tag {
-    tag_id: ID
-    tag_name: String
-  }
-
-  type MemeList {
-    items: [Meme]
-    totalCount: Int
-    endCursor: String
-    hasNextPage: Boolean
-  }
-
   type Meme implements RegEntry {
     regEntry_address: ID
     regEntry_version: Int
@@ -114,7 +109,28 @@
     meme_totalTrades: Int
     meme_tradesRank: Int
 
+    meme_ownedMemeTokens(owner: String): [MemeToken]
+
     meme_tags: [Tag]
+  }
+
+  type MemeList {
+    items: [Meme]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
+  }
+
+  type Tag {
+    tag_id: ID
+    tag_name: String
+  }
+
+  type TagList  {
+    items: [Tag]
+    totalCount: Int
+    endCursor: ID
+    hasNextPage: Boolean
   }
 
   type MemeToken {
@@ -131,10 +147,29 @@
     hasNextPage: Boolean
   }
 
-  type TagList  {
-    items: [Tag]
+  enum MemeAuctionStatus {
+    memeAuction_status_active
+    memeAuction_status_canceled
+    memeAuction_status_done
+  }
+
+  type MemeAuction {
+    memeAuction_address: ID
+    memeAuction_seller: User
+    memeAuction_buyer: User
+    memeAuction_startPrice: Int
+    memeAuction_endPrice: Int
+    memeAuction_duration: Int
+    memeAuction_startedOn: Date
+    memeAuction_boughtOn: Date
+    memeAuction_status: MemeAuctionStatus
+    memeAuction_memeToken: MemeToken
+  }
+
+  type MemeAuctionList {
+    items: [MemeAuction]
     totalCount: Int
-    endCursor: ID
+    endCursor: String
     hasNextPage: Boolean
   }
 
@@ -173,37 +208,18 @@
     hasNextPage: Boolean
   }  
 
-  type MemeAuctionList {
-    items: [MemeAuction]
-    totalCount: Int
-    endCursor: String
-    hasNextPage: Boolean
-  }
-
-  type MemeAuction {
-    memeAuction_address: ID
-    memeAuction_seller: User
-    memeAuction_buyer: User
-    memeAuction_startPrice: Int
-    memeAuction_endPrice: Int
-    memeAuction_duration: Int
-    memeAuction_startedOn: Date
-    memeAuction_boughtOn: Date
-    memeAuction_memeToken: MemeToken
-  }
-
   type User {
     user_address: ID
     user_createdMemes: Int
     user_createdMemesWhitelisted: Int
-    user_creatorEarnings: Int
+    user_creatorLargestSale: MemeAuction
     user_creatorRank: Int
-
-    user_largestMemeAuctionSale: MemeAuction
 
     user_collectedTokenIds: Int
     user_collectedMemes: Int
-    user_largestMemeAuctionBuy: MemeAuction
+
+    user_largestSale: MemeAuction
+    user_largestBuy: MemeAuction
 
     user_createdChallenges: Int
     user_createdChallengesSuccess: Int
