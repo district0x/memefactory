@@ -46,6 +46,8 @@
    [:meme/total-supply :unsigned :integer not-nil]
    [:meme/total-minted :unsigned :integer not-nil]
    [:meme/token-id-start :unsigned :integer not-nil]
+   [:meme/total-trade-volume :BIG :INT default-nil]
+   [:meme/first-mint-on :unsigned :integer default-nil]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
 
 (def meme-tokens-columns
@@ -100,6 +102,15 @@
    [(sql/call :primary-key :vote/voter :reg-entry/address)]
    [[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]])
 
+(def user-columns
+  [[:user/address address not-nil]
+   ;[:user/creator-largest-sale address default-nil]
+   ;[:user/largest-sale address default-nil]
+   ;[:user/largest-buy address default-nil]
+   [:user/voter-total-earned :BIG :INT default-zero]
+   [:user/challenger-total-earned :BIG :INT default-zero]
+   [(sql/call :primary-key :user/address)]])
+
 (def registry-entry-column-names (map first registry-entries-columns))
 (def meme-column-names (map first memes-columns))
 (def meme-tokens-column-names (filter keyword? (map first meme-tokens-columns)))
@@ -142,6 +153,8 @@
   (db/run! {:create-table [:votes]
             :with-columns [votes-columns]})
 
+  (db/run! {:create-table [:users]
+            :with-columns [user-columns]})
 
   ;; TODO create indexes
   #_(doseq [column (rest registry-entry-column-names)]
@@ -157,7 +170,8 @@
   (db/run! {:drop-table [:meme-token-owners]})
   (db/run! {:drop-table [:memes]})
   (db/run! {:drop-table [:param-changes]})
-  (db/run! {:drop-table [:reg-entries]}))
+  (db/run! {:drop-table [:reg-entries]})
+  (db/run! {:drop-table [:users]}))
 
 (defn create-insert-fn [table-name column-names & [{:keys [:insert-or-replace?]}]]
   (fn [item]
@@ -177,8 +191,20 @@
                          (for [id-key id-keys]
                            [:= id-key (get item id-key)]))}))))
 
+(defn create-get-fn [table-name id-keys]
+  (let [id-keys (if (sequential? id-keys) id-keys [id-keys])]
+    (fn [item fields]
+      (cond-> (db/get {:select (if (sequential? fields) fields [fields])
+                       :from [table-name]
+                       :where (concat
+                                [:and]
+                                (for [id-key id-keys]
+                                  [:= id-key (get item id-key)]))})
+        (keyword? fields) fields))))
+
 (def insert-registry-entry! (create-insert-fn :reg-entries registry-entry-column-names))
 (def update-registry-entry! (create-update-fn :reg-entries registry-entry-column-names :reg-entry/address))
+(def get-registry-entry (create-get-fn :reg-entries :reg-entry/address))
 
 (def insert-meme! (create-insert-fn :memes meme-column-names))
 (def update-meme! (create-update-fn :memes meme-column-names :reg-entry/address))
@@ -191,6 +217,8 @@
 (def insert-vote! (create-insert-fn :votes votes-column-names))
 (def update-vote! (create-update-fn :votes votes-column-names [:reg-entry/address :vote/voter]))
 
+(def get-user (create-get-fn :users :user/address))
+
 (defn insert-meme-tokens! [{:keys [:token-id-start :token-id-end :reg-entry/address]}]
   (db/run! {:insert-into :meme-tokens
             :columns meme-tokens-column-names
@@ -200,3 +228,47 @@
 (def insert-or-replace-meme-token-owner (create-insert-fn :meme-token-owners
                                                           meme-token-owners-column-names
                                                           {:insert-or-replace? true}))
+
+
+(defn meme-total-trade-volume [reg-entry-address]
+  (-> (db/get {:select [:meme/total-trade-volume]
+               :from [:memes]
+               :where [:= :reg-entry/address reg-entry-address]})
+    :meme/total-trade-volume))
+
+
+(defn update-meme-first-mint-on! [{:keys [:reg-entry/address :meme/first-mint-on]}]
+  (when-not (-> (db/get {:select [:meme/first-mint-on]
+                         :from [:memes]
+                         :where [:= :reg-entry/address address]})
+              :meme/first-mint-on)
+    (update-meme! {:reg-entry/address address
+                   :meme/first-mint-on first-mint-on})))
+
+
+(defn inc-meme-total-trade-volume! [{:keys [:reg-entry/address :amount]}]
+  (db/run! {:update :memes
+            :set {:meme/total-trade-volume (+ (meme-total-trade-volume address) amount)}
+            :where [:= :reg-entry/address address]}))
+
+
+(defn user-exsits? [user-address]
+  (boolean (seq (db/get {:select [1]
+                         :from [:users]
+                         :where [:= :user/address user-address]}))))
+
+
+(defn update-user! [{:keys [:user/address] :as params}]
+  (when-not (user-exsits? address)
+    (db/run! {:insert-into :users
+              :columns [:user/address]
+              :values [[address]]}))
+  (db/run! {:update :users
+            :set params
+            :where [:= :user/address address]}))
+
+
+(defn inc-user-field! [user-address user-field & [amount]]
+  (update-user! {:user/address user-address
+                 user-field (+ (get-user {:user/address user-address} user-field)
+                               (or amount 1))}))

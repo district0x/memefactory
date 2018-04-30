@@ -77,8 +77,11 @@
 (defn on-vote-reward-claimed [{:keys [:registry-entry :timestamp :data] :as args}]
   (info info-text {:args args} ::on-vote-reward-claimed)
   (try
-    (let [voter (web3-utils/uint->address (first data))]
-      (db/update-vote! (registry-entry/load-vote registry-entry voter)))
+    (let [voter (web3-utils/uint->address (first data))
+          vote (registry-entry/load-vote registry-entry voter)]
+      (do
+        (db/update-vote! vote)
+        (db/inc-user-field! voter :user/voter-total-earned (:vote/amount vote))))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-vote-reward-claimed))))
 
@@ -86,7 +89,11 @@
 (defn on-challenge-reward-claimed [{:keys [:registry-entry :timestamp :data] :as args}]
   (info info-text {:args args} ::on-challenge-reward-claimed)
   (try
-    (db/update-registry-entry! (registry-entry/load-registry-entry registry-entry))
+    (let [{:keys [:challenge/challenger :reg-entry/deposit] :as reg-entry}
+          (registry-entry/load-registry-entry registry-entry)]
+
+      (db/update-registry-entry! reg-entry)
+      (db/inc-user-field! (:challenge/challenger reg-entry) :user/challenger-total-earned deposit))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-challenge-reward-claimed))))
 
@@ -97,7 +104,9 @@
     (let [[_ token-id-start token-id-end] data]
       (db/insert-meme-tokens! {:token-id-start (bn/number token-id-start)
                                :token-id-end (bn/number token-id-end)
-                               :reg-entry/address registry-entry}))
+                               :reg-entry/address registry-entry})
+      (db/update-meme-first-mint-on! {:reg-entry/address registry-entry
+                                      :meme/first-mint-on timestamp}))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-minted))))
 
@@ -108,6 +117,18 @@
     (db/insert-meme-auction! (meme-auction/load-meme-auction meme-auction))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-auction-started))))
+
+
+(defn on-auction-buy [{:keys [:meme-auction :timestamp :data] :as args}]
+  (info info-text {:args args} ::on-auction-buy)
+  (try
+    (let [[_ price] data
+          price (bn/number price)
+          reg-entry-address (:reg-entry/address (meme-auction/load-meme-auction meme-auction))]
+      (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
+                                        :amount price}))
+    (catch :default e
+      (error error-text {:args args :error (ex-message e)} ::on-auction-buy))))
 
 
 (defn on-meme-token-transfer [err {:keys [:args]}]
@@ -128,7 +149,8 @@
    :vote-reward-claimed on-vote-reward-claimed
    :challenge-reward-claimed on-challenge-reward-claimed
    :minted on-minted
-   :auction-started on-auction-started})
+   :auction-started on-auction-started
+   :buy on-auction-buy})
 
 
 (defn dispatch-registry-entry-event [type err {{:keys [:event-type] :as args} :args :as event}]
@@ -145,16 +167,21 @@
 (defn start [opts]
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
-  [(-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-block 0 :to-block "latest"})
-     (replay-past-events (partial dispatch-registry-entry-event :meme)))
-   (-> (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} {:from-block 0 :to-block "latest"})
-     (replay-past-events (partial dispatch-registry-entry-event :param-change)))
-   (-> (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block "latest"})
-     (replay-past-events (partial dispatch-registry-entry-event :meme-auction)))
-   (-> (meme-token/transfer-event {} {:from-block 0 :to-block "latest"})
-     (replay-past-events on-meme-token-transfer))])
+  (let [meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block "latest"})]
+    [(-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-block 0 :to-block "latest"})
+       (replay-past-events (partial dispatch-registry-entry-event :meme)
+                           {:on-finish
+                            (fn []
+                              (-> meme-auction-event-filter
+                                (replay-past-events (partial dispatch-registry-entry-event :meme-auction))))}))
+     (-> (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} {:from-block 0 :to-block "latest"})
+       (replay-past-events (partial dispatch-registry-entry-event :param-change)))
+     (-> (meme-token/transfer-event {} {:from-block 0 :to-block "latest"})
+       (replay-past-events on-meme-token-transfer))
+     meme-auction-event-filter]))
 
 
 (defn stop [syncer]
   (doseq [filter (remove nil? @syncer)]
     (web3-eth/stop-watching! filter (fn [err]))))
+

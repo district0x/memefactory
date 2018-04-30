@@ -106,8 +106,8 @@
     meme_totalMinted: Int
     meme_tokenIdStart: Int
 
-    meme_totalTrades: Int
-    meme_tradesRank: Int
+    meme_totalTradeVolume: Int
+    meme_totalTradeVolumeRank: Int
 
     meme_ownedMemeTokens(owner: String): [MemeToken]
 
@@ -210,27 +210,27 @@
 
   type User {
     user_address: ID
-    user_createdMemes: Int
-    user_createdMemesWhitelisted: Int
+    user_totalCreatedMemes: Int
+    user_totalCreatedMemesWhitelisted: Int
     user_creatorLargestSale: MemeAuction
     user_creatorRank: Int
 
-    user_collectedTokenIds: Int
-    user_collectedMemes: Int
+    user_totalCollectedTokenIds: Int
+    user_totalCollectedMemes: Int
 
     user_largestSale: MemeAuction
     user_largestBuy: MemeAuction
 
-    user_createdChallenges: Int
-    user_createdChallengesSuccess: Int
+    user_totalCreatedChallenges: Int
+    user_totalCreatedChallengesSuccess: Int
     user_challengerRank: Int
 
-    user_participatedVotes: Int
-    user_participatedVotesSuccess: Int
-    user_voterEarnings: Int
+    user_totalParticipatedVotes: Int
+    user_totalParticipatedVotesSuccess: Int
+    user_voterTotalEarned: Int
     user_voterRank: Int
 
-    user_curatorEarnings: Int
+    user_curatorTotalEarned: Int
     user_curatorRank: Int
   }
   
