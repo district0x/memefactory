@@ -5,6 +5,6 @@ before_install:
  - sudo apt-get -qq update
 before_script:
   - sudo apt-get --yes install solc
-  - lein compile-solidity
+  - lein solc
   - npm install -g ganache-cli
   - ganache-cli -p 8549 > /dev/null &

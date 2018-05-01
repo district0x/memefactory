@@ -55,14 +55,25 @@
             [lein-cljsbuild "1.1.7"]
             [lein-figwheel "0.5.14"]
             [lein-shell "0.5.0"]
+            [lein-solc "1.0.0"]
             [lein-doo "0.1.8"]
             [lein-npm "0.6.2"]
             [lein-pdo "0.1.1"]]
 
-  :npm {:dependencies [                                     ;[semantic-ui "2.2.14"]
+  :npm {:dependencies [#_[semantic-ui "2.2.14"]
                        [solc "0.4.20"]
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]]}
+
+  :solc {:src-path "resources/public/contracts/src"
+         :build-path "resources/public/contracts/build"
+         :solc-err-only true
+         :wc true
+         :contracts ["DankToken.sol"
+                     "MemeFactory.sol"
+                     "MemeAuctionFactory.sol"
+                     "ParamChangeFactory.sol"
+                     "ParamChangeRegistry.sol"]}
 
   :source-paths ["src" "test"]
 
@@ -70,11 +81,7 @@
              :css-dirs ["resources/public/css"]
              :repl-eval-timeout 30000}
 
-  :auto {"compile-solidity" {:file-pattern #"\.(sol)$"
-                             :paths ["resources/public/contracts/src"]}}
-
-  :aliases {"compile-solidity" ["shell" "./compile-solidity.sh"]
-            "clean-prod-server" ["shell" "rm" "-rf" "server"]
+  :aliases {"clean-prod-server" ["shell" "rm" "-rf" "server"]
             "watch-css" ["shell" "./semantic.sh" "watch"]
             "build-css" ["shell" "./semantic.sh" "build-css"]
             "build-prod-server" ["do" ["clean-prod-server"] ["cljsbuild" "once" "server"]]
