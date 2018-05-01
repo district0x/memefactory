@@ -60,6 +60,7 @@
 (def meme-token-owners-columns
   [[:meme-token/token-id :unsigned :integer not-nil]
    [:meme-token/owner address not-nil]
+   [:meme-token/transferred-on :unsigned :integer default-nil]
    [(sql/call :primary-key :meme-token/token-id)]])
 
 (def tags-columns

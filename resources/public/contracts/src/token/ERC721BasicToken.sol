@@ -145,7 +145,7 @@ contract ERC721BasicToken is ERC721Basic {
     removeTokenFrom(_from, _tokenId);
     addTokenTo(_to, _tokenId);
 
-    Transfer(_from, _to, _tokenId);
+    Transfer(_from, _to, _tokenId, now);
   }
 
   /**
@@ -216,7 +216,7 @@ contract ERC721BasicToken is ERC721Basic {
   function _mint(address _to, uint256 _tokenId) internal {
     require(_to != address(0));
     addTokenTo(_to, _tokenId);
-    Transfer(address(0), _to, _tokenId);
+    Transfer(address(0), _to, _tokenId, now);
   }
 
   /**
@@ -227,7 +227,7 @@ contract ERC721BasicToken is ERC721Basic {
   function _burn(address _owner, uint256 _tokenId) internal {
     clearApproval(_owner, _tokenId);
     removeTokenFrom(_owner, _tokenId);
-    Transfer(_owner, address(0), _tokenId);
+    Transfer(_owner, address(0), _tokenId, now);
   }
 
   /**

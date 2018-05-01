@@ -134,9 +134,10 @@
 (defn on-meme-token-transfer [err {:keys [:args]}]
   (info info-text {:args args} ::on-meme-token-transfer)
   (try
-    (let [{:keys [:_to :_token-id]} args]
+    (let [{:keys [:_to :_token-id :_timestamp]} args]
       (db/insert-or-replace-meme-token-owner {:meme-token/token-id (bn/number _token-id)
-                                              :meme-token/owner _to}))
+                                              :meme-token/owner _to
+                                              :meme-token/transferred-on (bn/number _timestamp)}))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-meme-token-transfer))))
 

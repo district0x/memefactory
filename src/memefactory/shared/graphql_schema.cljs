@@ -6,16 +6,17 @@
 
   type Query {
     meme(regEntry_address: ID!): Meme
-    searchMemes(statuses: [RegEntryStatus], orderBy: Keyword, owner: String, creator: String, curator: String): MemeList
-    searchMemeTokens(statuses: [RegEntryStatus], orderBy: Keyword, owner: String): MemeTokenList
+    searchMemes(statuses: [RegEntryStatus], orderBy: MemesOrderBy, orderDir: OrderDir, owner: String, creator: String, curator: String): MemeList
+    searchMemeTokens(statuses: [RegEntryStatus], orderBy: MemeTokensOrderBy, orderDir: OrderDir, owner: String): MemeTokenList
 
     memeAuction(memeAuction_address: ID!): MemeAuction
     searchMemeAuctions(
       title: String,
       tags: [Tag],
       tagsOr: [Tag],
-      orderBy: Keyword,
-      groupBy: Keyword,
+      orderBy: MemeAuctionsOrderBy,
+      orderDir: OrderDir
+      groupBy: MemeAuctionsGroupBy,
       statuses: [MemeAuctionStatus],
       seller: String
     ): MemeAuctionList
@@ -26,10 +27,43 @@
     searchParamChanges: ParamChangeList
 
     user(user_address: ID!): User
-    searchUsers(orderBy: Keyword): UserList
+    searchUsers(orderBy: Keyword, orderDir: OrderDir): UserList
 
     param(db: String!, key: String!): Parameter
     params(db: String!, keys: [String!]): [Parameter]
+  }
+
+  enum OrderDir {
+    asc
+    desc
+  }
+
+  enum MemesOrderBy {
+    memes_orderBy_revealPeriodEnd
+    memes_orderBy_commitPeriodEnd
+    memes_orderBy_challengePeriodEnd
+    memes_orderBy_totalTradeVolume
+    memes_orderBy_createdOn
+    memes_orderBy_number
+    memes_orderBy_totalMinted
+  }
+
+  enum MemeTokensOrderBy {
+    memeTokens_orderBy_memeNumber
+    memeTokens_orderBy_memeTitle
+    memeTokens_orderBy_transferredOn
+    memeTokens_orderBy_tokenId
+  }
+
+  enum MemeAuctionsOrderBy {
+    memeAuctions_orderBy_price
+    memeAuctions_orderBy_startedOn
+    memeAuctions_orderBy_boughtOn
+    memeAuctions_orderBy_tokenId
+  }
+
+  enum MemeAuctionsGroupBy {
+    memeAuctions_groupBy_cheapest
   }
 
   enum RegEntryStatus {
@@ -49,6 +83,7 @@
     regEntry_createdOn: Date
     regEntry_challengePeriodEnd: Date
     challenge_challenger: User
+    challenge_createdOn: Date
     challenge_comment: String
     challenge_votingToken: String
     challenge_rewardPool: Int
@@ -86,6 +121,7 @@
     regEntry_createdOn: Date
     regEntry_challengePeriodEnd: Date
     challenge_challenger: User
+    challenge_createdOn: Date
     challenge_comment: String
     challenge_votingToken: String
     challenge_rewardPool: Int
@@ -182,6 +218,7 @@
     regEntry_createdOn: Date
     regEntry_challengePeriodEnd: Date
     challenge_challenger: User
+    challenge_createdOn: Date
     challenge_comment: String
     challenge_votingToken: String
     challenge_rewardPool: Int
@@ -209,28 +246,61 @@
   }  
 
   type User {
+    \"Ethereum address of an user\"
     user_address: ID
+
+    \"Total number of memes submitted by user\"
     user_totalCreatedMemes: Int
+
+    \"Total number of memes submitted by user, which successfully got into TCR\"
     user_totalCreatedMemesWhitelisted: Int
+
+    \"Largest sale creator has done with his newly minted meme\"
     user_creatorLargestSale: MemeAuction
+
+    \"Position of a creator in leaderboard according to user_totalCreatedMemesWhitelisted\"
     user_creatorRank: Int
 
+    \"Amount of meme tokenIds owned by user\"
     user_totalCollectedTokenIds: Int
+
+    \"Amount of unique memes owned by user\"
     user_totalCollectedMemes: Int
 
+    \"Largest auction user sold, in terms of price\"
     user_largestSale: MemeAuction
+
+    \"Largest auction user bought into, in terms of price\"
     user_largestBuy: MemeAuction
 
+    \"Amount of challenges user created\"
     user_totalCreatedChallenges: Int
+
+    \"Amount of challenges user created and ended up in his favor\"
     user_totalCreatedChallengesSuccess: Int
+
+    \"Total amount of DANK token user received from challenger rewards\"
+    user_challengerTotalEarned: Int
+
+    \"Total amount of DANK token user received from challenger rewards\"
     user_challengerRank: Int
 
+    \"Amount of different votes user participated in\"
     user_totalParticipatedVotes: Int
+
+    \"Amount of different votes user voted for winning option\"
     user_totalParticipatedVotesSuccess: Int
+
+    \"Amount of DANK token user received for voting for winning option\"
     user_voterTotalEarned: Int
+
+    \"Position of voter in leaderboard according to user_voterTotalEarned\"
     user_voterRank: Int
 
+    \"Sum of user_challengerTotalEarned and user_voterTotalEarned\"
     user_curatorTotalEarned: Int
+
+    \"Position of curator in leaderboard according to user_curatorTotalEarned\"
     user_curatorRank: Int
   }
   
