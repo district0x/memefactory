@@ -71,9 +71,13 @@ UI part of MF is written in ClojurScript, using these most notable technologies:
 * [CSS Grid Layout](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout) as layout systen
 
 ## Development
-Auto compile contracts: (assumes you have `solc` installed)
+Compile contracts (assumes you have `solc` installed):
 ```bash
-lein auto compile-solidity
+lein solc
+```
+Auto compile contracts on changes:
+```bash
+lein solc auto
 ```
 
 Start server: 
