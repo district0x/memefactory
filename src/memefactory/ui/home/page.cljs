@@ -3,6 +3,7 @@
     [district.ui.component.page :refer [page]]
     [district.ui.graphql.subs :as gql]
     [memefactory.ui.home.events]
+    [memefactory.ui.components.app-layout :refer [app-layout]]
     [re-frame.core :refer [subscribe]]))
 
 (defn component2 [{:keys [:a]}]
@@ -13,19 +14,22 @@
                                                  {:reg-entry/address "0x123"}
                                                  [:meme/title]]]}])]
     (fn []
-      [:div
-       (cond
-         (:graphql/loading? @data)
-         [:div "Loading..."]
+      [app-layout
+       {:meta {:title "MemeFactory"
+               :description "Description"}}
+       [:div
+        (cond
+          (:graphql/loading? @data)
+          [:div "Loading..."]
 
-         (:graphql/errors @data)
-         [:div "Error: " (first (:graphql/errors @data))]
+          (:graphql/errors @data)
+          [:div "Error: " (first (:graphql/errors @data))]
 
-         :else
-         (for [{:keys [:meme/title]} (:items (:search-memes @data))]
-           [:div
-            {:key title}
-            title]))])))
+          :else
+          (for [{:keys [:meme/title]} (:items (:search-memes @data))]
+            [:div
+             {:key title}
+             title]))]])))
 
 
 (defn component1 [{:keys [:id]}]

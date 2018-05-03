@@ -49,7 +49,8 @@
                  [mount "0.1.12"]
                  [org.clojure/clojurescript "1.10.238"]
                  [print-foo-cljs "2.0.3"]
-                 [re-frame "0.10.5"]]
+                 [re-frame "0.10.5"]
+                 [garden "1.3.5"]]
 
   :exclusions [express-graphql]
 
@@ -60,7 +61,8 @@
             [lein-solc "1.0.0"]
             [lein-doo "0.1.8"]
             [lein-npm "0.6.2"]
-            [lein-pdo "0.1.1"]]
+            [lein-pdo "0.1.1"]
+            [lein-garden "0.3.0"]]
 
   :npm {:dependencies [#_[semantic-ui "2.2.14"]
                        ;; needed until v0.6.13 is officially released
@@ -91,8 +93,8 @@
              :repl-eval-timeout 30000}
 
   :aliases {"clean-prod-server" ["shell" "rm" "-rf" "server"]
-            "watch-css" ["shell" "./semantic.sh" "watch"]
-            "build-css" ["shell" "./semantic.sh" "build-css"]
+            ;; "watch-css" ["shell" "./semantic.sh" "watch"]
+            "build-semantic" ["shell" "./semantic.sh" "build-css"]
             "build-prod-server" ["do" ["clean-prod-server"] ["cljsbuild" "once" "server"]]
             "build-prod-ui" ["do" ["clean"] ["cljsbuild" "once" "ui"]]
             "build-prod" ["pdo" ["build-prod-server"] ["build-prod-ui"] ["build-css"]]
@@ -107,6 +109,15 @@
                                   [org.clojure/tools.reader "1.2.1"]]
                    :source-paths ["dev" "src"]
                    :resource-paths ["resources"]}}
+
+  :garden {:builds [{:id "screen"
+                     :source-paths ["src"]
+                     :stylesheet memefactory.styles.core/main
+                     ;; Compiler flags passed to `garden.core/css`:
+                     :compiler {;; Where to save the file:
+                                :output-to "resources/public/css/main.css"
+                                ;; Compress the output?
+                                :pretty-print? false}}]}
 
   :cljsbuild {:builds [{:id "dev-server"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared"]
