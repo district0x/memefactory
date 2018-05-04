@@ -35,6 +35,7 @@
   (info info-text {:args args} ::on-constructed)
   (try
     (db/insert-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
+                                      (registry-entry/load-registry-entry-challenge registry-entry)
                                       {:reg-entry/created-on timestamp}))
     (if (= type :meme)
       (db/insert-meme! (merge (meme/load-meme registry-entry)
@@ -49,6 +50,7 @@
   (info info-text {:args args} ::on-challenge-created)
   (try
     (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
+                                      (registry-entry/load-registry-entry-challenge registry-entry)
                                       {:challenge/created-on timestamp}))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-challenge-created))))
@@ -68,7 +70,8 @@
   (info info-text {:args args} ::on-vote-revealed)
   (try
     (let [voter (web3-utils/uint->address (first data))]
-      (db/update-registry-entry! (registry-entry/load-registry-entry registry-entry))
+      (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
+                                        (registry-entry/load-registry-entry-challenge registry-entry)))
       (db/update-vote! (registry-entry/load-vote registry-entry voter)))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-vote-revealed))))
@@ -90,7 +93,8 @@
   (info info-text {:args args} ::on-challenge-reward-claimed)
   (try
     (let [{:keys [:challenge/challenger :reg-entry/deposit] :as reg-entry}
-          (registry-entry/load-registry-entry registry-entry)]
+          (merge (registry-entry/load-registry-entry registry-entry)
+                 (registry-entry/load-registry-entry-challenge registry-entry))]
 
       (db/update-registry-entry! reg-entry)
       (db/inc-user-field! (:challenge/challenger reg-entry) :user/challenger-total-earned deposit))

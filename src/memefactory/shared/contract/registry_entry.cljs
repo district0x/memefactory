@@ -16,16 +16,18 @@
                                :reg-entry/status
                                :reg-entry/creator
                                :reg-entry/deposit
-                               :reg-entry/challenge-period-end
-                               :challenge/challenger
-                               :challenge/voting-token
-                               :challenge/reward-pool
-                               :challenge/meta-hash
-                               :challenge/commit-period-end
-                               :challenge/reveal-period-end
-                               :challenge/votes-for
-                               :challenge/votes-against
-                               :challenge/claimed-reward-on])
+                               :reg-entry/challenge-period-end])
+
+(def load-registry-entry-challenge-keys [:reg-entry/challenge-period-end
+                                         :challenge/challenger
+                                         :challenge/voting-token
+                                         :challenge/reward-pool
+                                         :challenge/meta-hash
+                                         :challenge/commit-period-end
+                                         :challenge/reveal-period-end
+                                         :challenge/votes-for
+                                         :challenge/votes-against
+                                         :challenge/claimed-reward-on])
 
 (def vote-props [:vote/secret-hash
                  :vote/option
@@ -51,16 +53,22 @@
         (update :reg-entry/version bn/number)
         (update :reg-entry/deposit wei->eth-number)
         (update :reg-entry/status parse-status)
-        (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))
-        (update :challenge/challenger #(when-not (empty-address? %) %))
-        (update :challenge/voting-token #(when-not (empty-address? %) %))
-        (update :challenge/reward-pool wei->eth-number)
-        (update :challenge/meta-hash #(when-not (empty-address? %) (web3/to-ascii %)))
-        (update :challenge/commit-period-end (if parse-dates? web3-time->local-date-time bn/number))
-        (update :challenge/reveal-period-end (if parse-dates? web3-time->local-date-time bn/number))
-        (update :challenge/votes-for bn/number)
-        (update :challenge/votes-against bn/number)
-        (update :challenge/claimed-reward-on (if parse-dates? web3-time->local-date-time bn/number))))))
+        (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))))))
+
+(defn parse-load-registry-entry-challenge [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]]
+  (when registry-entry
+    (let [registry-entry (zipmap load-registry-entry-challenge-keys registry-entry)]
+      (-> registry-entry
+          (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))
+          (update :challenge/challenger #(when-not (empty-address? %) %))
+          (update :challenge/voting-token #(when-not (empty-address? %) %))
+          (update :challenge/reward-pool wei->eth-number)
+          (update :challenge/meta-hash #(when-not (empty-address? %) (web3/to-ascii %)))
+          (update :challenge/commit-period-end (if parse-dates? web3-time->local-date-time bn/number))
+          (update :challenge/reveal-period-end (if parse-dates? web3-time->local-date-time bn/number))
+          (update :challenge/votes-for bn/number)
+          (update :challenge/votes-against bn/number)
+          (update :challenge/claimed-reward-on (if parse-dates? web3-time->local-date-time bn/number))))))
 
 (defn parse-vote-option [vote-option]
   (vote-options (bn/number vote-option)))

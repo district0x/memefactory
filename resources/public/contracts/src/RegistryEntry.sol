@@ -430,14 +430,24 @@ contract RegistryEntry is ApproveAndCallFallBack {
   }
 
   /**
-   * @dev Returns all state related to this contract for simpler offchain access
+   * @dev Returns all basic state related to this contract for simpler offchain access
+   * For challenge info see loadRegistryEntryChallenge()
    */
-  function loadRegistryEntry() public constant returns (uint, Status, address, uint, uint, address, address, uint, bytes, uint, uint, uint, uint, uint) {
+  function loadRegistryEntry() public constant returns (uint, Status, address, uint, uint) {
     return (
     version,
     status(),
     creator,
     deposit,
+    challengePeriodEnd
+    );
+  }
+
+  /**
+   * @dev Returns all challenge state related to this contract for simpler offchain access
+   */
+  function loadRegistryEntryChallenge() public constant returns (uint, address, address, uint, bytes, uint, uint, uint, uint, uint, uint) {
+    return (    
     challengePeriodEnd,
     challenge.challenger,
     challenge.votingToken,
@@ -447,7 +457,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.revealPeriodEnd,
     challenge.votesFor,
     challenge.votesAgainst,
-    challenge.claimedRewardOn
+    challenge.claimedRewardOn,
+    challenge.voteQuorum
     );
   }
 
