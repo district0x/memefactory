@@ -1,6 +1,7 @@
 (ns memefactory.ui.components.app-layout
   (:require ;;[soda-ash.core :as ui]
-            ))
+   [reagent.core :as r]
+   [re-frame.core :refer [subscribe dispatch]]))
 
 (def nav-menu-items-props [{:text "Marketplace"
                             :route :route.marketplace/index
@@ -8,6 +9,11 @@
                            {:text "Dank Registry"
                             :route :route.dankregistry/index
                             :class :dankregistry}])
+;;stubs
+(defn path-for [path]
+  (str path))
+(defn current-page? [a b]
+  (= a b))
 
 (defn district0x-banner []
   [:div.district0x-banner
@@ -19,7 +25,9 @@
     "district0x Network"]])
 
 (defn app-layout []
-  (let [active-page (subscribe [:district0x/active-page])]
+  (let [active-page (r/atom nil);;(subscribe [:district0x/active-page])
+        drawer-open? (r/atom true);;(subscribe [:district0x/menu-drawer-open?])
+        ]
     (fn [{:keys [:meta]} & children]
       [:div.app-container
        #_{:ref (fn [el]
