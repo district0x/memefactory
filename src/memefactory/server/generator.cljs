@@ -71,7 +71,8 @@
                                                            {:from account})
 
               (when-not (= :scenario/challenge scenario-type)
-                (let [{:keys [:challenge/voting-token :reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
+                (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
+                      {:keys [:challenge/voting-token]} (registry-entry/load-registry-entry-challenge registry-entry)
                       balance (minime-token/balance-of [:DANK voting-token] creator)]
 
                   (registry-entry/approve-and-commit-vote registry-entry

@@ -7,7 +7,9 @@
     [district.server.smart-contracts :refer [contract-call instance contract-address]]
     [memefactory.server.contract.dank-token :as dank-token]
     [memefactory.server.contract.minime-token :as minime-token]
-    [memefactory.shared.contract.registry-entry :refer [parse-status parse-load-registry-entry parse-load-vote vote-option->num]]))
+    [memefactory.shared.contract.registry-entry :refer [parse-status parse-load-registry-entry
+                                                        parse-load-registry-entry-challenge
+                                                        parse-load-vote vote-option->num]]))
 
 (defn registry [contract-addr]
   (contract-call [:meme contract-addr] :registry))
@@ -20,6 +22,11 @@
   (parse-load-registry-entry
     contract-addr
     (contract-call (instance :meme contract-addr) :load-registry-entry)))
+
+(defn load-registry-entry-challenge [contract-addr]
+  (parse-load-registry-entry-challenge
+    contract-addr
+    (contract-call (instance :meme contract-addr) :load-registry-entry-challenge)))
 
 (defn create-challenge [contract-addr {:keys [:challenger :meta-hash]} & [opts]]
   (contract-call (instance :meme contract-addr) :create-challenge challenger meta-hash (merge {:gas 1200000} opts)))
