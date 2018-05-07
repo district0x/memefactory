@@ -27,7 +27,8 @@
                                          :challenge/reveal-period-end
                                          :challenge/votes-for
                                          :challenge/votes-against
-                                         :challenge/claimed-reward-on])
+                                         :challenge/claimed-reward-on
+                                         :challenge/vote-quorum])
 
 (def vote-props [:vote/secret-hash
                  :vote/option
@@ -67,6 +68,7 @@
           (update :challenge/commit-period-end (if parse-dates? web3-time->local-date-time bn/number))
           (update :challenge/reveal-period-end (if parse-dates? web3-time->local-date-time bn/number))
           (update :challenge/votes-for bn/number)
+          (update :challenge/vote-quorum bn/number)
           (update :challenge/votes-against bn/number)
           (update :challenge/claimed-reward-on (if parse-dates? web3-time->local-date-time bn/number))))))
 

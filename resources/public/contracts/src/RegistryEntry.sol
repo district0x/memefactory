@@ -131,7 +131,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.voteQuorum = registry.db().getUIntValue(voteQuorumKey);
     uint commitDuration = registry.db().getUIntValue(commitPeriodDurationKey);
     uint revealDuration = registry.db().getUIntValue(revealPeriodDurationKey);
-    uint deposit = registry.db().getUIntValue(depositKey);
+    
     challenge.commitPeriodEnd = now.add(commitDuration);
     challenge.revealPeriodEnd = challenge.commitPeriodEnd.add(revealDuration);
     challenge.rewardPool = ((100 - registry.db().getUIntValue(challengeDispensationKey)).mul(deposit)) / 100;

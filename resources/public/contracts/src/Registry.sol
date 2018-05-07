@@ -84,7 +84,7 @@ contract Registry is DSAuth {
   function setEmergency(bool _isEmergency)
   auth
   {
-    db.setBooleanValue(sha3("isEmergency"), _isEmergency);
+    db.setBooleanValue("isEmergency", _isEmergency);
   }
 
   function fireRegistryEntryEvent(bytes32 _eventType, uint _version)

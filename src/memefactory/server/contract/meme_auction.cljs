@@ -18,4 +18,7 @@
     contract-address
     (contract-call [:meme-auction contract-address] :load-meme-auction)))
 
+(defn current-price [contract-address]
+  (contract-call [:meme-auction contract-address] :current-price))
+
 
