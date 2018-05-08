@@ -5,7 +5,15 @@
             [memefactory.styles.base.colors :refer [color]]
             [garden.units :refer [px]]))
 
+(def menu-gutter (px 15))
 (defstyles core
   [:.app-container
    [:.app-menu
-    {:background (color "red")}]])
+    {:overflow-x :hidden
+     :overflow-y :scroll
+     :background (color "white")}
+    [:div.item
+     {:display :flex
+      :align-items :center
+      :padding-top menu-gutter
+      :padding-bottom menu-gutter}]]])

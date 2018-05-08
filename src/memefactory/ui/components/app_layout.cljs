@@ -34,16 +34,17 @@
                (when (and el (not @app-container-ref))
                  (reset! app-container-ref el)))}
        ;;[meta-tags meta]
-       [:ul.app-menu
+       [:div.app-menu
         {:class (when-not @drawer-open? "closed")}
         [:div.menu-content
          ;; [side-nav-menu-logo]
-         (doall
-          (for [{:keys [:text :route :href :class]} nav-menu-items-props]
-            (let [href (or href (path-for route))]
-              [:li.item
-               {:class (conj [(when (current-page? @active-page href))])}
-               [:a {:href href} text]])))
+         [:div.ui.link.list
+          (doall
+           (for [{:keys [:text :route :href :class]} nav-menu-items-props]
+             (let [href (or href (path-for route))]
+               [:div.item
+                {:class (conj [(when (current-page? @active-page href))])}
+                [:a {:href href} text]])))]
          [district0x-banner]]]
        [:div.app-content
         ;; [app-bar]
