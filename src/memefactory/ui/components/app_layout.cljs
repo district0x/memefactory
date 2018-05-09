@@ -43,7 +43,8 @@
            (for [{:keys [:text :route :href :class]} nav-menu-items-props]
              (let [href (or href (path-for route))]
                [:div.item
-                {:class (conj [(when (current-page? @active-page href))])}
+                {:class (concat [class] (when (current-page? @active-page href)));; (conj [class] )
+                 }
                 [:a {:href href} text]])))]
          [district0x-banner]]]
        [:div.app-content
