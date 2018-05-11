@@ -19,3 +19,8 @@
                :max-width max-width}
               payload)))
 
+(defn for-media-min [m payload]
+  (let [min-width (medias m)]
+    (at-media {:screen true
+               :min-width min-width}
+              payload)))
