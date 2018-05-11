@@ -70,6 +70,26 @@ UI part of MF is written in ClojurScript, using these most notable technologies:
 * [ReactSemanticUI](https://react.semantic-ui.com/introduction) for simpler styling of components
 * [CSS Grid Layout](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout) as layout systen
 
+### Styling
+Try keeping classes at bay by using noun-like definitions:
+```
+[:div.ui.card.meme.active]
+```
+Here we have 'div.ui.card' or '[ui/Card]' in soda-ash notation, as a framwork-extended control, followed by 'meme' as a single "type" identificator, with optional status class. This should prevent styling concerns leaking into the code.
+
+Example of adjective-like classes to avoid
+
+```clojurescript
+[:div.meme.padded.small.elevated]
+```
+Adjective-like "classes" are perfectly good as a class mixins in the styles layer of the applications:
+```clojure
+[:.meme
+  (merge 
+    (box-rounded 5)
+    {:background "color"})]
+```
+
 ## Development
 Compile contracts (assumes you have `solc` installed):
 ```bash
