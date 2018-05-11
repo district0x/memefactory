@@ -6,6 +6,13 @@
     [memefactory.ui.components.app-layout :refer [app-layout]]
     [re-frame.core :refer [subscribe]]))
 
+(defn meme-tiles []
+  [:div.tiles
+   (map (fn [meme]
+          [:div.compact-tile
+           (str meme)])
+        (range 30))])
+
 (defn component2 [{:keys [:a]}]
   (let [data (subscribe [::gql/query {:queries [[:search-memes
                                                  {:a a}
@@ -14,22 +21,19 @@
                                                  {:reg-entry/address "0x123"}
                                                  [:meme/title]]]}])]
     (fn []
-      [app-layout
-       {:meta {:title "MemeFactory"
-               :description "Description"}}
-       [:div
-        (cond
-          (:graphql/loading? @data)
-          [:div "Loading..."]
+      [:div
+       (cond
+         (:graphql/loading? @data)
+         [:div "Loading..."]
 
-          (:graphql/errors @data)
-          [:div "Error: " (first (:graphql/errors @data))]
+         (:graphql/errors @data)
+         [:div "Error: " (first (:graphql/errors @data))]
 
-          :else
-          (for [{:keys [:meme/title]} (:items (:search-memes @data))]
-            [:div
-             {:key title}
-             title]))]])))
+         :else
+         (for [{:keys [:meme/title]} (:items (:search-memes @data))]
+           [:div
+            {:key title}
+            title]))])))
 
 
 (defn component1 [{:keys [:id]}]
@@ -59,10 +63,13 @@
         {:a 54}]])))
 
 (defmethod page :route/home []
-  [:div
-   [component2
-    {:a 92}]
-   [component1
-    {:id 77}]
-   [component1
-    {:id 79}]])
+  [app-layout
+   {:meta {:title "MemeFactory"
+           :description "Description"}}
+   [:div
+    [meme-tiles]
+    [component2
+     {:a 92}]
+    [component1
+     {:id 77}]
+    ]])
