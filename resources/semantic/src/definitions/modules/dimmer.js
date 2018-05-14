@@ -10,7 +10,7 @@
 
 ;(function ($, window, document, undefined) {
 
-'use strict';
+"use strict";
 
 window = (typeof window != 'undefined' && window.Math == Math)
   ? window
@@ -238,7 +238,6 @@ $.fn.dimmer = function(parameters) {
               }
               $dimmer
                 .transition({
-                  displayType : 'flex',
                   animation   : settings.transition + ' in',
                   queue       : false,
                   duration    : module.get.duration(),
@@ -283,7 +282,6 @@ $.fn.dimmer = function(parameters) {
               module.verbose('Hiding dimmer with css');
               $dimmer
                 .transition({
-                  displayType : 'flex',
                   animation   : settings.transition + ' out',
                   queue       : false,
                   duration    : module.get.duration(),

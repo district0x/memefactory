@@ -51,9 +51,9 @@
       :margin-left (px 24)}]]
 
    [:.icon.hamburger
-    {:cursor pointer
-     :font-size 29px
-     :line-height 100%
+    {:cursor :pointer
+     :font-size (px 29)
+     :line-height "100%"
      :color (color "light-green")}
     (for-media-min :tablet [:&
                             {:display :none}])]])

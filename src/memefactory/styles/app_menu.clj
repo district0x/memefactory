@@ -2,6 +2,7 @@
   (:require [garden.def :refer [defstyles]]
             [garden.stylesheet :refer [at-media]]
             [clojure.string :as s]
+            [memefactory.styles.base.icons :refer [icons]]
             [memefactory.styles.base.colors :refer [color]]
             [garden.units :refer [px]]))
 
@@ -27,6 +28,6 @@
         :float :left
         :color (color "green")}]
       [:&.dankregistry:before
-       {:content "\"\\f0c2\""}]
+       {:content (icons :eye)}];;"\"\\f0c2\""
       [:&.marketplace:before
-       {:content "\"\\f2a3\""}]]]]])
+       {:content (icons :dollar-circle)}]]]]])

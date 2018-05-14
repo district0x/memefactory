@@ -162,7 +162,7 @@ module.exports = function(callback) {
   ;
 
   // copy assets
-  gulp.src(source.themes + '/**/assets/**/*.*')
+  gulp.src(source.themes + '/**/assets/**/' + globs.components + '?(s).*')
     .pipe(gulpif(config.hasPermission, chmod(config.permission)))
     .pipe(gulp.dest(output.themes))
   ;

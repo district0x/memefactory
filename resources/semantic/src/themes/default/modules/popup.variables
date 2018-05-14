@@ -17,8 +17,8 @@
 
 @verticalPadding: 0.833em;
 @horizontalPadding: 1em;
-@fontWeight: @normal;
-@fontStyle: @normal;
+@fontWeight: normal;
+@fontStyle: normal;
 @borderRadius: @defaultBorderRadius;
 
 /*-------------------
@@ -35,7 +35,6 @@
 
 /* Header */
 @headerFontFamily: @headerFont;
-@headerFontWeight: @bold;
 @headerFontSize: @relativeLarge;
 @headerDistance: @relative7px;
 @headerLineHeight: 1.2;
@@ -44,7 +43,7 @@
 @border: @borderWidth solid @borderColor;
 
 /* Arrow */
-@arrowBackground: @background;
+@arrowBackground: @white;
 @arrowZIndex: 2;
 @arrowJitter: 0.05em;
 @arrowOffset: -(@arrowSize / 2) + @arrowJitter;
