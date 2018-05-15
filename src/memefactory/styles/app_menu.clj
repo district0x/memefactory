@@ -3,23 +3,32 @@
             [garden.stylesheet :refer [at-media]]
             [clojure.string :as s]
             [memefactory.styles.base.icons :refer [icons]]
+            [memefactory.styles.base.borders :refer [border-top]]
             [memefactory.styles.base.colors :refer [color]]
+            [garden.selectors :as sel]
             [garden.units :refer [px]]))
 
 (def menu-gutter (px 15))
-(def menu-item )
+
 (defstyles core
   [:.app-container
    [:.app-menu
     {:overflow-x :hidden
      :overflow-y :scroll
-     :background (color "white")}
-    [:.ui.link.list
+     :width (px 190)
+     :background (color :violet)}
+    [(sel/> :.menu-content :.node :.node-content :.item)
+     (border-top {:color (color :light-violet)})]
+    [:.node
      [:.item
       {:display :flex
        :align-items :center
        :padding-top menu-gutter
        :padding-bottom menu-gutter}
+      [:a
+       {:color (color :light-grey)}
+       [:&:hover
+        {:color (color :white)}]]
       [:&:before
        {:font-family "Icons"
         :display :block
@@ -28,6 +37,6 @@
         :float :left
         :color (color "green")}]
       [:&.dankregistry:before
-       {:content (icons :eye)}];;"\"\\f0c2\""
+       {:content (icons :eye)}]
       [:&.marketplace:before
        {:content (icons :dollar-circle)}]]]]])

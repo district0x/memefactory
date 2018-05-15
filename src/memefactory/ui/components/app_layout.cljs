@@ -69,18 +69,16 @@
     "district0x Network"]])
 
 (defn app-menu [props active-page]
-  [:div.ui.link.list
+  [:div.node
    (doall
     (for [{:keys [:text :route :href :class :children]} props]
       (let [href (or href (path-for route))]
-        [:div
+        [:div.node-content
          [:div.item
-          {:class (concat [class] (when (current-page? active-page href)));; (conj [class] )
-           }
+          {:class (concat [class] (when (current-page? active-page href)))}
           [:a {:href href} text]]
          (when children
-           [app-menu children active-page])
-         ])))])
+           [app-menu children active-page])])))])
 
 (defn app-layout []
   (let [active-page (r/atom nil);;(subscribe [:district0x/active-page])
