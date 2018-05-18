@@ -20,7 +20,6 @@
 
 (def load-registry-entry-challenge-keys [:reg-entry/challenge-period-end
                                          :challenge/challenger
-                                         :challenge/voting-token
                                          :challenge/reward-pool
                                          :challenge/meta-hash
                                          :challenge/commit-period-end
@@ -62,7 +61,6 @@
       (-> registry-entry
           (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))
           (update :challenge/challenger #(when-not (empty-address? %) %))
-          (update :challenge/voting-token #(when-not (empty-address? %) %))
           (update :challenge/reward-pool wei->eth-number)
           (update :challenge/meta-hash #(when-not (empty-address? %) (web3/to-ascii %)))
           (update :challenge/commit-period-end (if parse-dates? web3-time->local-date-time bn/number))

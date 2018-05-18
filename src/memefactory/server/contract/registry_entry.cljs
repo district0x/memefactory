@@ -40,18 +40,22 @@
                                 :extra-data (create-challenge-data (merge {:challenger (:from opts)} args))}
                                (merge {:gas 6000000} opts)))
 
-(defn commit-vote [contract-addr {:keys [:voter :vote-option :salt]} & [opts]]
-  (contract-call (instance :meme contract-addr) :commit-vote voter (solidity-sha3 (vote-option->num vote-option) salt) (merge {:gas 1200000} opts)))
+(defn commit-vote [contract-addr {:keys [:voter :amount :vote-option :salt]} & [opts]]
+  (contract-call (instance :meme contract-addr)
+                 :commit-vote
+                 voter
+                 (bn/number amount)
+                 (solidity-sha3 (vote-option->num vote-option) salt)
+                 (merge {:gas 1200000} opts)))
 
-(defn commit-vote-data [{:keys [:voter :vote-option :salt]}]
-  (web3-eth/contract-get-data (instance :meme) :commit-vote voter (solidity-sha3 (vote-option->num vote-option) salt)))
+(defn commit-vote-data [{:keys [:voter :amount :vote-option :salt]}]
+  (web3-eth/contract-get-data (instance :meme) :commit-vote voter (bn/number amount) (solidity-sha3 (vote-option->num vote-option) salt)))
 
-(defn approve-and-commit-vote [contract-addr {:keys [:voting-token :amount] :as args} & [opts]]
-  (minime-token/approve-and-call [:DANK voting-token]
-                                 {:spender contract-addr
-                                  :amount amount
-                                  :extra-data (commit-vote-data (merge {:voter (:from opts)} args))}
-                                 (merge opts {:gas 1200000})))
+(defn approve-and-commit-vote [contract-addr {:keys [:amount] :as args} & [opts]]
+  (dank-token/approve-and-call {:spender contract-addr
+                                :amount amount
+                                :extra-data (commit-vote-data (merge {:voter (:from opts)} args))}
+                               (merge opts {:gas 1200000})))
 
 (defn reveal-vote [contract-addr {:keys [:vote-option :salt]} & [opts]]
   (contract-call (instance :meme contract-addr) :reveal-vote (vote-option->num vote-option) salt (merge {:gas 500000} opts)))
@@ -67,9 +71,6 @@
 
 (defn vote-reward [contract-addr voter-address]
   (contract-call (instance :meme contract-addr) :vote-reward voter-address))
-
-(defn voting-token-balance-of [contract-addr voter-address]
-  (contract-call (instance :meme contract-addr) :voting-token-balance-of voter-address))
 
 (defn claim-challenge-reward [contract-addr & [opts]]
   (contract-call (instance :meme contract-addr) :claim-challenge-reward (merge {:gas 500000} opts)))

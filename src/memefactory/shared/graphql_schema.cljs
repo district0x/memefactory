@@ -94,9 +94,6 @@
     challenge_votesTotal: Int
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
-
-    \"Balance of voting token of a voter. This is client-side only, server doesn't return this\"
-    challenge_availableVoteAmount(voter: ID!): Int
   }
 
   enum VoteOption {

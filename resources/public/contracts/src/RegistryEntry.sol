@@ -37,7 +37,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
   struct Challenge {
     address challenger;
-    MiniMeToken votingToken;
     uint voteQuorum;
     uint rewardPool;
     bytes metaHash;
@@ -125,9 +124,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(registryToken.transferFrom(_challenger, this, deposit));
 
     challenge.challenger = _challenger;
-    registryToken.createCloneToken("", 18, "", 0, true);
-    challenge.votingToken = MiniMeToken(registryToken.createCloneToken("", 18, "", 0, true));
-    challenge.votingToken.changeController(0x0);
     challenge.voteQuorum = registry.db().getUIntValue(voteQuorumKey);
     uint commitDuration = registry.db().getUIntValue(commitPeriodDurationKey);
     uint revealDuration = registry.db().getUIntValue(revealPeriodDurationKey);
@@ -142,25 +138,27 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
   /**
    * @dev Commits encrypted vote to challenged entry
+   * Locks voter's tokens in this contract. Returns when vote is revealed
    * Must be within commit period
    * Voting takes full balance of voter's voting token
 
    * @param _voter Address of a voter
+   * @param _amount Amount of tokens to vote with
    * @param _secretHash Encrypted vote option with salt. sha3(voteOption, salt)
    */
   function commitVote(
     address _voter,
+    uint _amount,
     bytes32 _secretHash
   )
   public
   notEmergency
   {
     require(isVoteCommitPeriodActive());
-    uint amount = challenge.votingToken.balanceOf(_voter);
-    require(amount > 0);
-    require(challenge.votingToken.transferFrom(_voter, this, amount));
+    require(_amount > 0);
+    require(registryToken.transferFrom(_voter, this, _amount));
     challenge.vote[_voter].secretHash = _secretHash;
-    challenge.vote[_voter].amount = amount;
+    challenge.vote[_voter].amount = _amount;
 
     var eventData = new uint[](1);
     eventData[0] = uint(_voter);
@@ -169,6 +167,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
   /**
    * @dev Reveals previously committed vote
+   * Returns registryToken back to the voter
    * Must be within reveal period
 
    * @param _voteOption Vote option voter previously voted with
@@ -187,6 +186,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     challenge.vote[msg.sender].revealedOn = now;
     uint amount = challenge.vote[msg.sender].amount;
+    require(registryToken.transfer(msg.sender, amount));
     challenge.vote[msg.sender].option = _voteOption;
     if (_voteOption == VoteOption.VoteFor) {
       challenge.votesFor = challenge.votesFor.add(amount);
@@ -446,11 +446,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
   /**
    * @dev Returns all challenge state related to this contract for simpler offchain access
    */
-  function loadRegistryEntryChallenge() public constant returns (uint, address, address, uint, bytes, uint, uint, uint, uint, uint, uint) {
+  function loadRegistryEntryChallenge() public constant returns (uint, address, uint, bytes, uint, uint, uint, uint, uint, uint) {
     return (    
     challengePeriodEnd,
     challenge.challenger,
-    challenge.votingToken,
     challenge.rewardPool,
     challenge.metaHash,
     challenge.commitPeriodEnd,
@@ -476,14 +475,5 @@ contract RegistryEntry is ApproveAndCallFallBack {
     vtr.revealedOn,
     vtr.claimedRewardOn
     );
-  }
-
-  /**
-   * @dev Returns balance of voting token for a potential voter
-   *
-   * @param _voter Address of a potential voter
-   */
-  function votingTokenBalanceOf(address _voter) public constant returns (uint) {
-    return challenge.votingToken.balanceOf(_voter);
   }
 }

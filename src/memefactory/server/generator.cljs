@@ -72,12 +72,10 @@
 
               (when-not (= :scenario/challenge scenario-type)
                 (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
-                      {:keys [:challenge/voting-token]} (registry-entry/load-registry-entry-challenge registry-entry)
-                      balance (minime-token/balance-of [:DANK voting-token] creator)]
+                      balance (dank-token/balance-of creator)]
 
                   (registry-entry/approve-and-commit-vote registry-entry
-                                                          {:voting-token voting-token
-                                                           :amount balance
+                                                          {:amount balance
                                                            :salt "abc"
                                                            :vote-option :vote.option/vote-for}
                                                           {:from creator})
