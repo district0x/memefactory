@@ -253,14 +253,14 @@
             :where [:= :reg-entry/address address]}))
 
 
-(defn user-exsits? [user-address]
+(defn user-exists? [user-address]
   (boolean (seq (db/get {:select [1]
                          :from [:users]
                          :where [:= :user/address user-address]}))))
 
 
 (defn update-user! [{:keys [:user/address] :as params}]
-  (when-not (user-exsits? address)
+  (when-not (user-exists? address)
     (db/run! {:insert-into :users
               :columns [:user/address]
               :values [[address]]}))
