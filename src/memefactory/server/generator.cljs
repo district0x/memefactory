@@ -31,7 +31,7 @@
                                                              (:generator (mount/args)))))
 
 
-(defn get-screnarios [{:keys [:accounts :use-accounts :items-per-account :scenarios]}]
+(defn get-scenarios [{:keys [:accounts :use-accounts :items-per-account :scenarios]}]
   (when (and (pos? use-accounts)
              (pos? items-per-account)
              (seq scenarios))
@@ -47,10 +47,10 @@
         (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-auction-duration :deposit :commit-period-duration
                                                             :reveal-period-duration])
           (map bn/number))]
-    (doseq [[account {:keys [:scenario-type]}] (get-screnarios {:accounts accounts
-                                                                :use-accounts use-accounts
-                                                                :items-per-account items-per-account
-                                                                :scenarios scenarios})]
+    (doseq [[account {:keys [:scenario-type]}] (get-scenarios {:accounts accounts
+                                                               :use-accounts use-accounts
+                                                               :items-per-account items-per-account
+                                                               :scenarios scenarios})]
       (let [meta-hash "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH"
             total-supply (inc (rand-int max-total-supply))
             auction-duration (+ 60 (rand-int (- max-auction-duration 60)))]
@@ -125,10 +125,10 @@
         (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
           (map bn/number))]
     (doseq [[account {:keys [:scenario-type :param-change-db]}]
-            (get-screnarios {:accounts accounts
-                             :use-accounts use-accounts
-                             :items-per-account items-per-account
-                             :scenarios scenarios})]
+            (get-scenarios {:accounts accounts
+                            :use-accounts use-accounts
+                            :items-per-account items-per-account
+                            :scenarios scenarios})]
 
       (let [tx-hash (param-change-factory/approve-and-create-param-change
                       {:db (contract-address (or param-change-db :meme-registry-db))

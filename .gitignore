@@ -23,6 +23,7 @@ pom.xml.asc
 /dev-server/
 /server/
 /dev-tests/
+memefactory-tests/
 /browser-tests/
 /src/name_bazaar/server/repl.cljs
 /smart-contracts-tests/

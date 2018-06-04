@@ -6,28 +6,51 @@
 
   type Query {
     meme(regEntry_address: ID!): Meme
-    searchMemes(statuses: [RegEntryStatus], orderBy: MemesOrderBy, orderDir: OrderDir, owner: String, creator: String, curator: String): MemeList
-    searchMemeTokens(statuses: [RegEntryStatus], orderBy: MemeTokensOrderBy, orderDir: OrderDir, owner: String): MemeTokenList
+    searchMemes(statuses: [RegEntryStatus],
+                orderBy: MemesOrderBy,
+                orderDir: OrderDir,
+                owner: String,
+                creator: String,
+                curator: String,
+                first: Int,
+                after: String
+    ): MemeList
+    searchMemeTokens(statuses: [RegEntryStatus],
+                     orderBy: MemeTokensOrderBy,
+                     orderDir: OrderDir,
+                     owner: String,
+                     first: Int,
+                     after: String
+    ): MemeTokenList
 
     memeAuction(memeAuction_address: ID!): MemeAuction
     searchMemeAuctions(
       title: String,
-      tags: [Tag],
-      tagsOr: [Tag],
+      tags: [ID],
+      tagsOr: [ID],
       orderBy: MemeAuctionsOrderBy,
-      orderDir: OrderDir
+      orderDir: OrderDir,
       groupBy: MemeAuctionsGroupBy,
       statuses: [MemeAuctionStatus],
-      seller: String
+      seller: String,
+      first: Int,
+      after: String
     ): MemeAuctionList
 
-    searchTags: TagList
+    searchTags(first: Int, after: String): TagList
 
     paramChange(regEntry_address: ID!): ParamChange
-    searchParamChanges: ParamChangeList
+    searchParamChanges(
+      first: Int,
+      after: String
+    ): ParamChangeList
 
     user(user_address: ID!): User
-    searchUsers(orderBy: Keyword, orderDir: OrderDir): UserList
+    searchUsers(orderBy: UsersOrderBy,
+                orderDir: OrderDir,
+                first: Int,
+                after: String
+    ): UserList
 
     param(db: String!, key: String!): Parameter
     params(db: String!, keys: [String!]): [Parameter]
@@ -60,6 +83,21 @@
     memeAuctions_orderBy_startedOn
     memeAuctions_orderBy_boughtOn
     memeAuctions_orderBy_tokenId
+  }
+
+  enum UsersOrderBy {
+    users_orderBy_address
+    Users_orderBy_voterTotalEarned
+    users_orderBy_challengerTotalEarned
+    users_orderBy_curatorTotalEarned
+    users_orderBy_totalParticipatedVotesSuccess
+    users_orderBy_totalParticipatedVotes
+    users_orderBy_totalCreatedChallengesSuccess
+    users_orderBy_totalCreatedChallenges
+    users_orderBy_totalCollectedMemes
+    users_orderBy_totalCollectedTokenIds
+    users_orderBy_totalCreatedMemesWhitelisted
+    users_orderBy_totalCreatedMemes
   }
 
   enum MemeAuctionsGroupBy {
@@ -105,7 +143,7 @@
   type Vote {
     vote_secretHash: String
     vote_option: VoteOption
-    vote_amount: Int
+    vote_amount: Float
     vote_revealedOn: Date
     vote_claimedRewardOn: Date
     vote_reward: Int
@@ -159,7 +197,6 @@
   }
 
   type Tag {
-    tag_id: ID
     tag_name: String
   }
 
@@ -194,8 +231,9 @@
     memeAuction_address: ID
     memeAuction_seller: User
     memeAuction_buyer: User
-    memeAuction_startPrice: Int
-    memeAuction_endPrice: Int
+    memeAuction_startPrice: Float
+    memeAuction_endPrice: Float
+    memeAuction_boughtFor: Float
     memeAuction_duration: Int
     memeAuction_startedOn: Date
     memeAuction_boughtOn: Date
@@ -240,13 +278,13 @@
     paramChange_originalValue: Int
     paramChange_appliedOn: Date
   }
-  
+
   type ParamChangeList {
     items: [ParamChange]
     totalCount: Int
     endCursor: ID
     hasNextPage: Boolean
-  }  
+  }
 
   type User {
     \"Ethereum address of an user\"
@@ -295,18 +333,18 @@
     user_totalParticipatedVotesSuccess: Int
 
     \"Amount of DANK token user received for voting for winning option\"
-    user_voterTotalEarned: Int
+    user_voterTotalEarned: Float
 
     \"Position of voter in leaderboard according to user_voterTotalEarned\"
     user_voterRank: Int
 
     \"Sum of user_challengerTotalEarned and user_voterTotalEarned\"
-    user_curatorTotalEarned: Int
+    user_curatorTotalEarned: Float
 
     \"Position of curator in leaderboard according to user_curatorTotalEarned\"
     user_curatorRank: Int
   }
-  
+
   type UserList {
     items: [User]
     totalCount: Int
@@ -317,7 +355,7 @@
   type Parameter {
     param_db: ID
     param_key: ID
-    param_value: Int
+    param_value: Float
   }
 
 ")

@@ -1,5 +1,5 @@
 language: clojure
-script: lein test
+script: lein doo node "server-tests" once
 before_install:
  - sudo add-apt-repository --yes ppa:ethereum/ethereum
  - sudo apt-get -qq update

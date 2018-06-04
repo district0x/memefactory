@@ -19,7 +19,7 @@
                  [district0x/district-sendgrid "1.0.0"]
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.1"]
-                 [district0x/district-server-graphql "1.0.12"]
+                 [district0x/district-server-graphql "1.0.15"]
                  [district0x/district-server-logging "1.0.1"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.0.8"]
@@ -51,9 +51,11 @@
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.10.5"]]
 
+  :exclusions [express-graphql]
+
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
-            [lein-figwheel "0.5.14"]
+            [lein-figwheel "0.5.16"]
             [lein-shell "0.5.0"]
             [lein-solc "1.0.0"]
             [lein-doo "0.1.8"]
@@ -61,6 +63,13 @@
             [lein-pdo "0.1.1"]]
 
   :npm {:dependencies [#_[semantic-ui "2.2.14"]
+                       ;; needed until v0.6.13 is officially released
+                       [express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
+                       [graphql-tools "3.0.1"]
+                       [graphql "0.13.1"]
+                       [express "4.15.3"]
+                       [cors "2.8.4"]
+                       [graphql-fields "1.0.2"]
                        [solc "0.4.20"]
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]]}
@@ -87,9 +96,9 @@
             "build-prod-server" ["do" ["clean-prod-server"] ["cljsbuild" "once" "server"]]
             "build-prod-ui" ["do" ["clean"] ["cljsbuild" "once" "ui"]]
             "build-prod" ["pdo" ["build-prod-server"] ["build-prod-ui"] ["build-css"]]
-            "test" ["do" ["build-tests"] ["shell" "node" "smart-contracts-tests/smart-contracts-tests.js"]]
-            "build-tests" ["cljsbuild" "once" "smart-contracts-tests"]
-            "test-dev" ["doo" "node" "smart-contracts-tests"]}
+            "build-tests" ["cljsbuild" "once" "server-tests"]
+            "test" ["do" ["build-tests"] ["shell" "node" "memefactory-tests/memefactory-server-tests.js"]]
+            "test-doo" ["doo" "node" "server-tests"]}
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0"]
                                   [binaryage/devtools "0.9.9"]
@@ -99,7 +108,17 @@
                    :source-paths ["dev" "src"]
                    :resource-paths ["resources"]}}
 
-  :cljsbuild {:builds [{:id "dev"
+  :cljsbuild {:builds [{:id "dev-server"
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
+                        :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
+                        :compiler {:main "memefactory.server.dev"
+                                   :output-to "dev-server/memefactory.js"
+                                   :output-dir "dev-server"
+                                   :target :nodejs
+                                   :optimizations :none
+                                   :closure-defines {goog.DEBUG true}
+                                   :source-map true}}
+                       {:id "dev"
                         :source-paths ["src/memefactory/ui" "src/memefactory/shared"]
                         :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
                         :compiler {:main "memefactory.ui.core"
@@ -112,16 +131,6 @@
                                    :closure-defines {goog.DEBUG true
                                                      "re_frame.trace.trace_enabled_QMARK_" true}
                                    :external-config {:devtools/config {:features-to-install :all}}}}
-                       {:id "dev-server"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
-                        :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
-                        :compiler {:main "memefactory.server.dev"
-                                   :output-to "dev-server/memefactory.js"
-                                   :output-dir "dev-server"
-                                   :target :nodejs
-                                   :optimizations :none
-                                   :closure-defines {goog.DEBUG true}
-                                   :source-map true}}
                        {:id "server"
                         :source-paths ["src"]
                         :compiler {:main "memefactory.server.core"
@@ -140,13 +149,14 @@
                                    :closure-defines {goog.DEBUG false}
                                    :pretty-print false
                                    :pseudo-names false}}
-                       {:id "smart-contracts-tests"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared" "test"]
-                        :figwheel true
+                       {:id "server-tests"
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
+                        :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
                         :compiler {:main "memefactory.tests.runner"
-                                   :output-to "smart-contracts-tests/smart-contracts-tests.js",
-                                   :output-dir "smart-contracts-tests",
+                                   :output-to "memefactory-tests/memefactory-server-tests.js",
+                                   :output-dir "memefactory-tests",
                                    :target :nodejs,
                                    :optimizations :none,
                                    :verbose false
+                                   ;;:closure-defines {goog.DEBUG true}
                                    :source-map true}}]})

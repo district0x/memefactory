@@ -19,12 +19,17 @@
     [memefactory.server.deployer]
     [memefactory.server.emailer]
     [memefactory.server.generator]
-    [memefactory.server.graphql-resolvers :refer [graphql-resolvers]]
+    [memefactory.server.graphql-resolvers :refer [resolvers-map]]
     [memefactory.server.syncer]
+    [district.graphql-utils :as graphql-utils]
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
     [memefactory.shared.smart-contracts]
     [mount.core :as mount]
-    [print.foo :include-macros true]))
+    [district.server.graphql.utils :as utils]
+    [print.foo :include-macros true]
+    [clojure.pprint :refer [print-table]]
+    [district.server.db :as db]
+    [clojure.string :as str]))
 
 (nodejs/enable-util-print!)
 
@@ -33,7 +38,11 @@
 (def visit (aget graphql-module "visit"))
 
 (defn on-jsload []
-  (graphql/restart {:root-value graphql-resolvers :schema graphql-schema}))
+  (graphql/restart {:schema (utils/build-schema graphql-schema
+                                                resolvers-map
+                                                {:kw->gql-name graphql-utils/kw->gql-name
+                                                 :gql-name->kw graphql-utils/gql-name->kw})
+                    :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
 
 
 (defn deploy-to-mainnet []
@@ -59,11 +68,11 @@
 
 
 (defn resync []
-  (mount.core/stop #'memefactory.server.db/memefactory-db
+  (mount/stop #'memefactory.server.db/memefactory-db
+              #'memefactory.server.syncer/syncer)
+  (-> (mount/start #'memefactory.server.db/memefactory-db
                    #'memefactory.server.syncer/syncer)
-  (-> (mount.core/start #'memefactory.server.db/memefactory-db
-                        #'memefactory.server.syncer/syncer)
-    pprint/pprint))
+      pprint/pprint))
 
 
 (defn -main [& _]
@@ -72,8 +81,11 @@
                                       :console? true}
                             :graphql {:port 6300
                                       :middlewares [logging-middlewares]
-                                      :schema graphql-schema
-                                      :root-value graphql-resolvers
+                                      :schema (utils/build-schema graphql-schema
+                                                                  resolvers-map
+                                                                  {:kw->gql-name graphql-utils/kw->gql-name
+                                                                   :gql-name->kw graphql-utils/gql-name->kw})
+                                      :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
                                       :graphiql true}
                             :web3 {:port 8549}
@@ -109,10 +121,27 @@
 
 (set! *main-cli-fn* -main)
 
+(defn select
+  "Usage: (select [:*] :from [:memes])"
+  [& [select-fields & r]]
+  (-> (db/all (->> (partition 2 r)
+                   (map vec)
+                   (into {:select select-fields})))
+      (print-table)))
+
+(defn print-db
+  "Prints all db tables to the repl"
+  []
+  (let [all-tables (->> (db/all {:select [:name] :from [:sqlite-master] :where [:= :type "table"]})
+                        (map :name))]
+    (doseq [t all-tables]
+      (println "#######" (str/upper-case t) "#######")
+      (select [:*] :from [(keyword t)])
+      (println "\n\n"))))
+
+
 (comment
+  (print-table [{:meme-auction/address 1 :meme-auction/bought-on "hola"}])
   (graphql/run-query {:queries [[:search-memes
                                  {:a 1}
                                  [[:items [:meme/title]]]]]}))
-
-
-
