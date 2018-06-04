@@ -128,9 +128,12 @@
   (try
     (let [[_ price] data
           price (bn/number price)
-          reg-entry-address (:reg-entry/address (meme-auction/load-meme-auction meme-auction))]
+          {reg-entry-address :reg-entry/address
+           auction-address :meme-auction/address} (meme-auction/load-meme-auction meme-auction)]
       (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
-                                        :amount price}))
+                                        :amount price})
+      (db/update-meme-auction! {:meme-auction/address auction-address
+                                :meme-auction/bought-for price}))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-auction-buy))))
 

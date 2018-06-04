@@ -31,6 +31,7 @@
    [:challenge/voting-token address default-nil]
    [:challenge/reward-pool :unsigned :BIG :INT default-nil]
    [:challenge/meta-hash ipfs-hash default-nil]
+   [:challenge/comment :varchar default-nil]
    [:challenge/commit-period-end :unsigned :integer default-nil]
    [:challenge/reveal-period-end :unsigned :integer default-nil]
    [:challenge/votes-for :BIG :INT default-nil]
@@ -64,15 +65,14 @@
    [(sql/call :primary-key :meme-token/token-id)]])
 
 (def tags-columns
-  [[:tag/id :unsigned :integer primary-key not-nil]
-   [:tag/name :varchar :unique not-nil]])
+  [[:tag/name :varchar primary-key not-nil]])
 
 (def meme-tags-columns
   [[:reg-entry/address address not-nil]
-   [:tag/id :varchar not-nil]
-   [(sql/call :primary-key :reg-entry/address :tag/id)]
+   [:tag/name :varchar not-nil]
+   [(sql/call :primary-key :reg-entry/address :tag/name)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]
-   [(sql/call :foreign-key :tag/id) (sql/call :references :tags :tag/id)]])
+   [(sql/call :foreign-key :tag/name) (sql/call :references :tags :tag/name)]])
 
 (def meme-auctions-columns
   [[:meme-auction/address address not-nil]
@@ -84,13 +84,18 @@
    [:meme-auction/started-on :unsigned :integer default-nil]
    [:meme-auction/duration :unsigned :integer default-nil]
    [:meme-auction/bought-on :unsigned :integer default-nil]
+   [:meme-auction/canceled-on :unsigned :integer default-nil]
+   [:meme-auction/bought-for :BIG :INT default-nil]
    [(sql/call :primary-key :meme-auction/address)]])
 
 (def param-changes-columns
-  [[:param-change/db address not-nil]
+  [[:reg-entry/address address not-nil]
+   [:param-change/db address not-nil]
    [:param-change/key :varchar not-nil]
    [:param-change/value :unsigned :integer not-nil]
-   [:param-change/applied-on :unsigned :integer default-nil]])
+   [:param-change/applied-on :unsigned :integer default-nil]
+   [(sql/call :primary-key :reg-entry/address)]
+   [[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]])
 
 (def votes-columns
   [[:reg-entry/address address not-nil]
@@ -117,10 +122,11 @@
 (def meme-tokens-column-names (filter keyword? (map first meme-tokens-columns)))
 (def meme-token-owners-column-names (map first meme-token-owners-columns))
 (def meme-tags-column-names (map first meme-tags-columns))
-(def meme-auctions-column-names (map first meme-auctions-columns))
-(def param-change-column-names (map first param-changes-columns))
+(def meme-auctions-column-names (filter keyword? (map first meme-auctions-columns)))
+(def param-change-column-names (filter keyword? (map first param-changes-columns)))
 (def votes-column-names (map first votes-columns))
 (def tags-column-names (map first tags-columns))
+(def user-column-names (filter keyword? (map first user-columns)))
 
 (defn- index-name [col-name]
   (keyword (namespace col-name) (str (name col-name) "-index")))
@@ -211,6 +217,7 @@
 (def update-meme! (create-update-fn :memes meme-column-names :reg-entry/address))
 
 (def insert-meme-auction! (create-insert-fn :meme-auctions meme-auctions-column-names))
+(def update-meme-auction! (create-update-fn :meme-auctions meme-auctions-column-names :meme-auction/address))
 
 (def insert-param-change! (create-insert-fn :param-changes param-change-column-names))
 (def update-param-change! (create-update-fn :param-changes param-change-column-names :reg-entry/address))
@@ -258,6 +265,20 @@
                          :from [:users]
                          :where [:= :user/address user-address]}))))
 
+(defn tag-exists? [name]
+  (boolean (seq (db/get {:select [1]
+                         :from [:tags]
+                         :where [:= :tag/name name]}))))
+
+(defn tag-meme! [reg-entry-address tag-name]
+  (when-not (tag-exists? tag-name)
+    (db/run! {:insert-into :tags
+              :columns [:tag/name]
+              :values [[tag-name]]}))
+
+  (db/run! {:insert-into :meme-tags
+            :columns [:reg-entry/address :tag/name]
+            :values [[reg-entry-address tag-name]]}))
 
 (defn update-user! [{:keys [:user/address] :as params}]
   (when-not (user-exists? address)
