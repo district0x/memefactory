@@ -7,10 +7,10 @@
     [cljs.test :refer-macros [deftest is testing run-tests use-fixtures async]]
     [district.server.web3 :refer [web3]]
     [memefactory.shared.smart-contracts :refer [smart-contracts]]
-    [district.server.smart-contracts]
+    [district.server.smart-contracts :refer [instance]]
     [memefactory.server.deployer]
-    [mount.core :as mount]))
-
+    [mount.core :as mount]
+    [cljs.core.async :as async :refer-macros [go]]))
 
 (defn now []
   (from-long (* (:timestamp (web3-eth/get-block @web3 (web3-eth/block-number @web3))) 1000)))
@@ -51,3 +51,14 @@
 (defn after-fixture []
   (mount/stop)
   (async done (js/setTimeout #(done) 1000)))
+
+
+(defn watch-contract-events [contract-key]
+  (let [ch (async/chan)
+        f (-> (apply instance contract-key) 
+              (.allEvents))]
+    (.watch f (fn [error result]
+                (when-not error
+                  (async/put! ch (js->clj result :keywordize-keys true)))))
+    {:web3-filter f
+     :event-ch ch}))
