@@ -73,11 +73,12 @@ UI part of MF is written in ClojurScript, using these most notable technologies:
 ### Styling
 Try keeping classes at bay by using noun-like definitions:
 ```
-[:div.ui.card.meme.active]
+[:div.meme-card]
+[:div.nav-link.active]
 ```
-Here we have 'div.ui.card' or '[ui/Card]' in soda-ash notation, as a framwork-extended control, followed by 'meme' as a single "type" identificator, with optional status class. This should prevent styling concerns leaking into the code.
+Here we have 'div.meme-card' as a single "type" identificator, with optional status class. A necessary and sufficient to be identified in CSS. This should prevent styling concerns leaking into the code and avoiding "clash of classes" in responsive design.
 
-Example of adjective-like classes to avoid
+Example of adjective-like classes to avoid:
 
 ```clojurescript
 [:div.meme.padded.small.elevated]
