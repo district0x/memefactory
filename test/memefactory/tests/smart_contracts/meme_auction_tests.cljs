@@ -128,8 +128,7 @@
                                                                   :duration max-auction-duration})
         auction-address (-> (meme-auction-factory/meme-auction-event-in-tx transfer-tx)
                             :args :meme-auction)
-        auction (meme-auction/load-meme-auction auction-address)
-        {:keys [web3-filter event-ch]} (test-utils/watch-contract-events [:meme-auction-factory :meme-auction-factory-fwd])]
+        auction (meme-auction/load-meme-auction auction-address)]  
 
     (testing "Meme cannot be bought if not enough funds is sent"
       (is (thrown? js/Error
