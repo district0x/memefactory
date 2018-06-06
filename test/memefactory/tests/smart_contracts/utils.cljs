@@ -51,14 +51,3 @@
 (defn after-fixture []
   (mount/stop)
   (async done (js/setTimeout #(done) 1000)))
-
-
-(defn watch-contract-events [contract-key]
-  (let [ch (async/chan)
-        f (-> (apply instance contract-key) 
-              (.allEvents))]
-    (.watch f (fn [error result]
-                (when-not error
-                  (async/put! ch (js->clj result :keywordize-keys true)))))
-    {:web3-filter f
-     :event-ch ch}))

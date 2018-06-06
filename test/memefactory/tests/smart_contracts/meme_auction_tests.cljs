@@ -4,7 +4,7 @@
             [cljs-web3.eth :as web3-eth]
             [cljs-web3.evm :as web3-evm]
             [cljs.test :refer-macros [deftest is testing use-fixtures async]]
-            [district.server.smart-contracts :refer [contract-call]]
+            [district.server.smart-contracts :refer [contract-call contract-event-in-tx]]
             [district.server.web3 :refer [web3]]
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.meme :as meme]
@@ -135,35 +135,31 @@
       (is (thrown? js/Error
                    (meme-auction/buy auction-address {:from buyer-addr :value (web3/to-wei 0.0001 :ether)}))))
 
-    (async done
-           (go
-            (let [cut-collector-init-balance (web3-eth/get-balance @web3 cut-collector-addr)
-                  creator-init-balance (web3-eth/get-balance @web3 creator-addr)
-                  buyer-init-balance (web3-eth/get-balance @web3 buyer-addr)
-                  buy-tx (meme-auction/buy auction-address {:from buyer-addr :value (web3/to-wei 0.2 :ether)})
-                  [_ current-price _ _] (-> (async/<! event-ch)
-                                            :args
-                                            :data)
-                  buy-gas (:gas-used (web3-eth/get-transaction-receipt @web3 buy-tx))]
-              
-              (testing "Buys token collectible under valid conditions"
-                (is buy-tx)) 
+    (let [cut-collector-init-balance (web3-eth/get-balance @web3 cut-collector-addr)
+          creator-init-balance (web3-eth/get-balance @web3 creator-addr)
+          buyer-init-balance (web3-eth/get-balance @web3 buyer-addr)
+          buy-tx (meme-auction/buy auction-address {:from buyer-addr :value (web3/to-wei 0.2 :ether)})
+          [_ current-price _ _] (-> (meme-auction-factory/meme-auction-event-in-tx buy-tx)
+                                    :args :data)
+          buy-gas (:gas-used (web3-eth/get-transaction-receipt @web3 buy-tx))]
+      
+      (testing "Buys token collectible under valid conditions"
+        (is buy-tx)) 
 
-              (testing "Check properties after buying"
-                (let [auctioneer-cut (bn/div-to-int (bn/+ current-price meme-auction-cut) 10000)
-                      collector-expected-balance (bn/+ cut-collector-init-balance auctioneer-cut)
-                      creator-expected-balance (bn/+ creator-init-balance (bn/- current-price auctioneer-cut))
-                      buyer-expected-balance (bn/- buyer-init-balance (bn/+ current-price buy-gas))
-                      collector-balance-after (web3-eth/get-balance @web3 cut-collector-addr)
-                      creator-balance-after (web3-eth/get-balance @web3 creator-addr)
-                      buyer-balance-after (web3-eth/get-balance @web3 buyer-addr)]
+      (testing "Check properties after buying"
+        (let [auctioneer-cut (bn/div-to-int (bn/+ current-price meme-auction-cut) 10000)
+              collector-expected-balance (bn/+ cut-collector-init-balance auctioneer-cut)
+              creator-expected-balance (bn/+ creator-init-balance (bn/- current-price auctioneer-cut))
+              buyer-expected-balance (bn/- buyer-init-balance (bn/+ current-price buy-gas))
+              collector-balance-after (web3-eth/get-balance @web3 cut-collector-addr)
+              creator-balance-after (web3-eth/get-balance @web3 creator-addr)
+              buyer-balance-after (web3-eth/get-balance @web3 buyer-addr)]
           
-                  (is (= (meme-token/owner-of (:meme/token-id-start meme))
-                         buyer-addr))
-                  (is (= 0 (bn/number (bn/- collector-balance-after collector-expected-balance))))
-                  (is (= 0 (bn/number (bn/- creator-balance-after creator-expected-balance))))
-                  (is (= 0 (bn/number (bn/- buyer-balance-after buyer-expected-balance)))))))
-            (done))))) 
+          (is (= (meme-token/owner-of (:meme/token-id-start meme))
+                 buyer-addr))
+          (is (= 0 (bn/number (bn/- collector-balance-after collector-expected-balance))))
+          (is (= 0 (bn/number (bn/- creator-balance-after creator-expected-balance))))
+          (is (= 0 (bn/number (bn/- buyer-balance-after buyer-expected-balance))))))))) 
 
 (deftest meme-auction-cancel-test
   ;; deployer uses first account as cut collector if no account given
