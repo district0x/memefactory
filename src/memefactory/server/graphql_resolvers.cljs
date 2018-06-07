@@ -156,7 +156,7 @@
    :case
    [:not= :ma.meme-auction/canceled-on nil]                                       (enum :meme-auction.status/canceled)
    [:and
-    [:< (sql/raw "ma.memeAuction_startedOn + ma.memeAuction_duration") now]
+    [:< [:+ :ma.meme-auction/started-on :ma.meme-auction/duration] now]
     [:= :ma.meme-auction/bought-on nil]]                                          (enum :meme-auction.status/active)
    :else                                                                          (enum :meme-auction.status/done)))
 
@@ -181,9 +181,11 @@
                  seller        (sqlh/merge-where [:= :ma.meme-auction/seller seller])
                  tags          (sqlh/merge-where [:=
                                                   (count tags)
-                                                  ;; This hack is because honeysql behaves weirdly with subquerys (or I don't understand how)
-                                                  (let [tags-str (str/join "," (map #(str "'" % "'") tags))]
-                                                    (sql/raw (str "(SELECT count(*) FROM meme_tags mtts WHERE (mtts.reg_entry_SLASH_address = m.reg_entry_SLASH_address AND (mtts.tag_SLASH_name in (" tags-str "))))")))])
+                                                  {:select [(sql/call :count :*)]
+                                                   :from [[:meme-tags :mtts]]
+                                                   :where [:and
+                                                                     [:= :mtts.reg-entry/address :m.reg-entry/address]
+                                                                     [:in :mtts.tag/name tags]]}])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/price      :ma.meme-auction/bought-for
@@ -257,7 +259,7 @@
          query (paged-query {:select (remove nil?
                                              [:*
                                               (when (select? :user/curator-total-earned)
-                                                [(sql/raw "(users.user_SLASH_voter_total_earned + users.user_SLASH_challenger_total_earned)") :user/curator-total-earned])
+                                                [[:+ :users.user/voter-total-earned :users.user/challenger-total-earned] :user/curator-total-earned])
                                               (when (select? :user/total-participated-votes-success)
                                                 [{:select [:%count.*]
                                                   :from [:votes]
@@ -285,7 +287,7 @@
                                                   :where [:= :reg-entries.challenge/challenger :users.user/address]}
                                                  :user/total-created-challenges])
                                               (when (select? :user/total-collected-memes)
-                                                [{:select [(sql/raw "count(distinct meme_tokens.reg_entry_SLASH_address)")]
+                                                [{:select [(sql/call :count-distinct :meme-tokens.reg-entry/address)]
                                                   :from [:meme-token-owners]
                                                   :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-token-owners.meme-token/token-id]]
                                                   :where [:= :meme-token-owners.meme-token/owner :users.user/address]}
@@ -543,7 +545,7 @@
                             :from [:meme-auctions]
                             :join [:reg-entries [:= address :reg-entries.reg-entry/creator]
                                    :memes [:= :memes.reg-entry/address :reg-entries.reg-entry/address]]
-                            :where [:and [:= {:select [(sql/raw "max(meme_auctions.meme_auction_SLASH_end_price)")]
+                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/end-price)]
                                               :from [:meme-auctions]}
                                           :meme-auctions.meme-auction/end-price]
                                     [:= address :meme-auction/seller]]})]
@@ -555,7 +557,7 @@
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:meme-auctions]
-                            :where [:and [:= {:select [(sql/raw "max(meme_auctions.meme_auction_SLASH_end_price)")]
+                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/end-price)]
                                               :from [:meme-auctions]}
                                           :meme-auctions.meme-auction/end-price]
                                     [:= address :meme-auction/seller]]})]
@@ -583,8 +585,8 @@
   (try-catch-throw
    (if total-collected-memes
      total-collected-memes
-     (let [sql-query (when address
-                       (db/get {:select [[(sql/raw "count(distinct meme_tokens.reg_entry_SLASH_address)") :user/total-collected-memes]]
+     (let [sql-query (when address 
+                       (db/get {:select [[(sql/call :count-distinct :meme-tokens.reg-entry/address) :user/total-collected-memes]] 
                                 :from [:meme-token-owners]
                                 :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-token-owners.meme-token/token-id]]
                                 :where [:= address :meme-token-owners.meme-token/owner]}))]
@@ -596,7 +598,7 @@
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:meme-auctions]
-                            :where [:and [:= {:select [(sql/raw "max(meme_auctions.meme_auction_SLASH_end_price)")]
+                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/end-price)]
                                               :from [:meme-auctions]}
                                           :meme-auctions.meme-auction/end-price]
                                     [:= address :meme-auction/buyer]]})
@@ -728,3 +730,4 @@
           :user/total-participated-votes-success user->total-participated-votes-success-resolver
           :user/curator-total-earned user->curator-total-earned-resolver}
    :UserList {:items user-list->items-resolver}})
+
