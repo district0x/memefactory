@@ -5,7 +5,8 @@
     [district.ui.component.router :refer [router]]
     [district.ui.graphql]
     [district.ui.notification]
-    [district.ui.now]
+    [memefactory.ui.subs]
+    #_[district.ui.now]
     [district.ui.reagent-render]
     [district.ui.router-google-analytics]
     [district.ui.router]
@@ -21,7 +22,8 @@
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
     [memefactory.shared.routes :refer [routes]]
     [memefactory.shared.smart-contracts :refer [smart-contracts]]
-    [memefactory.ui.home.page]
+    [memefactory.ui.marketplace.page]
+    [memefactory.ui.marketplace.events]
     [mount.core :as mount]
     [print.foo :include-macros true]))
 

@@ -1,22 +1,56 @@
 (ns memefactory.ui.components.app-layout
-  (:require ;;[soda-ash.core :as ui]
+  (:require 
    [reagent.core :as r]
    [district.ui.component.active-account :refer [active-account]]
    [district.ui.component.active-account-balance :refer [active-account-balance]]
-   [re-frame.core :refer [subscribe dispatch]]))
+   [re-frame.core :refer [subscribe dispatch]]
+   [memefactory.ui.subs :as mf-subs]
+   [memefactory.ui.utils :as mf-utils]))
 
-(def nav-menu-items-props [{:text "Marketplace"
-                            :route :route.marketplace/index
-                            :class :marketplace}
-                           {:text "Dank Registry"
-                            :route :route.dankregistry/index
-                            :class :dankregistry
-                            :children [{:text "Submit"
-                                        :route :route.marketplace/index}
-                                       {:text "Vote"
-                                        :route :route.marketplace/index}]}])
+(def nav-menu-items [{:text "Marketplace"
+                      :route :route.marketplace/index
+                      :class :marketplace}
+                     {:text "Dank Registry"
+                      :route :route.dankregistry/index
+                      :class :dankregistry
+                      :children [{:text "Submit"
+                                  :route :route.dankregistry/submit}
+                                 {:text "Vote"
+                                  :route :route.dankregistry/vote}
+                                 {:text "Challenge"
+                                  :route :route.dankregistry/challenge}
+                                 {:text "Browse"
+                                  :route :route.dankregistry/browse}]}
+                     {:text "Leaderboard"
+                      :route :route.leaderboard/index
+                      :class :leaderboard
+                      :children [{:text "Dankest Memes"
+                                  :route :route.leaderboard/dankests}
+                                 {:text "Creators"
+                                  :route :route.leaderboard/creators}
+                                 {:text "Collectors"
+                                  :route :route.leaderboard/collectors}
+                                 {:text "Curators"
+                                  :route :route.leaderboard/curators}]}
+                     {:text "My Memefolio"
+                      :route :route.my-meme-folio/index
+                      :class :my-meme-folio}
+                     {:text "My Settings"
+                      :route :route.my-settings/index
+                      :class :my-settings}
+                     {:text "How it Works"
+                      :route :route.how-it-works/index
+                      :class :how-it-works}])
 
-(defn app-bar []
+(defn search-form [form-data errors]
+  [:div.ui.form
+   [:div.field
+    [:label "Keyword:"]
+    #_[text-input {:form-data form-data
+                 :errors errors
+                 :id :term}]]])
+
+(defn app-bar [{:keys [search-atom]}]
   (let [open? (r/atom nil);;(subscribe [:district0x.transaction-log/open?])
         my-addresses (r/atom nil);;(subscribe [:district0x/my-addresses])
         ]
@@ -29,8 +63,7 @@
                       (dispatch [:district0x.menu-drawer/set true])
                       (.stopPropagation e))}]]
        [:div.middle-section
-        ;; [app-bar-search]
-        ]
+        #_[search-form search-atom]]
        [:div.right-section
         {:on-click (fn []
                      (if (empty? @my-addresses)
@@ -51,11 +84,6 @@
              :min-fraction-digits 2}]])
         [:i.icon.transactions]]])))
 
-;;stubs
-
-(defn path-for [path]
-  (str path))
-
 (defn current-page? [a b]
   (= a b))
 
@@ -68,37 +96,34 @@
      :target :_blank}
     "district0x Network"]])
 
-(defn app-menu [props active-page]
-  [:div.node
-   (doall
-    (for [{:keys [:text :route :href :class :children]} props]
-      (let [href (or href (path-for route))]
-        [:div.node-content
-         [:div.item
-          {:class (concat [class] (when (current-page? active-page href)))}
-          [:a {:href href} text]]
-         (when children
-           [app-menu children active-page])])))])
+(defn app-menu
+  ([items active-page] (app-menu items active-page 0))
+  ([items active-page depth]
+   ^{:key (str depth)} 
+   [:ol.node 
+    (doall
+     (map-indexed (fn [idx {:keys [:text :route :href :class :children]}]
+                    (let [href (or href (mf-utils/path route))]
+                      ^{:key (str depth "-" idx)}
+                      [:li.node-content 
+                       [:div.item
+                        {:class (concat [class] (when (current-page? active-page href)))}
+                        [:a {:href href} text]]
+                       (when children
+                         [app-menu children active-page (inc depth)])]))
+                  items))]))
 
 (defn app-layout []
-  (let [active-page (r/atom nil);;(subscribe [:district0x/active-page])
-        drawer-open? (r/atom true);;(subscribe [:district0x/menu-drawer-open?])
-        ]
-    (fn [{:keys [:meta]} & children]
+  (let [active-page (subscribe [::mf-subs/active-page])
+        drawer-open? (subscribe [::mf-subs/menu-drawer-open?])]
+    (fn [{:keys [:meta :search-atom]} & children]
       [:div.app-container
-       #_{:ref (fn [el]
-               (when (and el (not @app-container-ref))
-                 (reset! app-container-ref el)))}
-       ;;[meta-tags meta]
        [:div.app-menu
         {:class (when-not @drawer-open? "closed")}
         [:div.menu-content
-         ;; [side-nav-menu-logo]
-         [app-menu nav-menu-items-props @active-page]
+         [app-menu nav-menu-items @active-page]
          [district0x-banner]]]
        [:div.app-content
-        [app-bar]
+        [app-bar {:search-atom search-atom}]
         [:div.main-content
-         children]]
-       ;; [snackbar]
-       ])))
+         children]]])))

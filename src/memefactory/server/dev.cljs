@@ -1,35 +1,35 @@
 (ns memefactory.server.dev
   (:require
-    [camel-snake-kebab.core :as cs :include-macros true]
-    [cljs-time.core :as t]
-    [cljs-web3.core :as web3]
-    [cljs.nodejs :as nodejs]
-    [cljs.pprint :as pprint]
-    [district.server.config :refer [config]]
-    [district.server.db :refer [db]]
-    [district.server.graphql :as graphql]
-    [district.server.logging :refer [logging]]
-    [district.server.middleware.logging :refer [logging-middlewares]]
-    [district.server.smart-contracts]
-    [district.server.web3 :refer [web3]]
-    [district.server.web3-watcher]
-    [goog.date.Date]
-    [graphql-query.core :refer [graphql-query]]
-    [memefactory.server.db]
-    [memefactory.server.deployer]
-    [memefactory.server.emailer]
-    [memefactory.server.generator]
-    [memefactory.server.graphql-resolvers :refer [resolvers-map]]
-    [memefactory.server.syncer]
-    [district.graphql-utils :as graphql-utils]
-    [memefactory.shared.graphql-schema :refer [graphql-schema]]
-    [memefactory.shared.smart-contracts]
-    [mount.core :as mount]
-    [district.server.graphql.utils :as utils]
-    [print.foo :include-macros true]
-    [clojure.pprint :refer [print-table]]
-    [district.server.db :as db]
-    [clojure.string :as str]))
+   [camel-snake-kebab.core :as cs :include-macros true]
+   [cljs-time.core :as t]
+   [cljs-web3.core :as web3]
+   [cljs.nodejs :as nodejs]
+   [cljs.pprint :as pprint]
+   [district.server.config :refer [config]]
+   [district.server.db :refer [db]]
+   [district.server.graphql :as graphql]
+   [district.server.logging :refer [logging]]
+   [district.server.middleware.logging :refer [logging-middlewares]]
+   [district.server.smart-contracts]
+   [district.server.web3 :refer [web3]]
+   [district.server.web3-watcher]
+   [goog.date.Date]
+   [graphql-query.core :refer [graphql-query]]
+   [memefactory.server.db]
+   [memefactory.server.deployer]
+   [memefactory.server.emailer]
+   [memefactory.server.generator]
+   [memefactory.server.graphql-resolvers :refer [resolvers-map]]
+   [memefactory.server.syncer]
+   [district.graphql-utils :as graphql-utils]
+   [memefactory.shared.graphql-schema :refer [graphql-schema]]
+   [memefactory.shared.smart-contracts]
+   [mount.core :as mount]
+   [district.server.graphql.utils :as utils]
+   [print.foo :include-macros true]
+   [clojure.pprint :refer [print-table]]
+   [district.server.db :as db]
+   [clojure.string :as str]))
 
 (nodejs/enable-util-print!)
 
@@ -37,13 +37,12 @@
 (def parse-graphql (aget graphql-module "parse"))
 (def visit (aget graphql-module "visit"))
 
-(defn on-jsload []
+(defn on-jsload [] 
   (graphql/restart {:schema (utils/build-schema graphql-schema
                                                 resolvers-map
                                                 {:kw->gql-name graphql-utils/kw->gql-name
                                                  :gql-name->kw graphql-utils/gql-name->kw})
                     :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
-
 
 (defn deploy-to-mainnet []
   (mount/stop #'district.server.web3/web3
@@ -65,7 +64,6 @@
           {:deployer {:write? true}}))
     (mount/start)
     pprint/pprint))
-
 
 (defn resync []
   (mount/stop #'memefactory.server.db/memefactory-db
@@ -138,10 +136,3 @@
       (println "#######" (str/upper-case t) "#######")
       (select [:*] :from [(keyword t)])
       (println "\n\n"))))
-
-
-(comment
-  (print-table [{:meme-auction/address 1 :meme-auction/bought-on "hola"}])
-  (graphql/run-query {:queries [[:search-memes
-                                 {:a 1}
-                                 [[:items [:meme/title]]]]]}))

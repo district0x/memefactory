@@ -120,7 +120,7 @@
                                 :pretty-print? false}}]}
 
   :cljsbuild {:builds [{:id "dev-server"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
                         :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
                         :compiler {:main "memefactory.server.dev"
                                    :output-to "dev-server/memefactory.js"
