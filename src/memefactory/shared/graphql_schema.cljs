@@ -239,6 +239,7 @@
     memeAuction_boughtOn: Date
     memeAuction_status: MemeAuctionStatus
     memeAuction_memeToken: MemeToken
+    memeAuction_description: String
   }
 
   type MemeAuctionList {

@@ -92,6 +92,7 @@
                                          :meme-auction/token-id token-id
                                          :meme-auction/seller seller
                                          :meme-auction/start-price 100
+                                         :meme-auction/description (str "Auction " idx " long description.")
                                          :meme-auction/end-price 50
                                          :meme-auction/started-on now
                                          :meme-auction/duration duration}

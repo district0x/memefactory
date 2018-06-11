@@ -9,7 +9,8 @@
                              :meme-auction/end-price
                              :meme-auction/duration
                              :meme-auction/started-on
-                             :reg-entry/address])
+                             :reg-entry/address
+                             :meme-auction/description])
 
 (defn parse-load-meme-auction [contract-addr meme & [{:keys [:parse-dates?]}]]
   (when meme

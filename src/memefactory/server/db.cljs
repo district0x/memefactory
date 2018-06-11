@@ -86,6 +86,7 @@
    [:meme-auction/bought-on :unsigned :integer default-nil]
    [:meme-auction/canceled-on :unsigned :integer default-nil]
    [:meme-auction/bought-for :BIG :INT default-nil]
+   [:meme-auction/description :varchar default-nil]
    [(sql/call :primary-key :meme-auction/address)]])
 
 (def param-changes-columns

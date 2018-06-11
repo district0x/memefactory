@@ -22,6 +22,7 @@ contract MemeAuction is ERC721Receiver {
   uint public endPrice;
   uint public duration;
   uint public startedOn;
+  string public description;
 
   modifier notEmergency() {
     require(!registry.isEmergency());
@@ -37,7 +38,7 @@ contract MemeAuction is ERC721Receiver {
     tokenId = _tokenId;
   }
 
-  function startAuction(uint _startPrice, uint _endPrice, uint _duration)
+  function startAuction(uint _startPrice, uint _endPrice, uint _duration, string _description)
   notEmergency
   {
     require(memeToken.ownerOf(tokenId) == address(this));
@@ -47,6 +48,7 @@ contract MemeAuction is ERC721Receiver {
 //    // at least one minute. (Keeps our math from getting hairy!)
     require(_duration >= 1 minutes);
     startPrice = _startPrice;
+    description = _description;
     endPrice = _endPrice;
     duration = _duration;
     startedOn = now;
@@ -186,7 +188,7 @@ contract MemeAuction is ERC721Receiver {
   /**
    * @dev Returns all state related to this contract for simpler offchain access
    */
-  function loadMemeAuction() public constant returns (address, uint, uint, uint, uint, uint, address) {
+  function loadMemeAuction() public constant returns (address, uint, uint, uint, uint, uint, address, string) {
     return (
     seller,
     tokenId,
@@ -194,7 +196,8 @@ contract MemeAuction is ERC721Receiver {
     endPrice,
     duration,
     startedOn,
-    memeToken.tokenURI(tokenId)
+    memeToken.tokenURI(tokenId),
+    description
     );
   }
 
