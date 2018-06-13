@@ -17,6 +17,7 @@
             [memefactory.server.contract.meme-token :as meme-token]
             [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
             [memefactory.tests.smart-contracts.utils :as test-utils]
+            [memefactory.shared.utils :as utils]
             [print.foo :refer [look] :include-macros true]
             [cljs.core.async :as async :refer-macros [go]]))
 
@@ -43,19 +44,21 @@
         _ (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
         _ (meme/mint registry-entry max-total-supply {})
         meme (meme/load-meme registry-entry)
+        start-price (web3/to-wei 0.1 :ether)
+        end-price (web3/to-wei 0.01 :ether)
         tx (meme-token/transfer-multi-and-start-auction {:from creator-addr
                                                          :token-ids (range (:meme/token-id-start meme)
                                                                            (+
                                                                             (:meme/token-id-start meme)
                                                                             (:meme/total-minted meme)))
-                                                         :start-price (web3/to-wei 0.1 :ether)
-                                                         :end-price (web3/to-wei 0.01 :ether)
+                                                         :start-price start-price
+                                                         :end-price end-price
                                                          :duration max-auction-duration})]
     (testing "Creates MemeAuction under valid conditions"
       (is tx))
 
     (testing "Check properties after creating MemeAuction"
-      (let [{:keys [:meme-auction] :as x} (:args (meme-auction-factory/meme-auction-event-in-tx tx))
+      (let [{:keys [:meme-auction :timestamp]} (:args (meme-auction-factory/meme-auction-event-in-tx tx))
             ;; the auction started by the first event in transaction
             auction (meme-auction/load-meme-auction meme-auction)]
         (is (= (:meme-auction/seller auction) creator-addr)) 
@@ -65,21 +68,28 @@
         (is (= (:meme-auction/duration auction) max-auction-duration))
         
         (testing "Correctly calculates reverse auction price"
-          (let [current-price (bn/number (meme-auction/current-price meme-auction))]
-            (is (or (= current-price 99850000000000000 ) ;; if one second passed
-                    (= current-price 99700000000000000 )) ;; if two seconds passed
-                ))))
+          (let [now (:timestamp (web3-eth/get-block @web3 (web3-eth/block-number @web3)))
+                current-price (bn/number (meme-auction/current-price meme-auction))
+                prices (->> (range now (+ now 4))
+                            (map (fn [t] (utils/calculate-meme-auction-price #:meme-auction{:started-on (bn/number timestamp)
+                                                                                            :starting-price (js/parseInt start-price)
+                                                                                            :end-price (js/parseInt end-price) 
+                                                                                            :duration max-auction-duration}
+                                                                             t)))
+                            (into #{}))]
+            ;; current-price should be at least in the 4 seconds range 
+            (is (contains? (look prices) (look current-price))))))
       
       (testing "onERC721Received fails when called directly, without transferring tokenId"
         (is
          (thrown? js/Error
-          (contract-call [:meme-auction-factory :meme-auction-factory-fwd] :on-E-R-C-721-received
-                         creator-addr
-                         (:meme/token-id-start meme)
-                         (meme-auction/start-auction-data {:start-price (web3/to-wei 0.1 :ether)
-                                                           :end-price (web3/to-wei 0.01 :ether)
-                                                           :duration max-auction-duration})      
-                         {:from (last (web3-eth/accounts @web3))})))))
+                  (contract-call [:meme-auction-factory :meme-auction-factory-fwd] :on-E-R-C-721-received
+                                 creator-addr
+                                 (:meme/token-id-start meme)
+                                 (meme-auction/start-auction-data {:start-price (web3/to-wei 0.1 :ether)
+                                                                   :end-price (web3/to-wei 0.01 :ether)
+                                                                   :duration max-auction-duration})      
+                                 {:from (last (web3-eth/accounts @web3))})))))
     
     (testing "Fails when passed duration is bigger than :max-duration TCR parameter or shorter than 1 minute"
       (let [transfer-data {:from creator-addr
