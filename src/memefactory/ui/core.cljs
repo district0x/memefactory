@@ -22,6 +22,7 @@
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
     [memefactory.shared.routes :refer [routes]]
     [memefactory.shared.smart-contracts :refer [smart-contracts]]
+    [memefactory.ui.home.page]
     [memefactory.ui.marketplace.page]
     [memefactory.ui.marketplace.events]
     [mount.core :as mount]
