@@ -153,10 +153,6 @@
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
                         :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
                         :compiler {:main "memefactory.tests.runner"
-                                   :output-to "memefactory-tests/memefactory-server-tests.js",
-                                   :output-dir "memefactory-tests",
-                                   :target :nodejs,
-                                   :optimizations :none,
-                                   :verbose false
-                                   ;;:closure-defines {goog.DEBUG true}
-                                   :source-map true}}]})
+                                   :output-to "memefactory-tests/memefactory-server-tests.js"
+                                   :target :nodejs
+                                   :optimizations :none}}]})
