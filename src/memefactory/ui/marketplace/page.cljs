@@ -13,32 +13,44 @@
 (def react-infinite (r/adapt-react-class js/Infinite))
  
 (defn marketplace-tiles [search-term]
-  (let [auctions-search (subscribe [::gql/query {:queries [[:search-meme-auctions
-                                                            #_{:first :after :title search-term}
-                                                            [:total-count
-                                                             :end-cursor
-                                                             :has-next-page
-                                                             [:items [:meme-auction/address
-                                                                      :meme-auction/start-price
-                                                                      :meme-auction/end-price
-                                                                      :meme-auction/duration
-                                                                      :meme-auction/description
-                                                                      [:meme-auction/seller [:user/address]]
-                                                                      [:meme-auction/meme-token
-                                                                       [:meme-token/number
-                                                                        [:meme-token/meme
-                                                                         [:meme/title
-                                                                          :meme/image-hash
-                                                                          :meme/total-minted]]]]]]]]]}])]
+  (let [build-query (fn [after]
+                      [:search-meme-auctions
+                       (cond-> {#_:title #_search-term :first 2}
+                         after (assoc :after after))
+                       [:total-count
+                        :end-cursor
+                        :has-next-page
+                        [:items [:meme-auction/address
+                                 :meme-auction/start-price
+                                 :meme-auction/end-price
+                                 :meme-auction/duration
+                                 :meme-auction/description
+                                 [:meme-auction/seller [:user/address]]
+                                 [:meme-auction/meme-token
+                                  [:meme-token/number
+                                   [:meme-token/meme
+                                    [:meme/title
+                                     :meme/image-hash
+                                     :meme/total-minted]]]]]]]])
+        auctions-search (subscribe [::gql/query {:queries [(build-query nil)]}
+                                    {:id :auctions-search}])]
     (fn [search-term]
-      (let [{:keys [:total-count :end-cursor :has-next-page :items]} (:search-meme-auctions @auctions-search)]
+      (let [all-auctions (->> @auctions-search
+                              (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
+        (.log js/console "All auctions" all-auctions)
         [:div.tiles
          [react-infinite {:element-height 280
                           :container-height 300
                           :infinite-load-begin-edge-offset 100
-                          :on-infinite-load (fn [] (.log js/console "Need to load more"))}
+                          :on-infinite-load (fn []
+                                              (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
+                                               (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                               (when has-next-page
+                                                 (dispatch [:district.ui.graphql.events/query
+                                                            {:query {:queries [(build-query end-cursor)]}}
+                                                            {:id :auctions-search}]))))}
           (doall
-           (for [{:keys [:meme-auction/address] :as auc} items]
+           (for [{:keys [:meme-auction/address] :as auc} all-auctions]
              (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
                ^{:key address}
                [tiles/auction-tile {:on-click #()} auc])))]]))))
