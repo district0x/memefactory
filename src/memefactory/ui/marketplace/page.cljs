@@ -11,7 +11,26 @@
    [memefactory.ui.components.tiles :as tiles]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
- 
+
+(defn search-tools []
+  [:div.container
+   [:div.left-section
+    [:div.header
+     [:img]
+     [:h2 "Marketplace"]
+     [:h3 "Lorem ipsum dolor..."]]
+    [:div.body
+     [:input {:type :text}]
+     [:select
+      [:option {:value "Cheapest"} "Cheapest"]]
+     [:ul.tags-list
+      [:li "Some Tag"]
+      [:li "Another Tag"]]
+     [:label "Show only cheapest offering of meme"]
+     [:input {:type :checkbox}]]]
+   [:div.right-section
+    [:img]]])
+
 (defn marketplace-tiles [search-term]
   (let [build-query (fn [after]
                       [:search-meme-auctions
@@ -53,7 +72,7 @@
            (for [{:keys [:meme-auction/address] :as auc} all-auctions]
              (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
                ^{:key address}
-               [tiles/auction-tile {:on-click #()} auc])))]]))))
+               [tiles/auction-tile {:on-buy-click #()} auc])))]]))))
 
 (defmethod page :route.marketplace/index []
   (let [search-atom (r/atom {:term ""})]
@@ -63,8 +82,7 @@
                :description "Description"}
         :search-atom search-atom}
        [:div.marketplace
-        [:img.logo]
-        [:p "Inspired by the work of Simon de la Rouviere and his Curation Markets design, the third district to be deployed to dthe district0x."]
+        [search-tools] 
         [:div.auctions.container
          [:h2.title "New On Marketplace"]
          [:h3.title "Lorem ipsum ..."]
