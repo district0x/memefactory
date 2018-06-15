@@ -1,5 +1,5 @@
 (ns memefactory.ui.components.app-layout
-  (:require 
+  (:require
    [reagent.core :as r]
    [district.ui.component.active-account :refer [active-account]]
    [district.ui.component.active-account-balance :refer [active-account-balance]]
@@ -33,8 +33,8 @@
                                  {:text "Curators"
                                   :route :route.leaderboard/curators}]}
                      {:text "My Memefolio"
-                      :route :route.my-meme-folio/index
-                      :class :my-meme-folio}
+                      :route :route.memefolio/index
+                      :class :memefolio}
                      {:text "My Settings"
                       :route :route.my-settings/index
                       :class :my-settings}
@@ -99,13 +99,13 @@
 (defn app-menu
   ([items active-page] (app-menu items active-page 0))
   ([items active-page depth]
-   ^{:key (str depth)} 
-   [:ol.node 
+   ^{:key (str depth)}
+   [:ol.node
     (doall
      (map-indexed (fn [idx {:keys [:text :route :href :class :children]}]
                     (let [href (or href (mf-utils/path route))]
                       ^{:key (str depth "-" idx)}
-                      [:li.node-content 
+                      [:li.node-content
                        [:div.item
                         {:class (concat [class] (when (current-page? active-page href)))}
                         [:a {:href href} text]]
