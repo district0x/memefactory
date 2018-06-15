@@ -29,6 +29,7 @@
                  [district0x/district-ui-component-active-account "1.0.0"]
                  [district0x/district-ui-component-active-account-balance "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
+                 [district0x/district-ui-component-input "1.0.0"]
                  [district0x/district-ui-graphql "1.0.3"]
                  [district0x/district-ui-logging "1.0.1"]
                  [district0x/district-ui-notification "1.0.1"]

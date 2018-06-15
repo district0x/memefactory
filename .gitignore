@@ -5,6 +5,7 @@ pom.xml
 pom.xml.asc
 *.jar
 *.class
+*.json
 /.lein-*
 /.nrepl-port
 .hgignosxAQZre
@@ -27,3 +28,4 @@ memefactory-tests/
 /browser-tests/
 /src/name_bazaar/server/repl.cljs
 /smart-contracts-tests/
+resources/public/js/
