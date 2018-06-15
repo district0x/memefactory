@@ -11,16 +11,16 @@
                       :route :route.marketplace/index
                       :class :marketplace}
                      {:text "Dank Registry"
-                      :route :route.dankregistry/index
+                      :route :route.dank-registry/index
                       :class :dankregistry
                       :children [{:text "Submit"
-                                  :route :route.dankregistry/submit}
+                                  :route :route.dank-registry/submit}
                                  {:text "Vote"
-                                  :route :route.dankregistry/vote}
+                                  :route :route.dank-registry/vote}
                                  {:text "Challenge"
-                                  :route :route.dankregistry/challenge}
+                                  :route :route.dank-registry/challenge}
                                  {:text "Browse"
-                                  :route :route.dankregistry/browse}]}
+                                  :route :route.dank-registry/browse}]}
                      {:text "Leaderboard"
                       :route :route.leaderboard/index
                       :class :leaderboard

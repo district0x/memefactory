@@ -44,19 +44,26 @@
 
 
 (defn auction-tile [{:keys [:on-buy-click] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]
-  (let [now @(subscribe [:district.ui.now.subs/now])
-        price (shared-utils/calculate-meme-auction-price meme-auction (quot (.getTime now) 1000))]
-    
-    [:div.compact-tile
-     [flippable-tile {:front [auction-front-tile (-> meme-token :meme-token/meme)]
-                      :back [auction-back-tile opts meme-auction]}]
-     [:div.footer
-      [:div.title (-> meme-token :meme-token/meme :meme/title)]
-      [:div.number-minted (str (:meme-token/number meme-token)
-                               "/"
-                               (-> meme-token :meme-token/meme :meme/total-minted))]
-      [:div.price (str price " ETH")]]]))
+  (let [now (subscribe [:district.ui.now.subs/now])]
+    (fn []
+      (let [price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
+        [:div.compact-tile
+        [flippable-tile {:front [auction-front-tile (-> meme-token :meme-token/meme)]
+                         :back [auction-back-tile opts meme-auction]}]
+        [:div.footer
+         [:div.title (-> meme-token :meme-token/meme :meme/title)]
+         [:div.number-minted (str (:meme-token/number meme-token)
+                                  "/"
+                                  (-> meme-token :meme-token/meme :meme/total-minted))]
+         [:div.price (format/format-eth price)]]]))))
 
-(defn meme-front-tile [])
+(defn meme-front-tile [opts {:keys [:meme/image-hash] :as meme}]
+  [:div (str "FRONT " meme)])
 
-(defn meme-back-tile [])
+(defn meme-back-tile [opts {:keys [] :as meme}]
+  [:div (str "BACK " meme)])
+
+(defn meme-tile [opts {:keys [] :as meme}]
+  [:div.compact-tile
+   [flippable-tile {:front [meme-front-tile opts meme]
+                    :back [meme-back-tile opts meme]}]]) 

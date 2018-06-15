@@ -26,6 +26,7 @@
     [memefactory.ui.home.page]
     [memefactory.ui.marketplace.page]
     [memefactory.ui.marketplace.events]
+    [memefactory.ui.dank-registry.page]
     [memefactory.ui.memefolio.page]
     [mount.core :as mount]
     [print.foo :include-macros true]))
