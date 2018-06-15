@@ -40,7 +40,10 @@
                       :class :my-settings}
                      {:text "How it Works"
                       :route :route.how-it-works/index
-                      :class :how-it-works}])
+                      :class :how-it-works}
+                     {:text "About"
+                      :route :route.about/index
+                      :class :about}])
 
 (defn search-form [form-data errors]
   [:div.ui.form
@@ -99,13 +102,13 @@
 (defn app-menu
   ([items active-page] (app-menu items active-page 0))
   ([items active-page depth]
-   ^{:key (str depth)} 
-   [:ol.node 
+   ^{:key (str depth)}
+   [:ul.node
     (doall
      (map-indexed (fn [idx {:keys [:text :route :href :class :children]}]
                     (let [href (or href (mf-utils/path route))]
                       ^{:key (str depth "-" idx)}
-                      [:li.node-content 
+                      [:li.node-content
                        [:div.item
                         {:class (concat [class] (when (current-page? active-page href)))}
                         [:a {:href href} text]]

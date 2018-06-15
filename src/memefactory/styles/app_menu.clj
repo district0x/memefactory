@@ -6,7 +6,7 @@
             [memefactory.styles.base.borders :refer [border-top]]
             [memefactory.styles.base.colors :refer [color]]
             [garden.selectors :as sel]
-            [garden.units :refer [px]]))
+            [garden.units :refer [px em]]))
 
 (def menu-gutter (px 15))
 
@@ -16,27 +16,38 @@
     {:overflow-x :hidden
      :overflow-y :scroll
      :width (px 190)
-     :background (color :violet)}
+     :background (color :white)}
     [(sel/> :.menu-content :.node :.node-content :.item)
      (border-top {:color (color :light-violet)})]
-    [:.node
+    [:ul.node {:padding-right (em 0)}]
+    [:ul.node [:ul.node {:padding-right (em 2)}]]
+    [:ul.node
+     {:list-style :none}
      [:.item
       {:display :flex
        :align-items :center
        :padding-top menu-gutter
        :padding-bottom menu-gutter}
       [:a
-       {:color (color :light-grey)}
+       {:color (color :menu-text-color)}
        [:&:hover
-        {:color (color :white)}]]
+        {:color (color :menu-text-color-hover)}]]
       [:&:before
-       {:font-family "Icons"
-        :display :block
-        :height (px 40)
-        :width (px 40)
-        :float :left
-        :color (color "green")}]
-      [:&.dankregistry:before
-       {:content (icons :eye)}]
-      [:&.marketplace:before
-       {:content (icons :dollar-circle)}]]]]])
+       {:display :block
+        :background-size [(em 2) (em 2)]
+        :background-repeat :no-repeat
+        :height (em 2)
+        :width (em 2)
+        :float :left}]
+      (let [icons [[:dankregistry "dankregistry"]
+                   [:about "about"]
+                   [:marketplace "marketplace"]
+                   [:how-it-works "howitworks"]
+                   [:leaderboard "leaderboard"]
+                   [:my-meme-folio "mymemefolio"]
+                   [:my-settings "mysettings"]]]
+        (mapv (fn [[cls img]]
+                [(keyword (str "&." (name cls) ":before"))
+                 {:content "''"
+                  :background-image (str "url('/assets/icons/" img ".png')")}])
+              icons))]]]])
