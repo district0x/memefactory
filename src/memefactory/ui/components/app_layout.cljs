@@ -1,5 +1,5 @@
 (ns memefactory.ui.components.app-layout
-  (:require 
+  (:require
    [reagent.core :as r]
    [district.ui.component.active-account :refer [active-account]]
    [district.ui.component.active-account-balance :refer [active-account-balance]]
@@ -33,8 +33,8 @@
                                  {:text "Curators"
                                   :route :route.leaderboard/curators}]}
                      {:text "My Memefolio"
-                      :route :route.my-meme-folio/index
-                      :class :my-meme-folio}
+                      :route :route.memefolio/index
+                      :class :memefolio}
                      {:text "My Settings"
                       :route :route.my-settings/index
                       :class :my-settings}
@@ -128,5 +128,5 @@
          [district0x-banner]]]
        [:div.app-content
         [app-bar {:search-atom search-atom}]
-        [:div.main-content
-         children]]])))
+        (into [:div.main-content]
+              children)]])))
