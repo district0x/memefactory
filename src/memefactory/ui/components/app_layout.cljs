@@ -125,5 +125,5 @@
          [district0x-banner]]]
        [:div.app-content
         [app-bar {:search-atom search-atom}]
-        [:div.main-content
-         children]]])))
+        (into [:div.main-content]
+              children)]])))
