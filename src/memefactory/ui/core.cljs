@@ -6,7 +6,7 @@
     [district.ui.graphql]
     [district.ui.notification]
     [memefactory.ui.subs]
-    #_[district.ui.now]
+    [district.ui.now]
     [district.ui.reagent-render]
     [district.ui.router-google-analytics]
     [district.ui.router]
@@ -18,6 +18,7 @@
     [district.ui.web3-tx-log]
     [district.ui.web3-tx]
     [district.ui.web3]
+    [district.ui.web3-sync-now]
     [district.ui.window-size]
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
     [memefactory.shared.routes :refer [routes]]
@@ -25,6 +26,7 @@
     [memefactory.ui.home.page]
     [memefactory.ui.marketplace.page]
     [memefactory.ui.marketplace.events]
+    
     [mount.core :as mount]
     [print.foo :include-macros true]))
 

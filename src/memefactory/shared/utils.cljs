@@ -2,7 +2,10 @@
   (:require [print.foo :refer [look] :include-macros true]
             [bignumber.core :as bn]))
 
-(defn calculate-meme-auction-price [#:meme-auction{:keys [:starting-price :end-price :duration :started-on]} now]
+(defn calculate-meme-auction-price [{:keys [:meme-auction/starting-price
+                                            :meme-auction/end-price
+                                            :meme-auction/duration
+                                            :meme-auction/started-on] :as auction} now]
   (let [seconds-passed (- now started-on)
         total-price-change (- end-price starting-price)
         current-price-change (/ (* total-price-change seconds-passed) duration)]

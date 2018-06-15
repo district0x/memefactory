@@ -8,7 +8,8 @@
    [reagent.core :as r]
    [react-infinite]
    [memefactory.shared.utils :as shared-utils]
-   [memefactory.ui.components.tiles :as tiles]))
+   [memefactory.ui.components.tiles :as tiles]
+   [print.foo :refer [look] :include-macros true]))
 
 (defn auctions-list [auctions]
   [:div.tiles
