@@ -54,7 +54,6 @@
 
     param(db: String!, key: String!): Parameter
     params(db: String!, keys: [String!]): [Parameter]
-    randomMemeAuctions(howMany: Int): [MemeAuction]
   }
 
   enum OrderDir {
@@ -85,6 +84,7 @@
     memeAuctions_orderBy_boughtOn
     memeAuctions_orderBy_tokenId
     memeAuctions_orderBy_memeTotalMinted
+    memeAuctions_orderBy_random
   } 
 
   enum UsersOrderBy {

@@ -192,7 +192,8 @@
                                                            :meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                            :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
                                                            :meme-auctions.order-by/token-id   :ma.meme-auction/token-id
-                                                           :meme-auctions.order-by/meme-total-minted :m.meme/total-minted}
+                                                           :meme-auctions.order-by/meme-total-minted :m.meme/total-minted
+                                                           :meme-auctions.order-by/random     (sql/call :random)}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]])
@@ -681,12 +682,6 @@
      (when (and voter-total-earned challenger-total-earned)
        (+ voter-total-earned challenger-total-earned)))))
 
-(defn random-meme-auctions-resolver [_ {:keys [:how-many] :as args}]
-  (db/all {:select [:*]
-           :from [:meme-auctions]
-           :order-by [(sql/call :random)]
-           :limit how-many}))
-
 (def resolvers-map
   {:Query {:meme meme-query-resolver
            :search-memes search-memes-query-resolver
@@ -699,8 +694,7 @@
            :user user-query-resolver
            :search-users search-users-query-resolver
            :param param-query-resolver
-           :params params-query-resolver
-           :random-meme-auctions random-meme-auctions-resolver}
+           :params params-query-resolver}
    :Vote {:vote/option vote->option-resolver
           :vote/reward vote->reward-resolver}
    :Meme {:reg-entry/status reg-entry->status-resolver

@@ -46,9 +46,10 @@
    [[:items auction-node-graph]]])
 
 (def random-picks-query
-  [:random-meme-auctions
-   {:how-many 6}
-   auction-node-graph])
+  [:search-meme-auctions
+   {:order-by :meme-auctions.order-by/random
+    :first 6}
+   [[:items auction-node-graph]]])
 
 (defmethod page :route/home [] 
   (let [search-atom (r/atom {:term ""})
@@ -88,6 +89,6 @@
            [:h2.title "Random Picks"]
            [:h3.title "Lorem ipsum ..."]]
           [:a "See More"]]
-         [auctions-list (:random-meme-auctions @random-picks)]]]])))
+         [auctions-list (-> @random-picks :search-meme-auctions :items)]]]])))
 
 
