@@ -108,7 +108,8 @@
                                                                                       :token-ids token-ids
                                                                                       :start-price (web3/to-wei 0.1 :ether)
                                                                                       :end-price (web3/to-wei 0.01 :ether)
-                                                                                      :duration auction-duration})
+                                                                                      :duration auction-duration
+                                                                                      :description "some auction"})
                                 {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-event-in-tx tx-hash)]
 
                             (when-not meme-auction

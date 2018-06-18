@@ -9,6 +9,12 @@
      :line (:line meta-info)
      :file (:file meta-info)}))
 
+(defmacro try-catch [& body]
+  `(try
+     ~@body
+     (catch js/Object e#
+       (log/error "Unexpected exception" (merge {:error (cljs/ex-message e#)} ~(compiletime-info &env &form *ns*))))))
+
 (defmacro try-catch-throw [& body]
   `(try
      ~@body
