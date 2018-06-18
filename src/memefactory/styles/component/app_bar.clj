@@ -4,8 +4,9 @@
    [garden.stylesheet :refer [at-media]]
    [clojure.string :as s]
    [memefactory.styles.base.colors :refer [color]]
+   [memefactory.styles.base.fonts :refer [font]]
    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-   [garden.units :refer [px]]))
+   [garden.units :refer [rem px em]]))
 
 (def bar-height (px 50))
 
@@ -17,7 +18,7 @@
     :display :flex
     :align-items :center
     :justify-content :space-between}
-   (for-media-min :tablet [:&
+   (for-media-max :tablet [:&
                            {:background-color (color "blue")}])
    [:.left-section
     {:align-items :left
@@ -35,21 +36,64 @@
                      {:display :none}]])]
 
    [:.right-section
-    {:background-color (color "purple")
-     :color (color "whiteTextColor")
-     :cursor :pointer
+    {:cursor :pointer
      :transition "width 100ms cubic-bezier(0.23, 1, 0.32, 1) 0ms"
      :width :transactionLogWidth
      :height "100%"
      :display :flex
      :align-items :center
      :justify-content :center}
-    [:.active-address-balance
-     {:font-size (px 18)}]
-    [:i.icon
-     {:font-size (px 24)
-      :margin-left (px 24)}]]
-
+    [:.accounts
+     {:display :flex
+      :height "100%"
+      :align-items :center
+      :justify-content :center}
+     [:.active-account-balance
+      {:display :block
+       :height "100%"
+       :min-width (em 9)
+       :background-color (color :ticker-background)
+       :position :relative
+       ;; :font-size (px 18)
+       }
+      [:&:before
+       {:display :block
+        :background-size [(em 1) (em 2)]
+        :background-repeat :no-repeat
+        :left (em 0.4)
+        :top (em 0.3)
+        :position :relative
+        :height (em 2)
+        :width (em 1)
+        :content "''"
+        :background-image (str "url('/assets/icons/ethereum.png')")}
+       ]
+      [:.balance
+       (font :bungee)
+       {:white-space :nowrap
+        :color (color :ticker-color)
+        :position :absolute
+        :display :block
+        :left 0;
+        :right 0;
+        :width (em 4)
+        :margin-right "auto"
+        :margin-left "auto" 
+        :top (em 0.3)
+        :overflow :hidden
+        :text-overflow :ellipsis}]
+      [:.token-code
+       {:white-space :nowrap
+        :color (color :ticker-token-color)
+        :position :absolute
+        :display :block
+        :left 0;
+        :right 0;
+        :width (em 2)
+        :margin-right "auto"
+        :margin-left "auto" 
+        :bottom (em 0.3)}]
+      ]]]
    [:.icon.hamburger
     {:cursor :pointer
      :font-size (px 29)

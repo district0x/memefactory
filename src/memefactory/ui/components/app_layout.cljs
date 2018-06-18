@@ -74,14 +74,16 @@
                        (dispatch [:district0x.transaction-log/set-open (not @open?)])))}
         (if false;;(empty? @my-addresses)
           [:div "No Accounts"]
-          [:div
+          [:div.accounts
            [active-account-balance
             {:token :DANK
+             :class :dank
              :locale "en-US"
              :max-fraction-digits 3
              :min-fraction-digits 2}]
            [active-account-balance
             {:token :ETH
+             :class :eth
              :locale "en-US"
              :max-fraction-digits 3
              :min-fraction-digits 2}]])

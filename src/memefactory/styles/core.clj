@@ -3,6 +3,7 @@
             [garden.units :refer [px]]
             [memefactory.styles.app-layout :as app-layout]
             [memefactory.styles.component.app-bar :as app-bar]
+            [memefactory.styles.component.main-content :as main-content]
             [memefactory.styles.component.compact-tile :as compact-tile]
             [memefactory.styles.container.tiles :as tiles]
             [memefactory.styles.app-menu :as app-menu]
@@ -11,6 +12,7 @@
 (defstyles main
   app-layout/core
   app-menu/core
+  main-content/core
   app-bar/core
   tiles/core
   compact-tile/core)

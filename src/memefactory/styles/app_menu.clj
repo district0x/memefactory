@@ -14,8 +14,7 @@
   [:.app-container
    [:.app-menu
     {:overflow-x :hidden
-     :overflow-y :scroll
-     :width (rem 20)
+     :overflow-y :auto
      :background (color :white)}
     [(sel/> :.menu-content :.node :.node-content :.item)
      (border-top {:color (color :border-line)})
@@ -58,5 +57,4 @@
                  [:a:before
                   {:content "''"
                    :background-image (str "url('/assets/icons/" img ".png')")}]])
-              icons))]]]
-   ])
+              icons))]]]])
