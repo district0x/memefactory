@@ -11,16 +11,16 @@
                       :route :route.marketplace/index
                       :class :marketplace}
                      {:text "Dank Registry"
-                      :route :route.dankregistry/index
+                      :route :route.dank-registry/index
                       :class :dankregistry
                       :children [{:text "Submit"
-                                  :route :route.dankregistry/submit}
+                                  :route :route.dank-registry/submit}
                                  {:text "Vote"
-                                  :route :route.dankregistry/vote}
+                                  :route :route.dank-registry/vote}
                                  {:text "Challenge"
-                                  :route :route.dankregistry/challenge}
+                                  :route :route.dank-registry/challenge}
                                  {:text "Browse"
-                                  :route :route.dankregistry/browse}]}
+                                  :route :route.dank-registry/browse}]}
                      {:text "Leaderboard"
                       :route :route.leaderboard/index
                       :class :leaderboard
@@ -40,7 +40,10 @@
                       :class :my-settings}
                      {:text "How it Works"
                       :route :route.how-it-works/index
-                      :class :how-it-works}])
+                      :class :how-it-works}
+                     {:text "About"
+                      :route :route.about/index
+                      :class :about}])
 
 (defn search-form [form-data errors]
   [:div.ui.form
@@ -100,7 +103,7 @@
   ([items active-page] (app-menu items active-page 0))
   ([items active-page depth]
    ^{:key (str depth)}
-   [:ol.node
+   [:ul.node
     (doall
      (map-indexed (fn [idx {:keys [:text :route :href :class :children]}]
                     (let [href (or href (mf-utils/path route))]

@@ -83,9 +83,6 @@
         :search-atom search-atom}
        [:div.marketplace
         [search-tools] 
-        [:div.auctions.container
-         [:h2.title "New On Marketplace"]
-         [:h3.title "Lorem ipsum ..."]
-         [marketplace-tiles (:term @search-atom)]]]])))
+        [marketplace-tiles (:term @search-atom)]]])))
 
 
