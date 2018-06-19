@@ -423,8 +423,7 @@
    (let [query (merge {:select [:mto.* :mt.*]
                        :modifiers [:distinct]
                        :from [[:meme-tokens :mt]]
-                       :join [[:reg-entries :re] [:= :mt.reg-entry/address :re.reg-entry/address]
-                              [:meme-auctions :ma] [:= :ma.meme-auction/token-id :mt.meme-token/token-id]]
+                       :join [[:reg-entries :re] [:= :mt.reg-entry/address :re.reg-entry/address]]
                        :left-join [[:meme-token-owners :mto] [:= :mto.meme-token/token-id :mt.meme-token/token-id]]
                        :where [:and
                                [:= :mt.reg-entry/address address]
