@@ -9,7 +9,8 @@
    [react-infinite]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.tiles :as tiles]
-   [print.foo :refer [look] :include-macros true]))
+   [print.foo :refer [look] :include-macros true]
+   [memefactory.ui.utils :as utils]))
 
 (defn auctions-list [auctions]
   [:div.tiles
@@ -70,7 +71,9 @@
           [:div.middle
            [:h2.title "New On Marketplace"]
            [:h3.title "Lorem ipsum ..."]]
-          [:a "See More"]
+          [:a {:href (utils/path-with-query (utils/path :route.marketplace/index)
+                                            {:order-by (str :meme-auctions.order-by/started-on)
+                                             :order-dir :desc})} "See More"]
           [auctions-list (-> @new-on-market :search-meme-auctions :items)]]]
 
         [:div.rare-finds
@@ -79,7 +82,10 @@
           [:div.middle
            [:h2.title "Rare Finds"]
            [:h3.title "Lorem ipsum ..."]]
-          [:a "See More"]
+          [:a {:href (utils/path-with-query (utils/path :route.marketplace/index)
+                                            {:order-by (str :meme-auctions.order-by/meme-total-minted)
+                                             :order-dir :asc})}
+           "See More"]
           [auctions-list (-> @rare-finds :search-meme-auctions :items)]]]
 
         [:div.random-pics
@@ -88,7 +94,9 @@
           [:div.middle
            [:h2.title "Random Picks"]
            [:h3.title "Lorem ipsum ..."]]
-          [:a "See More"]]
+          [:a {:href (utils/path-with-query (utils/path :route.marketplace/index)
+                                            {:order-by (str :meme-auctions.order-by/random)})}
+           "See More"]]
          [auctions-list (-> @random-picks :search-meme-auctions :items)]]]])))
 
 

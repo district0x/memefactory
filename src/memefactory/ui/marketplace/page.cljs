@@ -8,11 +8,12 @@
    [reagent.core :as r]
    [react-infinite]
    [memefactory.shared.utils :as shared-utils]
-   [memefactory.ui.components.tiles :as tiles]))
+   [memefactory.ui.components.tiles :as tiles]
+   [district.ui.router.subs :as router-subs]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(defn search-tools []
+(defn search-tools [{:keys [:order-atom :search-atom]}]
   [:div.container
    [:div.left-section
     [:div.header
@@ -31,11 +32,14 @@
    [:div.right-section
     [:img]]])
 
-(defn marketplace-tiles [search-term]
+(defn marketplace-tiles [{:keys [:search-term :order-by :order-dir]}]
   (let [build-query (fn [after]
                       [:search-meme-auctions
-                       (cond-> {#_:title #_search-term :first 2}
-                         after (assoc :after after))
+                       (cond-> {:first 2}
+                         search-term (assoc :title search-term)
+                         after       (assoc :after after)
+                         order-by    (assoc :order-by order-by)
+                         order-dir (assoc :order-dir order-dir))
                        [:total-count
                         :end-cursor
                         :has-next-page
@@ -75,14 +79,19 @@
                [tiles/auction-tile {:on-buy-click #()} auc])))]]))))
 
 (defmethod page :route.marketplace/index []
-  (let [search-atom (r/atom {:term ""})]
+  (let [search-atom (r/atom {:term ""})
+        order-atom (r/atom (let [{:keys [query]} @(subscribe [::router-subs/active-page])]
+                              {:order-by (keyword (or (:order-by query) :meme-auctions.order-by/started-on))
+                               :order-dir (keyword (or (:order-dir query) :desc))}))]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory"
                :description "Description"}
         :search-atom search-atom}
        [:div.marketplace
-        [search-tools] 
-        [marketplace-tiles (:term @search-atom)]]])))
+        [search-tools order-atom search-atom] 
+        [marketplace-tiles {:search-term (:term @search-atom)
+                            :order-by (:order-by @order-atom)
+                            :order-dir (:order-dir @order-atom)}]]])))
 
 
