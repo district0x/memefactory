@@ -9,7 +9,8 @@
    [react-infinite]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.tiles :as tiles]
-   [district.ui.router.subs :as router-subs]))
+   [district.ui.router.subs :as router-subs]
+   [print.foo :refer [look] :include-macros true]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -36,10 +37,10 @@
   (let [build-query (fn [after]
                       [:search-meme-auctions
                        (cond-> {:first 2}
-                         search-term (assoc :title search-term)
-                         after       (assoc :after after)
-                         order-by    (assoc :order-by order-by)
-                         order-dir (assoc :order-dir order-dir))
+                         (not-empty search-term) (assoc :title search-term)
+                         after                   (assoc :after after)
+                         order-by                (assoc :order-by order-by)
+                         order-dir               (assoc :order-dir order-dir))
                        [:total-count
                         :end-cursor
                         :has-next-page
@@ -55,7 +56,7 @@
                                     [:meme/title
                                      :meme/image-hash
                                      :meme/total-minted]]]]]]]])
-        auctions-search (subscribe [::gql/query {:queries [(build-query nil)]}
+        auctions-search (subscribe [::gql/query {:queries [(look (build-query nil))]}
                                     {:id :auctions-search}])]
     (fn [search-term]
       (let [all-auctions (->> @auctions-search
@@ -81,8 +82,10 @@
 (defmethod page :route.marketplace/index []
   (let [search-atom (r/atom {:term ""})
         order-atom (r/atom (let [{:keys [query]} @(subscribe [::router-subs/active-page])]
-                              {:order-by (keyword (or (:order-by query) :meme-auctions.order-by/started-on))
-                               :order-dir (keyword (or (:order-dir query) :desc))}))]
+                             (look {:order-by (if-let [o (:order-by query)]
+                                                (keyword "meme-auctions.order-by" o)
+                                                :meme-auctions.order-by/started-on)
+                                    :order-dir (or (keyword (:order-dir query)) :desc)})))]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory"
