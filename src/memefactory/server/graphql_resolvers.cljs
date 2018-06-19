@@ -128,8 +128,7 @@
          query (cond-> {:select [:mto.* :mt.*]
                         :from [[:meme-tokens :mt]]
                         :join [[:reg-entries :re] [:= :mt.reg-entry/address :re.reg-entry/address]
-                               [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]
-                               [:meme-auctions :ma] [:= :ma.meme-auction/token-id :mt.meme-token/token-id]]
+                               [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]]
                         :left-join [[:meme-token-owners :mto] [:= :mto.meme-token/token-id :mt.meme-token/token-id]]}
                  owner        (sqlh/merge-where [:= :mto.meme-token/owner owner])
                  statuses-set (sqlh/merge-where [:in (meme-status-sql-clause now) statuses-set])
@@ -424,8 +423,7 @@
    (let [query (merge {:select [:mto.* :mt.*]
                        :modifiers [:distinct]
                        :from [[:meme-tokens :mt]]
-                       :join [[:reg-entries :re] [:= :mt.reg-entry/address :re.reg-entry/address]
-                              [:meme-auctions :ma] [:= :ma.meme-auction/token-id :mt.meme-token/token-id]]
+                       :join [[:reg-entries :re] [:= :mt.reg-entry/address :re.reg-entry/address]]
                        :left-join [[:meme-token-owners :mto] [:= :mto.meme-token/token-id :mt.meme-token/token-id]]
                        :where [:and
                                [:= :mt.reg-entry/address address]
@@ -587,8 +585,8 @@
   (try-catch-throw
    (if total-collected-memes
      total-collected-memes
-     (let [sql-query (when address 
-                       (db/get {:select [[(sql/call :count-distinct :meme-tokens.reg-entry/address) :user/total-collected-memes]] 
+     (let [sql-query (when address
+                       (db/get {:select [[(sql/call :count-distinct :meme-tokens.reg-entry/address) :user/total-collected-memes]]
                                 :from [:meme-token-owners]
                                 :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-token-owners.meme-token/token-id]]
                                 :where [:= address :meme-token-owners.meme-token/owner]}))]
@@ -732,4 +730,3 @@
           :user/total-participated-votes-success user->total-participated-votes-success-resolver
           :user/curator-total-earned user->curator-total-earned-resolver}
    :UserList {:items user-list->items-resolver}})
-
