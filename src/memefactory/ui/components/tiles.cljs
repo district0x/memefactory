@@ -9,18 +9,19 @@
             [clojure.string :as str]
             [district.format :as format]))
 
-(defn flippable-tile [{:keys [front back id]
-                       :or {id (str (random-uuid))}}]
-  (let [this (r/current-component)
-        flipped? (r/atom false)]
+(defn flippable-tile [{:keys [:front :back :id]}]
+  (let [flipped? (r/atom false)
+        flip #(swap! flipped? not)]
     (fn [{:keys [:front :back]}]
-      [:div.container {:id (look id)
-                       :style {:width 300 :height 380 :background-color :orange :margin 5}
-                       :on-click (fn [event]
-                                   (when (= id (-> event
-                                                   (aget "target")
-                                                   (aget "id")))
-                                     (swap! flipped? not)))}
+      [:div.container (merge {:style {:width 300 :height 380 :background-color :orange :margin 5}
+                              :on-click (fn [event]
+                                          (if id
+                                            (when (= id (-> event
+                                                            (aget "target")
+                                                            (aget "id")))
+                                              (flip))
+                                            (flip)))}
+                             (when id {:id id}))
        (if @flipped?
          back
          front)])))
