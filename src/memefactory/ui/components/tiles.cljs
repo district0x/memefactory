@@ -9,11 +9,17 @@
             [clojure.string :as str]
             [district.format :as format]))
 
-(defn flippable-tile [{:keys [:front :back]}]
-  (let [flipped? (r/atom false)]
+(defn flippable-tile [{:keys [:front :back :id]}]
+  (let [this (r/current-component)
+        flipped? (r/atom false)]
     (fn [{:keys [:front :back]}]
-      [:div.container {:style {:width 300 :height 380 :background-color :orange :margin 5} ;; for testing
-                       :on-click #(swap! flipped? not)}
+      [:div.container {:id id
+                       :style {:width 300 :height 380 :background-color :orange :margin 5}
+                       :on-click (fn [event]
+                                   (when (= id (-> event
+                                                   (aget "target")
+                                                   (aget "id")))
+                                     (swap! flipped? not)))}
        (if @flipped?
          back
          front)])))
@@ -66,4 +72,4 @@
 (defn meme-tile [opts {:keys [] :as meme}]
   [:div.compact-tile
    [flippable-tile {:front [meme-front-tile opts meme]
-                    :back [meme-back-tile opts meme]}]]) 
+                    :back [meme-back-tile opts meme]}]])
