@@ -50,6 +50,7 @@
                  [district0x/district-web3-utils "1.0.2"]
                  [district0x/district-format "1.0.0"]
                  [district0x/district-time "1.0.0"]
+                 [district0x/district-ui-component-form "0.1.0-SNAPSHOT"]
                  [medley "1.0.0"]
                  [mount "0.1.12"]
                  [org.clojure/clojurescript "1.10.238"]
