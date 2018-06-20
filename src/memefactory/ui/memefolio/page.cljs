@@ -9,7 +9,9 @@
    [district.ui.graphql.subs :as gql]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [memefactory.shared.utils :as shared-utils]
-   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.app-layout :as app-layout]
+   [memefactory.ui.components.tiles :as tiles]
+   [district.ui.component.form.input :as inputs]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -20,11 +22,12 @@
 (defn format-percentage [p t]
   (str (int (Math/fround (/ (* p 100.0) t))) "%"))
 
-(def default-tab :created)
+(def default-tab :collected)
 
 (defn resolve-image [meta-hash]
   "http://upload.wikimedia.org/wikipedia/en/thumb/6/63/Feels_good_man.jpg/200px-Feels_good_man.jpg")
 
+;; TODO: infinite scroll
 (defmulti panel (fn [tab & opts] tab))
 
 (defmulti header (fn [tab & opts] tab))
@@ -54,11 +57,8 @@
               {:keys [:meme-token/number :meme-token/meme]} meme-token
               {:keys [:meme/title]} meme
               style {:background-color "yellow"
-                     :display "inline-block"
-                     :white-space "normal"
-                     :width "400px"}]
-          [:div.header {:style {:white-space "nowrap"
-                                :width "400px"}}
+                     :display "inline-block"}]
+          [:div.header
            [:div.rank {:style {:background-color "orange"
                                :display "inline-block"}}
             (str "RANK: " collector-rank)]
@@ -73,11 +73,42 @@
             [:span (str (format/format-eth (web3/from-wei bought-for :ether))
                         "(#" number " " title ")")]]])))))
 
-;; TODO :  sell button
+(defn collected-tile-front [{:keys [:meme/meta-hash]}]
+  [:img {:src (resolve-image meta-hash)}])
+
+(defn sell-form [form-data errors]
+[:div.sell-form
+ [:div.field
+  [inputs/with-label "Amount"
+   [inputs/text-input {:form-data form-data
+                       :errors errors
+                       :id :meme-auction/amount}]]]
+
+
+ ])
+
+;; TODO: sell form
+(defn collected-tile-back [{:keys [:meme/number :meme/title]}]
+  (let [sell? (r/atom false)]
+    (fn []
+      (if-not @sell?
+        [:div.collected-tile-back
+         [:div [:b (str "#" number)]]
+         [:button {:on-click #(swap! sell? not)}
+          "Sell"]]
+        (let [form-data (r/atom {:meme-auction/amount 0
+
+                                 })
+              errors (r/atom {})]
+          [:div
+           [:h1 (str "Sell" "#" number " " title)]
+           [sell-form form-data errors]])))))
+
 (defmethod panel :collected [tab active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:owner active-account}
                                       [[:items [:reg-entry/address
+                                                :reg-entry/status
                                                 :meme/meta-hash
                                                 :meme/number
                                                 :meme/title
@@ -91,16 +122,16 @@
         [:div.canvas
          [(header tab active-account)]
          [:div.tiles
-               (map (fn [{:keys [:reg-entry/address :meme/meta-hash :meme/number
-                                 :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
-                      (when address
-                        (do ^{:key address} [:div.meme-card-front {:style {:width 200
-                                                                           :height 280
-                                                                           :display "block"}}
-                                             [:img {:src (resolve-image meta-hash)}]
-                                             [:div [:b (str "#" number " " title)]]
-                                             [:div [:span (str "Owning " (count owned-meme-tokens) " out of " total-supply)]]])))
-                    (-> @query :search-memes :items))]]))))
+          (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/meta-hash :meme/number
+                            :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
+                 (when address
+                   (do ^{:key address} [:div
+                                        [tiles/flippable-tile {:id address
+                                                               :front [collected-tile-front {:meme/meta-hash meta-hash}]
+                                                               :back [collected-tile-back]}]
+                                        [:div [:b (str "#" number " " title)]]
+                                        [:div [:span (str "Owning " (count owned-meme-tokens) " out of " total-supply)]]])))
+               (-> @query :search-memes :items))]]))))
 
 (defmethod header :created [_ active-account]
   (let [query (subscribe [::gql/query
@@ -133,10 +164,8 @@
                                            (-> @query :search-meme-auctions :items))
               style {:background-color "yellow"
                      :display "inline-block"
-                     :white-space "normal"
-                     :width "400px"}]
-          [:div.header {:style {:white-space "nowrap"
-                                :width "400px"}}
+                     :white-space "normal"}]
+          [:div.header {:style {:white-space "nowrap"}}
            [:div.rank {:style {:background-color "orange"
                                :display "inline-block"}}
             (str "RANK: " creator-rank)]
@@ -155,7 +184,7 @@
                  " (#" number " " title ")")]])))))
 
 ;; TODO: add issue button
-;; TODO: add status
+;; TODO: switch to inputs components to handle errors
 (defmethod panel :created [tab active-account]
   (let [created (subscribe [::gql/query
                             {:queries [[:search-memes {:creator active-account}
@@ -182,17 +211,25 @@
                                 valid? #(let [input (js/Number %)]
                                           (and (not (js/isNaN input))
                                                (int? input)
-                                               (<= input max-value)))]
+                                               (<= input max-value)))
+                                status (graphql-utils/gql-name->kw status)]
                             ^{:key address} [:div.meme-card-front {:style {:width 200
                                                                            :height 280
                                                                            :display "block"}}
                                              [:img {:src (resolve-image meta-hash)}]
                                              [:div [:b (str "#" number " " title)]]
                                              [:div [:span (str total-minted "/" total-supply" Issued")]]
+                                             [:div
+                                              (cond
+                                                (= status :reg-entry.status/whitelisted)
+                                                [:label [:b "In Registry"]]
 
-                                             ;; TODO: status here
+                                                (= status :reg-entry.status/blacklisted)
+                                                [:label [:b "Rejected"]]
 
-                                             (when (= status (graphql-utils/kw->gql-name :reg-entry/status-whitelisted))
+                                                :else
+                                                [:label [:b "Challenged"]])]
+                                             (when (= status :reg-entry.status/whitelisted)
                                                [:div {:style {:margin-top 10}}
                                                 [input/input
                                                  {:label "Issue"
@@ -200,10 +237,48 @@
                                                   :value @input-value
                                                   :error (not (valid? @input-value))
                                                   :on-change #(reset! input-value (aget %2 "value"))}]
+
+                                                ;; TODO: issue button here
+
                                                 [:div [:span (str "Max " max-value)]]])])))
                       (-> @created :search-memes :items)))]]))))
 
-(defmethod panel :curated [_ active-account]
+(defmethod header :curated [_ active-account]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:user {:user/address active-account}
+                                      [:user/curator-rank
+                                       :user/total-created-challenges
+                                       :user/total-created-challenges-success
+                                       :user/challenger-total-earned
+                                       :user/total-participated-votes
+                                       :user/total-participated-votes-success
+                                       :user/voter-total-earned]]]}])]
+    (fn []
+      (if (:graphql/loading? @query)
+        [:div.loading "Loading..."]
+        (let [{:keys [:user/curator-rank :user/total-created-challenges :user/total-created-challenges-success
+                      :user/challenger-total-earned :user/total-participated-votes :user/total-participated-votes-success
+                      :user/voter-total-earned]} (:user @query)
+              style {:background-color "yellow"
+                     :display "inline-block"}]
+          [:div.header
+           [:div.rank {:style {:background-color "orange"
+                               :display "inline-block"}}
+            (str "RANK: " curator-rank)]
+           [:div.curator {:style style}
+            [:div.challenges
+             "CHALLENGES:"
+             [:div {:style style} [:b "Success Rate:"] total-created-challenges-success "/" total-created-challenges
+              " (" (format-percentage total-created-challenges-success total-created-challenges)  ")"]
+             [:div {:style style} [:b "Earned:"] (str (web3/from-wei challenger-total-earned :ether) " DANK")]]
+            [:div.votes "VOTES:"
+             [:div {:style style} [:b "Success Rate:"] total-participated-votes "/" total-participated-votes-success
+              " (" (format-percentage total-participated-votes-success total-participated-votes)  ")"]
+             [:div {:style style} [:b "Earned:"] (str (web3/from-wei voter-total-earned :ether) " DANK")]]
+            [:div.total-earnings "TOTAL-EARNINGS:"
+             [:div {:style style} (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")]]]])))))
+
+(defmethod panel :curated [tab active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:curator active-account}
                                       [[:items [:reg-entry/address
@@ -216,31 +291,33 @@
     (fn []
       (if (:graphql/loading? @query)
         [:div "Loading..."]
-        [:div.tiles
-         (map (fn [{:keys [:reg-entry/address :meme/meta-hash :meme/number
-                           :meme/title :challenge/vote] :as meme}]
-                (when address
-                  (let [{:keys [:vote/option]} vote]
-                    ^{:key address} [:div.meme-card-front {:style {:width 200
-                                                                   :height 280
-                                                                   :display "block"}}
-                                     [:img {:src (resolve-image meta-hash)}]
-                                     [:div [:b (str "#" number " " title)]]
-                                     [:div
-                                      (cond
-                                        (= option (graphql-utils/kw->gql-name :vote-option/no-vote #_"voteOption_noVote"))
-                                        [:label
-                                         [:b "Voted Unrevealed"]]
+        [:div.canvas
+         [(header tab active-account)]
+         [:div.tiles
+          (map (fn [{:keys [:reg-entry/address :meme/meta-hash :meme/number
+                            :meme/title :challenge/vote] :as meme}]
+                 (when address
+                   (let [{:keys [:vote/option]} vote]
+                     ^{:key address} [:div.meme-card-front {:style {:width 200
+                                                                    :height 280
+                                                                    :display "block"}}
+                                      [:img {:src (resolve-image meta-hash)}]
+                                      [:div [:b (str "#" number " " title)]]
+                                      [:div
+                                       (cond
+                                         (= option (graphql-utils/kw->gql-name :vote-option/no-vote #_"voteOption_noVote"))
+                                         [:label
+                                          [:b "Voted Unrevealed"]]
 
-                                        (= option (graphql-utils/kw->gql-name :vote-option/vote-for #_"voteOption_voteFor"))
-                                        [:label "Voted Dank"
-                                         [:i.icon.thumbs.up.outline]]
+                                         (= option (graphql-utils/kw->gql-name :vote-option/vote-for #_"voteOption_voteFor"))
+                                         [:label "Voted Dank"
+                                          [:i.icon.thumbs.up.outline]]
 
-                                        (= option (graphql-utils/kw->gql-name :vote-option/vote-against #_"voteOption_voteAgainst"))
-                                        [:label
-                                         [:b "Voted Stank"]
-                                         [:i.icon.thumbs.down.outline]])]])))
-              (-> @query :search-memes :items))]))))
+                                         (= option (graphql-utils/kw->gql-name :vote-option/vote-against #_"voteOption_voteAgainst"))
+                                         [:label
+                                          [:b "Voted Stank"]
+                                          [:i.icon.thumbs.down.outline]])]])))
+               (-> @query :search-memes :items))]]))))
 
 (defmethod panel :selling [_ active-account]
   (let [query (subscribe [::gql/query
@@ -334,7 +411,7 @@
 (defmethod page :route.memefolio/index []
   (let [search-atom (r/atom {:term ""})]
     (fn []
-      [app-layout
+      [app-layout/app-layout
        {:meta {:title "MemeFactory"
                :description "Description"}
         :search-atom search-atom}
