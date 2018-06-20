@@ -24,6 +24,12 @@
     {:align-items :left
      :width (px 250)
      :padding "0 10px"}
+    [:.active-account-select
+     [:i.dropdown.icon:before
+      {:content "url('/assets/icons/dropdown.png')" ;;No, we can't just bg scale, thanks upstream !important
+       :display :inline-flex
+       :transform "scale(.5)"
+       }]]
     [:.active-address-select
      [:.item
       {:white-space :nowrap
