@@ -7,6 +7,8 @@
             [memefactory.styles.component.compact-tile :as compact-tile]
             [memefactory.styles.container.tiles :as tiles]
             [memefactory.styles.app-menu :as app-menu]
+
+            [memefactory.styles.pages.home :as page.home]
             ))
 
 (defstyles main
@@ -15,4 +17,5 @@
   main-content/core
   app-bar/core
   tiles/core
-  compact-tile/core)
+  compact-tile/core
+  page.home/core)
