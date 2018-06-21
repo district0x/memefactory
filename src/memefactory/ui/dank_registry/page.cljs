@@ -67,7 +67,7 @@
        {:meta {:title "MemeFactory"
                :description "Description"}
         :search-atom search-atom}
-       [:div.marketplace
+       [:div.dank-registry.index
         [search-tools] 
         [dank-registry-tiles (:term @search-atom)]]])))
 

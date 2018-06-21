@@ -11,44 +11,11 @@
    [memefactory.ui.components.tiles :as tiles]
    [district.ui.router.subs :as router-subs]
    [print.foo :refer [look] :include-macros true]
-   [district.ui.component.form.input :refer [select-input text-input]]))
+   [district.ui.component.form.input :refer [select-input text-input]]
+   [district.ui.component.form.chip-input :refer [chip-input]]
+   [memefactory.ui.components.search :refer [search-tools]]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
-
-(defn tags-input [{:keys [form-data tags-set-path]}]
-  [:div
-   [:ul.tag-set {:key :first}
-    (for [t (get-in @form-data tags-set-path)]
-      ^{:key t}
-      [:li.tag t])]
-   [text-input {:form-data form-data
-                :id :new-tag
-                :on-change (fn [e]
-                             (.log js/console e))}]])
-
-(defn search-tools [form-data]
-  [:div.container
-   [:div.left-section
-    [:div.header
-     [:img]
-     [:h2 "Marketplace"]
-     [:h3 "Lorem ipsum dolor..."]]
-    [:div.body
-     [text-input {:form-data form-data
-                  :id :term}]
-     [select-input {:form-data form-data
-                    :id :order-by
-                    :options [{:key "started-on" :value "Newest"}
-                              {:key "meme-total-minted" :value "Rarest"}
-                              {:key "price" :value "Cheapest"}
-                              {:key "random" :value "Random"}]}]
-     [tags-input {:form-data form-data
-                  :tags-set-path [:search-tags]}]
-     [:label "Show only cheapest offering of meme"]
-     [:input {:type :checkbox}]]]
-   [:div.right-section
-    [:img]]])
-
 
 (defn build-tiles-query [{:keys [:search-term :order-by :order-dir]} after]
   [:search-meme-auctions
@@ -76,7 +43,7 @@
 (defn marketplace-tiles [{:keys [:search-term :order-by :order-dir] :as params}]
   (let [auctions-search (subscribe [::gql/query {:queries [(look (build-tiles-query params nil))]}
                                     {:id :auctions-search}])]
-    (fn [search-term]
+    (fn [{:keys [:search-term :order-by :order-dir] :as params}]
       (let [all-auctions (->> @auctions-search
                               (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
         (.log js/console "All auctions" (map :meme-auction/address all-auctions))
@@ -98,20 +65,28 @@
                [tiles/auction-tile {:on-buy-click #()} auc])))]]))))
 
 
+
 (defmethod page :route.marketplace/index []
-  (let [form-data (let [{:keys [query]} @(subscribe [::router-subs/active-page])]
+  (let [active-page (subscribe [::router-subs/active-page])
+        form-data (let [{:keys [query]} @active-page]
                     (r/atom {:term ""
-                             :search-tags #{"tag1" "tag2" "tag3"}
                              :order-by (if-let [o (:order-by query)]
                                          (keyword "meme-auctions.order-by" o)
                                          :meme-auctions.order-by/started-on)
-                             :order-dir (or (keyword (:order-dir query)) :desc)}))]
+                             :order-dir (or (keyword (:order-dir query)) :desc)}))
+        all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory"
                :description "Description"}}
        [:div.marketplace
-        [search-tools form-data]
+        [search-tools {:form-data form-data
+                       :tags #_(look (->> @all-tags-subs :search-tags :items (mapv :tag/name)))
+                             ["tag1" "tag2"]
+                       :search-id :term  
+                       :selected-tags-id :search-tags
+                       :check-filter {:label "Show only cheapest offering of meme"
+                                      :id :only-cheapest?}}]
         [marketplace-tiles {:search-term (:term @form-data)
                             :order-by (:order-by @form-data)
                             :order-dir (:order-dir @form-data)}]]]))) 
