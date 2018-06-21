@@ -1,22 +1,23 @@
 (ns memefactory.ui.memefolio.page
   (:require
-   [cljs-web3.core :as web3]
    [clojure.string :as str]
    [district.format :as format]
+   [district.graphql-utils :as graphql-utils]
    [district.time :as time]
+   [district.ui.component.form.input :as inputs]
    [district.ui.component.input :as input]
    [district.ui.component.page :refer [page]]
+   [district.ui.component.tx-button :as tx-button]
    [district.ui.graphql.subs :as gql]
+   [district.ui.server-config.subs :as config-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :as app-layout]
    [memefactory.ui.components.tiles :as tiles]
-   [district.ui.component.tx-button :as tx-button]
-   [district.ui.component.form.input :as inputs]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [district.graphql-utils :as graphql-utils]
+   [cljs-web3.core :as web3]
    ))
 
 ;; TODO: move to district.format
@@ -119,7 +120,8 @@
        "Create Offering"] ]]))
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :user/owned-meme-tokens-count]}]
-  (let [sell? (r/atom false)]
+  (let [sell? (r/atom false)
+        max-duration (subscribe [::config-subs/config :max-auction-duration])]
     (fn []
       (if-not @sell?
         [:div.collected-tile-back
@@ -131,7 +133,7 @@
                                  :meme-auction/end-price 0
                                  :meme-auction/duration 0
                                  :meme-auction/description ""
-                                 :meme-auction/max-duration 180
+                                 :meme-auction/max-duration @max-duration
                                  :user/owned-meme-tokens-count owned-meme-tokens-count})
               errors (r/atom {})]
           [:div
