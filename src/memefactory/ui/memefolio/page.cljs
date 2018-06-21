@@ -11,9 +11,10 @@
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :as app-layout]
    [memefactory.ui.components.tiles :as tiles]
+   [district.ui.component.tx-button :as tx-button]
    [district.ui.component.form.input :as inputs]
    [print.foo :refer [look] :include-macros true]
-   [re-frame.core :refer [subscribe dispatch]]
+   [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [district.graphql-utils :as graphql-utils]
    ))
@@ -76,19 +77,48 @@
 (defn collected-tile-front [{:keys [:meme/meta-hash]}]
   [:img {:src (resolve-image meta-hash)}])
 
-(defn sell-form [form-data errors]
-[:div.sell-form
- [:div.field
-  [inputs/with-label "Amount"
-   [inputs/text-input {:form-data form-data
-                       :errors errors
-                       :id :meme-auction/amount}]]]
+(defn sell-form [form-data errors show?]
+  (let [{:keys [:user/owned-meme-tokens-count :meme-auction/max-duration]} @form-data]
+    [:div.sell-form
+           [:div.field
+            [inputs/with-label "Amount"
+             [inputs/text-input {:form-data form-data
+                                 :errors errors
+                                 :id :meme-auction/amount}]]
+            [:label "Max " owned-meme-tokens-count]]
+           [:div.field
+            [inputs/with-label "Start Price"
+             [inputs/text-input {:form-data form-data
+                                 :errors errors
+                                 :id :meme-auction/start-price}]]]
+           [:div.field
+            [inputs/with-label "End Price"
+             [inputs/text-input {:form-data form-data
+                                 :errors errors
+                                 :id :meme-auction/end-price}]]]
+           [:div.field
+            [inputs/with-label "Duration"
+             [inputs/text-input {:form-data form-data
+                                 :errors errors
+                                 :id :meme-auction/duration}]]
+            [:label "Max " max-duration]]
+           [:div.field
+            [inputs/with-label "Short sales pitch"
+             [inputs/textarea-input {:form-data form-data
+                                     :errors errors
+                                     :id :meme-auction/description}]]]
+     [:div.buttons
+      [:button {:on-click #(swap! show? not)} "Cancel"]
+      ;; todo: make tx
+      [tx-button/tx-button {:primary true
+                            :disabled false #_create-offering-disabled?
+                            :pending? false #_create-offering-pending?
+                            :pending-text "Creating offering..."
+                            :on-click (fn []
+                                        (re-frame/dispatch [:meme-token/transfer-multi-and-start-auction @form-data]))}
+       "Create Offering"] ]]))
 
-
- ])
-
-;; TODO: sell form
-(defn collected-tile-back [{:keys [:meme/number :meme/title]}]
+(defn collected-tile-back [{:keys [:meme/number :meme/title :user/owned-meme-tokens-count]}]
   (let [sell? (r/atom false)]
     (fn []
       (if-not @sell?
@@ -97,12 +127,16 @@
          [:button {:on-click #(swap! sell? not)}
           "Sell"]]
         (let [form-data (r/atom {:meme-auction/amount 0
-
-                                 })
+                                 :meme-auction/start-price 0
+                                 :meme-auction/end-price 0
+                                 :meme-auction/duration 0
+                                 :meme-auction/description ""
+                                 :meme-auction/max-duration 180
+                                 :user/owned-meme-tokens-count owned-meme-tokens-count})
               errors (r/atom {})]
           [:div
            [:h1 (str "Sell" "#" number " " title)]
-           [sell-form form-data errors]])))))
+           [sell-form form-data errors sell?]])))))
 
 (defmethod panel :collected [tab active-account]
   (let [query (subscribe [::gql/query
@@ -125,12 +159,15 @@
           (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/meta-hash :meme/number
                             :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
                  (when address
-                   (do ^{:key address} [:div
-                                        [tiles/flippable-tile {:id address
-                                                               :front [collected-tile-front {:meme/meta-hash meta-hash}]
-                                                               :back [collected-tile-back]}]
-                                        [:div [:b (str "#" number " " title)]]
-                                        [:div [:span (str "Owning " (count owned-meme-tokens) " out of " total-supply)]]])))
+                   (let [owned-meme-tokens-count (count owned-meme-tokens)]
+                     ^{:key address} [:div
+                                            [tiles/flippable-tile {:id address
+                                                                   :front [collected-tile-front {:meme/meta-hash meta-hash}]
+                                                                   :back [collected-tile-back {:meme/number number
+                                                                                               :meme/title title
+                                                                                               :user/owned-meme-tokens-count owned-meme-tokens-count}]}]
+                                            [:div [:b (str "#" number " " title)]]
+                                            [:div [:span (str "Owning " owned-meme-tokens-count " out of " total-supply)]]])))
                (-> @query :search-memes :items))]]))))
 
 (defmethod header :created [_ active-account]

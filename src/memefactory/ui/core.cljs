@@ -10,6 +10,7 @@
     [district.ui.reagent-render]
     [district.ui.router-google-analytics]
     [district.ui.router]
+    [district.ui.server-config]
     [district.ui.smart-contracts]
     [district.ui.web3-account-balances]
     [district.ui.web3-accounts]
@@ -25,6 +26,7 @@
     [memefactory.shared.smart-contracts :refer [smart-contracts]]
     [memefactory.ui.home.page]
     [memefactory.ui.marketplace.page]
+    [memefactory.ui.events.meme-token-events]
     [memefactory.ui.marketplace.events]
     [memefactory.ui.dank-registry.page]
     [memefactory.ui.memefolio.page]
@@ -39,16 +41,18 @@
   (s/check-asserts debug?)
   (enable-console-print!)
   (-> (mount/with-args
-        {:web3 {:url "http://localhost:8549"}
-         :smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)}
-         :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
-         :web3-tx-log {:open-on-tx-hash? true
-                       :tx-costs-currencies [:USD]}
-         :reagent-render {:id "app"
-                          :component-var #'router}
-         :router {:routes routes
-                  :default-route :route/home}
-         :router-google-analytics {:enabled? (not debug?)}
-         :graphql {:schema graphql-schema
-                   :url "http://localhost:6300/graphql"}})
-    (mount/start)))
+        (merge {:web3 {:url "http://localhost:8549"}
+                :smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)}
+                :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
+                :web3-tx-log {:open-on-tx-hash? true
+                              :tx-costs-currencies [:USD]}
+                :reagent-render {:id "app"
+                                 :component-var #'router}
+                :router {:routes routes
+                         :default-route :route/home}
+                :router-google-analytics {:enabled? (not debug?)}
+                :graphql {:schema graphql-schema
+                          :url "http://localhost:6300/graphql"}}
+               (when debug?
+                 {:server-config {:url "http://localhost:6200/config"}})))
+      (mount/start)))
