@@ -79,62 +79,65 @@
   [:img {:src (resolve-image meta-hash)}])
 
 (defn sell-form [form-data errors show?]
-  (let [{:keys [:user/owned-meme-tokens-count :meme-auction/max-duration]} @form-data]
-    [:div.sell-form
-           [:div.field
-            [inputs/with-label "Amount"
-             [inputs/text-input {:form-data form-data
-                                 :errors errors
-                                 :id :meme-auction/amount}]]
-            [:label "Max " owned-meme-tokens-count]]
-           [:div.field
-            [inputs/with-label "Start Price"
-             [inputs/text-input {:form-data form-data
-                                 :errors errors
-                                 :id :meme-auction/start-price}]]]
-           [:div.field
-            [inputs/with-label "End Price"
-             [inputs/text-input {:form-data form-data
-                                 :errors errors
-                                 :id :meme-auction/end-price}]]]
-           [:div.field
-            [inputs/with-label "Duration"
-             [inputs/text-input {:form-data form-data
-                                 :errors errors
-                                 :id :meme-auction/duration}]]
-            [:label "Max " max-duration]]
-           [:div.field
-            [inputs/with-label "Short sales pitch"
-             [inputs/textarea-input {:form-data form-data
-                                     :errors errors
-                                     :id :meme-auction/description}]]]
-     [:div.buttons
-      [:button {:on-click #(swap! show? not)} "Cancel"]
-      [tx-button/tx-button {:primary true
-                            :disabled false #_create-offering-disabled?
-                            :pending? false #_create-offering-pending?
-                            :pending-text "Creating offering..."
-                            :on-click (fn []
-                                        ;; TODO: token-ids from amount
-                                        (re-frame/dispatch [:meme-token/transfer-multi-and-start-auction @form-data]))}
-       "Create Offering"] ]]))
-
-(defn collected-tile-back [{:keys [:meme/number :meme/title :user/owned-meme-tokens-count]}]
-  (let [sell? (r/atom false)
+  (let [{:keys [:meme-auction/token-count :meme-auction/token-ids :meme-auction/max-duration]} @form-data
         max-duration (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :max-auction-duration])]
+    (fn []
+      [:div.sell-form
+       [:div.field
+        [inputs/with-label "Amount"
+         [inputs/text-input {:form-data form-data
+                             :errors errors
+                             :id :meme-auction/amount}]]
+        [:label "Max " token-count]]
+       [:div.field
+        [inputs/with-label "Start Price"
+         [inputs/text-input {:form-data form-data
+                             :errors errors
+                             :id :meme-auction/start-price}]]]
+       [:div.field
+        [inputs/with-label "End Price"
+         [inputs/text-input {:form-data form-data
+                             :errors errors
+                             :id :meme-auction/end-price}]]]
+       [:div.field
+        [inputs/with-label "Duration"
+         [inputs/text-input {:form-data form-data
+                             :errors errors
+                             :id :meme-auction/duration}]]
+        [:label "Max " @max-duration]]
+       [:div.field
+        [inputs/with-label "Short sales pitch"
+         [inputs/textarea-input {:form-data form-data
+                                 :errors errors
+                                 :id :meme-auction/description}]]]
+       [:div.buttons
+        [:button {:on-click #(swap! show? not)} "Cancel"]
+        [tx-button/tx-button {:primary true
+                              :disabled false #_create-offering-disabled?
+                              :pending? false #_create-offering-pending?
+                              :pending-text "Creating offering..."
+                              :on-click (fn []
+                                          (re-frame/dispatch [:meme-token/transfer-multi-and-start-auction (merge @form-data
+                                                                                                                  {:meme-auction/token-ids (look (->> token-ids
+                                                                                                                                                      (take (int (:meme-auction/amount @form-data)))
+                                                                                                                                                      (map int)))})]))}
+         "Create Offering"]]])))
+
+(defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]
+  (let [sell? (r/atom false)]
     (fn []
       (if-not @sell?
         [:div.collected-tile-back
          [:div [:b (str "#" number)]]
          [:button {:on-click #(swap! sell? not)}
           "Sell"]]
-        (let [form-data (r/atom {:meme-auction/amount 0
-                                 :meme-auction/start-price 1
-                                 :meme-auction/end-price 2
-                                 :meme-auction/duration 12096000
-                                 :meme-auction/description "todo"
-                                 :meme-auction/max-duration @max-duration
-                                 :user/owned-meme-tokens-count owned-meme-tokens-count})
+        (let [form-data (r/atom {:meme-auction/amount 3
+                                 :meme-auction/start-price 0.1
+                                 :meme-auction/end-price 0.5
+                                 :meme-auction/duration 6000
+                                 :meme-auction/description "description"
+                                 :meme-auction/token-count token-count
+                                 :meme-auction/token-ids token-ids})
               errors (r/atom {})]
           [:div
            [:h1 (str "Sell" "#" number " " title)]
@@ -161,15 +164,18 @@
           (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/meta-hash :meme/number
                             :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
                  (when address
-                   (let [owned-meme-tokens-count (count owned-meme-tokens)]
+                   (let [token-ids (map :meme-token/token-id owned-meme-tokens)
+                         token-count (count token-ids)]
                      ^{:key address} [:div
-                                            [tiles/flippable-tile {:id address
-                                                                   :front [collected-tile-front {:meme/meta-hash meta-hash}]
-                                                                   :back [collected-tile-back {:meme/number number
-                                                                                               :meme/title title
-                                                                                               :user/owned-meme-tokens-count owned-meme-tokens-count}]}]
-                                            [:div [:b (str "#" number " " title)]]
-                                            [:div [:span (str "Owning " owned-meme-tokens-count " out of " total-supply)]]])))
+                                      [tiles/flippable-tile {:id address
+                                                             :front [collected-tile-front {:meme/meta-hash meta-hash}]
+                                                             :back [collected-tile-back {:meme/number number
+                                                                                         :meme/title title
+                                                                                         :meme/owned-meme-tokens owned-meme-tokens
+                                                                                         :meme-auction/token-count token-count
+                                                                                         :meme-auction/token-ids token-ids}]}]
+                                      [:div [:b (str "#" number " " title)]]
+                                      [:div [:span (str "Owning " token-count " out of " total-supply)]]])))
                (-> @query :search-memes :items))]]))))
 
 (defmethod header :created [_ active-account]
