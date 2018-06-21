@@ -13,7 +13,7 @@
   (let [flipped? (r/atom false)
         flip #(swap! flipped? not)]
     (fn [{:keys [:front :back]}]
-      [:div.container (merge {:style {:width 300 :height 380 :background-color :orange :margin 5}
+      [:div.container (merge {:style {:width 300 :height 500 :background-color :orange :margin 5}
                               :on-click (fn [event]
                                           (if id
                                             (when (= id (-> event
