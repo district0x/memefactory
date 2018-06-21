@@ -3,7 +3,9 @@
             [district.server.config :refer [config]])
     (:require-macros [memefactory.server.macros :refer [try-catch]]))
 
+(def whitelisted-config-keys [:deployer])
+
 (reg-get! "/config"
           (fn [req res]
             (try-catch
-             (send res (:ui @config)))))
+             (send res (select-keys @config whitelisted-config-keys)))))

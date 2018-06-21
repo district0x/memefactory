@@ -74,53 +74,50 @@
                    #'memefactory.server.syncer/syncer)
       pprint/pprint))
 
-
 (defn -main [& _]
-  (let [max-auction-duration (t/in-seconds (t/weeks 20))]
-    (-> (mount/with-args
-          {:config {:default {:logging {:level "info"
-                                        :console? true}
-                              :graphql {:port 6300
-                                        :middlewares [logging-middlewares]
-                                        :schema (utils/build-schema graphql-schema
-                                                                    resolvers-map
-                                                                    {:kw->gql-name graphql-utils/kw->gql-name
-                                                                     :gql-name->kw graphql-utils/gql-name->kw})
-                                        :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
-                                        :path "/graphql"
-                                        :graphiql true}
-                              :web3 {:port 8549}
-                              :endpoints {:port 6200}
-                              :generator {:memes/use-accounts 1
-                                          :memes/items-per-account 1
-                                          :memes/scenarios [:scenario/buy]
-                                          :param-changes/use-accounts 1
-                                          :param-changes/items-per-account 1
-                                          :param-changes/scenarios [:scenario/apply-param-change]}
-                              :deployer {:transfer-dank-token-to-accounts 1
-                                         :initial-registry-params
-                                         {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                                                          :commit-period-duration (t/in-seconds (t/minutes 2))
-                                                          :reveal-period-duration (t/in-seconds (t/minutes 1))
-                                                          :deposit (web3/to-wei 1000 :ether)
-                                                          :challenge-dispensation 50
-                                                          :vote-quorum 50
-                                                          :max-total-supply 10
-                                                          :max-auction-duration max-auction-duration}
-                                          :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                                                                  :commit-period-duration (t/in-seconds (t/minutes 2))
-                                                                  :reveal-period-duration (t/in-seconds (t/minutes 1))
-                                                                  :deposit (web3/to-wei 1000 :ether)
-                                                                  :challenge-dispensation 50
-                                                                  :vote-quorum 50}}}
-                              :ui {:max-auction-duration max-auction-duration}}}
-           :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
-                             :print-gas-usage? true
-                             :auto-mining? true}})
-        (mount/except [#'memefactory.server.deployer/deployer
-                       #'memefactory.server.generator/generator])
-        (mount/start)
-        pprint/pprint)))
+  (-> (mount/with-args
+        {:config {:default {:logging {:level "info"
+                                      :console? true}
+                            :graphql {:port 6300
+                                      :middlewares [logging-middlewares]
+                                      :schema (utils/build-schema graphql-schema
+                                                                  resolvers-map
+                                                                  {:kw->gql-name graphql-utils/kw->gql-name
+                                                                   :gql-name->kw graphql-utils/gql-name->kw})
+                                      :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
+                                      :path "/graphql"
+                                      :graphiql true}
+                            :web3 {:port 8549}
+                            :endpoints {:port 6200}
+                            :generator {:memes/use-accounts 1
+                                        :memes/items-per-account 1
+                                        :memes/scenarios [:scenario/buy]
+                                        :param-changes/use-accounts 1
+                                        :param-changes/items-per-account 1
+                                        :param-changes/scenarios [:scenario/apply-param-change]}
+                            :deployer {:transfer-dank-token-to-accounts 1
+                                       :initial-registry-params
+                                       {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                                                        :commit-period-duration (t/in-seconds (t/minutes 2))
+                                                        :reveal-period-duration (t/in-seconds (t/minutes 1))
+                                                        :deposit (web3/to-wei 1000 :ether)
+                                                        :challenge-dispensation 50
+                                                        :vote-quorum 50
+                                                        :max-total-supply 10
+                                                        :max-auction-duration (t/in-seconds (t/weeks 20))}
+                                        :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                                                                :commit-period-duration (t/in-seconds (t/minutes 2))
+                                                                :reveal-period-duration (t/in-seconds (t/minutes 1))
+                                                                :deposit (web3/to-wei 1000 :ether)
+                                                                :challenge-dispensation 50
+                                                                :vote-quorum 50}}}}}
+         :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
+                           :print-gas-usage? true
+                           :auto-mining? true}})
+    (mount/except [#'memefactory.server.deployer/deployer
+                   #'memefactory.server.generator/generator])
+    (mount/start)
+    pprint/pprint))
 
 (set! *main-cli-fn* -main)
 

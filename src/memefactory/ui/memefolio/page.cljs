@@ -36,7 +36,7 @@
 
 (defmethod header :collected [_ active-account]
   (let [query (subscribe [::gql/query
-                          {:queries [[:user {:user/address (look active-account)}
+                          {:queries [[:user {:user/address active-account}
                                       [:user/address
                                        ;;:user/collector-rank
                                        :user/total-collected-memes
@@ -110,18 +110,18 @@
                                      :id :meme-auction/description}]]]
      [:div.buttons
       [:button {:on-click #(swap! show? not)} "Cancel"]
-      ;; todo: make tx
       [tx-button/tx-button {:primary true
                             :disabled false #_create-offering-disabled?
                             :pending? false #_create-offering-pending?
                             :pending-text "Creating offering..."
                             :on-click (fn []
+                                        ;; TODO: token-ids from amount
                                         (re-frame/dispatch [:meme-token/transfer-multi-and-start-auction @form-data]))}
        "Create Offering"] ]]))
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :user/owned-meme-tokens-count]}]
   (let [sell? (r/atom false)
-        max-duration (subscribe [::config-subs/config :max-auction-duration])]
+        max-duration (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :max-auction-duration])]
     (fn []
       (if-not @sell?
         [:div.collected-tile-back
@@ -129,10 +129,10 @@
          [:button {:on-click #(swap! sell? not)}
           "Sell"]]
         (let [form-data (r/atom {:meme-auction/amount 0
-                                 :meme-auction/start-price 0
-                                 :meme-auction/end-price 0
-                                 :meme-auction/duration 0
-                                 :meme-auction/description ""
+                                 :meme-auction/start-price 1
+                                 :meme-auction/end-price 2
+                                 :meme-auction/duration 12096000
+                                 :meme-auction/description "todo"
                                  :meme-auction/max-duration @max-duration
                                  :user/owned-meme-tokens-count owned-meme-tokens-count})
               errors (r/atom {})]
