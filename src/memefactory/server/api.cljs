@@ -1,7 +1,8 @@
 (ns memefactory.server.api
   (:require [district.server.endpoints :refer [send reg-get!]]
-            [district.server.config :refer [config]])
-    (:require-macros [memefactory.server.macros :refer [try-catch]]))
+            [district.server.config :refer [config]]
+            [taoensso.timbre :as log])
+  (:require-macros [memefactory.server.macros :refer [try-catch]]))
 
 (def whitelisted-config-keys [:deployer])
 
