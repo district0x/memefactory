@@ -3,6 +3,7 @@
    [reagent.core :as r]
    [district.ui.component.active-account :refer [active-account]]
    [district.ui.component.active-account-balance :refer [active-account-balance]]
+   [district.ui.component.form.input :as inputs :refer [text-input*]]
    [re-frame.core :refer [subscribe dispatch]]
    [memefactory.ui.subs :as mf-subs]
    [memefactory.ui.utils :as mf-utils]))
@@ -45,18 +46,16 @@
                       :route :route.about/index
                       :class :about}])
 
-(defn search-form [form-data errors]
-  [:div.ui.form
-   [:div.field
-    [:label "Keyword:"]
-    #_[text-input {:form-data form-data
-                 :errors errors
-                 :id :term}]]])
+(defn search-form [form-data]
+  [:div.search
+   [text-input* {:form-data form-data
+                 :id :term}]
+   [:div.go-button]])
 
 (defn app-bar [{:keys [search-atom]}]
   (let [open? (r/atom nil);;(subscribe [:district0x.transaction-log/open?])
         my-addresses (r/atom nil);;(subscribe [:district0x/my-addresses])
-        ]
+        search-term (r/atom {})]
     (fn []
       [:div.app-bar
        [:div.left-section
@@ -66,7 +65,7 @@
                       (dispatch [:district0x.menu-drawer/set true])
                       (.stopPropagation e))}]]
        [:div.middle-section
-        #_[search-form search-atom]]
+        [search-form search-term]]
        [:div.right-section
         {:on-click (fn []
                      (if (empty? @my-addresses)

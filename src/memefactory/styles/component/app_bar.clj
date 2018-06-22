@@ -41,6 +41,32 @@
                     [:.active-address-select
                      {:display :none}]])]
 
+   [:.middle-section
+    [:.search
+     {:position :relative}
+     [:input
+      {:background-color (color :search-input-bg)
+       :border-radius (em 1)
+       :border-style :none
+       :padding-left (em 1)
+       :height (em 2)
+       :width (em 20)}
+      [:&:focus {:outline :none}]]
+     [:.go-button
+      {:display :block
+       :content "''"
+       :background-size [(rem 2) (rem 2)]
+       :background-repeat :no-repeat
+       :background-color (color :red)
+       ;; :margin-left (rem -3)
+       ;; :margin-top (rem -0.2)
+       :top 0
+       :right (em 1)
+       :position :absolute
+       :height (rem 2)
+       :width (rem 2)}
+      ]
+     ]]
    [:.right-section
     {:cursor :pointer
      :transition "width 100ms cubic-bezier(0.23, 1, 0.32, 1) 0ms"

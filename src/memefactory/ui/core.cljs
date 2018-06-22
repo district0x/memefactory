@@ -26,6 +26,7 @@
     [memefactory.shared.smart-contracts :refer [smart-contracts]]
     [memefactory.ui.home.page]
     [memefactory.ui.marketplace.page]
+    [memefactory.ui.events.meme-events]
     [memefactory.ui.events.meme-token-events]
     [memefactory.ui.marketplace.events]
     [memefactory.ui.dank-registry.page]

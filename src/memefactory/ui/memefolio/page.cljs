@@ -1,6 +1,8 @@
 (ns memefactory.ui.memefolio.page
   (:require
+   [cljs-web3.core :as web3]
    [clojure.string :as str]
+   [cljs-solidity-sha3.core :as sha3]
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
    [district.time :as time]
@@ -11,14 +13,17 @@
    [district.ui.graphql.subs :as gql]
    [district.ui.server-config.subs :as config-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
+   [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :as app-layout]
    [memefactory.ui.components.tiles :as tiles]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [cljs-web3.core :as web3]
+   [reagent.ratom :as ratom]
    ))
+
+;; TODO: search
 
 ;; TODO: move to district.format
 (defn format-percentage [p t]
@@ -78,9 +83,16 @@
 (defn collected-tile-front [{:keys [:meme/meta-hash]}]
   [:img {:src (resolve-image meta-hash)}])
 
-(defn sell-form [form-data errors show?]
-  (let [{:keys [:meme-auction/token-count :meme-auction/token-ids :meme-auction/max-duration]} @form-data
-        max-duration (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :max-auction-duration])]
+(defn sell-form [{:keys [:meme/title :meme-auction/token-count :meme-auction/token-ids :show?]}]
+  (let [tx-id (str (random-uuid))
+        max-duration (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :max-auction-duration])
+        form-data (r/atom {:meme-auction/amount token-count
+                           :meme-auction/start-price 0.1
+                           :meme-auction/end-price 0.01
+                           :meme-auction/duration @max-duration
+                           :meme-auction/description "description"})
+        errors (r/atom {})
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
     (fn []
       [:div.sell-form
        [:div.field
@@ -113,14 +125,16 @@
        [:div.buttons
         [:button {:on-click #(swap! show? not)} "Cancel"]
         [tx-button/tx-button {:primary true
-                              :disabled false #_create-offering-disabled?
-                              :pending? false #_create-offering-pending?
+                              :disabled false
+                              :pending? @tx-pending?
                               :pending-text "Creating offering..."
                               :on-click (fn []
                                           (re-frame/dispatch [:meme-token/transfer-multi-and-start-auction (merge @form-data
-                                                                                                                  {:meme-auction/token-ids (look (->> token-ids
-                                                                                                                                                      (take (int (:meme-auction/amount @form-data)))
-                                                                                                                                                      (map int)))})]))}
+                                                                                                                  {:send-tx/id tx-id
+                                                                                                                   :meme/title title
+                                                                                                                   :meme-auction/token-ids (->> token-ids
+                                                                                                                                                (take (int (:meme-auction/amount @form-data)))
+                                                                                                                                                (map int))})]))}
          "Create Offering"]]])))
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]
@@ -131,17 +145,12 @@
          [:div [:b (str "#" number)]]
          [:button {:on-click #(swap! sell? not)}
           "Sell"]]
-        (let [form-data (r/atom {:meme-auction/amount 3
-                                 :meme-auction/start-price 0.1
-                                 :meme-auction/end-price 0.5
-                                 :meme-auction/duration 6000
-                                 :meme-auction/description "description"
-                                 :meme-auction/token-count token-count
-                                 :meme-auction/token-ids token-ids})
-              errors (r/atom {})]
-          [:div
-           [:h1 (str "Sell" "#" number " " title)]
-           [sell-form form-data errors sell?]])))))
+        [:div
+         [:h1 (str "Sell" "#" number " " title)]
+         [sell-form {:meme/title title
+                     :meme-auction/token-ids token-ids
+                     :meme-auction/token-count token-count
+                     :show? sell?}]]))))
 
 (defmethod panel :collected [tab active-account]
   (let [query (subscribe [::gql/query
@@ -228,8 +237,32 @@
                      format/format-eth)
                  " (#" number " " title ")")]])))))
 
-;; TODO: add issue button
-;; TODO: switch to inputs components to handle errors
+(defn issue-form [{:keys [:meme/title :reg-entry/address :max-amount]}]
+  (let [tx-id (str (random-uuid))
+        form-data (r/atom {:meme/amount max-amount})
+        errors (ratom/reaction {:local #(let [{:keys [:amount]} @form-data]
+                                          (and (not (js/isNaN amount))
+                                               (int? amount)
+                                               (<= amount max-amount)))})
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/mint tx-id}])]
+    (fn []
+      [:div.issue-form
+       [:div.field
+        [inputs/text-input {:form-data form-data
+                            :errors errors
+                            :id :meme/amount}]
+        [tx-button/tx-button {:primary true
+                              :disabled false
+                              :pending? @tx-pending?
+                              :pending-text "Issuing..."
+                              :on-click (fn []
+                                          (re-frame/dispatch [:meme/mint (merge @form-data
+                                                                                {:meme/title title
+                                                                                 :reg-entry/address address
+                                                                                 :send-tx/id tx-id})]))}
+         "Issue"]
+        [:label "Max " max-amount]]])))
+
 (defmethod panel :created [tab active-account]
   (let [created (subscribe [::gql/query
                             {:queries [[:search-memes {:creator active-account}
@@ -240,8 +273,7 @@
                                                   :meme/total-minted
                                                   :meme/total-supply
                                                   :reg-entry/status]]
-                                         :total-count]]]}])
-        input-value (r/atom "0")]
+                                         :total-count]]]}])]
     (fn []
       (if (:graphql/loading? @created)
         [:div "Loading..."]
@@ -252,12 +284,7 @@
                                    :meme/title :meme/total-supply :meme/total-minted
                                    :reg-entry/status] :as meme}]
                         (when address
-                          (let [max-value (- total-supply total-minted)
-                                valid? #(let [input (js/Number %)]
-                                          (and (not (js/isNaN input))
-                                               (int? input)
-                                               (<= input max-value)))
-                                status (graphql-utils/gql-name->kw status)]
+                          (let [status (graphql-utils/gql-name->kw status)]
                             ^{:key address} [:div.meme-card-front {:style {:width 200
                                                                            :height 280
                                                                            :display "block"}}
@@ -274,18 +301,11 @@
 
                                                 :else
                                                 [:label [:b "Challenged"]])]
+
                                              (when (= status :reg-entry.status/whitelisted)
-                                               [:div {:style {:margin-top 10}}
-                                                [input/input
-                                                 {:label "Issue"
-                                                  :fluid true
-                                                  :value @input-value
-                                                  :error (not (valid? @input-value))
-                                                  :on-change #(reset! input-value (aget %2 "value"))}]
-
-                                                ;; TODO: issue button here
-
-                                                [:div [:span (str "Max " max-value)]]])])))
+                                               [issue-form {:meme/title title
+                                                            :reg-entry/address address
+                                                            :max-amount (- total-supply total-minted)}])])))
                       (-> @created :search-memes :items)))]]))))
 
 (defmethod header :curated [_ active-account]
