@@ -5,6 +5,7 @@
                     :ticker-color "#FFFFFF"
                     :ticker-token-color "#ff80c8"
                     :border-line "#eff1f5"
+                    :search-input-bg "#f2f4fb"
                     :menu-text "#47608e"
                     :menu-text-hover "#5b6d8e"
                     :main-content-bg "#f2f4fb"
