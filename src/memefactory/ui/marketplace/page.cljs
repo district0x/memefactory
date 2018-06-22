@@ -40,33 +40,34 @@
                  :meme/image-hash
                  :meme/total-minted]]]]]]]])
 
-(defn marketplace-tiles [{:keys [:search-term :order-by :order-dir] :as params}]
-  (let [auctions-search (subscribe [::gql/query {:queries [(look (build-tiles-query params nil))]}
-                                    {:id :auctions-search}])]
-    (fn [{:keys [:search-term :order-by :order-dir] :as params}]
-      (let [all-auctions (->> @auctions-search
-                              (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
-        (.log js/console "All auctions" (map :meme-auction/address all-auctions))
-        [:div.tiles
-         [react-infinite {:element-height 280
-                          :container-height 300
-                          :infinite-load-begin-edge-offset 100
-                          :on-infinite-load (fn []
-                                              (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
-                                               (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                               (when has-next-page
-                                                 (dispatch [:district.ui.graphql.events/query
-                                                            {:query {:queries [(build-tiles-query params end-cursor)]}}
-                                                            {:id :auctions-search}]))))}
-          (doall
-           (for [{:keys [:meme-auction/address] :as auc} all-auctions]
-             (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
-               ^{:key address}
-               [tiles/auction-tile {:on-buy-click #()} auc])))]]))))
+(defn marketplace-tiles [form-data]
+  (let [auctions-search (subscribe [::gql/query {:queries [(look (build-tiles-query @form-data nil))]}
+                                    {:id :auctions-search
+                                     :disable-fetch? true}])]
+    (fn [form-data]
+      (.log js/console "Re Rendering !!!!") 
+      (if (:graphql/loading? @auctions-search)
+        [:div "Loading ..."]
+        (let [all-auctions (->> (look @auctions-search)
+                                (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
+          (.log js/console "All auctions" (map :meme-auction/address all-auctions))
+          [:div.tiles 
+           [react-infinite {:element-height 280
+                            :container-height 300
+                            :infinite-load-begin-edge-offset 100
+                            :on-infinite-load (fn [] 
+                                                (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
+                                                  (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                                  (dispatch [:district.ui.graphql.events/query
+                                                             {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                              :id :auctions-search}])))}
+            (doall
+             (for [{:keys [:meme-auction/address] :as auc} all-auctions]
+               (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
+                 ^{:key address}
+                 [tiles/auction-tile {:on-buy-click #()} auc])))]])))))
 
-
-
-(defmethod page :route.marketplace/index []
+(defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
                     (r/atom {:term ""
@@ -76,17 +77,20 @@
                              :order-dir (or (keyword (:order-dir query)) :desc)}))
         all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     (fn []
-      [app-layout
-       {:meta {:title "MemeFactory"
-               :description "Description"}}
-       [:div.marketplace
-        [search-tools {:form-data form-data
-                       :tags #_(look (->> @all-tags-subs :search-tags :items (mapv :tag/name)))
-                             ["tag1" "tag2"]
-                       :search-id :term  
-                       :selected-tags-id :search-tags
-                       :check-filter {:label "Show only cheapest offering of meme"
-                                      :id :only-cheapest?}}]
-        [marketplace-tiles {:search-term (:term @form-data)
-                            :order-by (:order-by @form-data)
-                            :order-dir (:order-dir @form-data)}]]]))) 
+      (look (keys @all-tags-subs))
+      (if (:graphql/loading? @all-tags-subs)
+        [:div "Loading ..."]
+        [app-layout
+         {:meta {:title "MemeFactory"
+                 :description "Description"}}
+         [:div.marketplace
+          [search-tools {:form-data form-data
+                         :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
+                         :search-id :term  
+                         :selected-tags-id :search-tags
+                         :check-filter {:label "Show only cheapest offering of meme"
+                                        :id :only-cheapest?}}]
+          [marketplace-tiles form-data]]]))))
+
+(defmethod page :route.marketplace/index []
+  [index-page]) 
