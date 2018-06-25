@@ -7,7 +7,9 @@
             [district.time :as time]
             [cljs-time.core :as t]
             [clojure.string :as str]
-            [district.format :as format]))
+            [district.format :as format]
+            [district.ui.web3-tx-id.subs :as tx-id-subs]
+            [district.ui.component.tx-button :as tx-button]))
 
 (defn flippable-tile [{:keys [:front :back :id]}]
   (let [flipped? (r/atom false)
@@ -32,9 +34,11 @@
    [:span (str "FRONT IMAGE" image-hash)]])
 
 (defn auction-back-tile [{:keys [:on-buy-click] :as opts} meme-auction]
-  (let [now (subscribe [:district.ui.now.subs/now])
+  (let [tx-id (str (random-uuid))
+        now (subscribe [:district.ui.now.subs/now])
         end-time (t/plus (t/date-time (:meme-auction/started-on meme-auction))
-                         (t/seconds (:meme-auction/duration meme-auction)))]
+                         (t/seconds (:meme-auction/duration meme-auction)))
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])]
     (fn [{:keys [:on-buy-click] :as opts} meme-auction]
       (let [remaining (time/time-remaining (t/date-time @now)
                                            end-time)
@@ -48,7 +52,15 @@
          [:li [:label "End Price:"] [:span (format/format-eth (:meme-auction/end-price meme-auction))]]
          [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
         [:p.description (:meme-auction/description meme-auction)]
-        [:a {:on-click on-buy-click} "BUY"]]))))
+        [tx-button/tx-button {:primary true
+                              :disabled false
+                              :pending? @tx-pending?
+                              :pending-text "Buying auction ..."
+                              :on-click (fn []
+                                          (dispatch [:meme-auction/buy {:send-tx/id tx-id
+                                                                                 :meme-auction/address (:meme-auction/address meme-auction)
+                                                                                 :value price}]))}
+         "Buy"]]))))
 
 
 (defn auction-tile [{:keys [:on-buy-click] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]
