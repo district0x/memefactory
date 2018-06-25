@@ -55,16 +55,21 @@
      [:.go-button
       {:display :block
        :content "''"
-       :background-size [(rem 2) (rem 2)]
+       :background-size [(em 1.5) (em 1.5)]
        :background-repeat :no-repeat
-       :background-color (color :red)
+       ;; :background-color (color :yellow)
+       :background-image "url('/assets/icons/search.png')"
        ;; :margin-left (rem -3)
        ;; :margin-top (rem -0.2)
-       :top 0
+       :top (em 0.3)
        :right (em 1)
        :position :absolute
-       :height (rem 2)
-       :width (rem 2)}
+       :height (em 1.5)
+       :width (em 1.5)}
+      [:&.hover
+       {
+        ;; :background-color (color :yellow)
+        }]
       ]
      ]]
    [:.right-section
