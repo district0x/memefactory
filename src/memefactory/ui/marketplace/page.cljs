@@ -55,12 +55,15 @@
          [react-infinite {:element-height 280
                           :container-height 300
                           :infinite-load-begin-edge-offset 100
-                          :on-infinite-load (fn [] 
-                                              (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
-                                                (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                                (dispatch [:district.ui.graphql.events/query
-                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                            :id :auctions-search}])))}
+                          :use-window-as-scroll-container true
+                          :on-infinite-load (fn []
+                                              (when-not (:graphql/loading? @auctions-search)
+                                               (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
+                                                 (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                                 (when (or has-next-page (empty? all-auctions))
+                                                   (dispatch [:district.ui.graphql.events/query
+                                                              {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                               :id :auctions-search}])))))}
           (doall
            (for [{:keys [:meme-auction/address] :as auc} all-auctions]
              (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]

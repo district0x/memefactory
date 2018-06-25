@@ -32,21 +32,26 @@
                                 {:id :meme-search}])
         all-memes (->> @meme-search
                        (mapcat (fn [r] (-> r :search-memes :items))))]
-    [:div.tiles
-     [react-infinite {:element-height 280
-                      :container-height 300
-                      :infinite-load-begin-edge-offset 100
-                      :on-infinite-load (fn []
-                                          (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @meme-search))]
-                                            (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                            (when has-next-page
-                                              (dispatch [:district.ui.graphql.events/query
-                                                         {:query {:queries [(build-tiles-query @form-data end-cursor)]}}
-                                                         {:id :meme-search}]))))}
-      (doall
-       (for [{:keys [:reg-entry/address] :as meme} all-memes]
-         ^{:key address}
-         [tiles/meme-tile {:on-buy-click #()} meme]))]])) 
+    (.log js/console "All memes " (map :reg-entry/address all-memes))
+    (if (:graphql/loading? @meme-search)
+      [:div "Loading ..."]
+      [:div.tiles
+       [react-infinite {:element-height 280
+                        :container-height 300
+                        :infinite-load-begin-edge-offset 100
+                        :use-window-as-scroll-container true
+                        :on-infinite-load (fn []
+                                            (when-not (:graphql/loading? @meme-search)
+                                              (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
+                                               (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                               (when (or has-next-page (empty? all-memes))
+                                                 (dispatch [:district.ui.graphql.events/query
+                                                            {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                             :id :meme-search}])))))}
+        (doall
+         (for [{:keys [:reg-entry/address] :as meme} all-memes]
+           ^{:key address}
+           [tiles/meme-tile {:on-buy-click #()} meme]))]]))) 
 
 (defmethod page :route.dank-registry/index []
   (let [active-page (subscribe [::router-subs/active-page])
