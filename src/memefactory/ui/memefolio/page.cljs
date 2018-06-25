@@ -29,56 +29,17 @@
 (defn format-percentage [p t]
   (str (int (Math/fround (/ (* p 100.0) t))) "%"))
 
-(def default-tab :collected)
-
-(defn resolve-image [meta-hash]
-  "http://upload.wikimedia.org/wikipedia/en/thumb/6/63/Feels_good_man.jpg/200px-Feels_good_man.jpg")
+(def default-tab :curated)
 
 ;; TODO: infinite scroll
 (defmulti panel (fn [tab & opts] tab))
 
-(defmulti header (fn [tab & opts] tab))
+(defmulti stats (fn [tab & opts] tab))
 
-(defmethod header :collected [_ active-account]
-  (let [query (subscribe [::gql/query
-                          {:queries [[:user {:user/address active-account}
-                                      [:user/address
-                                       ;;:user/collector-rank
-                                       :user/total-collected-memes
-                                       :user/total-collected-token-ids
-                                       [:user/largest-buy [:meme-auction/bought-for
-                                                           [:meme-auction/meme-token
-                                                            [:meme-token/number
-                                                             [:meme-token/meme
-                                                              [:meme/title
-                                                               :meme/image-hash
-                                                               :meme/total-minted]]]]]]]]
-                                     [:search-memes [:total-count]]
-                                     [:search-meme-tokens [:total-count]]]}])]
-    (fn []
-      (if (:graphql/loading? @query)
-        [:div.loading "Loading..."]
-        (let [{:keys [:user/collector-rank :user/total-collected-memes :user/total-collected-token-ids
-                      :user/largest-buy]} (:user @query)
-              {:keys [:meme-auction/bought-for :meme-auction/meme-token]} largest-buy
-              {:keys [:meme-token/number :meme-token/meme]} meme-token
-              {:keys [:meme/title]} meme
-              style {:background-color "yellow"
-                     :display "inline-block"}]
-          [:div.header
-           [:div.rank {:style {:background-color "orange"
-                               :display "inline-block"}}
-            (str "RANK: " collector-rank)]
-           [:div.unique-memes {:style style}
-            [:b "Unique Memes: "]
-            (str total-collected-memes "/" (-> @query :search-memes :total-count))]
-           [:div.unique-memes {:style style}
-            [:b "Total Cards: "  ]
-            [:span (str total-collected-token-ids "/" (-> @query :search-meme-tokens :total-count))]]
-           [:div.largest-buy {:style style}
-            [:b "Largest buy: "]
-            [:span (str (format/format-eth (web3/from-wei bought-for :ether))
-                        "(#" number " " title ")")]]])))))
+(defmulti total (fn [tab & opts] tab))
+
+(defn resolve-image [meta-hash]
+  "http://upload.wikimedia.org/wikipedia/en/thumb/6/63/Feels_good_man.jpg/200px-Feels_good_man.jpg")
 
 (defn collected-tile-front [{:keys [:meme/meta-hash]}]
   [:img {:src (resolve-image meta-hash)}])
@@ -163,31 +124,148 @@
                                                 [:meme/owned-meme-tokens {:owner active-account}
                                                  [:meme-token/token-id]]
                                                 :meme/total-supply]]
-                                       :total-count]]]}])]
+                                       ;;:total-count
+                                       ]]]}])]
     (fn []
       (if (:graphql/loading? @query)
         [:div.loading "Loading..."]
-        [:div.canvas
-         [(header tab active-account)]
-         [:div.tiles
-          (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/meta-hash :meme/number
-                            :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
-                 (when address
-                   (let [token-ids (map :meme-token/token-id owned-meme-tokens)
-                         token-count (count token-ids)]
-                     ^{:key address} [:div
-                                      [tiles/flippable-tile {:id address
-                                                             :front [collected-tile-front {:meme/meta-hash meta-hash}]
-                                                             :back [collected-tile-back {:meme/number number
-                                                                                         :meme/title title
-                                                                                         :meme/owned-meme-tokens owned-meme-tokens
-                                                                                         :meme-auction/token-count token-count
-                                                                                         :meme-auction/token-ids token-ids}]}]
-                                      [:div [:b (str "#" number " " title)]]
-                                      [:div [:span (str "Owning " token-count " out of " total-supply)]]])))
-               (-> @query :search-memes :items))]]))))
+        [:div.tiles
+         (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/meta-hash :meme/number
+                           :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
+                (when address
+                  (let [token-ids (map :meme-token/token-id owned-meme-tokens)
+                        token-count (count token-ids)]
+                    ^{:key address} [:div
+                                     [tiles/flippable-tile {:id address
+                                                            :front [collected-tile-front {:meme/meta-hash meta-hash}]
+                                                            :back [collected-tile-back {:meme/number number
+                                                                                        :meme/title title
+                                                                                        :meme/owned-meme-tokens owned-meme-tokens
+                                                                                        :meme-auction/token-count token-count
+                                                                                        :meme-auction/token-ids token-ids}]}]
+                                     [:div [:b (str "#" number " " title)]]
+                                     [:div [:span (str "Owning " token-count " out of " total-supply)]]])))
+              (-> @query :search-memes :items))]))))
 
-(defmethod header :created [_ active-account]
+(defmethod stats :collected [_ active-account]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:user {:user/address active-account}
+                                      [:user/address
+                                       ;;:user/collector-rank
+                                       :user/total-collected-memes
+                                       :user/total-collected-token-ids
+                                       [:user/largest-buy [:meme-auction/bought-for
+                                                           [:meme-auction/meme-token
+                                                            [:meme-token/number
+                                                             [:meme-token/meme
+                                                              [:meme/title
+                                                               :meme/image-hash
+                                                               :meme/total-minted]]]]]]]]
+                                     [:search-memes [:total-count]]
+                                     [:search-meme-tokens [:total-count]]]}])]
+    (fn []
+      (if (:graphql/loading? @query)
+        [:div.loading "Loading..."]
+        (let [{:keys [:user/collector-rank :user/total-collected-memes :user/total-collected-token-ids
+                      :user/largest-buy]} (:user @query)
+              {:keys [:meme-auction/bought-for :meme-auction/meme-token]} largest-buy
+              {:keys [:meme-token/number :meme-token/meme]} meme-token
+              {:keys [:meme/title]} meme
+              style {:background-color "yellow"
+                     :display "inline-block"}]
+          [:div.stats {:style {:display "block"}}
+           [:div.rank {:style {:background-color "orange"
+                               :display "inline-block"}}
+            (str "RANK: " collector-rank)]
+           [:div.unique-memes {:style style}
+            [:b "Unique Memes: "]
+            (str total-collected-memes "/" (-> @query :search-memes :total-count))]
+           [:div.unique-memes {:style style}
+            [:b "Total Cards: "]
+            [:span (str total-collected-token-ids "/" (-> @query :search-meme-tokens :total-count))]]
+           [:div.largest-buy {:style style}
+            [:b "Largest buy: "]
+            [:span (str (format/format-eth (web3/from-wei bought-for :ether))
+                        "(#" number " " title ")")]]])))))
+
+(defmethod total :collected [_ active-account]
+  (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
+                                                  [:total-count]]]}])]
+    (fn []
+      [:div.total {:style {:grid-area "total"}} "Total " (when (not (:graphql/loading? @query))
+                                                           (get-in @query [:search-memes :total-count]))])))
+
+(defn issue-form [{:keys [:meme/title :reg-entry/address :max-amount]}]
+  (let [tx-id (str (random-uuid))
+        form-data (r/atom {:meme/amount max-amount})
+        errors (ratom/reaction {:local #(let [{:keys [:amount]} @form-data]
+                                          (and (not (js/isNaN amount))
+                                               (int? amount)
+                                               (<= amount max-amount)))})
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/mint tx-id}])]
+    (fn []
+      [:div.issue-form
+       [:div.field
+        [inputs/text-input {:form-data form-data
+                            :errors errors
+                            :id :meme/amount}]
+        [tx-button/tx-button {:primary true
+                              :disabled false
+                              :pending? @tx-pending?
+                              :pending-text "Issuing..."
+                              :on-click (fn []
+                                          (re-frame/dispatch [:meme/mint (merge @form-data
+                                                                                {:meme/title title
+                                                                                 :reg-entry/address address
+                                                                                 :send-tx/id tx-id})]))}
+         "Issue"]
+        [:label "Max " max-amount]]])))
+
+(defmethod panel :created [_ active-account]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:search-memes {:creator active-account}
+                                      [[:items [:reg-entry/address
+                                                :meme/meta-hash
+                                                :meme/number
+                                                :meme/title
+                                                :meme/total-minted
+                                                :meme/total-supply
+                                                :reg-entry/status]]
+                                       ;;:total-count
+                                       ]]]}])]
+    (fn []
+      (if (:graphql/loading? @query)
+        [:div "Loading..."]
+        [:div.tiles
+         (doall (map (fn [{:keys [:reg-entry/address :meme/meta-hash :meme/number
+                                  :meme/title :meme/total-supply :meme/total-minted
+                                  :reg-entry/status] :as meme}]
+                       (when address
+                         (let [status (graphql-utils/gql-name->kw status)]
+                           ^{:key address} [:div.meme-card-front {:style {:width 200
+                                                                          :height 280
+                                                                          :display "block"}}
+                                            [:img {:src (resolve-image meta-hash)}]
+                                            [:div [:b (str "#" number " " title)]]
+                                            [:div [:span (str total-minted "/" total-supply" Issued")]]
+                                            [:div
+                                             (cond
+                                               (= status :reg-entry.status/whitelisted)
+                                               [:label [:b "In Registry"]]
+
+                                               (= status :reg-entry.status/blacklisted)
+                                               [:label [:b "Rejected"]]
+
+                                               :else
+                                               [:label [:b "Challenged"]])]
+
+                                            (when (= status :reg-entry.status/whitelisted)
+                                              [issue-form {:meme/title title
+                                                           :reg-entry/address address
+                                                           :max-amount (- total-supply total-minted)}])])))
+                     (-> @query :search-memes :items)))]))))
+
+(defmethod stats :created [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
                                       [[:items [:meme-auction/start-price
@@ -219,7 +297,7 @@
               style {:background-color "yellow"
                      :display "inline-block"
                      :white-space "normal"}]
-          [:div.header {:style {:white-space "nowrap"}}
+          [:div.rank {:style {:white-space "nowrap"}}
            [:div.rank {:style {:background-color "orange"
                                :display "inline-block"}}
             (str "RANK: " creator-rank)]
@@ -237,111 +315,13 @@
                      format/format-eth)
                  " (#" number " " title ")")]])))))
 
-(defn issue-form [{:keys [:meme/title :reg-entry/address :max-amount]}]
-  (let [tx-id (str (random-uuid))
-        form-data (r/atom {:meme/amount max-amount})
-        errors (ratom/reaction {:local #(let [{:keys [:amount]} @form-data]
-                                          (and (not (js/isNaN amount))
-                                               (int? amount)
-                                               (<= amount max-amount)))})
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/mint tx-id}])]
-    (fn []
-      [:div.issue-form
-       [:div.field
-        [inputs/text-input {:form-data form-data
-                            :errors errors
-                            :id :meme/amount}]
-        [tx-button/tx-button {:primary true
-                              :disabled false
-                              :pending? @tx-pending?
-                              :pending-text "Issuing..."
-                              :on-click (fn []
-                                          (re-frame/dispatch [:meme/mint (merge @form-data
-                                                                                {:meme/title title
-                                                                                 :reg-entry/address address
-                                                                                 :send-tx/id tx-id})]))}
-         "Issue"]
-        [:label "Max " max-amount]]])))
-
-(defmethod panel :created [tab active-account]
-  (let [created (subscribe [::gql/query
-                            {:queries [[:search-memes {:creator active-account}
-                                        [[:items [:reg-entry/address
-                                                  :meme/meta-hash
-                                                  :meme/number
-                                                  :meme/title
-                                                  :meme/total-minted
-                                                  :meme/total-supply
-                                                  :reg-entry/status]]
-                                         :total-count]]]}])]
-    (fn []
-      (if (:graphql/loading? @created)
-        [:div "Loading..."]
-        [:div.canvas
-         [(header tab active-account)]
-         [:div.tiles
-          (doall (map (fn [{:keys [:reg-entry/address :meme/meta-hash :meme/number
-                                   :meme/title :meme/total-supply :meme/total-minted
-                                   :reg-entry/status] :as meme}]
-                        (when address
-                          (let [status (graphql-utils/gql-name->kw status)]
-                            ^{:key address} [:div.meme-card-front {:style {:width 200
-                                                                           :height 280
-                                                                           :display "block"}}
-                                             [:img {:src (resolve-image meta-hash)}]
-                                             [:div [:b (str "#" number " " title)]]
-                                             [:div [:span (str total-minted "/" total-supply" Issued")]]
-                                             [:div
-                                              (cond
-                                                (= status :reg-entry.status/whitelisted)
-                                                [:label [:b "In Registry"]]
-
-                                                (= status :reg-entry.status/blacklisted)
-                                                [:label [:b "Rejected"]]
-
-                                                :else
-                                                [:label [:b "Challenged"]])]
-
-                                             (when (= status :reg-entry.status/whitelisted)
-                                               [issue-form {:meme/title title
-                                                            :reg-entry/address address
-                                                            :max-amount (- total-supply total-minted)}])])))
-                      (-> @created :search-memes :items)))]]))))
-
-(defmethod header :curated [_ active-account]
+(defmethod total :created [_ active-account]
   (let [query (subscribe [::gql/query
-                          {:queries [[:user {:user/address active-account}
-                                      [:user/curator-rank
-                                       :user/total-created-challenges
-                                       :user/total-created-challenges-success
-                                       :user/challenger-total-earned
-                                       :user/total-participated-votes
-                                       :user/total-participated-votes-success
-                                       :user/voter-total-earned]]]}])]
+                          {:queries [[:search-memes {:creator active-account}
+                                      [:total-count]]]}])]
     (fn []
-      (if (:graphql/loading? @query)
-        [:div.loading "Loading..."]
-        (let [{:keys [:user/curator-rank :user/total-created-challenges :user/total-created-challenges-success
-                      :user/challenger-total-earned :user/total-participated-votes :user/total-participated-votes-success
-                      :user/voter-total-earned]} (:user @query)
-              style {:background-color "yellow"
-                     :display "inline-block"}]
-          [:div.header
-           [:div.rank {:style {:background-color "orange"
-                               :display "inline-block"}}
-            (str "RANK: " curator-rank)]
-           [:div.curator {:style style}
-            [:div.challenges
-             "CHALLENGES:"
-             [:div {:style style} [:b "Success Rate:"] total-created-challenges-success "/" total-created-challenges
-              " (" (format-percentage total-created-challenges-success total-created-challenges)  ")"]
-             [:div {:style style} [:b "Earned:"] (str (web3/from-wei challenger-total-earned :ether) " DANK")]]
-            [:div.votes "VOTES:"
-             [:div {:style style} [:b "Success Rate:"] total-participated-votes "/" total-participated-votes-success
-              " (" (format-percentage total-participated-votes-success total-participated-votes)  ")"]
-             [:div {:style style} [:b "Earned:"] (str (web3/from-wei voter-total-earned :ether) " DANK")]]
-            [:div.total-earnings "TOTAL-EARNINGS:"
-             [:div {:style style} (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")]]]])))))
+      [:div.total {:style {:grid-area "total"}} "Total " (when (not (:graphql/loading? @query))
+                                                           (get-in @query [:search-memes :total-count]))])))
 
 (defmethod panel :curated [tab active-account]
   (let [query (subscribe [::gql/query
@@ -352,12 +332,13 @@
                                                 :meme/title
                                                 [:challenge/vote {:vote/voter active-account}
                                                  [:vote/option]]]]
-                                       :total-count]]]}])]
+                                       ;;:total-count
+                                       ]]]}])]
     (fn []
       (if (:graphql/loading? @query)
         [:div "Loading..."]
         [:div.canvas
-         [(header tab active-account)]
+         #_[(rank tab active-account)]
          [:div.tiles
           (map (fn [{:keys [:reg-entry/address :meme/meta-hash :meme/number
                             :meme/title :challenge/vote] :as meme}]
@@ -383,6 +364,49 @@
                                           [:b "Voted Stank"]
                                           [:i.icon.thumbs.down.outline]])]])))
                (-> @query :search-memes :items))]]))))
+
+(defmethod stats :curated [_ active-account]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:user {:user/address active-account}
+                                      [:user/curator-rank
+                                       :user/total-created-challenges
+                                       :user/total-created-challenges-success
+                                       :user/challenger-total-earned
+                                       :user/total-participated-votes
+                                       :user/total-participated-votes-success
+                                       :user/voter-total-earned]]]}])]
+    (fn []
+      (if (:graphql/loading? @query)
+        [:div.loading "Loading..."]
+        (let [{:keys [:user/curator-rank :user/total-created-challenges :user/total-created-challenges-success
+                      :user/challenger-total-earned :user/total-participated-votes :user/total-participated-votes-success
+                      :user/voter-total-earned]} (:user @query)
+              style {:background-color "yellow"
+                     :display "inline-block"}]
+          [:div.stats {:style {:display "block"}}
+           [:div.rank {:style {:background-color "orange"
+                               :display "inline-block"}}
+            (str "RANK: " curator-rank)]
+           [:div.curator {:style style}
+            [:div.challenges
+             "CHALLENGES:"
+             [:div {:style style} [:b "Success Rate:"] total-created-challenges-success "/" total-created-challenges
+              " (" (format-percentage total-created-challenges-success total-created-challenges)  ")"]
+             [:div {:style style} [:b "Earned:"] (str (web3/from-wei challenger-total-earned :ether) " DANK")]]
+            [:div.votes "VOTES:"
+             [:div {:style style} [:b "Success Rate:"] total-participated-votes "/" total-participated-votes-success
+              " (" (format-percentage total-participated-votes-success total-participated-votes)  ")"]
+             [:div {:style style} [:b "Earned:"] (str (web3/from-wei voter-total-earned :ether) " DANK")]]
+            [:div.total-earnings "TOTAL-EARNINGS:"
+             [:div {:style style} (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")]]]])))))
+
+(defmethod total :curated [_ active-account]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:search-memes {:curator active-account}
+                                      [:total-count]]]}])]
+    (fn []
+      [:div.total {:style {:grid-area "total"}} "Total " (when (not (:graphql/loading? @query))
+                                                           (get-in @query [:search-memes :total-count]))])))
 
 (defmethod panel :selling [_ active-account]
   (let [query (subscribe [::gql/query
@@ -419,6 +443,14 @@
                                       [:div.price (format/format-eth (web3/from-wei price :ether))]])))
                (-> @query :search-meme-auctions :items)))]))))
 
+(defmethod total :selling [_ active-account]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/active]}
+                                      [:total-count]]]}])]
+    (fn []
+      [:div.total {:style {:grid-area "total"}} "Total " (when (not (:graphql/loading? @query))
+                                                           (get-in @query [:search-meme-auctions :total-count]))])))
+
 (defmethod panel :sold [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
@@ -454,24 +486,41 @@
                                       [:div.price (format/format-eth (web3/from-wei price :ether))]])))
                (-> @query :search-meme-auctions :items)))]))))
 
+(defmethod total :sold [_ active-account]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
+                                      [:total-count]]]}])]
+    (fn []
+      [:div.total {:style {:grid-area "total"}} "Total " (when (not (:graphql/loading? @query))
+                                                           (get-in @query [:search-meme-auctions :total-count]))])))
+
 (defn tabbed-pane []
   (let [tab (r/atom default-tab)
         active-account (subscribe [::accounts-subs/active-account])]
     (fn []
-      [:div.tabbed-pane
-       [:div.tabs
+      [:div.tabbed-pane {:style {:display "grid"
+                                 :grid-template-areas
+                                 "'tab tab tab tab tab total'
+                                   'rank rank rank rank rank rank'
+                                   'panel panel panel panel panel panel'"}}
+       [:div.header {:style {:grid-area "tab"}}
         (map (fn [tab-id]
-               ^{:key tab-id} [:label
-                               {:on-click (fn [evt]
-                                            (reset! tab tab-id))}
-                               [:a (-> tab-id
-                                       name
-                                       (str/capitalize))]])
+               ^{:key tab-id} [:div {:style {:display "inline-block"}}
+                               [:a {:on-click (fn [evt]
+                                                (reset! tab tab-id))}
+                                (-> tab-id
+                                    name
+                                    (str/capitalize))]])
              [:collected :created :curated :selling :sold])]
+       [(total @tab @active-account)]
        (if (nil? @active-account)
-         [:div.loading "Loading..."]
-         [:div.panel
-          [(panel @tab @active-account)]])])))
+         [:div.loading {:style {:grid-area "panel"}} "Loading..."]
+         [:div.rank-and-panel
+          (when (not (contains? #{:selling :sold} @tab))
+            [:div.rank {:style {:grid-area "rank"}}
+             [(stats @tab @active-account)]])
+          [:div.panel {:style {:grid-area "panel"}}
+           [(panel @tab @active-account)]]])])))
 
 (defmethod page :route.memefolio/index []
   (let [search-atom (r/atom {:term ""})]
@@ -480,5 +529,4 @@
        {:meta {:title "MemeFactory"
                :description "Description"}
         :search-atom search-atom}
-       [:div.memefolio
-        [tabbed-pane]]])))
+       [tabbed-pane]])))
