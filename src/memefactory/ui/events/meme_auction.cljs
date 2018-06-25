@@ -18,7 +18,7 @@
 (reg-event-fx
  :meme-auction/buy
  [interceptors]
- (fn [{:keys [:db]} [{:keys [:meme-auction/address :value] :as args}]]
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :value] :as args}]]
    (let [active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance address
                                       :fn :buy

@@ -17,13 +17,14 @@
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(defn build-tiles-query [{:keys [:search-term :order-by :order-dir]} after]
+(defn build-tiles-query [{:keys [:search-term :order-by :order-dir :only-cheapest?]} after]
   [:search-meme-auctions
    (cond-> {:first 2}
      (not-empty search-term) (assoc :title search-term)
      after                   (assoc :after after)
      order-by                (assoc :order-by order-by)
-     order-dir               (assoc :order-dir order-dir))
+     order-dir               (assoc :order-dir order-dir)
+     only-cheapest?          (assoc :group-by :meme-auctions.group-by/cheapest))
    [:total-count
     :end-cursor
     :has-next-page
@@ -44,28 +45,27 @@
   (let [auctions-search (subscribe [::gql/query {:queries [(look (build-tiles-query @form-data nil))]}
                                     {:id :auctions-search
                                      :disable-fetch? true}])]
-    (fn [form-data]
-      (.log js/console "Re Rendering !!!!") 
-      (if (:graphql/loading? @auctions-search)
-        [:div "Loading ..."]
-        (let [all-auctions (->> (look @auctions-search)
-                                (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
-          (.log js/console "All auctions" (map :meme-auction/address all-auctions))
-          [:div.tiles 
-           [react-infinite {:element-height 280
-                            :container-height 300
-                            :infinite-load-begin-edge-offset 100
-                            :on-infinite-load (fn [] 
-                                                (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
-                                                  (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                                  (dispatch [:district.ui.graphql.events/query
-                                                             {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                              :id :auctions-search}])))}
-            (doall
-             (for [{:keys [:meme-auction/address] :as auc} all-auctions]
-               (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
-                 ^{:key address}
-                 [tiles/auction-tile {:on-buy-click #()} auc])))]])))))
+    (.log js/console "Re Rendering !!!!") 
+    (if (:graphql/loading? @auctions-search)
+      [:div "Loading ..."]
+      (let [all-auctions (->> (look @auctions-search)
+                              (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
+        (.log js/console "All auctions" (map :meme-auction/address all-auctions))
+        [:div.tiles 
+         [react-infinite {:element-height 280
+                          :container-height 300
+                          :infinite-load-begin-edge-offset 100
+                          :on-infinite-load (fn [] 
+                                              (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
+                                                (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                                (dispatch [:district.ui.graphql.events/query
+                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                            :id :auctions-search}])))}
+          (doall
+           (for [{:keys [:meme-auction/address] :as auc} all-auctions]
+             (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
+               ^{:key address}
+               [tiles/auction-tile {:on-buy-click #()} auc])))]]))))
 
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])
