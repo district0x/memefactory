@@ -1,19 +1,14 @@
 (ns memefactory.ui.components.search
   (:require
-   [district.ui.component.form.chip-input :refer [chip-input]]
-   [district.ui.component.form.input :refer [select-input text-input checkbox-input with-label]]
-   [print.foo :refer [look] :include-macros true]
-   ))
+   [district.ui.component.form.input :refer [select-input text-input checkbox-input with-label chip-input]]
+   [print.foo :refer [look] :include-macros true])
+  (:require-macros [reagent.ratom :refer [reaction]]))
 
 (defn chip-render [c]
   [:span c])
 
 (defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filter
-                            on-selected-tags-change on-search-change on-check-filter-change on-select-change]
-                     :or {select-options  [{:key "started-on" :value "Newest"}
-                                           {:key "meme-total-minted" :value "Rarest"}
-                                           {:key "price" :value "Cheapest"}
-                                           {:key "random" :value "Random"}]}}]
+                            on-selected-tags-change on-search-change on-check-filter-change on-select-change]}]
   [:div.container
    [:div.left-section
     [:div.header
