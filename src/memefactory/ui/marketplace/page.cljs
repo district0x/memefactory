@@ -94,6 +94,10 @@
                        :title "Marketplace"
                        :sub-title "Sub title"
                        :on-selected-tags-change re-search
+                       :select-options [{:key "started-on" :value "Newest"}
+                                        {:key "meme-total-minted" :value "Rarest"}
+                                        {:key "price" :value "Cheapest"}
+                                        {:key "random" :value "Random"}]
                        :on-search-change re-search
                        :on-check-filter-change re-search
                        :on-select-change re-search}]

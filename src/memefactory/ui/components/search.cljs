@@ -8,11 +8,7 @@
   [:span c])
 
 (defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filter
-                            on-selected-tags-change on-search-change on-check-filter-change on-select-change]
-                     :or {select-options  [{:key "started-on" :value "Newest"}
-                                           {:key "meme-total-minted" :value "Rarest"}
-                                           {:key "price" :value "Cheapest"}
-                                           {:key "random" :value "Random"}]}}]
+                            on-selected-tags-change on-search-change on-check-filter-change on-select-change]}]
   [:div.container
    [:div.left-section
     [:div.header
