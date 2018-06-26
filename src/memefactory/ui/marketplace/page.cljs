@@ -44,7 +44,7 @@
                  :meme/total-minted]]]]]]]])
 
 (defn marketplace-tiles [form-data]
-  (let [auctions-search (subscribe [::gql/query {:queries [(look (build-tiles-query @form-data nil))]}
+  (let [auctions-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
                                     {:id @form-data
                                      :disable-fetch? true}])
         all-auctions (->> @auctions-search
@@ -75,33 +75,32 @@
                     (r/atom {:search-term ""
                              :order-by (or (:order-by query) "started-on") 
                              :order-dir (or (:order-dir query) "desc")}))
-        all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
-        re-search (fn [& _]
-                    (dispatch [:district.ui.graphql.events/query
-                               {:query {:queries [(build-tiles-query @form-data nil)]}
-                                :id :auctions-search}]))]
+        all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     (fn []
-      [app-layout
-       {:meta {:title "MemeFactory"
-               :description "Description"}}
-       [:div.marketplace
-        [search-tools {:form-data form-data
-                       :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
-                       :search-id :search-term  
-                       :selected-tags-id :search-tags
-                       :check-filter {:label "Show only cheapest offering of meme"
-                                      :id :only-cheapest?}
-                       :title "Marketplace"
-                       :sub-title "Sub title"
-                       :on-selected-tags-change re-search
-                       :select-options [{:key "started-on" :value "Newest"}
-                                        {:key "meme-total-minted" :value "Rarest"}
-                                        {:key "price" :value "Cheapest"}
-                                        {:key "random" :value "Random"}]
-                       :on-search-change re-search
-                       :on-check-filter-change re-search
-                       :on-select-change re-search}]
-        [marketplace-tiles form-data]]])))
+      (let [re-search (fn [& _]
+                        (dispatch [:district.ui.graphql.events/query
+                                   {:query {:queries [(build-tiles-query @form-data nil)]}}]))]
+        [app-layout
+         {:meta {:title "MemeFactory"
+                 :description "Description"}}
+         [:div.marketplace
+          [search-tools {:form-data form-data
+                         :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
+                         :search-id :search-term  
+                         :selected-tags-id :search-tags
+                         :check-filter {:label "Show only cheapest offering of meme"
+                                        :id :only-cheapest?}
+                         :title "Marketplace"
+                         :sub-title "Sub title"
+                         :on-selected-tags-change re-search
+                         :select-options [{:key "started-on" :value "Newest"}
+                                          {:key "meme-total-minted" :value "Rarest"}
+                                          {:key "price" :value "Cheapest"}
+                                          {:key "random" :value "Random"}]
+                         :on-search-change re-search
+                         :on-check-filter-change re-search
+                         :on-select-change re-search}]
+          [marketplace-tiles form-data]]]))))
 
 (defmethod page :route.marketplace/index []
   [index-page]) 

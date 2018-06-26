@@ -14,13 +14,16 @@
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(defn build-tiles-query [{:keys [:search-term :order-by :order-dir :only-cheapest?]} after]
+(def page-size 2)
+
+(defn build-tiles-query [{:keys [:search-term :order-by :search-tags :order-dir :only-cheapest?]} after]
   [:search-memes
-   (cond-> {:first 2}
+   (cond-> {:first page-size}
      (not-empty search-term) (assoc :title search-term)
+     (not-empty search-tags) (assoc :tags search-tags)
      after                   (assoc :after after)
-     order-by                (assoc :order-by order-by)
-     order-dir               (assoc :order-dir order-dir))
+     order-by                (assoc :order-by (keyword "memes.order-by" order-by))
+     order-dir               (assoc :order-dir (keyword order-dir)))
    [:total-count
     :end-cursor
     :has-next-page
@@ -29,48 +32,55 @@
 
 (defn dank-registry-tiles [form-data]
   (let [meme-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
-                                {:id :meme-search}])
+                                {:id @form-data
+                                 :disable-fetch? true}])
         all-memes (->> @meme-search
                        (mapcat (fn [r] (-> r :search-memes :items))))]
     (.log js/console "All memes " (map :reg-entry/address all-memes))
-    (if (:graphql/loading? @meme-search)
-      [:div "Loading ..."]
-      [:div.tiles
-       [react-infinite {:element-height 280
-                        :container-height 300
-                        :infinite-load-begin-edge-offset 100
-                        :use-window-as-scroll-container true
-                        :on-infinite-load (fn []
-                                            (when-not (:graphql/loading? @meme-search)
-                                              (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
-                                               (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                               (when (or has-next-page (empty? all-memes))
-                                                 (dispatch [:district.ui.graphql.events/query
-                                                            {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                             :id :meme-search}])))))}
-        (doall
-         (for [{:keys [:reg-entry/address] :as meme} all-memes]
-           ^{:key address}
-           [tiles/meme-tile {:on-buy-click #()} meme]))]]))) 
+    [:div.tiles
+     [react-infinite {:element-height 280
+                      :container-height 300
+                      :infinite-load-begin-edge-offset 100
+                      :use-window-as-scroll-container true
+                      :on-infinite-load (fn []
+                                          (when-not (:graphql/loading? @meme-search)
+                                            (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
+                                              (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                              (when (or has-next-page (empty? all-memes))
+                                                (dispatch [:district.ui.graphql.events/query
+                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                            :id @form-data}])))))}
+      (doall
+       (for [{:keys [:reg-entry/address] :as meme} all-memes]
+         ^{:key address}
+         [tiles/meme-tile {} meme]))]])) 
 
 (defmethod page :route.dank-registry/index []
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
                     (r/atom {:term ""
-                             :order-by (if-let [o (:order-by query)]
-                                         (keyword "memes.order-by" o)
-                                         :memes.order-by/created-on)
-                             :order-dir (or (keyword (:order-dir query)) :desc)}))
+                             :order-by (or (:order-by query) "created-on")
+                             :order-dir (or (:order-dir query) "desc")}))
         all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     (fn []
-      [app-layout
-       {:meta {:title "MemeFactory"
-               :description "Description"}}
-       [:div.dank-registry.index
-        [search-tools {:form-data form-data
-                       :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
-                       :search-id :term  
-                       :selected-tags-id :search-tags}] 
-        [dank-registry-tiles form-data]]])))
+      (let [re-search (fn [& _]
+                        (dispatch [:district.ui.graphql.events/query
+                                   {:query {:queries [(build-tiles-query @form-data nil)]}}]))]
+       [app-layout
+        {:meta {:title "MemeFactory"
+                :description "Description"}}
+        [:div.dank-registry.index
+         [search-tools {:form-data form-data
+                        :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
+                        :search-id :term  
+                        :selected-tags-id :search-tags
+                        :title "Dank registry"
+                        :sub-title "Sub title"
+                        :on-selected-tags-change re-search
+                        :select-options [{:key "created-on" :value "Newest"}]
+                        :on-search-change re-search
+                        :on-check-filter-change re-search
+                        :on-select-change re-search}] 
+         [dank-registry-tiles form-data]]]))))
 
 
