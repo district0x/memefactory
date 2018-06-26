@@ -12,7 +12,7 @@
 
 (defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id check-filter
                             on-selected-tags-change on-search-change on-check-filter-change on-select-change]}]
-  (let [{:keys [:name :query :params]} (look @(re-frame/subscribe [::router-subs/active-page]))]
+  (let [{:keys [:name :query :params]} @(re-frame/subscribe [::router-subs/active-page])]
     [:div.container
      [:div.left-section
       [:div.header
@@ -36,9 +36,9 @@
                     :on-change on-selected-tags-change
                     :chip-render-fn chip-render}]
        (when check-filter
-         (let [{:keys [id label ]} check-filter]
+         (let [{:keys [id label]} check-filter]
            [with-label label
-            [checkbox-input {:form-data (look form-data)
+            [checkbox-input {:form-data form-data
                              :id id
                              :on-change on-check-filter-change}]]))]]
      [:div.right-section
