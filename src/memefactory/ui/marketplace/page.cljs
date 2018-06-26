@@ -48,7 +48,7 @@
     (.log js/console "Re Rendering !!!!") 
     (if (:graphql/loading? @auctions-search)
       [:div "Loading ..."]
-      (let [all-auctions (->> (look @auctions-search)
+      (let [all-auctions (->> @auctions-search
                               (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
         (.log js/console "All auctions" (map :meme-auction/address all-auctions))
         [:div.tiles 
@@ -68,19 +68,23 @@
            (for [{:keys [:meme-auction/address] :as auc} all-auctions]
              (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
                ^{:key address}
-               [tiles/auction-tile {:on-buy-click #()} auc])))]]))))
+               [tiles/auction-tile {} auc])))]]))))
 
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
-                    (r/atom {:term ""
+                    (r/atom {:search-term ""
                              :order-by (if-let [o (:order-by query)]
                                          (keyword "meme-auctions.order-by" o)
                                          :meme-auctions.order-by/started-on)
                              :order-dir (or (keyword (:order-dir query)) :desc)}))
-        all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
+        all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
+        re-search (fn [& _]
+                    (dispatch [:district.ui.graphql.events/query
+                               {:query {:queries [(look (build-tiles-query @form-data nil))]}
+                                :id :auctions-search}]))]
     (fn []
-      (look (keys @all-tags-subs))
+      (keys @all-tags-subs)
       (if (:graphql/loading? @all-tags-subs)
         [:div "Loading ..."]
         [app-layout
@@ -89,10 +93,16 @@
          [:div.marketplace
           [search-tools {:form-data form-data
                          :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
-                         :search-id :term  
+                         :search-id :search-term  
                          :selected-tags-id :search-tags
                          :check-filter {:label "Show only cheapest offering of meme"
-                                        :id :only-cheapest?}}]
+                                        :id :only-cheapest?}
+                         :title "Marketplace"
+                         :sub-title "Sub title"
+                         :on-selected-tags-change re-search
+                         :on-search-change re-search
+                         :on-check-filter-change re-search
+                         :on-select-change re-search}]
           [marketplace-tiles form-data]]]))))
 
 (defmethod page :route.marketplace/index []
