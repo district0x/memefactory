@@ -2,7 +2,6 @@
   (:require
    [district.ui.component.form.chip-input :refer [chip-input]]
    [district.ui.component.form.input :refer [select-input text-input checkbox-input with-label]]
-   [district.ui.router.events :as router-events]
    [district.ui.router.subs :as router-subs]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
@@ -10,24 +9,6 @@
 
 (defn chip-render [c]
   [:span c])
-
-;; title -> (cond
-;;               (= :route.marketplace/index name)
-;;               "Marketplace"
-
-;;               (= :route.memefolio/index name)
-;;               "My Memefolio"
-
-;;               :else name)
-
-;; on-search-change #(re-frame/dispatch [::router-events/navigate name params (merge query
-;;                                                                                   {search-id %})])
-
-;; on-select-change #(re-frame/dispatch [::router-events/navigate name params (merge query
-;;                                                                                   {:order-by %})])
-
-;; on-check-filter-change #(re-frame/dispatch [::router-events/navigate name params (merge query
-;;                                                                                         {id (str (id @form-data))})])
 
 (defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id check-filter
                             on-selected-tags-change on-search-change on-check-filter-change on-select-change]}]

@@ -9,6 +9,8 @@
    [district.ui.component.form.input :as inputs]
    [district.ui.component.input :as input]
    [district.ui.component.page :refer [page]]
+   [district.ui.router.events :as router-events]
+   [district.ui.router.subs :as router-subs]
    [district.ui.component.tx-button :as tx-button]
    [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router-subs]
@@ -45,9 +47,6 @@
 
 (defn resolve-image [meta-hash]
   "http://upload.wikimedia.org/wikipedia/en/thumb/6/63/Feels_good_man.jpg/200px-Feels_good_man.jpg")
-
-(defn collected-tile-front [{:keys [:meme/meta-hash]}]
-  [:img {:src (resolve-image meta-hash)}])
 
 (defn sell-form [{:keys [:meme/title :meme-auction/token-count :meme-auction/token-ids :show?]}]
   (let [tx-id (str (random-uuid))
@@ -103,6 +102,9 @@
                                                                                                                                                 (map int))})]))}
          "Create Offering"]]])))
 
+(defn collected-tile-front [{:keys [:meme/meta-hash]}]
+  [:img {:src (resolve-image meta-hash)}])
+
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]
   (let [sell? (r/atom false)]
     (fn []
@@ -119,9 +121,6 @@
                      :show? sell?}]]))))
 
 (defmethod panel :collected [tab active-account form-data]
-
-
-
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:owner active-account}
                                       [[:items [:reg-entry/address
@@ -507,14 +506,12 @@
 (defn tabbed-pane []
   (let [tab (r/atom default-tab)
         active-account (subscribe [::accounts-subs/active-account])
-        active-page (subscribe [::router-subs/active-page])
-        form-data (let [{:keys [:name :query :params]} @active-page]
-                    (r/atom {:term (:term query)
-                             ;;:gro
-                             :order-by (if-let [o (:order-by query)]
-                                         (keyword "meme-auctions.order-by" o)
-                                         :meme-auctions.order-by/started-on)
-                             :order-dir (or (keyword (:order-dir query)) :desc)}))
+        {:keys [:name :query :params]} @(subscribe [::router-subs/active-page])
+        form-data (r/atom {:term (:term query)
+                           :order-by (if-let [o (:order-by query)]
+                                       (keyword "meme-auctions.order-by" o)
+                                       :meme-auctions.order-by/started-on)
+                           :order-dir (or (keyword (:order-dir query)) :desc)})
 
         all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     (fn []
@@ -526,14 +523,21 @@
                                   'panel panel panel panel panel panel'"}}
        [:div {:style {:grid-area "search"}}
 
-        [search/search-tools {:form-data form-data
+        [search/search-tools {:title "My Memefolio"
+                              :form-data form-data
                               :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
-                              :search-id :term
                               :selected-tags-id :search-tags
+                              :search-id :term
                               :check-filter {:label "Group by memes"
-                                             :id :group-by-memes?
-                                             ;;:checked true
-                                             }}]
+                                             :id :group-by-memes?}
+                              :on-selected-tags-change #(prn :todo)
+                              :on-search-change #(re-frame/dispatch [::router-events/navigate name params (merge query
+                                                                                                                 {:term (:term @form-data)})])
+                              :on-check-filter-change #(re-frame/dispatch [::router-events/navigate name params (merge query
+                                                                                                                       {:group-by-memes? (str (:group-by-memes? @form-data))})])
+                              :on-select-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:order-by
+                                                                                                                        (:order-by @form-data)})])}]
+
         ]
        [:div.header {:style {:grid-area "tab"}}
         (map (fn [tab-id]
@@ -541,7 +545,7 @@
                                [:a {:on-click (fn [evt]
                                                 (reset! tab tab-id))}
                                 (-> tab-id
-                                    name
+                                    cljs.core/name
                                     (str/capitalize))]])
              [:collected :created :curated :selling :sold])]
        [(total @tab @active-account)]
