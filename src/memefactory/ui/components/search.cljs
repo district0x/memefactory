@@ -11,24 +11,35 @@
 (defn chip-render [c]
   [:span c])
 
-(defn search-tools [{:keys [form-data tags selected-tags-id search-id check-filter]}]
+;; title -> (cond
+;;               (= :route.marketplace/index name)
+;;               "Marketplace"
+
+;;               (= :route.memefolio/index name)
+;;               "My Memefolio"
+
+;;               :else name)
+
+;; on-search-change #(re-frame/dispatch [::router-events/navigate name params (merge query
+;;                                                                                   {search-id %})])
+
+;; on-select-change #(re-frame/dispatch [::router-events/navigate name params (merge query
+;;                                                                                   {:order-by %})])
+
+;; on-check-filter-change #(re-frame/dispatch [::router-events/navigate name params (merge query
+;;                                                                                         {id (str (id @form-data))})])
+
+(defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id check-filter
+                            on-selected-tags-change on-search-change on-check-filter-change on-select-change]}]
   (let [{:keys [:name :query :params]} (look @(re-frame/subscribe [::router-subs/active-page]))]
     [:div.container
      [:div.left-section
       [:div.header
        [:img]
-       [:h2 (cond
-              (= :route.marketplace/index name)
-              "Marketplace"
-
-              (= :route.memefolio/index name)
-              "My Memefolio"
-
-              :else name)]
+       [:h2 title]
        [:h3 "Lorem ipsum dolor..."]]
       [:div.body
-       [text-input {:on-change #(re-frame/dispatch [::router-events/navigate name params (merge query
-                                                                                                {search-id %})])
+       [text-input {:on-change on-search-change
                     :form-data form-data
                     :id search-id}]
        [select-input {:form-data form-data
@@ -37,20 +48,17 @@
                                 {:key "meme-total-minted" :value "Rarest"}
                                 {:key "price" :value "Cheapest"}
                                 {:key "random" :value "Random"}]
-                      :on-change #(re-frame/dispatch [::router-events/navigate name params (merge query
-                                                                                                  {:order-by %})])}]
+                      :on-change on-select-change}]
        [chip-input {:form-data form-data
                     :chip-set-path [selected-tags-id]
                     :ac-options tags
+                    :on-change on-selected-tags-change
                     :chip-render-fn chip-render}]
        (when check-filter
          (let [{:keys [id label ]} check-filter]
            [with-label label
             [checkbox-input {:form-data (look form-data)
                              :id id
-                             :checked (when (= "true" (id query))
-                                        true)
-                             :on-change #(re-frame/dispatch [::router-events/navigate name params (merge query
-                                                                                                         {id (str (id @form-data))})])}]]))]]
+                             :on-change on-check-filter-change}]]))]]
      [:div.right-section
       [:img]]]))
