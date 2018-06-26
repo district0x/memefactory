@@ -176,7 +176,7 @@
                         :join [[:meme-tokens :mt] [:= :mt.meme-token/token-id :ma.meme-auction/token-id]
                                [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]]
                         :left-join [[:meme-tags :mtags] [:= :mtags.reg-entry/address :m.reg-entry/address]]}
-                 title         (sqlh/merge-where [:= :m.meme/title title])
+                 title         (sqlh/merge-where [:like :m.meme/title (str "%" title "%")])
                  seller        (sqlh/merge-where [:= :ma.meme-auction/seller seller])
                  tags          (sqlh/merge-where [:=
                                                   (count tags)
