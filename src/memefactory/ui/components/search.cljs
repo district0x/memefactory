@@ -7,8 +7,12 @@
 (defn chip-render [c]
   [:span c])
 
-(defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id check-filter
-                            on-selected-tags-change on-search-change on-check-filter-change on-select-change]}]
+(defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filter
+                            on-selected-tags-change on-search-change on-check-filter-change on-select-change]
+                     :or {select-options  [{:key "started-on" :value "Newest"}
+                                           {:key "meme-total-minted" :value "Rarest"}
+                                           {:key "price" :value "Cheapest"}
+                                           {:key "random" :value "Random"}]}}]
   [:div.container
    [:div.left-section
     [:div.header
@@ -21,10 +25,7 @@
                   :id search-id}]
      [select-input {:form-data form-data
                     :id :order-by
-                    :options [{:key "started-on" :value "Newest"}
-                              {:key "meme-total-minted" :value "Rarest"}
-                              {:key "price" :value "Cheapest"}
-                              {:key "random" :value "Random"}]
+                    :options select-options
                     :on-change on-select-change}]
      [chip-input {:form-data form-data
                   :chip-set-path [selected-tags-id]
