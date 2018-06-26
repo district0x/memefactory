@@ -2,7 +2,6 @@
   (:require
    [district.ui.component.form.chip-input :refer [chip-input]]
    [district.ui.component.form.input :refer [select-input text-input checkbox-input with-label]]
-   [district.ui.router.events :as router-events]
    [district.ui.router.subs :as router-subs]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
@@ -11,27 +10,9 @@
 (defn chip-render [c]
   [:span c])
 
-;; title -> (cond
-;;               (= :route.marketplace/index name)
-;;               "Marketplace"
-
-;;               (= :route.memefolio/index name)
-;;               "My Memefolio"
-
-;;               :else name)
-
-;; on-search-change #(re-frame/dispatch [::router-events/navigate name params (merge query
-;;                                                                                   {search-id %})])
-
-;; on-select-change #(re-frame/dispatch [::router-events/navigate name params (merge query
-;;                                                                                   {:order-by %})])
-
-;; on-check-filter-change #(re-frame/dispatch [::router-events/navigate name params (merge query
-;;                                                                                         {id (str (id @form-data))})])
-
 (defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id check-filter
                             on-selected-tags-change on-search-change on-check-filter-change on-select-change]}]
-  (let [{:keys [:name :query :params]} (look @(re-frame/subscribe [::router-subs/active-page]))]
+  (let [{:keys [:name :query :params]} @(re-frame/subscribe [::router-subs/active-page])]
     [:div.container
      [:div.left-section
       [:div.header
@@ -55,9 +36,9 @@
                     :on-change on-selected-tags-change
                     :chip-render-fn chip-render}]
        (when check-filter
-         (let [{:keys [id label ]} check-filter]
+         (let [{:keys [id label]} check-filter]
            [with-label label
-            [checkbox-input {:form-data (look form-data)
+            [checkbox-input {:form-data form-data
                              :id id
                              :on-change on-check-filter-change}]]))]]
      [:div.right-section
