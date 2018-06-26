@@ -1,9 +1,8 @@
 (ns memefactory.ui.components.search
   (:require
-   [district.ui.component.form.chip-input :refer [chip-input]]
-   [district.ui.component.form.input :refer [select-input text-input checkbox-input with-label]]
-   [print.foo :refer [look] :include-macros true]
-   ))
+   [district.ui.component.form.input :refer [select-input text-input checkbox-input with-label chip-input]]
+   [print.foo :refer [look] :include-macros true])
+  (:require-macros [reagent.ratom :refer [reaction]]))
 
 (defn chip-render [c]
   [:span c])
