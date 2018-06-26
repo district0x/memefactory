@@ -7,6 +7,7 @@
   type Query {
     meme(regEntry_address: ID!): Meme
     searchMemes(statuses: [RegEntryStatus],
+                title: String,
                 orderBy: MemesOrderBy,
                 orderDir: OrderDir,
                 owner: String,
