@@ -1,8 +1,8 @@
 (ns memefactory.ui.memefolio.page
   (:require
+   [cljs-solidity-sha3.core :as sha3]
    [cljs-web3.core :as web3]
    [clojure.string :as str]
-   [cljs-solidity-sha3.core :as sha3]
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
    [district.time :as time]
@@ -11,11 +11,13 @@
    [district.ui.component.page :refer [page]]
    [district.ui.component.tx-button :as tx-button]
    [district.ui.graphql.subs :as gql]
+   [district.ui.router.subs :as router-subs]
    [district.ui.server-config.subs :as config-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :as app-layout]
+   [memefactory.ui.components.search :as search]
    [memefactory.ui.components.tiles :as tiles]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
@@ -23,15 +25,18 @@
    [reagent.ratom :as ratom]
    ))
 
-;; TODO: search
+;; TODO: search-term
+;; TODO: group-by memes
+;; TODO: tag filter
+
+;; TODO: infinite scroll
 
 ;; TODO: move to district.format
 (defn format-percentage [p t]
   (str (int (Math/fround (/ (* p 100.0) t))) "%"))
 
-(def default-tab :curated)
+(def default-tab :collected)
 
-;; TODO: infinite scroll
 (defmulti panel (fn [tab & opts] tab))
 
 (defmulti stats (fn [tab & opts] tab))
@@ -113,7 +118,10 @@
                      :meme-auction/token-count token-count
                      :show? sell?}]]))))
 
-(defmethod panel :collected [tab active-account]
+(defmethod panel :collected [tab active-account form-data]
+
+
+
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:owner active-account}
                                       [[:items [:reg-entry/address
@@ -422,7 +430,8 @@
                                                    [:meme/title
                                                     :meme/image-hash
                                                     :meme/total-minted]]]]]]
-                                       :total-count]]]}])]
+                                       ;;:total-count
+                                       ]]]}])]
     (fn []
       (if (:graphql/loading? @query)
         [:div "Loading..."]
@@ -465,7 +474,8 @@
                                                    [:meme/title
                                                     :meme/image-hash
                                                     :meme/total-minted]]]]]]
-                                       :total-count]]]}])]
+                                       ;;:total-count
+                                       ]]]}])]
     (fn []
       (if (:graphql/loading? @query)
         [:div "Loading..."]
@@ -496,13 +506,35 @@
 
 (defn tabbed-pane []
   (let [tab (r/atom default-tab)
-        active-account (subscribe [::accounts-subs/active-account])]
+        active-account (subscribe [::accounts-subs/active-account])
+        active-page (subscribe [::router-subs/active-page])
+        form-data (let [{:keys [:name :query :params]} @active-page]
+                    (r/atom {:term (:term query)
+                             ;;:gro
+                             :order-by (if-let [o (:order-by query)]
+                                         (keyword "meme-auctions.order-by" o)
+                                         :meme-auctions.order-by/started-on)
+                             :order-dir (or (keyword (:order-dir query)) :desc)}))
+
+        all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     (fn []
       [:div.tabbed-pane {:style {:display "grid"
                                  :grid-template-areas
-                                 "'tab tab tab tab tab total'
-                                   'rank rank rank rank rank rank'
-                                   'panel panel panel panel panel panel'"}}
+                                 "'search search search search search search'
+                                  'tab tab tab tab tab total'
+                                  'rank rank rank rank rank rank'
+                                  'panel panel panel panel panel panel'"}}
+       [:div {:style {:grid-area "search"}}
+
+        [search/search-tools {:form-data form-data
+                              :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
+                              :search-id :term
+                              :selected-tags-id :search-tags
+                              :check-filter {:label "Group by memes"
+                                             :id :group-by-memes?
+                                             ;;:checked true
+                                             }}]
+        ]
        [:div.header {:style {:grid-area "tab"}}
         (map (fn [tab-id]
                ^{:key tab-id} [:div {:style {:display "inline-block"}}
@@ -520,13 +552,11 @@
             [:div.rank {:style {:grid-area "rank"}}
              [(stats @tab @active-account)]])
           [:div.panel {:style {:grid-area "panel"}}
-           [(panel @tab @active-account)]]])])))
+           [(panel @tab @active-account @form-data)]]])])))
 
 (defmethod page :route.memefolio/index []
-  (let [search-atom (r/atom {:term ""})]
-    (fn []
-      [app-layout/app-layout
-       {:meta {:title "MemeFactory"
-               :description "Description"}
-        :search-atom search-atom}
-       [tabbed-pane]])))
+  (fn []
+    [app-layout/app-layout
+     {:meta {:title "MemeFactory"
+             :description "Description"}}
+     [tabbed-pane]]))
