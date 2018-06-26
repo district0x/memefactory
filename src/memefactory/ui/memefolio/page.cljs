@@ -120,9 +120,16 @@
                      :meme-auction/token-count token-count
                      :show? sell?}]]))))
 
+;; TODO: pass page query parameters
 (defmethod panel :collected [tab active-account form-data]
-  (let [query (subscribe [::gql/query
-                          {:queries [[:search-memes {:owner active-account}
+
+;;(prn form-data)
+
+  (let [{:keys [:term :order-by :order-dir]} (look form-data)
+        query (subscribe [::gql/query
+                          {:queries [[:search-memes (merge {:owner active-account}
+                                                           (when term
+                                                             {:title term}))
                                       [[:items [:reg-entry/address
                                                 :reg-entry/status
                                                 :meme/meta-hash
@@ -508,6 +515,7 @@
         active-account (subscribe [::accounts-subs/active-account])
         {:keys [:name :query :params]} @(subscribe [::router-subs/active-page])
         form-data (r/atom {:term (:term query)
+                           ;;:group-by-memes? (look (:group-by-memes? query))
                            :order-by (if-let [o (:order-by query)]
                                        (keyword "meme-auctions.order-by" o)
                                        :meme-auctions.order-by/started-on)
@@ -529,7 +537,9 @@
                               :selected-tags-id :search-tags
                               :search-id :term
                               :check-filter {:label "Group by memes"
-                                             :id :group-by-memes?}
+                                             :id :group-by-memes?
+                                             ;;:checked? (:group-by-memes? query)
+                                             }
                               :on-selected-tags-change #(prn :todo)
                               :on-search-change #(re-frame/dispatch [::router-events/navigate name params (merge query
                                                                                                                  {:term (:term @form-data)})])
