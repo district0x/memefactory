@@ -11,11 +11,15 @@
             [district.ui.web3-tx-id.subs :as tx-id-subs]
             [district.ui.component.tx-button :as tx-button]))
 
+(defn- random-img-url []
+  (str "/assets/images/examplememe" (rand-int 2) ".png"))
+
 (defn flippable-tile [{:keys [:front :back :id]}]
   (let [flipped? (r/atom false)
         flip #(swap! flipped? not)]
     (fn [{:keys [:front :back]}]
-      [:div.container (merge {:style {:width 300 :height 500 :background-color :orange :margin 5}
+      [:div.container (merge {;;:style {:width 300 :height 500 :background-color :orange :margin 5} no styles here
+
                               :on-click (fn [event]
                                           (if id
                                             (when (= id (-> event
@@ -29,8 +33,9 @@
          front)])))
 
 (defn auction-front-tile [opts {:keys [:meme/image-hash] :as meme}]
-  [:div.meme-card-front
-   [:img]
+  [:div.meme-card.front
+   [:img {:src (random-img-url)}]
+   [:div (str meme)]
    [:span (str "FRONT IMAGE" image-hash)]])
 
 (defn auction-back-tile [{:keys [:on-buy-click] :as opts} meme-auction]
@@ -44,6 +49,7 @@
                                            end-time)
             price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
        [:div.meme-card.back
+        [:img {:src (random-img-url)}]
         [:img.logo]
         [:ol
          [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]

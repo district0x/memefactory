@@ -17,7 +17,10 @@
    {:background (color :meme-panel-bg)
     :border-radius (em 1)
     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-    :margin (em 3)}
+    :margin-top (em 2)
+    :margin-right (em 6)
+    :margin-left (em 6)
+    }
    [:.icon
     {:display :block
      :background-size [(em 4) (em 4)]
