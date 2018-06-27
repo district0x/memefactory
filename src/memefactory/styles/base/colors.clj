@@ -12,6 +12,8 @@
                     :menu-text-hover "#5b6d8e"
                     :main-content-bg "#f2f4fb"
                     :meme-panel-bg "#FFFFFF"
+                    :meme-bg "rgba(73,35,86,.85)"
+                    :meme-info-text "white"
                     :new-meme-icon-bg "#FF0090"
                     :rare-meme-icon-bg "#1ff2c8"
                     :random-meme-icon-bg "#ffcc00"
