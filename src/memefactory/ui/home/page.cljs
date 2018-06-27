@@ -69,7 +69,7 @@
          [:div.new-on-marketplace
           [:div.icon]
           [:div.header
-           [:img]
+           [:img ]
            [:div.middle
             [:h2.title "New On Marketplace"]
             [:h3.title "Lorem ipsum ..."]]

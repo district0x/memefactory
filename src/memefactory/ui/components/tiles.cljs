@@ -11,6 +11,17 @@
             [district.ui.web3-tx-id.subs :as tx-id-subs]
             [district.ui.component.tx-button :as tx-button]))
 
+(defn- img-url-stub
+  ([]
+   (img-url-stub (rand-int 2)))
+  ([n]
+   (let [img (if (string? n)
+               (get {"IHASH3" 1
+                     "IHASH2" 0
+                     "IHASH5" 2} n n)
+               n)]
+     (str "/assets/images/examplememe" img ".png"))))
+
 (defn flippable-tile [{:keys [:front :back :id]}]
   (let [flipped? (r/atom false)
         flip #(swap! flipped? not)]
@@ -27,10 +38,10 @@
          back
          front)])))
 
-(defn auction-front-tile [opts {:keys [:meme/image-hash] :as meme}]
-  [:div.meme-card-front
-   [:img]
-   [:span (str "FRONT IMAGE" image-hash)]])
+(defn auction-front-tile [opts meme-token]
+  [:div.meme-card.front
+   [:img {:src (img-url-stub (get-in meme-token [:meme-token/meme :meme/image-hash]))}]
+   [:span (str "FRONT IMAGE" )]])
 
 (defn auction-back-tile [{:keys [:on-buy-click] :as opts} meme-auction]
   (let [tx-id (str (random-uuid))
@@ -43,6 +54,7 @@
                                            end-time)
             price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
        [:div.meme-card.back
+        [:img {:src (img-url-stub (:meme/image-hash meme-auction))}]
         [:img.logo]
         [:ol
          [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]
@@ -67,7 +79,7 @@
     (fn []
       (let [price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
         [:div.compact-tile
-        [flippable-tile {:front [auction-front-tile (-> meme-token :meme-token/meme)]
+        [flippable-tile {:front [auction-front-tile opts meme-token]
                          :back [auction-back-tile opts meme-auction]}]
         [:div.footer
          [:div.title (-> meme-token :meme-token/meme :meme/title)]
