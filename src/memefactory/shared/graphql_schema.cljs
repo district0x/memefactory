@@ -10,6 +10,7 @@
                 title: String,
                 orderBy: MemesOrderBy,
                 orderDir: OrderDir,
+                groupBy: MemesGroupBy,
                 owner: String,
                 creator: String,
                 curator: String,
@@ -72,6 +73,10 @@
     memes_orderBy_totalMinted
   }
 
+  enum MemesGroupBy {
+    memes_groupBy_title
+  }
+
   enum MemeTokensOrderBy {
     memeTokens_orderBy_memeNumber
     memeTokens_orderBy_memeTitle
@@ -86,7 +91,7 @@
     memeAuctions_orderBy_tokenId
     memeAuctions_orderBy_memeTotalMinted
     memeAuctions_orderBy_random
-  } 
+  }
 
   enum UsersOrderBy {
     users_orderBy_address

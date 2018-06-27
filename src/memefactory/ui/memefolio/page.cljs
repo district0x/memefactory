@@ -1,7 +1,6 @@
 (ns memefactory.ui.memefolio.page
   (:require
    [cljs-solidity-sha3.core :as sha3]
-   [cljs-web3.core :as web3]
    [clojure.string :as str]
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
@@ -9,10 +8,10 @@
    [district.ui.component.form.input :as inputs]
    [district.ui.component.input :as input]
    [district.ui.component.page :refer [page]]
-   [district.ui.router.events :as router-events]
-   [district.ui.router.subs :as router-subs]
    [district.ui.component.tx-button :as tx-button]
    [district.ui.graphql.subs :as gql]
+   [district.ui.router.events :as router-events]
+   [district.ui.router.subs :as router-subs]
    [district.ui.router.subs :as router-subs]
    [district.ui.server-config.subs :as config-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
@@ -25,16 +24,20 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
+   [cljs-web3.core :as web3]
+   [cljs.core.match :refer-macros [match]]
    ))
 
 ;; TODO: group-by memes
-;; TODO: tag filter
 
 ;; TODO: infinite scroll
 
 ;; TODO: move to district.format
 (defn format-percentage [p t]
   (str (int (Math/fround (/ (* p 100.0) t))) "%"))
+
+(defn- build-order-by  [prefix order-by]
+  (keyword (str (cljs.core/name prefix) ".order-by") order-by))
 
 (def default-tab :collected)
 
@@ -119,16 +122,18 @@
                      :meme-auction/token-count token-count
                      :show? sell?}]]))))
 
-(defmethod panel :collected [tab active-account form-data]
-  (let [{:keys [:term :order-by :order-dir]} (look form-data)
+(defmethod panel :collected [_ {:keys [active-account form-data prefix]}]
+  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes?]} (look form-data)
         query (subscribe [::gql/query
                           {:queries [[:search-memes (merge {:owner active-account}
                                                            (when term
                                                              {:title term})
-                                                           #_(when order-by
-                                                             {:order-by order-by})
+                                                           (when order-by
+                                                             {:order-by (build-order-by prefix order-by)})
                                                            (when order-dir
-                                                             {:order-dir order-dir}))
+                                                             {:order-dir order-dir})
+                                                           (when search-tags
+                                                             {:tags search-tags}))
                                       [[:items [:reg-entry/address
                                                 :reg-entry/status
                                                 :meme/meta-hash
@@ -136,9 +141,7 @@
                                                 :meme/title
                                                 [:meme/owned-meme-tokens {:owner active-account}
                                                  [:meme-token/token-id]]
-                                                :meme/total-supply]]
-                                       ;;:total-count
-                                       ]]]}])]
+                                                :meme/total-supply]]]]]}])]
     (fn []
       (if (:graphql/loading? @query)
         [:div.loading "Loading..."]
@@ -234,25 +237,25 @@
          "Issue"]
         [:label "Max " max-amount]]])))
 
-(defmethod panel :created [_ active-account form-data]
-  (let [{:keys [:term :order-by :order-dir]} (look form-data)
+(defmethod panel :created [_ {:keys [active-account form-data prefix]}]
+  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes?]} (look form-data)
         query (subscribe [::gql/query
                           {:queries [[:search-memes (merge {:creator active-account}
                                                            (when term
                                                              {:title term})
-                                                           #_(when order-by
-                                                             {:order-by order-by})
+                                                           (when order-by
+                                                             {:order-by (build-order-by prefix order-by)})
                                                            (when order-dir
-                                                             {:order-dir order-dir}))
+                                                             {:order-dir order-dir})
+                                                           (when search-tags
+                                                             {:tags search-tags}))
                                       [[:items [:reg-entry/address
                                                 :meme/meta-hash
                                                 :meme/number
                                                 :meme/title
                                                 :meme/total-minted
                                                 :meme/total-supply
-                                                :reg-entry/status]]
-                                       ;;:total-count
-                                       ]]]}])]
+                                                :reg-entry/status]]]]]}])]
     (fn []
       (if (:graphql/loading? @query)
         [:div "Loading..."]
@@ -343,24 +346,24 @@
       [:div.total {:style {:grid-area "total"}} "Total " (when (not (:graphql/loading? @query))
                                                            (get-in @query [:search-memes :total-count]))])))
 
-(defmethod panel :curated [tab active-account form-data]
-  (let [{:keys [:term :order-by :order-dir]} (look form-data)
+(defmethod panel :curated [tab {:keys [active-account form-data prefix]}]
+  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes?]} (look form-data)
         query (subscribe [::gql/query
                           {:queries [[:search-memes (merge {:curator active-account}
                                                            (when term
                                                              {:title term})
-                                                           #_(when order-by
-                                                             {:order-by order-by})
+                                                           (when order-by
+                                                             {:order-by (build-order-by prefix order-by)})
                                                            (when order-dir
-                                                             {:order-dir order-dir}))
+                                                             {:order-dir order-dir})
+                                                           (when search-tags
+                                                             {:tags search-tags}))
                                       [[:items [:reg-entry/address
                                                 :meme/meta-hash
                                                 :meme/number
                                                 :meme/title
                                                 [:challenge/vote {:vote/voter active-account}
-                                                 [:vote/option]]]]
-                                       ;;:total-count
-                                       ]]]}])]
+                                                 [:vote/option]]]]]]]}])]
     (fn []
       (if (:graphql/loading? @query)
         [:div "Loading..."]
@@ -376,15 +379,15 @@
                                      [:div [:b (str "#" number " " title)]]
                                      [:div
                                       (cond
-                                        (= option (graphql-utils/kw->gql-name :vote-option/no-vote #_"voteOption_noVote"))
+                                        (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
                                         [:label
                                          [:b "Voted Unrevealed"]]
 
-                                        (= option (graphql-utils/kw->gql-name :vote-option/vote-for #_"voteOption_voteFor"))
+                                        (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
                                         [:label "Voted Dank"
                                          [:i.icon.thumbs.up.outline]]
 
-                                        (= option (graphql-utils/kw->gql-name :vote-option/vote-against #_"voteOption_voteAgainst"))
+                                        (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
                                         [:label
                                          [:b "Voted Stank"]
                                          [:i.icon.thumbs.down.outline]])]])))
@@ -433,16 +436,18 @@
       [:div.total {:style {:grid-area "total"}} "Total " (when (not (:graphql/loading? @query))
                                                            (get-in @query [:search-memes :total-count]))])))
 
-(defmethod panel :selling [_ active-account form-data]
-  (let [{:keys [:term :order-by :order-dir]} (look form-data)
+(defmethod panel :selling [_ {:keys [active-account form-data prefix]}]
+  (let [{:keys [:term :order-by :order-dir :search-tags]} (look form-data)
         query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions (merge {:seller active-account :statuses [:meme-auction.status/active]}
                                                                    (when term
                                                                      {:title term})
-                                                                   #_(when order-by
-                                                                     {:order-by order-by})
+                                                                   (when order-by
+                                                                     {:order-by (build-order-by prefix order-by)})
                                                                    (when order-dir
-                                                                     {:order-dir order-dir}))
+                                                                     {:order-dir order-dir})
+                                                                   (when search-tags
+                                                                     {:tags search-tags}))
                                       [[:items [:meme-auction/address
                                                 :meme-auction/status
                                                 :meme-auction/start-price
@@ -484,16 +489,18 @@
       [:div.total {:style {:grid-area "total"}} "Total " (when (not (:graphql/loading? @query))
                                                            (get-in @query [:search-meme-auctions :total-count]))])))
 
-(defmethod panel :sold [_ active-account form-data]
-  (let [{:keys [:term :order-by :order-dir]} (look form-data)
+(defmethod panel :sold [_ {:keys [active-account form-data prefix]}]
+  (let [{:keys [:term :order-by :order-dir :search-tags]} (look form-data)
         query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions (merge {:seller active-account :statuses [:meme-auction.status/done]}
                                                                    (when term
                                                                      {:title term})
-                                                                   #_(when order-by
-                                                                     {:order-by order-by})
+                                                                   (when order-by
+                                                                     {:order-by (build-order-by prefix order-by)})
                                                                    (when order-dir
-                                                                     {:order-dir order-dir}))
+                                                                     {:order-dir order-dir})
+                                                                   (when search-tags
+                                                                     {:tags search-tags}))
                                       [[:items [:meme-auction/address
                                                 :meme-auction/status
                                                 :meme-auction/start-price
@@ -504,9 +511,7 @@
                                                   [:meme-token/meme
                                                    [:meme/title
                                                     :meme/image-hash
-                                                    :meme/total-minted]]]]]]
-                                       ;;:total-count
-                                       ]]]}])]
+                                                    :meme/total-minted]]]]]]]]]}])]
     (fn []
       (if (:graphql/loading? @query)
         [:div "Loading..."]
@@ -548,15 +553,14 @@
                                   'rank rank rank rank rank rank'
                                   'panel panel panel panel panel panel'"}}
        [:div {:style {:grid-area "search"}}
-
         [search/search-tools (merge {:title "My Memefolio"
                                      :form-data form-data
                                      :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
                                      :selected-tags-id :search-tags
                                      :search-id :term
-                                     :sub-title (str "Search " prefix)
+                                     :sub-title (str "Search " (cljs.core/name prefix))
                                      :select-options (cond
-                                                       (= "memes" prefix)
+                                                       (= :memes prefix)
                                                        [{:key :memes.order-by/created-on :value "Newest"}
                                                         {:key :memes.order-by/reveal-period-end :value "Recently Revealed"}
                                                         {:key :memes.order-by/commit-period-end :value "Recently Commited"}
@@ -565,7 +569,7 @@
                                                         {:key :memes.order-by/number :value "Number"}
                                                         {:key :memes.order-by/total-minted :value "Total Minted"}]
 
-                                                       (= "meme-auctions" prefix)
+                                                       (= :meme-auctions prefix)
                                                        [{:key :meme-auctions.order-by/started-on :value "Newest"}
                                                         {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
                                                         {:key :meme-auctions.order-by/price :value "Cheapest"}
@@ -575,17 +579,13 @@
                                                                                                                               {:term (:term @form-data)})])
                                      :on-check-filter-change nil #_#(re-frame/dispatch [::router-events/navigate name params (merge query
                                                                                                                                     {:group-by-memes? (str (:group-by-memes? @form-data))})])
-                                     :on-select-change nil #_#(re-frame/dispatch [::router-events/navigate name params (merge query {:order-by
+                                     :on-select-change prn #_#(re-frame/dispatch [::router-events/navigate name params (merge query {:order-by
                                                                                                                                      (:order-by @form-data)})])}
                                     (when
                                         (contains? #{:collected :created :curated} @tab)
                                       {:check-filter {:label "Group by memes"
-                                                      :id :group-by-memes?}}))
-
-                                      ]
-
-      ]
-     [:div.header {:style {:grid-area "tab"}}
+                                                      :id :group-by-memes?}}))]]
+       [:div.header {:style {:grid-area "tab"}}
       (map (fn [tab-id]
              ^{:key tab-id} [:div {:style {:display "inline-block"}}
                              [:a {:on-click (fn [evt]
@@ -602,22 +602,23 @@
           [:div.rank {:style {:grid-area "rank"}}
            [(stats @tab @active-account)]])
         [:div.panel {:style {:grid-area "panel"}}
-         [(panel @tab @active-account @form-data)]]])])))
+         [(panel @tab {:active-account @active-account :form-data @form-data :prefix prefix})]]])])))
 
 (defmethod page :route.memefolio/index []
   (let [tab (r/atom default-tab)]
     (fn []
       (let [prefix (cond (contains? #{:collected :created :curated} @tab)
-                         "memes"
+                         :memes
                          (contains? #{:selling :sold} @tab)
-                         "meme-auctions")
+                         :meme-auctions)
             {:keys [#_:name :query :params]} @(subscribe [::router-subs/active-page])
             form-data (r/atom {:term (:term query)
-                               :order-by (if-let [order-by (:order-by query)]
-                                           (keyword (str prefix ".order-by") order-by)
-                                           (keyword (str prefix ".order-by") :created-on))
+                               :order-by (match [(-> (:order-by query) nil? not) (= prefix :memes) (= prefix :meme-auctions)]
+                                                [true _ _] (build-order-by prefix (:order-by query))
+                                                [false true false] (look (build-order-by prefix :created-on))
+                                                [false false true] (build-order-by prefix :started-on))
                                :order-dir (or (keyword (:order-dir query)) :desc)})]
         [app-layout/app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
-         [tabbed-pane tab prefix (look form-data)]]))))
+         [tabbed-pane (look tab) prefix (look form-data)]]))))
