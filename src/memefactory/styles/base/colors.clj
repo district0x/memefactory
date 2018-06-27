@@ -4,6 +4,8 @@
                     :ticker-background "#ff0090"
                     :ticker-color "#FFFFFF"
                     :ticker-token-color "#ff80c8"
+                    :section-caption "#ff0090"
+                    :section-subcaption "#47608e"
                     :border-line "#eff1f5"
                     :search-input-bg "#f2f4fb"
                     :menu-text "#47608e"
