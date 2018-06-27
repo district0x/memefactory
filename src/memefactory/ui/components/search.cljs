@@ -14,7 +14,7 @@
     [:div.header
      [:img]
      [:h2 title]
-     [:h3 "Lorem ipsum dolor..."]]
+     [:h3 sub-title]]
     [:div.body
      [text-input {:on-change on-search-change
                   :form-data form-data
