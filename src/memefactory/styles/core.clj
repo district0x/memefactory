@@ -11,6 +11,14 @@
             [memefactory.styles.pages.home :as page.home]
             ))
 
+;; didn't knew where to put this Mike
+(defstyles inputs
+  [:.dropzone
+   {:width (px 200)
+    :height (px 200)
+    :background-color :grey}
+   [:img {:width (px 200)}]])
+
 (defstyles main
   app-layout/core
   app-menu/core
@@ -19,4 +27,4 @@
   tiles/core
   compact-tile/core
   page.home/core
-  )
+  inputs)
