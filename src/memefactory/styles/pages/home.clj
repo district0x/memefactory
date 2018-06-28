@@ -5,6 +5,7 @@
             [memefactory.styles.base.icons :refer [icons]]
             [memefactory.styles.base.borders :refer [border-top]]
             [memefactory.styles.base.colors :refer [color]]
+            [memefactory.styles.base.fonts :refer [font]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
             [clojure.string :as str]))
@@ -13,14 +14,38 @@
 (defstyles core
   [:.meme-highlights
    [:>div
+    {:position :relative}
     (border-top {:color (color :border-line)})]
    {:background (color :meme-panel-bg)
     :border-radius (em 1)
     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
     :margin-top (em 2)
     :margin-right (em 6)
-    :margin-left (em 6)
-    }
+    :margin-left (em 6)}
+   [:h2.title
+    (font :bungee)
+    {:white-space :nowrap
+     :position :relative
+     :color (color :section-caption)
+     :font-size (px 25)
+     :margin-top (em 0.3)
+     :margin-bottom (em 0.1)
+     :text-align :center}]
+   [:h3.title
+    {:white-space :nowrap
+     :margin-top (em 0.1)
+     :position :relative
+     :color (color :section-subcaption)
+     :font-size (px 15)
+     :text-align :center}]
+   [:a.more {:position :absolute
+             :top (em 2)
+             :color (color :section-subcaption)
+             :right (em 2)}
+    [:&:after {:content "'>'"
+               :margin-left (em 1)
+               :color (color :pink)
+               :display :inline-block}]]
    [:.icon
     {:display :block
      :background-size [(em 4) (em 4)]
@@ -37,5 +62,4 @@
    [:.rare-finds [:.icon {:background-color (color :rare-meme-icon-bg)
                           :background-image (str "url('/assets/icons/rarefindicon.png')")}]]
    [:.random-pics [:.icon {:background-color (color :random-meme-icon-bg)
-                           :background-image (str "url('/assets/icons/randomicon.png')")}]]
-   ])
+                           :background-image (str "url('/assets/icons/randomicon.png')")}]]])

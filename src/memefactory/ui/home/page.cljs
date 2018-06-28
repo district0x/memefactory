@@ -69,11 +69,10 @@
          [:div.new-on-marketplace
           [:div.icon]
           [:div.header
-           [:img ]
            [:div.middle
             [:h2.title "New On Marketplace"]
             [:h3.title "Lorem ipsum ..."]]
-           [:a {:href (utils/path-with-query (utils/path :route.marketplace/index)
+           [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
                                              {:order-by "started-on"
                                               :order-dir "desc"})} "See More"]
            [auctions-list (-> @new-on-market :search-meme-auctions :items)]]]
@@ -81,11 +80,10 @@
          [:div.rare-finds
           [:div.icon]
           [:div.header
-           [:img]
            [:div.middle
             [:h2.title "Rare Finds"]
             [:h3.title "Lorem ipsum ..."]]
-           [:a {:href (utils/path-with-query (utils/path :route.marketplace/index)
+           [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
                                              {:order-by "meme-total-minted"
                                               :order-dir "asc"})}
             "See More"]
@@ -94,11 +92,10 @@
          [:div.random-pics
           [:div.icon]
           [:div.header
-           [:img]
            [:div.middle
             [:h2.title "Random Picks"]
             [:h3.title "Lorem ipsum ..."]]
-           [:a {:href (utils/path-with-query (utils/path :route.marketplace/index)
+           [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
                                              {:order-by "random"})}
             "See More"]]
           [auctions-list (-> @random-picks :search-meme-auctions :items)]]]]])))
