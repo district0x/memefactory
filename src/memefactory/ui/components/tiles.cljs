@@ -26,7 +26,8 @@
   (let [flipped? (r/atom false)
         flip #(swap! flipped? not)]
     (fn [{:keys [:front :back]}]
-      [:div.container (merge {:on-click (fn [event]
+      [:div.container (merge {:class (when @flipped? "flipped")
+                              :on-click (fn [event]
                                           (if id
                                             (when (= id (-> event
                                                             (aget "target")
@@ -34,9 +35,8 @@
                                               (flip))
                                             (flip)))}
                              (when id {:id id}))
-       (if @flipped?
-         back
-         front)])))
+       back
+       front])))
 
 (defn auction-front-tile [opts meme-token]
   [:div.meme-card.front
