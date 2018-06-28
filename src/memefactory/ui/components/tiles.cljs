@@ -57,23 +57,24 @@
         [:img {:src (img-url-stub (get-in meme-auction [:meme-auction/meme-token
                                                         :meme-token/meme
                                                         :meme/image-hash]))}]
-        [:div.info
-         [:ol
-          [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]
-          [:li [:label "Current Price:"] [:span (format/format-eth price)]]
-          [:li [:label "Start Price:"] [:span (format/format-eth (:meme-auction/start-price meme-auction))]]
-          [:li [:label "End Price:"] [:span (format/format-eth (:meme-auction/end-price meme-auction))]]
-          [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
-         [:p.description (:meme-auction/description meme-auction)]
-         [tx-button/tx-button {:primary true
-                               :disabled false
-                               :pending? @tx-pending?
-                               :pending-text "Buying auction ..."
-                               :on-click (fn []
-                                           (dispatch [:meme-auction/buy {:send-tx/id tx-id
-                                                                         :meme-auction/address (:meme-auction/address meme-auction)
-                                                                         :value price}]))}
-          "Buy"]]]))))
+        [:div.overlay
+         [:div.info
+          [:ol
+           [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]
+           [:li [:label "Current Price:"] [:span (format/format-eth price)]]
+           [:li [:label "Start Price:"] [:span (format/format-eth (:meme-auction/start-price meme-auction))]]
+           [:li [:label "End Price:"] [:span (format/format-eth (:meme-auction/end-price meme-auction))]]
+           [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
+          [:p.description (:meme-auction/description meme-auction)]
+          [tx-button/tx-button {:primary true
+                                :disabled false
+                                :pending? @tx-pending?
+                                :pending-text "Buying auction ..."
+                                :on-click (fn []
+                                            (dispatch [:meme-auction/buy {:send-tx/id tx-id
+                                                                          :meme-auction/address (:meme-auction/address meme-auction)
+                                                                          :value price}]))}
+           "Buy"]]]]))))
 
 
 (defn auction-tile [{:keys [:on-buy-click] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]

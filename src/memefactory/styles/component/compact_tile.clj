@@ -46,13 +46,22 @@
    [:img
     {:width (em card-width)
      :height (em card-height)}]
-   [:.info {:position :absolute
-            :background-color (color :meme-bg)
-            :color (color :meme-info-text)
-            :top (px 0)
-            :border-radius "1em"
-            :bottom (px 0)
-            :left (px 0)}]]
+   [:.overlay {:position :absolute
+               :background-color (color :meme-bg)
+               :border-radius "1em"
+               :top (px 0)
+               :bottom (px 0)
+               :left (px 0)
+               :right (px 0)
+               }
+    [:.info {:transform "translateZ(60px) scale(0.94)"
+             :color (color :meme-info-text)
+             :top (px 0)
+             :bottom (px 0)
+             :left (px 0)
+             :right (px 0)
+             :position :absolute
+             :perspective "inherit"}]]]
   [:.compact-tile
    {:background (color :meme-panel-bg)
     :width (em card-width)
