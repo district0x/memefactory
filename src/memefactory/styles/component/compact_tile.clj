@@ -14,25 +14,35 @@
 
 (defstyles core
   [:.container
+   {:transform-style :preserve-3d
+    :perspective (px 1000)}
    [:.meme-card
     [:&.front :&.back
-     {:backface-visibility :hidden}]
+     {:transition "transform .7s cubic-bezier(0.4, 0.2, 0.2, 1)"}]
+    [:&.front
+     {:text-align :center
+      :backface-visibility :hidden
+      :transform-style :preserve-3d
+      :transform "rotateY(0deg)"}]
     [:&.back
-     {:z-index 0}]]]
+     {:transform-style :preserve-3d
+      :transform "rotateY(180deg)"}]]]
   [:.container.flipped
    [:.meme-card
-    [:&.back
-     {:transform "rotateY(180deg);"
-      :z-index 2}]
+    [:&.front :&.back
+     {:transition "transform .7s cubic-bezier(0.4, 0.2, 0.2, 1)"}]
     [:&.front
-     {:transform "rotateY(0deg);"}]]]
+     {:transform-style :preserve-3d
+      :transform "rotateY(-180deg)"}]
+    [:&.back
+     {:transform-style :preserve-3d
+      :transform "rotateY(0deg)"}]
+    ]]
   
   [:.meme-card
    {:position :absolute
     :background-color (color "gray")
-    :border-radius "1em"
-    :transition "0.3s"
-    :transform-style "preserve-3d"}
+    :border-radius "1em"}
    [:img
     {:width (em card-width)
      :height (em card-height)}]
@@ -50,7 +60,4 @@
     :margin (em 1)
     ;; :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
     :display :block
-    :position :relative
-    :perspective "1000px"
-    :transform-style "preserve-3d"
-    }])
+    :position :relative}])
