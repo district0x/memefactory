@@ -14,6 +14,7 @@
                     :meme-panel-bg "#FFFFFF"
                     :meme-bg "rgba(73,35,86,.85)"
                     :meme-info-text "white"
+                    :meme-tile-footer "#47608e"
                     :new-meme-icon-bg "#FF0090"
                     :rare-meme-icon-bg "#1ff2c8"
                     :random-meme-icon-bg "#ffcc00"

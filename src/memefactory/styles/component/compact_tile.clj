@@ -5,6 +5,7 @@
    [clojure.string :as s]
    [memefactory.styles.base.colors :refer [color]]
    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
+   [memefactory.styles.base.fonts :refer [font]]
    [garden.units :refer [px em]]))
 
 (def bar-height (px 50))
@@ -15,6 +16,8 @@
 (defstyles core
   [:.container
    {:transform-style :preserve-3d
+    :width (em card-width)
+    :height (em card-height)
     :perspective (px 1000)}
    [:.meme-card
     [:&.front :&.back
@@ -36,12 +39,12 @@
       :transform "rotateY(-180deg)"}]
     [:&.back
      {:transform-style :preserve-3d
-      :transform "rotateY(0deg)"}]
-    ]]
-  
+      :transform "rotateY(0deg)"}]]]
   [:.meme-card
    {:position :absolute
     :background-color (color "gray")
+    :width (em card-width)
+    :height (em card-height)
     :border-radius "1em"}
    [:img
     {:width (em card-width)
@@ -64,9 +67,19 @@
              :perspective "inherit"}]]]
   [:.compact-tile
    {:background (color :meme-panel-bg)
-    :width (em card-width)
-    :height (em card-height)
     :margin (em 1)
     ;; :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
     :display :block
-    :position :relative}])
+    :position :relative}
+   [:.footer
+    {:position :relative
+     :bottom 0}
+    [:.title :.number-minted :.price
+     {:text-align :center
+      :color (color :meme-tile-footer)}]
+    [:.title {:margin-top (em 1)
+              :font-weight :bold}]
+    [:.number-minted {:margin-top (em 0.3)}]
+    [:.price
+     (font :bungee)
+     {:margin-top (em 0.3)}]]])
