@@ -8,7 +8,9 @@
             [cljs-time.core :as t]
             [clojure.string :as str]
             [district.format :as format]
+            [district.ui.web3-accounts.subs :as accounts-subs]
             [district.ui.web3-tx-id.subs :as tx-id-subs]
+            [district.ui.component.form.input :as inputs]
             [district.ui.component.tx-button :as tx-button]))
 
 (defn- img-url-stub
@@ -40,8 +42,7 @@
 
 (defn auction-front-tile [opts meme-token]
   [:div.meme-card.front
-   [:img {:src (img-url-stub (get-in meme-token [:meme-token/meme :meme/image-hash]))}]
-   [:span (str "FRONT IMAGE" )]])
+   [:img {:src (img-url-stub (get-in meme-token [:meme-token/meme :meme/image-hash]))}]])
 
 (defn auction-back-tile [{:keys [:on-buy-click] :as opts} meme-auction]
   (let [tx-id (str (random-uuid))
@@ -59,7 +60,7 @@
                                                         :meme/image-hash]))}]
         [:div.overlay
          [:div.info
-          [:ol
+          [:ul.meme-data
            [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]
            [:li [:label "Current Price:"] [:span (format/format-eth price)]]
            [:li [:label "Start Price:"] [:span (format/format-eth (:meme-auction/start-price meme-auction))]]
@@ -74,6 +75,13 @@
                                             (dispatch [:meme-auction/buy {:send-tx/id tx-id
                                                                           :meme-auction/address (:meme-auction/address meme-auction)
                                                                           :value price}]))}
+           "Buy"]
+          [inputs/pending-button {:pending? @tx-pending?
+                                  :pending-text "Buying auction ..."
+                                  :on-click (fn []
+                                              (dispatch [:meme-auction/buy {:send-tx/id tx-id
+                                                                            :meme-auction/address (:meme-auction/address meme-auction)
+                                                                            :value price}]))}
            "Buy"]]]]))))
 
 

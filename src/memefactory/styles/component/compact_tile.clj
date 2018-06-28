@@ -6,7 +6,7 @@
    [memefactory.styles.base.colors :refer [color]]
    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
    [memefactory.styles.base.fonts :refer [font]]
-   [garden.units :refer [px em]]))
+   [garden.units :refer [px em pt]]))
 
 (def bar-height (px 50))
 (def card-aspect-ratio 1.5)
@@ -64,7 +64,15 @@
              :left (px 0)
              :right (px 0)
              :position :absolute
-             :perspective "inherit"}]]]
+             :perspective "inherit"}
+     [:.meme-data {:text-align :center
+                   :padding-left 0
+                   :font-size (pt 10)
+                   :list-style :none}
+      [:>li {:margin-top (em 1)
+             :margin-bottom (em 1)}]
+      [:label {:font-weight :bold
+               }]]]]]
   [:.compact-tile
    {:background (color :meme-panel-bg)
     :margin (em 1)
