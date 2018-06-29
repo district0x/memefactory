@@ -18,7 +18,7 @@
    {:transform-style :preserve-3d
     :width (em card-width)
     :height (em card-height)
-    :perspective (px 1000)}
+    :perspective (px 10000)}
    [:.meme-card
     [:&.front :&.back
      {:transition "transform .7s cubic-bezier(0.4, 0.2, 0.2, 1)"}]
@@ -50,21 +50,41 @@
     {:width (em card-width)
      :height (em card-height)}]
    [:.overlay {:position :absolute
-               :background-color (color :meme-bg)
+               ;; :background-color (color :meme-bg)
+               :background (str "linear-gradient(to bottom, " (color :meme-bg) " 0%," (color :meme-bg) " 75%," (color :meme-bg-bottom) " 75%," (color :meme-bg-bottom) " 100%)")
                :border-radius "1em"
                :top (px 0)
                :bottom (px 0)
                :left (px 0)
-               :right (px 0)
-               }
-    [:.info {:transform "translateZ(60px) scale(0.94)"
+               :right (px 0)}
+    [:.info {:transform "translateZ(60px)"
              :color (color :meme-info-text)
              :top (px 0)
              :bottom (px 0)
              :left (px 0)
              :right (px 0)
              :position :absolute
+             :font-style :italic
+             :text-align :center
              :perspective "inherit"}
+     [:hr {:margin (em 1)}]
+     [:button
+      (font :bungee)
+      {:border-radius "1em"
+       :position "absolute"
+       :display "block"
+       :bottom (em 2)
+       :height (em 2)
+       :width (em 8)
+       :right 0
+       :left 0
+       :margin-right :auto
+       :margin-left :auto
+       :border-style "none"
+       :color (color :white)
+       :background-color (color :meme-buy-button)}
+      [:&:after {:content ;;"&#8594;"
+                 "\"\\f8594\""}]]
      [:.meme-data {:text-align :center
                    :padding-left 0
                    :font-size (pt 10)
