@@ -84,7 +84,7 @@
        :color (color :white)
        :background-color (color :meme-buy-button)}
       [:&:after {:content ;;"&#8594;"
-                 "\"\\f8594\""}]]
+                 "' →'"}]]
      [:.meme-data {:text-align :center
                    :padding-left 0
                    :font-size (pt 10)
