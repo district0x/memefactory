@@ -1,8 +1,10 @@
 (ns memefactory.ui.memefolio.page
   (:require
+   #_[ajax.core :as ajax :refer [POST]]
    [cljs-solidity-sha3.core :as sha3]
    [clojure.string :as str]
    [district.format :as format]
+   #_[memefactory.shared.graphql-schema :refer [graphql-schema]]
    [district.graphql-utils :as graphql-utils]
    [district.time :as time]
    [district.ui.component.form.input :as inputs]
@@ -10,6 +12,7 @@
    [district.ui.component.page :refer [page]]
    [district.ui.component.tx-button :as tx-button]
    [district.ui.graphql.subs :as gql]
+   #_[district.ui.graphql.utils :as graphql-ui-utils]
    [district.ui.router.events :as router-events]
    [district.ui.router.subs :as router-subs]
    [district.ui.router.subs :as router-subs]
@@ -40,7 +43,7 @@
 (defn puke [col]
   (with-out-str (cljs.pprint/pprint col)))
 
-(def default-tab :sold)
+(def default-tab :collected)
 
 (def scroll-interval 2)
 
@@ -126,26 +129,26 @@
                      :show? sell?}]]))))
 
 (defmethod panel :collected [_ state]
-  (fn [state]
+  (fn []
     (if (:graphql/loading? state)
       [:div.loading "Loading..."]
       [:div.tiles
-       (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/meta-hash :meme/number
-                         :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
-              (when address
-                (let [token-ids (map :meme-token/token-id owned-meme-tokens)
-                      token-count (count token-ids)]
-                  ^{:key address} [:div
-                                   [tiles/flippable-tile {:id address
-                                                          :front [collected-tile-front {:meme/meta-hash meta-hash}]
-                                                          :back [collected-tile-back {:meme/number number
-                                                                                      :meme/title title
-                                                                                      :meme/owned-meme-tokens owned-meme-tokens
-                                                                                      :meme-auction/token-count token-count
-                                                                                      :meme-auction/token-ids token-ids}]}]
-                                   [:div [:b (str "#" number " " title)]]
-                                   [:div [:span (str "Owning " token-count " out of " total-supply)]]])))
-            state)])))
+       (doall (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/meta-hash :meme/number
+                                :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
+                     (when address
+                       (let [token-ids (map :meme-token/token-id owned-meme-tokens)
+                             token-count (count token-ids)]
+                         ^{:key address} [:div
+                                          [tiles/flippable-tile {:id address
+                                                                 :front [collected-tile-front {:meme/meta-hash meta-hash}]
+                                                                 :back [collected-tile-back {:meme/number number
+                                                                                             :meme/title title
+                                                                                             :meme/owned-meme-tokens owned-meme-tokens
+                                                                                             :meme-auction/token-count token-count
+                                                                                             :meme-auction/token-ids token-ids}]}]
+                                          [:div [:b (str "#" number " " title)]]
+                                          [:div [:span (str "Owning " token-count " out of " total-supply)]]])))
+                   state))])))
 
 (defmethod stats :collected [_ active-account]
   (let [query (subscribe [::gql/query
@@ -307,7 +310,7 @@
       [:div.total {:style {:grid-area "total"}} "Total " (when (not (:graphql/loading? @query))
                                                            (get-in @query [:search-memes :total-count]))])))
 
-(defmethod panel :curated [tab state]
+(defmethod panel :curated [_ state]
   (fn []
     (if (:graphql/loading? state)
       [:div "Loading..."]
@@ -410,7 +413,10 @@
                                                            (get-in @query [:search-meme-auctions :total-count]))])))
 
 (defmethod panel :sold [_ state]
-  (fn [state]
+  (fn []
+
+;;    (prn "@sold " state)
+
     (if (:graphql/loading? state)
       [:div "Loading..."]
       [:div.tiles
@@ -547,23 +553,36 @@
                             :meme/image-hash
                             :meme/total-minted]]]]]]]]])))
 
-(defn- scrolling-container [tab opts]
+;; (def state_ (r/atom nil))
+
+;; (add-watch state_ :persist-watcher (fn [_key _ref _old-state new-state]
+;;                                      (prn "Calling watcher" " key: " _key " old state: " _old-state " new state: " new-state)))
+
+(defn- scrolling-container
+  [tab opts]
   (let [state (r/atom nil)
-        update-state (fn [tab opts {:keys [:from :to] :as params}]
+        update-state (fn [tab {:keys [:prefix] :as opts} {:keys [:from :to] :as params}]
+
+                       (prn "@update-state" from to)
+
                        (let [query (subscribe [::gql/query {:queries (build-query tab opts params)}])]
                          (if (:graphql/loading? @query)
                            (prn "Loading...")
                            (do (prn "Loaded")
                                (swap! state (fn [old new] (into old (concat new)))
-                                      (-> @query :search-meme-auctions :items))))))]
-    (fn [tab opts]
-      [:div.scroll-area
-       [(panel tab @state)]
-       #_[:pre (puke @state)]
-       [infinite-scroll {:load-fn #(let [from (count @state)
-                                         to (+ scroll-interval from)]
-                                     (update-state tab opts {:from (count @state)
-                                                             :to (+ scroll-interval from)}))}]])))
+                                      (get-in (look @query) [(case prefix
+                                                               :memes :search-memes
+                                                               :meme-auctions :search-memes-auctions) :items]))))))]
+    (r/create-class
+     {:component-did-mount #(update-state tab opts {:from 0 :to scroll-interval})
+      :reagent-render (fn [tab opts]
+                        [:div.scroll-area
+                         [(panel (look tab) @state)]
+                         #_[:pre (puke @state)]
+                         [infinite-scroll {:load-fn #(let [from (count @state)
+                                                           to (+ scroll-interval from)]
+                                                       (update-state tab opts {:from (count @state)
+                                                                               :to (+ scroll-interval from)}))}]])})))
 
 (defn tabbed-pane [tab prefix form-data]
   (let [active-account (subscribe [::accounts-subs/active-account])
