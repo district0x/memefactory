@@ -1,10 +1,10 @@
 (ns memefactory.ui.memefolio.page
   (:require
-   #_[ajax.core :as ajax :refer [POST]]
+   [ajax.core :as ajax :refer [POST]]
    [cljs-solidity-sha3.core :as sha3]
    [clojure.string :as str]
    [district.format :as format]
-   #_[memefactory.shared.graphql-schema :refer [graphql-schema]]
+   [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [district.graphql-utils :as graphql-utils]
    [district.time :as time]
    [district.ui.component.form.input :as inputs]
@@ -12,7 +12,7 @@
    [district.ui.component.page :refer [page]]
    [district.ui.component.tx-button :as tx-button]
    [district.ui.graphql.subs :as gql]
-   #_[district.ui.graphql.utils :as graphql-ui-utils]
+   [district.ui.graphql.utils :as graphql-ui-utils]
    [district.ui.router.events :as router-events]
    [district.ui.router.subs :as router-subs]
    [district.ui.router.subs :as router-subs]
@@ -558,14 +558,26 @@
 ;; (add-watch state_ :persist-watcher (fn [_key _ref _old-state new-state]
 ;;                                      (prn "Calling watcher" " key: " _key " old state: " _old-state " new state: " new-state)))
 
+
+(defn clj->json
+  [coll]
+  (.stringify js/JSON (clj->js coll)))
+
 (defn- scrolling-container
   [tab opts]
   (let [state (r/atom nil)
         update-state (fn [tab {:keys [:prefix] :as opts} {:keys [:from :to] :as params}]
+                       (POST "http://localhost:6300/graphql"
+                           :params {:query (:query-str (graphql-ui-utils/parse-query {:queries (build-query tab opts params)} {:kw->gql-name graphql-utils/kw->gql-name}))}
+                           :format :json
+                           :response-format :json
+                           :handler #(swap! state (fn [old new] (into old (concat new)))
+                                            (get-in % ["data" (case prefix
+                                                                :memes "searchMemes"
+                                                                :meme-auctions "searchMemeAuctions") "items"]))
+                           :error-handler #(prn "error: " %))
 
-                       (prn "@update-state" from to)
-
-                       (let [query (subscribe [::gql/query {:queries (build-query tab opts params)}])]
+                       #_(let [query (subscribe [::gql/query {:queries (build-query tab opts params)}])]
                          (if (:graphql/loading? @query)
                            (prn "Loading...")
                            (do (prn "Loaded")
@@ -577,8 +589,8 @@
      {:component-did-mount #(update-state tab opts {:from 0 :to scroll-interval})
       :reagent-render (fn [tab opts]
                         [:div.scroll-area
-                         [(panel (look tab) @state)]
-                         #_[:pre (puke @state)]
+                         #_[(panel (look tab) @state)]
+                         [:pre (puke @state)]
                          [infinite-scroll {:load-fn #(let [from (count @state)
                                                            to (+ scroll-interval from)]
                                                        (update-state tab opts {:from (count @state)
