@@ -40,6 +40,10 @@
 (defn format-percentage [p t]
   (str (int (Math/fround (/ (* p 100.0) t))) "%"))
 
+(defn clj->json
+  [coll]
+  (.stringify js/JSON (clj->js coll)))
+
 (defn puke [col]
   (with-out-str (cljs.pprint/pprint col)))
 
@@ -415,7 +419,7 @@
 (defmethod panel :sold [_ state]
   (fn []
 
-;;    (prn "@sold " state)
+    ;;    (prn "@sold " state)
 
     (if (:graphql/loading? state)
       [:div "Loading..."]
@@ -553,16 +557,6 @@
                             :meme/image-hash
                             :meme/total-minted]]]]]]]]])))
 
-;; (def state_ (r/atom nil))
-
-;; (add-watch state_ :persist-watcher (fn [_key _ref _old-state new-state]
-;;                                      (prn "Calling watcher" " key: " _key " old state: " _old-state " new state: " new-state)))
-
-
-(defn clj->json
-  [coll]
-  (.stringify js/JSON (clj->js coll)))
-
 (defn- scrolling-container
   [tab opts]
   (let [state (r/atom nil)
@@ -575,16 +569,7 @@
                                             (get-in % ["data" (case prefix
                                                                 :memes "searchMemes"
                                                                 :meme-auctions "searchMemeAuctions") "items"]))
-                           :error-handler #(prn "error: " %))
-
-                       #_(let [query (subscribe [::gql/query {:queries (build-query tab opts params)}])]
-                         (if (:graphql/loading? @query)
-                           (prn "Loading...")
-                           (do (prn "Loaded")
-                               (swap! state (fn [old new] (into old (concat new)))
-                                      (get-in (look @query) [(case prefix
-                                                               :memes :search-memes
-                                                               :meme-auctions :search-memes-auctions) :items]))))))]
+                           :error-handler #(prn "error: " %)))]
     (r/create-class
      {:component-did-mount #(update-state tab opts {:from 0 :to scroll-interval})
       :reagent-render (fn [tab opts]
@@ -628,10 +613,13 @@
                                                         {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
                                                         {:key :meme-auctions.order-by/price :value "Cheapest"}
                                                         {:key :meme-auctions.order-by/random :value "Random"}])
-                                     :on-selected-tags-change nil #_#(prn :todo)
-                                     :on-search-change nil #_#(re-frame/dispatch [::router-events/navigate name params (merge query {:term (:term @form-data)})])
-                                     :on-check-filter-change nil #_#(re-frame/dispatch [::router-events/navigate name params (merge query {:group-by-memes? (str (:group-by-memes? @form-data))})])
-                                     :on-select-change prn #_#(re-frame/dispatch [::router-events/navigate name params (merge query {:order-by (:order-by @form-data)})])}
+
+                                     ;; :on-selected-tags-change nil
+                                     ;; :on-search-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:term (:term @form-data)})])
+                                     ;; :on-check-filter-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:group-by-memes? (str (:group-by-memes? @form-data))})])
+                                     ;; :on-select-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:order-by (:order-by @form-data)})])
+
+                                     }
                                     (when (contains? #{:collected} @tab)
                                       {:check-filter {:label "Group by memes"
                                                       :id :group-by-memes?}}))]]
