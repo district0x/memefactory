@@ -111,7 +111,7 @@
                       ^{:key (str depth "-" idx)}
                       [:li.node-content
                        [:div.item
-                        {:class (concat [class] (when (current-page? active-page href)))}
+                        {:class (concat [(when class (name class))] (when (current-page? active-page href)))}
                         [:a {:href href} text]]
                        (when children
                          [app-menu children active-page (inc depth)])]))
