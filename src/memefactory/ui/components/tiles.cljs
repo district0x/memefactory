@@ -66,8 +66,9 @@
            [:li [:label "Start Price:"] [:span (format/format-eth (:meme-auction/start-price meme-auction))]]
            [:li [:label "End Price:"] [:span (format/format-eth (:meme-auction/end-price meme-auction))]]
            [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
+          [:hr]
           [:p.description (:meme-auction/description meme-auction)]
-          [tx-button/tx-button {:primary true
+          #_[tx-button/tx-button {:primary true
                                 :disabled false
                                 :pending? @tx-pending?
                                 :pending-text "Buying auction ..."
