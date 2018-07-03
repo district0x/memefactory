@@ -1,10 +1,10 @@
 (ns memefactory.ui.memefolio.page
   (:require
-   #_[ajax.core :as ajax :refer [POST]]
+   [ajax.core :as ajax :refer [POST]]
    [cljs-solidity-sha3.core :as sha3]
    [clojure.string :as str]
    [district.format :as format]
-   #_[memefactory.shared.graphql-schema :refer [graphql-schema]]
+   [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [district.graphql-utils :as graphql-utils]
    [district.time :as time]
    [district.ui.component.form.input :as inputs]
@@ -12,7 +12,7 @@
    [district.ui.component.page :refer [page]]
    [district.ui.component.tx-button :as tx-button]
    [district.ui.graphql.subs :as gql]
-   #_[district.ui.graphql.utils :as graphql-ui-utils]
+   [district.ui.graphql.utils :as graphql-ui-utils]
    [district.ui.router.events :as router-events]
    [district.ui.router.subs :as router-subs]
    [district.ui.router.subs :as router-subs]
@@ -40,12 +40,16 @@
 (defn format-percentage [p t]
   (str (int (Math/fround (/ (* p 100.0) t))) "%"))
 
+(defn clj->json
+  [coll]
+  (.stringify js/JSON (clj->js coll)))
+
 (defn puke [col]
   (with-out-str (cljs.pprint/pprint col)))
 
-(def default-tab :collected)
+(def default-tab :sold)
 
-(def scroll-interval 2)
+(def scroll-interval 5)
 
 (defmulti panel (fn [tab & opts] tab))
 
@@ -415,7 +419,7 @@
 (defmethod panel :sold [_ state]
   (fn []
 
-;;    (prn "@sold " state)
+    ;;    (prn "@sold " state)
 
     (if (:graphql/loading? state)
       [:div "Loading..."]
@@ -427,9 +431,10 @@
                        {:keys [:meme/title :meme/image-hash :meme/total-minted]} meme
                        now (subscribe [:district.ui.now.subs/now])
                        price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
-                   ^{:key address} [:div.meme-card-front {:style {:width 200
-                                                                  :height 280
+                   ^{:key address} [:div.meme-card-front {:style {:width 500
+                                                                  :height 380
                                                                   :display "block"}}
+                                    [:span address]
                                     [:img {:src (resolve-image image-hash)}]
                                     [:div.title [:b (str "#" number " " title)]]
                                     [:div.number-minted (str number "/" total-minted)]
@@ -451,8 +456,9 @@
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes?]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner active-account
-                                         :first to
-                                         :after (str from)}
+                                         :first to}
+                                        (when from
+                                          {:after (str from)})
                                         (when term
                                           {:title term})
                                         (when order-by
@@ -463,7 +469,10 @@
                                           {:tags search-tags})
                                         (when group-by-memes?
                                           {:group-by :memes.group-by/title}))
-                   [[:items [:reg-entry/address
+                   [:total-count
+                    :end-cursor
+                    :has-next-page
+                    [:items [:reg-entry/address
                              :reg-entry/status
                              :meme/meta-hash
                              :meme/number
@@ -472,8 +481,9 @@
                               [:meme-token/token-id]]
                              :meme/total-supply]]]]]
       :created [[:search-memes (merge {:creator active-account
-                                       :first to
-                                       :after (str from)}
+                                       :first to}
+                                      (when from
+                                        {:after (str from)})
                                       (when term
                                         {:title term})
                                       (when order-by
@@ -482,7 +492,10 @@
                                         {:order-dir order-dir})
                                       (when search-tags
                                         {:tags search-tags}))
-                 [[:items [:reg-entry/address
+                 [:total-count
+                  :end-cursor
+                  :has-next-page
+                  [:items [:reg-entry/address
                            :meme/meta-hash
                            :meme/number
                            :meme/title
@@ -490,8 +503,9 @@
                            :meme/total-supply
                            :reg-entry/status]]]]]
       :curated [[:search-memes (merge {:curator active-account
-                                       :first to
-                                       :after (str from)}
+                                       :first to}
+                                      (when from
+                                        {:after (str from)})
                                       (when term
                                         {:title term})
                                       (when order-by
@@ -500,7 +514,10 @@
                                         {:order-dir order-dir})
                                       (when search-tags
                                         {:tags search-tags}))
-                 [[:items [:reg-entry/address
+                 [:total-count
+                  :end-cursor
+                  :has-next-page
+                  [:items [:reg-entry/address
                            :meme/meta-hash
                            :meme/number
                            :meme/title
@@ -508,8 +525,9 @@
                             [:vote/option]]]]]]]
       :selling [[:search-meme-auctions (merge {:seller active-account
                                                :statuses [:meme-auction.status/active]
-                                               :first to
-                                               :after (str from)}
+                                               :first to}
+                                              (when from
+                                                {:after (str from)})
                                               (when term
                                                 {:title term})
                                               (when order-by
@@ -518,7 +536,10 @@
                                                 {:order-dir order-dir})
                                               (when search-tags
                                                 {:tags search-tags}))
-                 [[:items [:meme-auction/address
+                 [:total-count
+                  :end-cursor
+                  :has-next-page
+                  [:items [:meme-auction/address
                            :meme-auction/status
                            :meme-auction/start-price
                            :meme-auction/end-price
@@ -531,8 +552,9 @@
                                :meme/total-minted]]]]]]]]]
       :sold [[:search-meme-auctions (merge {:seller active-account
                                             :statuses [:meme-auction.status/done]
-                                            :first to
-                                            :after (str from)}
+                                            :first to}
+                                           (when from
+                                             {:after (str from)})
                                            (when term
                                              {:title term})
                                            (when order-by
@@ -541,7 +563,10 @@
                                              {:order-dir order-dir})
                                            (when search-tags
                                              {:tags search-tags}))
-              [[:items [:meme-auction/address
+              [:total-count
+               :end-cursor
+               :has-next-page
+               [:items [:meme-auction/address
                         :meme-auction/status
                         :meme-auction/start-price
                         :meme-auction/end-price
@@ -553,36 +578,41 @@
                             :meme/image-hash
                             :meme/total-minted]]]]]]]]])))
 
-;; (def state_ (r/atom nil))
 
-;; (add-watch state_ :persist-watcher (fn [_key _ref _old-state new-state]
-;;                                      (prn "Calling watcher" " key: " _key " old state: " _old-state " new state: " new-state)))
 
 (defn- scrolling-container
-  [tab opts]
-  (let [state (r/atom nil)
-        update-state (fn [tab {:keys [:prefix] :as opts} {:keys [:from :to] :as params}]
+  [tab {:keys [:prefix] :as opts}]
+  (let [query (subscribe [::gql/query {:queries (build-query tab opts {:from 0 :to scroll-interval})}
+                          {:id tab
+                           ;;:disable-fetch? true
+                           }])
+        state (r/atom nil)
+        update-state (fn [tab opts]
+                       (when-not (:graphql/loading? @query)
+                         (let [not-contains? (complement contains?)
+                               {:keys [:has-next-page :end-cursor :total-count :items]} (get-in (last @query) [(case prefix
+                                                                                                                 :memes :search-memes
+                                                                                                                 :meme-auctions :search-meme-auctions)])                              
+                               new-items (filter #(not-contains? (set @state) %) items)]
 
-                       (prn "@update-state" from to)
+                           (prn "OLD" (map :meme-auction/address @state))
+                           (prn "NEW" (map :meme-auction/address items))
+                           (prn "FILTERED"(map :meme-auction/address new-items))
+                           
+                           (swap! state (fn [old new] (concat old new)) new-items)
 
-                       (let [query (subscribe [::gql/query {:queries (build-query tab opts params)}])]
-                         (if (:graphql/loading? @query)
-                           (prn "Loading...")
-                           (do (prn "Loaded")
-                               (swap! state (fn [old new] (into old (concat new)))
-                                      (get-in (look @query) [(case prefix
-                                                               :memes :search-memes
-                                                               :meme-auctions :search-memes-auctions) :items]))))))]
-    (r/create-class
-     {:component-did-mount #(update-state tab opts {:from 0 :to scroll-interval})
-      :reagent-render (fn [tab opts]
-                        [:div.scroll-area
-                         [(panel (look tab) @state)]
-                         #_[:pre (puke @state)]
-                         [infinite-scroll {:load-fn #(let [from (count @state)
-                                                           to (+ scroll-interval from)]
-                                                       (update-state tab opts {:from (count @state)
-                                                                               :to (+ scroll-interval from)}))}]])})))
+                           (prn "STATE" (map :meme-auction/address @state) (count @state))
+                           
+                           (when (or has-next-page (empty? @state))                             
+                             (dispatch [:district.ui.graphql.events/query
+                                        {:query {:queries (build-query tab opts {:from end-cursor
+                                                                                 :to scroll-interval})}
+                                         :id tab}])))))]
+    (fn []
+      [:div.scroll-area
+       [(panel tab @state)]
+       #_[:pre (puke @state)]
+       [infinite-scroll {:load-fn #(update-state tab opts)}]])))
 
 (defn tabbed-pane [tab prefix form-data]
   (let [active-account (subscribe [::accounts-subs/active-account])
@@ -616,10 +646,13 @@
                                                         {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
                                                         {:key :meme-auctions.order-by/price :value "Cheapest"}
                                                         {:key :meme-auctions.order-by/random :value "Random"}])
-                                     :on-selected-tags-change nil #_#(prn :todo)
-                                     :on-search-change nil #_#(re-frame/dispatch [::router-events/navigate name params (merge query {:term (:term @form-data)})])
-                                     :on-check-filter-change nil #_#(re-frame/dispatch [::router-events/navigate name params (merge query {:group-by-memes? (str (:group-by-memes? @form-data))})])
-                                     :on-select-change prn #_#(re-frame/dispatch [::router-events/navigate name params (merge query {:order-by (:order-by @form-data)})])}
+
+                                     ;; :on-selected-tags-change nil
+                                     ;; :on-search-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:term (:term @form-data)})])
+                                     ;; :on-check-filter-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:group-by-memes? (str (:group-by-memes? @form-data))})])
+                                     ;; :on-select-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:order-by (:order-by @form-data)})])
+
+                                     }
                                     (when (contains? #{:collected} @tab)
                                       {:check-filter {:label "Group by memes"
                                                       :id :group-by-memes?}}))]]
