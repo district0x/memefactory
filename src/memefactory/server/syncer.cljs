@@ -43,6 +43,8 @@
                   {:req-opts {:compress false}}
                   (fn [err content]
                     (when-not err
+                      ;; Get returns the entire content, this include CIDv0+more meta+data
+                      ;; TODO add better way of parsing get return
                       (-> (re-find #".+(\{.+\})" content)
                           second
                           js/JSON.parse
