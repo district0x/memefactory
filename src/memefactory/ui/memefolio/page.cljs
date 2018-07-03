@@ -578,41 +578,35 @@
                             :meme/image-hash
                             :meme/total-minted]]]]]]]]])))
 
-
-
 (defn- scrolling-container
   [tab {:keys [:prefix] :as opts}]
-  (let [query (subscribe [::gql/query {:queries (build-query tab opts {:from 0 :to scroll-interval})}
-                          {:id tab
-                           ;;:disable-fetch? true
-                           }])
-        state (r/atom nil)
-        update-state (fn [tab opts]
-                       (when-not (:graphql/loading? @query)
-                         (let [not-contains? (complement contains?)
-                               {:keys [:has-next-page :end-cursor :total-count :items]} (get-in (last @query) [(case prefix
-                                                                                                                 :memes :search-memes
-                                                                                                                 :meme-auctions :search-meme-auctions)])                              
-                               new-items (filter #(not-contains? (set @state) %) items)]
+  (let [k (case prefix
+            :memes :search-memes
+            :meme-auctions :search-meme-auctions)
+        query (subscribe [::gql/query {:queries (build-query tab opts {:from 0 :to scroll-interval})}
+                          {:id tab}])
+        state (->> @query
+                   (mapcat (fn [q] (get-in q [k :items]))))]
 
-                           (prn "OLD" (map :meme-auction/address @state))
-                           (prn "NEW" (map :meme-auction/address items))
-                           (prn "FILTERED"(map :meme-auction/address new-items))
-                           
-                           (swap! state (fn [old new] (concat old new)) new-items)
+    (prn "state" (map (case prefix
+                        :memes :reg-entry/address
+                        :meme-auctions :meme-auction/address)
+                      state)
+         (count state))
+    
+    [:div.scroll-area
+     [(panel tab state)]
+     [infinite-scroll {:load-fn (fn []
+                                  (when-not (:graphql/loading? @query)
+                                    (let [{:keys [:has-next-page :end-cursor] :as r} (k (last @query))]
 
-                           (prn "STATE" (map :meme-auction/address @state) (count @state))
-                           
-                           (when (or has-next-page (empty? @state))                             
-                             (dispatch [:district.ui.graphql.events/query
-                                        {:query {:queries (build-query tab opts {:from end-cursor
-                                                                                 :to scroll-interval})}
-                                         :id tab}])))))]
-    (fn []
-      [:div.scroll-area
-       [(panel tab @state)]
-       #_[:pre (puke @state)]
-       [infinite-scroll {:load-fn #(update-state tab opts)}]])))
+                                      (prn "has-next / from" has-next-page end-cursor)
+
+                                      (when (or has-next-page (empty? state))
+                                        (dispatch [:district.ui.graphql.events/query
+                                                   {:query {:queries (build-query tab opts {:from end-cursor
+                                                                                            :to scroll-interval})}
+                                                    :id tab}])))))}]]))
 
 (defn tabbed-pane [tab prefix form-data]
   (let [active-account (subscribe [::accounts-subs/active-account])
@@ -645,14 +639,7 @@
                                                        [{:key :meme-auctions.order-by/started-on :value "Newest"}
                                                         {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
                                                         {:key :meme-auctions.order-by/price :value "Cheapest"}
-                                                        {:key :meme-auctions.order-by/random :value "Random"}])
-
-                                     ;; :on-selected-tags-change nil
-                                     ;; :on-search-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:term (:term @form-data)})])
-                                     ;; :on-check-filter-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:group-by-memes? (str (:group-by-memes? @form-data))})])
-                                     ;; :on-select-change #(re-frame/dispatch [::router-events/navigate name params (merge query {:order-by (:order-by @form-data)})])
-
-                                     }
+                                                        {:key :meme-auctions.order-by/random :value "Random"}])}
                                     (when (contains? #{:collected} @tab)
                                       {:check-filter {:label "Group by memes"
                                                       :id :group-by-memes?}}))]]
