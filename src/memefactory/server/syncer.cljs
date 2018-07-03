@@ -59,7 +59,13 @@
       (let [{:keys [:meme/meta-hash] :as meme} (meme/load-meme registry-entry)]
         (.then (get-meme-meta meta-hash)
                (fn [meme-meta]
-                 (db/insert-meme! (merge meme meme-meta)))))
+                 (let [{:keys [title image-hash search-tags]} meme-meta]
+                   (db/insert-meme! (merge meme
+                                           {:meme/image-hash image-hash
+                                            :meme/title title}))
+                   (when search-tags
+                     (doseq [t search-tags]
+                       (db/tag-meme! (:reg-entry/address meme) t)))))))
       (db/insert-param-change! (param-change/load-param-change registry-entry)))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-constructed))))
