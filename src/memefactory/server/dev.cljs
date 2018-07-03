@@ -110,7 +110,8 @@
                                                                 :reveal-period-duration (t/in-seconds (t/minutes 1))
                                                                 :deposit (web3/to-wei 1000 :ether)
                                                                 :challenge-dispensation 50
-                                                                :vote-quorum 50}}}}}
+                                                                :vote-quorum 50}}}
+                            :syncer {:ipfs-config {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}}}}
          :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                            :print-gas-usage? true
                            :auto-mining? true}})
