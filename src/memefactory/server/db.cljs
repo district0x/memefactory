@@ -41,7 +41,7 @@
 (def memes-columns
   [[:reg-entry/address address not-nil]
    [:meme/title :varchar not-nil]
-   [:meme/number :unsigned :integer default-nil]
+   [:meme/number :integer not-nil]
    [:meme/image-hash ipfs-hash not-nil]
    [:meme/meta-hash ipfs-hash not-nil]
    [:meme/total-supply :unsigned :integer not-nil]
@@ -49,6 +49,7 @@
    [:meme/token-id-start :unsigned :integer not-nil]
    [:meme/total-trade-volume :BIG :INT default-nil]
    [:meme/first-mint-on :unsigned :integer default-nil]
+   [(sql/call :primary-key :meme/number)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
 
 (def meme-tokens-columns
@@ -119,8 +120,9 @@
    [(sql/call :primary-key :user/address)]])
 
 (def registry-entry-column-names (map first registry-entries-columns))
-(def meme-column-names (map first memes-columns))
+(def meme-column-names (filter keyword? (map first memes-columns)))
 (def meme-tokens-column-names (filter keyword? (map first meme-tokens-columns)))
+
 (def meme-token-owners-column-names (map first meme-token-owners-columns))
 (def meme-tags-column-names (map first meme-tags-columns))
 (def meme-auctions-column-names (filter keyword? (map first meme-auctions-columns)))
@@ -131,7 +133,6 @@
 
 (defn- index-name [col-name]
   (keyword (namespace col-name) (str (name col-name) "-index")))
-
 
 (defn start [opts]
   (db/run! {:create-table [:reg-entries]
@@ -214,7 +215,8 @@
 (def update-registry-entry! (create-update-fn :reg-entries registry-entry-column-names :reg-entry/address))
 (def get-registry-entry (create-get-fn :reg-entries :reg-entry/address))
 
-(def insert-meme! (create-insert-fn :memes meme-column-names))
+(def insert-meme! (create-insert-fn :memes (filter #(not= % :meme/number) meme-column-names)))
+
 (def update-meme! (create-update-fn :memes meme-column-names :reg-entry/address))
 
 (def insert-meme-auction! (create-insert-fn :meme-auctions meme-auctions-column-names))
