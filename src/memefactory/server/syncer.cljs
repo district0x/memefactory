@@ -19,7 +19,9 @@
     [memefactory.server.deployer]
     [memefactory.server.generator]
     [mount.core :as mount :refer [defstate]]
-    [taoensso.timbre :refer-macros [info warn error]]))
+    [taoensso.timbre :refer-macros [info warn error]]
+    [cljs-ipfs-api.core :as icore]
+    [cljs-ipfs-api.files :as ifiles]))
 
 (declare start)
 (declare stop)
@@ -31,6 +33,24 @@
 (def info-text "smart-contract event")
 (def error-text "smart-contract event error")
 
+
+(defn get-meme-meta
+  "Returns a js/Promise that will resolve to meme metadata for meta-hash"
+  [meta-hash]
+  (js/Promise.
+   (fn [resolve reject]
+     (ifiles/fget (str "/ipfs/" meta-hash)
+                  {:req-opts {:compress false}}
+                  (fn [err content]
+                    (when-not err
+                      ;; Get returns the entire content, this include CIDv0+more meta+data
+                      ;; TODO add better way of parsing get return
+                      (-> (re-find #".+(\{.+\})" content)
+                          second
+                          js/JSON.parse
+                          (js->clj :keywordize-keys true)
+                          resolve)))))))
+
 (defn on-constructed [{:keys [:registry-entry :timestamp] :as args} _ type]
   (info info-text {:args args} ::on-constructed)
   (try
@@ -38,9 +58,16 @@
                                       (registry-entry/load-registry-entry-challenge registry-entry)
                                       {:reg-entry/created-on timestamp}))
     (if (= type :meme)
-      (db/insert-meme! (merge (meme/load-meme registry-entry)
-                              {:meme/image-hash "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH"
-                               :meme/title "HapplyHarambe"}))
+      (let [{:keys [:meme/meta-hash] :as meme} (meme/load-meme registry-entry)]
+        (.then (get-meme-meta meta-hash)
+               (fn [meme-meta]
+                 (let [{:keys [title image-hash search-tags]} meme-meta]
+                   (db/insert-meme! (merge meme
+                                           {:meme/image-hash image-hash
+                                            :meme/title title}))
+                   (when search-tags
+                     (doseq [t search-tags]
+                       (db/tag-meme! (:reg-entry/address meme) t)))))))
       (db/insert-param-change! (param-change/load-param-change registry-entry)))
     (catch :default e
       (error error-text {:args args :error (ex-message e)} ::on-constructed))))
@@ -162,6 +189,7 @@
 
 
 (defn dispatch-registry-entry-event [type err {{:keys [:event-type] :as args} :args :as event}]
+  (info "HERE" type err event)
   (let [event-type (cs/->kebab-case-keyword (web3-utils/bytes32->str event-type))]
     ((get registry-entry-events event-type identity)
       (-> args
@@ -173,6 +201,7 @@
 
 
 (defn start [opts]
+  (icore/init-ipfs (:ipfs-config opts))
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
   (let [meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block "latest"})]
