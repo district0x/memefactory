@@ -26,7 +26,7 @@
     (font :bungee)
     {:white-space :nowrap
      :position :relative
-     :color (color :section-caption)
+     ;; :color (color :section-caption)
      :font-size (px 25)
      :margin-top (em 0.3)
      :margin-bottom (em 0.1)
@@ -57,9 +57,14 @@
      :position :absolute
      :height (em 4)
      :width (em 4)}]
-   [:.new-on-marketplace [:.icon {:background-color (color :new-meme-icon-bg)
-                                  :background-image (str "url('/assets/icons/newicon.png')")}]]
-   [:.rare-finds [:.icon {:background-color (color :rare-meme-icon-bg)
-                          :background-image (str "url('/assets/icons/rarefindicon.png')")}]]
+   [:.new-on-marketplace
+    [:.icon {:background-color (color :new-meme-icon-bg)
+                                  :background-image (str "url('/assets/icons/newicon.png')")}]
+    [:h2.title {:color (color :new-meme-icon-bg)}]]
+   [:.rare-finds
+    [:.icon {:background-color (color :rare-meme-icon-bg)
+                          :background-image (str "url('/assets/icons/rarefindicon.png')")}]
+    [:h2.title {:color (color :rare-meme-icon-bg)}]]
    [:.random-pics [:.icon {:background-color (color :random-meme-icon-bg)
-                           :background-image (str "url('/assets/icons/randomicon.png')")}]]])
+                           :background-image (str "url('/assets/icons/randomicon.png')")}]
+    [:h2.title {:color (color :random-meme-icon-bg)}]]])

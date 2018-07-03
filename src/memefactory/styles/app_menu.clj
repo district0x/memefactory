@@ -5,6 +5,7 @@
             [memefactory.styles.base.icons :refer [icons]]
             [memefactory.styles.base.borders :refer [border-top]]
             [memefactory.styles.base.colors :refer [color]]
+            [memefactory.styles.base.fonts :refer [font]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]))
 
@@ -13,9 +14,37 @@
 (defstyles core
   [:.app-container
    [:.app-menu
+    {:position "relative"}
+    [:&:before
+     {:content "''"
+      :background-size [(rem 4) (rem 4)]
+      :background-repeat :no-repeat
+      ;; :margin-left (rem -3)
+      :top (rem 3)
+      :left (rem 2)
+      :position :absolute
+      :height (rem 4)
+      :width (rem 4)
+      :background-image (str "url('/assets/icons/mememouth.png')")}]
+    
     {:overflow-x :hidden
      :overflow-y :auto
      :background (color :white)}
+    [:.menu-content
+     [:&:before
+      (font :bungee)
+      {:content "'MEME FACTORY'"
+       :font-size (px 21)
+       :line-height (em 1.2)
+       :color (color :menu-logo)
+       ;; :margin-right (em 5)
+       :width (rem 5)
+       :padding-top (rem 2.8)
+       :padding-left (rem 7)
+       :position :relative
+       :display :block
+       :min-height (rem 8)
+       }]]
     [(sel/> :.menu-content :.node :.node-content :.item)
      (border-top {:color (color :border-line)})
      ]
@@ -57,4 +86,49 @@
                  [:a:before
                   {:content "''"
                    :background-image (str "url('/assets/icons/" img ".png')")}]])
-              icons))]]]])
+              icons))]]
+    [:.district0x-banner
+     [:.logo {:content "url('/assets/icons/district0x-footer-logo.png')"
+              :height (em 2)
+              ;; :background-position "left bottom";
+              ;; :background-repeat :no-repeat
+              ;; :background-image ""
+              :margin-top (em -5)
+              :margin-bottom (em 1)
+              }]
+     {:padding-left (em 3)
+      :color (color :menu-text)
+      :font-weight :bold
+      :line-height (em 1.4)
+      :position :absolute
+      :overflow :visible
+      :display :block
+      :height (em 10)
+      :right 0
+      :left 0
+      :padding-bottom (em 20)
+      :bottom (em 0)
+      :background-size ["100%"  "100%"]
+      :background-position "right bottom";
+      :background-repeat :no-repeat
+      :background-image "url('/assets/icons/conveyer.png')"}
+     #_[:&:after
+      {;;:content "url('/assets/icons/conveyer.png')"
+       :content "''"
+       :background-size ["100%"  "100%"]
+       :background-repeat :no-repeat
+       ;; :margin-left (rem -3)
+       ;; :top (rem 3)
+       ;; :left (rem 2)
+       :display :block
+       :position :absolute
+       ;; :bottom 0
+       ;; :left 0
+       :right 0
+       :bottom 0
+       ;; :height (em 14)
+       :background-position :bottom;
+       :width "100%";;(em 24)
+       :background-image "url('/assets/icons/conveyer.png')"}]
+     ]
+    ]])

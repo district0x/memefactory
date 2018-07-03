@@ -125,8 +125,8 @@
        [:div.app-menu
         {:class (when-not @drawer-open? "closed")}
         [:div.menu-content
-         [app-menu nav-menu-items @active-page]
-         [district0x-banner]]]
+         [app-menu nav-menu-items @active-page]]
+        [district0x-banner]]
        [:div.app-content
         [app-bar {:search-atom search-atom}]
         (into [:div.main-content]
