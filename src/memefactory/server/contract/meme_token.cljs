@@ -20,12 +20,11 @@
   (contract-call :meme-token :safe-transfer-from from to token-id (merge {:gas 3000000} opts)))
 
 (defn transfer-multi-and-start-auction [{:keys [:from :token-ids :start-price :end-price :duration :description] :as params} & [opts]]
-  (try-catch
-   (safe-transfer-from-multi {:from from
-                              :to (contract-address :meme-auction-factory-fwd)
-                              :token-ids token-ids
-                              :data (meme-auction/start-auction-data (select-keys params [:start-price :end-price :duration :description]))}
-                             opts)))
+  (safe-transfer-from-multi {:from from
+                             :to (contract-address :meme-auction-factory-fwd)
+                             :token-ids token-ids
+                             :data (meme-auction/start-auction-data (select-keys params [:start-price :end-price :duration :description]))}
+                            opts))
 
 (defn transfer-event [& args]
   (apply contract-call :meme-token :Transfer args))
