@@ -63,8 +63,7 @@
                :description "Description"}
         :search-atom search-atom}
        [:div.home
-        [:img.logo]
-        [:p "Inspired by the work of Simon de la Rouviere and his Curation Markets design, the third district to be deployed to dthe district0x."]
+        [:p.inspired "Inspired by the work of Simon de la Rouviere and his Curation Markets design, the third district to be deployed to dthe district0x."]
         [:section.meme-highlights
          [:div.new-on-marketplace
           [:div.icon]

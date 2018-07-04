@@ -88,14 +88,7 @@
                    :background-image (str "url('/assets/icons/" img ".png')")}]])
               icons))]]
     [:.district0x-banner
-     [:.logo {:content "url('/assets/icons/district0x-footer-logo.png')"
-              :height (em 2)
-              ;; :background-position "left bottom";
-              ;; :background-repeat :no-repeat
-              ;; :background-image ""
-              :margin-top (em -5)
-              :margin-bottom (em 1)
-              }]
+     (font :filson)
      {:padding-left (em 3)
       :color (color :menu-text)
       :font-weight :bold
@@ -112,6 +105,14 @@
       :background-position "right bottom";
       :background-repeat :no-repeat
       :background-image "url('/assets/icons/conveyer.png')"}
+     [:.logo {:content "url('/assets/icons/district0x-footer-logo.png')"
+              :height (em 2)
+              ;; :background-position "left bottom";
+              ;; :background-repeat :no-repeat
+              ;; :background-image ""
+              :margin-top (em -5)
+              :margin-bottom (em 1)
+              }]
      #_[:&:after
       {;;:content "url('/assets/icons/conveyer.png')"
        :content "''"
