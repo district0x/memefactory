@@ -1,42 +1,39 @@
 (ns memefactory.ui.memefolio.page
-  (:require
-;;   [cljs-solidity-sha3.core :as sha3]
-   [clojure.string :as str]
-   [district.format :as format]
-   [district.graphql-utils :as graphql-utils]
-   [district.time :as time]
-   [district.ui.component.form.input :as inputs]
-;;   [district.ui.component.input :as input]
-   [district.ui.component.page :refer [page]]
-   [district.ui.component.tx-button :as tx-button]
-   [district.ui.graphql.subs :as gql]
-   [district.ui.graphql.utils :as graphql-ui-utils]
-  ;; [district.ui.router.events :as router-events]
-  ;; [district.ui.router.subs :as router-subs]
-   [district.ui.router.subs :as router-subs]
-   [district.ui.server-config.subs :as config-subs]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   [district.ui.web3-tx-id.subs :as tx-id-subs]
-   [memefactory.shared.utils :as shared-utils]
-   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-   [memefactory.ui.components.app-layout :as app-layout]
-   [memefactory.ui.components.search :as search]
-   [memefactory.ui.components.tiles :as tiles]
-   [print.foo :refer [look] :include-macros true]
-   [re-frame.core :as re-frame :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [reagent.ratom :as ratom]
-   [cljs-web3.core :as web3]
-   [cljs.core.match :refer-macros [match]]
-   ))
-
-;; TODO: curated - voted and challenged checkboxes
+  (:require [cljs-web3.core :as web3]
+            [cljs.core.match :refer-macros [match]]
+            [clojure.string :as str]
+            [district.format :as format]
+            [district.graphql-utils :as graphql-utils]
+            [district.time :as time]
+            [district.ui.component.form.input :as inputs]
+            [district.ui.component.page :refer [page]]
+            [district.ui.component.tx-button :as tx-button]
+            [district.ui.graphql.subs :as gql]
+            [district.ui.graphql.utils :as graphql-ui-utils]
+            [district.ui.router.subs :as router-subs]
+            [district.ui.server-config.subs :as config-subs]
+            [district.ui.web3-accounts.subs :as accounts-subs]
+            [district.ui.web3-tx-id.subs :as tx-id-subs]
+            [memefactory.shared.utils :as shared-utils]
+            [memefactory.ui.components.app-layout :as app-layout]
+            [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+            [memefactory.ui.components.search :as search]
+            [memefactory.ui.components.tiles :as tiles]
+            [print.foo :refer [look] :include-macros true]
+            [re-frame.core :as re-frame :refer [subscribe dispatch]]
+            [reagent.core :as r]
+            [reagent.ratom :as ratom]))
 
 ;; TODO: move to district.format
 (defn format-percentage [p t]
   (str (int (Math/fround (/ (* p 100.0) t))) "%"))
 
-(def default-tab :curated)
+(defn ensure-trailing-slash [s]
+  (str s
+       (when-not (str/ends-with? s "/")
+         "/")))
+
+(def default-tab :collected)
 
 (def scroll-interval 5)
 
@@ -47,8 +44,8 @@
 (defmulti total (fn [tab & opts] tab))
 
 (defn resolve-image [meta-hash]
-  (let [{:keys [host]} @(subscribe [::config-subs/config :ipfs])]
-    (str host ":8080/ipfs/" meta-hash)))
+  (let [gateway @(subscribe [::config-subs/config :ipfs :gateway])]
+    (str (ensure-trailing-slash gateway) meta-hash)))
 
 (defn sell-form [{:keys [:meme/title :meme-auction/token-count :meme-auction/token-ids :show?]}]
   (let [tx-id (str (random-uuid))
@@ -432,7 +429,7 @@
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))
 
 (defn build-query [tab {:keys [:active-account :form-data :prefix] :as opts} {:keys [:from :to] :as params}]
-  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes?]} form-data]
+  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner active-account
                                          :first to}
@@ -481,6 +478,11 @@
                            :reg-entry/status]]]]]
       :curated [[:search-memes (merge {:curator active-account
                                        :first to}
+                                      (when (or voted? challenged?)
+                                        {:statuses (cond-> []
+                                                     voted? (conj :reg-entry.status/blacklisted
+                                                                  :reg-entry.status/whitelisted)
+                                                     challenged? (conj :reg-entry.status/challenge-period))})
                                       (when from
                                         {:after (str from)})
                                       (when term
@@ -561,11 +563,13 @@
             :memes :search-memes
             :meme-auctions :search-meme-auctions)
         query (subscribe [::gql/query {:queries (build-query tab opts {:from 0 :to scroll-interval})}
-                          {:id tab}])
+                          {:id tab
+                           ;;:disable-fetch? true
+                           }])
         state (->> @query
                    (mapcat (fn [q] (get-in q [k :items]))))]
 
-    (prn "state" (map (case prefix
+    #_(prn "state" (map (case prefix
                         :memes :reg-entry/address
                         :meme-auctions :meme-auction/address)
                       state)

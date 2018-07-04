@@ -3,10 +3,9 @@
             [district.server.config :refer [config]]
             [mount.core :as mount :refer [defstate]]))
 
-(defn start [{:keys [:host :port :endpoint] :as opts}]
+(defn start [opts]
   (try
-    (let [conn (ipfs-core/init-ipfs {:host (str host ":" port)
-                                     :endpoint endpoint})]      
+    (let [conn (ipfs-core/init-ipfs opts)]      
       conn)
     (catch :default e
       (throw (js/Error. "Can't connect to IPFS node")))))

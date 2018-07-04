@@ -31,9 +31,9 @@
      (when check-filters
        (doall
         (for [{:keys [id label on-check-filter-change]} check-filters]                   
-          [with-label label
-           [checkbox-input {:form-data form-data
-                            :id id
-                            :on-change on-check-filter-change}]])))]]
+          ^{:key id} [with-label label
+                      [checkbox-input {:form-data form-data
+                                       :id id
+                                       :on-change on-check-filter-change}]])))]]
    [:div.right-section
     [:img]]])
