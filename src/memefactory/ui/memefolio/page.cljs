@@ -30,21 +30,13 @@
    [cljs.core.match :refer-macros [match]]
    ))
 
-;; TODO: group-by memes
 ;; TODO: curated - voted and challenged checkboxes
 
 ;; TODO: move to district.format
 (defn format-percentage [p t]
   (str (int (Math/fround (/ (* p 100.0) t))) "%"))
 
-#_(defn clj->json
-  [coll]
-  (.stringify js/JSON (clj->js coll)))
-
-#_(defn puke [col]
-  (with-out-str (cljs.pprint/pprint col)))
-
-(def default-tab :collected)
+(def default-tab :curated)
 
 (def scroll-interval 5)
 
@@ -55,7 +47,8 @@
 (defmulti total (fn [tab & opts] tab))
 
 (defn resolve-image [meta-hash]
-  "http://upload.wikimedia.org/wikipedia/en/thumb/6/63/Feels_good_man.jpg/200px-Feels_good_man.jpg")
+  (let [{:keys [host]} @(subscribe [::config-subs/config :ipfs])]
+    (str host ":8080/ipfs/" meta-hash)))
 
 (defn sell-form [{:keys [:meme/title :meme-auction/token-count :meme-auction/token-ids :show?]}]
   (let [tx-id (str (random-uuid))
@@ -146,7 +139,8 @@
                                                                                            :meme-auction/token-count token-count
                                                                                            :meme-auction/token-ids token-ids}]}]
                                         [:div [:b (str "#" number " " title)]]
-                                        [:div [:span (str "Owning " token-count " out of " total-supply)]]])))
+                                        (when (and token-count total-supply)
+                                          [:div [:span (str "Owning " token-count " out of " total-supply)]])])))
                  state))]))
 
 (defmethod stats :collected [_ active-account]
@@ -310,30 +304,31 @@
 (defmethod panel :curated [_ state]
   (fn []
     [:div.tiles
-     (map (fn [{:keys [:reg-entry/address :meme/meta-hash :meme/number
-                       :meme/title :challenge/vote] :as meme}]
-            (when address
-              (let [{:keys [:vote/option]} vote]
-                ^{:key address} [:div.meme-card-front {:style {:width 200
-                                                               :height 280
-                                                               :display "block"}}
-                                 [:img {:src (resolve-image meta-hash)}]
-                                 [:div [:b (str "#" number " " title)]]
-                                 [:div
-                                  (cond
-                                    (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
-                                    [:label
-                                     [:b "Voted Unrevealed"]]
+     (doall
+      (map (fn [{:keys [:reg-entry/address :meme/meta-hash :meme/number
+                              :meme/title :challenge/vote] :as meme}]
+                   (when address
+                     (let [{:keys [:vote/option]} vote]
+                       ^{:key address} [:div.meme-card-front {:style {:width 200
+                                                                      :height 280
+                                                                      :display "block"}}
+                                        [:img {:src (resolve-image meta-hash)}]
+                                        [:div [:b (str "#" number " " title)]]
+                                        [:div
+                                         (cond
+                                           (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
+                                           [:label
+                                            [:b "Voted Unrevealed"]]
 
-                                    (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
-                                    [:label "Voted Dank"
-                                     [:i.icon.thumbs.up.outline]]
+                                           (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
+                                           [:label "Voted Dank"
+                                            [:i.icon.thumbs.up.outline]]
 
-                                    (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
-                                    [:label
-                                     [:b "Voted Stank"]
-                                     [:i.icon.thumbs.down.outline]])]])))
-          state)]))
+                                           (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
+                                           [:label
+                                            [:b "Voted Stank"]
+                                            [:i.icon.thumbs.down.outline]])]])))
+                 state))]))
 
 (defmethod stats :curated [_ active-account]
   (let [query (subscribe [::gql/query
@@ -454,36 +449,14 @@
                    [:total-count
                     :end-cursor
                     :has-next-page
-                    [:items [:reg-entry/address
-                             :reg-entry/status
-                             :meme/meta-hash
-                             :meme/number
-                             :meme/title
-
-                             #_[:meme/owned-meme-tokens {:owner active-account}
-                                [:meme-token/token-id]]
-                             #_:meme/total-supply
-
-                             ]]]]]
-
-      #_[[:search-meme-tokens (merge {:owner active-account
-                                    :first to}
-                                   (when from
-                                     {:after (str from)})
-                                   #_(when order-by
-                                       {:order-by (build-order-by prefix order-by)})
-                                   (when order-dir
-                                     {:order-dir order-dir}))
-        [:total-count
-         :end-cursor
-         :has-next-page
-         [:items [:meme-token/number
-                  [:meme-token/meme
-                   [:meme/title
-                    :meme/meta-hash
-                    :meme/total-supply]]]]]]]
-
-      
+                    [:items (remove nil? [:reg-entry/address
+                                          :reg-entry/status
+                                          :meme/meta-hash
+                                          :meme/number
+                                          :meme/title
+                                          (when group-by-memes? :meme/total-supply)                                          
+                                          (when group-by-memes? [:meme/owned-meme-tokens {:owner active-account}
+                                                                 [:meme-token/token-id]])])]]]]      
       :created [[:search-memes (merge {:creator active-account
                                        :first to}
                                       (when from
@@ -644,9 +617,14 @@
                                                         {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
                                                         {:key :meme-auctions.order-by/price :value "Cheapest"}
                                                         {:key :meme-auctions.order-by/random :value "Random"}])}
-                                    (when (contains? #{:collected} @tab)
-                                      {:check-filter {:label "Group by memes"
-                                                      :id :group-by-memes?}}))]]
+                                    (when (= :collected @tab)
+                                      {:check-filters [{:label "Group by memes"
+                                                        :id :group-by-memes?}]})
+                                    (when (= :curated @tab)
+                                      {:check-filters [{:label "Voted"
+                                                        :id :voted?}
+                                                       {:label "Challenged"
+                                                        :id :challenged?}]}))]]
        [:div.header {:style {:grid-area "tab"}}
         (map (fn [tab-id]
                ^{:key tab-id} [:div {:style {:display "inline-block"}}

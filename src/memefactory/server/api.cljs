@@ -4,7 +4,7 @@
             [taoensso.timbre :as log])
   (:require-macros [memefactory.server.macros :refer [try-catch]]))
 
-(def whitelisted-config-keys [:deployer])
+(def whitelisted-config-keys [:deployer :ipfs])
 
 (reg-get! "/config"
           (fn [req res]
