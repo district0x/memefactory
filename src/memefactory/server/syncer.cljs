@@ -39,17 +39,22 @@
   [meta-hash]
   (js/Promise.
    (fn [resolve reject]
+     (.log js/console "Downloading " (str "/ipfs/" meta-hash))
      (ifiles/fget (str "/ipfs/" meta-hash)
                   {:req-opts {:compress false}}
                   (fn [err content]
-                    (when-not err
-                      ;; Get returns the entire content, this include CIDv0+more meta+data
-                      ;; TODO add better way of parsing get return
-                      (-> (re-find #".+(\{.+\})" content)
-                          second
-                          js/JSON.parse
-                          (js->clj :keywordize-keys true)
-                          resolve)))))))
+                    (try
+                     (when (and (not err)
+                                (not-empty content))
+                       ;; Get returns the entire content, this include CIDv0+more meta+data
+                       ;; TODO add better way of parsing get return
+                       (-> (re-find #".+(\{.+\})" content)
+                           second
+                           js/JSON.parse
+                           (js->clj :keywordize-keys true)
+                           resolve))
+                     (catch js/Error e
+                       (.log js/console "Error trying to parse the contents of " (str "/ipfs/" meta-hash)))))))))
 
 (defn on-constructed [{:keys [:registry-entry :timestamp] :as args} _ type]
   (info info-text {:args args} ::on-constructed)
