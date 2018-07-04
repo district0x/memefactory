@@ -18,7 +18,6 @@ pom.xml.asc
 /resources/public/css/
 /resources/semantic/dist/
 /resources/public/contracts/build/*.bin
-/resources/public/css/name-bazaar.main.css.map
 /npm-debug.log
 /config.edn
 /dev-server/

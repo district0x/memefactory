@@ -20,7 +20,7 @@
     [memefactory.server.generator]
     [mount.core :as mount :refer [defstate]]
     [taoensso.timbre :refer-macros [info warn error]]
-    [cljs-ipfs-api.core :as icore]
+;;    [cljs-ipfs-api.core :as icore]
     [cljs-ipfs-api.files :as ifiles]))
 
 (declare start)
@@ -201,7 +201,7 @@
 
 
 (defn start [opts]
-  (icore/init-ipfs (:ipfs-config opts))
+;;  (icore/init-ipfs (:ipfs-config opts))
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
   (let [meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block "latest"})]

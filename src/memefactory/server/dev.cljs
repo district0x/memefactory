@@ -23,6 +23,7 @@
    [memefactory.server.generator]
    [memefactory.server.graphql-resolvers :refer [resolvers-map]]
    [memefactory.server.syncer]
+   [memefactory.server.ipfs]
    [district.graphql-utils :as graphql-utils]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.smart-contracts]
@@ -111,7 +112,7 @@
                                                                 :deposit (web3/to-wei 1000 :ether)
                                                                 :challenge-dispensation 50
                                                                 :vote-quorum 50}}}
-                            :syncer {:ipfs-config {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}}}}
+                            :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}}}
          :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                            :print-gas-usage? true
                            :auto-mining? true}})
