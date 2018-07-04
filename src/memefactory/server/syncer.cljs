@@ -54,7 +54,10 @@
                            (js->clj :keywordize-keys true)
                            resolve))
                      (catch js/Error e
-                       (.log js/console "Error trying to parse the contents of " (str "/ipfs/" meta-hash)))))))))
+                       (.log js/console "Error trying to parse the contents of " (str "/ipfs/" meta-hash))
+                       (resolve {:title "Dummy meme title"
+                                 :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
+                                 :search-tags nil}))))))))
 
 (defn on-constructed [{:keys [:registry-entry :timestamp] :as args} _ type]
   (info info-text {:args args} ::on-constructed)
