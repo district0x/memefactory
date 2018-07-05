@@ -52,7 +52,7 @@
                  :id :term}]
    [:div.go-button]])
 
-(defn app-bar-mobile [{:keys [search-atom]}]
+(defn app-bar-mobile [drawer-open?]
   (let [open? (r/atom nil)];;(subscribe [:district0x.transaction-log/open?])]
     (fn []
       [:div.app-bar-mobile
@@ -60,8 +60,10 @@
        [:div.menu-selection
         [:i.icon.hamburger
          {:on-click (fn [e]
-                      (dispatch [:district0x.menu-drawer/set true])
-                      (.stopPropagation e))}]]
+                      (.stopPropagation e)
+                      (swap! drawer-open? not)
+                      ;; (dispatch [:district0x.menu-drawer/set true])
+                      )}]]
        ])))
 
 (defn app-bar [{:keys [search-atom]}]
@@ -127,7 +129,7 @@
 
 (defn app-layout []
   (let [active-page (subscribe [::mf-subs/active-page])
-        drawer-open? (subscribe [::mf-subs/menu-drawer-open?])]
+        drawer-open? (r/atom false)]
     (fn [{:keys [:meta :search-atom]} & children]
       [:div.app-container
        [:div.app-menu
@@ -137,6 +139,6 @@
         [district0x-banner]]
        [:div.app-content
         [app-bar {:search-atom search-atom}]
-        [app-bar-mobile]
+        [app-bar-mobile drawer-open?]
         (into [:div.main-content]
               children)]])))
