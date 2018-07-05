@@ -7,8 +7,8 @@
 (defn chip-render [c]
   [:span c])
 
-(defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filter
-                            on-selected-tags-change on-search-change on-check-filter-change on-select-change]}]
+(defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filters
+                            on-selected-tags-change on-search-change on-select-change]}]
   [:div.container
    [:div.left-section
     [:div.header
@@ -28,11 +28,12 @@
                   :ac-options tags
                   :on-change on-selected-tags-change
                   :chip-render-fn chip-render}]
-     (when check-filter
-       (let [{:keys [id label]} check-filter]
-         [with-label label
-          [checkbox-input {:form-data form-data
-                           :id id
-                           :on-change on-check-filter-change}]]))]]
+     (when check-filters
+       (doall
+        (for [{:keys [id label on-check-filter-change]} check-filters]                   
+          ^{:key id} [with-label label
+                      [checkbox-input {:form-data form-data
+                                       :id id
+                                       :on-change on-check-filter-change}]])))]]
    [:div.right-section
     [:img]]])

@@ -12,6 +12,30 @@
 
 
 (defstyles core
+  [:p.inspired
+   (font :filson)
+   {:color (color :pink)
+    :position :relative
+    :margin-right :auto
+    :margin-left :auto
+    :padding-top (em 7)
+    :text-align :center
+    :width "50%"}
+   [:&:before
+    {:content "''"
+     :background-size [(em 4) (em 4)]
+     :background-repeat :no-repeat
+     :bottom (em 3)
+     ;; :center (rem 0)
+     :position :absolute
+     :margin-right :auto
+     :margin-left :auto
+     :right 0
+     :left 0
+     :height (em 4)
+     :width (em 4)
+     :background-image (str "url('/assets/icons/mf.png')")}]]
+
   [:.meme-highlights
    [:>div
     {:position :relative}

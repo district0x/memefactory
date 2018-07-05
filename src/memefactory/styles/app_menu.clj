@@ -7,6 +7,7 @@
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
             [garden.selectors :as sel]
+            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [garden.units :refer [pt px em rem]]))
 
 (def menu-gutter (px 15))
@@ -14,6 +15,13 @@
 (defstyles core
   [:.app-container
    [:.app-menu
+    [:&
+     (for-media-max :tablet
+                    {:position :fixed})]
+    [:&.closed
+     (for-media-max :tablet
+                    [:&
+                     {:display :none}])]
     {:position "relative"}
     [:&:before
      {:content "''"
@@ -26,7 +34,6 @@
       :height (rem 4)
       :width (rem 4)
       :background-image (str "url('/assets/icons/mememouth.png')")}]
-    
     {:overflow-x :hidden
      :overflow-y :auto
      :background (color :white)}
@@ -88,14 +95,7 @@
                    :background-image (str "url('/assets/icons/" img ".png')")}]])
               icons))]]
     [:.district0x-banner
-     [:.logo {:content "url('/assets/icons/district0x-footer-logo.png')"
-              :height (em 2)
-              ;; :background-position "left bottom";
-              ;; :background-repeat :no-repeat
-              ;; :background-image ""
-              :margin-top (em -5)
-              :margin-bottom (em 1)
-              }]
+     (font :filson)
      {:padding-left (em 3)
       :color (color :menu-text)
       :font-weight :bold
@@ -112,6 +112,14 @@
       :background-position "right bottom";
       :background-repeat :no-repeat
       :background-image "url('/assets/icons/conveyer.png')"}
+     [:.logo {:content "url('/assets/icons/district0x-footer-logo.png')"
+              :height (em 2)
+              ;; :background-position "left bottom";
+              ;; :background-repeat :no-repeat
+              ;; :background-image ""
+              :margin-top (em -5)
+              :margin-bottom (em 1)
+              }]
      #_[:&:after
       {;;:content "url('/assets/icons/conveyer.png')"
        :content "''"

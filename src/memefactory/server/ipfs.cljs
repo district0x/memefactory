@@ -1,12 +1,14 @@
 (ns memefactory.server.ipfs
-  (:require [cljs-ipfs-api.core :as ipfs-api]
+  (:require [cljs-ipfs-api.core :as ipfs-core]
             [district.server.config :refer [config]]
             [mount.core :as mount :refer [defstate]]))
 
-(defn start [{:keys [:host :endpoint] :as opts}]
-  (if-let [conn (ipfs-api/init-ipfs opts)]
-    conn
-    (throw (js/Error. "Can't connect to IPFS node"))))
+(defn start [opts]
+  (try
+    (let [conn (ipfs-core/init-ipfs opts)]      
+      conn)
+    (catch :default e
+      (throw (js/Error. "Can't connect to IPFS node")))))
 
 (defstate ipfs
   :start (start (merge (:ipfs @config)

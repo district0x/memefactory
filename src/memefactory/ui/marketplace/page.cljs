@@ -88,8 +88,8 @@
                          :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
                          :search-id :search-term  
                          :selected-tags-id :search-tags
-                         :check-filter {:label "Show only cheapest offering of meme"
-                                        :id :only-cheapest?}
+                         :check-filters [{:label "Show only cheapest offering of meme"
+                                           :id :only-cheapest?}]
                          :title "Marketplace"
                          :sub-title "Sub title"
                          :on-selected-tags-change re-search
