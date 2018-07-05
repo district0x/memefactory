@@ -27,6 +27,8 @@
     [memefactory.ui.home.page]
     [memefactory.ui.marketplace.page]
     [memefactory.ui.dank-registry.submit-page]
+    [memefactory.ui.dank-registry.challenge-page]
+    [memefactory.ui.dank-registry.vote-page]
     [memefactory.ui.events.meme-events]
     [memefactory.ui.events.meme-token-events]
     [memefactory.ui.events.meme-auction]

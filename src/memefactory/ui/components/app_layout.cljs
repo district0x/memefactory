@@ -16,7 +16,7 @@
                       :class :dankregistry
                       :children [{:text "Submit"
                                   :route :route.dank-registry/submit}
-                                 {:text "Vote"
+                                 {:text "Vote" 
                                   :route :route.dank-registry/vote}
                                  {:text "Challenge"
                                   :route :route.dank-registry/challenge}

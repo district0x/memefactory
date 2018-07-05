@@ -72,6 +72,70 @@
                                       :on-tx-hash-error [::logging/error [:meme/create-meme]]
                                       :on-tx-error [::logging/error [:meme/create-meme]]}]})))
 
+(defn build-challenge-meta-string [{:keys [reason] :as data}]
+  (-> {:reason reason}
+      clj->js
+      js/JSON.stringify))
+
+;; Adds the challenge to ipfs and if successfull dispatches ::create-challenge
+(re-frame/reg-event-fx
+ ::add-challenge
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :reason] :as data}]]
+   (let [challenge-meta (build-challenge-meta-string {:reason reason})
+         buffer-data (js/buffer.Buffer.from challenge-meta)]
+     (prn "Uploading challenge  meta " challenge-meta)
+     {:ipfs/call {:func "add"
+                  :args [buffer-data]
+                  :on-success [::create-challenge data]
+                  :on-error ::error}})))
+
+(re-frame/reg-event-fx
+ ::create-challenge
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
+   (let [active-account (account-queries/active-account db)
+         deposit "800000000000000000000"
+         extra-data (web3-eth/contract-get-data address
+                                                :create-challenge
+                                                active-account
+                                                Hash)]
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
+                                      :fn :approve-and-create-challenge
+                                      :args (look [address
+                                                   deposit
+                                                   extra-data])
+                                      :tx-opts {:from active-account
+                                                :gas 6000000}
+                                      :tx-id {:meme/create-challenge id}
+                                      :on-tx-success-n [[::logging/success [:meme/create-challenge]]
+                                                        [::notification-events/show (gstring/format "Challenge created for %s with metahash %s"
+                                                                                                    address Hash)]]
+                                      :on-tx-hash-error [::logging/error [:meme/create-challenge]]
+                                      :on-tx-error [::logging/error [:meme/create-challenge]]}]})))
+
+(re-frame/reg-event-fx
+ ::collect-reword
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
+   #_(let [active-account (account-queries/active-account db)
+         deposit "800000000000000000000"
+         extra-data (web3-eth/contract-get-data address
+                                                :create-challenge
+                                                active-account
+                                                Hash)]
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
+                                      :fn :approve-and-create-challenge
+                                      :args (look [address
+                                                   deposit
+                                                   extra-data])
+                                      :tx-opts {:from active-account
+                                                :gas 6000000}
+                                      :tx-id {:meme/create-challenge id}
+                                      :on-tx-success-n [[::logging/success [:meme/create-challenge]]
+                                                        [::notification-events/show (gstring/format "Challenge created for %s with metahash %s"
+                                                                                                    address Hash)]]
+                                      :on-tx-hash-error [::logging/error [:meme/create-challenge]]
+                                      :on-tx-error [::logging/error [:meme/create-challenge]]}]})))
+
+
 
 
 (re-frame/dispatch [::init-ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}])
