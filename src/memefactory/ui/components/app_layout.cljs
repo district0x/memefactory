@@ -12,7 +12,7 @@
                       :route :route.marketplace/index
                       :class :marketplace}
                      {:text "Dank Registry"
-                      :route :route.dank-registry/index
+                      :route :route.dank-registry/browse
                       :class :dankregistry
                       :children [{:text "Submit"
                                   :route :route.dank-registry/submit}
