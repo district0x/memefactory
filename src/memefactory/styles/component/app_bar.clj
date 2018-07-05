@@ -11,6 +11,49 @@
 (def bar-height (px 50))
 
 (defstyles core
+  [:.app-bar-mobile
+   {:position :relative
+    :height (px 43)}
+   [:.logo
+    {:display :block
+     :position :absolute
+     :content "''"
+     :background-size [(rem 3) (rem 3)]
+     :background-position "5px 5px"
+     :background-repeat :no-repeat
+     ;; :margin-left (rem -3)
+     :background-image (str "url('/assets/icons/mememouth.png')")
+     }
+    [:&:before
+     (font :bungee)
+     {:content "'MEME FACTORY'"
+      :font-size (px 18)
+      :line-height (em 1.2)
+      :color (color :menu-logo)
+      ;; :margin-right (em 5)
+      :width (rem 5)
+      ;; :padding-top (rem 2.8)
+      :padding-left (rem 4)
+      :display :block
+      :min-height (rem 8)
+      }]
+    ]
+   [:.menu-selection
+    {:position :absolute
+     :width (px 33)
+     :right 0}
+    [:.icon.hamburger
+     {:cursor :pointer
+      :position :absolute
+      :top (px 7)
+      :right (px 7)
+      :font-size (px 29)
+      ;; :padding (px 8)
+      :line-height "100%"
+      :color (color :pink)}]]
+   (for-media-min :tablet [:&
+                           {:display :none}])]
+
   [:.app-bar
    {:height bar-height
     :background-color (color "white")
@@ -18,9 +61,10 @@
     :display :flex
     :align-items :center
     :justify-content :space-between}
-   (for-media-max :tablet [:&
-                           {:background-color (color "blue")}])
-   [:.left-section
+   (for-media-max :tablet
+                  [:&
+                   {:display :none}])
+   [:.account-section
     {:align-items :left
      :width (px 250)
      :padding "0 10px"}
@@ -34,14 +78,9 @@
      [:.item
       {:white-space :nowrap
        :overflow :hidden
-       :text-overflow :ellipsis}]]
-    (for-media-max :tablet
-                   [:&
-                    {:width bar-height}
-                    [:.active-address-select
-                     {:display :none}]])]
+       :text-overflow :ellipsis}]]]
 
-   [:.middle-section
+   [:.search-section
     [:.search
      {:position :relative}
      [:input
@@ -72,7 +111,7 @@
         }]
       ]
      ]]
-   [:.right-section
+   [:.tracker-section
     {:cursor :pointer
      :transition "width 100ms cubic-bezier(0.23, 1, 0.32, 1) 0ms"
      :width :transactionLogWidth
@@ -85,6 +124,7 @@
       :height "100%"
       :align-items :center
       :justify-content :center}
+     
      [:.active-account-balance
       {:display :block
        :height "100%"
@@ -131,10 +171,4 @@
         :margin-left "auto" 
         :bottom (em 0.3)}]
       ]]]
-   [:.icon.hamburger
-    {:cursor :pointer
-     :font-size (px 29)
-     :line-height "100%"
-     :color (color "light-green")}
-    (for-media-min :tablet [:&
-                            {:display :none}])]])
+   ])

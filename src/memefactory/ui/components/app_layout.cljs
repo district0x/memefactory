@@ -52,21 +52,29 @@
                  :id :term}]
    [:div.go-button]])
 
-(defn app-bar [{:keys [search-atom]}]
-  (let [open? (r/atom nil);;(subscribe [:district0x.transaction-log/open?])
-        my-addresses (r/atom nil);;(subscribe [:district0x/my-addresses])
-        search-term (r/atom {})]
+(defn app-bar-mobile [{:keys [search-atom]}]
+  (let [open? (r/atom nil)];;(subscribe [:district0x.transaction-log/open?])]
     (fn []
-      [:div.app-bar
-       [:div.left-section
-        [active-account]
+      [:div.app-bar-mobile
+       [:div.logo]
+       [:div.menu-selection
         [:i.icon.hamburger
          {:on-click (fn [e]
                       (dispatch [:district0x.menu-drawer/set true])
                       (.stopPropagation e))}]]
-       [:div.middle-section
+       ])))
+
+(defn app-bar [{:keys [search-atom]}]
+  (let [open? (r/atom nil)
+        my-addresses (r/atom nil);;(subscribe [:district0x/my-addresses])
+        search-term (r/atom {})]
+    (fn []
+      [:div.app-bar
+       [:div.account-section
+        [active-account]]
+       [:div.search-section
         [search-form search-term]]
-       [:div.right-section
+       [:div.tracker-section
         {:on-click (fn []
                      (if (empty? @my-addresses)
                        (dispatch [:district0x.location/nav-to :route/how-it-works {}])
@@ -129,5 +137,6 @@
         [district0x-banner]]
        [:div.app-content
         [app-bar {:search-atom search-atom}]
+        [app-bar-mobile]
         (into [:div.main-content]
               children)]])))
