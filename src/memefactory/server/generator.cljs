@@ -26,7 +26,8 @@
     [memefactory.server.contract.registry-entry :as registry-entry]
     [memefactory.server.deployer]
     [mount.core :as mount :refer [defstate]]
-    [print.foo :refer [look] :include-macros true]))
+    [print.foo :refer [look] :include-macros true])
+  (:require-macros [memefactory.server.macros :refer [try-catch]]))
 
 (def fs (js/require "fs"))
 
@@ -67,72 +68,75 @@
                                                                :items-per-account items-per-account
                                                                :scenarios scenarios})]
       (-> (ipfs-upload)
-          (.then (fn [meta-hash]
-                   (let [total-supply (inc (rand-int max-total-supply))
-                         auction-duration (+ 60 (rand-int (- max-auction-duration 60)))]
+          (.then (fn [meta-hash]                   
+                   (try-catch
+                    (let [total-supply (inc (rand-int max-total-supply))
+                                    auction-duration (+ 60 (rand-int (- max-auction-duration 60)))]
 
-                     
-                     (let [tx-hash (meme-factory/approve-and-create-meme {:meta-hash meta-hash
-                                                                          :total-supply total-supply
-                                                                          :amount deposit}
-                                                                         {:from account})]
+                                
+                                ;; TODO: reverts, why?
+                                (let [tx-hash (meme-factory/approve-and-create-meme {:meta-hash meta-hash
+                                                                                     :total-supply total-supply
+                                                                                     :amount (look deposit)}
+                                                                                    {:from account})]
 
-                       (when-not (= :scenario/create scenario-type)
-                         (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx tx-hash)]
-                           (when-not registry-entry
-                             (throw (js/Error. "Registry Entry wasn't found")))
+                                  
+                                  (when-not (= :scenario/create scenario-type)
+                                    (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx (look tx-hash))]
+                                      (when-not registry-entry
+                                        (throw (js/Error. "Registry Entry wasn't found")))
 
-                           (registry-entry/approve-and-create-challenge registry-entry
-                                                                        {:meta-hash meta-hash
-                                                                         :amount deposit}
-                                                                        {:from account})
+                                      (registry-entry/approve-and-create-challenge registry-entry
+                                                                                   {:meta-hash meta-hash
+                                                                                    :amount deposit}
+                                                                                   {:from account})
 
-                           (when-not (= :scenario/challenge scenario-type)
-                             (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
-                                   balance (dank-token/balance-of creator)]
+                                      (when-not (= :scenario/challenge scenario-type)
+                                        (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
+                                              balance (dank-token/balance-of creator)]
 
-                               (registry-entry/approve-and-commit-vote registry-entry
-                                                                       {:amount balance
-                                                                        :salt "abc"
-                                                                        :vote-option :vote.option/vote-for}
-                                                                       {:from creator})
+                                          (registry-entry/approve-and-commit-vote registry-entry
+                                                                                  {:amount balance
+                                                                                   :salt "abc"
+                                                                                   :vote-option :vote.option/vote-for}
+                                                                                  {:from creator})
 
-                               (when-not (= :scenario/commit-vote scenario-type)
-                                 (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
+                                          (when-not (= :scenario/commit-vote scenario-type)
+                                            (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
 
-                                 (registry-entry/reveal-vote registry-entry
-                                                             {:vote-option :vote.option/vote-for
-                                                              :salt "abc"}
-                                                             {:from creator})
+                                            (registry-entry/reveal-vote registry-entry
+                                                                        {:vote-option :vote.option/vote-for
+                                                                         :salt "abc"}
+                                                                        {:from creator})
 
-                                 (when-not (= :scenario/reveal-vote scenario-type)
-                                   (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
+                                            (when-not (= :scenario/reveal-vote scenario-type)
+                                              (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
 
-                                   (registry-entry/claim-vote-reward registry-entry {:from creator})
+                                              (registry-entry/claim-vote-reward registry-entry {:from creator})
 
-                                   (when-not (= :scenario/claim-vote-reward scenario-type)
-                                     (let [tx-hash (meme/mint registry-entry (dec total-supply) {:from creator})
-                                           [_ first-token-id last-token-id] (-> (meme-registry/registry-entry-event-in-tx tx-hash)
-                                                                                :args
-                                                                                :data
-                                                                                (->> (map bn/number)))
-                                           token-ids (range first-token-id (inc last-token-id))]
+                                              (when-not (= :scenario/claim-vote-reward scenario-type)
+                                                (let [tx-hash (meme/mint registry-entry (dec total-supply) {:from creator})
+                                                      [_ first-token-id last-token-id] (-> (meme-registry/registry-entry-event-in-tx tx-hash)
+                                                                                           :args
+                                                                                           :data
+                                                                                           (->> (map bn/number)))
+                                                      token-ids (range first-token-id (inc last-token-id))]
 
-                                       (when (empty? token-ids)
-                                         (throw (js/Error. "Token IDs weren't found")))
+                                                  (when (empty? token-ids)
+                                                    (throw (js/Error. "Token IDs weren't found")))
 
-                                       (let [tx-hash (meme-token/transfer-multi-and-start-auction {:from creator
-                                                                                                   :token-ids token-ids
-                                                                                                   :start-price (web3/to-wei 0.1 :ether)
-                                                                                                   :end-price (web3/to-wei 0.01 :ether)
-                                                                                                   :duration auction-duration
-                                                                                                   :description "some auction"})
-                                             {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-event-in-tx tx-hash)]
+                                                  (let [tx-hash (meme-token/transfer-multi-and-start-auction {:from creator
+                                                                                                              :token-ids token-ids
+                                                                                                              :start-price (web3/to-wei 0.1 :ether)
+                                                                                                              :end-price (web3/to-wei 0.01 :ether)
+                                                                                                              :duration auction-duration
+                                                                                                              :description "some auction"})
+                                                        {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-event-in-tx (look tx-hash))]
 
-                                         (when-not meme-auction
-                                           (throw (js/Error. "Meme Auction wasn't found")))
+                                                    (when-not meme-auction
+                                                      (throw (js/Error. "Meme Auction wasn't found")))
 
-                                         (meme-auction/buy meme-auction {:from creator :value (web3/to-wei 0.1 :ether)}))))))))))))))))))
+                                                    (meme-auction/buy meme-auction {:from creator :value (web3/to-wei 0.1 :ether)})))))))))))))))))))
 
 
 (defn generate-param-changes [{:keys [:accounts
@@ -165,5 +169,5 @@
 
 (defn start [opts]
   (let [opts (assoc opts :accounts (web3-eth/accounts @web3))]
-    (generate-memes opts)
+    (generate-memes (look opts))
     (generate-param-changes opts)))

@@ -19,9 +19,10 @@
     [memefactory.server.deployer]
     [memefactory.server.generator]
     [mount.core :as mount :refer [defstate]]
-    [taoensso.timbre :refer-macros [info warn error]]
-;;    [cljs-ipfs-api.core :as icore]
-    [cljs-ipfs-api.files :as ifiles]))
+    [taoensso.timbre :as log]
+    [cljs-ipfs-api.files :as ifiles]
+    [print.foo :refer [look] :include-macros true])
+  (:require-macros [memefactory.server.macros :refer [try-catch]]))
 
 (declare start)
 (declare stop)
@@ -33,35 +34,36 @@
 (def info-text "smart-contract event")
 (def error-text "smart-contract event error")
 
-
 (defn get-meme-meta
   "Returns a js/Promise that will resolve to meme metadata for meta-hash"
   [meta-hash]
   (js/Promise.
    (fn [resolve reject]
-     (.log js/console "Downloading " (str "/ipfs/" meta-hash))
+     (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-meme-data)     
      (ifiles/fget (str "/ipfs/" meta-hash)
                   {:req-opts {:compress false}}
                   (fn [err content]
                     (try
-                     (when (and (not err)
-                                (not-empty content))
-                       ;; Get returns the entire content, this include CIDv0+more meta+data
-                       ;; TODO add better way of parsing get return
-                       (-> (re-find #".+(\{.+\})" content)
-                           second
-                           js/JSON.parse
-                           (js->clj :keywordize-keys true)
-                           resolve))
-                     (catch js/Error e
-                       (.log js/console "Error trying to parse the contents of " (str "/ipfs/" meta-hash))
-                       (resolve {:title "Dummy meme title"
-                                 :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
-                                 :search-tags nil}))))))))
+                      (if (and (not err)
+                               (not-empty content))
+                        ;; Get returns the entire content, this include CIDv0+more meta+data
+                        ;; TODO add better way of parsing get return
+                        (-> (re-find #".+(\{.+\})" content)
+                            second
+                            js/JSON.parse
+                            (js->clj :keywordize-keys true)
+                            resolve)
+                        (throw (js/Error. (str (or err "Error") " when downloading " "/ipfs/" meta-hash ))))
+                      (catch :default e
+                        (log/error error-text {:error (ex-message e)} ::get-meme-data)
+                        (when goog.DEBUG
+                          (resolve {:title "Dummy meme title"
+                                    :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
+                                    :search-tags nil})))))))))
 
 (defn on-constructed [{:keys [:registry-entry :timestamp] :as args} _ type]
-  (info info-text {:args args} ::on-constructed)
-  (try
+  (log/info info-text {:args args} ::on-constructed)
+  (try-catch
     (db/insert-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
                                       (registry-entry/load-registry-entry-challenge registry-entry)
                                       {:reg-entry/created-on timestamp}))
@@ -76,91 +78,69 @@
                    (when search-tags
                      (doseq [t search-tags]
                        (db/tag-meme! (:reg-entry/address meme) t)))))))
-      (db/insert-param-change! (param-change/load-param-change registry-entry)))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-constructed))))
-
+      (db/insert-param-change! (param-change/load-param-change registry-entry)))))
 
 (defn on-challenge-created [{:keys [:registry-entry :timestamp] :as args}]
-  (info info-text {:args args} ::on-challenge-created)
-  (try
+  (log/info info-text {:args args} ::on-challenge-created)
+  (try-catch
     (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
                                       (registry-entry/load-registry-entry-challenge registry-entry)
-                                      {:challenge/created-on timestamp}))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-challenge-created))))
+                                      {:challenge/created-on timestamp}))))
 
 
 (defn on-vote-committed [{:keys [:registry-entry :timestamp :data] :as args}]
-  (info info-text {:args args} ::on-vote-committed)
-  (try
+  (log/info info-text {:args args} ::on-vote-committed)
+  (try-catch
     (let [voter (web3-utils/uint->address (first data))
           vote (registry-entry/load-vote registry-entry voter)]
-      (db/insert-vote! (merge vote {:vote/created-on timestamp})))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-vote-committed))))
+      (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
 
 (defn on-vote-revealed [{:keys [:registry-entry :timestamp :data] :as args}]
-  (info info-text {:args args} ::on-vote-revealed)
-  (try
+  (log/info info-text {:args args} ::on-vote-revealed)
+  (try-catch
     (let [voter (web3-utils/uint->address (first data))]
       (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
                                         (registry-entry/load-registry-entry-challenge registry-entry)))
-      (db/update-vote! (registry-entry/load-vote registry-entry voter)))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-vote-revealed))))
-
+      (db/update-vote! (registry-entry/load-vote registry-entry voter)))))
 
 (defn on-vote-reward-claimed [{:keys [:registry-entry :timestamp :data] :as args}]
-  (info info-text {:args args} ::on-vote-reward-claimed)
-  (try
+  (log/info info-text {:args args} ::on-vote-reward-claimed)
+  (try-catch
     (let [voter (web3-utils/uint->address (first data))
           vote (registry-entry/load-vote registry-entry voter)]
       (do
         (db/update-vote! vote)
-        (db/inc-user-field! voter :user/voter-total-earned (:vote/amount vote))))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-vote-reward-claimed))))
-
+        (db/inc-user-field! voter :user/voter-total-earned (:vote/amount vote))))))
 
 (defn on-challenge-reward-claimed [{:keys [:registry-entry :timestamp :data] :as args}]
-  (info info-text {:args args} ::on-challenge-reward-claimed)
-  (try
+  (log/info info-text {:args args} ::on-challenge-reward-claimed)
+  (try-catch
     (let [{:keys [:challenge/challenger :reg-entry/deposit] :as reg-entry}
           (merge (registry-entry/load-registry-entry registry-entry)
                  (registry-entry/load-registry-entry-challenge registry-entry))]
 
       (db/update-registry-entry! reg-entry)
-      (db/inc-user-field! (:challenge/challenger reg-entry) :user/challenger-total-earned deposit))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-challenge-reward-claimed))))
-
+      (db/inc-user-field! (:challenge/challenger reg-entry) :user/challenger-total-earned deposit))))
 
 (defn on-minted [{:keys [:registry-entry :timestamp :data] :as args}]
-  (info info-text {:args args} ::on-minted)
-  (try
+  (log/info info-text {:args args} ::on-minted)
+  (try-catch
     (let [[_ token-id-start token-id-end] data]
       (db/insert-meme-tokens! {:token-id-start (bn/number token-id-start)
                                :token-id-end (bn/number token-id-end)
                                :reg-entry/address registry-entry})
       (db/update-meme-first-mint-on! {:reg-entry/address registry-entry
-                                      :meme/first-mint-on timestamp}))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-minted))))
-
+                                      :meme/first-mint-on timestamp}))))
 
 (defn on-auction-started [{:keys [:meme-auction :timestamp :data] :as args}]
-  (info info-text {:args args} ::on-auction-started)
-  (try
-    (db/insert-meme-auction! (meme-auction/load-meme-auction meme-auction))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-auction-started))))
-
+  (log/info info-text {:args args} ::on-auction-started)
+  (try-catch
+    (db/insert-meme-auction! (meme-auction/load-meme-auction meme-auction))))
 
 (defn on-auction-buy [{:keys [:meme-auction :timestamp :data] :as args}]
-  (info info-text {:args args} ::on-auction-buy)
-  (try
+  (log/info info-text {:args args} ::on-auction-buy)
+  (try-catch
     (let [[_ price] data
           price (bn/number price)
           {reg-entry-address :reg-entry/address
@@ -168,21 +148,15 @@
       (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
                                         :amount price})
       (db/update-meme-auction! {:meme-auction/address auction-address
-                                :meme-auction/bought-for price}))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-auction-buy))))
-
+                                :meme-auction/bought-for price}))))
 
 (defn on-meme-token-transfer [err {:keys [:args]}]
-  (info info-text {:args args} ::on-meme-token-transfer)
-  (try
+  (log/info info-text {:args args} ::on-meme-token-transfer)
+  (try-catch
     (let [{:keys [:_to :_token-id :_timestamp]} args]
       (db/insert-or-replace-meme-token-owner {:meme-token/token-id (bn/number _token-id)
                                               :meme-token/owner _to
-                                              :meme-token/transferred-on (bn/number _timestamp)}))
-    (catch :default e
-      (error error-text {:args args :error (ex-message e)} ::on-meme-token-transfer))))
-
+                                              :meme-token/transferred-on (bn/number _timestamp)}))))
 
 (def registry-entry-events
   {:constructed on-constructed
@@ -195,9 +169,8 @@
    :auction-started on-auction-started
    :buy on-auction-buy})
 
-
 (defn dispatch-registry-entry-event [type err {{:keys [:event-type] :as args} :args :as event}]
-  (info "HERE" type err event)
+  (log/info "Dispatching smart contract event callback" {:type type :err err :evt event} ::dispatch-registry-entry-event)
   (let [event-type (cs/->kebab-case-keyword (web3-utils/bytes32->str event-type))]
     ((get registry-entry-events event-type identity)
       (-> args
@@ -207,24 +180,26 @@
       event
       type)))
 
-
 (defn start [opts]
-;;  (icore/init-ipfs (:ipfs-config opts))
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
   (let [meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block "latest"})]
-    [(-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-block 0 :to-block "latest"})
-       (replay-past-events (partial dispatch-registry-entry-event :meme)
-                           {:on-finish
-                            (fn []
-                              (-> meme-auction-event-filter
-                                (replay-past-events (partial dispatch-registry-entry-event :meme-auction))))}))
+    [(registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} "latest" (partial dispatch-registry-entry-event :meme))
+     (meme-auction-factory/meme-auction-event {} "latest" (partial dispatch-registry-entry-event :meme-auction))
+     (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} "latest" (partial dispatch-registry-entry-event :param-change))
+     (meme-token/transfer-event {} "latest" on-meme-token-transfer)
+     (-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-block 0 :to-block "latest"})
+         (replay-past-events (partial dispatch-registry-entry-event :meme)
+                             {:on-finish
+                              (fn []
+                                (-> meme-auction-event-filter
+                                    (replay-past-events (partial dispatch-registry-entry-event :meme-auction))))}))
+     
      (-> (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} {:from-block 0 :to-block "latest"})
-       (replay-past-events (partial dispatch-registry-entry-event :param-change)))
+         (replay-past-events (partial dispatch-registry-entry-event :param-change)))     
      (-> (meme-token/transfer-event {} {:from-block 0 :to-block "latest"})
-       (replay-past-events on-meme-token-transfer))
+         (replay-past-events on-meme-token-transfer))
      meme-auction-event-filter]))
-
 
 (defn stop [syncer]
   (doseq [filter (remove nil? @syncer)]
