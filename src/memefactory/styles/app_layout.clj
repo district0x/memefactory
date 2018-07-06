@@ -10,6 +10,6 @@
   [:.app-container
    {:display :grid}
    (grid-columns "20%" "80%")
-   (for-media-max :mobile
+   (for-media-max :tablet
                   [:&
                    (grid-columns "100%")])])

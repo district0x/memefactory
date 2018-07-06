@@ -7,6 +7,7 @@
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
             [garden.selectors :as sel]
+            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [garden.units :refer [pt px em rem]]))
 
 (def menu-gutter (px 15))
@@ -14,6 +15,13 @@
 (defstyles core
   [:.app-container
    [:.app-menu
+    [:&
+     (for-media-max :tablet
+                    {:position :fixed})]
+    [:&.closed
+     (for-media-max :tablet
+                    [:&
+                     {:display :none}])]
     {:position "relative"}
     [:&:before
      {:content "''"
@@ -26,7 +34,6 @@
       :height (rem 4)
       :width (rem 4)
       :background-image (str "url('/assets/icons/mememouth.png')")}]
-    
     {:overflow-x :hidden
      :overflow-y :auto
      :background (color :white)}

@@ -55,7 +55,7 @@
          ^{:key address}
          [tiles/meme-tile {} meme]))]])) 
 
-(defmethod page :route.dank-registry/index []
+(defmethod page :route.dank-registry/browse []
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
                     (r/atom {:term ""

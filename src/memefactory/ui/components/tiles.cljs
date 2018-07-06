@@ -68,15 +68,6 @@
            [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
           [:hr]
           [:p.description (:meme-auction/description meme-auction)]
-          #_[tx-button/tx-button {:primary true
-                                :disabled false
-                                :pending? @tx-pending?
-                                :pending-text "Buying auction ..."
-                                :on-click (fn []
-                                            (dispatch [:meme-auction/buy {:send-tx/id tx-id
-                                                                          :meme-auction/address (:meme-auction/address meme-auction)
-                                                                          :value price}]))}
-           "Buy"]
           [inputs/pending-button {:pending? @tx-pending?
                                   :pending-text "Buying auction ..."
                                   :on-click (fn []
