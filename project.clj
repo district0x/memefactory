@@ -23,7 +23,7 @@
                  [district0x/district-server-db "1.0.2"]
                  [district0x/district-server-endpoints "1.0.3"]
                  [district0x/district-server-graphql "1.0.15"]
-                 [district0x/district-server-logging "1.0.1"]
+                 [district0x/district-server-logging "1.0.2-SNAPSHOT"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.0.8"]
                  [district0x/district-server-web3 "1.0.1"]
