@@ -35,7 +35,6 @@
 (defstate ^{:on-reload :noop} generator :start (start (merge (:generator @config)
                                                              (:generator (mount/args)))))
 
-
 (defn get-scenarios [{:keys [:accounts :use-accounts :items-per-account :scenarios]}]
   (when (and (pos? use-accounts)
              (pos? items-per-account)
@@ -46,17 +45,30 @@
           scenarios-repeated (take (* use-accounts items-per-account) (cycle scenarios))]
       (partition 2 (interleave accounts-repeated scenarios-repeated)))))
 
+;; TODO: move to distrioct-format
+(defn clj->json
+  [ds]
+  (.stringify js/JSON (clj->js ds)))
+
+;; TODO: upload as JSON {title: image-hash: search-tags:}
 (defn ipfs-upload []
   (js/Promise.
    (fn [resolve reject]
      (.readFile fs
                 "resources/dev/pepe.png"
                 (fn [err data]
+
                   (if-not err
-                    (ipfs-files/add  
+                    (ipfs-files/add 
+
                      data
+                     
+                     #_(clj->json {:title "PepeSmile"
+                                  :image-hash data
+                                  :search-tags "pepe frog dank"})
+                     
                      (fn [err {hash :Hash :as file}]
-                       (resolve hash)))))))))
+                       (resolve (look hash))))))))))
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [[max-total-supply max-auction-duration deposit commit-period-duration reveal-period-duration]
@@ -71,72 +83,70 @@
           (.then (fn [meta-hash]                   
                    (try-catch
                     (let [total-supply (inc (rand-int max-total-supply))
-                                    auction-duration (+ 60 (rand-int (- max-auction-duration 60)))]
+                          auction-duration (+ 60 (rand-int (- max-auction-duration 60)))]
+                      
+                      (let [tx-hash (meme-factory/approve-and-create-meme {:meta-hash meta-hash
+                                                                           :total-supply total-supply
+                                                                           :amount (look deposit)}
+                                                                          {:from account})]
 
-                                
-                                ;; TODO: reverts, why?
-                                (let [tx-hash (meme-factory/approve-and-create-meme {:meta-hash meta-hash
-                                                                                     :total-supply total-supply
-                                                                                     :amount (look deposit)}
-                                                                                    {:from account})]
+                        
+                        (when-not (= :scenario/create scenario-type)
+                          (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx (look tx-hash))]
+                            (when-not registry-entry
+                              (throw (js/Error. "Registry Entry wasn't found")))
 
-                                  
-                                  (when-not (= :scenario/create scenario-type)
-                                    (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx (look tx-hash))]
-                                      (when-not registry-entry
-                                        (throw (js/Error. "Registry Entry wasn't found")))
+                            (registry-entry/approve-and-create-challenge registry-entry
+                                                                         {:meta-hash (look meta-hash)
+                                                                          :amount deposit}
+                                                                         {:from account})
 
-                                      (registry-entry/approve-and-create-challenge registry-entry
-                                                                                   {:meta-hash meta-hash
-                                                                                    :amount deposit}
-                                                                                   {:from account})
+                            (when-not (= :scenario/challenge scenario-type)
+                              (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
+                                    balance (dank-token/balance-of creator)]
 
-                                      (when-not (= :scenario/challenge scenario-type)
-                                        (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
-                                              balance (dank-token/balance-of creator)]
-
-                                          (registry-entry/approve-and-commit-vote registry-entry
-                                                                                  {:amount balance
-                                                                                   :salt "abc"
-                                                                                   :vote-option :vote.option/vote-for}
-                                                                                  {:from creator})
-
-                                          (when-not (= :scenario/commit-vote scenario-type)
-                                            (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
-
-                                            (registry-entry/reveal-vote registry-entry
-                                                                        {:vote-option :vote.option/vote-for
-                                                                         :salt "abc"}
+                                (registry-entry/approve-and-commit-vote registry-entry
+                                                                        {:amount balance
+                                                                         :salt "abc"
+                                                                         :vote-option :vote.option/vote-for}
                                                                         {:from creator})
 
-                                            (when-not (= :scenario/reveal-vote scenario-type)
-                                              (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
+                                (when-not (= :scenario/commit-vote scenario-type)
+                                  (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
 
-                                              (registry-entry/claim-vote-reward registry-entry {:from creator})
+                                  (registry-entry/reveal-vote registry-entry
+                                                              {:vote-option :vote.option/vote-for
+                                                               :salt "abc"}
+                                                              {:from creator})
 
-                                              (when-not (= :scenario/claim-vote-reward scenario-type)
-                                                (let [tx-hash (meme/mint registry-entry (dec total-supply) {:from creator})
-                                                      [_ first-token-id last-token-id] (-> (meme-registry/registry-entry-event-in-tx tx-hash)
-                                                                                           :args
-                                                                                           :data
-                                                                                           (->> (map bn/number)))
-                                                      token-ids (range first-token-id (inc last-token-id))]
+                                  (when-not (= :scenario/reveal-vote scenario-type)
+                                    (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
 
-                                                  (when (empty? token-ids)
-                                                    (throw (js/Error. "Token IDs weren't found")))
+                                    (registry-entry/claim-vote-reward registry-entry {:from creator})
 
-                                                  (let [tx-hash (meme-token/transfer-multi-and-start-auction {:from creator
-                                                                                                              :token-ids token-ids
-                                                                                                              :start-price (web3/to-wei 0.1 :ether)
-                                                                                                              :end-price (web3/to-wei 0.01 :ether)
-                                                                                                              :duration auction-duration
-                                                                                                              :description "some auction"})
-                                                        {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-event-in-tx (look tx-hash))]
+                                    (when-not (= :scenario/claim-vote-reward scenario-type)
+                                      (let [tx-hash (meme/mint registry-entry (dec total-supply) {:from creator})
+                                            [_ first-token-id last-token-id] (-> (meme-registry/registry-entry-event-in-tx tx-hash)
+                                                                                 :args
+                                                                                 :data
+                                                                                 (->> (map bn/number)))
+                                            token-ids (range first-token-id (inc last-token-id))]
 
-                                                    (when-not meme-auction
-                                                      (throw (js/Error. "Meme Auction wasn't found")))
+                                        (when (empty? token-ids)
+                                          (throw (js/Error. "Token IDs weren't found")))
 
-                                                    (meme-auction/buy meme-auction {:from creator :value (web3/to-wei 0.1 :ether)})))))))))))))))))))
+                                        (let [tx-hash (meme-token/transfer-multi-and-start-auction {:from creator
+                                                                                                    :token-ids token-ids
+                                                                                                    :start-price (web3/to-wei 0.1 :ether)
+                                                                                                    :end-price (web3/to-wei 0.01 :ether)
+                                                                                                    :duration auction-duration
+                                                                                                    :description "some auction"})
+                                              {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-event-in-tx (look tx-hash))]
+
+                                          (when-not meme-auction
+                                            (throw (js/Error. "Meme Auction wasn't found")))
+
+                                          (meme-auction/buy meme-auction {:from creator :value (web3/to-wei 0.1 :ether)})))))))))))))))))))
 
 
 (defn generate-param-changes [{:keys [:accounts
@@ -169,5 +179,5 @@
 
 (defn start [opts]
   (let [opts (assoc opts :accounts (web3-eth/accounts @web3))]
-    (generate-memes (look opts))
-    (generate-param-changes opts)))
+    (generate-memes opts)
+    #_(generate-param-changes opts)))

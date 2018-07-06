@@ -23,7 +23,7 @@
                  [district0x/district-server-db "1.0.2"]
                  [district0x/district-server-endpoints "1.0.3"]
                  [district0x/district-server-graphql "1.0.15"]
-                 [district0x/district-server-logging "1.0.2-SNAPSHOT"]
+                 [district0x/district-server-logging "1.0.2"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.0.8"]
                  [district0x/district-server-web3 "1.0.1"]
@@ -104,6 +104,8 @@
   :figwheel {:server-port 4598
              :css-dirs ["resources/public/css"]
              :repl-eval-timeout 30000}
+
+  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "dev-server"]
 
   :aliases {"clean-prod-server" ["shell" "rm" "-rf" "server"]
             "watch-semantic" ["shell" "./semantic.sh" "watch"]

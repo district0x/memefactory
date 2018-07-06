@@ -186,7 +186,7 @@
 (defn start [opts]
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
-  (let [last-block-number (look (last-block-number))
+  (let [last-block-number (last-block-number)
         meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block (dec last-block-number) #_"latest"})]
     [(registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} "latest" (partial dispatch-registry-entry-event :meme))
      (meme-auction-factory/meme-auction-event {} "latest" (partial dispatch-registry-entry-event :meme-auction))
