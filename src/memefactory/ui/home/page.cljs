@@ -70,33 +70,33 @@
           [:div.header
            [:div.middle
             [:h2.title "New On Marketplace"]
-            [:h3.title "Lorem ipsum ..."]]
-           [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
-                                             {:order-by "started-on"
-                                              :order-dir "desc"})} "See More"]
-           [auctions-list (-> @new-on-market :search-meme-auctions :items)]]]
+            [:h3.title "Lorem ipsum ..."]]]
+          [auctions-list (-> @new-on-market :search-meme-auctions :items)]
+          [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
+                                                 {:order-by "started-on"
+                                                  :order-dir "desc"})} "See More"]]
 
          [:div.rare-finds
           [:div.icon]
           [:div.header
            [:div.middle
             [:h2.title "Rare Finds"]
-            [:h3.title "Lorem ipsum ..."]]
-           [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
-                                             {:order-by "meme-total-minted"
-                                              :order-dir "asc"})}
-            "See More"]
-           [auctions-list (-> @rare-finds :search-meme-auctions :items)]]]
+            [:h3.title "Lorem ipsum ..."]]]
+          [auctions-list (-> @rare-finds :search-meme-auctions :items)]
+          [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
+                                                 {:order-by "meme-total-minted"
+                                                  :order-dir "asc"})}
+           "See More"]]
 
          [:div.random-pics
           [:div.icon]
           [:div.header
            [:div.middle
             [:h2.title "Random Picks"]
-            [:h3.title "Lorem ipsum ..."]]
-           [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
-                                             {:order-by "random"})}
-            "See More"]]
-          [auctions-list (-> @random-picks :search-meme-auctions :items)]]]]])))
+            [:h3.title "Lorem ipsum ..."]]]
+          [auctions-list (-> @random-picks :search-meme-auctions :items)]
+          [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
+                                                 {:order-by "random"})}
+           "See More"]]]]])))
 
 
