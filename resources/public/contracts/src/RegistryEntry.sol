@@ -158,7 +158,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(_amount > 0);
     require(registryToken.transferFrom(_voter, this, _amount));
     challenge.vote[_voter].secretHash = _secretHash;
-    challenge.vote[_voter].amount = _amount;
+    challenge.vote[_voter].amount += _amount;
 
     var eventData = new uint[](1);
     eventData[0] = uint(_voter);
