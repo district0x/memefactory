@@ -45,30 +45,35 @@
           scenarios-repeated (take (* use-accounts items-per-account) (cycle scenarios))]
       (partition 2 (interleave accounts-repeated scenarios-repeated)))))
 
-;; TODO: move to distrioct-format
+;; TODO: move to district-format
 (defn clj->json
   [ds]
   (.stringify js/JSON (clj->js ds)))
 
-;; TODO: upload as JSON {title: image-hash: search-tags:}
-(defn ipfs-upload []
+(defn upload-meme []
   (js/Promise.
    (fn [resolve reject]
      (.readFile fs
                 "resources/dev/pepe.png"
                 (fn [err data]
-
-                  (if-not err
+                  (if err
+                    (reject err)
                     (ipfs-files/add 
-
                      data
-                     
-                     #_(clj->json {:title "PepeSmile"
-                                  :image-hash data
-                                  :search-tags "pepe frog dank"})
-                     
-                     (fn [err {hash :Hash :as file}]
-                       (resolve (look hash))))))))))
+                     (fn [err {image-hash :Hash}]
+                       (if err
+                         (reject err)
+                         (resolve image-hash))))))))))
+
+(defn upload-meme-meta [image-hash]  
+  (js/Promise.
+   (fn [resolve reject]
+     (ipfs-files/add 
+      (js/Buffer.from (clj->json {:title "PepeSmile"
+                                  :image-hash image-hash
+                                  :search-tags ["pepe" "frog" "dank"]}))   
+      (fn [err {meta-hash :Hash}]
+        (resolve meta-hash)))))) 
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [[max-total-supply max-auction-duration deposit commit-period-duration reveal-period-duration]
@@ -79,7 +84,8 @@
                                                                :use-accounts use-accounts
                                                                :items-per-account items-per-account
                                                                :scenarios scenarios})]
-      (-> (ipfs-upload)
+      (-> (upload-meme)          
+          (.then upload-meme-meta)                
           (.then (fn [meta-hash]                   
                    (try-catch
                     (let [total-supply (inc (rand-int max-total-supply))
