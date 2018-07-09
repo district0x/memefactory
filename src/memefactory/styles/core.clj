@@ -9,6 +9,7 @@
             [memefactory.styles.app-menu :as app-menu]
 
             [memefactory.styles.pages.home :as page.home]
+            [memefactory.styles.pages.marketplace :as page.marketplace]
             ))
 
 ;; didn't knew where to put this Mike
@@ -27,4 +28,5 @@
   tiles/core
   compact-tile/core
   page.home/core
+  page.marketplace/core
   inputs)

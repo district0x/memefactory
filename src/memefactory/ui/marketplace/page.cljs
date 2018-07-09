@@ -50,7 +50,7 @@
         all-auctions (->> @auctions-search
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
     (println "All auctions" (map :meme-auction/address all-auctions))
-    [:div.tiles 
+    [:div.tiles
      [react-infinite {:element-height 280
                       :container-height 300
                       :infinite-load-begin-edge-offset 100
@@ -73,7 +73,7 @@
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
                     (r/atom {:search-term ""
-                             :order-by (or (:order-by query) "started-on") 
+                             :order-by (or (:order-by query) "started-on")
                              :order-dir (or (:order-dir query) "desc")}))
         all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     (fn []
@@ -83,24 +83,28 @@
         [app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
-         [:div.marketplace
-          [search-tools {:form-data form-data
-                         :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
-                         :search-id :search-term  
-                         :selected-tags-id :search-tags
-                         :check-filters [{:label "Show only cheapest offering of meme"
-                                           :id :only-cheapest?}]
-                         :title "Marketplace"
-                         :sub-title "Sub title"
-                         :on-selected-tags-change re-search
-                         :select-options [{:key "started-on" :value "Newest"}
-                                          {:key "meme-total-minted" :value "Rarest"}
-                                          {:key "price" :value "Cheapest"}
-                                          {:key "random" :value "Random"}]
-                         :on-search-change re-search
-                         :on-check-filter-change re-search
-                         :on-select-change re-search}]
-          [marketplace-tiles form-data]]]))))
+         [:div.marketplace-page
+          [:section.marketplace
+           [:div.search-form
+            [:div.icon]
+            [search-tools {:form-data form-data
+                           :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
+                           :search-id :search-term
+                           :selected-tags-id :search-tags
+                           :check-filters [{:label "Show only cheapest offering of meme"
+                                            :id :only-cheapest?}]
+                           :title "Marketplace"
+                           :sub-title "Sub title"
+                           :on-selected-tags-change re-search
+                           :select-options [{:key "started-on" :value "Newest"}
+                                            {:key "meme-total-minted" :value "Rarest"}
+                                            {:key "price" :value "Cheapest"}
+                                            {:key "random" :value "Random"}]
+                           :on-search-change re-search
+                           :on-check-filter-change re-search
+                           :on-select-change re-search}]]
+           [:div.search-results
+            [marketplace-tiles form-data]]]]]))))
 
 (defmethod page :route.marketplace/index []
   [index-page]) 
