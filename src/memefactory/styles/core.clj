@@ -5,20 +5,13 @@
             [memefactory.styles.component.app-bar :as app-bar]
             [memefactory.styles.component.main-content :as main-content]
             [memefactory.styles.component.compact-tile :as compact-tile]
+            [memefactory.styles.component.form :as form]
             [memefactory.styles.container.tiles :as tiles]
             [memefactory.styles.app-menu :as app-menu]
 
             [memefactory.styles.pages.home :as page.home]
             [memefactory.styles.pages.marketplace :as page.marketplace]
             ))
-
-;; didn't knew where to put this Mike
-(defstyles inputs
-  [:.dropzone
-   {:width (px 200)
-    :height (px 200)
-    :background-color :grey}
-   [:img {:width (px 200)}]])
 
 (defstyles main
   app-layout/core
@@ -29,4 +22,4 @@
   compact-tile/core
   page.home/core
   page.marketplace/core
-  inputs)
+  form/core)
