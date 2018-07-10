@@ -261,7 +261,9 @@
          query (paged-query {:select (remove nil?
                                              [:*
                                               (when (select? :user/curator-total-earned)
-                                                [[:+ :users.user/voter-total-earned :users.user/challenger-total-earned] :user/curator-total-earned])
+                                                [{:select [(sql/call :+ :user/voter-total-earned :user/challenger-total-earned)]
+                                                  :from [:users]}
+                                                 :user/curator-total-earned])
                                               (when (select? :user/total-participated-votes-success)
                                                 [{:select [:%count.*]
                                                   :from [:votes]

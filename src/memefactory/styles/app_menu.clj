@@ -15,9 +15,14 @@
 (defstyles core
   [:.app-container
    [:.app-menu
-    [:&
-     (for-media-max :tablet
-                    {:position :fixed})]
+    (for-media-max :tablet
+                   [:&
+                    {:z-index 2
+                     :display :block
+                     :right (px 50)
+                     :left 0
+                     :min-height (px 1800)
+                     :position :absolute}])
     [:&.closed
      (for-media-max :tablet
                     [:&
@@ -121,22 +126,22 @@
               :margin-bottom (em 1)
               }]
      #_[:&:after
-      {;;:content "url('/assets/icons/conveyer.png')"
-       :content "''"
-       :background-size ["100%"  "100%"]
-       :background-repeat :no-repeat
-       ;; :margin-left (rem -3)
-       ;; :top (rem 3)
-       ;; :left (rem 2)
-       :display :block
-       :position :absolute
-       ;; :bottom 0
-       ;; :left 0
-       :right 0
-       :bottom 0
-       ;; :height (em 14)
-       :background-position :bottom;
-       :width "100%";;(em 24)
-       :background-image "url('/assets/icons/conveyer.png')"}]
+        {;;:content "url('/assets/icons/conveyer.png')"
+         :content "''"
+         :background-size ["100%"  "100%"]
+         :background-repeat :no-repeat
+         ;; :margin-left (rem -3)
+         ;; :top (rem 3)
+         ;; :left (rem 2)
+         :display :block
+         :position :absolute
+         ;; :bottom 0
+         ;; :left 0
+         :right 0
+         :bottom 0
+         ;; :height (em 14)
+         :background-position :bottom;
+         :width "100%";;(em 24)
+         :background-image "url('/assets/icons/conveyer.png')"}]
      ]
     ]])
