@@ -1,36 +1,34 @@
 (ns memefactory.ui.memefolio.page
-  (:require
+  (:require [cljs-web3.core :as web3]
+            [cljs.core.match :refer-macros [match]]
+            [clojure.data :as data]
+            [clojure.string :as str]
+            [district.format :as format]
+            [district.graphql-utils :as graphql-utils]
+            [district.time :as time]
+            [district.ui.component.form.input :as inputs]
+            [district.ui.component.page :refer [page]]
+            [district.ui.component.tx-button :as tx-button]
+            [district.ui.graphql.events :as gql-events]
+            [district.ui.graphql.subs :as gql]
+            [district.ui.graphql.utils :as graphql-ui-utils]
+            [district.ui.router.events :as router-events]
+            [district.ui.router.subs :as router-subs]
+            [district.ui.server-config.subs :as config-subs]
+            [district.ui.web3-accounts.subs :as accounts-subs]
+            [district.ui.web3-tx-id.subs :as tx-id-subs]
+            [memefactory.shared.utils :as shared-utils]
+            [memefactory.ui.components.app-layout :as app-layout]
+            [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+            [memefactory.ui.components.search :as search]
+            [memefactory.ui.components.tiles :as tiles]
+            [memefactory.ui.utils :as ui-utils]
+            [print.foo :refer [look] :include-macros true]
+            [re-frame.core :as re-frame :refer [subscribe dispatch]]
+            [reagent.core :as r]
+            [reagent.ratom :as ratom]))
 
-   [cljs-web3.core :as web3]
-   [cljs.core.match :refer-macros [match]]
-   [clojure.data :as data]
-   [clojure.string :as str]
-   [district.format :as format]
-   [district.graphql-utils :as graphql-utils]
-   [district.time :as time]
-   [district.ui.component.form.input :as inputs]
-   [district.ui.component.page :refer [page]]
-   [district.ui.component.tx-button :as tx-button]
-   [district.ui.graphql.events :as gql-events]
-   [district.ui.graphql.subs :as gql]
-   [district.ui.graphql.utils :as graphql-ui-utils]
-   [district.ui.router.subs :as router-subs]
-   [district.ui.server-config.subs :as config-subs]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   [district.ui.web3-tx-id.subs :as tx-id-subs]
-   [memefactory.shared.utils :as shared-utils]
-   [memefactory.ui.components.app-layout :as app-layout]
-   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-   [memefactory.ui.components.search :as search]
-   [memefactory.ui.components.tiles :as tiles]
-   [print.foo :refer [look] :include-macros true]
-   [re-frame.core :as re-frame :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [reagent.ratom :as ratom]
-
-   ))
-
-(def default-tab :sold)
+(def default-tab :collected)
 
 (def scroll-interval 5)
 
@@ -116,7 +114,7 @@
                      :meme-auction/token-count token-count
                      :show? sell?}]]))))
 
-(defmethod panel :collected [_ state]  
+(defmethod panel :collected [_ state]
   [:div.tiles
    (doall (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/image-hash :meme/number
                             :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
@@ -131,9 +129,12 @@
                                                                                          :meme/owned-meme-tokens owned-meme-tokens
                                                                                          :meme-auction/token-count token-count
                                                                                          :meme-auction/token-ids token-ids}]}]
-                                      [:div [:b (str "#" number " " title)]]
-                                      (when (and token-count total-supply)
-                                        [:div [:span (str "Owning " token-count " out of " total-supply)]])])))
+                                      [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                                 nil
+                                                                 {:reg-entry/address address}])} 
+                                       [:div [:b (str "#" number " " title)]]
+                                       (when (and token-count total-supply)
+                                         [:div [:span (str "Owning " token-count " out of " total-supply)]])]])))
                state))])
 
 (defmethod rank :collected [_ active-account]
@@ -219,14 +220,16 @@
                                                                     :height 280
                                                                     :display "block"}}
                                       [:img {:src (resolve-image image-hash)}]
-                                      [:div [:b (str "#" number " " title)]]
-                                      [:div [:span (str total-minted "/" total-supply" Issued")]]
-                                      [:div
-                                       (case status
-                                         :reg-entry.status/whitelisted [:label [:b "In Registry"]]
-                                         :reg-entry.status/blacklisted [:label [:b "Rejected"]]
-                                         [:label [:b "Challenged"]])]
-
+                                      [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                                 nil
+                                                                 {:reg-entry/address address}])}
+                                       [:div [:b (str "#" number " " title)]]
+                                       [:div [:span (str total-minted "/" total-supply" Issued")]]
+                                       [:div
+                                        (case status
+                                          :reg-entry.status/whitelisted [:label [:b "In Registry"]]
+                                          :reg-entry.status/blacklisted [:label [:b "Rejected"]]
+                                          [:label [:b "Challenged"]])]]
                                       (when (= status :reg-entry.status/whitelisted)
                                         [issue-form {:meme/title title
                                                      :reg-entry/address address
@@ -300,21 +303,24 @@
                                                               :height 280
                                                               :display "block"}}
                                 [:img {:src (resolve-image image-hash)}]
-                                [:div [:b (str "#" number " " title)]]
-                                [:div
-                                 (cond
-                                   (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
-                                   [:label
-                                    [:b "Voted Unrevealed"]]
+                                [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                           nil
+                                                           {:reg-entry/address address}])}
+                                 [:div [:b (str "#" number " " title)]]
+                                 [:div
+                                  (cond
+                                    (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
+                                    [:label
+                                     [:b "Voted Unrevealed"]]
 
-                                   (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
-                                   [:label "Voted Dank"
-                                    [:i.icon.thumbs.up.outline]]
+                                    (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
+                                    [:label "Voted Dank"
+                                     [:i.icon.thumbs.up.outline]]
 
-                                   (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
-                                   [:label
-                                    [:b "Voted Stank"]
-                                    [:i.icon.thumbs.down.outline]])]])))
+                                    (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
+                                    [:label
+                                     [:b "Voted Stank"]
+                                     [:i.icon.thumbs.down.outline]])]]])))
          state))])
 
 (defmethod rank :curated [_ active-account]
@@ -371,9 +377,12 @@
                                                               :height 280
                                                               :display "block"}}
                                 [:img {:src (resolve-image image-hash)}]
-                                [:div.title [:b (str "#" number " " title)]]
-                                [:div.number-minted (str number "/" total-minted)]
-                                [:div.price (format/format-eth (web3/from-wei price :ether))]])))
+                                [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                           nil
+                                                           {:reg-entry/address address}])}
+                                 [:div.title [:b (str "#" number " " title)]]
+                                 [:div.number-minted (str number "/" total-minted)]
+                                 [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
          state))])
 
 (defmethod total :selling [_ active-account]
@@ -396,9 +405,12 @@
                                                               :height 380
                                                               :display "block"}}                                
                                 [:img {:src (resolve-image image-hash)}]
-                                [:div.title [:b (str "#" number " " title)]]
-                                [:div.number-minted (str number "/" total-minted)]
-                                [:div.price (format/format-eth (web3/from-wei price :ether))]])))
+                                [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                           nil
+                                                           {:reg-entry/address address}])}
+                                 [:div.title [:b (str "#" number " " title)]]
+                                 [:div.number-minted (str number "/" total-minted)]
+                                 [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
          state))])
 
 (defmethod total :sold [_ active-account form-data]
@@ -408,13 +420,10 @@
     [:div "Total " (when (not (:graphql/loading? @query))
                      (get-in @query [:search-meme-auctions :total-count]))]))
 
-(defn- build-order-by  [prefix order-by]
+(defn- build-order-by [prefix order-by]
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))
 
-(defn build-query [tab {:keys [:active-account :form-data :prefix :first :after] :as opts}]
-
-  (prn "@build-query" tab opts)
-  
+(defn build-query [tab {:keys [:active-account :form-data :prefix :first :after] :as opts}]  
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner active-account
@@ -564,9 +573,7 @@
                                                                     :after 0
                                                                     :first scroll-interval})}
                             {:id (merge form-data
-                                        {:tab tab})
-                             ;; :disable-fetch? true
-                             }])
+                                        {:tab tab})}])
           k (case prefix
               :memes :search-memes
               :meme-auctions :search-meme-auctions)
@@ -581,11 +588,7 @@
        [infinite-scroll {:load-fn (fn []
                                     (when-not (:graphql/loading? @query)
                                       (let [{:keys [:has-next-page :end-cursor]} (k (last @query))]
-
-                                        #_(prn "has-next / from" has-next-page end-cursor)
-
                                         (when (or has-next-page (empty? state))
-                                          
                                           (dispatch [::gql-events/query
                                                      {:query {:queries (build-query tab {:active-account active-account
                                                                                          :prefix prefix
@@ -604,8 +607,7 @@
                                                                          :form-data @form-data
                                                                          :first scroll-interval
                                                                          :after 0})}
-                                  ;;   :id @form-data
-                                     }]))]
+                                     :id (merge @form-data {:tab @tab})}]))]
 
     (fn [tab prefix form-data]
       [:div.tabbed-pane {:style {:display "grid"
@@ -667,7 +669,6 @@
 
        [:div.panel {:style {:grid-area "panel"}}
         [scrolling-container @tab {:active-account @active-account :form-data @form-data :prefix prefix}]]])))
-
 
 (defmethod page :route.memefolio/index []
   (let [tab (r/atom default-tab)]
