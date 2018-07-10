@@ -1,15 +1,16 @@
 (ns memefactory.server.generator
   (:require
     [bignumber.core :as bn]
+    [cljs-ipfs-api.files :as ipfs-files]
     [cljs-web3.core :as web3]
     [cljs-web3.eth :as web3-eth]
     [cljs-web3.evm :as web3-evm]
     [cljs-web3.utils :refer [js->cljkk camel-case]]
     [district.cljs-utils :refer [rand-str]]
+    [district.format :as format]
     [district.server.config :refer [config]]
     [district.server.smart-contracts :refer [contract-address contract-call instance]]
     [district.server.web3 :refer [web3]]
-    [cljs-ipfs-api.files :as ipfs-files]
     [memefactory.server.contract.dank-token :as dank-token]
     [memefactory.server.contract.eternal-db :as eternal-db]
     [memefactory.server.contract.meme :as meme]
@@ -45,11 +46,6 @@
           scenarios-repeated (take (* use-accounts items-per-account) (cycle scenarios))]
       (partition 2 (interleave accounts-repeated scenarios-repeated)))))
 
-;; TODO: move to district-format
-(defn clj->json
-  [ds]
-  (.stringify js/JSON (clj->js ds)))
-
 (defn upload-meme []
   (js/Promise.
    (fn [resolve reject]
@@ -69,7 +65,7 @@
   (js/Promise.
    (fn [resolve reject]
      (ipfs-files/add 
-      (js/Buffer.from (clj->json {:title "PepeSmile"
+      (js/Buffer.from (format/clj->json {:title "PepeSmile"
                                   :image-hash image-hash
                                   :search-tags ["pepe" "frog" "dank"]}))   
       (fn [err {meta-hash :Hash}]
@@ -98,12 +94,12 @@
 
                         
                         (when-not (= :scenario/create scenario-type)
-                          (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx (look tx-hash))]
+                          (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx tx-hash)]
                             (when-not registry-entry
                               (throw (js/Error. "Registry Entry wasn't found")))
 
                             (registry-entry/approve-and-create-challenge registry-entry
-                                                                         {:meta-hash (look meta-hash)
+                                                                         {:meta-hash meta-hash
                                                                           :amount deposit}
                                                                          {:from account})
 
@@ -147,7 +143,7 @@
                                                                                                     :end-price (web3/to-wei 0.01 :ether)
                                                                                                     :duration auction-duration
                                                                                                     :description "some auction"})
-                                              {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-event-in-tx (look tx-hash))]
+                                              {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-event-in-tx tx-hash)]
 
                                           (when-not meme-auction
                                             (throw (js/Error. "Meme Auction wasn't found")))

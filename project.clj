@@ -52,7 +52,7 @@
                  [district0x/district-ui-web3-tx-log "1.0.2"]
                  [district0x/district-ui-window-size "1.0.1"]
                  [district0x/district-web3-utils "1.0.2"]
-                 [district0x/district-format "1.0.0"]
+                 [district0x/district-format "1.0.1"]
                  [district0x/district-time "1.0.0"]
                  [district0x/re-frame-ipfs-fx "0.0.2"]
                  [district0x/cljs-ipfs-native "0.0.5-SNAPSHOT"]
