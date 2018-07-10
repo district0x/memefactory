@@ -379,7 +379,7 @@
                                 [:img {:src (resolve-image image-hash)}]
                                 [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                            nil
-                                                           {:reg-entry/address address}])}
+                                                           {:reg-entry/address (:reg-entry/address meme)}])}
                                  [:div.title [:b (str "#" number " " title)]]
                                  [:div.number-minted (str number "/" total-minted)]
                                  [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
@@ -407,7 +407,7 @@
                                 [:img {:src (resolve-image image-hash)}]
                                 [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                            nil
-                                                           {:reg-entry/address address}])}
+                                                           {:reg-entry/address (:reg-entry/address meme)}])}
                                  [:div.title [:b (str "#" number " " title)]]
                                  [:div.number-minted (str number "/" total-minted)]
                                  [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
@@ -524,7 +524,8 @@
                            [:meme-auction/meme-token
                             [:meme-token/number
                              [:meme-token/meme
-                              [:meme/title
+                              [:reg-entry/address
+                               :meme/title
                                :meme/image-hash
                                :meme/meta-hash
                                :meme/total-minted]]]]]]]]]
@@ -552,7 +553,8 @@
                         [:meme-auction/meme-token
                          [:meme-token/number
                           [:meme-token/meme
-                           [:meme/title
+                           [:reg-entry/address
+                            :meme/title
                             :meme/image-hash
                             :meme/meta-hash
                             :meme/total-minted]]]]]]]]])))
