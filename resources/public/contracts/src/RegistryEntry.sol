@@ -251,6 +251,17 @@ contract RegistryEntry is ApproveAndCallFallBack {
   }
 
   /**
+   * @dev Simple wrapper to claim challenge and voter reward for a user
+   */
+  function claimAllRewards(address _user)
+    public
+    notEmergency
+  {
+    claimChallengeReward();
+    claimVoteReward(_user);
+  }
+
+  /**
    * @dev Function called by MiniMeToken when somebody calls approveAndCall on it.
    * This way token can be transferred to a recipient in a single transaction together with execution
    * of additional logic

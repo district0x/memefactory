@@ -28,6 +28,7 @@
       [:items (cond-> [:reg-entry/address
                        :reg-entry/created-on
                        :reg-entry/challenge-period-end
+                       :reg-entry/status
                        :meme/total-supply
                        :meme/image-hash
                        :meme/title

@@ -17,7 +17,8 @@
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
-   [district.ui.web3-accounts.subs :as accounts-subs]))
+   [district.ui.web3-accounts.subs :as accounts-subs]
+   [district.graphql-utils :as graphql-utils]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -97,11 +98,9 @@
         "Reveal My Vote"]])))
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
-  (case status
+  (case  (graphql-utils/gql-name->kw status)
     :reg-entry.status/commit-period [vote-action meme] 
-    :reg-entry.status/reveal-period [reveal-action meme]
-    (do (.log js/console "Invalid entry status " status)
-        [:div])))
+    :reg-entry.status/reveal-period [reveal-action meme]))
 
 (defmethod page :route.dank-registry/vote []
   (let [account (subscribe [::accounts-subs/active-account])]

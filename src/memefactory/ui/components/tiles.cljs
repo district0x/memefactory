@@ -92,9 +92,11 @@
          [:div.price (format/format-eth price)]]]))))
 
 (defn meme-front-tile [opts {:keys [:meme/image-hash] :as meme}]
+  ;; TODO what should we show here? probably just the image
   [:div (str "FRONT " meme)])
 
 (defn meme-back-tile [opts {:keys [] :as meme}]
+  ;; TODO what should we show here? not in designs 
   [:div (str "BACK " meme)])
 
 (defn meme-tile [opts {:keys [] :as meme}]

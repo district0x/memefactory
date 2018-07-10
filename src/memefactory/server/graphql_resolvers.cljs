@@ -372,15 +372,47 @@
   (log/debug "reg-entry->creator-resolver args" reg-entry)
   {:user/address creator})
 
-(defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter]}]
-  (log/debug "reg-entry->vote-winning-vote-option-resolver args" reg-entry)
-  ;; TODO implement this
-  (and (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} status))
-  )
+(defn reg-entry-winning-vote-option [{:keys [:reg-entry/address]}]
+  (->> (db/all {:select [:vote/option [(sql/call :count) :count]]
+                :from [:votes]
+                :where [[:is :vote/revealed-on]
+                        [:= :reg-entry/address address]]
+                :group-by [:vote/option]})
+       (apply (partial max-key :count))
+       :vote/option))
 
-(defn reg-entry->all-rewards-resolver [{:keys [:reg-entry/address] :as reg-entry} {:keys [:address]}]
-  ;; TODO implement this
-   55)
+(defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
+  (log/debug "reg-entry->vote-winning-vote-option-resolver args" args)
+  (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry))
+    (let [{:keys [:vote/option]} (db/get {:select [:vote/option]
+                                          :from [:votes]
+                                          :where [:and
+                                                  [:= address :reg-entry/address]
+                                                  [:= voter :vote/voter]]})]
+      (and option
+           (= option (reg-entry-winning-vote-option reg-entry))))))
+
+(defn reg-entry->all-rewards-resolver [{:keys [:reg-entry/address :challenge/reward-pool :challenge/claimed-reward-on
+                                               :reg-entry/deposit :challenge/challenger :challenge/votes-against :challenge/votes-for] :as reg-entry} args]
+  (let [challenger-amount (if (and (nil? claimed-reward-on)
+                                   (= :challenge/challenger (:user/address args)))
+                            (- deposit reward-pool)
+                            0)
+        voter-amount (let [{:keys [:vote/option :vote/amount]}
+                           (db/get {:select [:vote/option :vote/amount]
+                                    :from [:votes]
+                                    :where [:and
+                                            [:= address :reg-entry/address]
+                                            [:= (:user/address args) :vote/voter]]})
+                           winning-option (reg-entry-winning-vote-option reg-entry)
+                           winning-amount (case winning-option
+                                            :vote-option/vote-against votes-against
+                                            :vote-option/vote-for votes-for)]
+                       (if (and (= winning-option option)
+                                (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry)))
+                         (/ (* amount reward-pool) winning-amount) 
+                         0))]
+    (+ challenger-amount voter-amount)))
 
 (defn reg-entry->challenger [{:keys [:challenge/challenger] :as reg-entry}]
   (log/debug "reg-entry->challenger-resolver args" reg-entry)
