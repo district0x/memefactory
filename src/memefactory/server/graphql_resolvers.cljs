@@ -370,6 +370,16 @@
   (log/debug "reg-entry->creator-resolver args" reg-entry)
   {:user/address creator})
 
+(defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter]}]
+  (log/debug "reg-entry->vote-winning-vote-option-resolver args" reg-entry)
+  ;; TODO implement this
+  (and (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} status))
+  )
+
+(defn reg-entry->all-rewards-resolver [{:keys [:reg-entry/address] :as reg-entry} {:keys [:address]}]
+  ;; TODO implement this
+   55)
+
 (defn reg-entry->challenger [{:keys [:challenge/challenger] :as reg-entry}]
   (log/debug "reg-entry->challenger-resolver args" reg-entry)
   (try-catch-throw
@@ -698,6 +708,8 @@
           :vote/reward vote->reward-resolver}
    :Meme {:reg-entry/status reg-entry->status-resolver
           :reg-entry/creator reg-entry->creator-resolver
+          :challenge/vote-winning-vote-option reg-entry->vote-winning-vote-option-resolver
+          :challenge/all-rewards reg-entry->all-rewards-resolver
           :challenge/challenger reg-entry->challenger
           :challenge/vote reg-entry->vote
           :meme/owned-meme-tokens meme->owned-meme-tokens

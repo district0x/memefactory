@@ -53,6 +53,7 @@
    (prn "Meme meta uploaded with hash " Hash)
    (let [tx-id (str (random-uuid))
          active-account (account-queries/active-account db)
+         ;; TODO grab this from registry
          deposit "800000000000000000000"
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme-factory)
                                                 :create-meme
@@ -93,6 +94,7 @@
  ::create-challenge
  (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
    (let [active-account (account-queries/active-account db)
+         ;; TODO grab this from registry
          deposit "800000000000000000000"
          extra-data (web3-eth/contract-get-data address
                                                 :create-challenge
@@ -116,6 +118,7 @@
  ::collect-reword
  (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
    #_(let [active-account (account-queries/active-account db)
+         ;; TODO grab this from registry
          deposit "800000000000000000000"
          extra-data (web3-eth/contract-get-data address
                                                 :create-challenge

@@ -15,7 +15,7 @@
 
 (def page-size 2)
 
-(defn build-challenge-query [{:keys [data after include-challenger-info? query-params]}]
+(defn build-challenge-query [{:keys [data after include-challenger-info? query-params voter]}]
   (let [{:keys [:order-by :order-dir]} data]
     [:search-memes
      (cond-> (merge {:first page-size} query-params)
@@ -39,7 +39,11 @@
                 include-challenger-info? (conj [:challenge/challenger [:user/address
                                                                        :user/creator-rank
                                                                        :user/total-created-memes
-                                                                       :user/total-created-memes-whitelisted]]))]]]))
+                                                                       :user/total-created-memes-whitelisted]])
+                voter (into [[:challenge/vote {:vote/voter voter}
+                              [:vote/secret-hash
+                               :vote/option]]
+                             [:challenge/vote-winning-vote-option {:vote/voter voter}]]))]]]))
 
 (defn user-info [user class]
   [:ol {:class class}
@@ -95,27 +99,32 @@
                                     {:id @form-data
                                      :disable-fetch? true}])
             all-memes (->> @meme-search
-                           (mapcat (fn [r] (-> r :search-memes :items))))]
+                           (mapcat (fn [r] (-> r :search-memes :items)))
+                           ;; TODO remove this, don't know why subscription is returning nil item
+                           (remove #(nil? (:reg-entry/address %))))]
+        (.log js/console "ALL here" @meme-search)
         (.log js/console "ALL Rendering here" all-memes)
-        [:div.challenges.panel
-         [select-input {:form-data form-data
-                        :id :order-by
-                        :options [{:key "created-on" :value "Newest"}]
-                        :on-change #(re-search nil)}]
-         [:div.memes
-          [react-infinite {:element-height 280
-                           :container-height 300
-                           :infinite-load-begin-edge-offset 100
-                           :use-window-as-scroll-container true
-                           :on-infinite-load (fn []
-                                               (when-not (:graphql/loading? @meme-search)
-                                                 (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
-                                                   (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                                   (when (or has-next-page (empty? all-memes))
-                                                     (re-search end-cursor)))))}
-           (doall
-            (for [{:keys [:reg-entry/address] :as meme} all-memes]
-              ^{:key address}
-              [challenge {:entry meme
-                          :include-challenger-info? include-challenger-info?
-                          :action-child action-child}]))]]]))))
+        (if (:graphql/loading? @meme-search)
+          [:div "Loading..."]
+          [:div.challenges.panel
+           [select-input {:form-data form-data
+                          :id :order-by
+                          :options [{:key "created-on" :value "Newest"}]
+                          :on-change #(re-search nil)}]
+           [:div.memes
+            [react-infinite {:element-height 280
+                             :container-height 300
+                             :infinite-load-begin-edge-offset 100
+                             :use-window-as-scroll-container true
+                             :on-infinite-load (fn []
+                                                 (when-not (:graphql/loading? @meme-search)
+                                                   (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
+                                                     (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                                     (when (or has-next-page (empty? all-memes))
+                                                       (re-search end-cursor)))))}
+             (doall
+              (for [{:keys [:reg-entry/address] :as meme} all-memes]
+                ^{:key address}
+                [challenge {:entry meme
+                            :include-challenger-info? include-challenger-info?
+                            :action-child action-child}]))]]])))))
