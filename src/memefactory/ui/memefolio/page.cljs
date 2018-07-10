@@ -28,7 +28,7 @@
    [reagent.core :as r]
    [reagent.ratom :as ratom]
 
-            ))
+   ))
 
 (def default-tab :sold)
 
@@ -413,7 +413,7 @@
 
 (defn build-query [tab {:keys [:active-account :form-data :prefix :first :after] :as opts}]
 
-  #_(prn "@build-query" tab opts)
+  (prn "@build-query" tab opts)
   
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
@@ -563,7 +563,8 @@
                                                                     :form-data form-data
                                                                     :after 0
                                                                     :first scroll-interval})}
-                            {:id tab
+                            {:id (merge form-data
+                                        {:tab tab})
                              ;; :disable-fetch? true
                              }])
           k (case prefix
@@ -584,93 +585,88 @@
                                         #_(prn "has-next / from" has-next-page end-cursor)
 
                                         (when (or has-next-page (empty? state))
-                                                                                    
+                                          
                                           (dispatch [::gql-events/query
                                                      {:query {:queries (build-query tab {:active-account active-account
                                                                                          :prefix prefix
                                                                                          :form-data form-data
                                                                                          :first scroll-interval
                                                                                          :after end-cursor})}
-                                                         :id tab}])))))}]])))
+                                                      :id (merge form-data
+                                                                 {:tab tab})}])))))}]])))
 
 (defn tabbed-pane [tab prefix form-data]
   (let [active-account (subscribe [::accounts-subs/active-account])
         tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
-        #_re-search #_(fn []
-                    (dispatch [::gql-events/query
-                               {:query {:queries (build-query tab {:active-account @active-account
-                                                                   :form-data @form-data
-                                                                   :prefix prefix
-                                                                   :after 0
-                                                                   :first scroll-interval})}}]))]
+        re-search (fn [] (dispatch [::gql-events/query
+                                    {:query {:queries (build-query @tab {:active-account @active-account
+                                                                         :prefix prefix
+                                                                         :form-data @form-data
+                                                                         :first scroll-interval
+                                                                         :after 0})}
+                                  ;;   :id @form-data
+                                     }]))]
 
     (fn [tab prefix form-data]
-      (let [        re-search (fn []
-                    (dispatch [::gql-events/query
-                               {:query {:queries (build-query tab {:active-account @active-account
-                                                                   :form-data @form-data
-                                                                   :prefix prefix
-                                                                   :after 0
-                                                                   :first scroll-interval})}}]))]
-        [:div.tabbed-pane {:style {:display "grid"
-                                   :grid-template-areas
-                                   "'search search search search search search'
+      [:div.tabbed-pane {:style {:display "grid"
+                                 :grid-template-areas
+                                 "'search search search search search search'
                                   'tab tab tab tab tab total'
                                   'rank rank rank rank rank rank'
                                   'panel panel panel panel panel panel'"}}
 
-         [:div {:style {:grid-area "search"}}
-          [search/search-tools (merge {:title "My Memefolio"
-                                       :form-data form-data        
-                                       :on-selected-tags-change re-search
-                                       :on-search-change re-search
-                                       :on-check-filter-change re-search
-                                       :on-select-change re-search
-                                       :tags (->> @tags :search-tags :items (mapv :tag/name))
-                                       :selected-tags-id :search-tags
-                                       :search-id :term
-                                       :sub-title (str "Search " (cljs.core/name prefix))
-                                       :select-options (case prefix
-                                                         :memes [{:key :memes.order-by/created-on :value "Newest"}
-                                                                 {:key :memes.order-by/reveal-period-end :value "Recently Revealed"}
-                                                                 {:key :memes.order-by/commit-period-end :value "Recently Commited"}
-                                                                 {:key :memes.order-by/challenge-period-end :value "Recently challenged"}
-                                                                 {:key :memes.order-by/total-trade-volume :value "Trade Volume"}
-                                                                 {:key :memes.order-by/number :value "Number"}
-                                                                 {:key :memes.order-by/total-minted :value "Total Minted"}]
+       [:div {:style {:grid-area "search"}}
+        [search/search-tools (merge {:title "My Memefolio"
+                                     :form-data form-data        
+                                     :on-selected-tags-change re-search
+                                     :on-search-change re-search
+                                     :on-check-filter-change re-search
+                                     :on-select-change re-search
+                                     :tags (->> @tags :search-tags :items (mapv :tag/name))
+                                     :selected-tags-id :search-tags
+                                     :search-id :term
+                                     :sub-title (str "Search " (cljs.core/name prefix))
+                                     :select-options (case prefix
+                                                       :memes [{:key :memes.order-by/created-on :value "Newest"}
+                                                               {:key :memes.order-by/reveal-period-end :value "Recently Revealed"}
+                                                               {:key :memes.order-by/commit-period-end :value "Recently Commited"}
+                                                               {:key :memes.order-by/challenge-period-end :value "Recently challenged"}
+                                                               {:key :memes.order-by/total-trade-volume :value "Trade Volume"}
+                                                               {:key :memes.order-by/number :value "Number"}
+                                                               {:key :memes.order-by/total-minted :value "Total Minted"}]
 
-                                                         :meme-auctions [{:key :meme-auctions.order-by/started-on :value "Newest"}
-                                                                         {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
-                                                                         {:key :meme-auctions.order-by/price :value "Cheapest"}
-                                                                         {:key :meme-auctions.order-by/random :value "Random"}])}
-                                      (when (= :collected @tab)
-                                        {:check-filters [{:label "Group by memes"
-                                                          :id :group-by-memes?}]})
-                                      (when (= :curated @tab)
-                                        {:check-filters [{:label "Voted"
-                                                          :id :voted?}
-                                                         {:label "Challenged"
-                                                          :id :challenged?}]}))]]
+                                                       :meme-auctions [{:key :meme-auctions.order-by/started-on :value "Newest"}
+                                                                       {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
+                                                                       {:key :meme-auctions.order-by/price :value "Cheapest"}
+                                                                       {:key :meme-auctions.order-by/random :value "Random"}])}
+                                    (when (= :collected @tab)
+                                      {:check-filters [{:label "Group by memes"
+                                                        :id :group-by-memes?}]})
+                                    (when (= :curated @tab)
+                                      {:check-filters [{:label "Voted"
+                                                        :id :voted?}
+                                                       {:label "Challenged"
+                                                        :id :challenged?}]}))]]
 
-         [:div.tabs {:style {:grid-area "tab"}}
-          (map (fn [tab-id]
-                 ^{:key tab-id} [:div {:style {:display "inline-block"}}
-                                 [:a {:on-click (fn [evt]
-                                                  (reset! tab tab-id))}
-                                  (-> tab-id
-                                      cljs.core/name
-                                      (str/capitalize))]])
-               [:collected :created :curated :selling :sold])]
+       [:div.tabs {:style {:grid-area "tab"}}
+        (map (fn [tab-id]
+               ^{:key tab-id} [:div {:style {:display "inline-block"}}
+                               [:a {:on-click (fn [evt]
+                                                (reset! tab tab-id))}
+                                (-> tab-id
+                                    cljs.core/name
+                                    (str/capitalize))]])
+             [:collected :created :curated :selling :sold])]
 
-         [:div.total {:style {:grid-area "total"}}
-          [total @tab @active-account]]
+       [:div.total {:style {:grid-area "total"}}
+        [total @tab @active-account]]
 
-         (when (not (contains? #{:selling :sold} @tab))
-           [:div.rank {:style {:grid-area "rank"}}
-            [rank @tab @active-account]])
+       (when (not (contains? #{:selling :sold} @tab))
+         [:div.rank {:style {:grid-area "rank"}}
+          [rank @tab @active-account]])
 
-         [:div.panel {:style {:grid-area "panel"}}
-          [scrolling-container @tab {:active-account @active-account :form-data @form-data :prefix prefix}]]]))))
+       [:div.panel {:style {:grid-area "panel"}}
+        [scrolling-container @tab {:active-account @active-account :form-data @form-data :prefix prefix}]]])))
 
 
 (defmethod page :route.memefolio/index []
