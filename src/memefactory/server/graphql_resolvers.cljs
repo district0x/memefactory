@@ -262,7 +262,8 @@
                                              [:*
                                               (when (select? :user/curator-total-earned)
                                                 [{:select [(sql/call :+ :user/voter-total-earned :user/challenger-total-earned)]
-                                                  :from [:users]}])
+                                                  :from [:users]}
+                                                 :user/curator-total-earned])
                                               (when (select? :user/total-participated-votes-success)
                                                 [{:select [:%count.*]
                                                   :from [:votes]
