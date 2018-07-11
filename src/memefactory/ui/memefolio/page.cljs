@@ -38,10 +38,6 @@
 
 (defmulti total (fn [tab & opts] tab))
 
-(defn resolve-image [image-hash]
-  (let [gateway @(subscribe [::config-subs/config :ipfs :gateway])]
-    (str (format/ensure-trailing-slash gateway) image-hash)))
-
 (defn sell-form [{:keys [:meme/title :meme-auction/token-count :meme-auction/token-ids :show?]}]
   (let [tx-id (str (random-uuid))
         max-duration (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :max-auction-duration])
@@ -96,7 +92,7 @@
                                                                                                                                                 (map int))})]))}
          "Create Offering"]]])))
 
-(defn collected-tile-front [{:keys [:meme/image-hash]}]
+#_(defn collected-tile-front [{:keys [:meme/image-hash]}]
   [:img {:src (resolve-image image-hash)}])
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]
@@ -123,7 +119,7 @@
                          token-count (count token-ids)]
                      ^{:key address} [:div
                                       [tiles/flippable-tile {:id address
-                                                             :front [collected-tile-front {:meme/image-hash image-hash}]
+                                                             :front [tiles/meme-image image-hash]
                                                              :back [collected-tile-back {:meme/number number
                                                                                          :meme/title title
                                                                                          :meme/owned-meme-tokens owned-meme-tokens
@@ -214,7 +210,7 @@
                  (when address
                    (let [status (graphql-utils/gql-name->kw status)]
                      ^{:key address} [:div.meme-card-front
-                                      [:img {:src (resolve-image image-hash)}]
+                                      [tiles/meme-image image-hash]
                                       [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                                  nil
                                                                  {:reg-entry/address address}])}
@@ -291,7 +287,7 @@
            (when address
              (let [{:keys [:vote/option]} vote]
                ^{:key address} [:div.meme-card-front
-                                [:img {:src (resolve-image image-hash)}]
+                                [tiles/meme-image image-hash]
                                 [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                            nil
                                                            {:reg-entry/address address}])}
@@ -360,7 +356,7 @@
                    now (subscribe [:district.ui.now.subs/now])
                    price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
                ^{:key address} [:div.meme-card-front
-                                [:img {:src (resolve-image image-hash)}]
+                                [tiles/meme-image image-hash]
                                 [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                            nil
                                                            {:reg-entry/address (:reg-entry/address meme)}])}
@@ -386,7 +382,7 @@
                    now (subscribe [:district.ui.now.subs/now])
                    price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
                ^{:key address} [:div.meme-card-front
-                                [:img {:src (resolve-image image-hash)}]
+                                [tiles/meme-image image-hash]
                                 [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                            nil
                                                            {:reg-entry/address (:reg-entry/address meme)}])}

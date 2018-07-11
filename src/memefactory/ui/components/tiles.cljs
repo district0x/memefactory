@@ -1,17 +1,18 @@
 (ns memefactory.ui.components.tiles
-  (:require [memefactory.shared.utils :as shared-utils]
-            [reagent.core :as r]
-            [re-frame.core :refer [subscribe dispatch]]
-            [district.ui.now.subs]
-            [print.foo :refer [look] :include-macros true]
-            [district.time :as time]
-            [cljs-time.core :as t]
+  (:require [cljs-time.core :as t]
             [clojure.string :as str]
             [district.format :as format]
+            [district.time :as time]
+            [district.ui.component.form.input :as inputs]
+            [district.ui.component.tx-button :as tx-button]
+            [district.ui.now.subs]
+            [district.ui.server-config.subs :as config-subs]
             [district.ui.web3-accounts.subs :as accounts-subs]
             [district.ui.web3-tx-id.subs :as tx-id-subs]
-            [district.ui.component.form.input :as inputs]
-            [district.ui.component.tx-button :as tx-button]))
+            [memefactory.shared.utils :as shared-utils]
+            [print.foo :refer [look] :include-macros true]
+            [re-frame.core :refer [subscribe dispatch]]
+            [reagent.core :as r]))
 
 (defn- img-url-stub
   ([]
@@ -23,6 +24,10 @@
                      "IHASH5" 2} n n)
                n)]
      (str "/assets/images/examplememe" img ".png"))))
+
+(defn meme-image [image-hash]
+  (let [gateway @(subscribe [::config-subs/config :ipfs :gateway])]
+    [:img {:src (str (format/ensure-trailing-slash gateway) image-hash)}]))
 
 (defn flippable-tile [{:keys [:front :back :id]}]
   (let [flipped? (r/atom false)
