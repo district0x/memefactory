@@ -11,7 +11,6 @@
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]
-                 [day8.re-frame/re-frame-10x "0.3.1"]
                  [district0x/bignumber "1.0.3"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.3"]
@@ -121,7 +120,8 @@
                                   [binaryage/devtools "0.9.9"]
                                   [com.cemerick/piggieback "0.2.2"]
                                   [figwheel-sidecar "0.5.14" :exclusions [org.clojure/core.async]]
-                                  [org.clojure/tools.reader "1.2.1"]]
+                                  [org.clojure/tools.reader "1.2.1"]
+                                  [re-frisk "0.5.3"]]
                    :source-paths ["dev" "src"]
                    :resource-paths ["resources"]}}
 
@@ -153,9 +153,9 @@
                                    :asset-path "js/compiled/out"
                                    :source-map-timestamp true
                                    :preloads [print.foo.preloads.devtools
-                                              day8.re-frame-10x.preload]
+                                              re-frisk.preload]
                                    :closure-defines {goog.DEBUG true
-                                                     "re_frame.trace.trace_enabled_QMARK_" true}
+                                                     memefactory.ui.core.server-config-url "http://localhost:6200/config"}
                                    :external-config {:devtools/config {:features-to-install :all}}}}
                        {:id "server"
                         :source-paths ["src"]
