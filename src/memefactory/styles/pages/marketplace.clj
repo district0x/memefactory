@@ -76,7 +76,21 @@
        :margin-top (em 0)
        :position :absolute
        :height (em 4)
-       :width (em 4)}]]
+       :width (em 4)}]
+
+     [:.form
+      {:display :grid
+       :grid-template-columns "60% 20% 20%"
+       :grid-template-rows :auto
+       :grid-template-areas
+       (str
+        "'name dropdown .'\n"
+        "'chip chip .'\n"
+        "'. checkbox .'\n")}
+      [:.name {:grid-area :name}]
+      [:.options {:grid-area :dropdown}]
+      [:.ac-options {:grid-area :chip}]
+      [:.check-cheapest {:grid-area :checkbox}]]]
     [:.search-form
      (for-media-max :tablet
                     [:.more {:background-color (color :new-meme-icon-bg)}])
