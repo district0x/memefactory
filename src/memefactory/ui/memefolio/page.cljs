@@ -93,7 +93,7 @@
          "Create Offering"]]])))
 
 #_(defn collected-tile-front [{:keys [:meme/image-hash]}]
-  [:img {:src (resolve-image image-hash)}])
+    [:img {:src (resolve-image image-hash)}])
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]
   (let [sell? (r/atom false)]
@@ -243,16 +243,15 @@
                                                             [:meme-auction/meme-token
                                                              [:meme-token/number
                                                               [:meme-token/meme
-                                                               [:meme/title]]]]]]]]]}])
-        now (subscribe [:district.ui.now.subs/now])]
+                                                               [:meme/title]]]]]]]]]}])]
     (if (:graphql/loading? @query)
       [:div.loading "Loading..."]
       (let [{:keys [:user/total-created-memes :user/total-created-memes-whitelisted :user/creator-rank :user/largest-sale]} (-> @query :user)
             {:keys [:meme-auction/meme-token]} largest-sale
             {:keys [:meme-token/number :meme-token/meme]} meme-token
             {:keys [:meme/title]} meme
-            creator-total-earned (reduce (fn [total-earned meme-auction]
-                                           (+ total-earned (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))))
+            creator-total-earned (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
+                                           (+ total-earned end-price))
                                          0
                                          (-> @query :search-meme-auctions :items))]
         [:div.stats
@@ -267,7 +266,7 @@
                (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
          [:div.best-sale
           [:b "Best Single Card Sale: "]
-          (str (-> (shared-utils/calculate-meme-auction-price largest-sale (-> (.getTime @now) time/time-units :seconds))
+          (str (-> (:meme-auction/end-price largest-sale)
                    (web3/from-wei :ether)
                    format/format-eth)
                " (#" number " " title ")")]]))))
