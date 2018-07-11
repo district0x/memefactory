@@ -85,24 +85,22 @@
                  :description "Description"}}
          [:div.marketplace-page
           [:section.marketplace
-           [:div.search-form
-            [:div.icon]
-            [search-tools {:form-data form-data
-                           :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
-                           :search-id :search-term
-                           :selected-tags-id :search-tags
-                           :check-filters [{:label "Show only cheapest offering of meme"
-                                            :id :only-cheapest?}]
-                           :title "Marketplace"
-                           :sub-title "Sub title"
-                           :on-selected-tags-change re-search
-                           :select-options [{:key "started-on" :value "Newest"}
-                                            {:key "meme-total-minted" :value "Rarest"}
-                                            {:key "price" :value "Cheapest"}
-                                            {:key "random" :value "Random"}]
-                           :on-search-change re-search
-                           :on-check-filter-change re-search
-                           :on-select-change re-search}]]
+           [search-tools {:form-data form-data
+                          :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
+                          :search-id :search-term
+                          :selected-tags-id :search-tags
+                          :check-filters [{:label "Show only cheapest offering of meme"
+                                           :id :only-cheapest?}]
+                          :title "Marketplace"
+                          :sub-title "Sub title"
+                          :on-selected-tags-change re-search
+                          :select-options [{:key "started-on" :value "Newest"}
+                                           {:key "meme-total-minted" :value "Rarest"}
+                                           {:key "price" :value "Cheapest"}
+                                           {:key "random" :value "Random"}]
+                          :on-search-change re-search
+                          :on-check-filter-change re-search
+                          :on-select-change re-search}]
            [:div.search-results
             [marketplace-tiles form-data]]]]]))))
 
