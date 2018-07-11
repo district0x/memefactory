@@ -14,20 +14,40 @@
     :height (px 200)
     :background-color :grey}
    [:img {:width (px 200)}]]
+  [:.chip-input
+   {:display :flex}
+   [:ol.chips {:margin-top 0
+               :padding-left 0
+               :display :flex}
+    [:li {:list-style-type :none
+          :padding-right (em 1)}]]
+   [:.autocomplete-input {:display :inline}
+    [:ol.options
+     {:position :absolute
+      :padding-left (em 0)
+      :margin-left (em 1)
+      :background-color "lightgrey"}
+     [:li {:list-style-type :none
+           }
+      [:&.selected {:background-color "#CCC"}]]]
+    [:.help-block
+     {:position :absolute}]]]
+  [:.chip-input.focused+.help-block:before
+   {:transform "scale(1)"}]
 
   [:.input-group
    ["input[type=text]"
     {:box-sizing :border-box
      :border :none
-     :border-bottom "1px solid #CCC"
+     ;; :border-bottom "1px solid #CCC"
      :width "100%"
      :position :relative}
     [:&:focus {:outline "none"}]
     [:&:focus+.help-block:before
      {:transform "scale(1)"}]]
-   
    [:.help-block
-    {}
+    {:border :none
+     :border-top "1px solid #CCC"}
     [:&:before
      {:content "''"
       :background-color :dodgerblue
