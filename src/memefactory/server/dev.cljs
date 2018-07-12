@@ -129,6 +129,14 @@
 
 (set! *main-cli-fn* -main)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Some useful repl tools ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn increase-time [seconds]
+  (web3-evm/increase-time! @web3 [seconds])
+  (web3-evm/mine! @web3))
+
 (defn select
   "Usage: (select [:*] :from [:memes])"
   [& [select-fields & r]]
@@ -138,11 +146,41 @@
       (print-table)))
 
 (defn print-db
-  "Prints all db tables to the repl"
-  []
-  (let [all-tables (->> (db/all {:select [:name] :from [:sqlite-master] :where [:= :type "table"]})
-                        (map :name))]
-    (doseq [t all-tables]
-      (println "#######" (str/upper-case t) "#######")
-      (select [:*] :from [(keyword t)])
-      (println "\n\n"))))
+  "(print-db) prints all db tables to the repl
+   (print-db :users) prints only users table"
+  ([] (print-db nil))
+  ([table]
+   (let [all-tables (if table
+                      [(name table)]
+                      (->> (db/all {:select [:name] :from [:sqlite-master] :where [:= :type "table"]})
+                           (map :name)))]
+     (doseq [t all-tables]
+       (println "#######" (str/upper-case t) "#######")
+       (select [:*] :from [(keyword t)])
+       (println "\n\n")))))
+
+(defn print-statuses []
+    (->> (db/all {:select [:*]
+                  :from [:reg-entries]})
+         (map (fn [re]
+                (assoc re :status (reg-entry-status (last-block-timestamp) re))))
+         (map #(select-keys % [:reg-entry/address :status]))
+         print-table))
+
+(defn print-balances []
+  (->> (web3-eth/accounts @web3)
+       (map (fn [account]
+              {:account account
+               :dank (dank-token/balance-of account)
+               :eth (web3-eth/get-balance @web3 account)}))
+       print-table))
+
+(defn print-params []
+  (let [param-keys [:max-total-supply :deposit :challenge-period-duration
+                    :commit-period-duration :reveal-period-duration :max-auction-duration
+                    :vote-quorum :challenge-dispensation]]
+    (->> (eternal-db/get-uint-values :meme-registry-db param-keys)
+         (map bn/number)
+         (zipmap param-keys)
+         (pprint/pprint))))
+
