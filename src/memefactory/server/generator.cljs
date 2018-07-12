@@ -26,6 +26,7 @@
     [memefactory.server.contract.registry :as registry]
     [memefactory.server.contract.registry-entry :as registry-entry]
     [memefactory.server.deployer]
+    [taoensso.timbre :as log]
     [mount.core :as mount :refer [defstate]]
     [print.foo :refer [look] :include-macros true])
   (:require-macros [memefactory.server.macros :refer [try-catch]]))
@@ -47,39 +48,51 @@
       (partition 2 (interleave accounts-repeated scenarios-repeated)))))
 
 (defn upload-meme []
-  (js/Promise.
-   (fn [resolve reject]
-     (.readFile fs
-                "resources/dev/pepe.png"
-                (fn [err data]
-                  (if err
-                    (reject err)
-                    (ipfs-files/add 
-                     data
-                     (fn [err {image-hash :Hash}]
-                       (if err
-                         (reject err)
-                         (resolve image-hash))))))))))
+  (let [file "resources/dev/pepe.png"]
+    (log/info "Uploading " file)
+    (js/Promise.
+     (fn [resolve reject]
+       (.readFile fs
+                  file
+                  (fn [err data]
+                    (if err
+                      (reject err)
+                      (ipfs-files/add 
+                       data
+                       (fn [err {image-hash :Hash}]
+                         (if err
+                           (reject err)
+                           (do
+                             (log/info "Uploaded " file " got " image-hash)
+                             (resolve image-hash))))))))))))
 
-(defn upload-meme-meta [image-hash]  
-  (js/Promise.
-   (fn [resolve reject]
-     (ipfs-files/add 
-      (js/Buffer.from (format/clj->json {:title "PepeSmile"
-                                  :image-hash image-hash
-                                  :search-tags ["pepe" "frog" "dank"]}))   
-      (fn [err {meta-hash :Hash}]
-        (resolve meta-hash)))))) 
+(defn upload-meme-meta [image-hash]
+  (let [meta-info (format/clj->json {:title "PepeSmile"
+                                     :image-hash image-hash
+                                     :search-tags ["pepe" "frog" "dank"]})]
+    (log/info "Uploading meta " meta-info)
+    (js/Promise.
+     (fn [resolve reject]
+       (ipfs-files/add 
+        (js/Buffer.from meta-info)   
+        (fn [err {meta-hash :Hash}]
+          (if err
+            (log/error err)
+            (do
+              (log/info "Uploaded meta got " meta-hash)
+              (resolve meta-hash))))))))) 
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [[max-total-supply max-auction-duration deposit commit-period-duration reveal-period-duration]
         (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-auction-duration :deposit :commit-period-duration
                                                             :reveal-period-duration])
-             (map bn/number))]
-    (doseq [[account {:keys [:scenario-type]}] (get-scenarios {:accounts accounts
-                                                               :use-accounts use-accounts
-                                                               :items-per-account items-per-account
-                                                               :scenarios scenarios})]
+             (map bn/number))
+        scenarios (get-scenarios (look {:accounts accounts
+                                        :use-accounts use-accounts
+                                        :items-per-account items-per-account
+                                        :scenarios scenarios}))]
+    (log/info "Going to generate " scenarios)
+    (doseq [[account {:keys [:scenario-type]}] scenarios]
       (-> (upload-meme)          
           (.then upload-meme-meta)                
           (.then (fn [meta-hash]                   

@@ -8,7 +8,9 @@
    [district.ui.component.form.input :refer [file-drag-input with-label chip-input text-input]]
    [memefactory.ui.dank-registry.events :as dr-events]
    [re-frame.core :as re-frame]
-   [district.ui.graphql.subs :as gql]))
+   [district.ui.graphql.subs :as gql]
+   [district.format :as format]
+   [district.ui.server-config.subs :as config-subs]))
 
 (defn header []
   [:div.header
@@ -18,8 +20,9 @@
 
 (defmethod page :route.dank-registry/submit []
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
+        dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])
         form-data (r/atom {})]
-   (fn []
+   (fn [] 
      [app-layout
       {:meta {:title "MemeFactory"
               :description "Description"}}
@@ -51,6 +54,6 @@
          [:span.max-issuance "Max 500.000"]
          [:div.submit
           [:button {:on-click (fn []
-                                (dispatch [::dr-events/upload-meme @form-data]))}
+                                (dispatch [::dr-events/upload-meme @form-data @dank-deposit]))}
            "Submit"]
-          [:span.dank "1,000 DANK"]]]]]])))
+          [:span.dank (format/format-token @dank-deposit  {:token "DANK"})]]]]]])))

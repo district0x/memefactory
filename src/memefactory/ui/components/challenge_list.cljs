@@ -15,7 +15,7 @@
 
 (def page-size 2)
 
-(defn build-challenge-query [{:keys [data after include-challenger-info? query-params voter]}]
+(defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]}]
   (let [{:keys [:order-by :order-dir]} data]
     [:search-memes
      (cond-> (merge {:first page-size} query-params)
@@ -41,10 +41,11 @@
                                                                        :user/creator-rank
                                                                        :user/total-created-memes
                                                                        :user/total-created-memes-whitelisted]])
-                voter (into [[:challenge/vote {:vote/voter voter}
-                              [:vote/secret-hash
-                               :vote/option]]
-                             [:challenge/vote-winning-vote-option {:vote/voter voter}]]))]]]))
+                active-account (into [[:challenge/vote {:vote/voter active-account}
+                                       [:vote/secret-hash
+                                        :vote/option]]
+                                      [:challenge/vote-winning-vote-option {:vote/voter active-account}]
+                                      [:challenge/all-rewards {:user/address active-account}]]))]]]))
 
 (defn user-info [user class]
   [:ol {:class class}
@@ -61,7 +62,7 @@
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
                 :meme/tags :challenge/challenger]} entry]
     [:div.challenge
-     (str "Challenge should include INFO" include-challenger-info?)
+     [:div (str "ENTRY " address)] ;; TODO remove (only for debugging)
      (cond-> [:div.info
               [:h2 title]
               [:ol.meme
@@ -103,7 +104,6 @@
                            (mapcat (fn [r] (-> r :search-memes :items)))
                            ;; TODO remove this, don't know why subscription is returning nil item
                            (remove #(nil? (:reg-entry/address %))))]
-        (.log js/console "ALL here" @meme-search)
         (.log js/console "ALL Rendering here" all-memes)
         (if (:graphql/loading? @meme-search)
           [:div "Loading..."]
