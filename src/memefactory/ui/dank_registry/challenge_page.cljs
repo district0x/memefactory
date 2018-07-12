@@ -39,8 +39,9 @@
          [pending-button {:pending? @tx-pending?
                           :pending-text "Challenging ..."
                           :on-click (fn []
-                                      (dispatch [:dank-registry/challenge {:send-tx/id tx-id
-                                                                           :reg-entry/address address}]))}
+                                      (dispatch [::dr-events/add-challenge {:send-tx/id tx-id
+                                                                            :reg-entry/address address
+                                                                            :reason (:reason @form-data)}]))}
           "Challenge"]
          [:span "1000 DANK"]]
         [:button {:on-click #(swap! open? not)} "Challenge"])])))

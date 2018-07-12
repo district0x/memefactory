@@ -57,9 +57,9 @@
          deposit "800000000000000000000"
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme-factory)
                                                 :create-meme
-                                                (look active-account)
-                                                (look Hash)
-                                                (look (bn/number (:issuance data))))]
+                                                active-account
+                                                Hash
+                                                (bn/number (:issuance data)))]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args (look [(contract-queries/contract-address db :meme-factory)
@@ -93,21 +93,22 @@
 (re-frame/reg-event-fx
  ::create-challenge
  (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
+   (prn "Challenge meta created with hash " Hash)
    (let [active-account (account-queries/active-account db)
          ;; TODO grab this from registry
-         deposit "800000000000000000000"
-         extra-data (web3-eth/contract-get-data address
-                                                :create-challenge
-                                                active-account
-                                                Hash)]
+         deposit "1000000000000000000000"
+         extra-data (look (web3-eth/contract-get-data (look (contract-queries/instance db :meme address))
+                                                      :create-challenge
+                                                      (look active-account)
+                                                      (look Hash)))]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
-                                      :fn :approve-and-create-challenge
-                                      :args (look [address
-                                                   deposit
-                                                   extra-data])
+                                      :fn :approve-and-call
+                                      :args [address
+                                             deposit
+                                             extra-data]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
-                                      :tx-id {:meme/create-challenge id}
+                                      :tx-id {:meme/create-challenge id} 
                                       :on-tx-success-n [[::logging/success [:meme/create-challenge]]
                                                         [::notification-events/show (gstring/format "Challenge created for %s with metahash %s"
                                                                                                     address Hash)]]

@@ -30,8 +30,9 @@
    [:h3 "Lorem ipsum dolor sit ..."]
    [:div [:div "Get Dank"]]])
 
-(defn collect-reward-action [{:keys [:reg-entry/address :challenge/vote-winning-vote-option]}]
+(defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards]}]
   (let [tx-id (str (random-uuid))
+        active-account (subscribe [::accounts-subs/active-account])
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])]
     [:div.collect-reward
      [:img]
@@ -39,15 +40,16 @@
       [:li [with-label "Voted dank:" (gstring/format "%d%% - %d" 62 55234)]]
       [:li [with-label "Voted stank:" (gstring/format "%d%% - %d" 38 34567)]]
       [:li [with-label "Total voted:" (gstring/format "%d" 87234)]]
-      [:li [with-label "Your reward:" (gstring/format "%f MFM" (if vote-winning-vote-option
-                                                                 125.12
+      [:li [with-label "Your reward:" (gstring/format "%f MFM" (if  (pos? all-rewards)
+                                                                 all-rewards
                                                                  0))]]]
      [pending-button {:pending? @tx-pending?
-                      :disabled (not vote-winning-vote-option)
+                      :disabled (not (pos? all-rewards)) 
                       :pending-text "Collecting ..."
                       :on-click (fn []
-                                  (dispatch [:dank-registry/collect-reward {:send-tx/id tx-id
-                                                                            :reg-entry/address address}]))}
+                                  (dispatch [:dank-registry/collect-all-rewards {:send-tx/id tx-id
+                                                                                 :active-account @active-account
+                                                                                 :reg-entry/address address}]))}
       "Collect Reward"]]))
 
 (defn vote-action [{:keys [:reg-entry/address] :as meme}]
@@ -114,11 +116,11 @@
         :content [challenge-list {:include-challenger-info? false
                                   :query-params {:statuses [:reg-entry.status/commit-period
                                                             :reg-entry.status/reveal-period]}
-                                  :voter @account
+                                  :active-account @account
                                   :action-child reveal-vote-action}]}
        {:title "Resolved Challenges"
         :content [challenge-list {:include-challenger-info? true
                                   :query-params {:statuses [:reg-entry.status/blacklisted
                                                             :reg-entry.status/whitelisted]}
-                                  :voter @account
+                                  :active-account @account
                                   :action-child collect-reward-action}]}]]]]))
