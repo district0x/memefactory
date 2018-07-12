@@ -114,28 +114,56 @@
                                       :on-tx-error [::logging/error [:meme/create-challenge]]}]})))
 
 (re-frame/reg-event-fx
- ::collect-reword
+ ::collect-reward
  (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
-   #_(let [active-account (account-queries/active-account db)
-         ;; TODO grab this from registry
-         deposit "800000000000000000000"
-         extra-data (web3-eth/contract-get-data address
-                                                :create-challenge
-                                                active-account
-                                                Hash)]
-     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
-                                      :fn :approve-and-create-challenge
-                                      :args (look [address
-                                                   deposit
-                                                   extra-data])
+   (let [active-account (account-queries/active-account db)]
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
+                                      :fn :claim-vote-reward
+                                      :args [active-account]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
-                                      :tx-id {:meme/create-challenge id}
-                                      :on-tx-success-n [[::logging/success [:meme/create-challenge]]
-                                                        [::notification-events/show (gstring/format "Challenge created for %s with metahash %s"
-                                                                                                    address Hash)]]
-                                      :on-tx-hash-error [::logging/error [:meme/create-challenge]]
-                                      :on-tx-error [::logging/error [:meme/create-challenge]]}]})))
+                                      :tx-id {:meme/collect-reward id}
+                                      :on-tx-success-n [[::logging/success [:meme/collect-reward]]
+                                                        [::notification-events/show "Reward collected"]]
+                                      :on-tx-hash-error [::logging/error [:meme/collect-reward]]
+                                      :on-tx-error [::logging/error [:meme/collect-reward]]}]})))
+
+(re-frame/reg-event-fx
+ ::commit-vote
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option]} {:keys [Hash]}]]
+   (let [active-account (account-queries/active-account db)
+         salt "salt"
+         secret-hash (str option salt)] ;; TODO calculate secret hash here
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
+                                      :fn :commit-vote
+                                      :args [active-account amount secret-hash]
+                                      :tx-opts {:from active-account
+                                                :gas 6000000}
+                                      :tx-id {:meme/commit-vote id}
+                                      :on-tx-success-n [[::logging/success [:meme/commit-vote]]
+                                                        [::notification-events/show "Voted"]]
+                                      :on-tx-hash-error [::logging/error [:meme/commit-vote]]
+                                      :on-tx-error [::logging/error [:meme/commit-vote]]}]
+      ;; TODO assoc secret hash here so we can submit it after
+      ;; :db (assoc db )
+
+      })))
+
+(re-frame/reg-event-fx
+ ::reveal-vote
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id :vote/option]} {:keys [Hash]}]]
+   (let [active-account (account-queries/active-account db)
+         salt "salt"] ;; TODO calculate secret hash here
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
+                                      :fn :reveal-vote
+                                      :args [option salt] ;; TODO how option should be encoded
+                                      :tx-opts {:from active-account
+                                                :gas 6000000}
+                                      :tx-id {:meme/commit-vote id}
+                                      :on-tx-success-n [[::logging/success [:meme/commit-vote]]
+                                                        [::notification-events/show "Voted"]]
+                                      :on-tx-hash-error [::logging/error [:meme/commit-vote]]
+                                      :on-tx-error [::logging/error [:meme/commit-vote]]}]})))
 
 
 
