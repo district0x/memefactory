@@ -104,7 +104,6 @@
                            (mapcat (fn [r] (-> r :search-memes :items)))
                            ;; TODO remove this, don't know why subscription is returning nil item
                            (remove #(nil? (:reg-entry/address %))))]
-        (.log js/console "ALL here" @meme-search)
         (.log js/console "ALL Rendering here" all-memes)
         (if (:graphql/loading? @meme-search)
           [:div "Loading..."]

@@ -20,11 +20,11 @@
 
 (re-frame/reg-event-fx
  ::upload-meme
- (fn [_ [_ {:keys [file-info] :as data}]]
+ (fn [_ [_ {:keys [file-info] :as data} deposit]]
    (let [buffer-data (js/buffer.Buffer.from (:array-buffer file-info))]
      {:ipfs/call {:func "add"
                   :args [buffer-data]
-                  :on-success [::upload-meme-meta data]
+                  :on-success [::upload-meme-meta data deposit]
                   :on-error ::error}})))
 
 (defn build-meme-meta-string [{:keys [title search-tags issuance] :as data} image-hash]
@@ -37,24 +37,22 @@
 
 (re-frame/reg-event-fx
  ::upload-meme-meta
- (fn [{:keys [db]} [_ data {:keys [Name Hash Size]}]]
+ (fn [{:keys [db]} [_ data deposit {:keys [Name Hash Size]}]]
    (prn "Meme image uploaded with hash " Hash " data " data)
    (let [meme-meta (build-meme-meta-string data Hash)
          buffer-data (js/buffer.Buffer.from meme-meta)]
      (prn "Uploading meme meta " meme-meta)
      {:ipfs/call {:func "add"
                   :args [buffer-data]
-                  :on-success [::create-meme data]
+                  :on-success [::create-meme data deposit]
                   :on-error ::error}})))
 
 (re-frame/reg-event-fx
  ::create-meme
- (fn [{:keys [db]} [_ data {:keys [Name Hash Size]}]]
+ (fn [{:keys [db]} [_ data deposit {:keys [Name Hash Size]}]]
    (prn "Meme meta uploaded with hash " Hash)
    (let [tx-id (str (random-uuid))
          active-account (account-queries/active-account db)
-         ;; TODO grab this from registry
-         deposit "800000000000000000000"
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme-factory)
                                                 :create-meme
                                                 active-account
@@ -92,7 +90,7 @@
 
 (re-frame/reg-event-fx
  ::create-challenge
- (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id :deposit]} {:keys [Hash]}]]
    (prn "Challenge meta created with hash " Hash)
    (let [active-account (account-queries/active-account db)
          ;; TODO grab this from registry

@@ -16,7 +16,9 @@
    [cljs-time.core :as t]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.ui.components.panes :refer [tabbed-pane]]
-   [memefactory.ui.components.challenge-list :refer [challenge-list]]))
+   [memefactory.ui.components.challenge-list :refer [challenge-list]]
+   [district.ui.server-config.subs :as config-subs]
+   [district.format :as format]))
 
 (defn header []
   [:div.header
@@ -28,7 +30,8 @@
   (let [form-data (r/atom {})
         open? (r/atom false)
         tx-id (str (random-uuid))
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])]
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])
+        dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])]
     (fn [{:keys [:reg-entry/address]}]
      [:div.challenge-controls
       [:img.vs]
@@ -41,9 +44,10 @@
                           :on-click (fn []
                                       (dispatch [::dr-events/add-challenge {:send-tx/id tx-id
                                                                             :reg-entry/address address
-                                                                            :reason (:reason @form-data)}]))}
+                                                                            :reason (:reason @form-data)
+                                                                            :deposit @dank-deposit}]))}
           "Challenge"]
-         [:span "1000 DANK"]]
+         [:span.dank (format/format-token @dank-deposit  {:token "DANK"})]]
         [:button {:on-click #(swap! open? not)} "Challenge"])])))
 
 (defmethod page :route.dank-registry/challenge []
