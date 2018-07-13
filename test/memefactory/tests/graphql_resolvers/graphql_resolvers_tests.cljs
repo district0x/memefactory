@@ -517,19 +517,19 @@
                                               [[:items [:user/address
                                                         :user/total-created-memes-whitelisted]]]]]})
                :data :search-users :items)
-           [#:user{:address "CADDR2", :total-created-memes-whitelisted 1}
-            #:user{:address "CADDR3", :total-created-memes-whitelisted 1}
-            #:user{:address "CADDR5", :total-created-memes-whitelisted 1}
-            #:user{:address "CADDR6", :total-created-memes-whitelisted 0}
-            #:user{:address "BUYERADDR", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR7", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR1", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR8", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR9", :total-created-memes-whitelisted 0}
-            #:user{:address "CHADDR", :total-created-memes-whitelisted 0}
-            #:user{:address "VOTERADDR", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR0", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR4", :total-created-memes-whitelisted 0}])))
+           [{:user/address "CADDR2", :user/total-created-memes-whitelisted 1}
+            {:user/address "CADDR3", :user/total-created-memes-whitelisted 1}
+            {:user/address "CADDR5", :user/total-created-memes-whitelisted 1}
+            {:user/address "CADDR6", :user/total-created-memes-whitelisted 0}
+            {:user/address "BUYERADDR", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR7", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR1", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR8", :user/total-created-memes-whitelisted 0}
+            {:user/address "CHADDR", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR9", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR0", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR4", :user/total-created-memes-whitelisted 0}
+            {:user/address "VOTERADDR", :user/total-created-memes-whitelisted 0}])))
   (testing "Test order-by total-collected-token-ids"
     (is (= (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-collected-token-ids
                                                              :order-dir :desc
