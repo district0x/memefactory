@@ -108,7 +108,8 @@
      [:h2.title {:color (color :new-meme-icon-bg)}]]]
 
    [:.tiles
-    {:margin-top (em 2)
+    {:display :block
+     :margin-top (em 2)
      :margin-right (em 6)
      :margin-left (em 6)
      :background-color (color :meme-panel-bg)
