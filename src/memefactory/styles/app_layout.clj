@@ -3,12 +3,13 @@
             [memefactory.styles.base.media :refer [for-media-max]]
             [memefactory.styles.base.grid :refer [grid-columns]]
             [clojure.string :as s]
-            [garden.units :refer [px]]))
+            [garden.units :refer [px em]]))
 
 
 (defstyles core
   [:.app-container
-   {:display :grid}
+   {:display :grid
+    :min-height (em 90)}
    (grid-columns "20%" "80%")
    (for-media-max :tablet
                   [:&
