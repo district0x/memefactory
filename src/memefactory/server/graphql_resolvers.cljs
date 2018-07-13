@@ -257,12 +257,11 @@
                                               :users.order-by/total-created-memes :user/total-created-memes}
                                              (graphql-utils/gql-name->kw order-by)))
          fields (conj (query-fields document :items) order-by-clause)
-         select? (fn [c] (contains? fields c))
+         select? #(contains? fields %)
          query (paged-query {:select (remove nil?
                                              [:*
                                               (when (select? :user/curator-total-earned)
-                                                [{:select [(sql/call :+ :user/voter-total-earned :user/challenger-total-earned)]
-                                                  :from [:users]}
+                                                [(sql/call :+ :users.user/voter-total-earned :users.user/challenger-total-earned)     
                                                  :user/curator-total-earned])
                                               (when (select? :user/total-participated-votes-success)
                                                 [{:select [:%count.*]

@@ -23,14 +23,14 @@
      {:margin-right (em 6)
       :border-radius "1em 1em 1em 1em"
       :background-color (color :meme-panel-bg)
-      :background-size [(em 14) (em 14)]
+      :background-size [(em 10) (em 10)]
       :background-repeat :no-repeat
-      :background-position-y :center
+      :background-position-y :bottom
       :background-position-x :right
       :background-image "url('/assets/icons/search-background.png')"
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :margin-left (em 6)}
-     [:>div
+     #_[:>div
       {:position :relative}
       (border-top {:color (color :border-line)})
       (for-media-max :tablet
@@ -80,17 +80,26 @@
 
      [:.form
       {:display :grid
+       :margin-left (em 2)
+       :padding-top (em 2)
        :grid-template-columns "60% 20% 20%"
-       :grid-template-rows :auto
+       :grid-template-rows "2.5em 3em 2em"
        :grid-template-areas
        (str
         "'name dropdown .'\n"
         "'chip chip .'\n"
         "'. checkbox .'\n")}
-      [:.name {:grid-area :name}]
+      [:.name {:grid-area :name}
+       [:.help-block {:height :2px}]]
       [:.options {:grid-area :dropdown}]
       [:.ac-options {:grid-area :chip}]
-      [:.check-cheapest {:grid-area :checkbox}]]]
+      [:.check-cheapest {:grid-area :checkbox}
+       [:label {:font-size "8px"
+                :position :absolute
+                :margin-left (em 2)
+                :margin-top (em 0.6)
+                :line-height "0.5em"}]
+       [:.help-block {:display :none}]]]]
     [:.search-form
      (for-media-max :tablet
                     [:.more {:background-color (color :new-meme-icon-bg)}])
