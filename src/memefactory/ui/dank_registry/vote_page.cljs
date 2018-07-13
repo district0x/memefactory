@@ -47,41 +47,47 @@
                       :disabled (not (pos? all-rewards)) 
                       :pending-text "Collecting ..."
                       :on-click (fn []
-                                  (dispatch [:dank-registry/collect-all-rewards {:send-tx/id tx-id
-                                                                                 :active-account @active-account
-                                                                                 :reg-entry/address address}]))}
+                                  (dispatch [::dr-events/collect-all-rewards {:send-tx/id tx-id
+                                                                              :active-account @active-account
+                                                                              :reg-entry/address address}]))}
       "Collect Reward"]]))
 
-(defn vote-action [{:keys [:reg-entry/address] :as meme}]
+(defn vote-action [{:keys [:reg-entry/address :challenge/vote] :as meme}]
   (let [tx-id (str (random-uuid))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])
         form-data (r/atom {})]
-    (fn [{:keys [] :as meme}]
-      [:div.vote
-       [with-label "Amount "
-        [:div [text-input {:form-data form-data
-                           :id :amount-vote-for}]
-         [:span "DANK"]]]
-       [pending-button {:pending? @tx-pending?
-                        :pending-text "Voting ..."
-                        :on-click (fn []
-                                    (dispatch [:dank-registry/vote {:send-tx/id tx-id
-                                                                    :reg-entry/address address
-                                                                    :vote/option :vote-option/vote-for}]))}
-        "Vote Dank"]
-       [with-label "Amount "
-        [:div [text-input {:form-data form-data
-                           :id :amount-vote-for}]
-         [:span "DANK"]]]
-       [pending-button {:pending? @tx-pending?
-                        :pending-text "Voting ..."
-                        :on-click (fn []
-                                    (dispatch [:dank-registry/vote {:send-tx/id tx-id
-                                                                    :reg-entry/address address
-                                                                    :vote/option :vote-option/vote-against}]))}
-        "Vote Stank"]
-       [:p.max-vote-tokens "You can vote with up to 1123455 DANK tokens."]
-       [:p.token-return  "Tokens will be returned to you after revealing your vote."]])))
+    (fn [{:keys [:reg-entry/address :challenge/vote] :as meme}]
+      (let [voted? (not= (graphql-utils/gql-name->kw (:vote/option vote))
+                         :vote-option/no-vote)]
+       [:div.vote
+        [with-label "Amount "
+         [:div [text-input {:form-data form-data
+                            :id :amount-vote-for}]
+          [:span "DANK"]]]
+        [pending-button {:pending? @tx-pending?
+                         :pending-text "Voting ..."
+                         :disabled voted? 
+                         :on-click (fn []
+                                     (dispatch [::dr-events/commit-vote {:send-tx/id tx-id
+                                                                         :reg-entry/address address
+                                                                         :vote/option :vote.option/vote-for
+                                                                         :vote/amount (-> @form-data :amount-vote-for js/parseInt)}]))}
+         "Vote Dank"]
+        [with-label "Amount "
+         [:div [text-input {:form-data form-data
+                            :id :amount-vote-against}]
+          [:span "DANK"]]]
+        [pending-button {:pending? @tx-pending?
+                         :pending-text "Voting ..."
+                         :disabled voted? 
+                         :on-click (fn []
+                                     (dispatch [::dr-events/commit-vote {:send-tx/id tx-id
+                                                                         :reg-entry/address address
+                                                                         :vote/option :vote.option/vote-against
+                                                                         :vote/amount (-> @form-data :amount-vote-against js/parseInt)}]))}
+         "Vote Stank"]
+        [:p.max-vote-tokens "You can vote with up to 1123455 DANK tokens."]
+        [:p.token-return  "Tokens will be returned to you after revealing your vote."]]))))
 
 (defn reveal-action [{:keys [:challenge/vote :reg-entry/address] :as meme}]
   (let [tx-id (str (random-uuid))
@@ -91,9 +97,10 @@
        [:img]
        [pending-button {:pending? @tx-pending?
                         :pending-text "Revealing ..."
-                        :disabled vote
+                        :disabled (= (graphql-utils/gql-name->kw (:vote/option vote))
+                                     :vote-option/no-vote)
                         :on-click (fn []
-                                    (dispatch [:dank-registry/reveal-vote
+                                    (dispatch [::dr-events/reveal-vote
                                                {:send-tx/id tx-id
                                                 :reg-entry/address address}
                                                vote]))}
@@ -106,21 +113,24 @@
 
 (defmethod page :route.dank-registry/vote []
   (let [account (subscribe [::accounts-subs/active-account])]
-   [app-layout
-    {:meta {:title "MemeFactory"
-            :description "Description"}}
-    [:div.dank-registry-submit
-     [header]
-     [tabbed-pane
-      [{:title "Open Challenges"
-        :content [challenge-list {:include-challenger-info? false
-                                  :query-params {:statuses [:reg-entry.status/commit-period
-                                                            :reg-entry.status/reveal-period]}
-                                  :active-account @account
-                                  :action-child reveal-vote-action}]}
-       {:title "Resolved Challenges"
-        :content [challenge-list {:include-challenger-info? true
-                                  :query-params {:statuses [:reg-entry.status/blacklisted
-                                                            :reg-entry.status/whitelisted]}
-                                  :active-account @account
-                                  :action-child collect-reward-action}]}]]]]))
+    (fn []
+      (if-not @account
+        [:div "Loading..."]
+        [app-layout
+         {:meta {:title "MemeFactory"
+                 :description "Description"}}
+         [:div.dank-registry-submit
+          [header]
+          [tabbed-pane
+           [{:title "Open Challenges"
+             :content [challenge-list {:include-challenger-info? false
+                                       :query-params {:statuses [:reg-entry.status/commit-period
+                                                                 :reg-entry.status/reveal-period]}
+                                       :active-account @account
+                                       :action-child reveal-vote-action}]}
+            {:title "Resolved Challenges"
+             :content [challenge-list {:include-challenger-info? true
+                                       :query-params {:statuses [:reg-entry.status/blacklisted
+                                                                 :reg-entry.status/whitelisted]}
+                                       :active-account @account
+                                       :action-child collect-reward-action}]}]]]]))))

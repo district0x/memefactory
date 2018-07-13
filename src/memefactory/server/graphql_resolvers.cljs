@@ -375,7 +375,8 @@
 (defn reg-entry-winning-vote-option [{:keys [:reg-entry/address]}]
   (->> (db/all {:select [:vote/option [(sql/call :count) :count]]
                 :from [:votes]
-                :where [[:is :vote/revealed-on]
+                :where [:and
+                        [:is :vote/revealed-on]
                         [:= :reg-entry/address address]]
                 :group-by [:vote/option]})
        (apply (partial max-key :count))
@@ -407,7 +408,8 @@
                            winning-option (reg-entry-winning-vote-option reg-entry)
                            winning-amount (case winning-option
                                             :vote-option/vote-against votes-against
-                                            :vote-option/vote-for votes-for)]
+                                            :vote-option/vote-for votes-for
+                                            0)]
                        (if (and (= winning-option option)
                                 (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry)))
                          (/ (* amount reward-pool) winning-amount) 
@@ -453,13 +455,14 @@
 
        :else nil))))
 
-(defn reg-entry->vote [{:keys [:reg-entry/address] :as reg-entry} {:keys [:vote/voter]}]
+(defn reg-entry->vote-resolver [{:keys [:reg-entry/address] :as reg-entry} {:keys [:vote/voter]}]
   (log/debug "reg-entry->vote args" {:reg-entry reg-entry :voter voter} )
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:votes]
-                            :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
-                            :where [:= voter :votes.vote/voter]})]
+                            :where [:and
+                                    [:= voter :votes.vote/voter]
+                                    [:= address :votes.reg-entry/address]]})]
      (log/debug "reg-entry->vote query" sql-query)
      sql-query)))
 
@@ -745,7 +748,7 @@
           :challenge/vote-winning-vote-option reg-entry->vote-winning-vote-option-resolver
           :challenge/all-rewards reg-entry->all-rewards-resolver
           :challenge/challenger reg-entry->challenger
-          :challenge/vote reg-entry->vote
+          :challenge/vote reg-entry->vote-resolver
           :meme/owned-meme-tokens meme->owned-meme-tokens
           :meme/tags meme->tags}
    :MemeList {:items meme-list->items-resolver}
@@ -762,7 +765,7 @@
                  :reg-entry/creator reg-entry->creator-resolver
                  :challenge/challenger reg-entry->challenger
                  :challenge/votes-total reg-entry->votes-total-resolver
-                 :challenge/vote reg-entry->vote}
+                 :challenge/vote reg-entry->vote-resolver}
    :ParamChangeList {:items param-change-list->items-resolver}
    :User {:user/total-created-memes user->total-created-memes-resolver
           :user/total-created-memes-whitelisted user->total-created-memes-whitelisted-resolver

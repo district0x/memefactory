@@ -9,7 +9,8 @@
             [district.format :as format]
             [cljs-time.core :as t]
             [district.ui.component.form.input :refer [select-input with-label]]
-            [re-frame.core :as re-frame :refer [subscribe dispatch]]))
+            [re-frame.core :as re-frame :refer [subscribe dispatch]]
+            [print.foo :refer [look] :include-macros true]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -17,35 +18,35 @@
 
 (defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]}]
   (let [{:keys [:order-by :order-dir]} data]
-    [:search-memes
-     (cond-> (merge {:first page-size} query-params)
-       after                   (assoc :after after)
-       order-by                (assoc :order-by (keyword "memes.order-by" order-by))
-       order-dir               (assoc :order-dir (keyword order-dir)))
-     [:total-count
-      :end-cursor
-      :has-next-page
-      [:items (cond-> [:reg-entry/address
-                       :reg-entry/created-on
-                       :reg-entry/challenge-period-end
-                       :reg-entry/status
-                       :meme/total-supply
-                       :meme/image-hash
-                       :meme/title
-                       [:meme/tags [:tag/name]]
-                       [:reg-entry/creator [:user/address
-                                            :user/creator-rank
-                                            :user/total-created-memes
-                                            :user/total-created-memes-whitelisted]]]
-                include-challenger-info? (conj [:challenge/challenger [:user/address
-                                                                       :user/creator-rank
-                                                                       :user/total-created-memes
-                                                                       :user/total-created-memes-whitelisted]])
-                active-account (into [[:challenge/vote {:vote/voter active-account}
-                                       [:vote/secret-hash
-                                        :vote/option]]
-                                      [:challenge/vote-winning-vote-option {:vote/voter active-account}]
-                                      [:challenge/all-rewards {:user/address active-account}]]))]]]))
+    (look [:search-memes
+      (cond-> (merge {:first page-size} query-params)
+        after                   (assoc :after after)
+        order-by                (assoc :order-by (keyword "memes.order-by" order-by))
+        order-dir               (assoc :order-dir (keyword order-dir)))
+      [:total-count
+       :end-cursor
+       :has-next-page
+       [:items (cond-> [:reg-entry/address
+                        :reg-entry/created-on
+                        :reg-entry/challenge-period-end
+                        :reg-entry/status
+                        :meme/total-supply
+                        :meme/image-hash
+                        :meme/title
+                        [:meme/tags [:tag/name]]
+                        [:reg-entry/creator [:user/address
+                                             :user/creator-rank
+                                             :user/total-created-memes
+                                             :user/total-created-memes-whitelisted]]]
+                 include-challenger-info? (conj [:challenge/challenger [:user/address
+                                                                        :user/creator-rank
+                                                                        :user/total-created-memes
+                                                                        :user/total-created-memes-whitelisted]])
+                 active-account (into [[:challenge/vote {:vote/voter active-account}
+                                        [:vote/secret-hash
+                                         :vote/option]]
+                                       [:challenge/vote-winning-vote-option {:vote/voter active-account}]
+                                       [:challenge/all-rewards {:user/address active-account}]]))]]])))
 
 (defn user-info [user class]
   [:ol {:class class}
@@ -84,20 +85,23 @@
      [:img.meme-image {:src image-hash}]
      [action-child entry]]))
 
-(defn challenge-list [{:keys [include-challenger-info? query-params action-child]}]
+(defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account]}]
   (let [form-data (r/atom {})]
-    (fn [{:keys [include-challenger-info? statuses action-child]}]
+    (fn [{:keys [include-challenger-info? statuses action-child active-account]}]
+      (look active-account)
       (let [re-search (fn [after]
                         (dispatch [:district.ui.graphql.events/query
                                    {:query {:queries [(build-challenge-query {:data @form-data
                                                                               :after after
                                                                               :include-challenger-info? include-challenger-info?
-                                                                              :query-params query-params})]}
+                                                                              :query-params query-params
+                                                                              :active-account active-account})]}
                                     :id @form-data}]))
             meme-search (subscribe [::gql/query {:queries [(build-challenge-query {:data @form-data
                                                                                    :after nil
                                                                                    :include-challenger-info? include-challenger-info?
-                                                                                   :query-params query-params})]}
+                                                                                   :query-params query-params
+                                                                                   :active-account active-account})]}
                                     {:id @form-data
                                      :disable-fetch? true}])
             all-memes (->> @meme-search

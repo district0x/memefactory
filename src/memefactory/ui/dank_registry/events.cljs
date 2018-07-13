@@ -11,7 +11,8 @@
             [district.ui.web3-tx.events :as tx-events]
             [goog.string :as gstring]
             [print.foo :refer [look] :include-macros true]
-            [bignumber.core :as bn]))
+            [bignumber.core :as bn]
+            [memefactory.shared.contract.registry-entry :as reg-entry]))
 
 (re-frame/reg-event-fx
  ::init-ipfs
@@ -93,12 +94,10 @@
  (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id :deposit]} {:keys [Hash]}]]
    (prn "Challenge meta created with hash " Hash)
    (let [active-account (account-queries/active-account db)
-         ;; TODO grab this from registry
-         deposit "1000000000000000000000"
-         extra-data (look (web3-eth/contract-get-data (look (contract-queries/instance db :meme address))
-                                                      :create-challenge
-                                                      (look active-account)
-                                                      (look Hash)))]
+         extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
+                                                :create-challenge
+                                                active-account
+                                                Hash)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args [address
@@ -114,29 +113,36 @@
                                       :on-tx-error [::logging/error [:meme/create-challenge]]}]})))
 
 (re-frame/reg-event-fx
- ::collect-reward
+ ::collect-all-rewards
  (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
    (let [active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
-                                      :fn :claim-vote-reward
+                                      :fn :claim-all-rewards
                                       :args [active-account]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
-                                      :tx-id {:meme/collect-reward id}
-                                      :on-tx-success-n [[::logging/success [:meme/collect-reward]]
-                                                        [::notification-events/show "Reward collected"]]
-                                      :on-tx-hash-error [::logging/error [:meme/collect-reward]]
-                                      :on-tx-error [::logging/error [:meme/collect-reward]]}]})))
-
+                                      :tx-id {:meme/collect-all-rewards id}
+                                      :on-tx-success-n [[::logging/success [:meme/collect-all-rewards]]
+                                                        [::notification-events/show "All rewards collected"]]
+                                      :on-tx-hash-error [::logging/error [:meme/collect-all-rewards]]
+                                      :on-tx-error [::logging/error [:meme/collect-all-rewards]]}]})))
+ 
 (re-frame/reg-event-fx
  ::commit-vote
  (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option]} {:keys [Hash]}]]
    (let [active-account (account-queries/active-account db)
          salt "salt"
-         secret-hash (str option salt)] ;; TODO calculate secret hash here
-     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
-                                      :fn :commit-vote
-                                      :args [active-account amount secret-hash]
+         secret-hash (web3/sha3 (str (reg-entry/vote-option->num :vote.option/vote-for) salt))
+         extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
+                                                :commit-vote
+                                                active-account
+                                                amount
+                                                secret-hash)]
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
+                                      :fn :approve-and-call
+                                      :args [address
+                                             amount
+                                             extra-data]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme/commit-vote id}
