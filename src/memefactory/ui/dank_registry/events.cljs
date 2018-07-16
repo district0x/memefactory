@@ -3,6 +3,7 @@
             [district0x.re-frame.ipfs-fx]
             [cljsjs.buffer]
             [cljs-web3.core :as web3]
+            [district.cljs-utils :as dutils]
             [cljs-web3.eth :as web3-eth]
             [district.ui.logging.events :as logging]
             [district.ui.notification.events :as notification-events]
@@ -12,7 +13,12 @@
             [goog.string :as gstring]
             [print.foo :refer [look] :include-macros true]
             [bignumber.core :as bn]
-            [memefactory.shared.contract.registry-entry :as reg-entry]))
+            [memefactory.shared.contract.registry-entry :as reg-entry]
+            [akiroz.re-frame.storage :refer [reg-co-fx!]]))
+
+(reg-co-fx! :my-app         ;; local storage key
+            {:fx :store     ;; re-frame fx ID
+             :cofx :store}) ;; re-frame cofx ID
 
 (re-frame/reg-event-fx
  ::init-ipfs
@@ -129,9 +135,10 @@
  
 (re-frame/reg-event-fx
  ::commit-vote
- (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option]} {:keys [Hash]}]]
+  [(re-frame/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option]} {:keys [Hash]}]]
    (let [active-account (account-queries/active-account db)
-         salt "salt"
+         salt (dutils/rand-str 5)
          secret-hash (web3/sha3 (str (reg-entry/vote-option->num :vote.option/vote-for) salt))
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
                                                 :commit-vote
@@ -150,19 +157,17 @@
                                                         [::notification-events/show "Voted"]]
                                       :on-tx-hash-error [::logging/error [:meme/commit-vote]]
                                       :on-tx-error [::logging/error [:meme/commit-vote]]}]
-      ;; TODO assoc secret hash here so we can submit it after
-      ;; :db (assoc db )
-
-      })))
+      :store (assoc-in store [:votes active-account address] {:option option :salt salt})})))
 
 (re-frame/reg-event-fx
  ::reveal-vote
- (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id :vote/option]} {:keys [Hash]}]]
+ [(re-frame/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
    (let [active-account (account-queries/active-account db)
-         salt "salt"] ;; TODO calculate secret hash here
+         {:keys [option salt]} (get-in store [:votes active-account address])]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :reveal-vote
-                                      :args [option salt] ;; TODO how option should be encoded
+                                      :args [option salt]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme/commit-vote id}

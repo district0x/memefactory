@@ -62,7 +62,8 @@
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.10.5"]
-                 [garden "1.3.5"]]
+                 [garden "1.3.5"]
+                 [akiroz.re-frame/storage "0.1.2"]]
 
   :exclusions [express-graphql]
 
