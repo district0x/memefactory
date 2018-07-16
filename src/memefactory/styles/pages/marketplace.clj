@@ -105,4 +105,17 @@
                     [:.more {:background-color (color :new-meme-icon-bg)}])
      [:.icon {:background-color (color :new-meme-icon-bg)
               :background-image (str "url('/assets/icons/marketplaceicon.png')")}]
-     [:h2.title {:color (color :new-meme-icon-bg)}]]]])
+     [:h2.title {:color (color :new-meme-icon-bg)}]]]
+
+   [:.tiles
+    {:display :block
+     :margin-top (em 2)
+     :margin-right (em 6)
+     :margin-left (em 6)
+     :background-color (color :meme-panel-bg)
+     :border-radius "1em 1em 1em 1em"}
+    [">div>div"
+     {:display :flex
+      :flex-wrap :wrap
+      :justify-content :space-evenly}]]
+   ])

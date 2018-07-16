@@ -2,6 +2,8 @@
   (:require [print.foo :refer [look] :include-macros true]
             [bignumber.core :as bn]))
 
+(def not-nil? (complement nil?))
+
 (defn calculate-meme-auction-price [{:keys [:meme-auction/start-price
                                             :meme-auction/end-price
                                             :meme-auction/duration
