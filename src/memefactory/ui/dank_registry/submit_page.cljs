@@ -13,22 +13,24 @@
    [district.ui.server-config.subs :as config-subs]))
 
 (defn header []
-  [:div.header
-   [:h2 "Dank registry - Submit"]
-   [:h3 "Lorem ipsum dolor sit ..."]
-   [:div [:div "Get Dank"]]])
+  [:div.submit-info
+   [:div.icon]
+   [:h2.title "Dank registry - Submit"]
+   [:h3.title "Lorem ipsum dolor sit ..."]
+   [:div.get-dank-button "Get Dank"]])
 
 (defmethod page :route.dank-registry/submit []
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])
         form-data (r/atom {})]
-   (fn [] 
+   (fn []
      [app-layout
       {:meta {:title "MemeFactory"
               :description "Description"}}
-      [:div.dank-registry-submit
-       [header]
-       [:div.panels
+      [:div.dank-registry-submit-page
+       [:section.submit
+        [header]]
+       [:section.upload
         [:div.image-panel
          [file-drag-input {:form-data form-data
                            :id :file-info
@@ -56,4 +58,5 @@
           [:button {:on-click (fn []
                                 (dispatch [::dr-events/upload-meme @form-data @dank-deposit]))}
            "Submit"]
-          [:span.dank (format/format-token @dank-deposit  {:token "DANK"})]]]]]])))
+          [:span.dank (format/format-token @dank-deposit  {:token "DANK"})]]]]
+       ]])))

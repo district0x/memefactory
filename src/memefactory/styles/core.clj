@@ -8,7 +8,7 @@
             [memefactory.styles.component.form :as form]
             [memefactory.styles.container.tiles :as tiles]
             [memefactory.styles.app-menu :as app-menu]
-
+            [memefactory.styles.pages.dankregistry.submit :as dr.submit]
             [memefactory.styles.pages.home :as page.home]
             [memefactory.styles.pages.marketplace :as page.marketplace]
             ))
@@ -22,4 +22,5 @@
   compact-tile/core
   page.home/core
   page.marketplace/core
-  form/core)
+  form/core
+  dr.submit/core)
