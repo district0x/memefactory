@@ -2,8 +2,6 @@
   (:require [district.ui.router.utils :as router-utils]
             [cemerick.url :as url]))
 
-(def not-nil? (complement nil?))
-
 (defn path [& args]
   (str "#" (apply router-utils/resolve args)))
 

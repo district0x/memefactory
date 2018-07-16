@@ -1,8 +1,10 @@
 (ns memefactory.ui.meme-detail.page
   (:require
+   [district.ui.router.events :as router-events]
    [cljs-web3.core :as web3]
    [district.format :as format]
    [memefactory.ui.utils :as ui-utils]
+   [memefactory.shared.utils :as shared-utils]
    [district.graphql-utils :as graphql-utils]
    [print.foo :refer [look] :include-macros true]
    [district.ui.component.page :refer [page]]
@@ -50,11 +52,11 @@
                           (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
        [:div.address (str "Address: " address)]])))
 
+;; meme history challenge related
 (defmethod page :route.meme-detail/index []
-  (let [
-        {:keys [:name :query :params]} @(re-frame/subscribe [::router-subs/active-page])
+  (let [{:keys [:name :query :params]} @(re-frame/subscribe [::router-subs/active-page])
         active-account (subscribe [::accounts-subs/active-account])
-        meme (subscribe [::gql/query {:queries [[:meme {:reg-entry/address (:address query)}
+        query (subscribe [::gql/query {:queries [[:meme {:reg-entry/address (:address query)}
                                                  [;;:reg-entry/address
                                                   :reg-entry/status
                                                   :meme/image-hash
@@ -74,20 +76,22 @@
 
 ;;tags (subscribe [::gql/query {:queries []}])
     
-    (when-not (:graphql/loading? @meme)
+    (when-not (:graphql/loading? @query)
 
-      (prn @meme)
+      (prn @query)
       
       (if-let [{:keys [:meme/image-hash :meme/title :reg-entry/status :meme/total-supply
-                       :meme/owned-meme-tokens :reg-entry/creator]} (:meme @meme)] 
-        (let [;;{:keys [:user/address :user/creator-rank]} creator
+                       :meme/owned-meme-tokens :reg-entry/creator]} (:meme @query)] 
+        (let [;;tags (->> @query :search-tags :items (mapv :tag/name)) ;;{:keys [:user/address :user/creator-rank]} creator
               token-count (->> owned-meme-tokens
                               (map :meme-token/token-id)
-                              (filter ui-utils/not-nil?)
+                              (filter shared-utils/not-nil?)
                               count)]
 
           #_(prn (->> owned-meme-tokens
                     (map :meme-token/token-id)))
+
+          ;;(prn tags)
           
         [app-layout/app-layout
                  {:meta {:title "MemeFactory"
@@ -111,9 +115,20 @@
                    [:div.text (str "You own " token-count) ]
 
                    [meme-creator creator]
+                   
+                   (for [tag-name (->> @query :search-tags :items (mapv :tag/name))]
+                     ^{:key tag-name} [:div {:style {:display "inline"}} tag-name])
 
-                   ;; TODO: tags
-
+                   [:div.buttons
+                    [:button {:on-click #(dispatch [::router-events/navigate
+                                                    :route.marketplace/index
+                                                    nil
+                                                    {:term title}])} "Search On Marketplace"]
+                    [:button {:on-click #(dispatch [::router-events/navigate
+                                                    :route.memefolio/index
+                                                    nil
+                                                    {:term title}])} "Search On Memefolio"]]
+                   
                    ]
 
                   ]])))))
