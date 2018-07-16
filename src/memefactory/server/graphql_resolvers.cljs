@@ -455,7 +455,7 @@
        :else nil))))
 
 (defn reg-entry->vote-resolver [{:keys [:reg-entry/address] :as reg-entry} {:keys [:vote/voter]}]
-  (log/debug "reg-entry->vote args" {:reg-entry reg-entry :voter voter} )
+  (log/debug "reg-entry->vote args" {:reg-entry reg-entry :voter voter})
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:votes]
@@ -482,6 +482,18 @@
    (db/all {:select [:tag/name]
             :from [:meme-tags]
             :where [:= :reg-entry/address address]})))
+
+;; TODO: order-by / order-dir
+(defn meme->meme-auctions-resolver [{:keys [:reg-entry/address] :as meme}]
+  (log/debug "meme->meme-auctions-resolver args" meme )
+  (try-catch-throw
+   (let [sql-query (db/all {:select [:*]
+                            :from [:meme-auctions]
+                            :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-auctions.meme-auction/token-id]
+                                   :memes [:= :memes.reg-entry/address :meme-tokens.reg-entry/address]]
+                            :where [:= :memes.reg-entry/address address]})]
+     (log/debug "meme->meme-auctions-resolver query" sql-query)
+     sql-query)))
 
 (defn meme-list->items-resolver [meme-list]
   (:items meme-list))
@@ -749,7 +761,8 @@
           :challenge/challenger reg-entry->challenger
           :challenge/vote reg-entry->vote-resolver
           :meme/owned-meme-tokens meme->owned-meme-tokens
-          :meme/tags meme->tags}
+          :meme/tags meme->tags
+          :meme/meme-auctions meme->meme-auctions-resolver}
    :MemeList {:items meme-list->items-resolver}
    :TagList {:items tag-list->items-resolver}
    :MemeToken {:meme-token/owner meme-token->owner-resolver
