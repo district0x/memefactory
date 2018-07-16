@@ -116,7 +116,8 @@
                             :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
                  (when address
                    (let [token-ids (map :meme-token/token-id owned-meme-tokens)
-                         token-count (count token-ids)]
+                         token-count (->> token-ids
+                                          (filter ui-utils/not-nil?))]
                      ^{:key address} [:div
                                       [tiles/flippable-tile {:id address
                                                              :front [tiles/meme-image image-hash]
@@ -149,8 +150,7 @@
                                                                :meme/total-minted]]]]]]]]
                                      [:search-memes [:total-count]]
                                      [:search-meme-tokens [:total-count]]]}])]
-    (if (:graphql/loading? @query)
-      [:div.loading "Loading..."]
+    (when-not (:graphql/loading? @query) 
       (let [{:keys [:user/collector-rank :user/total-collected-memes :user/total-collected-token-ids
                     :user/largest-buy]} (:user @query)
             {:keys [:meme-auction/bought-for :meme-auction/meme-token]} largest-buy
@@ -173,8 +173,8 @@
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
                                                   [:total-count]]]}])]
-    [:div "Total " (when (not (:graphql/loading? @query))
-                     (get-in @query [:search-memes :total-count]))]))
+    (when-not (:graphql/loading? @query)
+      [:div "Total "  (get-in @query [:search-memes :total-count])])))
 
 (defn issue-form [{:keys [:meme/title :reg-entry/address :max-amount]}]
   (let [tx-id (str (random-uuid))
@@ -244,8 +244,7 @@
                                                              [:meme-token/number
                                                               [:meme-token/meme
                                                                [:meme/title]]]]]]]]]}])]
-    (if (:graphql/loading? @query)
-      [:div.loading "Loading..."]
+    (when-not (:graphql/loading? @query)      
       (let [{:keys [:user/total-created-memes :user/total-created-memes-whitelisted :user/creator-rank :user/largest-sale]} (-> @query :user)
             {:keys [:meme-auction/meme-token]} largest-sale
             {:keys [:meme-token/number :meme-token/meme]} meme-token
@@ -275,8 +274,8 @@
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:creator active-account}
                                       [:total-count]]]}])]
-    [:div "Total " (when (not (:graphql/loading? @query))
-                     (get-in @query [:search-memes :total-count]))]))
+    (when-not (:graphql/loading? @query)
+      [:div "Total " (get-in @query [:search-memes :total-count])])))
 
 (defmethod panel :curated [_ state]
   [:div.tiles
@@ -317,8 +316,7 @@
                                        :user/total-participated-votes
                                        :user/total-participated-votes-success
                                        :user/voter-total-earned]]]}])]
-    (if (:graphql/loading? @query)
-      [:div.loading "Loading..."]
+    (when-not (:graphql/loading? @query)
       (let [{:keys [:user/curator-rank :user/total-created-challenges :user/total-created-challenges-success
                     :user/challenger-total-earned :user/total-participated-votes :user/total-participated-votes-success
                     :user/voter-total-earned]} (:user @query)]
@@ -342,8 +340,8 @@
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:curator active-account}
                                       [:total-count]]]}])]
-    [:div "Total " (when (not (:graphql/loading? @query))
-                     (get-in @query [:search-memes :total-count]))]))
+    (when-not (:graphql/loading? @query)
+      [:div "Total " (get-in @query [:search-memes :total-count])])))
 
 (defmethod panel :selling [_ state]
   [:div.tiles
@@ -368,8 +366,8 @@
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/active]}
                                       [:total-count]]]}])]
-    [:div "Total " (when (not (:graphql/loading? @query))
-                     (get-in @query [:search-meme-auctions :total-count]))]))
+    (when-not (:graphql/loading? @query)
+      [:div "Total " (get-in @query [:search-meme-auctions :total-count])])))
 
 (defmethod panel :sold [_ state]
   [:div.tiles
@@ -394,8 +392,8 @@
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
                                       [:total-count]]]}])]
-    [:div "Total " (when (not (:graphql/loading? @query))
-                     (get-in @query [:search-meme-auctions :total-count]))]))
+    (when-not (:graphql/loading? @query)
+      [:div "Total " (get-in @query [:search-meme-auctions :total-count])])))
 
 (defn- build-order-by [prefix order-by]
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))
