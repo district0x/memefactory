@@ -109,7 +109,10 @@
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
   (case  (graphql-utils/gql-name->kw status)
     :reg-entry.status/commit-period [vote-action meme] 
-    :reg-entry.status/reveal-period [reveal-action meme]))
+    :reg-entry.status/reveal-period [reveal-action meme]
+    ;; TODO we should't need this extra case, but this component is
+    ;; being rendered with old subscription value
+    [:div]))
 
 (defmethod page :route.dank-registry/vote []
   (let [account (subscribe [::accounts-subs/active-account])]
@@ -119,7 +122,7 @@
         [app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
-         [:div.dank-registry-submit
+         [:div.dank-registry-submit 
           [header]
           [tabbed-pane
            [{:title "Open Challenges"
