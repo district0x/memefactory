@@ -483,15 +483,23 @@
             :from [:meme-tags]
             :where [:= :reg-entry/address address]})))
 
-;; TODO: order-by / order-dir
-(defn meme->meme-auctions-resolver [{:keys [:reg-entry/address] :as meme}]
-  (log/debug "meme->meme-auctions-resolver args" meme )
+(defn meme->meme-auctions-resolver [{:keys [:reg-entry/address] :as meme} {:keys [:order-by :order-dir] :as opts}]
+  (log/debug "meme->meme-auctions-resolver" {:args meme :opts opts})
   (try-catch-throw
-   (let [sql-query (db/all {:select [:*]
-                            :from [:meme-auctions]
-                            :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-auctions.meme-auction/token-id]
-                                   :memes [:= :memes.reg-entry/address :meme-tokens.reg-entry/address]]
-                            :where [:= :memes.reg-entry/address address]})]
+   (let [sql-query (db/all (merge {:select [:*]
+                                   :from [:meme-auctions]
+                                   :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-auctions.meme-auction/token-id]
+                                          :memes [:= :memes.reg-entry/address :meme-tokens.reg-entry/address]]
+                                   :where [:= :memes.reg-entry/address address]}
+                                  (when order-by
+                                    {:order-by [[(get {:meme-auctions.order-by/token-id :meme-auctions.meme-auction/token-id
+                                                       :meme-auctions.order-by/seller :meme-auctions.meme-auction/seller
+                                                       :meme-auctions.order-by/buyer :meme-auctions.meme-auction/buyer
+                                                       :meme-auctions.order-by/price :meme-auctions.meme-auction/bought-for
+                                                       :meme-auctions.order-by/bought-on :meme-auctions.meme-auction/bought-on}
+                                                      (graphql-utils/gql-name->kw order-by))
+                                                 (or (keyword order-dir) :asc)]]})))]
+     
      (log/debug "meme->meme-auctions-resolver query" sql-query)
      sql-query)))
 
@@ -530,7 +538,7 @@
   {:user/address seller})
 
 (defn meme-auction->buyer-resolver [{:keys [:meme-auction/buyer :meme-auction/bought-on] :as meme-auction}]
-  (log/debug "meme-auction->buyer-resolver args" bought-on)
+  (log/debug "meme-auction->buyer-resolver args" meme-auction)
   (when bought-on
     {:user/address buyer}))
 
