@@ -77,7 +77,7 @@
                                                          [:meme-auction/meme-token
                                                           [:meme-token/token-id]]]]]]]}])]
         (when-not (:graphql/loading? @query)
-          [:div.title [:h1 "Marketplace history"]]
+          [:h1 "Marketplace history"]
           [:table {:style {:table-layout "fixed"
                            :border-collapse "collapse"}}
            [:thead [:tr {:style {:display "block"}}
@@ -94,7 +94,7 @@
            [:tbody {:style {:display "block"
                             :width "100%"
                             :overflow "auto"
-                            :height "400px"}}
+                            :height "50px"}}
             (doall
              (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
                            :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
@@ -106,7 +106,13 @@
                 [:td end-price]
                 [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/now))]]))]])))))
 
-;;  TODO: challenge related
+(defn challenge []
+  [:div.title [:h1 "Challenge"]] 
+
+
+  )
+
+;;  TODO:  related
 (defmethod page :route.meme-detail/index []
   (let [{:keys [:name :query :params]} @(re-frame/subscribe [::router-subs/active-page])
         {:keys [:address]} query
@@ -158,15 +164,15 @@
                     [:div.meme-detail {:style {:display "grid"
                                             :grid-template-areas
                                             "'image image image rank rank rank'
-                                             'history history history history history history'"}}
+                                             'history history history history history history'
+                                             'challenge challenge challenge challenge challenge challenge'"}}
 
                      ;; meme
-
                      [:div {:style {:grid-area "image"}}
                       [tiles/meme-image image-hash]]
 
                      [:div {:style {:grid-area "rank"}}
-                      [:div.title [:h1 title]]
+                      [:h1 title]
                       [:div.status (case (graphql-utils/gql-name->kw status)
                                      :reg-entry.status/whitelisted [:label "In Registry"]
                                      :reg-entry.status/blacklisted [:label "Rejected"]
@@ -177,9 +183,12 @@
 
                       [meme-creator creator]
 
-                      ;; TODO: buttons and search to marketplace
                       (for [tag-name (->> @query :search-tags :items (mapv :tag/name))]
-                        ^{:key tag-name} [:div {:style {:display "inline"}} tag-name])
+                        ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
+                                                                         :route.marketplace/index
+                                                                         nil
+                                                                         {:search-tags [tag-name]}])
+                                                   :style {:display "inline"}} tag-name])
 
                       [:div.buttons
                        [:button {:on-click #(dispatch [::router-events/navigate
@@ -190,12 +199,12 @@
                                                        :route.memefolio/index
                                                        nil
                                                        {:term title}])} "Search On Memefolio"]]]
-
-
                   ;; history
                   [:div.history {:style {:grid-area "history"}}
                    [history address]]
 
+                  [:div.challenge {:style {:grid-area "challenge"}}
+                   [challenge]]   
 
                   ]
          ])))))
