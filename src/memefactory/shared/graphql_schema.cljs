@@ -97,7 +97,7 @@
 
   enum UsersOrderBy {
     users_orderBy_address
-    Users_orderBy_voterTotalEarned
+    users_orderBy_voterTotalEarned
     users_orderBy_challengerTotalEarned
     users_orderBy_curatorTotalEarned
     users_orderBy_totalParticipatedVotesSuccess
