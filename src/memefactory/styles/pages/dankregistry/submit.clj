@@ -9,6 +9,7 @@
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
+            [memefactory.styles.component.panels :refer [panel-with-icon]]
             [clojure.string :as str]))
 
 (defstyles core
@@ -18,49 +19,27 @@
      :margin-right (em 6)
      :margin-left (em 6)}
     [:.submit-info
-     {:background (color :meme-panel-bg)
-      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-      :position :relative}
-     [:.icon
-      (for-media-max :tablet
-                     [:&
-                      {:margin-right :auto
-                       :margin-left :auto
-                       :right 0
-                       :left 0
-                       }])
-      {:display :block
-       :background-size [(em 4) (em 4)]
-       :background-repeat :no-repeat
-       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-       :border-radius "0em 0em 1em 1em"
-       :margin-left (em 2)
-       :margin-top (em 0)
-       :position :absolute
-       :height (em 4)
-       :width (em 4)}]
-     [:h2.title
+     (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
+                       :color :purple})
+     [:.get-dank-button
       (font :bungee)
-      (for-media-max :tablet
-                     [:&
-                      {:margin-top (em 4)
-                       :font-size (px 19)}])
-      {:white-space :nowrap
-       :position :relative
-       ;; :color (color :section-caption)
-       :font-size (px 25)
-       :margin-top (em 0.3)
-       :margin-bottom (em 0.1)
-       :text-align :center}]
-     [:h3.title
-      {:white-space :nowrap
-       :margin-top (em 0.1)
-       :position :relative
-       :color (color :section-subcaption)
-       :font-size (px 15)
-       :text-align :center}]
-     (for-media-max :tablet
-                    [:.more {:background-color (color :new-meme-icon-bg)}])
-     [:.icon {:background-color (color :new-meme-icon-bg)
-              :background-image (str "url('/assets/icons/memesubmiticon.png')")}]
-     [:h2.title {:color (color :new-meme-icon-bg)}]]]])
+      {:position :relative
+       ;; :bottom (em -2)
+       ;; :top (em -2)
+       :top (em 0)
+       :height (em 4)
+       :line-height (em 4)
+       :right (px 0)
+       :display :block
+       :color (color :white)
+       ;; :background-color (color :purple)
+       ;; :background-image (str "url('/assets/icons/gears-button-bg.png')")
+       ;; :background-size :contain
+       ;; :background-repeat :repeat-x
+       :background (str "url('/assets/icons/gears-button-bg-r.png') left 1em center / 40% 60% no-repeat,"
+                        "url('/assets/icons/gears-button-bg-l.png') right 1em center / 40% 60% no-repeat "
+
+                        (color :purple))
+       :border-radius "0 0 1em 1em"
+       :text-align :center
+       :left (px 0)}]]]])
