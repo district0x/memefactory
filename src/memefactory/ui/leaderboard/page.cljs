@@ -3,12 +3,15 @@
             [memefactory.ui.components.app-layout :refer [app-layout]]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [district.ui.graphql.subs :as gql]))
+            [district.ui.graphql.subs :as gql]
+            [goog.string :as gstring]
+            [district.format :as format]
+            [district.ui.component.form.input :refer [select-input]]))
 
-(defn build-curators-query []
+(defn build-curators-query [order-by]
   [:search-users
    {:first 10
-    :order-by :users.order-by/curator-total-earned}
+    :order-by order-by}
    [:total-count
     :end-cursor
     :has-next-page
@@ -25,31 +28,49 @@
              :user/curator-rank]]]])
 
 (defmethod page :route.leaderboard/curators []
-  (let [sort (r/atom :earnings)
-        curators (subscribe [::gql/query {:queries [(build-curators-query)]}])
-        ]
+  (let [form-data (r/atom {:order-by "curator-total-earned"})]
     (fn []
-      [app-layout
-       {:meta {:title "MemeFactory"
-               :description "Description"}}
-       [:div.leaderboard-curators
-        [:h1 "LEADERBOARDS - CURATORS"]
-        [:p "lorem ipsum"]
-        [:select
-         [:option {:value :earnings} "by total earnings: 145 total"]
-         [:option {:value :???} "???"]]
-        [:p (pr-str @curators)]
-        #_(into [:div.curators]
-              (map-indexed (fn [idx curator]
-                             [:div.curator
-                              [:p "#" (inc idx)]
-                              [:h3 (:hash curator)]
+      (let [order-by (keyword "users.order-by" (:order-by @form-data))
+            search-users (subscribe [::gql/query {:queries [(build-curators-query order-by)]}])
+            curators (get-in @search-users [:search-users :items])
+            total (get-in @search-users [:search-users :total-count])]
+        [app-layout
+         {:meta {:title "MemeFactory"
+                 :description "Description"}}
+         [:div.leaderboard-curators
+          [:h1 "LEADERBOARDS - CURATORS"]
+          [:p "lorem ipsum"]
+          [select-input
+           {:form-data form-data
+            :id :order-by
+            :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
+                      {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
+                      {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}]
+          (into [:div.curators]
+                (->> curators
+                     (map (fn [curator]
+                            [:div.curator
+                             [:p "#" (case order-by
+                                       :users.order-by/curator-total-earned (:user/curator-rank curator)
+                                       :users.order-by/challenger-total-earned (:user/challenger-rank curator)
+                                       :users.order-by/voter-total-earned (:user/voter-rank curator))]
+                             [:h3 (:user/address curator)]
 
-                              [:p "CHALLENGES"]
-                              [:p "Success rate: " [:span "20/22 (89%)"]]
-                              [:p "Earned :" [:span "123,222.2 DANK"]]
+                             [:p "CHALLENGES"]
+                             [:p "Success rate: "
+                              (let [total-challenges (:user/total-created-challenges curator)
+                                    success-challenges (:user/total-created-challenges curator)
+                                    ratio (-> (/ total-challenges success-challenges)
+                                              (* 100))]
+                                [:span total-challenges "/" success-challenges (gstring/format " (%d%)" ratio)])]
+                             [:p "Earned: " (format/format-token (:user/challenger-total-earned curator) {:token "DANK"})]
 
-                              [:p "VOTES"]
-                              [:p "Success rate: " [:span "20/22 (89%)"]]
-                              [:p "Earned: " [:span "123,222.2 DANK"]]
-                              [:p "Total Earnings: " [:span "136,222.4 DANK"]]]) @curators))]])))
+                             [:p "VOTES"]
+                             [:p "Success rate: "
+                              (let [total-votes (:user/total-participated-votes curator)
+                                    success-votes (:user/total-participated-votes-success curator)
+                                    ratio (-> (/ total-votes success-votes)
+                                              (* 100))]
+                                [:span total-votes "/" success-votes (gstring/format " (%d%)" ratio)])]
+                             [:p "Earned: " (format/format-token (:user/voter-total-earned curator) {:token "DANK"})]
+                             [:p "Total Earnings: " (format/format-token (:user/curator-total-earned curator) {:token "DANK"})]]))))]]))))
