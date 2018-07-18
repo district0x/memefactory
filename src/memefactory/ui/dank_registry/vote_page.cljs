@@ -31,7 +31,7 @@
    [:div [:div "Get Dank"]]])
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards]}]
-  (let [tx-id (str (random-uuid))
+  (let [tx-id address
         active-account (subscribe [::accounts-subs/active-account])
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/collect-all-rewards tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/collect-all-rewards tx-id}])]
@@ -55,7 +55,7 @@
       "Collect Reward"]]))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote] :as meme}]
-  (let [tx-id (str (random-uuid))
+  (let [tx-id address
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/commit-vote tx-id}])
         form-data (r/atom {})]

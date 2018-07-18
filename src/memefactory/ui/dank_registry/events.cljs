@@ -79,16 +79,16 @@
                                       :on-tx-hash-error [::logging/error [:meme/create-meme]]
                                       :on-tx-error [::logging/error [:meme/create-meme]]}]})))
 
-(defn build-challenge-meta-string [{:keys [reason] :as data}]
-  (-> {:reason reason}
+(defn build-challenge-meta-string [{:keys [comment] :as data}]
+  (-> {:comment comment}
       clj->js
       js/JSON.stringify))
 
 ;; Adds the challenge to ipfs and if successfull dispatches ::create-challenge
 (re-frame/reg-event-fx
  ::add-challenge
- (fn [{:keys [db]} [_ {:keys [:reg-entry/address :reason] :as data}]]
-   (let [challenge-meta (build-challenge-meta-string {:reason reason})
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :comment] :as data}]]
+   (let [challenge-meta (build-challenge-meta-string {:comment comment})
          buffer-data (js/buffer.Buffer.from challenge-meta)]
      (prn "Uploading challenge  meta " challenge-meta)
      {:ipfs/call {:func "add"
@@ -140,17 +140,17 @@
  (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option]} {:keys [Hash]}]]
    (let [active-account (account-queries/active-account db)
          salt (dutils/rand-str 5)
-         secret-hash (solidity-sha3 (reg-entry/vote-option->num :vote.option/vote-for) salt)
+         secret-hash (solidity-sha3 (reg-entry/vote-option->num option) salt)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
                                                 :commit-vote
                                                 active-account
                                                 amount
-                                                (look secret-hash))]
+                                                secret-hash)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
-                                      :args (look [address
-                                              amount
-                                              extra-data])
+                                      :args [address
+                                             amount
+                                             extra-data]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme/commit-vote id}

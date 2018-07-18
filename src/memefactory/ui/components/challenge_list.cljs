@@ -31,6 +31,7 @@
                         :reg-entry/created-on
                         :reg-entry/challenge-period-end
                         :reg-entry/status
+                        :challenge/comment
                         :meme/total-supply
                         :meme/image-hash
                         :meme/title
@@ -62,7 +63,7 @@
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child] }]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
-                :meme/tags :challenge/challenger]} entry]
+                :meme/tags :challenge/challenger :challenge/comment]} entry]
     [:div.challenge {:height 400}
      [:div (str "ENTRY " address)] ;; TODO remove (only for debugging)
      (cond-> [:div.info
@@ -77,6 +78,7 @@
                [:li [with-label "Issued:" [:span total-supply]]]]
               [:h3 "Creator"]
               [user-info creator :creator]
+              [:span.challenge-comment comment]
               [:ol.tags
                (for [{:keys [:tag/name]} tags]
                  [:li.tag {:key name}

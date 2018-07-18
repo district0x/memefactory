@@ -394,8 +394,8 @@
 
 (defn reg-entry->all-rewards-resolver [{:keys [:reg-entry/address :challenge/reward-pool :challenge/claimed-reward-on
                                                :reg-entry/deposit :challenge/challenger :challenge/votes-against :challenge/votes-for] :as reg-entry} args]
-  (let [challenger-amount (if (and (nil? claimed-reward-on)
-                                   (= :challenge/challenger (:user/address args)))
+  (let [challenger-amount (if (and (zero? claimed-reward-on)
+                                   (= challenger (:user/address args)))
                             (- deposit reward-pool)
                             0)
         voter-amount (let [{:keys [:vote/option :vote/amount]}

@@ -39,14 +39,14 @@
       (if @open?
         [:div
          [text-input {:form-data form-data
-                      :id :reason}]
+                      :id :comment}]
          [pending-button {:pending? @tx-pending?
                           :disabled (or @tx-pending? @tx-success?)
                           :pending-text "Challenging ..."
                           :on-click (fn []
                                       (dispatch [::dr-events/add-challenge {:send-tx/id tx-id
                                                                             :reg-entry/address address
-                                                                            :reason (:reason @form-data)
+                                                                            :comment (:comment @form-data)
                                                                             :deposit @dank-deposit}]))}
           "Challenge"]
          [:span.dank (format/format-token @dank-deposit  {:token "DANK"})]]
