@@ -767,6 +767,7 @@
           :challenge/vote-winning-vote-option reg-entry->vote-winning-vote-option-resolver
           :challenge/all-rewards reg-entry->all-rewards-resolver
           :challenge/challenger reg-entry->challenger
+          :challenge/votes-total reg-entry->votes-total-resolver
           :challenge/vote reg-entry->vote-resolver
           :meme/owned-meme-tokens meme->owned-meme-tokens
           :meme/tags meme->tags

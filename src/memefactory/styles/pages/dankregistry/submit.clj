@@ -36,10 +36,26 @@
        ;; :background-image (str "url('/assets/icons/gears-button-bg.png')")
        ;; :background-size :contain
        ;; :background-repeat :repeat-x
-       :background (str "url('/assets/icons/gears-button-bg-r.png') left 1em center / 40% 60% no-repeat,"
-                        "url('/assets/icons/gears-button-bg-l.png') right 1em center / 40% 60% no-repeat "
+       :background (str "url('/assets/icons/gears-button-bg-l.png') left 1em center / 40% 60% no-repeat,"
+                        "url('/assets/icons/gears-button-bg-r.png') right 1em center / 40% 60% no-repeat "
 
                         (color :purple))
        :border-radius "0 0 1em 1em"
        :text-align :center
-       :left (px 0)}]]]])
+       :left (px 0)}]]]
+   [:.upload
+    {:display :grid
+     :grid-template-columns "50% 50%"
+     ;; :grid-column-gap (em 2)
+     :padding-top (em 2)
+     :margin-right (em 6)
+     :margin-left (em 6)
+     }
+    [">div"
+     {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+      :background-color (color :white)
+      :border-radius "1em"
+      :padding (em 2)}
+     [:&.image-panel {:margin-right (em 1)}]
+     [:&.form-panel {:margin-left (em 1)}]
+     ]]])
