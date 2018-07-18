@@ -3,6 +3,7 @@
             [district0x.re-frame.ipfs-fx]
             [cljsjs.buffer]
             [cljs-web3.core :as web3]
+            [cljs-solidity-sha3.core :refer [solidity-sha3]]
             [district.cljs-utils :as dutils]
             [cljs-web3.eth :as web3-eth]
             [district.ui.logging.events :as logging]
@@ -139,17 +140,17 @@
  (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option]} {:keys [Hash]}]]
    (let [active-account (account-queries/active-account db)
          salt (dutils/rand-str 5)
-         secret-hash (web3/sha3 (str (reg-entry/vote-option->num :vote.option/vote-for) salt))
+         secret-hash (solidity-sha3 (reg-entry/vote-option->num :vote.option/vote-for) salt)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
                                                 :commit-vote
                                                 active-account
                                                 amount
-                                                secret-hash)]
+                                                (look secret-hash))]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
-                                      :args [address
-                                             amount
-                                             extra-data]
+                                      :args (look [address
+                                              amount
+                                              extra-data])
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme/commit-vote id}
@@ -166,15 +167,15 @@
    (let [active-account (account-queries/active-account db)
          {:keys [option salt]} (get-in store [:votes active-account address])]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
-                                      :fn :reveal-vote
-                                      :args [option salt]
+                                      :fn :reveal-vote  
+                                      :args (look [(reg-entry/vote-option->num option) salt])
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
-                                      :tx-id {:meme/commit-vote id}
-                                      :on-tx-success-n [[::logging/success [:meme/commit-vote]]
+                                      :tx-id {:meme/reveal-vote id}
+                                      :on-tx-success-n [[::logging/success [:meme/reveal-vote]]
                                                         [::notification-events/show "Voted"]]
-                                      :on-tx-hash-error [::logging/error [:meme/commit-vote]]
-                                      :on-tx-error [::logging/error [:meme/commit-vote]]}]})))
+                                      :on-tx-hash-error [::logging/error [:meme/reveal-vote]]
+                                      :on-tx-error [::logging/error [:meme/reveal-vote]]}]})))
 
 
 

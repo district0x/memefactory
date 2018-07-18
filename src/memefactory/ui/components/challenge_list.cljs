@@ -10,11 +10,12 @@
             [cljs-time.core :as t]
             [district.ui.component.form.input :refer [select-input with-label]]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [print.foo :refer [look] :include-macros true]))
+            [print.foo :refer [look] :include-macros true]
+            [memefactory.ui.utils :as mf-utils]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(def page-size 2)
+(def page-size 1)
 
 (defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]}]
   (let [{:keys [:order-by :order-dir]} data]
@@ -62,7 +63,7 @@
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
                 :meme/tags :challenge/challenger]} entry]
-    [:div.challenge
+    [:div.challenge {:height 400}
      [:div (str "ENTRY " address)] ;; TODO remove (only for debugging)
      (cond-> [:div.info
               [:h2 title]
@@ -85,30 +86,26 @@
      [:img.meme-image {:src image-hash}]
      [action-child entry]]))
 
-(defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account]}]
+(defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key]}]
   (let [form-data (r/atom {})]
-    (fn [{:keys [include-challenger-info? statuses action-child active-account]}]
-      (look active-account)
-      (let [re-search (fn [after]
+    (fn [{:keys [include-challenger-info? query-params action-child active-account key]}]
+      (look query-params)
+      (let [params {:data @form-data
+                    :include-challenger-info? include-challenger-info?
+                    :query-params query-params
+                    :active-account active-account}
+            re-search (fn [after]
                         (dispatch [:district.ui.graphql.events/query
-                                   {:query {:queries [(build-challenge-query {:data @form-data
-                                                                              :after after
-                                                                              :include-challenger-info? include-challenger-info?
-                                                                              :query-params query-params
-                                                                              :active-account active-account})]}
-                                    :id @form-data}]))
-            meme-search (subscribe [::gql/query {:queries [(build-challenge-query {:data @form-data
-                                                                                   :after nil
-                                                                                   :include-challenger-info? include-challenger-info?
-                                                                                   :query-params query-params
-                                                                                   :active-account active-account})]}
-                                    {:id @form-data
-                                     :disable-fetch? true}])
+                                   {:query {:queries [(build-challenge-query (assoc params :after after))]}
+                                    :id {:form-data @form-data :query-params query-params :key key}}]))
+            meme-search (subscribe [::gql/query {:queries [(build-challenge-query params)]}
+                                    {:id {:form-data @form-data :query-params query-params :key key}}])
             all-memes (->> @meme-search
                            (mapcat (fn [r] (-> r :search-memes :items)))
                            ;; TODO remove this, don't know why subscription is returning nil item
                            (remove #(nil? (:reg-entry/address %))))]
         (.log js/console "ALL Rendering here" all-memes)
+         (println "All memes " (map :reg-entry/address all-memes))
         (if (:graphql/loading? @meme-search)
           [:div "Loading..."]
           [:div.challenges.panel
@@ -117,15 +114,14 @@
                           :options [{:key "created-on" :value "Newest"}]
                           :on-change #(re-search nil)}]
            [:div.memes
-            [react-infinite {:element-height 280
-                             :container-height 300
+            [react-infinite {:element-height 400
                              :infinite-load-begin-edge-offset 100
                              :use-window-as-scroll-container true
                              :on-infinite-load (fn []
                                                  (when-not (:graphql/loading? @meme-search)
                                                    (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
                                                      (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                                     (when (or has-next-page (empty? all-memes))
+                                                     (when has-next-page 
                                                        (re-search end-cursor)))))}
              (doall
               (for [{:keys [:reg-entry/address] :as meme} all-memes]

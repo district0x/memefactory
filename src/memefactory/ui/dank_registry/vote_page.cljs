@@ -33,7 +33,8 @@
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards]}]
   (let [tx-id (str (random-uuid))
         active-account (subscribe [::accounts-subs/active-account])
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])]
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/collect-all-rewards tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/collect-all-rewards tx-id}])]
     [:div.collect-reward
      [:img]
      [:ol.vote-info
@@ -44,7 +45,8 @@
                                                                  all-rewards
                                                                  0))]]]
      [pending-button {:pending? @tx-pending?
-                      :disabled (not (pos? all-rewards)) 
+                      :disabled (or (not (pos? all-rewards))
+                                    @tx-pending? @tx-success?) 
                       :pending-text "Collecting ..."
                       :on-click (fn []
                                   (dispatch [::dr-events/collect-all-rewards {:send-tx/id tx-id
@@ -54,11 +56,14 @@
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote] :as meme}]
   (let [tx-id (str (random-uuid))
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/commit-vote tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/commit-vote tx-id}])
         form-data (r/atom {})]
     (fn [{:keys [:reg-entry/address :challenge/vote] :as meme}]
-      (let [voted? (not= (graphql-utils/gql-name->kw (:vote/option vote))
-                         :vote-option/no-vote)]
+      (let [voted? (or (not= (graphql-utils/gql-name->kw (:vote/option vote))
+                             :vote-option/no-vote)
+                       @tx-pending?
+                       @tx-success?)]
        [:div.vote
         [with-label "Amount "
          [:div [text-input {:form-data form-data
@@ -77,7 +82,7 @@
          [:div [text-input {:form-data form-data
                             :id :amount-vote-against}]
           [:span "DANK"]]]
-        [pending-button {:pending? @tx-pending?
+        [pending-button {:pending? @tx-pending?                         
                          :pending-text "Voting ..."
                          :disabled voted? 
                          :on-click (fn []
@@ -91,14 +96,16 @@
 
 (defn reveal-action [{:keys [:challenge/vote :reg-entry/address] :as meme}]
   (let [tx-id (str (random-uuid))
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])]
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/reveal-vote tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/reveal-vote tx-id}])]
     (fn [{:keys [] :as meme}]
       [:div.vote
        [:img]
        [pending-button {:pending? @tx-pending?
                         :pending-text "Revealing ..."
-                        :disabled (= (graphql-utils/gql-name->kw (:vote/option vote))
-                                     :vote-option/no-vote)
+                        :disabled (or (= (graphql-utils/gql-name->kw (:vote/option vote))
+                                         :vote-option/no-vote)
+                                      @tx-pending? @tx-success?)
                         :on-click (fn []
                                     (dispatch [::dr-events/reveal-vote
                                                {:send-tx/id tx-id
@@ -107,6 +114,7 @@
         "Reveal My Vote"]])))
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
+  (println "REVEAL VOTE ACTION " meme)
   (case  (graphql-utils/gql-name->kw status)
     :reg-entry.status/commit-period [vote-action meme] 
     :reg-entry.status/reveal-period [reveal-action meme]
@@ -130,10 +138,12 @@
                                        :query-params {:statuses [:reg-entry.status/commit-period
                                                                  :reg-entry.status/reveal-period]}
                                        :active-account @account
-                                       :action-child reveal-vote-action}]}
+                                       :action-child reveal-vote-action
+                                       :key :vote-page/open}]}
             {:title "Resolved Challenges"
              :content [challenge-list {:include-challenger-info? true
                                        :query-params {:statuses [:reg-entry.status/blacklisted
                                                                  :reg-entry.status/whitelisted]}
                                        :active-account @account
-                                       :action-child collect-reward-action}]}]]]]))))
+                                       :action-child collect-reward-action
+                                       :key :vote-page/resolved}]}]]]]))))

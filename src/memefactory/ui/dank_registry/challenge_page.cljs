@@ -29,8 +29,9 @@
 (defn open-challenge-action [{:keys [:reg-entry/address]}]
   (let [form-data (r/atom {})
         open? (r/atom false)
-        tx-id (str (random-uuid))
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])
+        tx-id address
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
         dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])]
     (fn [{:keys [:reg-entry/address]}]
      [:div.challenge-controls
@@ -40,6 +41,7 @@
          [text-input {:form-data form-data
                       :id :reason}]
          [pending-button {:pending? @tx-pending?
+                          :disabled (or @tx-pending? @tx-success?)
                           :pending-text "Challenging ..."
                           :on-click (fn []
                                       (dispatch [::dr-events/add-challenge {:send-tx/id tx-id
@@ -58,5 +60,6 @@
     [header]
     [challenge-list {:include-challenger-info? false
                      :query-params {:statuses [:reg-entry.status/challenge-period]}
-                     :action-child open-challenge-action}]]])
+                     :action-child open-challenge-action
+                     :key :challenge-page}]]])
 

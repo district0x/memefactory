@@ -160,12 +160,32 @@
        (println "\n\n")))))
 
 (defn print-statuses []
-    (->> (db/all {:select [:*]
-                  :from [:reg-entries]})
-         (map (fn [re]
-                (assoc re :status (reg-entry-status (last-block-timestamp) re))))
-         (map #(select-keys % [:reg-entry/address :status]))
-         print-table))
+  (->> (db/all {:select [:v.* :re.*]
+                :from [[:reg-entries :re]]
+                :left-join [[:votes :v] [:= :re.reg-entry/address :v.reg-entry/address]]})
+       (group-by :reg-entry/address)
+       (map (fn [[address [r :as votes]]]
+              {:address address
+               :status (name (reg-entry-status (last-block-timestamp) r))
+               :v+ (:challenge/votes-for r)
+               :v- (:challenge/votes-against r)
+               :v? (count (filter #(= 0 (:vote/revealed-on %)) votes))}))
+       print-table))
+
+(defn increase-time-to-next-period [re-address]
+  (let [now (last-block-timestamp)
+        entry (db/get {:select [:*]
+                       :from [:reg-entries]
+                       :where [:= :reg-entry/address re-address]})
+        current-status (reg-entry-status now entry)
+        time-to-next (case current-status
+                       :reg-entry.status/challenge-period (- (:reg-entry/challenge-period-end entry) now)
+                       :reg-entry.status/commit-period    (- (:challenge/commit-period-end entry) now)
+                       :reg-entry.status/reveal-period    (- (:challenge/reveal-period-end entry) now)
+                       :reg-entry.status/whitelisted      (println "Not moving for whitelisted")
+                       :reg-entry.status/blacklisted      (println "Not moving for blacklisted"))]
+    (println "Increasing time by " time-to-next)
+    (increase-time time-to-next)))
 
 (defn print-balances []
   (->> (web3-eth/accounts @web3)
