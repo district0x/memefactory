@@ -1,8 +1,7 @@
 (ns memefactory.ui.meme-detail.page
   (:require
 ;;   [district.time :as time]
-;;   [cljs-time.format :as time-format]
-
+  [cljs-time.format :as time-format]
    [cljs-time.core :as t]
    [district.ui.router.events :as router-events]
    [cljs-web3.core :as web3]
@@ -24,30 +23,16 @@
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
-#_(def time-formatter (time-format/formatter "yyyy-MM-dd"))
-
-#_(defn format-date [date]
-  (when date (time-format/unparse (time-format/formatters :date) (time-coerce/from-long (* 1000 date)))))
+(def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
 (defn meme-creator [{:keys [:user/address :user/creator-rank :user/total-created-memes
-                                         :user/total-created-memes-whitelisted] :as creator}]
+                            :user/total-created-memes-whitelisted] :as creator}]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller address :statuses [:meme-auction.status/done]}
                                       [[:items [;;:meme-auction/start-price
                                                 :meme-auction/end-price
                                                 ;;:meme-auction/bought-for
-                                                ]]]]
-                                     #_[:user {:user/address address}
-                                        [:user/total-created-memes
-                                         :user/total-created-memes-whitelisted
-                                         :user/creator-rank
-                                         [:user/largest-sale [:meme-auction/start-price
-                                                              :meme-auction/end-price
-                                                              :meme-auction/bought-for
-                                                              [:meme-auction/meme-token
-                                                               [:meme-token/number
-                                                                [:meme-token/meme
-                                                                 [:meme/title]]]]]]]]]}])
+                                                ]]]]]}])
         creator-total-earned (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
                                        (+ total-earned end-price))
                                      0
@@ -77,7 +62,10 @@
                                                          [:meme-auction/meme-token
                                                           [:meme-token/token-id]]]]]]]}])]
         (when-not (:graphql/loading? @query)
-          [:h1 "Marketplace history"]
+
+          #_(prn @query)
+
+         [:h1 "Marketplace history"]
           [:table {:style {:table-layout "fixed"
                            :border-collapse "collapse"}}
            [:thead [:tr {:style {:display "block"}}
@@ -98,19 +86,66 @@
             (doall
              (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
                            :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
-               ^{:key address}
-               [:tr
-                [:td (:meme-token/token-id meme-token)]
-                [:td (:user/address seller)]
-                [:td (:user/address buyer)]
-                [:td end-price]
-                [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/now))]]))]])))))
+               (when address
+                 ^{:key address}
+                 [:tr
+                  [:td (:meme-token/token-id meme-token)]
+                  [:td (:user/address seller)]
+                  [:td (:user/address buyer)]
+                  [:td end-price]
+                  [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/now))]])))]])))))
 
-(defn challenge []
-  [:div.title [:h1 "Challenge"]] 
+;; TODO: handle never challenged
+(defn challenge [{:keys [:reg-entry/status :challenge/created-on :challenge/comment
+                         :challenge/votes-for :challenge/votes-against :challenge/votes-total
+                         :challenge/challenger :challenge/vote] :as meme}]
+  (let [status (graphql-utils/gql-name->kw status)
+        areas "'header header header header header header'
+               'status status challenger challenger votes votes'"]
+
+    (prn meme status votes-for votes-against votes-total)
+
+    (case status
+
+      :reg-entry.status/whitelisted
+      [:div.whitelisted {:style {:display "grid"
+                                 :grid-template-areas areas}}
+
+       [:div.header {:style {:grid-area "header"}}
+        [:div.title [:h1 "Challenge"]]
+        [:span (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]]
+
+       [:div.status {:style {:grid-area "status"}}
+        [:b "Challenge status"]
+        [:div.description "Resolved, accepted"]]
+
+       [:div.challenger {:style {:grid-area "challenger"}}
+        (let [{:keys [:user/address :user/challenger-rank :user/challenger-total-earned
+                      :user/total-created-challenges :user/total-created-challenges-success]} challenger]
+          [:div.creator
+           [:b "Challenger"]
+           [:div.rank (str "Rank: #" challenger-rank " (" (format/format-dnt challenger-total-earned) ")")]
+           [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
+                              (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
+           [:div.address (str "Address: " address)]
+           [:i comment]]
 
 
-  )
+
+          )]
+
+       [:div.votes {:style {:grid-area "votes"}}
+        (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on]} vote]
+
+          [:div.dank (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-total)]
+
+          )]
+
+       ]
+
+      :default [:div "TODO"]
+
+      )))
 
 ;;  TODO:  related
 (defmethod page :route.meme-detail/index []
@@ -133,28 +168,42 @@
                                                    [:user/address
                                                     :user/total-created-memes
                                                     :user/total-created-memes-whitelisted
-                                                    :user/creator-rank
-                                                    ]]
+                                                    :user/creator-rank]]
 
-                                                  [:meme/meme-auctions
+                                                  :challenge/created-on
+                                                  :challenge/comment
+                                                  :challenge/votes-for
+                                                  :challenge/votes-against
+                                                  :challenge/votes-total
+                                                  [:challenge/challenger
+                                                   [:user/address
+                                                    :user/challenger-rank
+                                                    :user/challenger-total-earned
+                                                    :user/total-created-challenges
+                                                    :user/total-created-challenges-success]]
+
+                                                  [:challenge/vote {:vote/voter @active-account}
+                                                   [:vote/option
+                                                    :vote/reward
+                                                    :vote/claimed-reward-on]]
+
+                                                  #_[:meme/meme-auctions
                                                    [:meme-auction/address]]
 
                                                   ]]
                                                 [:search-tags [[:items [:tag/name]]]]]}])]
 
-;;tags (subscribe [::gql/query {:queries []}])
-
     (when-not (:graphql/loading? @query)
 
 ;;      (prn @query)
 
-      (if-let [{:keys [:meme/image-hash :meme/title :reg-entry/status :meme/total-supply
-                       :meme/owned-meme-tokens :reg-entry/creator :meme/meme-auctions]} (:meme @query)]
-        (let [;;tags (->> @query :search-tags :items (mapv :tag/name)) ;;{:keys [:user/address :user/creator-rank]} creator
+      (if-let [meme (:meme @query)]
+        (let [{:keys [:meme/image-hash :meme/title :reg-entry/status :meme/total-supply
+                      :meme/owned-meme-tokens :reg-entry/creator #_:meme/meme-auctions]} meme
               token-count (->> owned-meme-tokens
-                              (map :meme-token/token-id)
-                              (filter shared-utils/not-nil?)
-                              count)
+                               (map :meme-token/token-id)
+                               (filter shared-utils/not-nil?)
+                               count)
               ]
 
         [app-layout/app-layout
@@ -204,7 +253,7 @@
                    [history address]]
 
                   [:div.challenge {:style {:grid-area "challenge"}}
-                   [challenge]]   
+                   [challenge meme]]
 
                   ]
          ])))))

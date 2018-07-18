@@ -1,5 +1,8 @@
 (ns memefactory.tests.graphql-resolvers.graphql-resolvers-tests
-  (:require [clojure.pprint :refer [pprint print-table]]
+  (:require [cljs-time.core :as t]
+            [cljs-time.coerce :as time-coerce]
+            [cljs.test :refer-macros [deftest is testing use-fixtures run-tests]]
+            [clojure.pprint :refer [pprint print-table]]
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
@@ -16,7 +19,6 @@
             [memefactory.server.syncer]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [mount.core :as mount]
-            [cljs.test :refer-macros [deftest is testing use-fixtures run-tests]]
             [print.foo :include-macros true :refer [look]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -51,18 +53,19 @@
                              :challenge/reveal-period-end (+ now (hours->seconds 2)))
         in-reveal-per (assoc in-reveal-per
                              :challenge/challenger "CHADDR"
-                             :challenge/commit-period-end (dec now)
                              :challenge/reveal-period-end (+ now (hours->seconds 2)))
         wl1 (assoc wl1 :reg-entry/challenge-period-end (dec now))
         wl2 (assoc wl2
                    :challenge/challenger "CHADDR"
+                   :challenge/comment "This meme is a copy"
+                   :challenge/created-on now
                    :challenge/commit-period-end (dec now)
                    :challenge/reveal-period-end (dec now)
                    :challenge/votes-for 1
                    :challenge/votes-against 0)
         wl3 (assoc wl3 :reg-entry/challenge-period-end (dec now))
         bl (assoc bl
-                  :challenge/challenger "CHADDR"
+                  :challenge/challenger "CHADDR"                  
                   :challenge/commit-period-end (dec now)
                   :challenge/reveal-period-end (dec now)
                   :challenge/votes-for 0
