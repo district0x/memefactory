@@ -55,6 +55,7 @@
       :border-width (px 1)
       :border-style :solid
       :border-color "#CCC"
+      :z-index 1000
       :background-color "white"}
      [:li
       ;; (font :filson)
