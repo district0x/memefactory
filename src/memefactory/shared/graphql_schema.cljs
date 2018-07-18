@@ -85,9 +85,11 @@
   }
 
   enum MemeAuctionsOrderBy {
+    memeAuctions_orderBy_seller
+    memeAuctions_orderBy_buyer
     memeAuctions_orderBy_price
     memeAuctions_orderBy_startedOn
-    memeAuctions_orderBy_boughtOn
+    memeAuctions_orderBy_boughtOn  
     memeAuctions_orderBy_tokenId
     memeAuctions_orderBy_memeTotalMinted
     memeAuctions_orderBy_random
@@ -199,6 +201,8 @@
     meme_ownedMemeTokens(owner: String): [MemeToken]
 
     meme_tags: [Tag]
+    meme_memeAuctions(orderBy: MemeAuctionsOrderBy,
+                      orderDir: OrderDir): [MemeAuction]
   }
 
   type MemeList {

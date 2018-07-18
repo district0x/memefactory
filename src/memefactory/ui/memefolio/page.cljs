@@ -14,6 +14,7 @@
             [district.ui.graphql.utils :as graphql-ui-utils]
             [district.ui.router.events :as router-events]
             [district.ui.router.subs :as router-subs]
+            [district.ui.now.subs :as now-subs]
             [district.ui.server-config.subs :as config-subs]
             [district.ui.web3-accounts.subs :as accounts-subs]
             [district.ui.web3-tx-id.subs :as tx-id-subs]
@@ -350,7 +351,7 @@
            (when address
              (let [{:keys [:meme-token/number :meme-token/meme]} meme-token
                    {:keys [:meme/title :meme/image-hash :meme/total-minted]} meme
-                   now (subscribe [:district.ui.now.subs/now])
+                   now (subscribe [::now-subs/now])
                    price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
                ^{:key address} [:div.meme-card-front
                                 [tiles/meme-image image-hash]

@@ -1,6 +1,7 @@
 (ns memefactory.styles.base.colors)
 
 (def names->colors {:pink "#ff0090"
+                    :purple "#9d0adb"
                     :ticker-background "#ff0090"
                     :ticker-color "#FFFFFF"
                     :ticker-token-color "#ff80c8"

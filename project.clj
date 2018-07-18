@@ -79,6 +79,7 @@
 
   :npm {:dependencies [#_[semantic-ui "2.2.14"]
                        ;; needed until v0.6.13 is officially released
+                       [chalk "2.3.0"]
                        [express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
                        [graphql-tools "3.0.1"]
                        [graphql "0.13.1"]

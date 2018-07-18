@@ -455,7 +455,7 @@
        :else nil))))
 
 (defn reg-entry->vote-resolver [{:keys [:reg-entry/address] :as reg-entry} {:keys [:vote/voter]}]
-  (log/debug "reg-entry->vote args" {:reg-entry reg-entry :voter voter} )
+  (log/debug "reg-entry->vote args" {:reg-entry reg-entry :voter voter})
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:votes]
@@ -482,6 +482,26 @@
    (db/all {:select [:tag/name]
             :from [:meme-tags]
             :where [:= :reg-entry/address address]})))
+
+(defn meme->meme-auctions-resolver [{:keys [:reg-entry/address] :as meme} {:keys [:order-by :order-dir] :as opts}]
+  (log/debug "meme->meme-auctions-resolver" {:args meme :opts opts})
+  (try-catch-throw
+   (let [sql-query (db/all (merge {:select [:*]
+                                   :from [:meme-auctions]
+                                   :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-auctions.meme-auction/token-id]
+                                          :memes [:= :memes.reg-entry/address :meme-tokens.reg-entry/address]]
+                                   :where [:= :memes.reg-entry/address address]}
+                                  (when order-by
+                                    {:order-by [[(get {:meme-auctions.order-by/token-id :meme-auctions.meme-auction/token-id
+                                                       :meme-auctions.order-by/seller :meme-auctions.meme-auction/seller
+                                                       :meme-auctions.order-by/buyer :meme-auctions.meme-auction/buyer
+                                                       :meme-auctions.order-by/price :meme-auctions.meme-auction/bought-for
+                                                       :meme-auctions.order-by/bought-on :meme-auctions.meme-auction/bought-on}
+                                                      (graphql-utils/gql-name->kw order-by))
+                                                 (or (keyword order-dir) :asc)]]})))]
+     
+     (log/debug "meme->meme-auctions-resolver query" sql-query)
+     sql-query)))
 
 (defn meme-list->items-resolver [meme-list]
   (:items meme-list))
@@ -518,7 +538,7 @@
   {:user/address seller})
 
 (defn meme-auction->buyer-resolver [{:keys [:meme-auction/buyer :meme-auction/bought-on] :as meme-auction}]
-  (log/debug "meme-auction->buyer-resolver args" bought-on)
+  (log/debug "meme-auction->buyer-resolver args" meme-auction)
   (when bought-on
     {:user/address buyer}))
 
@@ -749,7 +769,8 @@
           :challenge/challenger reg-entry->challenger
           :challenge/vote reg-entry->vote-resolver
           :meme/owned-meme-tokens meme->owned-meme-tokens
-          :meme/tags meme->tags}
+          :meme/tags meme->tags
+          :meme/meme-auctions meme->meme-auctions-resolver}
    :MemeList {:items meme-list->items-resolver}
    :TagList {:items tag-list->items-resolver}
    :MemeToken {:meme-token/owner meme-token->owner-resolver
