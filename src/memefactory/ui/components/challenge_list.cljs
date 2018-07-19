@@ -86,8 +86,7 @@
                   name])]]
        include-challenger-info? (into [[:h3 "Challenger"]
                                        [user-info challenger :challenger]]))
-     #_(meme-image image-hash) ;; TODO uncomment this when it works correctly
-     [:img.meme-image]
+     (meme-image image-hash)
      [action-child entry]]))
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key]}]

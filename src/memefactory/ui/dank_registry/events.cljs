@@ -29,12 +29,11 @@
 (re-frame/reg-event-fx
  ::upload-meme
  (fn [_ [_ {:keys [file-info] :as data} deposit]]
-   (let [buffer-data (js/buffer.Buffer.from (:array-buffer file-info))]
-     (.log js/console "Uploading " buffer-data (.-length buffer-data))
-     {:ipfs/call {:func "add"
-                  :args [buffer-data]
-                  :on-success [::upload-meme-meta data deposit]
-                  :on-error ::error}})))
+   (.log js/console "Uploading " (:file file-info))
+   {:ipfs/call {:func "add"
+                :args [(:file file-info)]
+                :on-success [::upload-meme-meta data deposit]
+                :on-error ::error}}))
 
 (defn build-meme-meta-string [{:keys [title search-tags issuance] :as data} image-hash]
   (-> {:title title
