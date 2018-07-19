@@ -8,6 +8,7 @@
                  [cljs-web3 "0.19.0-0-10"]
                  [cljsjs/react-infinite "0.13.0-0"]
                  [cljsjs/buffer "5.1.0-1"]
+                 [cljsjs/d3 "4.12.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]
