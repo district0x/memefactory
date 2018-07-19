@@ -137,9 +137,9 @@
     challenge_rewardPool: Int
     challenge_commitPeriodEnd: Date
     challenge_revealPeriodEnd: Date
-    challenge_votesFor: Int
-    challenge_votesAgainst: Int
-    challenge_votesTotal: Int
+    challenge_votesFor: Float
+    challenge_votesAgainst: Float
+    challenge_votesTotal: Float
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
     challenge_voteWinningVoteOption(vote_voter: ID!): Boolean
@@ -176,9 +176,9 @@
     challenge_rewardPool: Int
     challenge_commitPeriodEnd: Date
     challenge_revealPeriodEnd: Date
-    challenge_votesFor: Int
-    challenge_votesAgainst: Int
-    challenge_votesTotal: Int
+    challenge_votesFor: Float
+    challenge_votesAgainst: Float
+    challenge_votesTotal: Float
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
     challenge_voteWinningVoteOption(vote_voter: ID!): Boolean
@@ -280,9 +280,9 @@
     challenge_rewardPool: Int
     challenge_commitPeriodEnd: Date
     challenge_revealPeriodEnd: Date
-    challenge_votesFor: Int
-    challenge_votesAgainst: Int
-    challenge_votesTotal: Int
+    challenge_votesFor: Float
+    challenge_votesAgainst: Float
+    challenge_votesTotal: Float
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
     challenge_voteWinningVoteOption(vote_voter: ID!): Boolean

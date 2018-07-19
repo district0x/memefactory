@@ -118,7 +118,8 @@
                  (when address
                    (let [token-ids (map :meme-token/token-id owned-meme-tokens)
                          token-count (->> token-ids
-                                          (filter shared-utils/not-nil?))]
+                                          (filter shared-utils/not-nil?)
+                                          count)]
                      ^{:key address} [:div
                                       [tiles/flippable-tile {:id address
                                                              :front [tiles/meme-image image-hash]
