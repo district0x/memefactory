@@ -101,6 +101,11 @@ Auto compile contracts on changes:
 lein solc auto
 ```
 
+Start ipfs:
+```
+ipfs daemon
+```
+
 Start server: 
 ```bash
 ganache-cli -p 8549
