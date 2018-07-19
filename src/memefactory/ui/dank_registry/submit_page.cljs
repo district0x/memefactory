@@ -10,7 +10,8 @@
    [re-frame.core :as re-frame]
    [district.ui.graphql.subs :as gql]
    [district.format :as format]
-   [district.ui.server-config.subs :as config-subs]))
+   [district.ui.server-config.subs :as config-subs]
+   [memefactory.ui.components.tiles :refer [meme-image]]))
 
 (defn header []
   [:div.submit-info
@@ -29,10 +30,10 @@
               :description "Description"}}
       [:div.dank-registry-submit-page
        [:section.submit
-        [header]]
+        [header]]     
        [:section.upload
         [:div.image-panel
-         [file-drag-input {:form-data form-data
+         [file-drag-input {:form-data form-data 
                            :id :file-info
                            :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                (= type "image/png"))
@@ -56,7 +57,8 @@
          [:span.max-issuance "Max 500.000"]
          [:div.submit
           [:button {:on-click (fn []
-                                (dispatch [::dr-events/upload-meme @form-data @dank-deposit]))}
+                                (dispatch [::dr-events/upload-meme @form-data @dank-deposit])
+                                (reset! form-data {}))}
            "Submit"]
           [:span.dank (format/format-token @dank-deposit  {:token "DANK"})]]]]
        ]])))
