@@ -18,7 +18,8 @@
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
    [district.ui.server-config.subs :as config-subs]
-   [district.format :as format]))
+   [district.format :as format]
+   [reagent.ratom :refer [reaction]]))
 
 (defn header []
   [:div.header
@@ -32,16 +33,21 @@
         tx-id address
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
-        dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])]
+        dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])
+        errors (reaction {:local (let [{:keys [comment]} @form-data]
+                                   (cond-> {}
+                                     (empty? comment)
+                                     (assoc :comment "Comment shouldn't be empty.")))})]
     (fn [{:keys [:reg-entry/address]}]
      [:div.challenge-controls
       [:img.vs]
       (if @open?
         [:div
          [text-input {:form-data form-data
-                      :id :comment}]
+                      :id :comment
+                      :errors errors}]
          [pending-button {:pending? @tx-pending?
-                          :disabled (or @tx-pending? @tx-success?)
+                          :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
                           :pending-text "Challenging ..."
                           :on-click (fn []
                                       (dispatch [::dr-events/add-challenge {:send-tx/id tx-id
@@ -56,7 +62,7 @@
   [app-layout
    {:meta {:title "MemeFactory"
            :description "Description"}}
-   [:div.dank-registry-submit
+   [:div.dank-registry-challenge
     [header]
     [challenge-list {:include-challenger-info? false
                      :query-params {:statuses [:reg-entry.status/challenge-period]}
