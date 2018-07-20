@@ -45,6 +45,13 @@
 (defn parse-status [status]
   (statuses (bn/number status)))
 
+(defn parse-uint-date [date parse-as-date?]
+  (let [date (bn/number date)]
+    (match [(= 0 date) parse-as-date?]
+           [true _] nil
+           [false true] (web3-time->local-date-time date)
+           [false false] date)))
+
 (defn parse-load-registry-entry [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]]
   (when registry-entry
     (let [registry-entry (zipmap load-registry-entry-keys registry-entry)]
@@ -57,8 +64,7 @@
 
 (defn parse-load-registry-entry-challenge [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]] 
   (when registry-entry
-    (let [registry-entry (zipmap load-registry-entry-challenge-keys registry-entry)
-          claimed-reward-on (bn/number (:challenge/claimed-reward-on registry-entry))]
+    (let [registry-entry (zipmap load-registry-entry-challenge-keys registry-entry)]
       (-> registry-entry
           (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))
           (update :challenge/challenger #(when-not (empty-address? %) %))
@@ -69,10 +75,7 @@
           (update :challenge/votes-for bn/number)
           (update :challenge/vote-quorum bn/number)
           (update :challenge/votes-against bn/number)
-          (update :challenge/claimed-reward-on (match [(= 0 claimed-reward-on) parse-dates?]
-                                                      [true _] (constantly nil)
-                                                      [false true] web3-time->local-date-time
-                                                      [false false] (constantly claimed-reward-on)))))))
+          (update :challenge/claimed-reward-on (constantly (parse-uint-date (:challenge/claimed-reward-on registry-entry) parse-dates?)))))))
 
 (defn parse-vote-option [vote-option]
   (vote-options (bn/number vote-option)))
@@ -86,4 +89,4 @@
         (update :vote/option (if parse-vote-option? parse-vote-option bn/number))
         (update :vote/amount bn/number)
         (update :vote/revealed-on (if parse-dates? web3-time->local-date-time bn/number))
-        (update :vote/claimed-reward-on (if parse-dates? web3-time->local-date-time bn/number))))))
+        (update :vote/claimed-reward-on (constantly (parse-uint-date (:vote/claimed-reward-on voter) parse-dates?)))))))
