@@ -1,18 +1,16 @@
 (ns memefactory.ui.events.meme-token-events
-  (:require
-   [cljs-web3.core :as web3]
-   [cljs-web3.eth :as web3-eth]
-   [cljs.spec.alpha :as s]
-   [district.ui.logging.events :as logging]
-   [district.ui.notification.events :as notification-events]
-   [district.ui.smart-contracts.queries :as contract-queries]
-   [district.ui.web3-accounts.queries :as account-queries]
-   [district.ui.web3-tx.events :as tx-events]
-   [district0x.re-frame.spec-interceptors :as spec-interceptors]
-   [goog.string :as gstring]
-   [print.foo :refer [look] :include-macros true]
-   [re-frame.core :as re-frame :refer [reg-event-fx]]
-   ))
+  (:require [cljs-web3.core :as web3]
+            [cljs-web3.eth :as web3-eth]
+            [cljs.spec.alpha :as s]
+            [district.ui.logging.events :as logging]
+            [district.ui.notification.events :as notification-events]
+            [district.ui.smart-contracts.queries :as contract-queries]
+            [district.ui.web3-accounts.queries :as account-queries]
+            [district.ui.web3-tx.events :as tx-events]
+            [district0x.re-frame.spec-interceptors :as spec-interceptors]
+            [goog.string :as gstring]
+            [print.foo :refer [look] :include-macros true]
+            [re-frame.core :as re-frame :refer [reg-event-fx]]))
 
 (def interceptors [re-frame/trim-v])
 
@@ -26,7 +24,7 @@
                                       :args (look [active-account
                                                    (contract-queries/contract-address db :meme-auction-factory-fwd)
                                                    token-ids
-                                                   (web3-eth/contract-get-data (contract-queries/instance db :meme-auction) :start-auction (web3/to-wei 0.1 #_start-price :ether) (web3/to-wei 0.01 #_end-price :ether) 6000 #_duration description)])
+                                                   (web3-eth/contract-get-data (contract-queries/instance db :meme-auction) :start-auction (web3/to-wei start-price :ether) (web3/to-wei end-price :ether) duration description)])
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme-token/transfer-multi-and-start-auction id}

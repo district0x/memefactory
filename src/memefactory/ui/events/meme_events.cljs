@@ -23,7 +23,7 @@
    (let [active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :mint
-                                      :args [amount #_1]
+                                      :args [amount]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme/mint id}

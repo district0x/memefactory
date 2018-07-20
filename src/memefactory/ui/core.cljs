@@ -31,6 +31,7 @@
     [memefactory.ui.events.meme-auction]
     [memefactory.ui.events.meme-events]
     [memefactory.ui.events.meme-token-events]
+    [memefactory.shared.contract.registry-entry]
     [memefactory.ui.home.page]
     [memefactory.ui.marketplace.events]
     [memefactory.ui.marketplace.page]

@@ -58,20 +58,20 @@
                            :on-file-rejected (fn [{:keys [name type size] :as props}]
                                                (prn "Rejected " props))}]]
         [:div.form-panel
-         [with-label "Title"
-          [text-input {:form-data form-data
-                       :id :title
-                       :errors errors}]]
-         [with-label "Tags"
-          [chip-input {:form-data form-data
-                       :chip-set-path [:search-tags]
-                       :ac-options (->> @all-tags-subs :search-tags :items (mapv :tag/name))
-                       :chip-render-fn (fn [c] [:span c])
-                       :on-change (fn [c])}]]
-         [with-label "Issuance"
-          [text-input {:form-data form-data
-                       :id :issuance
-                       :errors errors}]]
+         [text-input {:form-data form-data
+                      :placeholder "Title"
+                      :errors errors
+                      :id :title}]
+         [chip-input {:form-data form-data
+                      :chip-set-path [:search-tags]
+                      :placeholder "Tags"
+                      :ac-options (->> @all-tags-subs :search-tags :items (mapv :tag/name))
+                      :chip-render-fn (fn [c] [:span c])
+                      :on-change (fn [c])}]
+         [text-input {:form-data form-data
+                      :placeholder "Issuance"
+                      :errors errors
+                      :id :issuance}]
          [:span.max-issuance (str "Max " max-meme-issuance)]
          [:div.submit
           [:button {:on-click (fn []
