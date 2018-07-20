@@ -11,7 +11,8 @@
             [district.ui.component.form.input :refer [select-input with-label]]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [print.foo :refer [look] :include-macros true]
-            [memefactory.ui.utils :as mf-utils]))
+            [memefactory.ui.utils :as mf-utils]
+            [memefactory.ui.components.tiles :refer [meme-image]]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -85,7 +86,7 @@
                   name])]]
        include-challenger-info? (into [[:h3 "Challenger"]
                                        [user-info challenger :challenger]]))
-     [:img.meme-image {:src image-hash}]
+     (meme-image image-hash)
      [action-child entry]]))
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key]}]

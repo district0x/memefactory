@@ -10,7 +10,9 @@
    [re-frame.core :as re-frame]
    [district.ui.graphql.subs :as gql]
    [district.format :as format]
-   [district.ui.server-config.subs :as config-subs]))
+   [district.ui.server-config.subs :as config-subs]
+   [memefactory.ui.components.tiles :refer [meme-image]]
+   [reagent.ratom :refer [reaction]]))
 
 (defn header []
   [:div.submit-info
@@ -19,10 +21,24 @@
    [:h3.title "Lorem ipsum dolor sit ..."]
    [:div.get-dank-button "Get Dank"]])
 
+(def max-meme-issuance 500000)
+
 (defmethod page :route.dank-registry/submit []
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])
-        form-data (r/atom {})]
+        form-data (r/atom {})
+        errors (reaction {:local (let [{:keys [title issuance file-info]} @form-data]
+                                   (cond-> {}
+                                     (empty? title)
+                                     (assoc :title "Meme title is mandatory")
+                                     
+                                     (not file-info)
+                                     (assoc :file-info "No file selected")
+                                     
+                                     (not (try
+                                            (< 0 (js/parseInt issuance) max-meme-issuance)        
+                                            (catch js/Error e nil)))
+                                     (assoc :issuance (str "Issuance should be a number between 1 and " max-meme-issuance))))}) ]
    (fn []
      [app-layout
       {:meta {:title "MemeFactory"
@@ -32,8 +48,9 @@
         [header]]
        [:section.upload
         [:div.image-panel
-         [file-drag-input {:form-data form-data
+         [file-drag-input {:form-data form-data 
                            :id :file-info
+                           :errors errors
                            :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                (= type "image/png"))
                            :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
@@ -43,7 +60,8 @@
         [:div.form-panel
          [with-label "Title"
           [text-input {:form-data form-data
-                       :id :title}]]
+                       :id :title
+                       :errors errors}]]
          [with-label "Tags"
           [chip-input {:form-data form-data
                        :chip-set-path [:search-tags]
@@ -52,11 +70,14 @@
                        :on-change (fn [c])}]]
          [with-label "Issuance"
           [text-input {:form-data form-data
-                       :id :issuance}]]
-         [:span.max-issuance "Max 500.000"]
+                       :id :issuance
+                       :errors errors}]]
+         [:span.max-issuance (str "Max " max-meme-issuance)]
          [:div.submit
           [:button {:on-click (fn []
-                                (dispatch [::dr-events/upload-meme @form-data @dank-deposit]))}
+                                (dispatch [::dr-events/upload-meme @form-data @dank-deposit])
+                                (reset! form-data {}))
+                    :disabled (not (empty? (:local @errors)))}
            "Submit"]
           [:span.dank (format/format-token @dank-deposit  {:token "DANK"})]]]]
        ]])))

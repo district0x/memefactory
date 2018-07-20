@@ -36,6 +36,8 @@
     [memefactory.ui.marketplace.events]
     [memefactory.ui.marketplace.page]
     [memefactory.ui.meme-detail.page]
+    [memefactory.ui.dank-registry.page]
+    [memefactory.ui.leaderboard.page]
     [memefactory.ui.memefolio.page]
     [memefactory.ui.subs]
     [mount.core :as mount]

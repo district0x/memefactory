@@ -33,7 +33,7 @@
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
                  [district0x/district-ui-component-input "1.0.0"]
-                 [district0x/district-ui-graphql "1.0.3"]
+                 [district0x/district-ui-graphql "1.0.5"]
                  [district0x/district-ui-logging "1.0.1"]
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
