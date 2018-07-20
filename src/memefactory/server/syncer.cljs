@@ -189,21 +189,21 @@
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
   (let [last-block-number (last-block-number)
-        meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block (dec last-block-number) #_"latest"})]
+        meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block (dec last-block-number)})]
     [(registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} "latest" (partial dispatch-registry-entry-event :meme))
      (meme-auction-factory/meme-auction-event {} "latest" (partial dispatch-registry-entry-event :meme-auction))
      (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} "latest" (partial dispatch-registry-entry-event :param-change))
      (meme-token/transfer-event {} "latest" on-meme-token-transfer)
-     (-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-bulock 0 :to-block (dec last-block-number) #_"latest"})
+     (-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-block 0 :to-block (dec last-block-number)})
          (replay-past-events (partial dispatch-registry-entry-event :meme)
                              {:on-finish
                               (fn []
                                 (-> meme-auction-event-filter
                                     (replay-past-events (partial dispatch-registry-entry-event :meme-auction))))}))
      
-     (-> (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} {:from-block 0 :to-block (dec last-block-number) #_"latest"})
+     (-> (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} {:from-block 0 :to-block (dec last-block-number)})
          (replay-past-events (partial dispatch-registry-entry-event :param-change)))     
-     (-> (meme-token/transfer-event {} {:from-block 0 :to-block (dec last-block-number) #_"latest"})
+     (-> (meme-token/transfer-event {} {:from-block 0 :to-block (dec last-block-number)})
          (replay-past-events on-meme-token-transfer))
      meme-auction-event-filter]))
 
