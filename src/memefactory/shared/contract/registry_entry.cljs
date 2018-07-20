@@ -46,11 +46,11 @@
   (statuses (bn/number status)))
 
 (defn parse-uint-date [date parse-as-date?]
-  (let [date (bn/number date)]
+  (let [date (bn/number date)]    
     (match [(= 0 date) parse-as-date?]
            [true _] nil
            [false true] (web3-time->local-date-time date)
-           [false false] date)))
+           [false (:or nil false)] date)))
 
 (defn parse-load-registry-entry [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]]
   (when registry-entry

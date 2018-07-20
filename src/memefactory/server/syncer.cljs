@@ -60,9 +60,9 @@
 (defn on-constructed [{:keys [:registry-entry :timestamp] :as args} _ type]
   (log/info info-text {:args args} ::on-constructed)
   (try-catch
-    (db/insert-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
-                                      (registry-entry/load-registry-entry-challenge registry-entry)
-                                      {:reg-entry/created-on timestamp}))
+   (db/insert-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
+                                     (registry-entry/load-registry-entry-challenge registry-entry)
+                                     {:reg-entry/created-on timestamp}))
     (if (= type :meme)
       (let [{:keys [:meme/meta-hash] :as meme} (meme/load-meme registry-entry)]
         (.then (get-ipfs-meta meta-hash {:title "Dummy meme title"
@@ -87,8 +87,8 @@
               (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
                                                 challenge
                                                 {:challenge/created-on timestamp
-                                                 :challenge/comment (:comment challenge-meta)})))))))
-
+                                                 :challenge/comment (:comment challenge-meta)}))
+              (db/update-user! {:user/address (:challenge/challenger challenge)}))))))
 
 (defn on-vote-committed [{:keys [:registry-entry :timestamp :data] :as args}]
   (log/info info-text {:args args} ::on-vote-committed)
