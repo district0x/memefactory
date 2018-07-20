@@ -18,7 +18,8 @@
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
    [district.ui.web3-accounts.subs :as accounts-subs]
-   [district.graphql-utils :as graphql-utils]))
+   [district.graphql-utils :as graphql-utils]
+   [reagent.ratom :refer [reaction]]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -31,7 +32,7 @@
    [:div [:div "Get Dank"]]])
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards]}]
-  (let [tx-id (str (random-uuid))
+  (let [tx-id address
         active-account (subscribe [::accounts-subs/active-account])
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/collect-all-rewards tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/collect-all-rewards tx-id}])]
@@ -55,10 +56,17 @@
       "Collect Reward"]]))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote] :as meme}]
-  (let [tx-id (str (random-uuid))
+  (let [tx-id address
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/commit-vote tx-id}])
-        form-data (r/atom {})]
+        form-data (r/atom {})
+        errors (reaction {:local (let [{:keys [amount-vote-for amount-vote-against]} @form-data]
+                                   (cond-> {}
+                                     (not (try (< 0 (js/parseInt amount-vote-for)) (catch js/Error e nil)))
+                                     (assoc :amount-vote-for "Amount to vote for should be a positive number")
+                                     
+                                     (not (try (< 0 (js/parseInt amount-vote-against)) (catch js/Error e nil)))
+                                     (assoc :amount-vote-against "Amount to vote against should be a positive number")))})]
     (fn [{:keys [:reg-entry/address :challenge/vote] :as meme}]
       (let [voted? (or (not= (graphql-utils/gql-name->kw (:vote/option vote))
                              :vote-option/no-vote)
@@ -67,11 +75,12 @@
        [:div.vote
         [with-label "Amount "
          [:div [text-input {:form-data form-data
-                            :id :amount-vote-for}]
+                            :id :amount-vote-for
+                            :errors errors}]
           [:span "DANK"]]]
         [pending-button {:pending? @tx-pending?
                          :pending-text "Voting ..."
-                         :disabled voted? 
+                         :disabled (or voted? (-> @errors :local :amount-vote-for)) 
                          :on-click (fn []
                                      (dispatch [::dr-events/commit-vote {:send-tx/id tx-id
                                                                          :reg-entry/address address
@@ -80,11 +89,12 @@
          "Vote Dank"]
         [with-label "Amount "
          [:div [text-input {:form-data form-data
-                            :id :amount-vote-against}]
+                            :id :amount-vote-against
+                            :errors errors}]
           [:span "DANK"]]]
         [pending-button {:pending? @tx-pending?                         
                          :pending-text "Voting ..."
-                         :disabled voted? 
+                         :disabled (or voted? (-> @errors :local :amount-vote-against)) 
                          :on-click (fn []
                                      (dispatch [::dr-events/commit-vote {:send-tx/id tx-id
                                                                          :reg-entry/address address

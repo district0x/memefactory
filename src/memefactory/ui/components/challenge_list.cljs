@@ -11,7 +11,8 @@
             [district.ui.component.form.input :refer [select-input with-label]]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [print.foo :refer [look] :include-macros true]
-            [memefactory.ui.utils :as mf-utils]))
+            [memefactory.ui.utils :as mf-utils]
+            [memefactory.ui.components.tiles :refer [meme-image]]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -31,6 +32,7 @@
                         :reg-entry/created-on
                         :reg-entry/challenge-period-end
                         :reg-entry/status
+                        :challenge/comment
                         :meme/total-supply
                         :meme/image-hash
                         :meme/title
@@ -62,7 +64,7 @@
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child] }]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
-                :meme/tags :challenge/challenger]} entry]
+                :meme/tags :challenge/challenger :challenge/comment]} entry]
     [:div.challenge {:height 400}
      [:div (str "ENTRY " address)] ;; TODO remove (only for debugging)
      (cond-> [:div.info
@@ -77,13 +79,14 @@
                [:li [with-label "Issued:" [:span total-supply]]]]
               [:h3 "Creator"]
               [user-info creator :creator]
+              [:span.challenge-comment comment]
               [:ol.tags
                (for [{:keys [:tag/name]} tags]
                  [:li.tag {:key name}
                   name])]]
        include-challenger-info? (into [[:h3 "Challenger"]
                                        [user-info challenger :challenger]]))
-     [:img.meme-image {:src image-hash}]
+     (meme-image image-hash)
      [action-child entry]]))
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key]}]

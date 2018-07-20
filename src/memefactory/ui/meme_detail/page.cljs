@@ -1,7 +1,11 @@
 (ns memefactory.ui.meme-detail.page
   (:require
 ;;   [district.time :as time]
-  [cljs-time.format :as time-format]
+ ;;  [cljs.core.match :refer-macros [match]]
+   [district.ui.component.tx-button :as tx-button]
+   [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [cljsjs.d3]
+   [cljs-time.format :as time-format]
    [cljs-time.core :as t]
    [district.ui.router.events :as router-events]
    [cljs-web3.core :as web3]
@@ -82,7 +86,7 @@
            [:tbody {:style {:display "block"
                             :width "100%"
                             :overflow "auto"
-                            :height "50px"}}
+                            :height "100px"}}
             (doall
              (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
                            :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
@@ -95,18 +99,61 @@
                   [:td end-price]
                   [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/now))]])))]])))))
 
-;; TODO: handle never challenged
+(defn donut-chart [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]}]
+  (r/create-class
+   {:reagent-render (fn [] [:div#donutchart])
+    :component-did-mount (fn []
+                           (let [width 170
+                                 height 170
+                                 data [{:challenge/votes :for :value votes-for}
+                                       {:challenge/votes :against :value votes-against}]
+                                 outer-radius (/ (min width height) 2)
+                                 inner-radius (/ outer-radius 2)
+                                 pie (-> js/d3
+                                         .pie
+                                         (.value (fn [d] (aget d "value"))))
+                                 color-scale (-> js/d3
+                                                 .scaleOrdinal
+                                                 (.range (clj->js ["#04ffcc" "#ffeb01"])))]
+                             (-> js/d3
+                                 (.select "#donutchart")
+                                 (.append "svg")
+                                 (.attr "width" width)
+                                 (.attr "height" height)
+                                 (.append "g")
+                                 (.attr "transform" (str "translate(" (/ width 2) "," (/ height 2) ")"))
+                                 (.selectAll ".arc")
+                                 (.data (pie
+                                         (clj->js data)))
+                                 (.enter)
+                                 (.append "g")
+                                 (.attr "class" "arc")
+                                 (.append "path")
+                                 (.attr "d" (-> js/d3
+                                                .arc
+                                                (.outerRadius inner-radius)
+                                                (.innerRadius outer-radius)))
+                                 (.style "fill" (fn [d]
+                                                  (color-scale
+                                                   (aget d "data" "votes")))))))}))
+
 (defn challenge [{:keys [:reg-entry/status :challenge/created-on :challenge/comment
                          :challenge/votes-for :challenge/votes-against :challenge/votes-total
-                         :challenge/challenger :challenge/vote] :as meme}]
-  (let [status (graphql-utils/gql-name->kw status)
+                         :reg-entry/creator :challenge/challenger :challenge/vote] :as meme}]
+  (let [tx-id (str (random-uuid))
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
+        status (graphql-utils/gql-name->kw status)
+        {:keys [:user/challenger-rank :user/challenger-total-earned
+                :user/total-created-challenges :user/total-created-challenges-success]} challenger
+        {:keys [:vote/option :vote/reward :vote/claimed-reward-on]} vote
+        option (graphql-utils/gql-name->kw option)
         areas "'header header header header header header'
                'status status challenger challenger votes votes'"]
 
-    (prn meme status votes-for votes-against votes-total)
+    ;; (prn meme status)
 
+    ;; TODO: other states
     (case status
-
       :reg-entry.status/whitelisted
       [:div.whitelisted {:style {:display "grid"
                                  :grid-template-areas areas}}
@@ -120,28 +167,40 @@
         [:div.description "Resolved, accepted"]]
 
        [:div.challenger {:style {:grid-area "challenger"}}
-        (let [{:keys [:user/address :user/challenger-rank :user/challenger-total-earned
-                      :user/total-created-challenges :user/total-created-challenges-success]} challenger]
-          [:div.creator
-           [:b "Challenger"]
-           [:div.rank (str "Rank: #" challenger-rank " (" (format/format-dnt challenger-total-earned) ")")]
-           [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
-                              (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
-           [:div.address (str "Address: " address)]
-           [:i comment]]
-
-
-
-          )]
+        [:b "Challenger"]
+        [:div.rank (str "Rank: #" challenger-rank " (" (format/format-dnt challenger-total-earned) ")")]
+        [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
+                           (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
+        [:div.address (str "Address: " (:user/address challenger))]
+        [:i comment]]
 
        [:div.votes {:style {:grid-area "votes"}}
-        (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on]} vote]
 
-          [:div.dank (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-total)]
+        [:div {:style {:float "left"}}
+         [donut-chart meme]]
 
-          )]
-
-       ]
+        [:div {:style {:float "right"}}
+         [:div.dank (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
+         [:div.stank (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]
+         [:div.total (str "Total voted: " votes-total)]
+         (when (contains? #{:vote-option/vote-for :vote-option/vote-against} option)
+           [:div
+            [:div.vote (str "You voted: " (case option
+                                            :vote-option/vote-for "DANK"
+                                            :vote-option/vote-against "STANK"))]
+            [:div.reward (str "Your reward: " (format/format-dnt reward))]
+            ;; TODO: from challenger or creator
+            [tx-button/tx-button {:primary true
+                                  :disabled (or (= 0 reward)
+                                                (shared-utils/not-nil? claimed-reward-on))
+                                  :pending? @tx-pending?
+                                  :pending-text "Collecting reward..."
+                                  :on-click (fn [] (dispatch [:registry-entry/claim-vote-reward {:send-tx/id tx-id
+                                                                                                 :reg-entry/address (:reg-entry/address meme)
+                                                                                                 :from (case option
+                                                                                                         :vote-option/vote-for (:user/address challenger)
+                                                                                                         :vote-option/vote-against (:user/address creator))}]))}
+             "Collect Reward"]])]]]
 
       :default [:div "TODO"]
 
@@ -153,53 +212,56 @@
         {:keys [:address]} query
         active-account (subscribe [::accounts-subs/active-account])
         query (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
-                                                 [
-                                                  :reg-entry/status
-                                                  :meme/image-hash
-                                                  :meme/meta-hash
-                                                  :meme/number
-                                                  :meme/title
-                                                  :meme/total-supply
+                                                  [:reg-entry/address
+                                                   :reg-entry/status
+                                                   :meme/image-hash
+                                                   :meme/meta-hash
+                                                   :meme/number
+                                                   :meme/title
+                                                   :meme/total-supply
 
-                                                  [:meme/owned-meme-tokens {:owner @active-account}
-                                                   [:meme-token/token-id]]
+                                                   [:meme/owned-meme-tokens {:owner @active-account}
+                                                    [:meme-token/token-id]]
 
-                                                  [:reg-entry/creator
-                                                   [:user/address
-                                                    :user/total-created-memes
-                                                    :user/total-created-memes-whitelisted
-                                                    :user/creator-rank]]
+                                                   [:reg-entry/creator
+                                                    [:user/address
+                                                     :user/total-created-memes
+                                                     :user/total-created-memes-whitelisted
+                                                     :user/creator-rank]]
 
-                                                  :challenge/created-on
-                                                  :challenge/comment
-                                                  :challenge/votes-for
-                                                  :challenge/votes-against
-                                                  :challenge/votes-total
-                                                  [:challenge/challenger
-                                                   [:user/address
-                                                    :user/challenger-rank
-                                                    :user/challenger-total-earned
-                                                    :user/total-created-challenges
-                                                    :user/total-created-challenges-success]]
+                                                   :challenge/created-on
+                                                   :challenge/comment
+                                                   :challenge/votes-for
+                                                   :challenge/votes-against
+                                                   :challenge/votes-total
 
-                                                  [:challenge/vote {:vote/voter @active-account}
-                                                   [:vote/option
-                                                    :vote/reward
-                                                    :vote/claimed-reward-on]]
+                                                   [:challenge/challenger
+                                                    [:user/address
+                                                     :user/challenger-rank
+                                                     :user/challenger-total-earned
+                                                     :user/total-created-challenges
+                                                     :user/total-created-challenges-success]]
 
-                                                  #_[:meme/meme-auctions
-                                                   [:meme-auction/address]]
+                                                   [:challenge/vote {:vote/voter @active-account}
+                                                    [:vote/option
+                                                     :vote/reward
+                                                     :vote/claimed-reward-on]]
 
-                                                  ]]
-                                                [:search-tags [[:items [:tag/name]]]]]}])]
+                                                   #_[:meme/meme-auctions
+                                                      [:meme-auction/address]]
 
+                                                   ]]
+                                                 [:search-tags [[:items [:tag/name]]]]]}])]
+
+   
     (when-not (:graphql/loading? @query)
 
-;;      (prn @query)
+      (prn (:challenge/challenger (:meme @query)))
 
       (if-let [meme (:meme @query)]
         (let [{:keys [:meme/image-hash :meme/title :reg-entry/status :meme/total-supply
-                      :meme/owned-meme-tokens :reg-entry/creator #_:meme/meme-auctions]} meme
+                      :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger
+                      #_:meme/meme-auctions]} meme
               token-count (->> owned-meme-tokens
                                (map :meme-token/token-id)
                                (filter shared-utils/not-nil?)

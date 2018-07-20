@@ -34,9 +34,7 @@
 (def info-text "smart-contract event")
 (def error-text "smart-contract event error")
 
-(defn get-meme-meta
-  "Returns a js/Promise that will resolve to meme metadata for meta-hash"
-  [meta-hash]
+(defn get-ipfs-meta [meta-hash & [default]]
   (js/Promise.
    (fn [resolve reject]
      (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-meme-data)     
@@ -57,19 +55,19 @@
                       (catch :default e
                         (log/error error-text {:error (ex-message e)} ::get-meme-data)
                         (when goog.DEBUG
-                          (resolve {:title "Dummy meme title"
-                                    :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
-                                    :search-tags nil})))))))))
+                          (resolve default)))))))))
 
 (defn on-constructed [{:keys [:registry-entry :timestamp] :as args} _ type]
   (log/info info-text {:args args} ::on-constructed)
   (try-catch
-    (db/insert-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
-                                      (registry-entry/load-registry-entry-challenge registry-entry)
-                                      {:reg-entry/created-on timestamp}))
+   (db/insert-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
+                                     (registry-entry/load-registry-entry-challenge registry-entry)
+                                     {:reg-entry/created-on timestamp}))
     (if (= type :meme)
       (let [{:keys [:meme/meta-hash] :as meme} (meme/load-meme registry-entry)]
-        (.then (get-meme-meta meta-hash)
+        (.then (get-ipfs-meta meta-hash {:title "Dummy meme title"
+                                         :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
+                                         :search-tags nil})
                (fn [meme-meta]
                  (let [{:keys [title image-hash search-tags]} meme-meta]
                    (db/insert-meme! (merge meme
@@ -83,10 +81,14 @@
 (defn on-challenge-created [{:keys [:registry-entry :timestamp] :as args}]
   (log/info info-text {:args args} ::on-challenge-created)
   (try-catch
-    (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
-                                      (registry-entry/load-registry-entry-challenge registry-entry)
-                                      {:challenge/created-on timestamp}))))
-
+   (let [challenge (registry-entry/load-registry-entry-challenge registry-entry)]
+     (.then (get-ipfs-meta (:challenge/meta-hash challenge) {:comment "Dummy comment"})
+            (fn [challenge-meta]
+              (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
+                                                challenge
+                                                {:challenge/created-on timestamp
+                                                 :challenge/comment (:comment challenge-meta)}))
+              (db/update-user! {:user/address (:challenge/challenger challenge)}))))))
 
 (defn on-vote-committed [{:keys [:registry-entry :timestamp :data] :as args}]
   (log/info info-text {:args args} ::on-vote-committed)
@@ -187,21 +189,21 @@
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
   (let [last-block-number (last-block-number)
-        meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block (dec last-block-number) #_"latest"})]
+        meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block (dec last-block-number)})]
     [(registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} "latest" (partial dispatch-registry-entry-event :meme))
      (meme-auction-factory/meme-auction-event {} "latest" (partial dispatch-registry-entry-event :meme-auction))
      (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} "latest" (partial dispatch-registry-entry-event :param-change))
      (meme-token/transfer-event {} "latest" on-meme-token-transfer)
-     (-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-block 0 :to-block (dec last-block-number) #_"latest"})
+     (-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-block 0 :to-block (dec last-block-number)})
          (replay-past-events (partial dispatch-registry-entry-event :meme)
                              {:on-finish
                               (fn []
                                 (-> meme-auction-event-filter
                                     (replay-past-events (partial dispatch-registry-entry-event :meme-auction))))}))
      
-     (-> (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} {:from-block 0 :to-block (dec last-block-number) #_"latest"})
+     (-> (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} {:from-block 0 :to-block (dec last-block-number)})
          (replay-past-events (partial dispatch-registry-entry-event :param-change)))     
-     (-> (meme-token/transfer-event {} {:from-block 0 :to-block (dec last-block-number) #_"latest"})
+     (-> (meme-token/transfer-event {} {:from-block 0 :to-block (dec last-block-number)})
          (replay-past-events on-meme-token-transfer))
      meme-auction-event-filter]))
 

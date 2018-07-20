@@ -85,6 +85,7 @@
     [:< :re.reg-entry/challenge-period-end now]]              (enum :reg-entry.status/whitelisted)
    :else                                                      (enum :reg-entry.status/blacklisted)))
 
+;; TODO: search-memes does not take tags
 (defn search-memes-query-resolver [_ {:keys [:title :statuses :order-by :order-dir :owner :creator :curator :first :after] :as args}]
   (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
@@ -394,8 +395,8 @@
 
 (defn reg-entry->all-rewards-resolver [{:keys [:reg-entry/address :challenge/reward-pool :challenge/claimed-reward-on
                                                :reg-entry/deposit :challenge/challenger :challenge/votes-against :challenge/votes-for] :as reg-entry} args]
-  (let [challenger-amount (if (and (nil? claimed-reward-on)
-                                   (= :challenge/challenger (:user/address args)))
+  (let [challenger-amount (if (and (zero? claimed-reward-on)
+                                   (= challenger (:user/address args)))
                             (- deposit reward-pool)
                             0)
         voter-amount (let [{:keys [:vote/option :vote/amount]}
@@ -429,19 +430,22 @@
   (log/debug "challenge->votes-total-resolver args" reg-entry)
   (+ votes-against votes-for))
 
-(defn vote->reward-resolver [{:keys [:reg-entry/address :challenge/reward-pool :vote/option] :as vote}]
+(defn vote->reward-resolver [{:keys [:reg-entry/address :vote/option] :as vote}]
   (log/debug "vote->reward-resolver args" vote)
   (try-catch-throw
    (let [now (last-block-timestamp)
          status (reg-entry-status now vote)
-         {:keys [:votes/for :votes/against] :as sql-query} (db/get {:select [[{:select [:%count.*]
-                                                                               :from [:votes]
-                                                                               :where [:and [:= address :votes.reg-entry/address]
-                                                                                       [:= 1 :votes.vote/option]]} :votes/for]
-                                                                             [{:select [:%count.*]
-                                                                               :from [:votes]
-                                                                               :where [:and [:= address :votes.reg-entry/address]
-                                                                                       [:= 2 :votes.vote/option]]} :votes/against]]})]
+         {:keys [:challenge/reward-pool :votes/for :votes/against] :as sql-query} (db/get {:select [[{:select [:challenge/reward-pool]
+                                                                                                      :from [:reg-entries]
+                                                                                                      :where [:= address :reg-entry/address]} :challenge/reward-pool]
+                                                                                                    [{:select [:%count.*]
+                                                                                                      :from [:votes]
+                                                                                                      :where [:and [:= address :votes.reg-entry/address]
+                                                                                                              [:= 1 :votes.vote/option]]} :votes/for]
+                                                                                                    [{:select [:%count.*]
+                                                                                                      :from [:votes]
+                                                                                                      :where [:and [:= address :votes.reg-entry/address]
+                                                                                                              [:= 2 :votes.vote/option]]} :votes/against]]})]
      (log/debug "vote->reward-resolver query" sql-query)
      (cond
        (and (= :reg-entry.status/whitelisted status)

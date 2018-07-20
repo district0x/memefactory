@@ -73,7 +73,12 @@
         all-memes (into [in-commit-per in-reveal-per wl1 wl2 bl wl3] r)
         all-users (->> all-memes
                        (map (fn [m] {:user/address (:reg-entry/creator m)}))
-                       (into #{{:user/address "BUYERADDR"} {:user/address "VOTERADDR"} {:user/address "CHADDR"}}))
+                       (into #{{:user/address "BUYERADDR"}
+                               {:user/address "VOTERADDR"
+                                :user/voter-total-earned (+ (/ (:reg-entry/deposit wl2) 2)
+                                                            (:reg-entry/deposit bl))}
+                               {:user/address "CHADDR"
+                                :user/challenger-total-earned (/ (:reg-entry/deposit wl2) 2)}}))
         votes (->> all-memes
                    (keep (fn [{:keys [:challenge/votes-for :challenge/votes-against :reg-entry/address]}]
                            (when (or votes-for votes-against)
@@ -512,19 +517,19 @@
                                               [[:items [:user/address
                                                         :user/total-created-memes-whitelisted]]]]]})
                :data :search-users :items)
-           [#:user{:address "CADDR2", :total-created-memes-whitelisted 1}
-            #:user{:address "CADDR3", :total-created-memes-whitelisted 1}
-            #:user{:address "CADDR5", :total-created-memes-whitelisted 1}
-            #:user{:address "CADDR6", :total-created-memes-whitelisted 0}
-            #:user{:address "BUYERADDR", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR7", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR1", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR8", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR9", :total-created-memes-whitelisted 0}
-            #:user{:address "CHADDR", :total-created-memes-whitelisted 0}
-            #:user{:address "VOTERADDR", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR0", :total-created-memes-whitelisted 0}
-            #:user{:address "CADDR4", :total-created-memes-whitelisted 0}])))
+           [{:user/address "CADDR2", :user/total-created-memes-whitelisted 1}
+            {:user/address "CADDR3", :user/total-created-memes-whitelisted 1}
+            {:user/address "CADDR5", :user/total-created-memes-whitelisted 1}
+            {:user/address "CADDR6", :user/total-created-memes-whitelisted 0}
+            {:user/address "BUYERADDR", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR7", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR1", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR8", :user/total-created-memes-whitelisted 0}
+            {:user/address "CHADDR", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR9", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR0", :user/total-created-memes-whitelisted 0}
+            {:user/address "CADDR4", :user/total-created-memes-whitelisted 0}
+            {:user/address "VOTERADDR", :user/total-created-memes-whitelisted 0}])))
   (testing "Test order-by total-collected-token-ids"
     (is (= (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-collected-token-ids
                                                              :order-dir :desc
@@ -575,6 +580,16 @@
                :data :search-users)
            {:items [#:user{:address "VOTERADDR"
                            :total-participated-votes-success 1}]})))
+  (testing "Test order-by curator-total-earned"
+    (is (= (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/curator-total-earned
+                                                             :order-dir :desc
+                                                             :first 1
+                                                             :after "0"}
+                                              [[:items [:user/address
+                                                        :user/curator-total-earned]]]]]})
+               :data :search-users)
+           {:items [#:user{:address "VOTERADDR"
+                           :user/curator-total-earned 1500}]})))
   (testing "Test order-by user-address"
     (is (= (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/address
                                                              :order-dir :asc
