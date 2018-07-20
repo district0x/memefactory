@@ -85,16 +85,13 @@
                               :pending? @tx-pending?
                               :pending-text "Creating offering..."
                               :on-click (fn []
-                                          (re-frame/dispatch [:meme-token/transfer-multi-and-start-auction (merge @form-data
+                                          (dispatch [:meme-token/transfer-multi-and-start-auction (merge @form-data
                                                                                                                   {:send-tx/id tx-id
                                                                                                                    :meme/title title
                                                                                                                    :meme-auction/token-ids (->> token-ids
                                                                                                                                                 (take (int (:meme-auction/amount @form-data)))
                                                                                                                                                 (map int))})]))}
          "Create Offering"]]])))
-
-#_(defn collected-tile-front [{:keys [:meme/image-hash]}]
-    [:img {:src (resolve-image image-hash)}])
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]
   (let [sell? (r/atom false)]
@@ -197,7 +194,7 @@
                               :pending? @tx-pending?
                               :pending-text "Issuing..."
                               :on-click (fn []
-                                          (re-frame/dispatch [:meme/mint (merge @form-data
+                                          (dispatch [:meme/mint (merge @form-data
                                                                                 {:meme/title title
                                                                                  :reg-entry/address address
                                                                                  :send-tx/id tx-id})]))}
