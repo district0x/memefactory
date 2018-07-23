@@ -2,6 +2,7 @@
 
 (def names->colors {:pink "#ff0090"
                     :purple "#9d0adb"
+                    :light-light-grey "#f8f9fd"
                     :ticker-background "#ff0090"
                     :ticker-color "#FFFFFF"
                     :ticker-token-color "#ff80c8"

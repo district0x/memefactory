@@ -26,7 +26,7 @@
                       :route :route.leaderboard/index
                       :class :leaderboard
                       :children [{:text "Dankest Memes"
-                                  :route :route.leaderboard/dankests}
+                                  :route :route.leaderboard/dankest}
                                  {:text "Creators"
                                   :route :route.leaderboard/creators}
                                  {:text "Collectors"

@@ -12,7 +12,11 @@
   [:.dropzone
    {:width (px 200)
     :height (px 200)
-    :background-color :grey}
+    :background-color (color :light-light-grey)}
+   [:.help-block
+    {:border :none
+     :display :block
+     :border-top "0px"}]
    [:img {:width (px 200)}]]
   [:.chip-input
    {:display :flex
@@ -69,6 +73,15 @@
    {:transform "scale(1)"}]
 
   [:.input-group
+   [:&.has-error
+    [:.help-block
+      {:color (color :red)}]]
+   [:&.has-warning
+    [:.help-block
+     {:color (color :yellow)}]]
+   [:&.has-hint
+    [:.help-block
+     {:color (color :grey)}]]
    ["input[type=text]"
     ;; (font :filson)
     {:box-sizing :border-box
@@ -84,6 +97,7 @@
      {:transform "scale(1)"}]]
    [:.help-block
     {:border :none
+     :display :block
      :border-top "1px solid #CCC"}
     [:&:before
      {:content "''"
