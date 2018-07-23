@@ -360,7 +360,7 @@
     (= 1 option)
     (enum :vote-option/vote-for)
 
-    (= 0 option)
+    (= 2 option)
     (enum :vote-option/vote-against)
 
     :else (enum :vote-option/no-vote)))
