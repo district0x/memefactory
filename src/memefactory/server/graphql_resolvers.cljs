@@ -702,7 +702,7 @@
                        (db/get {:select [[:%count.* :user/total-created-challenges-success]]
                                 :from [:reg-entries]
                                 :where [:and [:> (last-block-timestamp) :reg-entries.challenge/reveal-period-end]
-                                        [:> :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
+                                        [:< :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
                                         [:= address :reg-entries.challenge/challenger]]}))]
        (log/debug "user->total-created-challenges-success-resolver query" sql-query)
        (:user/total-created-challenges-success sql-query)))))

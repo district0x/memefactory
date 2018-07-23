@@ -6,6 +6,8 @@
    [memefactory.styles.base.colors :refer [color]]
    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
    [memefactory.styles.base.fonts :refer [font]]
+   [memefactory.styles.base.fonts :refer [font]]
+   [memefactory.styles.component.buttons :refer [button]]
    [garden.units :refer [px em pt]]))
 
 (def bar-height (px 50))
@@ -69,20 +71,12 @@
              :perspective "inherit"}
      [:hr {:margin (em 1)}]
      [:button
-      (font :bungee)
-      {:border-radius "1em"
-       :position "absolute"
-       :display "block"
-       :bottom (em 2)
-       :height (em 2)
-       :width (em 8)
-       :right 0
+      {:right 0
        :left 0
        :margin-right :auto
        :margin-left :auto
-       :border-style "none"
-       :color (color :white)
-       :background-color (color :meme-buy-button)}
+       :position "absolute"}
+      (button {:color :meme-buy-button}) 
       [:&:after {:content ;;"&#8594;"
                  "' →'"}]]
      [:.meme-data {:text-align :center

@@ -10,11 +10,12 @@
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
             [memefactory.styles.component.panels :refer [panel-with-icon]]
+            [memefactory.styles.component.buttons :refer [button]]
             [clojure.string :as str]))
 
 (defstyles core
   [:.dank-registry-submit-page
-   [:.submit
+   [:.submit-header
     {:padding-top (em 2)
      :margin-right (em 6)
      :margin-left (em 6)}
@@ -49,13 +50,37 @@
      ;; :grid-column-gap (em 2)
      :padding-top (em 2)
      :margin-right (em 6)
-     :margin-left (em 6)
-     }
+     :margin-left (em 6)}
     [">div"
      {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :background-color (color :white)
       :border-radius "1em"
+      :position :relative
       :padding (em 2)}
-     [:&.image-panel {:margin-right (em 1)}]
-     [:&.form-panel {:margin-left (em 1)}]
+     [:&.image-panel {:margin-right (em 1)}
+      [:.input-group {:width (px 200)
+                      :right 0
+                      :left 0
+                      :margin-left :auto
+                      :margin-right :auto}]
+      ["input[type=file]"
+       {:right 0
+        :left (em 2)
+        :position :absolute
+        :margin-right :auto
+        :margin-left 0}
+       (button {:color :meme-buy-button})]]
+     [:&.form-panel {:margin-left (em 1)}
+      [:.submit {:position :relative
+                 :justify-content :center
+                 :align-items :center
+                 :display :flex}
+       [:button
+        {:right 0
+         :left 0
+         :margin-right :auto
+         :margin-left 0}
+        (button {:color :meme-buy-button})]
+       [:.dank {:display :block
+                :vertical-align :middle}]]]
      ]]])

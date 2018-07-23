@@ -110,10 +110,10 @@
   (log/info info-text {:args args} ::on-vote-reward-claimed)
   (try-catch
     (let [voter (web3-utils/uint->address (first data))
-          vote (registry-entry/load-vote registry-entry voter)]
-      (do
-        (db/update-vote! vote)
-        (db/inc-user-field! voter :user/voter-total-earned (:vote/amount vote))))))
+          vote (registry-entry/load-vote registry-entry voter)
+          reward (second data)]
+      (db/update-vote! vote)
+      (db/inc-user-field! voter :user/voter-total-earned (bn/number reward)))))
 
 (defn on-challenge-reward-claimed [{:keys [:registry-entry :timestamp :data] :as args}]
   (log/info info-text {:args args} ::on-challenge-reward-claimed)

@@ -227,8 +227,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(registryToken.transfer(_voter, reward));
     challenge.vote[_voter].claimedRewardOn = now;
 
-    var eventData = new uint[](1);
+    var eventData = new uint[](2);
     eventData[0] = uint(_voter);
+    eventData[1] = uint(reward);
     registry.fireRegistryEntryEvent("voteRewardClaimed", version, eventData);
   }
 
