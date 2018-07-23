@@ -62,7 +62,7 @@
 
 (defn reg-entry-status [now {:keys [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
                                     :challenge/commit-period-end :challenge/commit-period-end
-                                    :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against]}]
+                                    :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against] :as reg-entry}]
 
   (cond
     (and (< now challenge-period-end) (not challenger)) :reg-entry.status/challenge-period
@@ -72,7 +72,7 @@
         (< challenge-period-end now))                   :reg-entry.status/whitelisted
     :else                                               :reg-entry.status/blacklisted))
 
-(defn meme-status-sql-clause [now]
+(defn reg-entry-status-sql-clause [now]
   (sql/call ;; TODO: can we remove aliases here?
    :case
    [:and
@@ -107,7 +107,7 @@
                  creator      (sqlh/merge-where [:= :re.reg-entry/creator creator])
                  curator      (sqlh/merge-where [:= :re.challenge/challenger curator])
                  owner        (sqlh/merge-where [:= :tokens.meme-token/owner owner])
-                 statuses-set (sqlh/merge-where [:in (meme-status-sql-clause now) statuses-set])
+                 statuses-set (sqlh/merge-where [:in (reg-entry-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:memes.order-by/reveal-period-end    :re.challenge/reveal-period-end
                                                            :memes.order-by/commited-period-end  :re.challenge/commit-period-end
                                                            :memes.order-by/challenge-period-end :re.reg-entry/challenge-period-end
@@ -133,7 +133,7 @@
                                [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]]
                         :left-join [[:meme-token-owners :mto] [:= :mto.meme-token/token-id :mt.meme-token/token-id]]}
                  owner        (sqlh/merge-where [:= :mto.meme-token/owner owner])
-                 statuses-set (sqlh/merge-where [:in (meme-status-sql-clause now) statuses-set])
+                 statuses-set (sqlh/merge-where [:in (reg-entry-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-tokens.order-by/meme-number    :mt.meme-token/number
                                                            :meme-tokens.order-by/meme-title     :m.meme/title
                                                            :meme-tokens.order-by/transferred-on :mt.meme-token/transferred-on
@@ -731,14 +731,20 @@
      total-participated-votes-success
      (let [now (last-block-timestamp)
            sql-query (when address
-                       (db/get {:select [[:%count.* :user/total-participated-votes-success]]
+                       (db/all {:select [:*]
                                 :from [:votes]
                                 :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
-                                :where [:and [:> now :reg-entries.challenge/reveal-period-end]
-                                        [:> :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
-                                        [:= address :votes.vote/voter]]}))]
+                                :where [:= address :votes.vote/voter]}))]
        (log/debug "user->total-participated-votes-success-resolver query" sql-query)
-       (:user/total-participated-votes-success sql-query)))))
+       (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
+                 (let [ status (reg-entry-status (last-block-timestamp) reg-entry)]                   
+                   (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
+                           (and (= :reg-entry.status/blacklisted status) (= 2 option)))
+                     (inc total)
+                     total)
+                   ))
+               0
+               sql-query)))))
 
 (defn user->curator-total-earned-resolver
   [{:keys [:user/voter-total-earned
