@@ -26,6 +26,7 @@
     :end-cursor
     :has-next-page
     [:items [:reg-entry/address
+             [:reg-entry/creator [:user/address]]
              :meme/image-hash
              :meme/total-minted
              :meme/total-trade-volume]]]])
