@@ -28,7 +28,8 @@
     :end-cursor
     :has-next-page
     [:items [:reg-entry/address
-             :meme/image-hash]]]])
+             :meme/image-hash
+             [:reg-entry/creator [:user/address]]]]]])
 
 (defn dank-registry-tiles [form-data]
   (let [meme-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}

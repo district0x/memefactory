@@ -5,7 +5,7 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [print.foo :refer [look] :include-macros true]
-   [district.ui.component.form.input :refer [file-drag-input with-label chip-input text-input]]
+   [district.ui.component.form.input :refer [file-drag-input with-label chip-input text-input int-input]]
    [memefactory.ui.dank-registry.events :as dr-events]
    [re-frame.core :as re-frame]
    [district.ui.graphql.subs :as gql]
@@ -69,7 +69,7 @@
                       :ac-options (->> @all-tags-subs :search-tags :items (mapv :tag/name))
                       :chip-render-fn (fn [c] [:span c])
                       :on-change (fn [c])}]
-         [text-input {:form-data form-data
+         [int-input {:form-data form-data
                       :placeholder "Issuance"
                       :errors errors
                       :id :issuance}]

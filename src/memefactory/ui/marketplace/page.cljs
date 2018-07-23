@@ -48,7 +48,9 @@
                                     {:id @form-data
                                      :disable-fetch? true}])
         all-auctions (->> @auctions-search
-                          (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
+                          (mapcat (fn [r] (-> r :search-meme-auctions :items)))
+                          ;; TODO remove this, don't know why subscription is returning nil item
+                          (remove #(nil? (:reg-entry/address %))))]
     (println "All auctions" (map :meme-auction/address all-auctions))
     [:div.tiles
      [react-infinite {:element-height 280

@@ -65,6 +65,7 @@
                                                         :meme/image-hash]))}]
         [:div.overlay
          [:div.info
+          [:div (str meme-auction)]
           [:ul.meme-data
            [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]
            [:li [:label "Current Price:"] [:span (format/format-eth price)]]
@@ -97,12 +98,16 @@
          [:div.price (format/format-eth price)]]]))))
 
 (defn meme-front-tile [opts {:keys [:meme/image-hash] :as meme}]
-  ;; TODO what should we show here? probably just the image
-  [:div (str "FRONT " meme)])
+
+  [:div.meme-card.front
+   (meme-image image-hash)])
 
 (defn meme-back-tile [opts {:keys [] :as meme}]
-  ;; TODO what should we show here? not in designs 
-  [:div (str "BACK " meme)])
+  [:div.meme-card.back
+   [:div.overlay
+    [:div.info
+     [:ul.meme-data
+      [:li [:label "Creator:"] [:span (-> meme :reg-entry/creator :user/address )]]]]]])
 
 (defn meme-tile [opts {:keys [] :as meme}]
   [:div.compact-tile
