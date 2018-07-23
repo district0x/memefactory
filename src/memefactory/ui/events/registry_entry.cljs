@@ -10,12 +10,17 @@
             [district0x.re-frame.spec-interceptors :as spec-interceptors]
             [goog.string :as gstring]
             [print.foo :refer [look] :include-macros true]
-            [re-frame.core :as re-frame :refer [reg-event-fx]]))
+            [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx]]))
 
 (def interceptors [re-frame/trim-v])
 
+(reg-event-db
+ ::claim-vote-reward-success
+ (fn [db _]      
+   db))
+
 (reg-event-fx
- :registry-entry/claim-vote-reward
+ ::claim-vote-reward
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :from] :as args}]]
    (let [active-account (account-queries/active-account db)]
@@ -25,7 +30,9 @@
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:registry-entry/claim-vote-reward id}
-                                      :on-tx-success-n [[::logging/success [:registry-entry/claim-vote-reward]]
-                                                        [::notification-events/show (gstring/format "Succesfully claimed reward from %s" from)]]
-                                      :on-tx-hash-error [::logging/error [:registry-entry/claim-vote-reward]]
-                                      :on-tx-error [::logging/error [:registry-entry/claim-vote-reward]]}]})))
+                                      :on-tx-success-n [[::logging/success [::claim-vote-reward]]
+                                                        [::notification-events/show (gstring/format "Succesfully claimed reward from %s" from)]
+                                                        [::claim-vote-reward-success]]
+                                      :on-tx-hash-error [::logging/error [::claim-vote-reward]]
+                                      :on-tx-error-n [[::logging/error [::claim-vote-reward]]
+                                                      #_[::claim-vote-reward-success]]}]})))

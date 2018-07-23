@@ -8,6 +8,7 @@
    [cljs-time.format :as time-format]
    [cljs-time.core :as t]
    [district.ui.router.events :as router-events]
+   [memefactory.ui.meme-detail.events :as meme-detail-events]
    [cljs-web3.core :as web3]
    [district.format :as format]
    [memefactory.ui.utils :as ui-utils]
@@ -139,17 +140,24 @@
 
 (defn challenge [{:keys [:reg-entry/status :challenge/created-on :challenge/comment
                          :challenge/votes-for :challenge/votes-against :challenge/votes-total
-                         :reg-entry/creator :challenge/challenger :challenge/vote] :as meme}]
-  (let [tx-id (str (random-uuid))
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
-        status (graphql-utils/gql-name->kw status)
-        {:keys [:user/challenger-rank :user/challenger-total-earned
+                         :reg-entry/creator :challenge/challenger :challenge/vote] :as meme}
+                 meme-query
+                 query-id]
+  (let [{:keys [:user/challenger-rank :user/challenger-total-earned
                 :user/total-created-challenges :user/total-created-challenges-success]} challenger
         {:keys [:vote/option :vote/reward :vote/claimed-reward-on]} vote
         option (graphql-utils/gql-name->kw option)
+
+        tx-id (str (random-uuid))
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
+        tx-button-disabled? (or (= 0 reward)
+                                (shared-utils/not-nil? claimed-reward-on))
+        status (graphql-utils/gql-name->kw status)
+
         areas "'header header header header header header'
                'status status challenger challenger votes votes'"]
 
+    ;fn []
     ;; (prn meme status)
 
     ;; TODO: other states
@@ -189,17 +197,17 @@
                                             :vote-option/vote-for "DANK"
                                             :vote-option/vote-against "STANK"))]
             [:div.reward (str "Your reward: " (format/format-dnt reward))]
-            ;; TODO: from challenger or creator
             [tx-button/tx-button {:primary true
-                                  :disabled (or (= 0 reward)
-                                                (shared-utils/not-nil? claimed-reward-on))
+                                  :disabled tx-button-disabled?
                                   :pending? @tx-pending?
                                   :pending-text "Collecting reward..."
-                                  :on-click (fn [] (dispatch [:registry-entry/claim-vote-reward {:send-tx/id tx-id
-                                                                                                 :reg-entry/address (:reg-entry/address meme)
-                                                                                                 :from (case option
-                                                                                                         :vote-option/vote-for (:user/address challenger)
-                                                                                                         :vote-option/vote-against (:user/address creator))}]))}
+                                  :on-click (fn [] (dispatch [::meme-detail-events/claim-vote-reward {:tx-id tx-id
+                                                                                                      :meme meme
+                                                                                                      :vote/option option
+                                                                                                      :challenge/challenger challenger
+                                                                                                      :reg-entry/creator creator
+                                                                                                      :query meme-query
+                                                                                                      :query-id query-id}]))}
              "Collect Reward"]])]]]
 
       :default [:div "TODO"]
@@ -208,114 +216,112 @@
 
 ;;  TODO:  related
 (defmethod page :route.meme-detail/index []
-  (let [{:keys [:name :query :params]} @(re-frame/subscribe [::router-subs/active-page])
-        {:keys [:address]} query
+  (let [address (-> @(re-frame/subscribe [::router-subs/active-page]) :query :address)
         active-account (subscribe [::accounts-subs/active-account])
-        query (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
-                                                  [:reg-entry/address
-                                                   :reg-entry/status
-                                                   :meme/image-hash
-                                                   :meme/meta-hash
-                                                   :meme/number
-                                                   :meme/title
-                                                   :meme/total-supply
+        meme-query [:meme {:reg-entry/address address}
+                    [:reg-entry/address
+                     :reg-entry/status
+                     :meme/image-hash
+                     :meme/meta-hash
+                     :meme/number
+                     :meme/title
+                     :meme/total-supply
 
-                                                   [:meme/owned-meme-tokens {:owner @active-account}
-                                                    [:meme-token/token-id]]
+                     [:meme/tags
+                      [:tag/name]]
+                     
+                     [:meme/owned-meme-tokens {:owner @active-account}
+                      [:meme-token/token-id]]
 
-                                                   [:reg-entry/creator
-                                                    [:user/address
-                                                     :user/total-created-memes
-                                                     :user/total-created-memes-whitelisted
-                                                     :user/creator-rank]]
+                     [:reg-entry/creator
+                      [:user/address
+                       :user/total-created-memes
+                       :user/total-created-memes-whitelisted
+                       :user/creator-rank]]
 
-                                                   :challenge/created-on
-                                                   :challenge/comment
-                                                   :challenge/votes-for
-                                                   :challenge/votes-against
-                                                   :challenge/votes-total
+                     :challenge/created-on
+                     :challenge/comment
+                     :challenge/votes-for
+                     :challenge/votes-against
+                     :challenge/votes-total
 
-                                                   [:challenge/challenger
-                                                    [:user/address
-                                                     :user/challenger-rank
-                                                     :user/challenger-total-earned
-                                                     :user/total-created-challenges
-                                                     :user/total-created-challenges-success]]
+                     [:challenge/challenger
+                      [:user/address
+                       :user/challenger-rank
+                       :user/challenger-total-earned
+                       :user/total-created-challenges
+                       :user/total-created-challenges-success]]
 
-                                                   [:challenge/vote {:vote/voter @active-account}
-                                                    [:vote/option
-                                                     :vote/reward
-                                                     :vote/claimed-reward-on]]
+                     [:challenge/vote {:vote/voter @active-account}
+                      [:vote/option
+                       :vote/reward
+                       :vote/claimed-reward-on]]
 
-                                                   #_[:meme/meme-auctions
-                                                      [:meme-auction/address]]
+                     ]]
+        response (subscribe [::gql/query {:id address
+                                          :queries [meme-query]}])]
 
-                                                   ]]
-                                                 [:search-tags [[:items [:tag/name]]]]]}])]
+    (when-not (:graphql/loading? @response)
+      
+      (cljs.pprint/pprint @response)
 
-   
-    (when-not (:graphql/loading? @query)
-
-      (prn (:challenge/challenger (:meme @query)))
-
-      (if-let [meme (:meme @query)]
+      (if-let [meme (:meme @response)]
         (let [{:keys [:meme/image-hash :meme/title :reg-entry/status :meme/total-supply
-                      :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger
-                      #_:meme/meme-auctions]} meme
+                      :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger]} meme
               token-count (->> owned-meme-tokens
                                (map :meme-token/token-id)
                                (filter shared-utils/not-nil?)
                                count)
-              ]
+              tags (mapv :tag/name tags)]
 
-        [app-layout/app-layout
-                 {:meta {:title "MemeFactory"
-                         :description "Description"}}
+          [app-layout/app-layout
+           {:meta {:title "MemeFactory"
+                   :description "Description"}}
 
-                    [:div.meme-detail {:style {:display "grid"
-                                            :grid-template-areas
-                                            "'image image image rank rank rank'
+           [:div.meme-detail {:style {:display "grid"
+                                      :grid-template-areas
+                                      "'image image image rank rank rank'
                                              'history history history history history history'
                                              'challenge challenge challenge challenge challenge challenge'"}}
 
-                     ;; meme
-                     [:div {:style {:grid-area "image"}}
-                      [tiles/meme-image image-hash]]
+            ;; meme
+            [:div {:style {:grid-area "image"}}
+             [tiles/meme-image image-hash]]
 
-                     [:div {:style {:grid-area "rank"}}
-                      [:h1 title]
-                      [:div.status (case (graphql-utils/gql-name->kw status)
-                                     :reg-entry.status/whitelisted [:label "In Registry"]
-                                     :reg-entry.status/blacklisted [:label "Rejected"]
-                                     [:label "Challenged"])]
-                      [:div.description description]
-                      [:div.text (format/pluralize total-supply "card") ]
-                      [:div.text (str "You own " token-count) ]
+            [:div {:style {:grid-area "rank"}}
+             [:h1 title]
+             [:div.status (case (graphql-utils/gql-name->kw status)
+                            :reg-entry.status/whitelisted [:label "In Registry"]
+                            :reg-entry.status/blacklisted [:label "Rejected"]
+                            [:label "Challenged"])]
+             [:div.description description]
+             [:div.text (format/pluralize total-supply "card") ]
+             [:div.text (str "You own " token-count) ]
 
-                      [meme-creator creator]
+             [meme-creator creator]
 
-                      (for [tag-name (->> @query :search-tags :items (mapv :tag/name))]
-                        ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
-                                                                         :route.marketplace/index
-                                                                         nil
-                                                                         {:search-tags [tag-name]}])
-                                                   :style {:display "inline"}} tag-name])
+             (for [tag-name tags]
+               ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
+                                                                :route.marketplace/index
+                                                                nil
+                                                                {:search-tags [tag-name]}])
+                                          :style {:display "inline"}} tag-name])
 
-                      [:div.buttons
-                       [:button {:on-click #(dispatch [::router-events/navigate
-                                                       :route.marketplace/index
-                                                       nil
-                                                       {:term title}])} "Search On Marketplace"]
-                       [:button {:on-click #(dispatch [::router-events/navigate
-                                                       :route.memefolio/index
-                                                       nil
-                                                       {:term title}])} "Search On Memefolio"]]]
-                  ;; history
-                  [:div.history {:style {:grid-area "history"}}
-                   [history address]]
+             [:div.buttons
+              [:button {:on-click #(dispatch [::router-events/navigate
+                                              :route.marketplace/index
+                                              nil
+                                              {:term title}])} "Search On Marketplace"]
+              [:button {:on-click #(dispatch [::router-events/navigate
+                                              :route.memefolio/index
+                                              nil
+                                              {:term title}])} "Search On Memefolio"]]]
+            ;; history
+            [:div.history {:style {:grid-area "history"}}
+             [history address]]
 
-                  [:div.challenge {:style {:grid-area "challenge"}}
-                   [challenge meme]]
+            [:div.challenge {:style {:grid-area "challenge"}}
+             [challenge meme meme-query address]]
 
-                  ]
-         ])))))
+            ]
+           ])))))
