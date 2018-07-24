@@ -5,7 +5,12 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [print.foo :refer [look] :include-macros true]
-   [district.ui.component.form.input :refer [file-drag-input with-label chip-input text-input int-input]]
+   [district.ui.component.form.input :refer [index-by-type
+                                             file-drag-input
+                                             with-label
+                                             chip-input
+                                             text-input
+                                             int-input]]
    [memefactory.ui.dank-registry.events :as dr-events]
    [re-frame.core :as re-frame]
    [district.ui.graphql.subs :as gql]
@@ -13,6 +18,8 @@
    [district.ui.server-config.subs :as config-subs]
    [memefactory.ui.components.tiles :refer [meme-image]]
    [reagent.ratom :refer [reaction]]))
+
+
 
 (defn header []
   [:div.submit-info
@@ -38,7 +45,8 @@
                                      (not (try
                                             (< 0 (js/parseInt issuance) max-meme-issuance)
                                             (catch js/Error e nil)))
-                                     (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-meme-issuance))))}) ]
+                                     (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-meme-issuance))))})
+        critical-errors (reaction (index-by-type @errors :error))]
    (fn []
      [app-layout
       {:meta {:title "MemeFactory"
@@ -48,7 +56,7 @@
         [header]]
        [:section.upload
         [:div.image-panel
-         [file-drag-input {:form-data form-data 
+         [file-drag-input {:form-data form-data
                            :id :file-info
                            :errors errors
                            :file-accept-pred (fn [{:keys [name type size] :as props}]
@@ -58,7 +66,8 @@
                            :on-file-rejected (fn [{:keys [name type size] :as props}]
                                                (prn "Rejected " props))}]]
         [:div.form-panel
-         ;; [:div (str @errors)]
+         ;; [:div (str (:local @errors))]
+         ;; [:div (str @critical-errors)]
          [text-input {:form-data form-data
                       :placeholder "Title"
                       :errors errors
@@ -78,7 +87,7 @@
           [:button {:on-click (fn []
                                 (dispatch [::dr-events/upload-meme @form-data @dank-deposit])
                                 (reset! form-data {}))
-                    :disabled (not (empty? (:local @errors)))}
+                    :disabled (not (empty? @critical-errors))}
            "Submit"]
-          [:span.dank (format/format-token @dank-deposit  {:token "DANK"})]]]]
+          [:span.dank (format/format-token @dank-deposit {:token "DANK"})]]]]
        ]])))
