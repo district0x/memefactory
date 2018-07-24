@@ -754,8 +754,12 @@
        (+ voter-total-earned challenger-total-earned)))))
 
 (defn user->creator-total-earned-resolver [user]
-  ;; TODO implement this
-  0)
+  (try-catch-throw
+   (->> (db/all {:select [:*]
+                 :from [:meme-auctions]
+                 :where  [:= :meme-auction/seller (:user/address user)]})
+        (map :meme-auction/bought-for)
+        (reduce +))))
 
 (def resolvers-map
   {:Query {:meme meme-query-resolver
