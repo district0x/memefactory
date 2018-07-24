@@ -8,9 +8,7 @@ notifications:
     - filip@district0x.io
     - juan@district0x.io
     - mike@district0x.io
-  slack:
-    rooms:
-      secure: CdHCrWqD4bnboADNnS5xa2G51i6ny1Ehyr7jR38/S+qTOEcpf68u6waiSdqSfHFxEIm4GuDMRvvJbNzDXG+xzxgH4Si3x2mNPCOAk4z9SmERV8sL5QBD/OxQGWuMEyx+mKNUoN2cGfSkFPdFbWvBdzc6UuCuFic/iznTMPTtPFhnsIsVFe2tqHFbVHzkL8mG50BnQM/jSk+XsoayEKflkx6CuJnsOWtPxaZT2QJ58xxtv32SAfisiOclIiiuaom1WB+ZWCT4+Idq8YLrUZOv/y/qFIcZt7HnwZCeUmET7ChI+dPp/hOndz1+A0Jt0ZXfErjSm60olwsC8/IMnEKLLqTQmOZcvAgHXWq/ZQAzkGLj5mUsTskGoJl8m1AEJL+UhQUN0qOI/mlyu2NRGRWb4UZZz52UiPEwJ2Rt2jQowN+GADu3RHI+fHeFxRQKdF0PnIOusQpAv+EtUdFk3+YTdXfWwYiUFMoMQzlfPqwMq3R45YLcWO2Wn5ZRy9/ce1GIVYYGEUF0IeK0rP1FxOu6ahb79rDV28HgnOIQXrw09TOdxcec5CGuHWybSx9Oegs7deaDWVwE4AdDwkZB1PudQoDZBCPUmKN2Qo5P0MvGk2Jsf49GIIuZOYwFhOncLSSRml01QyxK3Att2kvDVnaFiH9YNjlAjxgY0VW9FPwkNsY=
+  slack: district0x:53vhalUfg0MitsQwzjP5PWdd
 before_install:
 - sudo add-apt-repository --yes ppa:ethereum/ethereum
 - sudo apt-get -qq update
