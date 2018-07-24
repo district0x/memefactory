@@ -2,7 +2,7 @@ language: clojure
 script: lein doo node "server-tests" once
 notifications:
   email:
-    on_success: always
+    on_success: change
     on_failure: always
     recipients:
     - filip@district0x.io
@@ -10,8 +10,8 @@ notifications:
     - mike@district0x.io
   slack:
     on_success: always
-    on_failure: always
-    secure: df8aiBe4HLnbE8zv5d6UytBgJa/yPV4TncyPCmHNP+ERNcddKMiI9NHcKTMuzFrdmlNegZQi+Gv2kccSwZUkYEyXYr4kLaQ8GTAoD8cBBcC3TPVKbqp2mqnqwYHLTJOyk7n540ke7vfQcc8cRY6I01BTVGhVZwVpjtthxRMrjtKxccL13EZ9f4z3mSOyrgO/Gn1XINRw23JHN+PK9bHFVlNbuV9DvxHHrT1xt1DUvu/CEP2yJILYO95usUO+XaRn69V21C3Rz1oBQruaPUfVsRaGgjER8q04hu2oj39FP2yd6GFArVZVrBASCvDpJR0eMPP7RGeK4PF5MOhjFogt48KJY5s579L5uvmKrPzJLF54pIPpx01UeyoJ8wIdYAggCii1D9yPteJKUZ14epiPOe4a8RDI+RXz8sPYfu61x0R9oVITi3MIT+ZlrLrGMQaDmS3tgMTqj877ZEBf0EPF70OsgCDgvhyi0h8vKuK1jwAx+GH3m1VcB4NzhUz+cLsUZSg8Df/5t5H/F2Jf2AxNRsfXoP8yweu500GW8gatIh61QdG93vUDSUPOvZTR1vQ/6/kJLRQBiaKa1Ec5WkC+QasN0Css+gaTHBTR4a6VwuoCvCzJ/ETW3ILdxqTHg3OtIsFJwhB7ly4JU09tQ2t9yg0lJ/qtboKUSMGSi6iN1A0=
+    on_failure: always    
+    secure: rm32X0IZzMDcSpYcuc9BlHJ7zlFlUZMOBlIV6p4cXD1AbfRKTVE6+tfPL5UGJCmDUL91Kexnp/PYeFqcy17mtZTCDfMgliemSjGT48Tw3CENCOWgLED4nMXqbIh4HNy1KuZkc4wlvDhxXAXs7BTzMNP3Mi/QQF9GlxgSXl0b+hdKUd4ckTxyWYJ3XCHPwRx5vsvsr+xRgXw3oTFZlnORur4J4V79v/dGgvUdJZmNUJIiSkylkv4nJZJrpFs5l9FCRDnyv0KCZ0aDvaEm/v9XEuQ+HrucEC8S/ye7BsGlAv7UrF2Y/eZVyZGACI9B+916lozAFIRb2fz3aC1SgBP+n7MCmDvtYossFkf5e5WcHHmXYvO6rBgVYjl7p4JDen8cxrbQGYaYYHkSgcQMPt1P0ZfhvW3QmMvoF/tOuYZpeFCA4kwtH03pK607KDKcpeYLYVvSVDqUvf79p7aLIYry/WrDsvxXCyH0/d8pUzM9AkBwsBSDe95whJAzEJ5TJQ5InryCDBM40mENVcjbet33rjj/a496bSu6MD0pfxovUzxnzHvN5XNE3JxmEFTAKXd9cD02qK08JyZRQRtupqYe1mN/qSt3sDAKTfPQA6HVMmVsJBKae3xfJQGUJibeCRjR0cYnCIv7A3xPGocdaRsyYU31I0T1FaLnlyfp7mT6VHY=
 before_install:
 - sudo add-apt-repository --yes ppa:ethereum/ethereum
 - sudo apt-get -qq update
