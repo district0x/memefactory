@@ -1,13 +1,13 @@
 (ns memefactory.ui.meme-detail.page
   (:require
-   ;;   [district.time :as time]
-   ;;  [cljs.core.match :refer-macros [match]]
    [cljs-time.core :as t]
    [cljs-time.format :as time-format]
    [cljs-web3.core :as web3]
+   [cljs.core.match :refer-macros [match]]
    [cljsjs.d3]
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
+   [district.ui.component.form.input :as inputs]
    [district.ui.component.page :refer [page]]
    [district.ui.component.tx-button :as tx-button]
    [district.ui.graphql.subs :as gql]
@@ -35,6 +35,7 @@
    :queries [[:meme {:reg-entry/address address}
               [:reg-entry/address
                :reg-entry/status
+               :reg-entry/deposit
                :meme/image-hash
                :meme/meta-hash
                :meme/number
@@ -182,25 +183,31 @@
 
 (defn challenge-header [created-on]
   [:div
-   [:div.title [:h1 "Challenge"]]
-   [:span (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]])
+   [:h1 "Challenge"]
+   (if created-on
+     [:span (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]
+     [:div
+      [:span "This meme hasn't been challenged."]
+      [:p description]])])
 
 (defn challenger-component [{:keys [:challenge/comment :challenge/challenger] :as meme}]
   (let [{:keys [:user/challenger-rank :user/challenger-total-earned
                 :user/total-created-challenges :user/total-created-challenges-success]} challenger]
     [:div
      [:b "Challenger"]
-     [:div.rank (str "Rank: #" challenger-rank " (" (format/format-dnt challenger-total-earned) ")")]
+     [:div.rank (str "Rank: #" challenger-rank " (" (format/format-token challenger-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
      [:div.address (str "Address: " (:user/address challenger))]
      [:i comment]]))
 
 (defn status-component [status]
-  [:div [:b "Challenge status"]
+  [:div
+   [:b "Challenge status"]
    [:div.description (case (graphql-utils/gql-name->kw status)
                        :reg-entry.status/whitelisted "Resolved, accepted"
                        :reg-entry.status/blacklisted "Resolved, rejected"
+                       :reg-entry.status/challenge-period "Challenge period running"
                        status)]])
 
 (defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
@@ -215,7 +222,6 @@
     [:div
      [:div {:style {:float "left"}}
       [donut-chart meme]]
-
      [:div {:style {:float "right"}}
       [:div.dank (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
       [:div.stank (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]
@@ -225,7 +231,7 @@
          [:div.vote (str "You voted: " (case option
                                          :vote-option/vote-for "DANK"
                                          :vote-option/vote-against "STANK"))]
-         [:div.reward (str "Your reward: " (format/format-dnt reward))]
+         [:div.reward (str "Your reward: " (format/format-token reward {:token "DANK"}))]
          (when-not (= 0 (look reward))
            [tx-button/tx-button {:primary true
                                  :disabled tx-button-disabled?
@@ -233,18 +239,54 @@
                                  :pending-text "Collecting reward..."
                                  :on-click (fn [] (dispatch [::meme-detail-events/claim-vote-reward {:tx-id tx-id
                                                                                                      :meme meme
-
-                                                                                                     :meme-query (build-meme-query (:reg-entry/address meme) @active-account)
-                                                                                                     }]))}
+                                                                                                     :meme-query (build-meme-query (:reg-entry/address meme) @active-account)}]))}
             "Collect Reward"])])]]))
 
-(defmulti challenge-component (fn [meme] (-> meme :reg-entry/status graphql-utils/gql-name->kw)))
+;; TODO: tx-button
+(defn challenge-meme-component [{:keys [:reg-entry/deposit] :as meme}]
+  (let [form-data (r/atom {:challenge/comment nil})
+        errors (r/atom {})]
+
+    [:div
+     [:b "Challenge explanation"]
+     [inputs/textarea-input {:form-data form-data
+                             :id :challenge/comment
+                             :errors errors}]
+     [format/format-token deposit {:token "DANK"}]
+     
+
+     ])
+
+
+  )
+
+(defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
+                                                [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
+                                                [:reg-entry.status/challenge-period] :reg-entry.status/challenge-period)))
+
+(defmethod challenge-component :reg-entry.status/challenge-period
+  [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
+  (let [areas "'header header header header header header'
+               'status status status challenge challenge challenge'"]
+    [:div.challenge-component {:style {:display "grid"
+                                       :grid-template-areas areas}}
+
+     [:div.header {:style {:grid-area "header"}}
+      [challenge-header created-on]]
+
+     [:div.status {:style {:grid-area "status"}}
+      [status-component status]]
+     
+     [:div.challenge {:style {:grid-area "challenge"}}
+      [challenge-meme-component meme]]
+     
+     ]))
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
   (let [areas "'header header header header header header'
                'status status challenger challenger votes votes'"]
-    [:div.whitelisted {:style {:display "grid"
+    [:div.challenge-component {:style {:display "grid"
                                :grid-template-areas areas}}
      
      [:div.header {:style {:grid-area "header"}}
@@ -261,7 +303,6 @@
 
      ]))
 
-;;  TODO:  related
 (defmethod page :route.meme-detail/index []
   (let [address (-> @(re-frame/subscribe [::router-subs/active-page]) :query :address)
         active-account (subscribe [::accounts-subs/active-account])        
@@ -288,9 +329,9 @@
                                       :grid-template-areas
                                       "'image image image rank rank rank'
                                              'history history history history history history'
-                                             'challenge challenge challenge challenge challenge challenge'"}}
+                                             'challenge challenge challenge challenge challenge challenge'
+                                             'related related related related related related'"}}
 
-            ;; meme
             [:div {:style {:grid-area "image"}}
              [tiles/meme-image image-hash]]
 
@@ -322,12 +363,13 @@
                                               :route.memefolio/index
                                               nil
                                               {:term title}])} "Search On Memefolio"]]]
-            ;; history
             [:div.history {:style {:grid-area "history"}}
              [history-component address]]
 
             [:div.challenge {:style {:grid-area "challenge"}}
              [challenge-component meme]]
 
+            ;; TODO: related
+            
             ]
            ])))))
