@@ -1,15 +1,28 @@
 language: clojure
 script: lein doo node "server-tests" once
+notifications:
+  email:
+    recipients:
+    - filip@district0x.io
+    - juan@district0x.io
+    - mike@district0x.io
+    on_success: change
+    on_failure: always
+  slack:
+    secure: YeP1RuN28qpQhLR4TZEJ7zClMKLqiMsYkd41FOaI7R5ugE1OAb6vIurumZaNvODI4pSToJZeyuq5RSjshRuZKaSZ5wglbNu+t3qs6/nloBBKjzLojQnjM4qV31X8scwJiK9AlaR7vm1MCFRgZOOGe2vTcOUQgicF2Ydudqgn9Yf5X6HtwkQYJIIQ/aeJwwcpTSIOSTX0u+sjSK3T870IMEzsIDfPQoQqm+Pa1CZsLsVtADD/AXp+TMMZzAw9rsvCMoszqBPWYxJj6ZZj8RoWKyg9ANFACYas2knoU5AkmqPI7S1bdI6IXyJGHDIme1zVN5fkywAMSNv0Auyc2NBvXTiPtGAEMwnIUFEjITbPk55+QrvE4Bh5AKcYL4VkJdNG3HDHzLPk1K0mOMJyIqDcuxfwj1OSUutEriCIyObkzsfnMQQtrihry7923joH5ScQVaMErqsWxHGbnpIuO+jDhTl8xxGlvPFvUyzfVmmJ4tL48CBJUrpd5LFNb7ruZapCXSJbcQ9GZJyPINkkfw62mPI266hmWh3t2V4YGoUyanP57VdCKOPgW+tWzMULuWzFW73k6knvJEKLVK7y5iQ1/xDsGgi7koQMxiL6G4opSAqSt4Muf7qzO75jVjr2+QzEIiIcerlizSowBq1YVckB3r1BY75TL/6zE/bPIgMIfFY=
+    on_success: always  
+    on_failure: always
 before_install:
- - sudo add-apt-repository --yes ppa:ethereum/ethereum
- - sudo apt-get -qq update
+- sudo add-apt-repository --yes ppa:ethereum/ethereum
+- sudo apt-get -qq update
 before_script:
-  - sudo apt-get --yes install solc
-  - lein solc
-  - npm install -g ganache-cli
-  - ganache-cli -p 8549 > /dev/null &
-  - wget https://dist.ipfs.io/ipfs-update/v1.5.2/ipfs-update_v1.5.2_linux-amd64.tar.gz -O ipfs-update.tar.gz
-  - tar -xzf ipfs-update.tar.gz
-  - ipfs-update/ipfs-update install latest
-  - ipfs init 
-  - ipfs daemon > /dev/null &
+- sudo apt-get --yes install solc
+- lein solc
+- npm install -g ganache-cli
+- ganache-cli -p 8549 > /dev/null &
+- wget https://dist.ipfs.io/ipfs-update/v1.5.2/ipfs-update_v1.5.2_linux-amd64.tar.gz
+  -O ipfs-update.tar.gz
+- tar -xzf ipfs-update.tar.gz
+- ipfs-update/ipfs-update install latest
+- ipfs init
+- ipfs daemon > /dev/null &
