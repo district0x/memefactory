@@ -1,4 +1,4 @@
-(ns memefactory.ui.leaderboard.collectors
+(ns memefactory.ui.leaderboard.collectors-page
   (:require [district.ui.component.page :refer [page]]
             [memefactory.ui.components.app-layout :refer [app-layout]]
             [re-frame.core :refer [subscribe dispatch]]

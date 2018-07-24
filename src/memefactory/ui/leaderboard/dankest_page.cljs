@@ -1,4 +1,4 @@
-(ns memefactory.ui.leaderboard.dankest
+(ns memefactory.ui.leaderboard.dankest-page
   (:require
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]

@@ -23,7 +23,7 @@
                                  {:text "Browse"
                                   :route :route.dank-registry/browse}]}
                      {:text "Leaderboard"
-                      :route :route.leaderboard/index
+                      :route :route.leaderboard/dankest
                       :class :leaderboard
                       :children [{:text "Dankest Memes"
                                   :route :route.leaderboard/dankest}
