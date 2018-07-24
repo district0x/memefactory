@@ -9,5 +9,7 @@
              ["/dankregistry/browse" :route.dank-registry/browse]
              ["/leaderboard/dankest" :route.leaderboard/dankest]
              ["/leaderboard/curators" :route.leaderboard/curators]
+             ["/leaderboard/creators" :route.leaderboard/creators]
+             ["/leaderboard/collectors" :route.leaderboard/collectors]
              ["/memefolio/index" :route.memefolio/index]
              ["/meme-detail/index" :route.meme-detail/index]])

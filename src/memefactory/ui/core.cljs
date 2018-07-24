@@ -41,6 +41,8 @@
     [memefactory.ui.dank-registry.page]
     [memefactory.ui.leaderboard.page]
     [memefactory.ui.leaderboard.dankest]
+    [memefactory.ui.leaderboard.creators]
+    [memefactory.ui.leaderboard.collectors]
     [memefactory.ui.memefolio.page]
     [memefactory.ui.subs]
     [mount.core :as mount]
