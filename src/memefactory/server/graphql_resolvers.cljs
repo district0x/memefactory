@@ -628,12 +628,14 @@
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:meme-auctions]
-                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/end-price)]
-                                              :from [:meme-auctions]}
-                                          :meme-auctions.meme-auction/end-price]
+                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/bought-for)]
+                                              :from [:meme-auctions]
+                                              :where [:= address :meme-auction/seller]}
+                                          :meme-auctions.meme-auction/bought-for]
                                     [:= address :meme-auction/seller]]})]
      (log/debug "user->largest-sale-resolver query" sql-query)
-     sql-query)))
+     (when (not-empty sql-query)
+       sql-query))))
 
 (defn user->total-collected-token-ids-resolver
   "Amount of meme tokenIds owned by user"
@@ -751,6 +753,10 @@
      (when (and voter-total-earned challenger-total-earned)
        (+ voter-total-earned challenger-total-earned)))))
 
+(defn user->creator-total-earned-resolver [user]
+  ;; TODO implement this
+  0)
+
 (def resolvers-map
   {:Query {:meme meme-query-resolver
            :search-memes search-memes-query-resolver
@@ -803,5 +809,6 @@
           :user/total-created-challenges-success user->total-created-challenges-success-resolver
           :user/total-participated-votes user->total-participated-votes-resolver
           :user/total-participated-votes-success user->total-participated-votes-success-resolver
-          :user/curator-total-earned user->curator-total-earned-resolver}
+          :user/curator-total-earned user->curator-total-earned-resolver
+          :user/creator-total-earned user->creator-total-earned-resolver}
    :UserList {:items user-list->items-resolver}})

@@ -360,6 +360,9 @@
     \"Sum of user_challengerTotalEarned and user_voterTotalEarned\"
     user_curatorTotalEarned: Float
 
+    \"Users total earned as a creator \"
+    user_creatorTotalEarned: Float
+
     \"Position of curator in leaderboard according to user_curatorTotalEarned\"
     user_curatorRank: Int
   }
