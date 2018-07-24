@@ -433,8 +433,9 @@
 (defn vote->reward-resolver [{:keys [:reg-entry/address :vote/option] :as vote}]
   (log/debug "vote->reward-resolver args" vote)
   (try-catch-throw
-   (let [now (last-block-timestamp)
-         status (reg-entry-status now vote)
+   (let [status (reg-entry-status (last-block-timestamp) (db/get {:select [:*]
+                                                                  :from [:reg-entries]
+                                                                  :where [:= address :reg-entry/address]}))
          {:keys [:challenge/reward-pool :votes/for :votes/against] :as sql-query} (db/get {:select [[{:select [:challenge/reward-pool]
                                                                                                       :from [:reg-entries]
                                                                                                       :where [:= address :reg-entry/address]} :challenge/reward-pool]
@@ -452,8 +453,8 @@
             (= option 1))
        (/ reward-pool for)
 
-       (and (= :reg-entry.status/blacklisted status)
-            (= option 0))
+       (and (= :reg-entry.status/blacklisted (look status))
+            (= option 2))
        (/ reward-pool against)
 
        :else nil))))
