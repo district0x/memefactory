@@ -1,4 +1,4 @@
-(ns memefactory.ui.dank-registry.page
+(ns memefactory.ui.dank-registry.browse-page
   (:require
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]

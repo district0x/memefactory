@@ -56,6 +56,7 @@
 
     param(db: String!, key: String!): Parameter
     params(db: String!, keys: [String!]): [Parameter]
+    overallStats : OverallStats
   }
 
   enum OrderDir {
@@ -378,6 +379,12 @@
     param_db: ID
     param_key: ID
     param_value: Float
+  }
+
+  
+  type OverallStats {
+    totalMemesCount: Int
+    totalTokensCount: Int
   }
 
 ")

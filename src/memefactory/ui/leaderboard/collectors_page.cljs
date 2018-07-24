@@ -1,4 +1,4 @@
-(ns memefactory.ui.leaderboard.collectors
+(ns memefactory.ui.leaderboard.collectors-page
   (:require [district.ui.component.page :refer [page]]
             [memefactory.ui.components.app-layout :refer [app-layout]]
             [re-frame.core :refer [subscribe dispatch]]
@@ -25,6 +25,7 @@
     :has-next-page
     [:items [:user/address
              :user/total-collected-memes
+             :user/total-collected-token-ids
              [:user/largest-buy
               [:meme-auction/bought-for
                [:meme-auction/meme-token
@@ -33,16 +34,23 @@
                   [:meme/title]]]]]]]]]])
 
  
-(defn collectors-tile [{:keys [:user/address :user/creator-total-earned :user/total-created-memes
-                            :user/total-created-memes-whitelisted :user/largest-sale] :as creator}]
+(defn collectors-tile [{:keys [:user/address :user/largest-sale
+                               :user/total-collected-memes :user/total-collected-token-ids] :as collector}
+                       {:keys [:total-memes-count :total-tokens-count]}]
   (let [meme (-> largest-sale
                  :meme-auction/meme-token
                  :meme-token/meme)]
    [:div.user-tile
     [:span.user-address address]
     [:ul ;; TODO complete these after Matus comments
-     [:li [with-label "Unique Memes:" [:span.unique ""]]]
-     [:li [with-label "Total Cards:" [:span.total-cards ""]]]
+     [:li [with-label "Unique Memes:" [:span.unique (gstring/format "%d/%d (%d%%)"
+                                                                    total-collected-memes
+                                                                    total-memes-count
+                                                                    (/ (* 100 total-collected-memes)
+                                                                       total-memes-count))]]]
+     [:li [with-label "Total Cards:" [:span.total-cards (gstring/format "%d/%d"
+                                                                        total-collected-token-ids
+                                                                        total-tokens-count)]]]
      (when (:meme/title meme)
        [:li [with-label "Largest Buy:" [:span.best-sale (gstring/format "%f ETH (#%d %s)"
                                                                         (-> largest-sale :meme-auction/bought-for)
@@ -63,7 +71,10 @@
                                           :id @form-data}]))
             users-search (subscribe [::gql/query {:queries [(build-collectors-query {:order-by order-by})]}
                                      {:id @form-data
-                                      :disable-fetch? true}])]
+                                      :disable-fetch? true}])
+            totals (subscribe [::gql/query {:queries [[:overall-stats
+                                                       [:total-memes-count
+                                                        :total-tokens-count]]]}])]
         (if (:graphql/loading? @users-search)
           [:div "Loading ...."]
           (let [all-collectors (mapcat #(get-in % [:search-users :items]) @users-search)]
@@ -71,7 +82,7 @@
             [app-layout
              {:meta {:title "MemeFactory"
                      :description "Description"}}
-             [:div.leaderboard-creators
+             [:div.leaderboard-collectors
               [:h1 "LEADERBOARDS - COLLECTORS"]
               [:p "lorem ipsum"]
               (let [total (get-in @users-search [:search-users :total-count])]
@@ -93,6 +104,6 @@
                                                         (when (or has-next-page (empty? all-collectors))
                                                           (re-search-users end-cursor)))))}
                 (doall
-                 (for [creator all-collectors]
-                   ^{:key (:user/address creator)}
-                   [collectors-tile creator]))]]]]))))))
+                 (for [collector all-collectors]
+                   ^{:key (:user/address collector)}
+                   [collectors-tile collector (:overall-stats @totals)]))]]]]))))))

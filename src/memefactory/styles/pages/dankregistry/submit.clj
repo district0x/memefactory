@@ -51,6 +51,9 @@
      :padding-top (em 2)
      :margin-right (em 6)
      :margin-left (em 6)}
+    (for-media-max :tablet
+                   [:&
+                    {:grid-template-columns "100%"}])
     [">div"
      {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :background-color (color :white)
@@ -58,6 +61,9 @@
       :position :relative
       :padding (em 2)}
      [:&.image-panel {:margin-right (em 1)}
+      (for-media-max :tablet
+                     [:&
+                      {:margin-right 0}])
       [:.input-group {:width (px 200)
                       :right 0
                       :left 0
@@ -70,7 +76,12 @@
         :margin-right :auto
         :margin-left 0}
        (button {:color :meme-buy-button})]]
-     [:&.form-panel {:margin-left (em 1)}
+     [:&.form-panel
+      {:margin-left (em 1)}
+      (for-media-max :tablet
+                     [:&
+                      {:margin-left 0
+                       :margin-top (em 2)}])
       [:.submit {:position :relative
                  :justify-content :center
                  :align-items :center
@@ -82,5 +93,4 @@
          :margin-left 0}
         (button {:color :meme-buy-button})]
        [:.dank {:display :block
-                :vertical-align :middle}]]]
-     ]]])
+                :vertical-align :middle}]]]]]])

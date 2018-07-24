@@ -355,6 +355,12 @@
      (log/debug "params-query-resolver" sql-query)
      sql-query)))
 
+(defn overall-stats-resolver [_ _]
+  {:total-memes-count (:count (db/get {:select [[(sql/call :count :*) :count]]
+                                :from [:memes]}))
+   :total-tokens-count (:count (db/get {:select [[(sql/call :count :*) :count]]
+                                        :from [:meme-tokens]}))})
+
 (defn vote->option-resolver [{:keys [:vote/option] :as vote}]
   (cond
     (= 1 option)
@@ -780,7 +786,8 @@
            :user user-query-resolver
            :search-users search-users-query-resolver
            :param param-query-resolver
-           :params params-query-resolver}
+           :params params-query-resolver
+           :overall-stats overall-stats-resolver}
    :Vote {:vote/option vote->option-resolver
           :vote/reward vote->reward-resolver}
    :Meme {:reg-entry/status reg-entry->status-resolver
