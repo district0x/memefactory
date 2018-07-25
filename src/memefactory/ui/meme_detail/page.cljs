@@ -1,5 +1,6 @@
 (ns memefactory.ui.meme-detail.page
   (:require
+   [memefactory.ui.spec :as spec]
    [cljs-time.core :as t]
    [cljs-time.format :as time-format]
    [cljs-web3.core :as web3]
@@ -13,17 +14,20 @@
    [district.ui.graphql.subs :as gql]
    [district.ui.router.events :as router-events]
    [district.ui.router.subs :as router-subs]
+   [district.ui.server-config.subs :as config-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :as app-layout]
    [memefactory.ui.components.tiles :as tiles]
-   [memefactory.ui.meme-detail.events :as meme-detail-events]
+   [memefactory.ui.events.registry-entry :as registry-entry-events]
+   [memefactory.ui.dank-registry.events :as dank-registry-events]
    [memefactory.ui.utils :as ui-utils]
    [print.foo :refer [look] :include-macros true]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
+   [reagent.ratom :as ratom]
    ))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
@@ -31,7 +35,7 @@
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
 (defn build-meme-query [address active-account]
-  {:id address
+  {;;:id address
    :queries [[:meme {:reg-entry/address address}
               [:reg-entry/address
                :reg-entry/status
@@ -44,7 +48,7 @@
 
                [:meme/tags
                 [:tag/name]]
-               
+
                [:meme/owned-meme-tokens {:owner active-account}
                 [:meme-token/token-id]]
 
@@ -210,15 +214,18 @@
                        :reg-entry.status/challenge-period "Challenge period running"
                        status)]])
 
+;; TODO: test
 (defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
                                :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
   (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on]} vote
         active-account (subscribe [::accounts-subs/active-account])
         option (graphql-utils/gql-name->kw option)
-        tx-id (str (random-uuid))
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
+        tx-id (:reg-entry/address meme)
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry-events/claim-vote-reward tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry-events/claim-vote-reward tx-id}])
         tx-button-disabled? (or (= 0 reward)
-                                (shared-utils/not-nil? claimed-reward-on))]
+                                (shared-utils/not-nil? claimed-reward-on)
+                                @tx-success?)]
     [:div
      [:div {:style {:float "left"}}
       [donut-chart meme]]
@@ -237,28 +244,37 @@
                                  :disabled tx-button-disabled?
                                  :pending? @tx-pending?
                                  :pending-text "Collecting reward..."
-                                 :on-click (fn [] (dispatch [::meme-detail-events/claim-vote-reward {:tx-id tx-id
-                                                                                                     :meme meme
-                                                                                                     :meme-query (build-meme-query (:reg-entry/address meme) @active-account)}]))}
+                                 :on-click (fn [] (dispatch [::registry-entry-events/claim-vote-reward {:send-tx/id tx-id
+                                                                                                        :reg-entry/address (:reg-entry/address meme)
+                                                                                                        :from (case option
+                                                                                                                :vote-option/vote-for (:user/address challenger)
+                                                                                                                :vote-option/vote-against (:user/address creator))}]))}
             "Collect Reward"])])]]))
 
-;; TODO: tx-button
 (defn challenge-meme-component [{:keys [:reg-entry/deposit] :as meme}]
   (let [form-data (r/atom {:challenge/comment nil})
-        errors (r/atom {})]
-
-    [:div
-     [:b "Challenge explanation"]
-     [inputs/textarea-input {:form-data form-data
-                             :id :challenge/comment
-                             :errors errors}]
-     [format/format-token deposit {:token "DANK"}]
-     
-
-     ])
-
-
-  )
+        errors (ratom/reaction {:local (when-not (spec/check ::spec/challenge-comment (:challenge/comment @form-data))
+                                         {:challenge/comment "Comment shouldn't be empty."})})
+        tx-id (:reg-entry/address meme)
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
+        dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])]
+    (fn []
+      [:div
+       [:b "Challenge explanation"]
+       [inputs/textarea-input {:form-data form-data
+                               :id :challenge/comment
+                               :errors errors}]
+       [format/format-token deposit {:token "DANK"}]
+       [tx-button/tx-button {:primary true
+                             :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
+                             :pending? @tx-pending?
+                             :pending-text "Challenging..."
+                             :on-click (fn [] (dispatch [::dank-registry-events/add-challenge {:send-tx/id tx-id
+                                                                                               :reg-entry/address (:reg-entry/address meme)
+                                                                                               :comment (:challenge/comment @form-data)
+                                                                                               :deposit @dank-deposit}]))}
+        "Challenge"]])))
 
 (defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
@@ -276,10 +292,10 @@
 
      [:div.status {:style {:grid-area "status"}}
       [status-component status]]
-     
+
      [:div.challenge {:style {:grid-area "challenge"}}
       [challenge-meme-component meme]]
-     
+
      ]))
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
@@ -288,7 +304,7 @@
                'status status challenger challenger votes votes'"]
     [:div.challenge-component {:style {:display "grid"
                                :grid-template-areas areas}}
-     
+
      [:div.header {:style {:grid-area "header"}}
       [challenge-header created-on]]
 
@@ -305,12 +321,12 @@
 
 (defmethod page :route.meme-detail/index []
   (let [address (-> @(re-frame/subscribe [::router-subs/active-page]) :query :address)
-        active-account (subscribe [::accounts-subs/active-account])        
+        active-account (subscribe [::accounts-subs/active-account])
         response (subscribe [::gql/query (build-meme-query address @active-account)])]
 
     (when-not (:graphql/loading? @response)
-      
-      (cljs.pprint/pprint @response)
+
+;;      (cljs.pprint/pprint @response)
 
       (if-let [meme (:meme @response)]
         (let [{:keys [:reg-entry/status :meme/image-hash :meme/title :reg-entry/status :meme/total-supply
@@ -370,6 +386,6 @@
              [challenge-component meme]]
 
             ;; TODO: related
-            
+
             ]
            ])))))

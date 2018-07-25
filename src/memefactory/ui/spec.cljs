@@ -1,0 +1,11 @@
+(ns memefactory.ui.spec
+  (:require [cljs.spec.alpha :as s]))
+
+(s/def ::str string?)
+
+(s/def ::not-empty? (complement empty?))
+
+(s/def ::challenge-comment (s/and ::str ::not-empty?))
+
+(defn check [type data]
+  (s/valid? type data))

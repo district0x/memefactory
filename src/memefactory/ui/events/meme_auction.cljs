@@ -22,9 +22,9 @@
    (let [active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance address
                                       :fn :buy
-                                      :args (look [active-account
-                                                   address
-                                                   value])
+                                      :args [active-account
+                                             address
+                                             value]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme-auction/buy id}

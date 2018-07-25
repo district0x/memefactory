@@ -36,7 +36,6 @@
     [memefactory.ui.home.page]
     [memefactory.ui.marketplace.events]
     [memefactory.ui.marketplace.page]
-    [memefactory.ui.meme-detail.events]
     [memefactory.ui.meme-detail.page]
     [memefactory.ui.dank-registry.browse-page]
     [memefactory.ui.leaderboard.curators-page]

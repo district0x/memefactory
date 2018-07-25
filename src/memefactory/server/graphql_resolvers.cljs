@@ -623,9 +623,9 @@
                             :from [:meme-auctions]
                             :join [:reg-entries [:= address :reg-entries.reg-entry/creator]
                                    :memes [:= :memes.reg-entry/address :reg-entries.reg-entry/address]]
-                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/end-price)]
+                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/bought-for)]
                                               :from [:meme-auctions]}
-                                          :meme-auctions.meme-auction/end-price]
+                                          :meme-auctions.meme-auction/bought-for]
                                     [:= address :meme-auction/seller]]})]
      (log/debug "user->creator-largest-sale-resolver query" sql-query)
      sql-query)))

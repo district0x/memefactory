@@ -456,16 +456,23 @@
   (let [largest-sale-query [[:user {:user/address "CADDR2"}
                              [:user/address
                               [:user/largest-sale [:meme-auction/address
-                                                   :meme-auction/start-price
-                                                   :meme-auction/end-price
-                                                   :meme-auction/status
+                                                   :meme-auction/bought-for                
                                                    [:meme-auction/buyer [:user/address]]
                                                    [:meme-auction/seller [:user/address]]]]]]]
+        creator-largest-sale-query [[:user {:user/address "CADDR2"}
+                                     [:user/address
+                                      [:user/creator-largest-sale [:meme-auction/address
+                                                                   :meme-auction/bought-for
+                                                                   [:meme-auction/buyer [:user/address]]
+                                                                   [:meme-auction/seller [:user/address]]]]]]]
         largest-sale #:user{:address "CADDR2",
-                            :largest-sale #:meme-auction{:address "AUCTIONADDR0",
-                                                         :start-price 100,
-                                                         :end-price 50,
-                                                         :status (resolvers/enum :meme-auction.status/done),
+                            :largest-sale #:meme-auction{:address "AUCTIONADDR2",
+                                                         :bought-for 72,                                    
+                                                         :buyer #:user{:address "BUYERADDR"},
+                                                         :seller #:user{:address "CADDR2"}}}
+        creator-largest-sale #:user{:address "CADDR2",
+                            :creator-largest-sale #:meme-auction{:address "AUCTIONADDR2",
+                                                         :bought-for 72,                                    
                                                          :buyer #:user{:address "BUYERADDR"},
                                                          :seller #:user{:address "CADDR2"}}}]
     (testing "Test largest-sale"
@@ -474,10 +481,10 @@
                  :user)
              largest-sale)))
     (testing "Test creator-largest-sale"
-      (is (= (-> (graphql/run-query {:queries largest-sale-query})
+      (is (= (-> (graphql/run-query {:queries creator-largest-sale-query})
                  :data
                  :user)
-             largest-sale)))))
+             creator-largest-sale)))))
 
 (deftest search-users-test
   (testing "Test order-by total-collected-memes"
