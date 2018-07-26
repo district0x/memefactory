@@ -5,25 +5,29 @@
    [cljs-web3.core :as web3]
    [cljs.core.match :refer-macros [match]]
    [cljsjs.d3]
-   [district.ui.now.subs :as now-subs]
    [district.format :as format]
-   [district.time :as time]
    [district.graphql-utils :as graphql-utils]
+   [district.time :as time]
    [district.ui.component.form.input :as inputs]
    [district.ui.component.page :refer [page]]
    [district.ui.component.tx-button :as tx-button]
+   [district.ui.graphql.events :as gql-events]
    [district.ui.graphql.subs :as gql]
+   [district.ui.now.subs :as now-subs]
    [district.ui.router.events :as router-events]
    [district.ui.router.subs :as router-subs]
    [district.ui.server-config.subs :as config-subs]
-   [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-account-balances.subs :as account-balances-subs]
+   [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :as app-layout]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.dank-registry.events :as dank-registry-events]
    [memefactory.ui.events.registry-entry :as registry-entry-events]
+   ;; TODO : move to tiles
+   [memefactory.ui.memefolio.page :refer [panel]]
    [memefactory.ui.spec :as spec]
    [memefactory.ui.utils :as ui-utils]
    [print.foo :refer [look] :include-macros true]
@@ -34,12 +38,11 @@
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
+(def scroll-interval 5)
+
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
 (defn build-meme-query [address active-account]
-
-  (prn address active-account)
-
   {:queries [[:meme {:reg-entry/address address}
               [:reg-entry/address
                :reg-entry/status
@@ -86,10 +89,9 @@
                                       :user/total-created-memes-whitelisted] :as creator}]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller address :statuses [:meme-auction.status/done]}
-                                      [[:items [;;:meme-auction/start-price
+                                      [[:items [:meme-auction/start-price
                                                 :meme-auction/end-price
-                                                ;;:meme-auction/bought-for
-                                                ]]]]]}])
+                                                :meme-auction/bought-for]]]]]}])
         creator-total-earned (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
                                        (+ total-earned end-price))
                                      0
@@ -102,6 +104,54 @@
        [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                           (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
        [:div.address (str "Address: " address)]])))
+
+(defn related-memes-component [state]
+  (panel :selling state))
+
+(defn related-memes-container [address tags]
+  (let [safe-mapcat (fn [f queries] (loop [queries queries
+                                           result []]
+                                      (if (empty? queries)
+                                        result
+                                        (recur (rest queries)
+                                               (let [not-contains? (complement contains?)
+                                                     new (filter #(not-contains? (set result) %)
+                                                                 (f (first queries)))]
+                                                 (into result new))))))
+        build-query (fn [{:keys [first after]}] [[:search-meme-auctions {:tags-or tags
+                                                                         :statuses [:meme-auction.status/done]
+                                                                         :after (str after)
+                                                                         :first first}
+                                                  [:total-count
+                                                   :end-cursor
+                                                   :has-next-page
+                                                   [:items [:meme-auction/address
+                                                            :meme-auction/status
+                                                            :meme-auction/start-price
+                                                            :meme-auction/end-price
+                                                            :meme-auction/bought-for
+                                                            [:meme-auction/meme-token
+                                                             [:meme-token/number
+                                                              [:meme-token/meme
+                                                               [:reg-entry/address
+                                                                :meme/title
+                                                                :meme/image-hash
+                                                                :meme/meta-hash
+                                                                :meme/total-minted]]]]]]]]])
+        response (subscribe [::gql/query {:queries (build-query {:after 0
+                                                                 :first scroll-interval})}
+                             {:id address}])
+        state (safe-mapcat (fn [q] (get-in q [:search-meme-auctions :items])) @response)]
+    [:div.scroll-area
+     [related-memes-component state]
+     [infinite-scroll {:load-fn (fn []
+                                  (when-not (:graphql/loading? @response)
+                                    (let [{:keys [:has-next-page :end-cursor]} (:search-meme-auctions (last @response))]
+                                      (when (or has-next-page (empty? state))
+                                        (dispatch [::gql-events/query
+                                                   {:query {:queries (build-query {:first scroll-interval
+                                                                                   :after end-cursor})}
+                                                    :id address}])))))}]]))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
@@ -151,7 +201,7 @@
                   [:td (:user/address seller)]
                   [:td (:user/address buyer)]
                   [:td end-price]
-                  [:td (format/time-ago (ui-utils/gql-date->date bought-on) @now #_(t/now))]])))]])))))
+                  [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now) #_(t/now))]])))]])))))
 
 (defn donut-chart [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]}]
   (r/create-class
@@ -486,8 +536,5 @@
                  [history-component address]]
                 [:div.challenge {:style {:grid-area "challenge"}}
                  [challenge-component meme]]
-
-                ;; TODO: related
-
-                ]
-               ])))))))
+                [:div.related {:style {:grid-area "related"}}
+                 [related-memes-container address tags]]]])))))))
