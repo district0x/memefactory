@@ -1,12 +1,13 @@
 (ns memefactory.ui.meme-detail.page
   (:require
-   [memefactory.ui.spec :as spec]
    [cljs-time.core :as t]
    [cljs-time.format :as time-format]
    [cljs-web3.core :as web3]
    [cljs.core.match :refer-macros [match]]
    [cljsjs.d3]
+   [district.ui.now.subs :as now-subs]
    [district.format :as format]
+   [district.time :as time]
    [district.graphql-utils :as graphql-utils]
    [district.ui.component.form.input :as inputs]
    [district.ui.component.page :refer [page]]
@@ -16,14 +17,15 @@
    [district.ui.router.subs :as router-subs]
    [district.ui.server-config.subs :as config-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
+   [district.ui.web3-account-balances.subs :as account-balances-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :as app-layout]
    [memefactory.ui.components.tiles :as tiles]
-   [memefactory.ui.events.registry-entry :as registry-entry-events]
    [memefactory.ui.dank-registry.events :as dank-registry-events]
+   [memefactory.ui.events.registry-entry :as registry-entry-events]
+   [memefactory.ui.spec :as spec]
    [memefactory.ui.utils :as ui-utils]
-   [print.foo :refer [look] :include-macros true]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -35,8 +37,10 @@
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
 (defn build-meme-query [address active-account]
-  {;;:id address
-   :queries [[:meme {:reg-entry/address address}
+
+  (prn address active-account)
+
+  {:queries [[:meme {:reg-entry/address address}
               [:reg-entry/address
                :reg-entry/status
                :reg-entry/deposit
@@ -59,6 +63,7 @@
                  :user/creator-rank]]
 
                :challenge/created-on
+               :challenge/commit-period-end
                :challenge/comment
                :challenge/votes-for
                :challenge/votes-against
@@ -212,9 +217,9 @@
                        :reg-entry.status/whitelisted "Resolved, accepted"
                        :reg-entry.status/blacklisted "Resolved, rejected"
                        :reg-entry.status/challenge-period "Challenge period running"
+                       :reg-entry.status/commit-period "Commit vote period running"
                        status)]])
 
-;; TODO: test
 (defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
                                :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
   (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on]} vote
@@ -222,10 +227,7 @@
         option (graphql-utils/gql-name->kw option)
         tx-id (:reg-entry/address meme)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry-events/claim-vote-reward tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry-events/claim-vote-reward tx-id}])
-        tx-button-disabled? (or (= 0 reward)
-                                (shared-utils/not-nil? claimed-reward-on)
-                                @tx-success?)]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry-events/claim-vote-reward tx-id}])]
     [:div
      [:div {:style {:float "left"}}
       [donut-chart meme]]
@@ -241,7 +243,9 @@
          [:div.reward (str "Your reward: " (format/format-token reward {:token "DANK"}))]
          (when-not (= 0 (look reward))
            [tx-button/tx-button {:primary true
-                                 :disabled tx-button-disabled?
+                                 :disabled (or (= 0 reward)
+                                               (shared-utils/not-nil? claimed-reward-on)
+                                               @tx-success?)
                                  :pending? @tx-pending?
                                  :pending-text "Collecting reward..."
                                  :on-click (fn [] (dispatch [::registry-entry-events/claim-vote-reward {:send-tx/id tx-id
@@ -267,7 +271,7 @@
                                :errors errors}]
        [format/format-token deposit {:token "DANK"}]
        [tx-button/tx-button {:primary true
-                             :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
+                             :disabled (or @tx-success? (not (empty? (:local @errors))))
                              :pending? @tx-pending?
                              :pending-text "Challenging..."
                              :on-click (fn [] (dispatch [::dank-registry-events/add-challenge {:send-tx/id tx-id
@@ -276,9 +280,97 @@
                                                                                                :deposit @dank-deposit}]))}
         "Challenge"]])))
 
+
+(defn remaining-time-component [to-time]
+  (let [now (subscribe [::now-subs/now])
+        {:keys [:days :hours :minutes :seconds]} (time/time-remaining @now to-time)]
+    [:b (str (format/pluralize days "Day") ", "
+             hours " Hr. "
+             minutes " Min. "
+             seconds " Sec.")]))
+
+;; TODO
+(defn vote-component [{:keys [:challenge/commit-period-end] :as meme}]
+  (let [balance-dank (subscribe [::account-balances-subs/active-account-balance :DANK])
+        form-data (r/atom {:vote/amount-for nil
+                           :vote/amount-against nil})
+        errors (ratom/reaction {:local (let [amount-for (-> @form-data :vote/amount-for js/parseInt)
+                                             amount-against (-> @form-data :vote/amount-against js/parseInt)]
+                                         (cond-> {}
+                                           (or (not (spec/check ::spec/pos-int amount-for))
+                                               (> @balance-dank amount-for))
+                                           (assoc :vote/amount-for (str "Amount should be between 0 and " @balance-dank))
+
+                                           (or (not (spec/check ::spec/pos-int amount-against))
+                                               (> @balance-dank amount-against))
+                                           (assoc :vote/amount-against (str "Amount should be between 0 and " @balance-dank))))})
+        tx-id (:reg-entry/address meme)
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/commit-vote tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/commit-vote tx-id}])]
+    (fn []
+      [:div.vote
+       [:div description]
+       [remaining-time-component (ui-utils/gql-date->date commit-period-end)]
+       [inputs/with-label "Amount "
+        [:div
+         [inputs/text-input {:form-data form-data
+                             :id :vote/amount-for
+                             :errors errors}]
+         [:span "DANK"]
+         [tx-button/tx-button {:primary true
+                               :disabled (or (-> @errors :local :vote/amount-for empty? not)
+                                             @tx-success?)
+                               :pending? @tx-pending?
+                               :pending-text "Voting..."
+                               :on-click (fn [] (dispatch [::dank-registry-events/commit-vote {:send-tx/id tx-id
+                                                                                               :reg-entry/address (:reg-entry/address meme)
+                                                                                               :vote/option :vote.option/vote-for
+                                                                                               :vote/amount (-> @form-data :vote/amount-for js/parseInt)}]))}
+          "Vote Dank"]]]
+       [inputs/with-label "Amount "
+        [:div
+         [inputs/text-input {:form-data form-data
+                             :id :vote/amount-against
+                             :errors errors}]
+         [:span "DANK"]
+         [tx-button/tx-button {:primary true
+                               :disabled (or (-> @errors :local :vote/amount-against empty? not)
+                                             @tx-success?)
+                               :pending? @tx-pending?
+                               :pending-text "Voting..."
+                               :on-click (fn [] (dispatch [::dank-registry-events/commit-vote {:send-tx/id tx-id
+                                                                                               :reg-entry/address (:reg-entry/address meme)
+                                                                                               :vote/option :vote.option/vote-against
+                                                                                               :vote/amount (-> @form-data :vote/amount-for js/parseInt)}]))}
+          "Vote STANK"]]]
+       [:div "You can vote with up to " (format/format-token balance-dank {:token "DANK"})]
+       [:div "Token will be returned to you after revealing your vote."]])))
+
 (defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
-                                                [:reg-entry.status/challenge-period] :reg-entry.status/challenge-period)))
+                                                [:reg-entry.status/challenge-period] :reg-entry.status/challenge-period
+                                                [:reg-entry.status/commit-period] :reg-entry.status/commit-period)))
+
+(defmethod challenge-component :reg-entry.status/commit-period
+  [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
+  (let [areas "'header header header header header header'
+               'status status challenger challenger vote vote'"]
+    [:div.challenge-component {:style {:display "grid"
+                                       :grid-template-areas areas}}
+
+     [:div.header {:style {:grid-area "header"}}
+      [challenge-header created-on]]
+
+     [:div.status {:style {:grid-area "status"}}
+      [status-component status]]
+
+     [:div.challenger {:style {:grid-area "challenger"}}
+      [challenger-component meme]]
+
+     [:div.challenge {:style {:grid-area "vote"}}
+      [vote-component meme]]
+
+     ]))
 
 (defmethod challenge-component :reg-entry.status/challenge-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
@@ -303,7 +395,7 @@
   (let [areas "'header header header header header header'
                'status status challenger challenger votes votes'"]
     [:div.challenge-component {:style {:display "grid"
-                               :grid-template-areas areas}}
+                                       :grid-template-areas areas}}
 
      [:div.header {:style {:grid-area "header"}}
       [challenge-header created-on]]
@@ -326,7 +418,7 @@
 
     (when-not (:graphql/loading? @response)
 
-;;      (cljs.pprint/pprint @response)
+      ;;      (cljs.pprint/pprint @response)
 
       (if-let [meme (:meme @response)]
         (let [{:keys [:reg-entry/status :meme/image-hash :meme/title :reg-entry/status :meme/total-supply
@@ -336,6 +428,8 @@
                                (filter shared-utils/not-nil?)
                                count)
               tags (mapv :tag/name tags)]
+
+          (prn status)
 
           [app-layout/app-layout
            {:meta {:title "MemeFactory"
