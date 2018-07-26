@@ -88,5 +88,5 @@
         (assoc :vote/voter voter-address)
         (update :vote/option (if parse-vote-option? parse-vote-option bn/number))
         (update :vote/amount bn/number)
-        (update :vote/revealed-on (if parse-dates? web3-time->local-date-time bn/number))
+        (update :vote/revealed-on (constantly (parse-uint-date (:vote/revealed-on voter) parse-dates?)) #_(if parse-dates? web3-time->local-date-time bn/number))
         (update :vote/claimed-reward-on (constantly (parse-uint-date (:vote/claimed-reward-on voter) parse-dates?)))))))
