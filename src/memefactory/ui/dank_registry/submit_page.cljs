@@ -59,6 +59,7 @@
          [file-drag-input {:form-data form-data
                            :id :file-info
                            :errors errors
+                           :label "File..."
                            :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                (= type "image/png"))
                            :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]

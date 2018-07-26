@@ -69,13 +69,23 @@
                       :left 0
                       :margin-left :auto
                       :margin-right :auto}]
-      ["input[type=file]"
+      [:label.file-input-label
        {:right 0
         :left (em 2)
         :position :absolute
         :margin-right :auto
+        :margin-left 0
+        :padding-left (em 1)
+        :line-height (em 2)}
+       (button {:color :meme-buy-button})]
+      ["input[type=file]"
+       {:display :none}
+       #_{:right 0
+        :left (em 2)
+        :position :absolute
+        :margin-right :auto
         :margin-left 0}
-       (button {:color :meme-buy-button})]]
+       #_(button {:color :meme-buy-button})]]
      [:&.form-panel
       {:margin-left (em 1)}
       (for-media-max :tablet
