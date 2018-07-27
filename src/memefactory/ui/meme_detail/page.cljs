@@ -183,7 +183,7 @@
                           :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
                     [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
                           :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
-                    [:th {:class (if (:meme-auctions.order-by/proce @order-by) :up :down)
+                    [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
                           :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
                     [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
                           :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
@@ -201,7 +201,7 @@
                   [:td (:user/address seller)]
                   [:td (:user/address buyer)]
                   [:td end-price]
-                  [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now) #_(t/now))]])))]])))))
+                  [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))]])))))
 
 (defn donut-chart [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]}]
   (r/create-class
@@ -209,10 +209,16 @@
     :component-did-mount (fn []
                            (let [width 170
                                  height 170
+                                 icon-width 42
+                                 icon-height 32
                                  data [{:challenge/votes :for :value votes-for}
                                        {:challenge/votes :against :value votes-against}]
                                  outer-radius (/ (min width height) 2)
                                  inner-radius (/ outer-radius 2)
+                                 arc (-> js/d3
+                                         .arc
+                                         (.outerRadius outer-radius)
+                                         (.innerRadius inner-radius))
                                  pie (-> js/d3
                                          .pie
                                          (.value (fn [d] (aget d "value"))))
@@ -222,24 +228,38 @@
                              (-> js/d3
                                  (.select "#donutchart")
                                  (.append "svg")
+                                 (.attr "class" "chart")
                                  (.attr "width" width)
-                                 (.attr "height" height)
+                                 (.attr "height" height)                                
                                  (.append "g")
                                  (.attr "transform" (str "translate(" (/ width 2) "," (/ height 2) ")"))
                                  (.selectAll ".arc")
-                                 (.data (pie
-                                         (clj->js data)))
+                                 (.data (pie (clj->js data)))
                                  (.enter)
                                  (.append "g")
                                  (.attr "class" "arc")
                                  (.append "path")
-                                 (.attr "d" (-> js/d3
-                                                .arc
-                                                (.outerRadius inner-radius)
-                                                (.innerRadius outer-radius)))
+                                 (.attr "d" arc)
                                  (.style "fill" (fn [d]
                                                   (color-scale
-                                                   (aget d "data" "votes")))))))}))
+                                                   (aget d "data" "votes")))))
+
+                             (-> js/d3
+                                 (.select ".chart")
+                                 (.append "g")
+                                 (.attr "transform" (str "translate(" (/ width 2) "," (/ height 2) ")"))
+                                 (.append "foreignObject")
+                                 (.attr "width" icon-width)
+                                 (.attr "height" icon-height)                                 
+                                 (.attr "x" (unchecked-negate (/ icon-width 2)))
+                                 (.attr "y" (unchecked-negate (/ icon-height 2)))                                
+                                 (.append "xhtml:span")
+                                 (.append "span")
+                                 (.attr "class" "icon-mf-logo")
+                                 (.style "font-size" "32px")
+                                 (#(doall (for [i (range 1 9)]
+                                            (-> (.append % "span")
+                                                (.attr "class" (str "path" i)))))))))}))
 
 (defn challenge-header [created-on]
   [:div
@@ -293,7 +313,7 @@
                                          :vote-option/vote-for "DANK"
                                          :vote-option/vote-against "STANK"))]
          [:div.reward (str "Your reward: " (format/format-token reward {:token "DANK"}))]
-         (when-not (= 0 (look reward))
+         (when-not (= 0 reward)
            [tx-button/tx-button {:primary true
                                  :disabled (or (= 0 reward)
                                                (shared-utils/not-nil? claimed-reward-on)
@@ -301,10 +321,10 @@
                                  :pending? @tx-pending?
                                  :pending-text "Collecting reward..."
                                  :on-click #(dispatch [::registry-entry-events/claim-vote-reward {:send-tx/id tx-id
-                                                                                                 :reg-entry/address (:reg-entry/address meme)
-                                                                                                 :from (case option
-                                                                                                         :vote-option/vote-for (:user/address challenger)
-                                                                                                         :vote-option/vote-against (:user/address creator))}])}
+                                                                                                  :reg-entry/address (:reg-entry/address meme)
+                                                                                                  :from (case option
+                                                                                                          :vote-option/vote-for (:user/address challenger)
+                                                                                                          :vote-option/vote-against (:user/address creator))}])}
             "Collect Reward"])])]]))
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit] :as meme}]
@@ -391,9 +411,9 @@
                                :pending? @tx-pending?
                                :pending-text "Voting..."
                                :on-click #(dispatch [::dank-registry-events/commit-vote {:send-tx/id tx-id
-                                                                                        :reg-entry/address (:reg-entry/address meme)
-                                                                                        :vote/option :vote.option/vote-for
-                                                                                        :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
+                                                                                         :reg-entry/address (:reg-entry/address meme)
+                                                                                         :vote/option :vote.option/vote-for
+                                                                                         :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
           "Vote Dank"]]]
        [inputs/with-label "Amount "
         [:div
@@ -407,9 +427,9 @@
                                :pending? @tx-pending?
                                :pending-text "Voting..."
                                :on-click #(dispatch [::dank-registry-events/commit-vote {:send-tx/id tx-id
-                                                                                        :reg-entry/address (:reg-entry/address meme)
-                                                                                        :vote/option :vote.option/vote-against
-                                                                                        :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
+                                                                                         :reg-entry/address (:reg-entry/address meme)
+                                                                                         :vote/option :vote.option/vote-against
+                                                                                         :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
           "Vote STANK"]]]
        [:div "You can vote with up to " (format/format-token balance-dank {:token "DANK"})]
        [:div "Token will be returned to you after revealing your vote."]])))
@@ -502,9 +522,9 @@
                [:div.meme-detail {:style {:display "grid"
                                           :grid-template-areas
                                           "'image image image rank rank rank'
-                                        'history history history history history history'
-                                        'challenge challenge challenge challenge challenge challenge'
-                                        'related related related related related related'"}}
+                                           'history history history history history history'
+                                           'challenge challenge challenge challenge challenge challenge'
+                                           'related related related related related related'"}}
                 [:div {:style {:grid-area "image"}}
                  [tiles/meme-image image-hash]]
                 [:div {:style {:grid-area "rank"}}
@@ -536,5 +556,5 @@
                  [history-component address]]
                 [:div.challenge {:style {:grid-area "challenge"}}
                  [challenge-component meme]]
-                [:div.related {:style {:grid-area "related"}}
+                #_[:div.related {:style {:grid-area "related"}}
                  [related-memes-container address tags]]]])))))))
