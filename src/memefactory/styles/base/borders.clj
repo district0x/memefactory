@@ -16,3 +16,8 @@
   {:border-top-width (get params :width (px 1))
    :border-top-color (get params :color (color :black))
    :border-top-style (get params :style :solid)})
+
+(defn border-bottom [params]
+  {:border-bottom-width (get params :width (px 1))
+   :border-bottom-color (get params :color (color :black))
+   :border-bottom-style (get params :style :solid)})

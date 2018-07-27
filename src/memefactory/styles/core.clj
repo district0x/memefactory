@@ -11,6 +11,7 @@
             [memefactory.styles.pages.dankregistry.submit :as dr.submit]
             [memefactory.styles.pages.home :as page.home]
             [memefactory.styles.pages.marketplace :as page.marketplace]
+            [memefactory.styles.pages.mymemefolio :as page.memefolio]
             ))
 
 (defstyles main
@@ -23,4 +24,5 @@
   page.home/core
   page.marketplace/core
   form/core
-  dr.submit/core)
+  dr.submit/core
+  page.memefolio/core)

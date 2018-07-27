@@ -3,7 +3,7 @@
             [garden.stylesheet :refer [at-media]]
             [clojure.string :as s]
             [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.base.borders :refer [border-top]]
+            [memefactory.styles.base.borders :refer [border-top border-bottom]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
@@ -12,10 +12,10 @@
             [clojure.string :as str]))
 
 (defstyles core
-  [:.marketplace-page
-   [:.marketplace
+  [:.memefolio-page
+   [:section.search-form
     {:padding-top (em 4)}
-    [:.search-form
+    [:div.search-form
      (for-media-max :tablet
                     [:&
                      {:margin-right (em 1)
@@ -78,6 +78,7 @@
        :height (em 4)
        :width (em 4)}]
 
+     ;;TODO refactor to component
      [:.form
       {:display :grid
        :margin-left (em 2)
@@ -103,9 +104,9 @@
     [:.search-form
      (for-media-max :tablet
                     [:.more {:background-color (color :new-meme-icon-bg)}])
-     [:.icon {:background-color (color :new-meme-icon-bg)
-              :background-image (str "url('/assets/icons/marketplaceicon.png')")}]
-     [:h2.title {:color (color :new-meme-icon-bg)}]]]
+     [:.icon {:background-color (color :mymemefolio-green)
+              :background-image (str "url('/assets/icons/mymemefolio-green.png')")}]
+     [:h2 {:color (color :mymemefolio-green)}]]]
 
    [:.tiles
     {:display :block
@@ -120,4 +121,15 @@
      {:display :flex
       :flex-wrap :wrap
       :justify-content :space-evenly}]]
-   ])
+   [:.tabs
+    {:display :flex
+     :height (em 3)
+     :line-height (em 3)
+     :flex-wrap :wrap
+     :justify-content :space-evenly}
+    [">div"
+     [:a
+      {:color (color :section-subcaption)}
+      [:&.active
+       (border-bottom {:color (color :pink)
+                       :width (px 2)})]]]]])
