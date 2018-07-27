@@ -179,7 +179,9 @@
                :blockhain-status (name (:reg-entry/status (registry-entry/load-registry-entry address)))
                :v+ (:challenge/votes-for r)
                :v- (:challenge/votes-against r)
-               :v? (count (filter #(= 0 (:vote/revealed-on %)) votes))}))
+               :v? (count (filter #(and (pos? (:vote/amount %))
+                                        (or (zero? (:vote/revealed-on %))
+                                            (nil? (:vote/revealed-on %)))) votes))})) 
        print-table))
 
 (defn increase-time-to-next-period [re-address]

@@ -12,7 +12,8 @@
             [taoensso.timbre :as log]
             [memefactory.server.db :as meme-db]
             [clojure.string :as str]
-            [print.foo :refer [look] :include-macros true])
+            [print.foo :refer [look] :include-macros true]
+            [memefactory.shared.contract.registry-entry :as registry-entry])
   (:require-macros [memefactory.server.macros :refer [try-catch-throw]]))
 
 (def enum graphql-utils/kw->gql-name)
@@ -396,11 +397,12 @@
   (->> (db/all {:select [:vote/option [(sql/call :count) :count]]
                 :from [:votes]
                 :where [:and
-                        [:is :vote/revealed-on]
+                        [:not= :vote/revealed-on nil]
                         [:= :reg-entry/address address]]
                 :group-by [:vote/option]})
        (apply (partial max-key :count))
-       :vote/option))
+       :vote/option
+       registry-entry/vote-options))
 
 (defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
   (log/debug "reg-entry->vote-winning-vote-option-resolver args" args)
@@ -427,14 +429,14 @@
                                             [:= (:user/address args) :vote/voter]]})
                            winning-option (reg-entry-winning-vote-option reg-entry)
                            winning-amount (case winning-option
-                                            :vote-option/vote-against votes-against
-                                            :vote-option/vote-for votes-for
+                                            :vote.option/vote-against votes-against
+                                            :vote.option/vote-for votes-for
                                             0)]
-                       (if (and (= winning-option option)
+                       (if (and (= winning-option (registry-entry/vote-options option))
                                 (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry)))
                          (/ (* amount reward-pool) winning-amount) 
                          0))]
-    (+ challenger-amount voter-amount)))
+    (+ challenger-amount voter-amount))) 
 
 (defn reg-entry->challenger [{:keys [:challenge/challenger] :as reg-entry}]
   (log/debug "reg-entry->challenger-resolver args" reg-entry)
