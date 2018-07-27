@@ -95,6 +95,7 @@
     [:&:focus {:outline "none"}]
     [:&:focus+.help-block:before
      {:transform "scale(1)"}]]
+   
    [:.help-block
     {:border :none
      :display :block

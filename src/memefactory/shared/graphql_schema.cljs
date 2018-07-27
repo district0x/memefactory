@@ -8,6 +8,8 @@
     meme(regEntry_address: ID!): Meme
     searchMemes(statuses: [RegEntryStatus],
                 title: String,
+                tags: [ID],
+                tagsOr: [ID],
                 orderBy: MemesOrderBy,
                 orderDir: OrderDir,
                 groupBy: MemesGroupBy,

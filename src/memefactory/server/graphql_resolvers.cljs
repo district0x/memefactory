@@ -1,5 +1,6 @@
 (ns memefactory.server.graphql-resolvers
   (:require [cljs.nodejs :as nodejs]
+            [cljs-time.core :as t]
             [clojure.string :as string]
             [district.server.db :as db]
             [district.graphql-utils :as graphql-utils]
@@ -90,8 +91,7 @@
                                                          :else (enum :reg-entry.status/blacklisted))
    :else (enum :reg-entry.status/whitelisted)))
 
-;; TODO: search-memes does not take tags
-(defn search-memes-query-resolver [_ {:keys [:title :statuses :order-by :order-dir :owner :creator :curator :first :after] :as args}]
+(defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :order-by :order-dir :owner :creator :curator :first :after] :as args}]
   (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
@@ -106,9 +106,18 @@
                                       :from [[:meme-tokens :mt]]
                                       :join [[:meme-token-owners :mto]
                                              [:= :mto.meme-token/token-id :mt.meme-token/token-id]]} :tokens]
-                                    [:= :m.reg-entry/address :tokens.reg-entry/address]]}
+                                    [:= :m.reg-entry/address :tokens.reg-entry/address]
+                                    [:meme-tags :mtags] [:= :mtags.reg-entry/address :m.reg-entry/address]]}
                  
-                 title         (sqlh/merge-where [:like :m.meme/title (str "%" title "%")])
+                 title        (sqlh/merge-where [:like :m.meme/title (str "%" title "%")])
+                 tags          (sqlh/merge-where [:=
+                                                  (count tags)
+                                                  {:select [(sql/call :count :*)]
+                                                   :from [[:meme-tags :mtts]]
+                                                   :where [:and
+                                                                     [:= :mtts.reg-entry/address :m.reg-entry/address]
+                                                                     [:in :mtts.tag/name tags]]}])
+                 tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  creator      (sqlh/merge-where [:= :re.reg-entry/creator creator])
                  curator      (sqlh/merge-where [:= :re.challenge/challenger curator])
                  owner        (sqlh/merge-where [:= :tokens.meme-token/owner owner])
@@ -628,9 +637,9 @@
                             :from [:meme-auctions]
                             :join [:reg-entries [:= address :reg-entries.reg-entry/creator]
                                    :memes [:= :memes.reg-entry/address :reg-entries.reg-entry/address]]
-                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/end-price)]
+                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/bought-for)]
                                               :from [:meme-auctions]}
-                                          :meme-auctions.meme-auction/end-price]
+                                          :meme-auctions.meme-auction/bought-for]
                                     [:= address :meme-auction/seller]]})]
      (log/debug "user->creator-largest-sale-resolver query" sql-query)
      sql-query)))

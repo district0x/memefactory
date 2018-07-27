@@ -21,10 +21,15 @@
    (let [active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-token)
                                       :fn :safe-transfer-from-multi
-                                      :args (look [active-account
-                                                   (contract-queries/contract-address db :meme-auction-factory-fwd)
-                                                   token-ids
-                                                   (web3-eth/contract-get-data (contract-queries/instance db :meme-auction) :start-auction (web3/to-wei start-price :ether) (web3/to-wei end-price :ether) duration description)])
+                                      :args [active-account
+                                             (contract-queries/contract-address db :meme-auction-factory-fwd)
+                                             token-ids
+                                             (web3-eth/contract-get-data (contract-queries/instance db :meme-auction)
+                                                                         :start-auction
+                                                                         (web3/to-wei start-price :ether)
+                                                                         (web3/to-wei end-price :ether)
+                                                                         duration
+                                                                         description)]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme-token/transfer-multi-and-start-auction id}

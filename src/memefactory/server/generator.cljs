@@ -49,7 +49,7 @@
 
 (defn upload-meme []
   (let [file "resources/dev/pepe.png"]
-    (log/info "Uploading " file)
+    (log/info "Uploading" file ::upload-meme)
     (js/Promise.
      (fn [resolve reject]
        (.readFile fs
@@ -63,23 +63,24 @@
                          (if err
                            (reject err)
                            (do
-                             (log/info "Uploaded " file " got " image-hash)
+                             (log/info (str "Uploaded " file " received") {:image-hash image-hash} ::upload-meme)
                              (resolve image-hash))))))))))))
 
 (defn upload-meme-meta [image-hash]
   (let [meta-info (format/clj->json {:title "PepeSmile"
                                      :image-hash image-hash
-                                     :search-tags ["pepe" "frog" "dank"]})]
-    (log/info "Uploading meta " meta-info)
+                                     :search-tags ["pepe" "frog" "dank"]
+                                     :comment "did not like it"})]
+    (log/info "Uploading meta" {:meta-info meta-info} ::upload-meme-meta)
     (js/Promise.
      (fn [resolve reject]
        (ipfs-files/add 
         (js/Buffer.from meta-info)   
         (fn [err {meta-hash :Hash}]
           (if err
-            (log/error err)
+            (log/error "ifps error" {:error err} ::upload-meme-meta)
             (do
-              (log/info "Uploaded meta got " meta-hash)
+              (log/info "Uploaded meta received " {:meta-hash meta-hash} ::upload-meme-meta)
               (resolve meta-hash))))))))) 
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
@@ -87,11 +88,11 @@
         (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-auction-duration :deposit :commit-period-duration
                                                             :reveal-period-duration])
              (map bn/number))
-        scenarios (get-scenarios (look {:accounts accounts
-                                        :use-accounts use-accounts
-                                        :items-per-account items-per-account
-                                        :scenarios scenarios}))]
-    (log/info "Going to generate " scenarios)
+        scenarios (get-scenarios {:accounts accounts
+                                  :use-accounts use-accounts
+                                  :items-per-account items-per-account
+                                  :scenarios scenarios})]
+    (log/info "Going to generate" scenarios ::generate-memes)
     (doseq [[account {:keys [:scenario-type]}] scenarios]
       (-> (upload-meme)          
           (.then upload-meme-meta)                
@@ -102,12 +103,13 @@
                       
                       (let [tx-hash (meme-factory/approve-and-create-meme {:meta-hash meta-hash
                                                                            :total-supply total-supply
-                                                                           :amount (look deposit)}
+                                                                           :amount deposit}
                                                                           {:from account})]
 
                         
                         (when-not (= :scenario/create scenario-type)
                           (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx tx-hash)]
+
                             (when-not registry-entry
                               (throw (js/Error. "Registry Entry wasn't found")))
 
@@ -124,9 +126,10 @@
                                                                         {:amount balance
                                                                          :salt "abc"
                                                                          :vote-option :vote.option/vote-for}
-                                                                        {:from creator})
+                                                                        {:from (look creator)})
 
-                                (when-not (= :scenario/commit-vote scenario-type)
+                                (when-not (= :scenario/commit-vote (look scenario-type))
+                                  
                                   (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
 
                                   (registry-entry/reveal-vote registry-entry
