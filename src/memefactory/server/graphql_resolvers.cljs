@@ -63,27 +63,32 @@
 (defn reg-entry-status [now {:keys [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
                                     :challenge/commit-period-end :challenge/commit-period-end
                                     :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against] :as reg-entry}]
-
   (cond
     (and (< now challenge-period-end) (not challenger)) :reg-entry.status/challenge-period
     (< now commit-period-end)                           :reg-entry.status/commit-period
     (< now reveal-period-end)                           :reg-entry.status/reveal-period
-    (or (< votes-against votes-for)
-        (< challenge-period-end now))                   :reg-entry.status/whitelisted
-    :else                                               :reg-entry.status/blacklisted))
+    (and (pos? reveal-period-end)
+         (> now reveal-period-end)) (if (< votes-against votes-for)
+                                      :reg-entry.status/whitelisted
+                                      :reg-entry.status/blacklisted)
+    :else :reg-entry.status/whitelisted))   
 
 (defn reg-entry-status-sql-clause [now]
   (sql/call ;; TODO: can we remove aliases here?
    :case
    [:and
-    [:< now :re.reg-entry/challenge-period-end]
+    [:< now :re.reg-entry/challenge-period-end] 
     [:= :re.challenge/challenger nil]]                        (enum :reg-entry.status/challenge-period)
    [:< now :re.challenge/commit-period-end]                   (enum :reg-entry.status/commit-period)
    [:< now :re.challenge/reveal-period-end]                   (enum :reg-entry.status/reveal-period)
-   [:or
-    [:< :re.challenge/votes-against :re.challenge/votes-for]
-    [:< :re.reg-entry/challenge-period-end now]]              (enum :reg-entry.status/whitelisted)
-   :else                                                      (enum :reg-entry.status/blacklisted)))
+   [:and
+    [:> :re.challenge/reveal-period-end 0]
+    [:> now :re.challenge/reveal-period-end]]  (sql/call :case
+                                                         [:< :re.challenge/votes-against :re.challenge/votes-for]
+                                                         (enum :reg-entry.status/whitelisted)
+
+                                                         :else (enum :reg-entry.status/blacklisted))
+   :else (enum :reg-entry.status/whitelisted)))
 
 ;; TODO: search-memes does not take tags
 (defn search-memes-query-resolver [_ {:keys [:title :statuses :order-by :order-dir :owner :creator :curator :first :after] :as args}]

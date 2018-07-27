@@ -68,8 +68,7 @@
                                      (not (try (< 0 (js/parseInt amount-vote-against)) (catch js/Error e nil)))
                                      (assoc :amount-vote-against "Amount to vote against should be a positive number")))})]
     (fn [{:keys [:reg-entry/address :challenge/vote] :as meme}]
-      (let [voted? (or (not= (graphql-utils/gql-name->kw (:vote/option vote))
-                             :vote-option/no-vote)
+      (let [voted? (or (pos? (:vote/amount vote))
                        @tx-pending?
                        @tx-success?)]
        [:div.vote
@@ -113,9 +112,8 @@
        [:img]
        [pending-button {:pending? @tx-pending?
                         :pending-text "Revealing ..."
-                        :disabled (or (= (graphql-utils/gql-name->kw (:vote/option vote))
-                                         :vote-option/no-vote)
-                                      @tx-pending? @tx-success?)
+                        :disabled (or (not (pos? (:vote/amount vote)))
+                                      (look @tx-pending?) (look @tx-success?))
                         :on-click (fn []
                                     (dispatch [::dr-events/reveal-vote
                                                {:send-tx/id tx-id

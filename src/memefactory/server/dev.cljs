@@ -1,6 +1,7 @@
 (ns memefactory.server.dev
   (:require
    [camel-snake-kebab.core :as cs :include-macros true]
+   [memefactory.server.contract.registry-entry :as registry-entry]
    [cljs-time.core :as t]
    [cljs-web3.core :as web3]
    [cljs.nodejs :as nodejs]
@@ -38,7 +39,9 @@
    [memefactory.server.contract.dank-token :as dank-token]
    [memefactory.server.contract.eternal-db :as eternal-db]
    [bignumber.core :as bn]
-   [memefactory.server.graphql-resolvers :refer [reg-entry-status last-block-timestamp]]))
+   [memefactory.server.graphql-resolvers :refer [reg-entry-status
+                                                 reg-entry-status-sql-clause
+                                                 last-block-timestamp]]))
 
 (nodejs/enable-util-print!)
 
@@ -166,7 +169,14 @@
        (group-by :reg-entry/address)
        (map (fn [[address [r :as votes]]]
               {:address address
-               :status (name (reg-entry-status (last-block-timestamp) r))
+               :server-status (name (reg-entry-status (last-block-timestamp) r))
+               :query-status (-> (db/get {:select [[(reg-entry-status-sql-clause (last-block-timestamp)) :status]] 
+                                          :from  [[:reg-entries :re]]
+                                          :where [:= :re.reg-entry/address address]})
+                                 :status
+                                 graphql-utils/gql-name->kw 
+                                 name)
+               :blockhain-status (name (:reg-entry/status (registry-entry/load-registry-entry address)))
                :v+ (:challenge/votes-for r)
                :v- (:challenge/votes-against r)
                :v? (count (filter #(= 0 (:vote/revealed-on %)) votes))}))
