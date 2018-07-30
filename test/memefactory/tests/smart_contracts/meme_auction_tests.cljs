@@ -41,17 +41,17 @@
              (map bn/number))
         registry-entry (create-meme creator-addr deposit max-total-supply sample-meta-hash-1)
         _ (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
-        _ (meme/mint registry-entry max-total-supply {})
+        _ (meme/mint registry-entry max-total-supply {:from creator-addr})
         meme (meme/load-meme registry-entry)
-        tx (meme-token/transfer-multi-and-start-auction {:from creator-addr
-                                                         :token-ids (range (:meme/token-id-start meme)
-                                                                           (+
-                                                                            (:meme/token-id-start meme)
-                                                                            (:meme/total-minted meme)))
-                                                         :start-price (web3/to-wei 0.1 :ether)
-                                                         :end-price (web3/to-wei 0.01 :ether)
-                                                         :duration max-auction-duration
-                                                         :description "Test auction"})]
+        tx (look (meme-token/transfer-multi-and-start-auction (look {:from creator-addr
+                                                                     :token-ids  (range (:meme/token-id-start meme)
+                                                                                        (dec (+
+                                                                                              (:meme/token-id-start meme)
+                                                                                              (:meme/total-minted meme))))
+                                                                     :start-price (web3/to-wei 0.1 :ether)
+                                                                     :end-price (web3/to-wei 0.01 :ether)
+                                                                     :duration max-auction-duration
+                                                                     :description "Test auction"})))]
     (testing "Creates MemeAuction under valid conditions"
       (is tx))
 
