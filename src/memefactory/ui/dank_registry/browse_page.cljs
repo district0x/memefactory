@@ -70,10 +70,10 @@
        [app-layout
         {:meta {:title "MemeFactory"
                 :description "Description"}}
-        [:div.dank-registry.index
+        [:div.dank-registry-index-page
          [search-tools {:form-data form-data
                         :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
-                        :search-id :term  
+                        :search-id :term
                         :selected-tags-id :search-tags
                         :title "Dank registry"
                         :sub-title "Sub title"

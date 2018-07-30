@@ -5,6 +5,7 @@
             [cljs-web3.eth :as web3-eth]
             [cljs.nodejs :as nodejs]
             [clojure.string :as str]
+            [clojure.string :as str]
             [clojure.string :as string]
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
@@ -14,6 +15,8 @@
             [honeysql.helpers :as sqlh]
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.db :as meme-db]
+            [memefactory.shared.contract.registry-entry :as registry-entry]
+            [print.foo :refer [look] :include-macros true]
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log])
   (:require-macros [memefactory.server.macros :refer [try-catch-throw]]))
@@ -69,27 +72,32 @@
 (defn reg-entry-status [now {:keys [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
                                     :challenge/commit-period-end :challenge/commit-period-end
                                     :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against] :as reg-entry}]
-
   (cond
     (and (< now challenge-period-end) (not challenger)) :reg-entry.status/challenge-period
     (< now commit-period-end)                           :reg-entry.status/commit-period
     (< now reveal-period-end)                           :reg-entry.status/reveal-period
-    (or (< votes-against votes-for)
-        (< challenge-period-end now))                   :reg-entry.status/whitelisted
-    :else                                               :reg-entry.status/blacklisted))
+    (and (pos? reveal-period-end)
+         (> now reveal-period-end)) (if (< votes-against votes-for)
+                                      :reg-entry.status/whitelisted
+                                      :reg-entry.status/blacklisted)
+    :else :reg-entry.status/whitelisted))   
 
 (defn reg-entry-status-sql-clause [now]
   (sql/call ;; TODO: can we remove aliases here?
    :case
    [:and
-    [:< now :re.reg-entry/challenge-period-end]
+    [:< now :re.reg-entry/challenge-period-end] 
     [:= :re.challenge/challenger nil]]                        (enum :reg-entry.status/challenge-period)
    [:< now :re.challenge/commit-period-end]                   (enum :reg-entry.status/commit-period)
    [:< now :re.challenge/reveal-period-end]                   (enum :reg-entry.status/reveal-period)
-   [:or
-    [:< :re.challenge/votes-against :re.challenge/votes-for]
-    [:< :re.reg-entry/challenge-period-end now]]              (enum :reg-entry.status/whitelisted)
-   :else                                                      (enum :reg-entry.status/blacklisted)))
+   [:and
+    [:> :re.challenge/reveal-period-end 0]
+    [:> now :re.challenge/reveal-period-end]]  (sql/call :case
+                                                         [:< :re.challenge/votes-against :re.challenge/votes-for]
+                                                         (enum :reg-entry.status/whitelisted)
+
+                                                         :else (enum :reg-entry.status/blacklisted))
+   :else (enum :reg-entry.status/whitelisted)))
 
 (defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :order-by :order-dir :owner :creator :curator :first :after] :as args}]
   (log/debug "search-memes-query-resolver" args)
@@ -410,11 +418,12 @@
   (->> (db/all {:select [:vote/option [(sql/call :count) :count]]
                 :from [:votes]
                 :where [:and
-                        [:is :vote/revealed-on]
+                        [:not= :vote/revealed-on nil]
                         [:= :reg-entry/address address]]
                 :group-by [:vote/option]})
        (apply (partial max-key :count))
-       :vote/option))
+       :vote/option
+       registry-entry/vote-options))
 
 (defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
   (log/debug "reg-entry->vote-winning-vote-option-resolver args" args)
@@ -441,14 +450,14 @@
                                             [:= (:user/address args) :vote/voter]]})
                            winning-option (reg-entry-winning-vote-option reg-entry)
                            winning-amount (case winning-option
-                                            :vote-option/vote-against votes-against
-                                            :vote-option/vote-for votes-for
+                                            :vote.option/vote-against votes-against
+                                            :vote.option/vote-for votes-for
                                             0)]
-                       (if (and (= winning-option option)
+                       (if (and (= winning-option (registry-entry/vote-options option))
                                 (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry)))
                          (/ (* amount reward-pool) winning-amount) 
                          0))]
-    (+ challenger-amount voter-amount)))
+    (+ challenger-amount voter-amount))) 
 
 (defn reg-entry->challenger [{:keys [:challenge/challenger] :as reg-entry}]
   (log/debug "reg-entry->challenger-resolver args" reg-entry)

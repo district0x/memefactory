@@ -47,37 +47,31 @@
                            :meme-auction/end-price 0.01
                            :meme-auction/duration max-duration
                            :meme-auction/description "description"})
-        errors (r/atom {})
+        errors (r/atom {:local {:meme-auction/amount {:hint (str "Max " @token-count)}
+                                :meme-auction/duration {:hint (str "Max " @max-duration)}}})
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
     (fn []
-      [:div.sell-form
-       [:div.field
-        [inputs/with-label "Amount"
-         [inputs/text-input {:form-data form-data
-                             :errors errors
-                             :id :meme-auction/amount}]]
-        [:label "Max " token-count]]
-       [:div.field
-        [inputs/with-label "Start Price"
-         [inputs/text-input {:form-data form-data
-                             :errors errors
-                             :id :meme-auction/start-price}]]]
-       [:div.field
-        [inputs/with-label "End Price"
-         [inputs/text-input {:form-data form-data
-                             :errors errors
-                             :id :meme-auction/end-price}]]]
-       [:div.field
-        [inputs/with-label "Duration"
-         [inputs/text-input {:form-data form-data
-                             :errors errors
-                             :id :meme-auction/duration}]]
-        [:label "Max " @max-duration]]
-       [:div.field
-        [inputs/with-label "Short sales pitch"
-         [inputs/textarea-input {:form-data form-data
-                                 :errors errors
-                                 :id :meme-auction/description}]]]
+      [:div.form-panel
+       [inputs/with-label "Amount"
+        [inputs/text-input {:form-data form-data
+                            :errors errors
+                            :id :meme-auction/amount}]]
+       [inputs/with-label "Start Price"
+        [inputs/amount-input {:form-data form-data
+                            :errors errors
+                            :id :meme-auction/start-price}]]
+       [inputs/with-label "End Price"
+        [inputs/amount-input {:form-data form-data
+                            :errors errors
+                            :id :meme-auction/end-price}]]
+       [inputs/with-label "Duration"
+        [inputs/int-input {:form-data form-data
+                           :errors errors
+                           :id :meme-auction/duration}]]
+       [inputs/with-label "Short sales pitch"
+        [inputs/textarea-input {:form-data form-data
+                                :errors errors
+                                :id :meme-auction/description}]]
        [:div.buttons
         [:button {:on-click #(swap! show? not)} "Cancel"]
         [tx-button/tx-button {:primary true
@@ -149,7 +143,7 @@
                                                                :meme/total-minted]]]]]]]]
                                      [:search-memes [:total-count]]
                                      [:search-meme-tokens [:total-count]]]}])]
-    (when-not (:graphql/loading? @query) 
+    (when-not (:graphql/loading? @query)
       (let [{:keys [:user/collector-rank :user/total-collected-memes :user/total-collected-token-ids
                     :user/largest-buy]} (:user @query)
             {:keys [:meme-auction/bought-for :meme-auction/meme-token]} largest-buy
@@ -243,7 +237,7 @@
                                                              [:meme-token/number
                                                               [:meme-token/meme
                                                                [:meme/title]]]]]]]]]}])]
-    (when-not (:graphql/loading? @query)      
+    (when-not (:graphql/loading? @query)
       (let [{:keys [:user/total-created-memes :user/total-created-memes-whitelisted :user/creator-rank :user/largest-sale]} (-> @query :user)
             {:keys [:meme-auction/meme-token]} largest-sale
             {:keys [:meme-token/number :meme-token/meme]} meme-token
@@ -587,7 +581,7 @@
 
     (fn [tab prefix form-data]
       [:div.tabbed-pane
-       [:div
+       [:section.search-form
         [search/search-tools (merge {:title "My Memefolio"
                                      :form-data form-data
                                      :on-selected-tags-change re-search
@@ -660,4 +654,5 @@
         [app-layout/app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
-         [tabbed-pane active-tab prefix form-data]]))))
+         [:div.memefolio-page
+          [tabbed-pane active-tab prefix form-data]]]))))

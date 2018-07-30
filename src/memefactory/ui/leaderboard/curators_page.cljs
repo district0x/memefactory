@@ -3,6 +3,7 @@
             [memefactory.ui.components.app-layout :refer [app-layout]]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
+            [react-infinite]
             [district.ui.graphql.subs :as gql]
             [goog.string :as gstring]
             [district.format :as format]

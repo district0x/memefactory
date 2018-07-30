@@ -47,7 +47,9 @@
                                                                         :user/total-created-memes-whitelisted]])
                  active-account (into [[:challenge/vote {:vote/voter active-account}
                                         [:vote/secret-hash
-                                         :vote/option]]
+                                         :vote/revealed-on
+                                         :vote/option
+                                         :vote/amount]]
                                        [:challenge/vote-winning-vote-option {:vote/voter active-account}]
                                        [:challenge/all-rewards {:user/address active-account}]]))]]])))
 

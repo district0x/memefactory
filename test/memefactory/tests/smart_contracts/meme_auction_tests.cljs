@@ -3,7 +3,7 @@
             [cljs-web3.core :as web3]
             [cljs-web3.eth :as web3-eth]
             [cljs-web3.evm :as web3-evm]
-            [cljs.test :refer-macros [deftest is testing use-fixtures async]]
+            [cljs.test :refer-macros [deftest is testing use-fixtures async run-tests]]
             [district.server.smart-contracts :refer [contract-call contract-event-in-tx]]
             [district.server.web3 :refer [web3]]
             [memefactory.server.contract.eternal-db :as eternal-db]
@@ -41,16 +41,17 @@
              (map bn/number))
         registry-entry (create-meme creator-addr deposit max-total-supply sample-meta-hash-1)
         _ (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
-        _ (meme/mint registry-entry max-total-supply {})
+        _ (meme/mint registry-entry max-total-supply {:from creator-addr})
         meme (meme/load-meme registry-entry)
-        tx (meme-token/transfer-multi-and-start-auction {:from creator-addr
-                                                         :token-ids (range (:meme/token-id-start meme)
-                                                                           (+
-                                                                            (:meme/token-id-start meme)
-                                                                            (:meme/total-minted meme)))
-                                                         :start-price (web3/to-wei 0.1 :ether)
-                                                         :end-price (web3/to-wei 0.01 :ether)
-                                                         :duration max-auction-duration})]
+        tx (look (meme-token/transfer-multi-and-start-auction (look {:from creator-addr
+                                                                     :token-ids  (range (:meme/token-id-start meme)
+                                                                                        (dec (+
+                                                                                              (:meme/token-id-start meme)
+                                                                                              (:meme/total-minted meme))))
+                                                                     :start-price (web3/to-wei 0.1 :ether)
+                                                                     :end-price (web3/to-wei 0.01 :ether)
+                                                                     :duration max-auction-duration
+                                                                     :description "Test auction"})))]
     (testing "Creates MemeAuction under valid conditions"
       (is tx))
 
@@ -88,7 +89,8 @@
                                               (:meme/token-id-start meme)
                                               (:meme/total-minted meme)))
                            :start-price (web3/to-wei 0.1 :ether)
-                           :end-price (web3/to-wei 0.01 :ether)}]
+                           :end-price (web3/to-wei 0.01 :ether)
+                           :description "Test auction"}]
         (is (thrown? js/Error (meme-token/transfer-multi-and-start-auction (assoc transfer-data :duration (+ 2 max-auction-duration)) {})))
         (is (thrown? js/Error (meme-token/transfer-multi-and-start-auction (assoc transfer-data :duration 1) {})))))
     
@@ -125,7 +127,8 @@
                                                                   :token-ids [(:meme/token-id-start meme)]
                                                                   :start-price start-price
                                                                   :end-price (web3/to-wei 0.01 :ether)
-                                                                  :duration max-auction-duration})
+                                                                  :duration max-auction-duration
+                                                                  :description "Test auction"})
         auction-address (-> (meme-auction-factory/meme-auction-event-in-tx transfer-tx)
                             :args :meme-auction)
         auction (meme-auction/load-meme-auction auction-address)]  
@@ -176,7 +179,8 @@
                                                          :token-ids [(:meme/token-id-start meme)]
                                                          :start-price (web3/to-wei 0.1 :ether)
                                                          :end-price (web3/to-wei 0.01 :ether)
-                                                         :duration max-auction-duration}
+                                                         :duration max-auction-duration
+                                                         :description "Test auction"}
                                                         {:from creator-addr})
         auction-address (-> (meme-auction-factory/meme-auction-event-in-tx tx)
                             :args :meme-auction)]

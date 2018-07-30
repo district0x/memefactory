@@ -42,3 +42,16 @@
   (warn "System started" {:config @config}))
 
 (set! *main-cli-fn* -main)
+
+(comment
+  (-> (mount/only [#'memefactory.server.generator/generator])
+      (mount/stop)
+      cljs.pprint/pprint)
+
+  (-> (mount/with-args {:generator {:memes/use-accounts 1
+                                    :memes/items-per-account 3
+                                    :memes/scenarios [:scenario/buy]}})
+      (mount/only [#'memefactory.server.generator/generator])
+      (mount/start)
+      cljs.pprint/pprint)
+ )
