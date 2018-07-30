@@ -12,6 +12,7 @@
             [memefactory.styles.pages.home :as page.home]
             [memefactory.styles.pages.marketplace :as page.marketplace]
             [memefactory.styles.pages.mymemefolio :as page.memefolio]
+            [memefactory.styles.pages.dankregistry :as page.dankregistry]
             ))
 
 (defstyles main
@@ -25,4 +26,5 @@
   page.marketplace/core
   form/core
   dr.submit/core
-  page.memefolio/core)
+  page.memefolio/core
+  page.dankregistry/core)

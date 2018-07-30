@@ -1,4 +1,4 @@
-(ns memefactory.styles.pages.mymemefolio
+(ns memefactory.styles.pages.dankregistry
   (:require [garden.def :refer [defstyles]]
             [garden.stylesheet :refer [at-media]]
             [clojure.string :as s]
@@ -13,7 +13,7 @@
             [clojure.string :as str]))
 
 (defstyles core
-  [:.memefolio-page
+  [:.dank-registry-index-page
    (search-panel {:background-panel-image "/assets/icons/search-background.png"
                   :color :mymemefolio-green
                   :icon "/assets/icons/mymemefolio-green.png"})
@@ -30,16 +30,4 @@
     [">div>div"
      {:display :flex
       :flex-wrap :wrap
-      :justify-content :space-evenly}]]
-   [:.tabs
-    {:display :flex
-     :height (em 3)
-     :line-height (em 3)
-     :flex-wrap :wrap
-     :justify-content :space-evenly}
-    [">div"
-     [:a
-      {:color (color :section-subcaption)}
-      [:&.active
-       (border-bottom {:color (color :pink)
-                       :width (px 2)})]]]]])
+      :justify-content :space-evenly}]]])
