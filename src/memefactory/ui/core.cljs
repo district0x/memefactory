@@ -8,8 +8,7 @@
     [district.ui.now]
     [district.ui.reagent-render]
     [district.ui.router-google-analytics]
-    [district.ui.router]
-    [district.ui.server-config]
+    [district.ui.router]    
     [district.ui.smart-contracts]
     [district.ui.web3-account-balances]
     [district.ui.web3-accounts]
@@ -48,8 +47,6 @@
     [print.foo :include-macros true]
     [re-frisk.core :refer [enable-re-frisk!]]))
 
-(goog-define server-config-url "http://localhost:6200/config")
-
 (def debug? ^boolean js/goog.DEBUG)
 
 (defn dev-setup []
@@ -74,6 +71,5 @@
                          :default-route :route/home}
                 :router-google-analytics {:enabled? (not debug?)}
                 :graphql {:schema graphql-schema
-                          :url "http://localhost:6300/graphql"}}
-               {:server-config {:url server-config-url}}))
+                          :url "http://localhost:6300/graphql"}}))
       (mount/start)))

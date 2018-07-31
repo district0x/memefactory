@@ -16,8 +16,7 @@
    [cljs-time.core :as t]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.ui.components.panes :refer [tabbed-pane]]
-   [memefactory.ui.components.challenge-list :refer [challenge-list]]
-   [district.ui.server-config.subs :as config-subs]
+   [memefactory.ui.components.challenge-list :refer [challenge-list]]   
    [district.format :as format]
    [reagent.ratom :refer [reaction]]))
 
@@ -33,7 +32,9 @@
         tx-id address
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
-        dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])
+        dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db 
+                                                                 [:meme-registry-db
+                                                                  [:deposit]]]]}]) [:eternal-db :meme-registry-db :deposit])
         errors (reaction {:local (let [{:keys [comment]} @form-data]
                                    (cond-> {}
                                      (empty? comment)
@@ -53,9 +54,9 @@
                                       (dispatch [::dr-events/add-challenge {:send-tx/id tx-id
                                                                             :reg-entry/address address
                                                                             :comment (:comment @form-data)
-                                                                            :deposit @dank-deposit}]))}
+                                                                            :deposit dank-deposit}]))}
           "Challenge"]
-         [:span.dank (format/format-token @dank-deposit  {:token "DANK"})]]
+         [:span.dank (format/format-token dank-deposit  {:token "DANK"})]]
         [:button {:on-click #(swap! open? not)} "Challenge"])])))
 
 (defmethod page :route.dank-registry/challenge []

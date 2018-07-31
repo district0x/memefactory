@@ -5,8 +5,8 @@
             [district.time :as time]
             [district.ui.component.form.input :as inputs]
             [district.ui.component.tx-button :as tx-button]
+            [district.ui.graphql.subs :as gql]
             [district.ui.now.subs]
-            [district.ui.server-config.subs :as config-subs]
             [district.ui.web3-accounts.subs :as accounts-subs]
             [district.ui.web3-tx-id.subs :as tx-id-subs]
             [memefactory.shared.utils :as shared-utils]
@@ -26,8 +26,11 @@
      (str "/assets/images/examplememe" img ".png"))))
 
 (defn meme-image [image-hash]
-  (let [gateway @(subscribe [::config-subs/config :ipfs :gateway])]
-    [:img {:src (str (format/ensure-trailing-slash gateway) image-hash)}]))
+  (let [gateway (subscribe [::gql/query
+                            {:queries [[:config 
+                                        [[:ipfs [:gateway]]]]]}])]        
+    (when-not (:graphql/loading? @gateway)
+      [:img {:src (str (format/ensure-trailing-slash (-> @gateway :config :ipfs :gateway)) image-hash)}])))
 
 (defn flippable-tile [{:keys [:front :back :id]}]
   (let [flipped? (r/atom false)

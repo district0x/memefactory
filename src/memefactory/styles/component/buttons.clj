@@ -24,3 +24,24 @@
     :background-color (c/color color)}
    [:&:after {:content ;;"&#8594;"
               "' →'"}]])
+
+
+(defn get-dank-button []
+  [:&
+   (font :bungee)
+   {:position :relative
+    ;; :bottom (em -2)
+    ;; :top (em -2)
+    :top (em 0)
+    :height (em 4)
+    :line-height (em 4)
+    :right (px 0)
+    :display :block
+    :color (c/color :white)
+    :background (str "url('/assets/icons/gears-button-bg-l.png') left 1em center / 40% 60% no-repeat,"
+                     "url('/assets/icons/gears-button-bg-r.png') right 1em center / 40% 60% no-repeat "
+
+                     (c/color :purple))
+    :border-radius "0 0 1em 1em"
+    :text-align :center
+    :left (px 0)}])

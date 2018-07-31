@@ -59,6 +59,8 @@
     param(db: String!, key: String!): Parameter
     params(db: String!, keys: [String!]): [Parameter]
     overallStats : OverallStats
+    config: Config
+    eternalDb: EternalDb
   }
 
   enum OrderDir {
@@ -383,10 +385,31 @@
     param_value: Float
   }
 
-  
   type OverallStats {
     totalMemesCount: Int
     totalTokensCount: Int
   }
 
+  type Config {
+   ipfs: Ipfs
+  }
+
+  type Ipfs {
+    host: String
+    endpoint: String
+    gateway: String
+  }
+
+  type EternalDb {
+    memeRegistryDb: MemeRegistryDb
+  }
+
+  type MemeRegistryDb {
+    maxTotalSupply: Int
+    maxAuctionDuration: Int
+    deposit: Float
+    commitPeriodDuration: Int
+    revealPeriodDuration: Int
+  }
+  
 ")

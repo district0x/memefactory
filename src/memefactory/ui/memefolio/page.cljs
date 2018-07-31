@@ -15,7 +15,6 @@
             [district.ui.router.events :as router-events]
             [district.ui.router.subs :as router-subs]
             [district.ui.now.subs :as now-subs]
-            [district.ui.server-config.subs :as config-subs]
             [district.ui.web3-accounts.subs :as accounts-subs]
             [district.ui.web3-tx-id.subs :as tx-id-subs]
             [memefactory.shared.utils :as shared-utils]
@@ -41,11 +40,12 @@
 
 (defn sell-form [{:keys [:meme/title :meme-auction/token-count :meme-auction/token-ids :show?]}]
   (let [tx-id (str (random-uuid))
-        max-duration (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :max-auction-duration])
+        max-duration (get-in @(subscribe [::gql/query {:queries [[:eternal-db
+                                                           [[:meme-registry-db [:max-auction-duration]]]]]}]) [:eternal-db :meme-registry-db :max-auction-duration])
         form-data (r/atom {:meme-auction/amount token-count
                            :meme-auction/start-price 0.1
                            :meme-auction/end-price 0.01
-                           :meme-auction/duration @max-duration
+                           :meme-auction/duration max-duration
                            :meme-auction/description "description"})
         errors (r/atom {:local {:meme-auction/amount {:hint (str "Max " @token-count)}
                                 :meme-auction/duration {:hint (str "Max " @max-duration)}}})
@@ -80,11 +80,11 @@
                               :pending-text "Creating offering..."
                               :on-click (fn []
                                           (dispatch [:meme-token/transfer-multi-and-start-auction (merge @form-data
-                                                                                                                  {:send-tx/id tx-id
-                                                                                                                   :meme/title title
-                                                                                                                   :meme-auction/token-ids (->> token-ids
-                                                                                                                                                (take (int (:meme-auction/amount @form-data)))
-                                                                                                                                                (map int))})]))}
+                                                                                                         {:send-tx/id tx-id
+                                                                                                          :meme/title title
+                                                                                                          :meme-auction/token-ids (->> token-ids
+                                                                                                                                       (take (int (:meme-auction/amount @form-data)))
+                                                                                                                                       (map int))})]))}
          "Create Offering"]]])))
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]

@@ -54,7 +54,7 @@
       (doall
        (for [{:keys [:reg-entry/address] :as meme} all-memes]
          ^{:key address}
-         [tiles/meme-tile {} meme]))]])) 
+         [tiles/meme-tile {} {:meme-token/meme meme}]))]])) 
 
 (defmethod page :route.dank-registry/browse []
   (let [active-page (subscribe [::router-subs/active-page])

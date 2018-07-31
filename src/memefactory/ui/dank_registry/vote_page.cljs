@@ -26,10 +26,11 @@
 (def page-size 2)
 
 (defn header []
-  [:div.header
-   [:h2 "Dank registry - Vote"]
-   [:h3 "Lorem ipsum dolor sit ..."]
-   [:div [:div "Get Dank"]]])
+  [:div.registry-vote-header
+   [:div.icon]
+   [:h2.title "Dank registry - Submit"]
+   [:h3.title "Lorem ipsum dolor sit ..."]
+   [:div.get-dank-button "Get Dank"]])
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards]}]
   (let [tx-id address
@@ -47,7 +48,7 @@
                                                                  0))]]]
      [pending-button {:pending? @tx-pending?
                       :disabled (or (not (pos? all-rewards))
-                                    @tx-pending? @tx-success?) 
+                                    @tx-pending? @tx-success?)
                       :pending-text "Collecting ..."
                       :on-click (fn []
                                   (dispatch [::dr-events/collect-all-rewards {:send-tx/id tx-id
@@ -138,20 +139,22 @@
         [app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
-         [:div.dank-registry-submit 
-          [header]
-          [tabbed-pane
-           [{:title "Open Challenges"
-             :content [challenge-list {:include-challenger-info? false
-                                       :query-params {:statuses [:reg-entry.status/commit-period
-                                                                 :reg-entry.status/reveal-period]}
-                                       :active-account @account
-                                       :action-child reveal-vote-action
-                                       :key :vote-page/open}]}
-            {:title "Resolved Challenges"
-             :content [challenge-list {:include-challenger-info? true
-                                       :query-params {:statuses [:reg-entry.status/blacklisted
-                                                                 :reg-entry.status/whitelisted]}
-                                       :active-account @account
-                                       :action-child collect-reward-action
-                                       :key :vote-page/resolved}]}]]]]))))
+         [:div.dank-registry-vote-page
+          [:section.vote-header
+           [header]]
+          [:section.challenges
+           [tabbed-pane
+            [{:title "Open Challenges"
+              :content [challenge-list {:include-challenger-info? false
+                                        :query-params {:statuses [:reg-entry.status/commit-period
+                                                                  :reg-entry.status/reveal-period]}
+                                        :active-account @account
+                                        :action-child reveal-vote-action
+                                        :key :vote-page/open}]}
+             {:title "Resolved Challenges"
+              :content [challenge-list {:include-challenger-info? true
+                                        :query-params {:statuses [:reg-entry.status/blacklisted
+                                                                  :reg-entry.status/whitelisted]}
+                                        :active-account @account
+                                        :action-child collect-reward-action
+                                        :key :vote-page/resolved}]}]]]]]))))
