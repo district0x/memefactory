@@ -15,7 +15,6 @@
    [re-frame.core :as re-frame]
    [district.ui.graphql.subs :as gql]
    [district.format :as format]
-   [district.ui.server-config.subs :as config-subs]
    [memefactory.ui.components.tiles :refer [meme-image]]
    [reagent.ratom :refer [reaction]]))
 
@@ -32,7 +31,9 @@
 
 (defmethod page :route.dank-registry/submit []
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
-        dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])
+        dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db
+                                                                  [:meme-registry-db
+                                                                   [:deposit]]]]}]) [:eternal-db :meme-registry-db :deposit])
         form-data (r/atom {})
         errors (reaction {:local (let [{:keys [title issuance file-info]} @form-data]
                                    (cond-> {:issuance {:hint (str "Max " max-meme-issuance)}}
@@ -86,9 +87,9 @@
          ;; [:span.max-issuance (str "Max " max-meme-issuance)]
          [:div.submit
           [:button {:on-click (fn []
-                                (dispatch [::dr-events/upload-meme @form-data @dank-deposit])
+                                (dispatch [::dr-events/upload-meme @form-data dank-deposit])
                                 (reset! form-data {}))
                     :disabled (not (empty? @critical-errors))}
            "Submit"]
-          [:span.dank (format/format-token @dank-deposit {:token "DANK"})]]]]
+          [:span.dank (format/format-token dank-deposit {:token "DANK"})]]]]
        ]])))

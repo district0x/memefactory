@@ -1,24 +1,31 @@
 (ns memefactory.server.graphql-resolvers
-  (:require [cljs.nodejs :as nodejs]
+  (:require [bignumber.core :as bn]
             [cljs-time.core :as t]
-            [clojure.string :as string]
-            [district.server.db :as db]
-            [district.graphql-utils :as graphql-utils]
-            [honeysql.core :as sql]
-            [honeysql.helpers :as sqlh]
-            [district.server.web3 :as web3]
             [cljs-web3.core :as web3-core]
             [cljs-web3.eth :as web3-eth]
-            [taoensso.timbre :as log]
-            [memefactory.server.db :as meme-db]
+            [cljs.nodejs :as nodejs]
             [clojure.string :as str]
+            [clojure.string :as str]
+            [clojure.string :as string]
+            [district.graphql-utils :as graphql-utils]
+            [district.server.config :refer [config]]
+            [district.server.db :as db]
+            [district.server.web3 :as web3]
+            [honeysql.core :as sql]
+            [honeysql.helpers :as sqlh]
+            [memefactory.server.contract.eternal-db :as eternal-db]
+            [memefactory.server.db :as meme-db]
+            [memefactory.shared.contract.registry-entry :as registry-entry]
             [print.foo :refer [look] :include-macros true]
-            [memefactory.shared.contract.registry-entry :as registry-entry])
+            [print.foo :refer [look] :include-macros true]
+            [taoensso.timbre :as log])
   (:require-macros [memefactory.server.macros :refer [try-catch-throw]]))
 
 (def enum graphql-utils/kw->gql-name)
 
 (def graphql-fields (nodejs/require "graphql-fields"))
+
+(def whitelisted-config-keys [:ipfs])
 
 (defn- query-fields
   "Returns the first order fields"
@@ -26,8 +33,8 @@
   (->> (-> document
            graphql-fields
            (js->clj))
-       (#(if-let [p (name path)]
-           (get-in % [p])
+       (#(if path
+           (get-in % [(-> path enum name)])
            %))
        keys
        (map graphql-utils/gql-name->kw)
@@ -375,6 +382,20 @@
                                 :from [:memes]}))
    :total-tokens-count (:count (db/get {:select [[(sql/call :count :*) :count]]
                                         :from [:meme-tokens]}))})
+
+(defn config-query-resolver []
+  (log/debug "config-query-resolver")
+  (try-catch-throw
+   (select-keys @config whitelisted-config-keys)))
+
+(defn eternal-db-query-resolver [_ _ _ document]
+  (try-catch-throw
+   (let [contract-key (-> document (query-fields) first)
+         fields (query-fields document :meme-registry-db)]
+     (log/debug "eternal-db-query-resolver fields" {:contract-key contract-key
+                                                    :fields fields})     
+     {contract-key (zipmap fields (->> (eternal-db/get-uint-values contract-key fields)
+                                       (map bn/number)))})))
 
 (defn vote->option-resolver [{:keys [:vote/option] :as vote}]
   (cond
@@ -803,7 +824,9 @@
            :search-users search-users-query-resolver
            :param param-query-resolver
            :params params-query-resolver
-           :overall-stats overall-stats-resolver}
+           :overall-stats overall-stats-resolver
+           :config config-query-resolver
+           :eternal-db eternal-db-query-resolver}
    :Vote {:vote/option vote->option-resolver
           :vote/reward vote->reward-resolver}
    :Meme {:reg-entry/status reg-entry->status-resolver

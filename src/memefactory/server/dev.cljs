@@ -19,7 +19,7 @@
    [district.server.web3-watcher]
    [goog.date.Date]
    [graphql-query.core :refer [graphql-query]]
-   [memefactory.server.api]
+   #_[memefactory.server.api]
    [memefactory.server.db]
    [memefactory.server.deployer]
    [memefactory.server.emailer]

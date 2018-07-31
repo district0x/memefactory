@@ -16,7 +16,6 @@
    [district.ui.now.subs :as now-subs]
    [district.ui.router.events :as router-events]
    [district.ui.router.subs :as router-subs]
-   [district.ui.server-config.subs :as config-subs]
    [district.ui.web3-account-balances.subs :as account-balances-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
@@ -334,7 +333,8 @@
         tx-id (:reg-entry/address meme)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
-        dank-deposit (subscribe [::config-subs/config :deployer :initial-registry-params :meme-registry :deposit])]
+        dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db
+                                                                  [[:meme-registry-db [:dank-deposit]]]]]}]) [:eternal-db :meme-registry-db :dank-deposit])]
     (fn []
       [:div
        [:b "Challenge explanation"]
@@ -349,7 +349,7 @@
                              :on-click #(dispatch [::dank-registry-events/add-challenge {:send-tx/id tx-id
                                                                                          :reg-entry/address (:reg-entry/address meme)
                                                                                          :comment (:challenge/comment @form-data)
-                                                                                         :deposit @dank-deposit}])}
+                                                                                         :deposit dank-deposit}])}
         "Challenge"]])))
 
 (defn remaining-time-component [to-time]
