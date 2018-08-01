@@ -27,3 +27,4 @@ before_script:
 - ipfs-update/ipfs-update install latest
 - ipfs init
 - ipfs daemon > /dev/null &
+- ls node_modules
