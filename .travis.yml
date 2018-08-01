@@ -27,4 +27,3 @@ before_script:
 - ipfs-update/ipfs-update install latest
 - ipfs init
 - ipfs daemon > /dev/null &
-- find node_modules/ethereumjs-wallet/ -exec wc -c {} +
