@@ -25,8 +25,7 @@
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.dank-registry.events :as dank-registry-events]
    [memefactory.ui.events.registry-entry :as registry-entry-events]
-   ;; TODO : move to tiles
-   [memefactory.ui.memefolio.page :refer [panel]]
+   [memefactory.ui.components.panels :refer [panel]]
    [memefactory.ui.spec :as spec]
    [memefactory.ui.utils :as ui-utils]
    [print.foo :refer [look] :include-macros true]
@@ -169,9 +168,6 @@
                                                          [:meme-auction/meme-token
                                                           [:meme-token/token-id]]]]]]]}])]
         (when-not (:graphql/loading? @query)
-
-          #_(prn @query)
-
           [:h1 "Marketplace history"]
           [:table {:style {:table-layout "fixed"
                            :border-collapse "collapse"}}
@@ -556,5 +552,5 @@
                  [history-component address]]
                 [:div.challenge {:style {:grid-area "challenge"}}
                  [challenge-component meme]]
-                #_[:div.related {:style {:grid-area "related"}}
+                [:div.related {:style {:grid-area "related"}}
                  [related-memes-container address tags]]]])))))))

@@ -30,7 +30,8 @@
                             {:queries [[:config 
                                         [[:ipfs [:gateway]]]]]}])]        
     (when-not (:graphql/loading? @gateway)
-      [:img {:src (str (format/ensure-trailing-slash (-> @gateway :config :ipfs :gateway)) image-hash)}])))
+      (if-let [url (-> @gateway :config :ipfs :gateway)]
+       [:img {:src (str (format/ensure-trailing-slash url) image-hash)}]))))
 
 (defn flippable-tile [{:keys [:front :back :id]}]
   (let [flipped? (r/atom false)
