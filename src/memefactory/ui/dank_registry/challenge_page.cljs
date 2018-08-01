@@ -1,24 +1,27 @@
 (ns memefactory.ui.dank-registry.challenge-page
   (:require
-   [district.ui.component.page :refer [page]]
-   [memefactory.ui.components.app-layout :refer [app-layout]]
-   [reagent.core :as r]
-   [print.foo :refer [look] :include-macros true]
-   [district.ui.component.form.input :refer [select-input with-label text-input pending-button]]
-   [react-infinite]
-   [memefactory.ui.dank-registry.events :as dr-events]
-   [re-frame.core :as re-frame :refer [subscribe dispatch]]
-   [district.ui.graphql.subs :as gql]
-   [goog.string :as gstring]
-   [district.time :as time]
+   [cljs-time.core :as t]
    [cljs-time.extend]
    [district.format :as format]
-   [cljs-time.core :as t]
-   [district.ui.web3-tx-id.subs :as tx-id-subs]
-   [memefactory.ui.components.panes :refer [tabbed-pane]]
-   [memefactory.ui.components.challenge-list :refer [challenge-list]]   
    [district.format :as format]
-   [reagent.ratom :refer [reaction]]))
+   [district.time :as time]
+   [district.ui.component.form.input :refer [select-input with-label text-input pending-button]]
+   [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
+   [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [goog.string :as gstring]
+   [memefactory.ui.events :as memefactory-events]
+   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.challenge-list :refer [challenge-list]]   
+   [memefactory.ui.components.panes :refer [tabbed-pane]]
+   [memefactory.ui.contract.registry-entry :as registry-entry]
+   [memefactory.ui.dank-registry.events :as dr-events]
+   [print.foo :refer [look] :include-macros true]
+   [re-frame.core :as re-frame :refer [subscribe dispatch]]
+   [react-infinite]
+   [reagent.core :as r]
+   [reagent.ratom :refer [reaction]]
+   ))
 
 (defn header []
   [:div.header
@@ -30,34 +33,34 @@
   (let [form-data (r/atom {})
         open? (r/atom false)
         tx-id address
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
         dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db 
-                                                                 [:meme-registry-db
-                                                                  [:deposit]]]]}]) [:eternal-db :meme-registry-db :deposit])
+                                                                  [:meme-registry-db
+                                                                   [:deposit]]]]}]) [:eternal-db :meme-registry-db :deposit])
         errors (reaction {:local (let [{:keys [comment]} @form-data]
                                    (cond-> {}
                                      (empty? comment)
                                      (assoc :comment "Comment shouldn't be empty.")))})]
     (fn [{:keys [:reg-entry/address]}]
-     [:div.challenge-controls
-      [:img.vs]
-      (if @open?
-        [:div
-         [text-input {:form-data form-data
-                      :id :comment
-                      :errors errors}]
-         [pending-button {:pending? @tx-pending?
-                          :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
-                          :pending-text "Challenging ..."
-                          :on-click (fn []
-                                      (dispatch [::dr-events/add-challenge {:send-tx/id tx-id
-                                                                            :reg-entry/address address
-                                                                            :comment (:comment @form-data)
-                                                                            :deposit dank-deposit}]))}
-          "Challenge"]
-         [:span.dank (format/format-token dank-deposit  {:token "DANK"})]]
-        [:button {:on-click #(swap! open? not)} "Challenge"])])))
+      [:div.challenge-controls
+       [:img.vs]
+       (if @open?
+         [:div
+          [text-input {:form-data form-data
+                       :id :comment
+                       :errors errors}]
+          [pending-button {:pending? @tx-pending?
+                           :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
+                           :pending-text "Challenging ..."
+                           :on-click (fn []
+                                       (dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
+                                                                                      :reg-entry/address address
+                                                                                      :comment (:comment @form-data)
+                                                                                      :deposit dank-deposit}]))}
+           "Challenge"]
+          [:span.dank (format/format-token dank-deposit  {:token "DANK"})]]
+         [:button {:on-click #(swap! open? not)} "Challenge"])])))
 
 (defmethod page :route.dank-registry/challenge []
   [app-layout

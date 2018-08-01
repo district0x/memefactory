@@ -22,10 +22,11 @@
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :as app-layout]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-   [memefactory.ui.components.tiles :as tiles]
-   [memefactory.ui.dank-registry.events :as dank-registry-events]
-   [memefactory.ui.events.registry-entry :as registry-entry-events]
    [memefactory.ui.components.panels :refer [panel]]
+   [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.contract.meme-factory :as meme-factory]
+   [memefactory.ui.contract.registry-entry :as registry-entry]
+   [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.spec :as spec]
    [memefactory.ui.utils :as ui-utils]
    [print.foo :refer [look] :include-macros true]
@@ -98,7 +99,8 @@
     (when-not (:graphql/loading? @query)
       [:div.creator
        [:b "Creator"]
-       [:div.rank (str "Rank: #" creator-rank " (" (format/format-eth (web3/from-wei creator-total-earned :ether)) ")")]
+       [:div.rank (str "Rank: #" creator-rank " ("
+                       (format/format-token creator-total-earned {:token "DANK"}) ")")]
        [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                           (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
        [:div.address (str "Address: " address)]])))
@@ -270,7 +272,8 @@
                 :user/total-created-challenges :user/total-created-challenges-success]} challenger]
     [:div
      [:b "Challenger"]
-     [:div.rank (str "Rank: #" challenger-rank " (" (format/format-token challenger-total-earned {:token "DANK"}) ")")]
+     [:div.rank (str "Rank: #" challenger-rank " (" 
+                     (format/format-token challenger-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
      [:div.address (str "Address: " (:user/address challenger))]
@@ -293,8 +296,8 @@
         active-account (subscribe [::accounts-subs/active-account])
         option (graphql-utils/gql-name->kw option)
         tx-id (:reg-entry/address meme)
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry-events/claim-vote-reward tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry-events/claim-vote-reward tx-id}])]
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])]
     [:div
      [:div {:style {:float "left"}}
       [donut-chart meme]]
@@ -315,11 +318,11 @@
                                                @tx-success?)
                                  :pending? @tx-pending?
                                  :pending-text "Collecting reward..."
-                                 :on-click #(dispatch [::registry-entry-events/claim-vote-reward {:send-tx/id tx-id
-                                                                                                  :reg-entry/address (:reg-entry/address meme)
-                                                                                                  :from (case option
-                                                                                                          :vote-option/vote-for (:user/address challenger)
-                                                                                                          :vote-option/vote-against (:user/address creator))}])}
+                                 :on-click #(dispatch [::registry-entry/claim-vote-reward {:send-tx/id tx-id
+                                                                                           :reg-entry/address (:reg-entry/address meme)
+                                                                                           :from (case option
+                                                                                                   :vote-option/vote-for (:user/address challenger)
+                                                                                                   :vote-option/vote-against (:user/address creator))}])}
             "Collect Reward"])])]]))
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit] :as meme}]
@@ -337,15 +340,15 @@
        [inputs/textarea-input {:form-data form-data
                                :id :challenge/comment
                                :errors errors}]
-       [format/format-token deposit {:token "DANK"}]
+       [:div (format/format-token deposit {:token "DANK"})]
        [tx-button/tx-button {:primary true
                              :disabled (or @tx-success? (not (empty? (:local @errors))))
                              :pending? @tx-pending?
                              :pending-text "Challenging..."
-                             :on-click #(dispatch [::dank-registry-events/add-challenge {:send-tx/id tx-id
-                                                                                         :reg-entry/address (:reg-entry/address meme)
-                                                                                         :comment (:challenge/comment @form-data)
-                                                                                         :deposit dank-deposit}])}
+                             :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
+                                                                                       :reg-entry/address (:reg-entry/address meme)
+                                                                                       :comment (:challenge/comment @form-data)
+                                                                                       :deposit dank-deposit}])}
         "Challenge"]])))
 
 (defn remaining-time-component [to-time]
@@ -368,7 +371,7 @@
                              :disabled @tx-success?
                              :pending? @tx-pending?
                              :pending-text "Revealing..."
-                             :on-click #(dispatch [::dank-registry-events/reveal-vote
+                             :on-click #(dispatch [::registry-entry/reveal-vote
                                                    {:send-tx/id tx-id
                                                     :reg-entry/address (:reg-entry/address meme)}
                                                    vote])}
@@ -406,10 +409,10 @@
                                              @tx-success?)
                                :pending? @tx-pending?
                                :pending-text "Voting..."
-                               :on-click #(dispatch [::dank-registry-events/commit-vote {:send-tx/id tx-id
-                                                                                         :reg-entry/address (:reg-entry/address meme)
-                                                                                         :vote/option :vote.option/vote-for
-                                                                                         :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
+                               :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                                               :reg-entry/address (:reg-entry/address meme)
+                                                                                               :vote/option :vote.option/vote-for
+                                                                                               :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
           "Vote Dank"]]]
        [inputs/with-label "Amount "
         [:div
@@ -422,10 +425,10 @@
                                              @tx-success?)
                                :pending? @tx-pending?
                                :pending-text "Voting..."
-                               :on-click #(dispatch [::dank-registry-events/commit-vote {:send-tx/id tx-id
-                                                                                         :reg-entry/address (:reg-entry/address meme)
-                                                                                         :vote/option :vote.option/vote-against
-                                                                                         :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
+                               :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                                               :reg-entry/address (:reg-entry/address meme)
+                                                                                               :vote/option :vote.option/vote-against
+                                                                                               :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
           "Vote STANK"]]]
        [:div "You can vote with up to " (format/format-token balance-dank {:token "DANK"})]
        [:div "Token will be returned to you after revealing your vote."]])))

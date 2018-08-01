@@ -6,6 +6,7 @@
    [print.foo :refer [look] :include-macros true]
    [district.ui.component.form.input :refer [select-input with-label text-input pending-button]]
    [react-infinite]
+   [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.dank-registry.events :as dr-events]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [district.ui.graphql.subs :as gql]
@@ -33,81 +34,87 @@
    [:div.get-dank-button "Get Dank"]])
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards]}]
-  (let [tx-id address
-        active-account (subscribe [::accounts-subs/active-account])
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/collect-all-rewards tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/collect-all-rewards tx-id}])]
-    [:div.collect-reward
-     [:img]
-     [:ol.vote-info
-      [:li [with-label "Voted dank:" (gstring/format "%d%% - %d" 62 55234)]]
-      [:li [with-label "Voted stank:" (gstring/format "%d%% - %d" 38 34567)]]
-      [:li [with-label "Total voted:" (gstring/format "%d" 87234)]]
-      [:li [with-label "Your reward:" (gstring/format "%f MFM" (if  (pos? all-rewards)
-                                                                 all-rewards
-                                                                 0))]]]
-     [pending-button {:pending? @tx-pending?
-                      :disabled (or (not (pos? all-rewards))
-                                    @tx-pending? @tx-success?)
-                      :pending-text "Collecting ..."
-                      :on-click (fn []
-                                  (dispatch [::dr-events/collect-all-rewards {:send-tx/id tx-id
-                                                                              :active-account @active-account
-                                                                              :reg-entry/address address}]))}
-      "Collect Reward"]]))
+  (let [active-account (subscribe [::accounts-subs/active-account])]
+    (when @active-account
+      (let [response (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
+                                                         [:challenge/votes-for
+                                                          :challenge/votes-against
+                                                          :challenge/votes-total]]]}])]
+        (when-not (:graphql/loading? @response)
+          (if-let [meme (:meme @response)]
+            (let [tx-id address
+                  {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]} meme
+                  tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/collect-all-rewards tx-id}])
+                  tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/collect-all-rewards tx-id}])]
+              [:div.collect-reward
+               [:img]
+               [:ol.vote-info
+                [:li [with-label (str "Voted dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]]
+                [:li [with-label (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]]
+                [:li [with-label "Total voted: " (gstring/format "%d" votes-total)]]
+                [:li [with-label "Your reward: " (format/format-token all-rewards {:token "DANK"})]]]
+               [pending-button {:pending? @tx-pending?
+                                :disabled (or (not (pos? all-rewards))
+                                              @tx-pending? @tx-success?)
+                                :pending-text "Collecting ..."
+                                :on-click (fn []
+                                            (dispatch [::dr-events/collect-all-rewards {:send-tx/id tx-id
+                                                                                        :active-account @active-account
+                                                                                        :reg-entry/address address}]))}
+                "Collect Reward"]])))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote] :as meme}]
   (let [tx-id address
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/commit-vote tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/commit-vote tx-id}])
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])
         form-data (r/atom {})
         errors (reaction {:local (let [{:keys [amount-vote-for amount-vote-against]} @form-data]
                                    (cond-> {}
                                      (not (try (< 0 (js/parseInt amount-vote-for)) (catch js/Error e nil)))
                                      (assoc :amount-vote-for "Amount to vote for should be a positive number")
-                                     
+
                                      (not (try (< 0 (js/parseInt amount-vote-against)) (catch js/Error e nil)))
                                      (assoc :amount-vote-against "Amount to vote against should be a positive number")))})]
     (fn [{:keys [:reg-entry/address :challenge/vote] :as meme}]
       (let [voted? (or (pos? (:vote/amount vote))
                        @tx-pending?
                        @tx-success?)]
-       [:div.vote
-        [with-label "Amount "
-         [:div [text-input {:form-data form-data
-                            :id :amount-vote-for
-                            :errors errors}]
-          [:span "DANK"]]]
-        [pending-button {:pending? @tx-pending?
-                         :pending-text "Voting ..."
-                         :disabled (or voted? (-> @errors :local :amount-vote-for)) 
-                         :on-click (fn []
-                                     (dispatch [::dr-events/commit-vote {:send-tx/id tx-id
-                                                                         :reg-entry/address address
-                                                                         :vote/option :vote.option/vote-for
-                                                                         :vote/amount (-> @form-data :amount-vote-for js/parseInt)}]))}
-         "Vote Dank"]
-        [with-label "Amount "
-         [:div [text-input {:form-data form-data
-                            :id :amount-vote-against
-                            :errors errors}]
-          [:span "DANK"]]]
-        [pending-button {:pending? @tx-pending?                         
-                         :pending-text "Voting ..."
-                         :disabled (or voted? (-> @errors :local :amount-vote-against)) 
-                         :on-click (fn []
-                                     (dispatch [::dr-events/commit-vote {:send-tx/id tx-id
-                                                                         :reg-entry/address address
-                                                                         :vote/option :vote.option/vote-against
-                                                                         :vote/amount (-> @form-data :amount-vote-against js/parseInt)}]))}
-         "Vote Stank"]
-        [:p.max-vote-tokens "You can vote with up to 1123455 DANK tokens."]
-        [:p.token-return  "Tokens will be returned to you after revealing your vote."]]))))
+        [:div.vote
+         [with-label "Amount "
+          [:div [text-input {:form-data form-data
+                             :id :amount-vote-for
+                             :errors errors}]
+           [:span "DANK"]]]
+         [pending-button {:pending? @tx-pending?
+                          :pending-text "Voting ..."
+                          :disabled (or voted? (-> @errors :local :amount-vote-for))
+                          :on-click (fn []
+                                      (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                                           :reg-entry/address address
+                                                                                           :vote/option :vote.option/vote-for
+                                                                                           :vote/amount (-> @form-data :amount-vote-for js/parseInt)}]))}
+          "Vote Dank"]
+         [with-label "Amount "
+          [:div [text-input {:form-data form-data
+                             :id :amount-vote-against
+                             :errors errors}]
+           [:span "DANK"]]]
+         [pending-button {:pending? @tx-pending?
+                          :pending-text "Voting ..."
+                          :disabled (or voted? (-> @errors :local :amount-vote-against))
+                          :on-click (fn []
+                                      (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                                           :reg-entry/address address
+                                                                                           :vote/option :vote.option/vote-against
+                                                                                           :vote/amount (-> @form-data :amount-vote-against js/parseInt)}]))}
+          "Vote Stank"]
+         [:p.max-vote-tokens "You can vote with up to 1123455 DANK tokens."]
+         [:p.token-return  "Tokens will be returned to you after revealing your vote."]]))))
 
 (defn reveal-action [{:keys [:challenge/vote :reg-entry/address] :as meme}]
   (let [tx-id (str (random-uuid))
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/reveal-vote tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/reveal-vote tx-id}])]
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])]
     (fn [{:keys [] :as meme}]
       [:div.vote
        [:img]
@@ -116,7 +123,7 @@
                         :disabled (or (not (pos? (:vote/amount vote)))
                                       (look @tx-pending?) (look @tx-success?))
                         :on-click (fn []
-                                    (dispatch [::dr-events/reveal-vote
+                                    (dispatch [::registry-entry/reveal-vote
                                                {:send-tx/id tx-id
                                                 :reg-entry/address address}
                                                vote]))}
@@ -125,7 +132,7 @@
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
   (println "REVEAL VOTE ACTION " meme)
   (case  (graphql-utils/gql-name->kw status)
-    :reg-entry.status/commit-period [vote-action meme] 
+    :reg-entry.status/commit-period [vote-action meme]
     :reg-entry.status/reveal-period [reveal-action meme]
     ;; TODO we should't need this extra case, but this component is
     ;; being rendered with old subscription value
