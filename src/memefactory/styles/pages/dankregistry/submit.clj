@@ -10,7 +10,7 @@
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
             [memefactory.styles.component.panels :refer [panel-with-icon]]
-            [memefactory.styles.component.buttons :refer [button]]
+            [memefactory.styles.component.buttons :refer [get-dank-button button]]
             [clojure.string :as str]))
 
 (defstyles core
@@ -23,27 +23,7 @@
      (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
                        :color :purple})
      [:.get-dank-button
-      (font :bungee)
-      {:position :relative
-       ;; :bottom (em -2)
-       ;; :top (em -2)
-       :top (em 0)
-       :height (em 4)
-       :line-height (em 4)
-       :right (px 0)
-       :display :block
-       :color (color :white)
-       ;; :background-color (color :purple)
-       ;; :background-image (str "url('/assets/icons/gears-button-bg.png')")
-       ;; :background-size :contain
-       ;; :background-repeat :repeat-x
-       :background (str "url('/assets/icons/gears-button-bg-l.png') left 1em center / 40% 60% no-repeat,"
-                        "url('/assets/icons/gears-button-bg-r.png') right 1em center / 40% 60% no-repeat "
-
-                        (color :purple))
-       :border-radius "0 0 1em 1em"
-       :text-align :center
-       :left (px 0)}]]]
+      (get-dank-button)]]]
    [:.upload
     {:display :grid
      :grid-template-columns "50% 50%"
