@@ -1,47 +1,42 @@
 (ns memefactory.server.dev
-  (:require
-   [camel-snake-kebab.core :as cs :include-macros true]
-   [memefactory.server.contract.registry-entry :as registry-entry]
-   [cljs-time.core :as t]
-   [cljs-web3.core :as web3]
-   [cljs.nodejs :as nodejs]
-   [cljs.pprint :as pprint]
-   [cljs-web3.eth :as web3-eth]
-   [cljs-web3.evm :as web3-evm]
-   [district.server.config :refer [config]]
-   [district.server.db :refer [db]]
-   [district.server.endpoints]
-   [district.server.graphql :as graphql]
-   [district.server.logging :refer [logging]]
-   [district.server.middleware.logging :refer [logging-middlewares]]
-   [district.server.smart-contracts]
-   [district.server.web3 :refer [web3]]
-   [district.server.web3-watcher]
-   [goog.date.Date]
-   [graphql-query.core :refer [graphql-query]]
-   #_[memefactory.server.api]
-   [memefactory.server.db]
-   [memefactory.server.deployer]
-   [memefactory.server.emailer]
-   [memefactory.server.generator]
-   [memefactory.server.graphql-resolvers :refer [resolvers-map]]
-   [memefactory.server.syncer]
-   [memefactory.server.ipfs]
-   [district.graphql-utils :as graphql-utils]
-   [memefactory.shared.graphql-schema :refer [graphql-schema]]
-   [memefactory.shared.smart-contracts]
-   [mount.core :as mount]
-   [district.server.graphql.utils :as utils]
-   [print.foo :include-macros true]
-   [clojure.pprint :refer [print-table]]
-   [district.server.db :as db]
-   [clojure.string :as str]
-   [memefactory.server.contract.dank-token :as dank-token]
-   [memefactory.server.contract.eternal-db :as eternal-db]
-   [bignumber.core :as bn]
-   [memefactory.server.graphql-resolvers :refer [reg-entry-status
-                                                 reg-entry-status-sql-clause
-                                                 last-block-timestamp]]))
+  (:require [bignumber.core :as bn]
+            [camel-snake-kebab.core :as cs :include-macros true]
+            [cljs-time.core :as t]
+            [cljs-web3.core :as web3]
+            [cljs-web3.eth :as web3-eth]
+            [cljs-web3.evm :as web3-evm]
+            [cljs.nodejs :as nodejs]
+            [cljs.pprint :as pprint]
+            [clojure.pprint :refer [print-table]]
+            [clojure.string :as str]
+            [district.graphql-utils :as graphql-utils]
+            [district.server.config :refer [config]]
+            [district.server.db :as db]
+            [district.server.db :refer [db]]
+            [district.server.graphql :as graphql]
+            [district.server.graphql.utils :as utils]
+            [district.server.logging :refer [logging]]
+            [district.server.middleware.logging :refer [logging-middlewares]]
+            [district.server.smart-contracts]
+            [district.server.web3 :refer [web3]]
+            [district.server.web3-watcher]
+            [goog.date.Date]
+            [graphql-query.core :refer [graphql-query]]
+            [memefactory.server.contract.dank-token :as dank-token]
+            [memefactory.server.contract.eternal-db :as eternal-db]
+            [memefactory.server.contract.registry-entry :as registry-entry]
+            [memefactory.server.db]
+            [memefactory.server.deployer]
+            [memefactory.server.emailer]
+            [memefactory.server.generator]
+            [memefactory.server.graphql-resolvers :refer [reg-entry-status reg-entry-status-sql-clause last-block-timestamp]]
+            [memefactory.server.graphql-resolvers :refer [resolvers-map]]
+            [memefactory.server.ipfs]
+            [memefactory.server.syncer]
+            [memefactory.shared.graphql-schema :refer [graphql-schema]]
+            [memefactory.shared.smart-contracts]
+            [mount.core :as mount]
+            [print.foo :include-macros true]))
 
 (nodejs/enable-util-print!)
 
@@ -66,7 +61,6 @@
                                        :gas-price (web3/to-wei 4 :gwei)}})
                          #'district.server.web3/web3
                          #'district.server.smart-contracts/smart-contracts))
-
 
 (defn redeploy []
   (mount/stop)
@@ -98,7 +92,6 @@
                                       :path "/graphql"
                                       :graphiql true}
                             :web3 {:port 8549}
-                            :endpoints {:port 6200}
                             :generator {:memes/use-accounts 1
                                         :memes/items-per-account 1
                                         :memes/scenarios [:scenario/buy]
@@ -170,18 +163,18 @@
        (map (fn [[address [r :as votes]]]
               {:address address
                :server-status (name (reg-entry-status (last-block-timestamp) r))
-               :query-status (-> (db/get {:select [[(reg-entry-status-sql-clause (last-block-timestamp)) :status]] 
+               :query-status (-> (db/get {:select [[(reg-entry-status-sql-clause (last-block-timestamp)) :status]]
                                           :from  [[:reg-entries :re]]
                                           :where [:= :re.reg-entry/address address]})
                                  :status
-                                 graphql-utils/gql-name->kw 
+                                 graphql-utils/gql-name->kw
                                  name)
                :blockhain-status (name (:reg-entry/status (registry-entry/load-registry-entry address)))
                :v+ (:challenge/votes-for r)
                :v- (:challenge/votes-against r)
                :v? (count (filter #(and (pos? (:vote/amount %))
                                         (or (zero? (:vote/revealed-on %))
-                                            (nil? (:vote/revealed-on %)))) votes))})) 
+                                            (nil? (:vote/revealed-on %)))) votes))}))
        print-table))
 
 (defn increase-time-to-next-period [re-address]
@@ -215,4 +208,3 @@
          (map bn/number)
          (zipmap param-keys)
          (pprint/pprint))))
-
