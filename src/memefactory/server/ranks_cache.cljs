@@ -38,7 +38,7 @@
   (atom (cache/ttl-cache-factory {nil nil} ;; Do we want to start with cold cache?
                                            ;; fails with empty map for some reason
                                  ;; something long here maybe an hour?
-                                 :ttl 10000))) 
+                                 :ttl (:ttl opts)))) 
 
 (defn stop [])
 

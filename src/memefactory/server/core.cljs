@@ -38,7 +38,7 @@
                                       (mount/stop #'memefactory.server.syncer/syncer
                                                   #'memefactory.server.emailer/emailer))}
          :syncer {:ipfs-config {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}}
-         :ranks-cache {:ttl (t/minutes 60)}})
+         :ranks-cache {:ttl (t/in-millis (t/minutes 60))}})
     (mount/except [#'memefactory.server.deployer/deployer
                    #'memefactory.server.generator/generator])
     (mount/start))
