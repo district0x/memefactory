@@ -77,11 +77,11 @@
 
 (def meme-auctions-columns
   [[:meme-auction/address address not-nil]
-   [:meme-auction/token-id :unsigned :integer not-nil]
-   [:meme-auction/seller address not-nil]
+   [:meme-auction/token-id :unsigned :integer #_not-nil]
+   [:meme-auction/seller address #_not-nil]
    [:meme-auction/buyer address default-nil]
-   [:meme-auction/start-price :BIG :INT not-nil]
-   [:meme-auction/end-price :BIG :INT not-nil]
+   [:meme-auction/start-price :BIG :INT #_not-nil]
+   [:meme-auction/end-price :BIG :INT #_not-nil]
    [:meme-auction/started-on :unsigned :integer default-nil]
    [:meme-auction/duration :unsigned :integer default-nil]
    [:meme-auction/bought-on :unsigned :integer default-nil]
@@ -240,6 +240,15 @@
                                                           meme-token-owners-column-names
                                                           {:insert-or-replace? true}))
 
+(defn meme-auction-exists? [address]
+  (boolean (seq (db/get {:select [1]
+                         :from [:meme-auctions]
+                         :where [:= :meme-auction/address address]}))))
+
+(defn insert-or-update-meme-auction! [{:keys [:meme-auction/address] :as args}]
+  (if (meme-auction-exists? address)
+    (update-meme-auction! args)
+    (insert-meme-auction! args)))
 
 (defn meme-total-trade-volume [reg-entry-address]
   (-> (db/get {:select [:meme/total-trade-volume]

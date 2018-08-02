@@ -138,19 +138,21 @@
 (defn on-auction-started [{:keys [:meme-auction :timestamp :data] :as args}]
   (log/info info-text {:args args} ::on-auction-started)
   (try-catch
-    (db/insert-meme-auction! (meme-auction/load-meme-auction meme-auction))))
+   (db/insert-or-update-meme-auction! (meme-auction/load-meme-auction meme-auction))))
 
 (defn on-auction-buy [{:keys [:meme-auction :timestamp :data] :as args}]
   (log/info info-text {:args args} ::on-auction-buy)
   (try-catch
-    (let [[_ price] data
-          price (bn/number price)
-          {reg-entry-address :reg-entry/address
-           auction-address :meme-auction/address} (meme-auction/load-meme-auction meme-auction)]
-      (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
-                                        :amount price})
-      (db/update-meme-auction! {:meme-auction/address auction-address
-                                :meme-auction/bought-for price}))))
+   (let [[buyer price] data
+         price (bn/number price)
+         {reg-entry-address :reg-entry/address
+          auction-address :meme-auction/address} (meme-auction/load-meme-auction meme-auction)]
+     (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
+                                       :amount price})
+     (db/insert-or-update-meme-auction! {:meme-auction/address auction-address
+                                         :meme-auction/bought-for price
+                                         :meme-auction/bought-on timestamp
+                                         :meme-auction/buyer (web3-utils/uint->address buyer)}))))
 
 (defn on-meme-token-transfer [err {:keys [:args]}]
   (log/info info-text {:args args} ::on-meme-token-transfer)
@@ -172,7 +174,7 @@
    :buy on-auction-buy})
 
 (defn dispatch-registry-entry-event [type err {{:keys [:event-type] :as args} :args :as event}]
-  (log/info "Dispatching smart contract event callback" {:type type :err err :evt event} ::dispatch-registry-entry-event)
+  (log/info "Dispatching smart contract event callback" {:type type :evt event} ::dispatch-registry-entry-event)
   (let [event-type (cs/->kebab-case-keyword (web3-utils/bytes32->str event-type))]
     ((get registry-entry-events event-type identity)
       (-> args
@@ -194,6 +196,7 @@
      (meme-auction-factory/meme-auction-event {} "latest" (partial dispatch-registry-entry-event :meme-auction))
      (registry/registry-entry-event [:param-change-registry :param-change-registry-fwd] {} "latest" (partial dispatch-registry-entry-event :param-change))
      (meme-token/transfer-event {} "latest" on-meme-token-transfer)
+     
      (-> (registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} {:from-block 0 :to-block (dec last-block-number)})
          (replay-past-events (partial dispatch-registry-entry-event :meme)
                              {:on-finish

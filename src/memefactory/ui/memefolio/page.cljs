@@ -11,7 +11,6 @@
             [district.ui.component.tx-button :as tx-button]
             [district.ui.graphql.events :as gql-events]
             [district.ui.graphql.subs :as gql]
-            [district.ui.graphql.utils :as graphql-ui-utils]
             [district.ui.router.events :as router-events]
             [district.ui.router.subs :as router-subs]
             [district.ui.now.subs :as now-subs]
@@ -20,9 +19,9 @@
             [memefactory.shared.utils :as shared-utils]
             [memefactory.ui.components.app-layout :as app-layout]
             [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+            [memefactory.ui.components.panels :refer [panel]]
             [memefactory.ui.components.search :as search]
             [memefactory.ui.components.tiles :as tiles]
-            [memefactory.ui.utils :as ui-utils]
             [print.foo :refer [look] :include-macros true]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
@@ -31,8 +30,6 @@
 (def default-tab :collected)
 
 (def scroll-interval 5)
-
-(defmulti panel (fn [tab & opts] tab))
 
 (defmulti rank (fn [tab & opts] tab))
 
@@ -335,25 +332,6 @@
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       [:div "Total " (get-in @query [:search-memes :total-count])])))
-
-(defmethod panel :selling [_ state]
-  [:div.tiles
-   (doall
-    (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
-           (when address
-             (let [{:keys [:meme-token/number :meme-token/meme]} meme-token
-                   {:keys [:meme/title :meme/image-hash :meme/total-minted]} meme
-                   now (subscribe [::now-subs/now])
-                   price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
-               ^{:key address} [:div.meme-card-front
-                                [tiles/meme-image image-hash]
-                                [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                           nil
-                                                           {:reg-entry/address (:reg-entry/address meme)}])}
-                                 [:div.title [:b (str "#" number " " title)]]
-                                 [:div.number-minted (str number "/" total-minted)]
-                                 [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
-         state))])
 
 (defmethod total :selling [_ active-account]
   (let [query (subscribe [::gql/query

@@ -1,4 +1,4 @@
-(ns memefactory.ui.events.meme-token-events
+(ns memefactory.ui.contract.meme-token
   (:require [cljs-web3.core :as web3]
             [cljs-web3.eth :as web3-eth]
             [cljs.spec.alpha :as s]
@@ -15,7 +15,7 @@
 (def interceptors [re-frame/trim-v])
 
 (reg-event-fx
- :meme-token/transfer-multi-and-start-auction
+ ::transfer-multi-and-start-auction
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme/title :meme-auction/token-ids :meme-auction/start-price :meme-auction/end-price :meme-auction/duration :meme-auction/description] :as args}]]
    (let [active-account (account-queries/active-account db)]
@@ -33,7 +33,7 @@
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme-token/transfer-multi-and-start-auction id}
-                                      :on-tx-success-n [[::logging/success [:meme-token/transfer-multi]]
+                                      :on-tx-success-n [[::logging/success [::transfer-multi]]
                                                         [::notification-events/show (gstring/format "Offering for %s was successfully created" title)]]
                                       :on-tx-hash-error [::logging/error [:meme-token/transfer-multi-and-start-auction]]
                                       :on-tx-error [::logging/error [:meme-token/transfer-multi-and-start-auction]]}]})))
