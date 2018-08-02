@@ -30,6 +30,7 @@
                     :light-grey "rgba(255,255,255,.7)"
 
                     :curator-card-bg "#f2f4fb"
+                    :leaderboard-curator-bg "#9cc717"
                     })
 
 (defn color [name]

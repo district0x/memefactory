@@ -20,8 +20,8 @@
      :margin-right (em 6)
      :margin-left (em 6)}
     [:.curators-panel
-     (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
-                       :color :purple})]
+     (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
+                       :color :leaderboard-curator-bg})]
     ["div.curators > div"
      {:width "100%"}
      ["> div"
