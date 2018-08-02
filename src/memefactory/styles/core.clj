@@ -12,7 +12,7 @@
             [memefactory.styles.pages.marketplace :as page.marketplace]
             [memefactory.styles.pages.mymemefolio :as page.memefolio]
             [memefactory.styles.pages.dankregistry :as page.dankregistry]
-            ))
+            [memefactory.styles.pages.leaderboard :as page.leaderboard]))
 
 (defstyles main
   app-layout/core
@@ -25,4 +25,6 @@
   page.marketplace/core
   form/core
   page.memefolio/core
-  page.dankregistry/core)
+  page.dankregistry/core
+  page.leaderboard/core
+  )

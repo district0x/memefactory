@@ -634,6 +634,20 @@
                :data :params)
            [{:param/value 2000} {:param/value 100000}]))))
 
+(deftest ranks-test
+  (testing "Should retrieve ranks correctly"
+    (is (= (-> (graphql/run-query {:queries [[:user {:user/address "VOTERADDR"}
+                                           [:user/creator-rank
+                                            :user/challenger-rank
+                                            :user/curator-rank
+                                            :user/voter-rank]]]})
+               :data :user)
+           #:user{:creator-rank 12,
+                  :challenger-rank 11, 
+                  :curator-rank 0, 
+                  :voter-rank 0}))))
+
+
 (comment
   (do (after-fixture)
       (before-fixture))

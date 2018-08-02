@@ -33,6 +33,7 @@
             [memefactory.server.graphql-resolvers :refer [resolvers-map]]
             [memefactory.server.ipfs]
             [memefactory.server.syncer]
+            [memefactory.server.ranks-cache]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.smart-contracts]
             [mount.core :as mount]
@@ -98,6 +99,7 @@
                                         :param-changes/use-accounts 1
                                         :param-changes/items-per-account 1
                                         :param-changes/scenarios [:scenario/apply-param-change]}
+                            
                             :deployer {:transfer-dank-token-to-accounts 1
                                        :initial-registry-params
                                        {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
@@ -117,7 +119,8 @@
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}}}
          :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                            :print-gas-usage? true
-                           :auto-mining? true}})
+                           :auto-mining? true}
+         :ranks-cache {:ttl (t/in-millis (t/minutes 60))}})
     (mount/except [#'memefactory.server.deployer/deployer
                    #'memefactory.server.generator/generator])
     (mount/start)
@@ -208,3 +211,6 @@
          (map bn/number)
          (zipmap param-keys)
          (pprint/pprint))))
+
+(defn print-ranks-cache []
+  (pprint/pprint @@memefactory.server.ranks-cache/ranks-cache))

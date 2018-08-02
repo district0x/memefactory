@@ -17,7 +17,9 @@
             [memefactory.server.db :as meme-db]
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [print.foo :refer [look] :include-macros true]
-            [taoensso.timbre :as log])
+            [print.foo :refer [look] :include-macros true]
+            [taoensso.timbre :as log]
+            [memefactory.server.ranks-cache :as ranks-cache])
   (:require-macros [memefactory.server.macros :refer [try-catch-throw]]))
 
 (def enum graphql-utils/kw->gql-name)
@@ -80,6 +82,7 @@
                                       :reg-entry.status/whitelisted
                                       :reg-entry.status/blacklisted)
     :else :reg-entry.status/whitelisted))   
+
 
 (defn reg-entry-status-sql-clause [now]
   (sql/call ;; TODO: can we remove aliases here?
@@ -810,6 +813,58 @@
         (map :meme-auction/bought-for)
         (reduce +))))
 
+(defn all-users [] (db/all {:select [:*] :from [:users]}))
+
+(defn creator-rank []
+  (let [users-whitelisted-memes (->> (db/all {:select [:re.reg-entry/creator [(sql/call :count :*) :count] [(reg-entry-status-sql-clause (last-block-timestamp)) :status]]
+                                              :from [[:reg-entries :re]]
+                                              :group-by [:status]
+                                              :having [:= :status "regEntry_status_whitelisted"]})
+                                    (map (fn [{:keys [:reg-entry/creator :count]}] [creator count]))
+                                    (into {}))]
+    (->> (all-users)
+         (map #(assoc % :white-listed-memes (get users-whitelisted-memes (:user/address %) 0)))
+         (sort-by :white-listed-memes >)
+         (map-indexed (fn [idx u] [(:user/address u) idx]))
+         (into {}))))
+
+(defn challenger-rank []
+  (->> (db/all {:select [:u.user/address :u.user/challenger-total-earned]
+                :from [[:users :u]]
+                :order-by [[:u.user/challenger-total-earned :desc]]})
+       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (into {})))
+
+(defn voter-rank []
+  (->> (db/all {:select [:u.user/address :u.user/voter-total-earned]
+                :from [[:users :u]]
+                :order-by [[:u.user/voter-total-earned :desc]]})
+       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (into {})))
+
+(defn curator-rank []
+  (->> (db/all {:select [:u.user/address [(sql/call :+ :u.user/challenger-total-earned :u.user/voter-total-earned) :curator-total-earned]]
+                :from [[:users :u]]
+                :order-by [[:curator-total-earned :desc]]})
+       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (into {})))
+
+(defn user->creator-rank-resolver [{:keys [:user/address]}]
+  (get (ranks-cache/get-rank :creator-rank creator-rank)
+       address))
+
+(defn user->challenger-rank-resolver [{:keys [:user/address]}]
+  (get (ranks-cache/get-rank :challenger-rank challenger-rank)
+       address))
+
+(defn user->voter-rank-resolver [{:keys [:user/address]}]
+  (get (ranks-cache/get-rank :voter-rank voter-rank)
+       address))
+
+(defn user->curator-rank-resolver [{:keys [:user/address]}]
+  (get (ranks-cache/get-rank :curator-rank curator-rank)
+       address))
+
 (def resolvers-map
   {:Query {:meme meme-query-resolver
            :search-memes search-memes-query-resolver
@@ -866,5 +921,12 @@
           :user/total-participated-votes user->total-participated-votes-resolver
           :user/total-participated-votes-success user->total-participated-votes-success-resolver
           :user/curator-total-earned user->curator-total-earned-resolver
-          :user/creator-total-earned user->creator-total-earned-resolver}
+          :user/creator-total-earned user->creator-total-earned-resolver
+          :user/creator-rank    user->creator-rank-resolver
+          :user/challenger-rank user->challenger-rank-resolver
+          :user/voter-rank      user->voter-rank-resolver
+          :user/curator-rank    user->curator-rank-resolver
+}
    :UserList {:items user-list->items-resolver}})
+
+
