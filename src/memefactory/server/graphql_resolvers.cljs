@@ -17,7 +17,6 @@
             [memefactory.server.db :as meme-db]
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [print.foo :refer [look] :include-macros true]
-            [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log])
   (:require-macros [memefactory.server.macros :refer [try-catch-throw]]))
 
