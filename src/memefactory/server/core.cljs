@@ -10,9 +10,11 @@
     [memefactory.server.emailer]
     [memefactory.server.generator]
     [memefactory.server.syncer]
+    [memefactory.server.ranks-cache]
     [memefactory.shared.smart-contracts]
     [mount.core :as mount]
-    [taoensso.timbre :refer-macros [info warn error]]))
+    [taoensso.timbre :refer-macros [info warn error]]
+    [cljs-time.core :as t]))
 
 (nodejs/enable-util-print!)
 
@@ -35,7 +37,8 @@
                                       (warn "Ethereum node went offline")
                                       (mount/stop #'memefactory.server.syncer/syncer
                                                   #'memefactory.server.emailer/emailer))}
-         :syncer {:ipfs-config {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}}})
+         :syncer {:ipfs-config {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}}
+         :ranks-cache {:ttl (t/minutes 60)}})
     (mount/except [#'memefactory.server.deployer/deployer
                    #'memefactory.server.generator/generator])
     (mount/start))
