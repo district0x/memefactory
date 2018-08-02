@@ -227,7 +227,7 @@
                                  (.append "svg")
                                  (.attr "class" "chart")
                                  (.attr "width" width)
-                                 (.attr "height" height)                                
+                                 (.attr "height" height)
                                  (.append "g")
                                  (.attr "transform" (str "translate(" (/ width 2) "," (/ height 2) ")"))
                                  (.selectAll ".arc")
@@ -247,9 +247,9 @@
                                  (.attr "transform" (str "translate(" (/ width 2) "," (/ height 2) ")"))
                                  (.append "foreignObject")
                                  (.attr "width" icon-width)
-                                 (.attr "height" icon-height)                                 
+                                 (.attr "height" icon-height)
                                  (.attr "x" (unchecked-negate (/ icon-width 2)))
-                                 (.attr "y" (unchecked-negate (/ icon-height 2)))                                
+                                 (.attr "y" (unchecked-negate (/ icon-height 2)))
                                  (.append "xhtml:span")
                                  (.append "span")
                                  (.attr "class" "icon-mf-logo")
@@ -272,7 +272,7 @@
                 :user/total-created-challenges :user/total-created-challenges-success]} challenger]
     [:div
      [:b "Challenger"]
-     [:div.rank (str "Rank: #" challenger-rank " (" 
+     [:div.rank (str "Rank: #" challenger-rank " ("
                      (format/format-token challenger-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
@@ -295,6 +295,7 @@
   (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on]} vote
         active-account (subscribe [::accounts-subs/active-account])
         option (graphql-utils/gql-name->kw option)
+        reward (if (nil? reward) 0 reward)
         tx-id (:reg-entry/address meme)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])]
@@ -333,7 +334,8 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
         dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db
-                                                                  [[:meme-registry-db [:dank-deposit]]]]]}]) [:eternal-db :meme-registry-db :dank-deposit])]
+                                                                  [[:meme-registry-db [:deposit]]]]]}])
+                             [:eternal-db :meme-registry-db :deposit])]
     (fn []
       [:div
        [:b "Challenge explanation"]

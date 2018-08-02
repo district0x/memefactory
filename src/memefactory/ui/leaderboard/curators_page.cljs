@@ -78,13 +78,13 @@
                (for [curator lazy-curators]
                  ^{:key (:user/address curator)}
                  [:div.curator
-                  [:p "#" (case order-by
+                  [:p.number "#" (case order-by
                             :users.order-by/curator-total-earned (:user/curator-rank curator)
                             :users.order-by/challenger-total-earned (:user/challenger-rank curator)
                             :users.order-by/voter-total-earned (:user/voter-rank curator))]
-                  [:h3 (:user/address curator)]
+                  [:h3.address (:user/address curator)]
 
-                  [:p "CHALLENGES"]
+                  [:h4.challenges "CHALLENGES"]
                   [:p "Success rate: "
                    (let [total-challenges (:user/total-created-challenges curator)
                          success-challenges (:user/total-created-challenges curator)
@@ -93,12 +93,12 @@
                      [:span total-challenges "/" success-challenges (gstring/format " (%d%)" ratio)])]
                   [:p "Earned: " (format/format-token (:user/challenger-total-earned curator) {:token "DANK"})]
 
-                  [:p "VOTES"]
+                  [:h4.votes "VOTES"]
                   [:p "Success rate: "
                    (let [total-votes (:user/total-participated-votes curator)
                          success-votes (:user/total-participated-votes-success curator)
                          ratio (-> (/ total-votes success-votes)
                                    (* 100))]
                      [:span total-votes "/" success-votes (gstring/format " (%d%)" ratio)])]
-                  [:p "Earned: " (format/format-token (:user/voter-total-earned curator) {:token "DANK"})]
-                  [:p "Total Earnings: " (format/format-token (:user/curator-total-earned curator) {:token "DANK"})]]))]]]]]]))))
+                  [:p "Earned: " [:span (format/format-token (:user/voter-total-earned curator) {:token "DANK"})]]
+                  [:p "Total Earnings: " [:span (format/format-token (:user/curator-total-earned curator) {:token "DANK"})]]]))]]]]]]))))

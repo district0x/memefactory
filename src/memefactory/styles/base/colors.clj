@@ -27,7 +27,11 @@
                     :mymemefolio-green "#29d401"
                     :violet "#2e1f37"
                     :light-violet "rgba(116,100,126,.15)"
-                    :light-grey "rgba(255,255,255,.7)" })
+                    :light-grey "rgba(255,255,255,.7)"
+
+                    :curator-card-bg "#f2f4fb"
+                    :leaderboard-curator-bg "#9cc717"
+                    })
 
 (defn color [name]
   (get names->colors name name))
