@@ -15,6 +15,7 @@
     [mount.core :as mount]
     [taoensso.timbre :refer-macros [info warn error]]
     [cljs-time.core :as t]
+    [district.server.graphql :as graphql]
     [district.server.graphql.utils :as utils]
     [district.graphql-utils :as graphql-utils]
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
@@ -27,7 +28,7 @@
         {:config {:default {:web3 {:port 8545}}}
          :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
          :logging {:level "info"
-                                      :console? true}
+                   :console? true}
          :graphql {:port 6300
                    :middlewares [logging-middlewares]
                    :schema (utils/build-schema graphql-schema
