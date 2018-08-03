@@ -35,7 +35,11 @@
 
 (defmulti total (fn [tab & opts] tab))
 
-(defn sell-form [{:keys [:meme/title :meme-auction/token-count :meme-auction/token-ids :show?]}]
+(defn sell-form [{:keys [:meme/title
+                         :meme-auction/token-count
+                         :meme-auction/token-ids
+                         :meme-auction/max-duration
+                         :show?]}]
   (let [tx-id (str (random-uuid))
         form-data (r/atom {:meme-auction/amount token-count
                            :meme-auction/start-price 0.1
@@ -592,7 +596,7 @@
                                                        {:label "Challenged"
                                                         :id :challenged?}]}))]]
 
-       [:div.tabs
+       [:section.tabs
         (map (fn [tab-id]
                ^{:key tab-id} [:div
                                [:a {:on-click (fn [evt]
@@ -601,16 +605,16 @@
                                     cljs.core/name
                                     (str/capitalize))]])
              [:collected :created :curated :selling :sold])]
-
        [:div.total
         [total @tab @active-account]]
+       [:section.stats
+        (when (not (contains? #{:selling :sold} @tab))
+          [:div.rank
+           [rank @tab @active-account]])]
 
-       (when (not (contains? #{:selling :sold} @tab))
-         [:div.rank
-          [rank @tab @active-account]])
-
-       [:div.panel
-        [scrolling-container @tab {:active-account @active-account :form-data @form-data :prefix prefix}]]])))
+       [:section.tiles
+        [:div.panel
+         [scrolling-container @tab {:active-account @active-account :form-data @form-data :prefix prefix}]]]])))
 
 (defmethod page :route.memefolio/index []
   (let [active-tab (r/atom default-tab)]
