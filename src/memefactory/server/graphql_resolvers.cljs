@@ -819,7 +819,7 @@
   (let [users-whitelisted-memes (->> (db/all {:select [:re.reg-entry/creator [(sql/call :count :*) :count] [(reg-entry-status-sql-clause (last-block-timestamp)) :status]]
                                               :from [[:reg-entries :re]]
                                               :group-by [:status]
-                                              :having [:= :status "regEntry_status_whitelisted"]})
+                                              :having [:= :status (graphql-utils/kw->gql-name :reg-entry.status/whitelisted)]})
                                     (map (fn [{:keys [:reg-entry/creator :count]}] [creator count]))
                                     (into {}))]
     (->> (all-users)
