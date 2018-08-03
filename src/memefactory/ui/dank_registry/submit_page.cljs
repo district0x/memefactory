@@ -32,8 +32,9 @@
 (defmethod page :route.dank-registry/submit []
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db
-                                                                  [:meme-registry-db
-                                                                   [:deposit]]]]}]) [:eternal-db :meme-registry-db :deposit])
+                                                                  [[:meme-registry-db
+                                                                    [:deposit]]]]]}])
+                             [:eternal-db :meme-registry-db :deposit])
         form-data (r/atom {})
         errors (reaction {:local (let [{:keys [title issuance file-info]} @form-data]
                                    (cond-> {:issuance {:hint (str "Max " max-meme-issuance)}}

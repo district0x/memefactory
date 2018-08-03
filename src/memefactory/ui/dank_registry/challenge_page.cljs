@@ -36,8 +36,8 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
         dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db 
-                                                                  [:meme-registry-db
-                                                                   [:deposit]]]]}]) [:eternal-db :meme-registry-db :deposit])
+                                                                  [[:meme-registry-db
+                                                                    [:deposit]]]]]}]) [:eternal-db :meme-registry-db :deposit])
         errors (reaction {:local (let [{:keys [comment]} @form-data]
                                    (cond-> {}
                                      (empty? comment)
