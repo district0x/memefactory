@@ -332,26 +332,26 @@
                                          {:challenge/comment "Comment shouldn't be empty."})})
         tx-id (:reg-entry/address meme)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
-        dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db
-                                                                  [[:meme-registry-db [:deposit]]]]]}])
-                             [:eternal-db :meme-registry-db :deposit])]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])]
     (fn []
-      [:div
-       [:b "Challenge explanation"]
-       [inputs/textarea-input {:form-data form-data
-                               :id :challenge/comment
-                               :errors errors}]
-       [:div (format/format-token deposit {:token "DANK"})]
-       [tx-button/tx-button {:primary true
-                             :disabled (or @tx-success? (not (empty? (:local @errors))))
-                             :pending? @tx-pending?
-                             :pending-text "Challenging..."
-                             :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
-                                                                                       :reg-entry/address (:reg-entry/address meme)
-                                                                                       :comment (:challenge/comment @form-data)
-                                                                                       :deposit dank-deposit}])}
-        "Challenge"]])))
+      (let [dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db
+                                                                      [[:meme-registry-db [:deposit]]]]]}])
+                                 [:eternal-db :meme-registry-db :deposit])]
+        [:div
+         [:b "Challenge explanation"]
+         [inputs/textarea-input {:form-data form-data
+                                 :id :challenge/comment
+                                 :errors errors}]
+         [:div (format/format-token deposit {:token "DANK"})]
+         [tx-button/tx-button {:primary true
+                               :disabled (or @tx-success? (not (empty? (:local @errors))))
+                               :pending? @tx-pending?
+                               :pending-text "Challenging..."
+                               :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
+                                                                                         :reg-entry/address (:reg-entry/address meme)
+                                                                                         :comment (:challenge/comment @form-data)
+                                                                                         :deposit dank-deposit}])}
+          "Challenge"]]))))
 
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])

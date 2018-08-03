@@ -35,32 +35,32 @@
         tx-id address
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
-        dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db 
-                                                                  [[:meme-registry-db
-                                                                    [:deposit]]]]]}]) [:eternal-db :meme-registry-db :deposit])
         errors (reaction {:local (let [{:keys [comment]} @form-data]
                                    (cond-> {}
                                      (empty? comment)
                                      (assoc :comment "Comment shouldn't be empty.")))})]
     (fn [{:keys [:reg-entry/address]}]
-      [:div.challenge-controls
-       [:img.vs]
-       (if @open?
-         [:div
-          [text-input {:form-data form-data
-                       :id :comment
-                       :errors errors}]
-          [pending-button {:pending? @tx-pending?
-                           :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
-                           :pending-text "Challenging ..."
-                           :on-click (fn []
-                                       (dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
-                                                                                      :reg-entry/address address
-                                                                                      :comment (:comment @form-data)
-                                                                                      :deposit dank-deposit}]))}
-           "Challenge"]
-          [:span.dank (format/format-token dank-deposit  {:token "DANK"})]]
-         [:button {:on-click #(swap! open? not)} "Challenge"])])))
+      (let [dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db 
+                                                                      [[:meme-registry-db
+                                                                        [:deposit]]]]]}]) [:eternal-db :meme-registry-db :deposit])]
+        [:div.challenge-controls
+         [:img.vs]
+         (if @open?
+           [:div
+            [text-input {:form-data form-data
+                         :id :comment
+                         :errors errors}]
+            [pending-button {:pending? @tx-pending?
+                             :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
+                             :pending-text "Challenging ..."
+                             :on-click (fn []
+                                         (dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
+                                                                                        :reg-entry/address address
+                                                                                        :comment (:comment @form-data)
+                                                                                        :deposit dank-deposit}]))}
+             "Challenge"]
+            [:span.dank (format/format-token dank-deposit  {:token "DANK"})]]
+           [:button {:on-click #(swap! open? not)} "Challenge"])]))))
 
 (defmethod page :route.dank-registry/challenge []
   [app-layout
