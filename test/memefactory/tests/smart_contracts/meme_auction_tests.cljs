@@ -43,15 +43,15 @@
         _ (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
         _ (meme/mint registry-entry max-total-supply {:from creator-addr})
         meme (meme/load-meme registry-entry)
-        tx (look (meme-token/transfer-multi-and-start-auction (look {:from creator-addr
-                                                                     :token-ids  (range (:meme/token-id-start meme)
-                                                                                        (dec (+
-                                                                                              (:meme/token-id-start meme)
-                                                                                              (:meme/total-minted meme))))
-                                                                     :start-price (web3/to-wei 0.1 :ether)
-                                                                     :end-price (web3/to-wei 0.01 :ether)
-                                                                     :duration max-auction-duration
-                                                                     :description "Test auction"})))]
+        tx (meme-token/transfer-multi-and-start-auction {:from creator-addr
+                                                         :token-ids  (range (:meme/token-id-start meme)
+                                                                            (dec (+
+                                                                                  (:meme/token-id-start meme)
+                                                                                  (:meme/total-minted meme))))
+                                                         :start-price (web3/to-wei 0.1 :ether)
+                                                         :end-price (web3/to-wei 0.01 :ether)
+                                                         :duration max-auction-duration
+                                                         :description "Test auction"})]
     (testing "Creates MemeAuction under valid conditions"
       (is tx))
 
@@ -64,12 +64,15 @@
         (is (= (:meme-auction/start-price auction) (js/parseInt (web3/to-wei 0.1 :ether))))
         (is (= (:meme-auction/end-price auction) (js/parseInt (web3/to-wei 0.01 :ether)))) 
         (is (= (:meme-auction/duration auction) max-auction-duration))
-        
+
         (testing "Correctly calculates reverse auction price"
-          (let [current-price (bn/number (meme-auction/current-price meme-auction))]
-            (is (or (= current-price 99850000000000000 ) ;; if one second passed
-                    (= current-price 99700000000000000 )) ;; if two seconds passed
-                ))))
+          (let [current-price (bn/number (meme-auction/current-price meme-auction))
+                correct-price? (or (= current-price 99850000000000000)  ;; if one second passed
+                                   (= current-price 99700000000000000)  ;; if two seconds passed
+                                   (= current-price 99550000000000000)) ;; if three seconds passed
+                ]
+            (when-not correct-price? (.log js/console "Auction was bought for " current-price))
+            (is correct-price?))))
       
       (testing "onERC721Received fails when called directly, without transferring tokenId"
         (is
