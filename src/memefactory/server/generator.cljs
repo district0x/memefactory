@@ -57,7 +57,7 @@
                   (fn [err data]
                     (if err
                       (reject err)
-                      (ipfs-files/add 
+                      (ipfs-files/add
                        data
                        (fn [err {image-hash :Hash}]
                          (if err
@@ -74,14 +74,14 @@
     (log/info "Uploading meta" {:meta-info meta-info} ::upload-meme-meta)
     (js/Promise.
      (fn [resolve reject]
-       (ipfs-files/add 
-        (js/Buffer.from meta-info)   
+       (ipfs-files/add
+        (js/Buffer.from meta-info)
         (fn [err {meta-hash :Hash}]
           (if err
             (log/error "ifps error" {:error err} ::upload-meme-meta)
             (do
               (log/info "Uploaded meta received " {:meta-hash meta-hash} ::upload-meme-meta)
-              (resolve meta-hash))))))))) 
+              (resolve meta-hash)))))))))
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [[max-total-supply max-auction-duration deposit commit-period-duration reveal-period-duration]
@@ -94,19 +94,19 @@
                                   :scenarios scenarios})]
     (log/info "Going to generate" scenarios ::generate-memes)
     (doseq [[account {:keys [:scenario-type]}] scenarios]
-      (-> (upload-meme)          
-          (.then upload-meme-meta)                
-          (.then (fn [meta-hash]                   
+      (-> (upload-meme)
+          (.then upload-meme-meta)
+          (.then (fn [meta-hash]
                    (try-catch
                     (let [total-supply (inc (rand-int max-total-supply))
                           auction-duration (+ 60 (rand-int (- max-auction-duration 60)))]
-                      
+
                       (let [tx-hash (meme-factory/approve-and-create-meme {:meta-hash meta-hash
                                                                            :total-supply total-supply
                                                                            :amount deposit}
                                                                           {:from account})]
 
-                        
+
                         (when-not (= :scenario/create scenario-type)
                           (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx tx-hash)]
 
@@ -126,10 +126,10 @@
                                                                         {:amount balance
                                                                          :salt "abc"
                                                                          :vote-option :vote.option/vote-for}
-                                                                        {:from (look creator)})
+                                                                        {:from creator})
 
-                                (when-not (= :scenario/commit-vote (look scenario-type))
-                                  
+                                (when-not (= :scenario/commit-vote scenario-type)
+
                                   (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
 
                                   (registry-entry/reveal-vote registry-entry
@@ -171,31 +171,30 @@
                                       :param-changes/use-accounts
                                       :param-changes/items-per-account
                                       :param-changes/scenarios]}]
-  (let [[deposit challenge-period-duration]
-        (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
-          (map bn/number))]
-    (doseq [[account {:keys [:scenario-type :param-change-db]}]
-            (get-scenarios {:accounts accounts
-                            :use-accounts use-accounts
-                            :items-per-account items-per-account
-                            :scenarios scenarios})]
-
+  (let [[deposit challenge-period-duration] (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
+                                                 (map bn/number))]
+    (doseq [[account {:keys [:scenario-type :param-change-db]}] (get-scenarios {:accounts accounts
+                                                                                :use-accounts use-accounts
+                                                                                :items-per-account items-per-account
+                                                                                :scenarios scenarios})]
       (let [tx-hash (param-change-factory/approve-and-create-param-change
-                      {:db (contract-address (or param-change-db :meme-registry-db))
-                       :key :deposit
-                       :value (web3/to-wei 800 :ether)
-                       :amount deposit}
-                      {:from account})
-
+                     {:db (contract-address (or param-change-db :meme-registry-db))
+                      :key :deposit
+                      :value (web3/to-wei 800 :ether)
+                      :amount deposit}
+                     {:from account})
             {:keys [:registry-entry]} (:args (param-change-registry/registry-entry-event-in-tx tx-hash))]
 
         (when-not (= scenario-type :scenario/create)
+
+          (when-not registry-entry
+            (throw (js/Error. "Registry Entry wasn't found")))
+
           (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
 
-          (param-change-registry/apply-param-change registry-entry {:from account}))))))
-
+          (param-change-registry/apply-param-change (look registry-entry) {:from account}))))))
 
 (defn start [opts]
   (let [opts (assoc opts :accounts (web3-eth/accounts @web3))]
     (generate-memes opts)
-    #_(generate-param-changes opts)))
+    (generate-param-changes opts)))

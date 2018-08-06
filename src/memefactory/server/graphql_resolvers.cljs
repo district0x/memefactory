@@ -393,7 +393,7 @@
 (defn eternal-db-query-resolver [_ _ _ document]
   (try-catch-throw
    (let [contract-key (-> document (query-fields) first)
-         fields (query-fields document :meme-registry-db)]
+         fields (query-fields document contract-key)]
      (log/debug "eternal-db-query-resolver fields" {:contract-key contract-key
                                                     :fields fields})     
      {contract-key (zipmap fields (->> (eternal-db/get-uint-values contract-key fields)
