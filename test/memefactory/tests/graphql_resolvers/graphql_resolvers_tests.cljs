@@ -168,7 +168,8 @@
                                                                    :gql-name->kw graphql-utils/gql-name->kw})
                                       :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
-                                      :graphiql true}}}})
+                                      :graphiql true}
+                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}}}})
       (mount/except [#'memefactory.server.deployer/deployer
                      #'memefactory.server.generator/generator
                      #'district.server.smart-contracts/smart-contracts

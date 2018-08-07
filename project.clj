@@ -31,7 +31,7 @@
                  [district0x/district-ui-component-active-account-balance "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
-                 [district0x/district-ui-component-input "1.0.0"]
+                 #_[district0x/district-ui-component-input "1.0.0"]
                  [district0x/district-ui-graphql "1.0.6"]
                  [district0x/district-ui-logging "1.0.1"]
                  [district0x/district-ui-notification "1.0.1"]
@@ -65,7 +65,8 @@
                  [akiroz.re-frame/storage "0.1.2"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]]
 
-  :exclusions [express-graphql]
+  :exclusions [express-graphql
+               cljsjs/react-with-addons]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
@@ -88,7 +89,12 @@
                        [graphql-fields "1.0.2"]
                        [solc "0.4.20"]
                        [source-map-support "0.5.3"]
-                       [ws "4.0.0"]]}
+                       [ws "4.0.0"]
+
+                       ;; this isn't required directly by memefactory but  0.6.1 is broken and
+                       ;; district0x/district-server-web3 needs [ganache-core "2.0.2"]   who also needs "ethereumjs-wallet": "~0.6.0"
+                       ;; https://github.com/ethereumjs/ethereumjs-wallet/issues/64
+                       [ethereumjs-wallet "0.6.0"]]}
 
   :solc {:src-path "resources/public/contracts/src"
          :build-path "resources/public/contracts/build"
