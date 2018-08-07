@@ -140,7 +140,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @dev Commits encrypted vote to challenged entry
    * Locks voter's tokens in this contract. Returns when vote is revealed
    * Must be within commit period
-   * Voting takes full balance of voter's voting token
 
    * @param _voter Address of a voter
    * @param _amount Amount of tokens to vote with
