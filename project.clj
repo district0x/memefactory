@@ -116,10 +116,10 @@
             "test-doo" ["doo" "node" "server-tests"]}
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0"]
-                                  [binaryage/devtools "0.9.9"]
+                                  [binaryage/devtools "0.9.10"]
                                   [com.cemerick/piggieback "0.2.2"]
-                                  [figwheel-sidecar "0.5.14" :exclusions [org.clojure/core.async]]
-                                  [org.clojure/tools.reader "1.2.1"]
+                                  [figwheel-sidecar "0.5.16"]
+                                  [org.clojure/tools.reader "1.3.0"]
                                   [re-frisk "0.5.3"]]
                    :source-paths ["dev" "src"]
                    :resource-paths ["resources"]}}

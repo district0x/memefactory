@@ -44,9 +44,12 @@
     searchTags(first: Int, after: String): TagList
 
     paramChange(regEntry_address: ID!): ParamChange
-    searchParamChanges(
-      first: Int,
-      after: String
+    searchParamChanges(key: String,
+                       orderBy: ParamChangesOrderBy,
+                       orderDir: OrderDir,
+                       groupBy: ParamChangesGroupBy,
+                       first: Int,
+                       after: String
     ): ParamChangeList
 
     user(user_address: ID!): User
@@ -118,6 +121,14 @@
   enum MemeAuctionsGroupBy {
     memeAuctions_groupBy_cheapest
   }
+
+  enum ParamChangesOrderBy {
+    paramChanges_orderBy_appliedOn
+  }
+
+   enum ParamChangesGroupBy {
+     paramChanges_groupBy_key
+   }
 
   enum RegEntryStatus {
     regEntry_status_challengePeriod
@@ -298,8 +309,8 @@
 
     paramChange_db: String
     paramChange_key: String
-    paramChange_value: Int
-    paramChange_originalValue: Int
+    paramChange_value: Float
+    paramChange_originalValue: Float
     paramChange_appliedOn: Date
   }
 

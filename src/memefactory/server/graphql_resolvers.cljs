@@ -17,7 +17,6 @@
             [memefactory.server.db :as meme-db]
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [print.foo :refer [look] :include-macros true]
-            [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]
             [memefactory.server.ranks-cache :as ranks-cache])
   (:require-macros [memefactory.server.macros :refer [try-catch-throw]]))
@@ -81,14 +80,14 @@
          (> now reveal-period-end)) (if (< votes-against votes-for)
                                       :reg-entry.status/whitelisted
                                       :reg-entry.status/blacklisted)
-    :else :reg-entry.status/whitelisted))   
+    :else :reg-entry.status/whitelisted))
 
 
 (defn reg-entry-status-sql-clause [now]
   (sql/call ;; TODO: can we remove aliases here?
    :case
    [:and
-    [:< now :re.reg-entry/challenge-period-end] 
+    [:< now :re.reg-entry/challenge-period-end]
     [:= :re.challenge/challenger nil]]                        (enum :reg-entry.status/challenge-period)
    [:< now :re.challenge/commit-period-end]                   (enum :reg-entry.status/commit-period)
    [:< now :re.challenge/reveal-period-end]                   (enum :reg-entry.status/reveal-period)
@@ -118,7 +117,7 @@
                                              [:= :mto.meme-token/token-id :mt.meme-token/token-id]]} :tokens]
                                     [:= :m.reg-entry/address :tokens.reg-entry/address]
                                     [:meme-tags :mtags] [:= :mtags.reg-entry/address :m.reg-entry/address]]}
-                 
+
                  title        (sqlh/merge-where [:like :m.meme/title (str "%" title "%")])
                  tags          (sqlh/merge-where [:=
                                                   (count tags)
@@ -244,15 +243,27 @@
      (log/debug "param-change query" sql-query)
      sql-query)))
 
-(defn search-param-changes-query-resolver [_ {:keys [:first :after] :as args}]
+(defn search-param-changes-query-resolver [_ {:keys [:key :order-by :order-dir :group-by :first :after]
+                                              :or {order-dir :asc}
+                                              :as args}]
   (log/debug "search-param-changes args" args)
   (try-catch-throw
-   (paged-query {:select [:*]
-                 :from [:param-changes]
-                 :join [:reg-entries [:= :reg-entries.reg-entry/address :param-changes.reg-entry/address]]}
-                first
-                (when after
-                  (js/parseInt after)))))
+   (let [sql-query (cond-> {:select [:*]
+                            :from [:param-changes]
+                            :left-join [:reg-entries [:= :reg-entries.reg-entry/address :param-changes.reg-entry/address]]}
+
+                     key (sqlh/merge-where [:= key :param-changes.param-change/key])
+
+                     order-by (sqlh/merge-order-by [[(get {:param-changes.order-by/applied-on :param-changes.param-change/applied-on}
+                                                          (graphql-utils/gql-name->kw order-by))
+                                                     order-dir]])
+
+                     group-by (merge {:group-by [(get {:param-changes.group-by/key :param-changes.param-change/key}
+                                                      (graphql-utils/gql-name->kw group-by))]}))]
+     (paged-query sql-query
+                  first
+                  (when after
+                    (js/parseInt after))))))
 
 (defn user-query-resolver [_ {:keys [:user/address] :as args} context debug]
   (log/debug "user args" args)
@@ -286,7 +297,7 @@
          query (paged-query {:select (remove nil?
                                              [:*
                                               (when (select? :user/curator-total-earned)
-                                                [(sql/call :+ :users.user/voter-total-earned :users.user/challenger-total-earned)     
+                                                [(sql/call :+ :users.user/voter-total-earned :users.user/challenger-total-earned)
                                                  :user/curator-total-earned])
                                               (when (select? :user/total-participated-votes-success)
                                                 [{:select [:%count.*]
@@ -395,7 +406,7 @@
    (let [contract-key (-> document (query-fields) first)
          fields (query-fields document contract-key)]
      (log/debug "eternal-db-query-resolver fields" {:contract-key contract-key
-                                                    :fields fields})     
+                                                    :fields fields})
      {contract-key (zipmap fields (->> (eternal-db/get-uint-values contract-key fields)
                                        (map bn/number)))})))
 
@@ -457,9 +468,9 @@
                                             0)]
                        (if (and (= winning-option (registry-entry/vote-options option))
                                 (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry)))
-                         (/ (* amount reward-pool) winning-amount) 
+                         (/ (* amount reward-pool) winning-amount)
                          0))]
-    (+ challenger-amount voter-amount))) 
+    (+ challenger-amount voter-amount)))
 
 (defn reg-entry->challenger [{:keys [:challenge/challenger] :as reg-entry}]
   (log/debug "reg-entry->challenger-resolver args" reg-entry)
@@ -498,7 +509,7 @@
             (= option 1))
        (/ reward-pool for)
 
-       (and (= :reg-entry.status/blacklisted (look status))
+       (and (= :reg-entry.status/blacklisted status)
             (= option 2))
        (/ reward-pool against)
 
@@ -549,7 +560,7 @@
                                                        :meme-auctions.order-by/bought-on :meme-auctions.meme-auction/bought-on}
                                                       (graphql-utils/gql-name->kw order-by))
                                                  (or (keyword order-dir) :asc)]]})))]
-     
+
      (log/debug "meme->meme-auctions-resolver query" sql-query)
      sql-query)))
 
@@ -785,7 +796,7 @@
                                 :where [:= address :votes.vote/voter]}))]
        (log/debug "user->total-participated-votes-success-resolver query" sql-query)
        (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
-                 (let [ status (reg-entry-status (last-block-timestamp) reg-entry)]                   
+                 (let [ status (reg-entry-status (last-block-timestamp) reg-entry)]
                    (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
                            (and (= :reg-entry.status/blacklisted status) (= 2 option)))
                      (inc total)
@@ -865,6 +876,14 @@
   (get (ranks-cache/get-rank :curator-rank curator-rank)
        address))
 
+(defn param-change->original-value-resolver [{:keys [:param-change/db :param-change/key] :as args}]
+  (log/debug "param-change->original-value-resolver" args)
+  (:param-change/value (db/get {:select [:param-change/value]
+                                :from [:param-changes]
+                                :where [:= key :param-changes.param-change/key]
+                                :order-by [[:param-changes.param-change/applied-on :asc]]
+                                :limit 1})))
+
 (def resolvers-map
   {:Query {:meme meme-query-resolver
            :search-memes search-memes-query-resolver
@@ -907,7 +926,8 @@
                  :reg-entry/creator reg-entry->creator-resolver
                  :challenge/challenger reg-entry->challenger
                  :challenge/votes-total reg-entry->votes-total-resolver
-                 :challenge/vote reg-entry->vote-resolver}
+                 :challenge/vote reg-entry->vote-resolver
+                 :param-change/original-value param-change->original-value-resolver}
    :ParamChangeList {:items param-change-list->items-resolver}
    :User {:user/total-created-memes user->total-created-memes-resolver
           :user/total-created-memes-whitelisted user->total-created-memes-whitelisted-resolver
@@ -922,11 +942,8 @@
           :user/total-participated-votes-success user->total-participated-votes-success-resolver
           :user/curator-total-earned user->curator-total-earned-resolver
           :user/creator-total-earned user->creator-total-earned-resolver
-          :user/creator-rank    user->creator-rank-resolver
+          :user/creator-rank user->creator-rank-resolver
           :user/challenger-rank user->challenger-rank-resolver
-          :user/voter-rank      user->voter-rank-resolver
-          :user/curator-rank    user->curator-rank-resolver
-}
+          :user/voter-rank user->voter-rank-resolver
+          :user/curator-rank user->curator-rank-resolver}
    :UserList {:items user-list->items-resolver}})
-
-

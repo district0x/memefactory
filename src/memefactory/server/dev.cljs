@@ -29,8 +29,7 @@
             [memefactory.server.deployer]
             [memefactory.server.emailer]
             [memefactory.server.generator]
-            [memefactory.server.graphql-resolvers :refer [reg-entry-status reg-entry-status-sql-clause last-block-timestamp]]
-            [memefactory.server.graphql-resolvers :refer [resolvers-map]]
+            [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause last-block-timestamp]]            
             [memefactory.server.ipfs]
             [memefactory.server.syncer]
             [memefactory.server.ranks-cache]
@@ -99,7 +98,7 @@
                                         :param-changes/use-accounts 1
                                         :param-changes/items-per-account 1
                                         :param-changes/scenarios [:scenario/apply-param-change]}
-                            
+
                             :deployer {:transfer-dank-token-to-accounts 1
                                        :initial-registry-params
                                        {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
@@ -120,11 +119,14 @@
          :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                            :print-gas-usage? true
                            :auto-mining? true}
-         :ranks-cache {:ttl (t/in-millis (t/minutes 60))}})
-    (mount/except [#'memefactory.server.deployer/deployer
-                   #'memefactory.server.generator/generator])
-    (mount/start)
-    pprint/pprint))
+         :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
+         :syncer {:initial-param-query {:meme-registry-db [:max-total-supply
+                                                           :max-auction-duration
+                                                           :deposit]}}})
+      (mount/except [#'memefactory.server.deployer/deployer
+                     #'memefactory.server.generator/generator])
+      (mount/start)
+      pprint/pprint))
 
 (set! *main-cli-fn* -main)
 

@@ -1,27 +1,27 @@
 (ns memefactory.server.syncer
-  (:require
-    [bignumber.core :as bn]
-    [camel-snake-kebab.core :as cs :include-macros true]
-    [cljs-web3.core :as web3]
-    [cljs-web3.eth :as web3-eth]
-    [district.server.config :refer [config]]
-    [district.server.smart-contracts :refer [replay-past-events]]
-    [district.server.web3 :refer [web3]]
-    [district.web3-utils :as web3-utils]
-    [memefactory.server.contract.meme :as meme]
-    [memefactory.server.contract.meme-auction :as meme-auction]
-    [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
-    [memefactory.server.contract.meme-token :as meme-token]
-    [memefactory.server.contract.param-change :as param-change]
-    [memefactory.server.contract.registry :as registry]
-    [memefactory.server.contract.registry-entry :as registry-entry]
-    [memefactory.server.db :as db]
-    [memefactory.server.deployer]
-    [memefactory.server.generator]
-    [mount.core :as mount :refer [defstate]]
-    [taoensso.timbre :as log]
-    [cljs-ipfs-api.files :as ifiles]
-    [print.foo :refer [look] :include-macros true])
+  (:require [bignumber.core :as bn]
+            [camel-snake-kebab.core :as cs :include-macros true]
+            [cljs-ipfs-api.files :as ifiles]
+            [cljs-web3.core :as web3]
+            [cljs-web3.eth :as web3-eth]
+            [district.server.config :refer [config]]
+            [district.server.smart-contracts :as smart-contracts :refer [replay-past-events]]
+            [district.server.web3 :refer [web3]]
+            [district.web3-utils :as web3-utils]
+            [memefactory.server.contract.eternal-db :as eternal-db]
+            [memefactory.server.contract.meme :as meme]
+            [memefactory.server.contract.meme-auction :as meme-auction]
+            [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
+            [memefactory.server.contract.meme-token :as meme-token]
+            [memefactory.server.contract.param-change :as param-change]
+            [memefactory.server.contract.registry :as registry]
+            [memefactory.server.contract.registry-entry :as registry-entry]
+            [memefactory.server.db :as db]
+            [memefactory.server.deployer]
+            [memefactory.server.generator]
+            [mount.core :as mount :refer [defstate]]
+            [print.foo :refer [look] :include-macros true]
+            [taoensso.timbre :as log])
   (:require-macros [memefactory.server.macros :refer [try-catch]]))
 
 (declare start)
@@ -187,9 +187,25 @@
 (defn- last-block-number []
   (web3-eth/block-number @web3))
 
-(defn start [opts]
+(defn on-start
+  "Queries for inital parameter values"
+  [initial-param-query]
+  (try-catch
+   (doall
+    (doseq [[contract-key fields] initial-param-query]
+      (doseq [[k v] (zipmap fields (->> (eternal-db/get-uint-values contract-key fields)
+                                        (map bn/number)))]
+        (db/insert-or-replace-param-change! {:reg-entry/address "initinitinitinitinitinitinitinitinitinit"
+                                             :param-change/db (smart-contracts/contract-address contract-key)
+                                             :param-change/key (name k)
+                                             :param-change/value v
+                                             ;; TODO: can we get that date?
+                                             :param-change/applied-on 0}))))))
+
+(defn start [{:keys [:initial-param-query] :as opts}]
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
+   (on-start initial-param-query)
   (let [last-block-number (last-block-number)
         meme-auction-event-filter (meme-auction-factory/meme-auction-event {} {:from-block 0 :to-block (dec last-block-number)})]
     [(registry/registry-entry-event [:meme-registry :meme-registry-fwd] {} "latest" (partial dispatch-registry-entry-event :meme))

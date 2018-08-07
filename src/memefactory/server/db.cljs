@@ -1,14 +1,14 @@
 (ns memefactory.server.db
-  (:require
-    [district.server.config :refer [config]]
-    [district.server.db :as db]
-    [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
-    [district.server.db.honeysql-extensions]
-    [honeysql.core :as sql]
-    [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
-    [mount.core :as mount :refer [defstate]]
-    [taoensso.timbre :as logging :refer-macros [info warn error]]
-    [medley.core :as medley]))
+  (:require [district.server.config :refer [config]]
+            [district.server.db :as db]
+            [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
+            [district.server.db.honeysql-extensions]
+            [honeysql.core :as sql]
+            [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
+            [medley.core :as medley]
+            [mount.core :as mount :refer [defstate]]
+            [print.foo :refer [look] :include-macros true]
+            [taoensso.timbre :as logging :refer-macros [info warn error]]))
 
 (declare start)
 (declare stop)
@@ -97,7 +97,7 @@
    [:param-change/value :unsigned :integer not-nil]
    [:param-change/applied-on :unsigned :integer default-nil]
    [(sql/call :primary-key :reg-entry/address)]
-   [[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]])
+   #_[[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]])
 
 (def votes-columns
   [[:reg-entry/address address not-nil]
@@ -239,6 +239,10 @@
 (def insert-or-replace-meme-token-owner (create-insert-fn :meme-token-owners
                                                           meme-token-owners-column-names
                                                           {:insert-or-replace? true}))
+
+(def insert-or-replace-param-change! (create-insert-fn :param-changes
+                                                       param-change-column-names
+                                                       {:insert-or-replace? true}))
 
 (defn meme-auction-exists? [address]
   (boolean (seq (db/get {:select [1]

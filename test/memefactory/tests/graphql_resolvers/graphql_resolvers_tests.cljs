@@ -108,7 +108,7 @@
                                           {:meme-auction/buyer "BUYERADDR"
                                            :meme-auction/bought-for (+ 70 idx)
                                            :meme-auction/bought-on (+ now duration)}))))))
-        param-changes (for [i (range 4)]
+        param-changes (for [i (range 5)]
                         {:reg-entry/address (str "PCHANGEADDR" i)
                          :reg-entry/version 1
                          :reg-entry/creator (str "CADDR" i)
@@ -116,9 +116,9 @@
                          :reg-entry/created-on now
                          :reg-entry/challenge-period-end (+ now (hours->seconds 1))
                          :param-change/db "MEMEREGISTRYADDR"
-                         :param-change/key (get ["deposit" "challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration"] i)
-                         :param-change/value (get [2000 1e6 1e5 1e5] i)
-                         :param-change/applied-on now})]
+                         :param-change/key (get ["deposit" "challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration" "deposit"] i)
+                         :param-change/value (get [2000 1e6 1e5 1e5 8000] i)
+                         :param-change/applied-on (+ now (hours->seconds i))})]
 
     ;; Generate some users
     (doseq [u all-users]
