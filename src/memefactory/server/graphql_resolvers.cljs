@@ -14,7 +14,6 @@
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
             [memefactory.server.contract.eternal-db :as eternal-db]
-            [memefactory.server.db :as meme-db]
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]
@@ -402,6 +401,7 @@
    (select-keys @config whitelisted-config-keys)))
 
 (defn eternal-db-query-resolver [_ _ _ document]
+  (log/warning "deprecated resolver! Please use search-param-changes-query-resolver!")
   (try-catch-throw
    (let [contract-key (-> document (query-fields) first)
          fields (query-fields document contract-key)]

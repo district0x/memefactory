@@ -332,36 +332,32 @@
                                          {:challenge/comment "Comment shouldn't be empty."})})
         tx-id (:reg-entry/address meme)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
+        response (subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :deposit)
+                                                                            :group-by :param-changes.group-by/key
+                                                                            :order-by :param-changes.order-by/applied-on}
+                                                     [[:items [:param-change/value]]]]]}])]
     (fn []
-      ;; TODO: param-change
-      (let [response (subscribe [::gql/query {:queries [[:search-param-changes {:key "deposit"
-                                                                                :group-by :param-changes.group-by/key
-                                                                                :order-by :param-changes.order-by/applied-on}
-                                                         [:total-count
-                                                          :end-cursor
-                                                          [:items [:param-change/value]]]]]}])]
-
-        (when-not (:graphql/loading? @response)
-          (if-let [dank-deposit (-> @response
-                                    (get-in [:search-param-changes :items])
-                                    first
-                                    :param-change/value)]
-            [:div
-             [:b "Challenge explanation"]
-             [inputs/textarea-input {:form-data form-data
-                                     :id :challenge/comment
-                                     :errors errors}]
-             [:div (format/format-token deposit {:token "DANK"})]
-             [tx-button/tx-button {:primary true
-                                   :disabled (or @tx-success? (not (empty? (:local @errors))))
-                                   :pending? @tx-pending?
-                                   :pending-text "Challenging..."
-                                   :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
-                                                                                             :reg-entry/address (:reg-entry/address meme)
-                                                                                             :comment (:challenge/comment @form-data)
-                                                                                             :deposit dank-deposit}])}
-              "Challenge"]]))))))
+      (when-not (:graphql/loading? @response)
+        (if-let [dank-deposit (-> @response
+                                  (get-in [:search-param-changes :items])
+                                  first
+                                  :param-change/value)]
+          [:div
+           [:b "Challenge explanation"]
+           [inputs/textarea-input {:form-data form-data
+                                   :id :challenge/comment
+                                   :errors errors}]
+           [:div (format/format-token deposit {:token "DANK"})]
+           [tx-button/tx-button {:primary true
+                                 :disabled (or @tx-success? (not (empty? (:local @errors))))
+                                 :pending? @tx-pending?
+                                 :pending-text "Challenging..."
+                                 :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
+                                                                                           :reg-entry/address (:reg-entry/address meme)
+                                                                                           :comment (:challenge/comment @form-data)
+                                                                                           :deposit dank-deposit}])}
+            "Challenge"]])))))
 
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])

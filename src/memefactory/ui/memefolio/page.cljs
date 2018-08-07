@@ -38,55 +38,62 @@
 (defn sell-form [{:keys [:meme/title
                          :meme-auction/token-count
                          :meme-auction/token-ids
-                         :meme-auction/max-duration
                          :show?]}]
-  (let [tx-id (str (random-uuid))
-        form-data (r/atom {:meme-auction/amount token-count
-                           :meme-auction/start-price 0.1
-                           :meme-auction/end-price 0.01
-                           :meme-auction/duration max-duration
-                           :meme-auction/description "description"})
-        errors (r/atom {:local {:meme-auction/amount {:hint (str "Max " @token-count)}
-                                :meme-auction/duration {:hint (str "Max " @max-duration)}}})
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
-    (fn []
-      (let [max-duration (get-in @(subscribe [::gql/query {:queries [[:eternal-db
-                                                                      [[:meme-registry-db [:max-auction-duration]]]]]}]) [:eternal-db :meme-registry-db :max-auction-duration])]
-        [:div.form-panel
-         [inputs/with-label "Amount"
-          [inputs/text-input {:form-data form-data
-                              :errors errors
-                              :id :meme-auction/amount}]]
-         [inputs/with-label "Start Price"
-          [inputs/amount-input {:form-data form-data
+  (let [response (subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :max-auction-duration)
+                                                                            :group-by :param-changes.group-by/key
+                                                                            :order-by :param-changes.order-by/applied-on}
+                                                     [[:items [:param-change/value]]]]]}])]
+
+    (when-not (:graphql/loading? @response)
+      (let [max-duration (-> @response
+                             (get-in [:search-param-changes :items])
+                             first
+                             :param-change/value)
+            tx-id (str (random-uuid))
+            form-data (r/atom {:meme-auction/amount token-count
+                               :meme-auction/start-price 0.1
+                               :meme-auction/end-price 0.01
+                               :meme-auction/duration max-duration
+                               :meme-auction/description "description"})
+            errors (r/atom {:local {:meme-auction/amount {:hint (str "Max " token-count)}
+                                    :meme-auction/duration {:hint (str "Max " max-duration)}}})
+            tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
+        (fn []
+          [:div.form-panel
+           [inputs/with-label "Amount"
+            [inputs/text-input {:form-data form-data
                                 :errors errors
-                                :id :meme-auction/start-price}]]
-         [inputs/with-label "End Price"
-          [inputs/amount-input {:form-data form-data
-                                :errors errors
-                                :id :meme-auction/end-price}]]
-         [inputs/with-label "Duration"
-          [inputs/int-input {:form-data form-data
-                             :errors errors
-                             :id :meme-auction/duration}]]
-         [inputs/with-label "Short sales pitch"
-          [inputs/textarea-input {:form-data form-data
+                                :id :meme-auction/amount}]]
+           [inputs/with-label "Start Price"
+            [inputs/amount-input {:form-data form-data
                                   :errors errors
-                                  :id :meme-auction/description}]]
-         [:div.buttons
-          [:button {:on-click #(swap! show? not)} "Cancel"]
-          [tx-button/tx-button {:primary true
-                                :disabled false
-                                :pending? @tx-pending?
-                                :pending-text "Creating offering..."
-                                :on-click (fn []
-                                            (dispatch [:meme-token/transfer-multi-and-start-auction (merge @form-data
-                                                                                                           {:send-tx/id tx-id
-                                                                                                            :meme/title title
-                                                                                                            :meme-auction/token-ids (->> token-ids
-                                                                                                                                         (take (int (:meme-auction/amount @form-data)))
-                                                                                                                                         (map int))})]))}
-           "Create Offering"]]]))))
+                                  :id :meme-auction/start-price}]]
+           [inputs/with-label "End Price"
+            [inputs/amount-input {:form-data form-data
+                                  :errors errors
+                                  :id :meme-auction/end-price}]]
+           [inputs/with-label "Duration"
+            [inputs/int-input {:form-data form-data
+                               :errors errors
+                               :id :meme-auction/duration}]]
+           [inputs/with-label "Short sales pitch"
+            [inputs/textarea-input {:form-data form-data
+                                    :errors errors
+                                    :id :meme-auction/description}]]
+           [:div.buttons
+            [:button {:on-click #(swap! show? not)} "Cancel"]
+            [tx-button/tx-button {:primary true
+                                  :disabled false
+                                  :pending? @tx-pending?
+                                  :pending-text "Creating offering..."
+                                  :on-click (fn []
+                                              (dispatch [:meme-token/transfer-multi-and-start-auction (merge @form-data
+                                                                                                             {:send-tx/id tx-id
+                                                                                                              :meme/title title
+                                                                                                              :meme-auction/token-ids (->> token-ids
+                                                                                                                                           (take (int (:meme-auction/amount @form-data)))
+                                                                                                                                           (map int))})]))}
+             "Create Offering"]]])))))
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]
   (let [sell? (r/atom false)]
