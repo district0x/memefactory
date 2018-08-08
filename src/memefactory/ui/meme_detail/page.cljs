@@ -331,8 +331,8 @@
         errors (ratom/reaction {:local (when-not (spec/check ::spec/challenge-comment (:challenge/comment @form-data))
                                          {:challenge/comment "Comment shouldn't be empty."})})
         tx-id (:reg-entry/address meme)
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/create-challenge tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/create-challenge tx-id}])
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
         response (subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :deposit)
                                                                             :group-by :param-changes.group-by/key
                                                                             :order-by :param-changes.order-by/applied-on}
@@ -400,8 +400,8 @@
                                                (> @balance-dank amount-against))
                                            (assoc :vote/amount-against (str "Amount should be between 0 and " @balance-dank))))})
         tx-id (:reg-entry/address meme)
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/commit-vote tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/commit-vote tx-id}])]
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])]
     (fn []
       [:div.vote
        [:div description]
@@ -438,7 +438,7 @@
                                                                                                :vote/option :vote.option/vote-against
                                                                                                :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
           "Vote STANK"]]]
-       [:div "You can vote with up to " (format/format-token balance-dank {:token "DANK"})]
+       [:div "You can vote with up to " (format/format-token @balance-dank {:token "DANK"})]
        [:div "Token will be returned to you after revealing your vote."]])))
 
 (defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
@@ -511,7 +511,7 @@
       (let [address (-> @(re-frame/subscribe [::router-subs/active-page]) :query :address)
             response (subscribe [::gql/query (build-meme-query address @active-account)])]
         (when-not (:graphql/loading? @response)
-          (if-let [meme (:meme @response)]
+          (if-let [meme (-> @response :meme)]
             (let [{:keys [:reg-entry/status :meme/image-hash :meme/title :reg-entry/status :meme/total-supply
                           :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger]} meme
                   token-count (->> owned-meme-tokens

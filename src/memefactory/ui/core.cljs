@@ -59,6 +59,7 @@
         (merge {:web3 {:url "http://localhost:8549"}
                 :smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)}
                 :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
+                :web3-account-balances {:for-contracts [:ETH :DANK]}
                 :web3-tx-log {:open-on-tx-hash? true
                               :tx-costs-currencies [:USD]}
                 :reagent-render {:id "app"
