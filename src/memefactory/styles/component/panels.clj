@@ -3,7 +3,7 @@
             [garden.stylesheet :refer [at-media]]
             [clojure.string :as s]
             [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.base.borders :refer [border-top]]
+            [memefactory.styles.base.borders :refer [border-top border-bottom]]
             [memefactory.styles.base.colors :as c]
             [memefactory.styles.base.fonts :refer [font]]
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
@@ -59,3 +59,21 @@
             :background-image (str "url('" url "')")}]
    [:h2.title {:color (c/color color)}]
    ])
+
+(defn tabs []
+  [:&
+   {:display :flex
+    :margin-right (em 6)
+    :margin-left (em 6)
+    :height (em 3)
+    :line-height (em 3)
+    :flex-wrap :wrap
+    :justify-content :flex-start}
+   [">div"
+    {:padding-right (em 4)}
+    [:a
+     {:color (c/color :section-subcaption)}]
+    [:&.selected
+     [:a
+      (border-bottom {:color (c/color :pink)
+                      :width (px 2)})]]]])

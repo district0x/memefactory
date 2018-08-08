@@ -5,13 +5,17 @@
   (let [selected-tab (r/atom (-> tabs first :title))]
     (fn [tabs]
       [:div.tabbed-panel
-       [:ol.tabs-titles
+       [:div.tabs-titles
         (doall
          (for [t tabs]
-           [:li {:class (when (= (:title t) @selected-tab) "selected")
-                 :key (:title t)
-                 :on-click #(reset! selected-tab (:title t))}
-            (:title t)]))]
+           [:div {:class (when (= (:title t) @selected-tab) "selected")
+                 :key (:title t)}
+            [:a
+             {:on-click (fn [e]
+                          (.preventDefault e)
+                          (reset! selected-tab (:title t)))
+              :href "#"}
+             (:title t)]]))]
        [:div.selected-tab-body
         (some #(when (= (:title %) @selected-tab)
                  (:content %))
