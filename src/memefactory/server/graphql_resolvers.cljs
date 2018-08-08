@@ -401,7 +401,7 @@
    (select-keys @config whitelisted-config-keys)))
 
 (defn eternal-db-query-resolver [_ _ _ document]
-  (log/warning "deprecated resolver! Please use search-param-changes-query-resolver!")
+  (log/warn "Deprecated resolver! Please use search-param-changes-query-resolver!")
   (try-catch-throw
    (let [contract-key (-> document (query-fields) first)
          fields (query-fields document contract-key)]

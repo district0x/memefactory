@@ -12,7 +12,6 @@
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
-            [district.server.db :refer [db]]
             [district.server.graphql :as graphql]
             [district.server.graphql.utils :as utils]
             [district.server.logging :refer [logging]]
@@ -115,14 +114,14 @@
                                                                 :deposit (web3/to-wei 1000 :ether)
                                                                 :challenge-dispensation 50
                                                                 :vote-quorum 50}}}
-                            :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}}}
-         :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
-                           :print-gas-usage? true
-                           :auto-mining? true}
-         :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
-         :syncer {:initial-param-query {:meme-registry-db [:max-total-supply
-                                                           :max-auction-duration
-                                                           :deposit]}}})
+                            :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
+                            :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
+                                              :print-gas-usage? true
+                                              :auto-mining? true}
+                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
+                            :syncer {:initial-param-query {:meme-registry-db [:max-total-supply
+                                                                              :max-auction-duration
+                                                                              :deposit]}}}}})
       (mount/except [#'memefactory.server.deployer/deployer
                      #'memefactory.server.generator/generator])
       (mount/start)
