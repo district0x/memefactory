@@ -66,6 +66,7 @@
 
                :challenge/created-on
                :challenge/commit-period-end
+               :challenge/reveal-period-end
                :challenge/comment
                :challenge/votes-for
                :challenge/votes-against
@@ -369,8 +370,8 @@
 
 (defn reveal-vote-component [{:keys [:challenge/reveal-period-end :challenge/vote] :as meme}]
   (let [tx-id (:reg-entry/address meme)
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/reveal-vote tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/reveal-vote tx-id}])]
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])]
     (fn []
       [:div.vote
        [:div description]
@@ -393,11 +394,11 @@
                                              amount-against (-> @form-data :vote/amount-against js/parseInt)]
                                          (cond-> {}
                                            (or (not (spec/check ::spec/pos-int amount-for))
-                                               (> @balance-dank amount-for))
+                                               (< @balance-dank amount-for))
                                            (assoc :vote/amount-for (str "Amount should be between 0 and " @balance-dank))
 
                                            (or (not (spec/check ::spec/pos-int amount-against))
-                                               (> @balance-dank amount-against))
+                                               (< @balance-dank amount-against))
                                            (assoc :vote/amount-against (str "Amount should be between 0 and " @balance-dank))))})
         tx-id (:reg-entry/address meme)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
@@ -433,6 +434,7 @@
                                              @tx-success?)
                                :pending? @tx-pending?
                                :pending-text "Voting..."
+                               ;; TODO: stank tx reverts
                                :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                                :reg-entry/address (:reg-entry/address meme)
                                                                                                :vote/option :vote.option/vote-against
