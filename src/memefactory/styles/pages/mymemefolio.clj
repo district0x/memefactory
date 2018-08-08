@@ -8,6 +8,7 @@
             [memefactory.styles.base.fonts :refer [font]]
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [memefactory.styles.component.search :refer [search-panel]]
+            [memefactory.styles.component.panels :refer [tabs]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
             [clojure.string :as str]))
@@ -71,17 +72,4 @@
       :flex-wrap :wrap
       :justify-content :space-evenly}]]
    [:section.tabs
-    {:display :flex
-     :margin-right (em 6)
-     :margin-left (em 6)
-     :height (em 3)
-     :line-height (em 3)
-     :flex-wrap :wrap
-     :justify-content :flex-start}
-    [">div"
-     {:padding-right (em 4)}
-     [:a
-      {:color (color :section-subcaption)}
-      [:&.active
-       (border-bottom {:color (color :pink)
-                       :width (px 2)})]]]]])
+    (tabs)]])

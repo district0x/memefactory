@@ -29,7 +29,7 @@
 (defn header []
   [:div.registry-vote-header
    [:div.icon]
-   [:h2.title "Dank registry - Submit"]
+   [:h2.title "Dank registry - VOTE"]
    [:h3.title "Lorem ipsum dolor sit ..."]
    [:div.get-dank-button "Get Dank"]])
 
@@ -48,7 +48,7 @@
                   tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/collect-all-rewards tx-id}])]
               [:div.collect-reward
                [:img]
-               [:ol.vote-info
+               [:ul.vote-info
                 [:li [with-label (str "Voted dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]]
                 [:li [with-label (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]]
                 [:li [with-label "Total voted: " (gstring/format "%d" votes-total)]]

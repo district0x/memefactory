@@ -9,7 +9,7 @@
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
-            [memefactory.styles.component.panels :refer [panel-with-icon]]
+            [memefactory.styles.component.panels :refer [panel-with-icon tabs]]
             [memefactory.styles.component.buttons :refer [get-dank-button button]]
             [clojure.string :as str]))
 
@@ -23,4 +23,6 @@
      (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
                        :color :purple})
      [:.get-dank-button
-      (get-dank-button)]]]])
+      (get-dank-button)]]]
+   [:.tabs-titles
+    (tabs)]])
