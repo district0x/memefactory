@@ -253,6 +253,8 @@
 
                      key (sqlh/merge-where [:= key :param-changes.param-change/key])
 
+                     order-by (sqlh/merge-where [:not= nil :param-changes.param-change/applied-on])
+
                      order-by (sqlh/merge-order-by [[(get {:param-changes.order-by/applied-on :param-changes.param-change/applied-on}
                                                           (graphql-utils/gql-name->kw order-by))
                                                      order-dir]])

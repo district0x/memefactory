@@ -165,7 +165,6 @@
                       :sig ds-guard/ANY}
                      deploy-opts)
 
-
     (deploy-meme-token! deploy-opts)
 
     (deploy-meme! deploy-opts)

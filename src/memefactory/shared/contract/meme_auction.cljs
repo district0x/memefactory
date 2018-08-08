@@ -1,7 +1,6 @@
 (ns memefactory.shared.contract.meme-auction
-  (:require
-    [district.web3-utils :refer [web3-time->local-date-time empty-address? wei->eth-number]]
-    [bignumber.core :as bn]))
+  (:require [bignumber.core :as bn]
+            [memefactory.shared.utils :as shared-utils]))
 
 (def load-meme-auction-keys [:meme-auction/seller
                              :meme-auction/token-id
@@ -21,4 +20,4 @@
         (update :meme-auction/start-price bn/number)
         (update :meme-auction/end-price bn/number)
         (update :meme-auction/duration bn/number)
-        (update :meme-auction/started-on (if parse-dates? web3-time->local-date-time bn/number))))))
+        (update :meme-auction/started-on (constantly (shared-utils/parse-uint-date (:meme-auction/started-on meme) parse-dates?)))))))
