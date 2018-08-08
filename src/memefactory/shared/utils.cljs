@@ -1,6 +1,8 @@
 (ns memefactory.shared.utils
-  (:require [print.foo :refer [look] :include-macros true]
-            [bignumber.core :as bn]))
+  (:require [bignumber.core :as bn]
+            [cljs.core.match :refer-macros [match]]
+            [district.web3-utils :as web3-utils]
+            [print.foo :refer [look] :include-macros true]))
 
 (def not-nil? (complement nil?))
 
@@ -14,3 +16,10 @@
     (if (<= duration seconds-passed)
       end-price
       (+ start-price current-price-change))))
+
+(defn parse-uint-date [date parse-as-date?]
+  (let [date (bn/number date)]    
+    (match [(= 0 date) parse-as-date?]
+           [true _] nil
+           [false true] (web3-utils/web3-time->local-date-time date)
+           [false (:or nil false)] date)))
