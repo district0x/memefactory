@@ -2,7 +2,7 @@
   (:require [bignumber.core :as bn]
             [cljs-web3.core :as web3]
             [clojure.set :as set]
-            [district.web3-utils :refer [web3-time->local-date-time empty-address? wei->eth-number]]
+            [district.web3-utils :refer [empty-address? wei->eth-number]]
             [memefactory.shared.utils :as shared-utils]))
 
 (def statuses
@@ -53,18 +53,18 @@
         (update :reg-entry/version bn/number)
         (update :reg-entry/deposit wei->eth-number)
         (update :reg-entry/status parse-status)
-        (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))))))
+        (update :reg-entry/challenge-period-end (constantly (shared-utils/parse-uint-date (:reg-entry/challenge-period-end registry-entry) parse-dates?)))))))
 
 (defn parse-load-registry-entry-challenge [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]] 
   (when registry-entry
     (let [registry-entry (zipmap load-registry-entry-challenge-keys registry-entry)]
       (-> registry-entry
-          (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))
+          (update :reg-entry/challenge-period-end (constantly (shared-utils/parse-uint-date (:reg-entry/challenge-period-end registry-entry) parse-dates?)))
           (update :challenge/challenger #(when-not (empty-address? %) %))
           (update :challenge/reward-pool wei->eth-number)
           (update :challenge/meta-hash #(when-not (empty-address? %) (web3/to-ascii %)))
-          (update :challenge/commit-period-end (if parse-dates? web3-time->local-date-time bn/number))
-          (update :challenge/reveal-period-end (if parse-dates? web3-time->local-date-time bn/number))
+          (update :challenge/commit-period-end (constantly (shared-utils/parse-uint-date (:challenge/commit-period-end registry-entry) parse-dates?)))
+          (update :challenge/reveal-period-end (constantly (shared-utils/parse-uint-date (:challenge/reveal-period-end registry-entry) parse-dates?)))
           (update :challenge/votes-for bn/number)
           (update :challenge/vote-quorum bn/number)
           (update :challenge/votes-against bn/number)

@@ -1,6 +1,5 @@
 (ns memefactory.shared.contract.param-change
   (:require [bignumber.core :as bn]
-            [district.web3-utils :refer [web3-time->local-date-time empty-address? wei->eth-number]]
             [memefactory.shared.utils :as shared-utils]))
 
 (def load-param-change-keys [:param-change/db
