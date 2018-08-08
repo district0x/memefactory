@@ -68,7 +68,7 @@
                                       :on-tx-success-n [[::logging/success [::approve-and-commit-vote]]
                                                         [::notification-events/show "Voted"]]
                                       :on-tx-hash-error [::logging/error [::approve-and-commit-vote]]
-                                      :on-tx-error [::logging/error [::approve-and-commit-vote]]}]
+                                      :on-tx-error [::logging/error [::approve-and-commit-vote {:send-tx/id id}]]}]
       :store (assoc-in store [:votes active-account address] {:option option :salt salt})})))
 
 (re-frame/reg-event-fx
