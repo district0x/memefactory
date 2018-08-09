@@ -215,3 +215,23 @@
 
 (defn print-ranks-cache []
   (pprint/pprint @@memefactory.server.ranks-cache/ranks-cache))
+
+
+(comment
+  ;; Contract call log instrument snippet p
+  ;; paste in UI repl or SERVER repl
+  (let [cc cljs-web3.eth/contract-call]
+    (set! cljs-web3.eth/contract-call 
+          (fn [contract-instance method & args]
+            (let [method-name (camel-snake-kebab.core/->camelCase (name method))
+                  method-abi (->> (js->clj (.-abi contract-instance) :keywordize-keys true)
+                                  (filter #(= (get % :name) method-name))
+                                  first
+                                  :inputs
+                                  (map (fn [v m] (assoc m :value v)) args))]
+              (println "CALLING CONTRACT " (.-address contract-instance)
+                       method-name
+                       "("  (->> method-abi
+                                 (map (fn [p] (str (:type p) " " (:name p) " = " (:value p))))
+                                 (clojure.string/join ",\n"))")")
+              (apply cc (into [contract-instance method] args)))))))
