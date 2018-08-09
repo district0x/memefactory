@@ -82,28 +82,32 @@
             [app-layout
              {:meta {:title "MemeFactory"
                      :description "Description"}}
-             [:div.leaderboard-collectors
-              [:h1 "LEADERBOARDS - COLLECTORS"]
-              [:p "lorem ipsum"]
-              (let [total (get-in @users-search [:search-users :total-count])]
-                [select-input
-                 {:form-data form-data
-                  :id :order-by ;; TODO Do this !!!!!!!!!! 
-                  :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
-                            {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
-                            {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}])
-              [:div.creators
-               [react-infinite {:element-height 280
-                                :container-height 300
-                                :infinite-load-begin-edge-offset 100
-                                :use-window-as-scroll-container true
-                                :on-infinite-load (fn []
-                                                    (when-not (:graphql/loading? @users-search)
-                                                      (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]
-                                                        (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                                        (when (or has-next-page (empty? all-collectors))
-                                                          (re-search-users end-cursor)))))}
-                (doall
-                 (for [collector all-collectors]
-                   ^{:key (:user/address collector)}
-                   [collectors-tile collector (:overall-stats @totals)]))]]]]))))))
+             [:div.leaderboard-collectors-page
+              [:section.collectors
+               [:div.collectors-panel
+                [:div.icon]
+                [:h2.title "LEADERBOARDS - COLLECTORS"]
+                [:h3.title "lorem ipsum"]
+                [:div.order
+                 (let [total (get-in @users-search [:search-users :total-count])]
+                   [select-input
+                    {:form-data form-data
+                     :id :order-by ;; TODO Do this !!!!!!!!!! 
+                     :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
+                               {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
+                               {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}])]
+                [:div.collectors
+                 [react-infinite {:element-height 280
+                                  :container-height 300
+                                  :infinite-load-begin-edge-offset 100
+                                  :use-window-as-scroll-container true
+                                  :on-infinite-load (fn []
+                                                      (when-not (:graphql/loading? @users-search)
+                                                        (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]
+                                                          (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                                          (when (or has-next-page (empty? all-collectors))
+                                                            (re-search-users end-cursor)))))}
+                  (doall
+                   (for [collector all-collectors]
+                     ^{:key (:user/address collector)}
+                     [collectors-tile collector (:overall-stats @totals)]))]]]]]]))))))
