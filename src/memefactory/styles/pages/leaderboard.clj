@@ -7,4 +7,4 @@
 (defstyles core
   index/core
   curators/core
-  curators/core)
+  collectors/core)

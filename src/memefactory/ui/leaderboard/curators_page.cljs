@@ -56,13 +56,14 @@
             [:div.icon]
             [:h2.title "LEADERBOARDS - CURATORS"]
             [:h3.title "lorem ipsum"]
-            (let [total (get-in @search-users [:search-users :total-count])]
-              [select-input
-               {:form-data form-data
-                :id :order-by
-                :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
-                          {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
-                          {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}])
+            [:div.order
+             (let [total (get-in @search-users [:search-users :total-count])]
+               [select-input
+                {:form-data form-data
+                 :id :order-by
+                 :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
+                           {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
+                           {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}])]
             [:div.curators
              [react-infinite {:element-height 280
                               :container-height 300
