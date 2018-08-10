@@ -20,14 +20,14 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [react-infinite]
    [reagent.core :as r]
-   [reagent.ratom :refer [reaction]]
-   ))
+   [reagent.ratom :refer [reaction]]))
 
 (defn header []
-  [:div.header
-   [:h2 "Dank registry - Challenge"]
-   [:h3 "Lorem ipsum dolor sit ..."]
-   [:div [:div "Get Dank"]]])
+  [:div.challenge-info
+   [:div.icon]
+   [:h2.title "Dank registry - Challenge"]
+   [:h3.title "Lorem ipsum dolor sit ..."]
+   [:div.get-dank-button "Get Dank"]])
 
 (defn open-challenge-action [{:keys [:reg-entry/address]}]
   (let [form-data (r/atom {})
@@ -44,12 +44,17 @@
                                                                       [[:meme-registry-db
                                                                         [:deposit]]]]]}]) [:eternal-db :meme-registry-db :deposit])]
         [:div.challenge-controls
-         [:img.vs]
+         [:div.vs
+          [:img.vs-left {:src "/assets/icons/mememouth.png"}]
+          [:span.vs "vs."]
+          [:img.vs-right {:src "/assets/icons/mememouth.png"}]]
          (if @open?
            [:div
             [text-input {:form-data form-data
                          :id :comment
-                         :errors errors}]
+                         :errors errors
+                         :placeholder "Challenge Reason..."
+                         :input-type :textarea}]
             [pending-button {:pending? @tx-pending?
                              :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
                              :pending-text "Challenging ..."
@@ -60,14 +65,15 @@
                                                                                         :deposit dank-deposit}]))}
              "Challenge"]
             [:span.dank (format/format-token dank-deposit  {:token "DANK"})]]
-           [:button {:on-click #(swap! open? not)} "Challenge"])]))))
+           [:button.open-challenge {:on-click #(swap! open? not)} "Challenge"])]))))
 
 (defmethod page :route.dank-registry/challenge []
   [app-layout
    {:meta {:title "MemeFactory"
            :description "Description"}}
    [:div.dank-registry-challenge
-    [header]
+    [:div.challenge-header
+     [header]]
     [challenge-list {:include-challenger-info? false
                      :query-params {:statuses [:reg-entry.status/challenge-period]}
                      :action-child open-challenge-action

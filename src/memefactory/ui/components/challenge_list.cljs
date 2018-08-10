@@ -61,14 +61,14 @@
                                                            (:user/total-created-memes user)
                                                            (/ (* 100 (:user/total-created-memes-whitelisted user))
                                                               (:user/total-created-memes user)))]]] 
-   [:li [with-label "Address:" [:span (-> user :user/address)]]]])
+   [:li [with-label "Address:" [:span.address (-> user :user/address)]]]])
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child] }]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
                 :meme/tags :challenge/challenger :challenge/comment]} entry]
-    [:div.challenge {:height 400}
-     [:div (str "ENTRY " address)] ;; TODO remove (only for debugging)
+    [:div.challenge
+     #_[:div (str "ENTRY " address)] ;; TODO remove (only for debugging)
      (cond-> [:div.info
               [:h2 title]
               [:ol.meme
@@ -88,13 +88,14 @@
                   name])]]
        include-challenger-info? (into [[:h3 "Challenger"]
                                        [user-info challenger :challenger]]))
-     (meme-image image-hash)
-     [action-child entry]]))
+     [:div.meme-image
+      (meme-image image-hash)]
+     [:div.action
+      [action-child entry]]]))
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key]}]
   (let [form-data (r/atom {})]
     (fn [{:keys [include-challenger-info? query-params action-child active-account key]}]
-      (look query-params)
       (let [params {:data @form-data
                     :include-challenger-info? include-challenger-info?
                     :query-params query-params
@@ -108,16 +109,18 @@
             all-memes (->> @meme-search
                            (mapcat (fn [r] (-> r :search-memes :items)))
                            ;; TODO remove this, don't know why subscription is returning nil item
+
                            (remove #(nil? (:reg-entry/address %))))]
         (.log js/console "ALL Rendering here" all-memes)
          (println "All memes " (map :reg-entry/address all-memes))
         (if (:graphql/loading? @meme-search)
           [:div "Loading..."]
           [:div.challenges.panel
-           [select-input {:form-data form-data
-                          :id :order-by
-                          :options [{:key "created-on" :value "Newest"}]
-                          :on-change #(re-search nil)}]
+           [:div.controls
+            [select-input {:form-data form-data
+                           :id :order-by
+                           :options [{:key "created-on" :value "Newest"}]
+                           :on-change #(re-search nil)}]]
            [:div.memes
             [react-infinite {:element-height 400
                              :infinite-load-begin-edge-offset 100

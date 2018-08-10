@@ -1,6 +1,7 @@
 (ns memefactory.styles.base.colors)
 
 (def names->colors {:pink "#ff0090"
+                    :sky-blue "#04b7e0"
                     :purple "#9d0adb"
                     :light-light-grey "#f8f9fd"
                     :ticker-background "#ff0090"
@@ -28,7 +29,7 @@
                     :violet "#2e1f37"
                     :light-violet "rgba(116,100,126,.15)"
                     :light-grey "rgba(255,255,255,.7)"
-
+                    :tags-grey "#eff5ff"
                     :curator-card-bg "#f2f4fb"
                     :leaderboard-curator-bg "#9cc717"
                     })
