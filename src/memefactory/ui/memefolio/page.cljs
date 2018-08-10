@@ -321,6 +321,19 @@
       (let [{:keys [:user/curator-rank :user/total-created-challenges :user/total-created-challenges-success
                     :user/challenger-total-earned :user/total-participated-votes :user/total-participated-votes-success
                     :user/voter-total-earned]} (:user @query)]
+        #_[:div.stats
+         [:div.rank
+          (str "RANK: " collector-rank)]
+         [:div.unique-memes
+          [:b "Unique Memes: "]
+          (str total-collected-memes "/" (-> @query :search-memes :total-count))]
+         [:div.unique-memes
+          [:b "Total Cards: "]
+          [:span (str total-collected-token-ids "/" (-> @query :search-meme-tokens :total-count))]]
+         [:div.largest-buy
+          [:b "Largest buy: "]
+          [:span (str (format/format-eth (web3/from-wei bought-for :ether))
+                      "(#" number " " title ")")]]]
         [:div.stats
          [:div.rank
           (str "RANK: " curator-rank)]
@@ -606,8 +619,12 @@
        [:section.tabs
         (map (fn [tab-id]
                ^{:key tab-id} [:div
+                               {:class (when (= @tab
+                                                tab-id) "selected")}
                                [:a {:on-click (fn [evt]
-                                                (reset! tab tab-id))}
+                                                (.preventDefault evt)
+                                                (reset! tab tab-id))
+                                    :href "#"}
                                 (-> tab-id
                                     cljs.core/name
                                     (str/capitalize))]])

@@ -42,6 +42,8 @@
     #_[">*"
      {:padding-top (em 1)
       :padding-bottom (em 1)}]
+    [">.rank"
+     {:width "100%"}]
     [".rank>.stats>.rank"
      (font :bungee)
      {:color (color :purple)
@@ -56,7 +58,13 @@
       :line-height (em 3)}
      [:.unique-memes :.largest-buy
       {:margin-right (em 1)
-       :margin-left (em 1)}]]]
+       :margin-left (em 1)}]
+     [:.curator
+      {:display :grid
+       :flex-grow 1
+       :grid-cols "100%"}
+      [">div"
+       {:display :flex}]]]]
    [:section.tiles
     {:display :block
      :margin-top 0
