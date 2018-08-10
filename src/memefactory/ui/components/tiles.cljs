@@ -31,7 +31,7 @@
                                         [[:ipfs [:gateway]]]]]}])]        
     (when-not (:graphql/loading? @gateway)
       (if-let [url (-> @gateway :config :ipfs :gateway)]
-       [:img {:src (str (format/ensure-trailing-slash url) image-hash)}]))))
+       [:img.meme-image {:src (str (format/ensure-trailing-slash url) image-hash)}]))))
 
 (defn flippable-tile [{:keys [:front :back :id]}]
   (let [flipped? (r/atom false)

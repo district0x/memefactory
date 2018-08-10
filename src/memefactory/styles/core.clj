@@ -12,7 +12,9 @@
             [memefactory.styles.pages.marketplace :as page.marketplace]
             [memefactory.styles.pages.mymemefolio :as page.memefolio]
             [memefactory.styles.pages.dankregistry :as page.dankregistry]
-            [memefactory.styles.pages.leaderboard :as page.leaderboard]))
+            [memefactory.styles.pages.dankregistry.challenge :as page.challenge]
+            [memefactory.styles.pages.leaderboard :as page.leaderboard]
+            [memefactory.styles.component.challenge-list :as challenge-list]))
 
 (defstyles main
   app-layout/core
@@ -26,5 +28,6 @@
   form/core
   page.memefolio/core
   page.dankregistry/core
+  page.challenge/core
   page.leaderboard/core
-  )
+  challenge-list/core)
