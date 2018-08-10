@@ -321,33 +321,22 @@
       (let [{:keys [:user/curator-rank :user/total-created-challenges :user/total-created-challenges-success
                     :user/challenger-total-earned :user/total-participated-votes :user/total-participated-votes-success
                     :user/voter-total-earned]} (:user @query)]
-        #_[:div.stats
-         [:div.rank
-          (str "RANK: " collector-rank)]
-         [:div.unique-memes
-          [:b "Unique Memes: "]
-          (str total-collected-memes "/" (-> @query :search-memes :total-count))]
-         [:div.unique-memes
-          [:b "Total Cards: "]
-          [:span (str total-collected-token-ids "/" (-> @query :search-meme-tokens :total-count))]]
-         [:div.largest-buy
-          [:b "Largest buy: "]
-          [:span (str (format/format-eth (web3/from-wei bought-for :ether))
-                      "(#" number " " title ")")]]]
         [:div.stats
-         [:div.rank
+         [:div.rank.big
           (str "RANK: " curator-rank)]
          [:div.curator
           [:div.challenges
-           "CHALLENGES:"
+           [:div.label "CHALLENGES:"]
            [:div [:b "Success Rate:"] total-created-challenges-success "/" total-created-challenges
             " (" (format/format-percentage total-created-challenges-success total-created-challenges)  ")"]
            [:div [:b "Earned:"] (str (web3/from-wei challenger-total-earned :ether) " DANK")]]
-          [:div.votes "VOTES:"
+          [:div.votes
+           [:div.label "VOTES:"]
            [:div [:b "Success Rate:"] total-participated-votes "/" total-participated-votes-success
             " (" (format/format-percentage total-participated-votes-success total-participated-votes)  ")"]
            [:div [:b "Earned:"] (str (web3/from-wei voter-total-earned :ether) " DANK")]]
-          [:div.total-earnings "TOTAL-EARNINGS:"
+          [:div.total-earnings
+           [:div.label "TOTAL-EARNINGS:"]
            [:div (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")]]]]))))
 
 (defmethod total :curated [_ active-account]

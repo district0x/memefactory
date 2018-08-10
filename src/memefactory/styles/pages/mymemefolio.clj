@@ -51,11 +51,14 @@
       :background-color (color "#ffd800")
       :padding-right (em 1)
       :padding-left (em 1)
+      :display :table-cell
       :font-size (em 1)}
-     ]
+     [:&.big
+      {:line-height (em 6)}]]
     [:.stats
      {:display :flex
       :line-height (em 3)}
+     [:&.]
      [:.unique-memes :.largest-buy
       {:margin-right (em 1)
        :margin-left (em 1)}]
@@ -64,7 +67,15 @@
        :flex-grow 1
        :grid-cols "100%"}
       [">div"
-       {:display :flex}]]]]
+       {:display :flex}
+       [:.label
+        {:color (color :pink)}
+        (font :bungee)]
+       [">*"
+        {:margin-right (em 1)
+         :line-height (em 2)
+         :margin-left (em 1)}
+        [:b {:margin-right (em 0.2)}]]]]]]
    [:section.tiles
     {:display :block
      :margin-top 0
