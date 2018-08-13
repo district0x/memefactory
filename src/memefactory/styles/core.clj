@@ -12,7 +12,8 @@
             [memefactory.styles.pages.marketplace :as page.marketplace]
             [memefactory.styles.pages.mymemefolio :as page.memefolio]
             [memefactory.styles.pages.dankregistry :as page.dankregistry]
-            [memefactory.styles.pages.dankregistry.challenge :as page.challenge]
+            [memefactory.styles.pages.dankregistry.challenge :as page.dankregistry.challenge]
+            [memefactory.styles.pages.dankregistry.vote :as page.dankregistry.vote]
             [memefactory.styles.pages.leaderboard :as page.leaderboard]
             [memefactory.styles.component.challenge-list :as challenge-list]))
 
@@ -28,6 +29,7 @@
   form/core
   page.memefolio/core
   page.dankregistry/core
-  page.challenge/core
+  page.dankregistry.challenge/core
+  page.dankregistry.vote/core
   page.leaderboard/core
   challenge-list/core)

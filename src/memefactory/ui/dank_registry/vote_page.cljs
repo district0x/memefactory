@@ -80,34 +80,39 @@
                        @tx-pending?
                        @tx-success?)]
         [:div.vote
-         [with-label "Amount "
-          [:div [text-input {:form-data form-data
-                             :id :amount-vote-for
-                             :errors errors}]
-           [:span "DANK"]]]
-         [pending-button {:pending? @tx-pending?
-                          :pending-text "Voting ..."
-                          :disabled (or voted? (-> @errors :local :amount-vote-for))
-                          :on-click (fn []
-                                      (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                                           :reg-entry/address address
-                                                                                           :vote/option :vote.option/vote-for
-                                                                                           :vote/amount (-> @form-data :amount-vote-for js/parseInt)}]))}
-          "Vote Dank"]
-         [with-label "Amount "
-          [:div [text-input {:form-data form-data
-                             :id :amount-vote-against
-                             :errors errors}]
-           [:span "DANK"]]]
-         [pending-button {:pending? @tx-pending?
-                          :pending-text "Voting ..."
-                          :disabled (or voted? (-> @errors :local :amount-vote-against))
-                          :on-click (fn []
-                                      (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                                           :reg-entry/address address
-                                                                                           :vote/option :vote.option/vote-against
-                                                                                           :vote/amount (-> @form-data :amount-vote-against js/parseInt)}]))}
-          "Vote Stank"]
+         [:div.vote-dank
+          [:div.vote-input
+           [with-label "Amount "
+            [text-input {:form-data form-data
+                         :id :amount-vote-for
+                         :errors errors}]]
+           [:span "DANK"]]
+          [pending-button {:pending? @tx-pending?
+                           :pending-text "Voting ..."
+                           :disabled (or voted? (-> @errors :local :amount-vote-for))
+                           :on-click (fn []
+                                       (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                                            :reg-entry/address address
+                                                                                            :vote/option :vote.option/vote-for
+                                                                                            :vote/amount (-> @form-data :amount-vote-for js/parseInt)}]))}
+           [:i.vote-dank]
+           "Vote Dank"]]
+         [:div.vote-stank
+          [:div.vote-input
+           [with-label "Amount "
+            [text-input {:form-data form-data
+                         :id :amount-vote-against
+                         :errors errors}]]
+           [:span "DANK"]]
+          [pending-button {:pending? @tx-pending?
+                           :pending-text "Voting ..."
+                           :disabled (or voted? (-> @errors :local :amount-vote-against))
+                           :on-click (fn []
+                                       (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                                            :reg-entry/address address
+                                                                                            :vote/option :vote.option/vote-against
+                                                                                            :vote/amount (-> @form-data :amount-vote-against js/parseInt)}]))}
+           "Vote Stank"]]
          [:p.max-vote-tokens "You can vote with up to 1123455 DANK tokens."]
          [:p.token-return  "Tokens will be returned to you after revealing your vote."]]))))
 

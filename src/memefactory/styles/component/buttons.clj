@@ -13,15 +13,15 @@
 
 (defn button [{:keys [color arrow? width height]
                :or {arrow? true
-                    width 8
-                    height 2}}]
+                    width (em 8)
+                    height (em 2)}}]
   [:&
    (font :bungee)
    {:border-radius (em 2)
     :display "block"
     :bottom (em 2)
-    :height (em height)
-    :width (em width)
+    :height height
+    :width width
     :border-style "none"
     :color (c/color :white)
     :background-color (c/color color)}

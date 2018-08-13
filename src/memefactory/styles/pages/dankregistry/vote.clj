@@ -25,4 +25,17 @@
      [:.get-dank-button
       (get-dank-button)]]]
    [:.tabs-titles
-    (tabs)]])
+    (tabs)]
+   [:.vote {:display :grid
+            :margin-left (em 6)
+            :margin-right (em 6)}
+    [:.vote-input {:display :grid
+                   :grid-template-columns "80% 20%"}]
+    [:.vote-dank
+     [:button (button {:color :rare-meme-icon-bg
+                       :arrow? false
+                       :width "100%"})]]
+    [:.vote-stank
+     [:button (button {:color :random-meme-icon-bg
+                       :arrow? false
+                       :width "100%"})]]]]) 
