@@ -92,14 +92,14 @@
     (fn []
       (let [price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
         [:div.compact-tile
-        [flippable-tile {:front [auction-front-tile opts meme-token]
-                         :back [auction-back-tile opts meme-auction]}]
-        [:div.footer
-         [:div.title (-> meme-token :meme-token/meme :meme/title)]
-         [:div.number-minted (str (:meme-token/number meme-token)
-                                  "/"
-                                  (-> meme-token :meme-token/meme :meme/total-minted))]
-         [:div.price (format/format-eth price)]]]))))
+         [flippable-tile {:front [auction-front-tile opts meme-token]
+                          :back [auction-back-tile opts meme-auction]}]
+         [:div.footer
+          [:div.title (-> meme-token :meme-token/meme :meme/title)]
+          [:div.number-minted (str (:meme-token/number meme-token)
+                                   "/"
+                                   (-> meme-token :meme-token/meme :meme/total-minted))]
+          [:div.price (format/format-eth price)]]]))))
 
 (defn meme-front-tile [opts {:keys [:meme/image-hash] :as meme}]
 
@@ -116,4 +116,6 @@
 (defn meme-tile [opts {:keys [] :as meme}]
   [:div.compact-tile
    [flippable-tile {:front [meme-front-tile opts meme]
-                    :back [meme-back-tile opts meme]}]])
+                    :back [meme-back-tile opts meme]}]
+   [:div.footer
+    [:div.title (-> meme :meme/title)]]])

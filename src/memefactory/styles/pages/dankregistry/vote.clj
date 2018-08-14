@@ -13,6 +13,17 @@
             [memefactory.styles.component.buttons :refer [get-dank-button button]]
             [clojure.string :as str]))
 
+(defn vote-button-icon []
+  [:&:before {:content "''" 
+              :background-image "url('/assets/icons/dankregistry.png')"
+              :background-size "20px 20px"
+              :display :inline-block
+              :background-repeat :no-repeat
+              :width (px 20)
+              :position :relative
+              :margin-right (px 10)
+              :height (px 20)}])
+
 (defstyles core
   [:.dank-registry-vote-page
    [:section.vote-header
@@ -30,12 +41,24 @@
             :margin-left (em 6)
             :margin-right (em 6)}
     [:.vote-input {:display :grid
-                   :grid-template-columns "80% 20%"}]
+                   :grid-template-columns "80% 20%"
+                   :border-bottom "1px solid"
+                   :margin-bottom (em 1)}
+     [:.help-block {:display :none}]]
     [:.vote-dank
-     [:button (button {:color :rare-meme-icon-bg
-                       :arrow? false
-                       :width "100%"})]]
+     [:button
+      {:margin-bottom (em 2)}
+      (button {:background-color :rare-meme-icon-bg
+               :color :violet
+               :height (em 3)
+               :width "100%"})
+      (vote-button-icon)]]
     [:.vote-stank
-     [:button (button {:color :random-meme-icon-bg
-                       :arrow? false
-                       :width "100%"})]]]]) 
+     [:button 
+      (button {:background-color :random-meme-icon-bg
+               :color :violet
+               :height (em 3)
+               :width "100%"})
+      (vote-button-icon)
+      [:&:before {:transform "scaleX(-1) scaleY(-1)"}]
+      ]]]]) 

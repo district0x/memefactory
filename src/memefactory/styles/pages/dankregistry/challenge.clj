@@ -39,7 +39,7 @@
      {:margin-top (em 4)
       :margin-left :auto
       :margin-right :auto}
-     (button {:color :purple
-              :arrow? false
-              :width 15
-              :height 3})]]])
+     (button {:color :white
+              :background-color :purple
+              :width (em 15)
+              :height (em 3)})]]])

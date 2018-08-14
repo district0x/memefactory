@@ -11,7 +11,8 @@
             [garden.units :refer [pt px em rem]]
             [memefactory.styles.component.panels :refer [panel-with-icon]]
             [memefactory.styles.component.buttons :refer [get-dank-button button]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [memefactory.styles.component.compact-tile :as compact-tile]))
 
 (defstyles core
   [:.dank-registry-submit-page
@@ -44,20 +45,25 @@
       (for-media-max :tablet
                      [:&
                       {:margin-right 0}])
+      [:.dropzone {:width (em compact-tile/card-width)
+                   :height (em compact-tile/card-height)}]
+      [:img {:width (em compact-tile/card-width)
+             :height (em compact-tile/card-height)}]
       [:.input-group {:width (px 200)
                       :right 0
                       :left 0
                       :margin-left :auto
                       :margin-right :auto}]
       [:label.file-input-label
-       {:right 0
-        :left (em 2)
-        :position :absolute
-        :margin-right :auto
-        :margin-left 0
+       {:margin-right :auto
+        :margin-left :auto
+        :padding-top (em 1)
         :padding-left (em 1)
-        :line-height (em 2)}
-       (button {:color :meme-buy-button})]
+        :margin-top (em 0.5)}
+       (button {:background-color :purple
+                :color :white
+                :width (em 10)
+                :height (em 3)})]
       ["input[type=file]"
        {:display :none}
        #_{:right 0
@@ -67,11 +73,15 @@
         :margin-left 0}
        #_(button {:color :meme-buy-button})]]
      [:&.form-panel
-      {:margin-left (em 1)}
+      {:margin-left (em 1)
+       :padding-top (em 7)
+       :padding-left (em 7)
+       :padding-right (em 7)}
       (for-media-max :tablet
                      [:&
                       {:margin-left 0
                        :margin-top (em 2)}])
+      [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:position :relative
                  :justify-content :center
                  :align-items :center
@@ -81,6 +91,10 @@
          :left 0
          :margin-right :auto
          :margin-left 0}
-        (button {:color :meme-buy-button})]
+        (button {:background-color :purple
+                 :color :white
+                 :height (em 3)
+                 :width (em 10)})]
        [:.dank {:display :block
-                :vertical-align :middle}]]]]]])
+                :vertical-align :middle
+                :margin-left (em 1)}]]]]]])

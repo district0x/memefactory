@@ -29,6 +29,7 @@
     :has-next-page
     [:items [:reg-entry/address
              :meme/image-hash
+             :meme/title
              [:reg-entry/creator [:user/address]]]]]])
 
 (defn dank-registry-tiles [form-data]
@@ -54,7 +55,7 @@
       (doall
        (for [{:keys [:reg-entry/address] :as meme} all-memes]
          ^{:key address}
-         [tiles/meme-tile {} {:meme-token/meme meme}]))]])) 
+         [tiles/meme-tile {} meme]))]])) 
 
 (defmethod page :route.dank-registry/browse []
   (let [active-page (subscribe [::router-subs/active-page])
@@ -78,7 +79,8 @@
                         :title "Dank registry"
                         :sub-title "Sub title"
                         :on-selected-tags-change re-search
-                        :select-options [{:key "created-on" :value "Newest"}]
+                        :select-options [{:key "number" :value "Number"}
+                                         {:key "total-trade-volume" :value "Total trade volume"}]
                         :on-search-change re-search
                         :on-check-filter-change re-search
                         :on-select-change re-search}] 

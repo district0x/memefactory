@@ -11,23 +11,17 @@
             [garden.units :refer [pt px em rem]]
             [clojure.string :as str]))
 
-(defn button [{:keys [color arrow? width height]
-               :or {arrow? true
-                    width (em 8)
-                    height (em 2)}}]
+(defn button [{:keys [color background-color before-icon after-icon width height]}]
   [:&
    (font :bungee)
    {:border-radius (em 2)
     :display "block"
     :bottom (em 2)
-    :height height
-    :width width
+    :height (or height (em 2))
+    :width (or width (em 8))
     :border-style "none"
-    :color (c/color :white)
-    :background-color (c/color color)}
-   (when arrow?
-    [:&:after {:content ;;"&#8594;"
-               "' →'"}])])
+    :color (c/color color)
+    :background-color (c/color background-color)}])
 
 
 (defn get-dank-button []

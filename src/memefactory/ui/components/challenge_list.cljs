@@ -12,7 +12,8 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [print.foo :refer [look] :include-macros true]
             [memefactory.ui.utils :as mf-utils]
-            [memefactory.ui.components.tiles :refer [meme-image]]))
+            [memefactory.ui.components.tiles :refer [meme-image]]
+            [memefactory.ui.components.tiles :as tiles]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -88,12 +89,13 @@
                   name])]]
        include-challenger-info? (into [[:h3 "Challenger"]
                                        [user-info challenger :challenger]]))
-     [:div.meme-image
-      (meme-image image-hash)]
+     
+     [:div.meme-tile
+      [tiles/meme-front-tile {} entry]]
      [:div.action
       [action-child entry]]]))
 
-(defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key]}]
+(defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
   (let [form-data (r/atom {})]
     (fn [{:keys [include-challenger-info? query-params action-child active-account key]}]
       (let [params {:data @form-data
@@ -119,7 +121,7 @@
            [:div.controls
             [select-input {:form-data form-data
                            :id :order-by
-                           :options [{:key "created-on" :value "Newest"}]
+                           :options sort-options
                            :on-change #(re-search nil)}]]
            [:div.memes
             [react-infinite {:element-height 400

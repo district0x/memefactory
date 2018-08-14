@@ -53,13 +53,7 @@
              :display :inline}]]
       [:li {:margin-bottom (em 0.2)}
        [:label {:margin-right (em 0.2)}]]]]
-    [:div.meme-image
-     {:text-align :center
-      :border "1px solid grey"
-      :margin (em 1)
-      :border-radius (em 2)}
-     [:img.meme-image
-      {:object-fit :cover
-       :max-width "100%"
-       :max-height "100%"}]] 
+    [:div.meme-tile {:display :grid
+                     :justify-items :center}
+     [:.meme-card {:position :relative}]] 
     [:.action {:margin :auto}]]])

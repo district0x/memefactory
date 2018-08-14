@@ -61,7 +61,7 @@
             [file-drag-input {:form-data form-data
                               :id :file-info
                               :errors errors
-                              :label "File..."
+                              :label "Upload a file"
                               :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                   (= type "image/png"))
                               :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
@@ -71,6 +71,7 @@
            [:div.form-panel
             ;; [:div (str (:local @errors))]
             ;; [:div (str @critical-errors)]
+            
             [text-input {:form-data form-data
                          :placeholder "Title"
                          :errors errors
@@ -85,7 +86,7 @@
                         :placeholder "Issuance"
                         :errors errors
                         :id :issuance}]
-            ;; [:span.max-issuance (str "Max " max-meme-issuance)]
+            [:span.max-issuance (str "Max " max-meme-issuance)] 
             [:div.submit
              [:button {:on-click (fn []
                                    (dispatch [::dr-events/upload-meme @form-data dank-deposit])
