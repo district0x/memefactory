@@ -241,8 +241,7 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])]
     [:div
-     [:div {:style {:float "left"}}
-      [charts/donut-chart meme]]
+     [charts/donut-chart meme]
      [:div {:style {:float "right"}}
       [:div.dank (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
       [:div.stank (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]

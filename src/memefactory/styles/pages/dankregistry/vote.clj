@@ -72,7 +72,8 @@
               :height (em 3)
               :width (em 14)}) ]]
    [:.collect-reward
-    {:text-align :center}
+    {:display :grid
+     :justify-items :center}
     [:.vote-info {:list-style :none
                   :color (color :menu-text)}]
     [:button

@@ -105,9 +105,9 @@
             re-search (fn [after]
                         (dispatch [:district.ui.graphql.events/query
                                    {:query {:queries [(build-challenge-query (assoc params :after after))]}
-                                    :id {:form-data @form-data :query-params query-params :key key}}]))
+                                    :id {:params params :key key}}]))
             meme-search (subscribe [::gql/query {:queries [(build-challenge-query params)]}
-                                    {:id {:form-data @form-data :query-params query-params :key key}}])
+                                    {:id {:params params :key key}}])
             all-memes (->> @meme-search
                            (mapcat (fn [r] (-> r :search-memes :items)))
                            ;; TODO remove this, don't know why subscription is returning nil item

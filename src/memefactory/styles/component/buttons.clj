@@ -21,7 +21,9 @@
     :width (or width (em 8))
     :border-style "none"
     :color (c/color color)
-    :background-color (c/color background-color)}])
+    :background-color (c/color background-color)}
+   [:&:disabled
+    {:opacity 0.3}]])
 
 
 (defn get-dank-button []
