@@ -96,7 +96,7 @@
       [action-child entry]]]))
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
-  (let [form-data (r/atom {})]
+  (let [form-data (r/atom {:order-by (-> sort-options first :key)})]
     (fn [{:keys [include-challenger-info? query-params action-child active-account key]}]
       (let [params {:data @form-data
                     :include-challenger-info? include-challenger-info?

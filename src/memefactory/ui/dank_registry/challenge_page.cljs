@@ -77,5 +77,7 @@
     [challenge-list {:include-challenger-info? false
                      :query-params {:statuses [:reg-entry.status/challenge-period]}
                      :action-child open-challenge-action
-                     :key :challenge-page}]]])
+                     :key :challenge-page
+                     :sort-options [{:key "created-on" :value "Newest"}
+                                    {:key "challenge-period-end" :value "Challenge period end"}]}]]])
 
