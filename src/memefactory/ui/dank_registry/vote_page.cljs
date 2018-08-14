@@ -20,7 +20,8 @@
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.graphql-utils :as graphql-utils]
-   [reagent.ratom :refer [reaction]]))
+   [reagent.ratom :refer [reaction]]
+   [memefactory.ui.components.charts :as charts]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -33,7 +34,7 @@
    [:h3.title "Lorem ipsum dolor sit ..."]
    [:div.get-dank-button "Get Dank"]])
 
-(defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards]}]
+(defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards] :as meme}]
   (let [active-account (subscribe [::accounts-subs/active-account])]
     (when @active-account
       (let [response (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
@@ -47,7 +48,7 @@
                   tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/collect-all-rewards tx-id}])
                   tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/collect-all-rewards tx-id}])]
               [:div.collect-reward
-               [:img]
+               [charts/donut-chart meme]
                [:ul.vote-info
                 [:li [with-label (str "Voted dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]]
                 [:li [with-label (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]]
@@ -121,8 +122,8 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])]
     (fn [{:keys [] :as meme}]
-      [:div.vote
-       [:img]
+      [:div.reveal
+       [:img {:src "/assets/icons/mememouth.png"}]
        [pending-button {:pending? @tx-pending?
                         :pending-text "Revealing ..."
                         :disabled (or (not (pos? (:vote/amount vote)))

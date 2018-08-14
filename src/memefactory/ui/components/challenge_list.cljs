@@ -13,7 +13,8 @@
             [print.foo :refer [look] :include-macros true]
             [memefactory.ui.utils :as mf-utils]
             [memefactory.ui.components.tiles :refer [meme-image]]
-            [memefactory.ui.components.tiles :as tiles]))
+            [memefactory.ui.components.tiles :as tiles]
+            [memefactory.ui.utils :as utils]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -73,11 +74,10 @@
      (cond-> [:div.info
               [:h2 title]
               [:ol.meme
-               [:li [with-label "Created:" [:span (-> (time/time-remaining (t/date-time created-on) (t/now))
-                                                      (select-keys [:days])
+               [:li [with-label "Created:" [:span (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
                                                       format/format-time-units
                                                       (str " ago"))]]]
-               [:li [with-label "Challenge period ends in:" [:span (-> (time/time-remaining (t/now) (t/date-time challenge-period-end))
+               [:li [with-label "Challenge period ends in:" [:span (-> (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))
                                                                        format/format-time-units)]]]
                [:li [with-label "Issued:" [:span total-supply]]]]
               [:h3 "Creator"]

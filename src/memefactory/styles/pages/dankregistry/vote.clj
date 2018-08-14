@@ -28,8 +28,8 @@
   [:.dank-registry-vote-page
    [:section.vote-header
     {:padding-top (em 2)
-     :margin-right (em 6)
-     :margin-left (em 6)}
+     :margin-right (em 2)
+     :margin-left (em 2)}
     [:.registry-vote-header
      (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
                        :color :purple})
@@ -61,4 +61,23 @@
                :width "100%"})
       (vote-button-icon)
       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]
-      ]]]]) 
+      ]]]
+   [:.reveal
+    {:text-align :center}
+    [:img {:width (em 7)}]
+    [:button
+     {:margin-top (em 2)}
+     (button {:background-color :purple
+              :color :white
+              :height (em 3)
+              :width (em 14)}) ]]
+   [:.collect-reward
+    {:text-align :center}
+    [:.vote-info {:list-style :none
+                  :color (color :menu-text)}]
+    [:button
+     {:margin-top (em 2)}
+     (button {:background-color :purple
+              :color :white
+              :height (em 3)
+              :width (em 14)}) ]]]) 

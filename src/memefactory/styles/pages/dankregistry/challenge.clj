@@ -26,6 +26,7 @@
       (get-dank-button)]]]
 
    [:.challenge-controls
+    {:text-align :center}
     [:div.vs {:display :grid
               :grid-template-columns "1fr 1fr 1fr"
               :align-items :center
@@ -35,9 +36,15 @@
             :max-width "100%"}]
      [:span (font :bungee)
       {:color (color :rare-meme-icon-bg)}]]
+    [:textarea {:background-color (color :main-content-bg)
+                :border-radius (em 1)
+                :margin-top (em 2)
+                :height (em 8)
+                :border :none}]
+    [:button.open-challenge {:margin-top (em 2)}]
     [:button
-     {:margin-top (em 4)
-      :margin-left :auto
+     {:margin-left :auto
+      :margin-bottom (em 1)
       :margin-right :auto}
      (button {:color :white
               :background-color :purple

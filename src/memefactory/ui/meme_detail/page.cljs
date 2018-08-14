@@ -3,7 +3,6 @@
             [cljs-time.format :as time-format]
             [cljs-web3.core :as web3]
             [cljs.core.match :refer-macros [match]]
-            [cljsjs.d3]
             [district.format :as format]
             [district.graphql-utils :as graphql-utils]
             [district.time :as time]
@@ -31,7 +30,8 @@
             [print.foo :refer [look] :include-macros true]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [reagent.ratom :as ratom]))
+            [reagent.ratom :as ratom]
+            [memefactory.ui.components.charts :as charts]))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
@@ -199,64 +199,6 @@
                   [:td end-price]
                   [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))]])))))
 
-(defn donut-chart [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]}]
-  (r/create-class
-   {:reagent-render (fn [] [:div#donutchart])
-    :component-did-mount (fn []
-                           (let [width 170
-                                 height 170
-                                 icon-width 42
-                                 icon-height 32
-                                 data [{:challenge/votes :for :value votes-for}
-                                       {:challenge/votes :against :value votes-against}]
-                                 outer-radius (/ (min width height) 2)
-                                 inner-radius (/ outer-radius 2)
-                                 arc (-> js/d3
-                                         .arc
-                                         (.outerRadius outer-radius)
-                                         (.innerRadius inner-radius))
-                                 pie (-> js/d3
-                                         .pie
-                                         (.value (fn [d] (aget d "value"))))
-                                 color-scale (-> js/d3
-                                                 .scaleOrdinal
-                                                 (.range (clj->js ["#04ffcc" "#ffeb01"])))]
-                             (-> js/d3
-                                 (.select "#donutchart")
-                                 (.append "svg")
-                                 (.attr "class" "chart")
-                                 (.attr "width" width)
-                                 (.attr "height" height)
-                                 (.append "g")
-                                 (.attr "transform" (str "translate(" (/ width 2) "," (/ height 2) ")"))
-                                 (.selectAll ".arc")
-                                 (.data (pie (clj->js data)))
-                                 (.enter)
-                                 (.append "g")
-                                 (.attr "class" "arc")
-                                 (.append "path")
-                                 (.attr "d" arc)
-                                 (.style "fill" (fn [d]
-                                                  (color-scale
-                                                   (aget d "data" "votes")))))
-
-                             (-> js/d3
-                                 (.select ".chart")
-                                 (.append "g")
-                                 (.attr "transform" (str "translate(" (/ width 2) "," (/ height 2) ")"))
-                                 (.append "foreignObject")
-                                 (.attr "width" icon-width)
-                                 (.attr "height" icon-height)
-                                 (.attr "x" (unchecked-negate (/ icon-width 2)))
-                                 (.attr "y" (unchecked-negate (/ icon-height 2)))
-                                 (.append "xhtml:span")
-                                 (.append "span")
-                                 (.attr "class" "icon-mf-logo")
-                                 (.style "font-size" "32px")
-                                 (#(doall (for [i (range 1 9)]
-                                            (-> (.append % "span")
-                                                (.attr "class" (str "path" i)))))))))}))
-
 (defn challenge-header [created-on]
   [:div
    [:h1 "Challenge"]
@@ -300,7 +242,7 @@
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])]
     [:div
      [:div {:style {:float "left"}}
-      [donut-chart meme]]
+      [charts/donut-chart meme]]
      [:div {:style {:float "right"}}
       [:div.dank (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
       [:div.stank (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]
