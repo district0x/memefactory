@@ -50,7 +50,10 @@
                       :class :how-it-works}
                      {:text "About"
                       :route :route.about/index
-                      :class :about}])
+                      :class :about}
+                     {:text "Get DANK"
+                      :route :route.get-dank/index
+                      :class :faucet}])
 
 (defn search-form [form-data]
   [:div.search

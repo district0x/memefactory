@@ -13,4 +13,5 @@
              ["/leaderboard/collectors" :route.leaderboard/collectors]
              ["/memefolio/index" :route.memefolio/index]
              ["/meme-detail/index" :route.meme-detail/index]
+             ["/get-dank/index" :route.get-dank/index]
              ["/my-settings/index" :route.my-settings/index]])
