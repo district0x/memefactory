@@ -22,7 +22,7 @@
     [:.collectors-panel
      (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
                        :color :leaderboard-curator-bg})]
-    ["div.curators > div"
+    ["div.collectors > div"
      {:width "100%"}
      ["> div"
       {:display :flex
@@ -34,21 +34,26 @@
        ["> *"
         {:display :block
          :margin-bottom (em 0.5)
+         :list-style :none
+         :padding-left 0
          :margin-top 0}
         [:&.number
          {:color (color :purple)
+          :margin-top (em 3)
           :font-size (em 3)}
          (font :bungee)]
         ]
-       [:h3.address
+       [:.user-address
         {:font-weight :bold}]
        [:h4
         (font :bungee)
         {:color (color :purple)
          :margin-top (em 2)
          :font-size (em 1)}]
-       [:p
-        {:font-weight :bold}
+       [:li
+        {:font-weight :bold
+         :color (color :section-subcaption)}
+        [:label {:margin-right (em 0.3)}]
         [:span
          {:font-weight :normal}]]
 

@@ -36,11 +36,13 @@
  
 (defn collectors-tile [{:keys [:user/address :user/largest-sale
                                :user/total-collected-memes :user/total-collected-token-ids] :as collector}
-                       {:keys [:total-memes-count :total-tokens-count]}]
+                       {:keys [:total-memes-count :total-tokens-count]}
+                       num]
   (let [meme (-> largest-sale
                  :meme-auction/meme-token
                  :meme-token/meme)]
    [:div.user-tile
+    [:div.number (str "#" num)]
     [:span.user-address address]
     [:ul ;; TODO complete these after Matus comments
      [:li [with-label "Unique Memes:" [:span.unique (gstring/format "%d/%d (%d%%)"
@@ -60,7 +62,7 @@
                                                                         (:meme/title meme))]]])]]))
 
 
-(defmethod page :route.leaderboard/collectors []  
+(defmethod page :route.leaderboard/collectors []
   (let [form-data (r/atom {:order-by "total-collected-token-ids"})]
     (fn []
       (let [order-by (keyword "users.order-by" (:order-by @form-data))
@@ -108,6 +110,9 @@
                                                           (when (or has-next-page (empty? all-collectors))
                                                             (re-search-users end-cursor)))))}
                   (doall
-                   (for [collector all-collectors]
-                     ^{:key (:user/address collector)}
-                     [collectors-tile collector (:overall-stats @totals)]))]]]]]]))))))
+                   (map
+                     (fn [collector num]
+                       ^{:key (:user/address collector)}
+                       [collectors-tile collector (:overall-stats @totals) num])
+                     all-collectors
+                     (iterate inc 1)))]]]]]]))))))
