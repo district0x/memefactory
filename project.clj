@@ -118,7 +118,7 @@
             "build-prod-ui" ["do" ["clean"] ["cljsbuild" "once" "ui"]]
             "build-prod" ["pdo" ["build-prod-server"] ["build-prod-ui"] ["build-css"]]
             "build-tests" ["cljsbuild" "once" "server-tests"]
-            "test" ["do" ["build-tests"] ["shell" "node" "memefactory-tests/memefactory-server-tests.js"]]
+            "test" ["doo" "node" "server-tests"]
             "test-doo" ["doo" "node" "server-tests"]}
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0"]
