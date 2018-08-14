@@ -40,6 +40,7 @@
     [memefactory.ui.marketplace.page]
     [memefactory.ui.meme-detail.page]
     [memefactory.ui.memefolio.page]
+    [memefactory.ui.get-dank.page]
     [memefactory.ui.subs]
     [mount.core :as mount]
     [print.foo :include-macros true]
