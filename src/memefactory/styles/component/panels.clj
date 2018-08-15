@@ -69,6 +69,10 @@
     :line-height (em 3)
     :flex-wrap :wrap
     :justify-content :flex-start}
+   (for-media-max :tablet
+                  [:&
+                   {:margin-right (em 2)
+                    :margin-left (em 2)}])
    [">div"
     {:padding-right (em 4)}
     [:a

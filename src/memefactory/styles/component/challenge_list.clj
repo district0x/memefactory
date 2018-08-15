@@ -20,6 +20,7 @@
    [:.challenge
     {:display :grid
      :grid-template "'info image action'"
+     :grid-template-columns "1fr 1fr 1fr"
      :grid-gap (em 2)
      :background-color :white
      :margin-bottom (em 1.5)
