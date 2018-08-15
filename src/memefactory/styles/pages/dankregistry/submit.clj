@@ -20,6 +20,10 @@
     {:padding-top (em 2)
      :margin-right (em 6)
      :margin-left (em 6)}
+    (for-media-max :tablet
+                   [:&
+                    {:margin-right (em 2)
+                     :margin-left (em 2)}])
     [:.submit-info
      (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
                        :color :purple})
@@ -34,7 +38,9 @@
      :margin-left (em 6)}
     (for-media-max :tablet
                    [:&
-                    {:grid-template-columns "100%"}])
+                    {:grid-template-columns "100%"
+                     :margin-right (em 2)
+                     :margin-left (em 2)}])
     [">div"
      {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :background-color (color :white)
@@ -80,7 +86,9 @@
       (for-media-max :tablet
                      [:&
                       {:margin-left 0
-                       :margin-top (em 2)}])
+                       :margin-top (em 2)
+                       :padding-left (em 2)
+                       :padding-right (em 2)}])
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:position :relative
                  :justify-content :center

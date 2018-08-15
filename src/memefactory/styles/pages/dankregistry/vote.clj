@@ -40,6 +40,10 @@
    [:.vote {:display :grid
             :margin-left (em 6)
             :margin-right (em 6)}
+    (for-media-max :large
+                   [:&
+                    {:margin-right (em 2)
+                     :margin-left (em 2)}])
     [:.vote-input {:display :grid
                    :grid-template-columns "80% 20%"
                    :border-bottom "1px solid"
