@@ -19,17 +19,22 @@
                 :margin-right 0}] 
    [:.challenge
     {:display :grid
-     :grid-template-columns "1fr 1fr 1fr"
+     :grid-template "'info image action'"
+     :grid-gap (em 2)
      :background-color :white
      :margin-bottom (em 1.5)
      :border-radius (em 0.6)
-     :padding (em 1.4)
-     :height (em 30)}
-    [:.info {}
+     :padding (em 1.4)}
+    (for-media-max :tablet
+                   [:& {:grid-template "'image' 'info' 'action'"}])
+    [:.info {:overflow :hidden
+             :grid-area :info}
      [:h2
       {:color (color :purple)
        :text-transform :uppercase}
-      (font :bungee)]
+      (font :bungee)
+      (for-media-max :tablet
+                     [:& {:text-align :center}])]
      [:h3 {:color (color :menu-text)
            :font-weight :bold
            :font-size (em 1)
@@ -52,8 +57,14 @@
              :border-radius (em 2)
              :display :inline}]]
       [:li {:margin-bottom (em 0.2)}
-       [:label {:margin-right (em 0.2)}]]]]
+       [:div {:display :flex}
+        [:label {:margin-right (em 0.2)}]
+        [:span {:overflow :hidden
+                :white-space :nowrap
+                :text-overflow :ellipsis}]]]]]
     [:div.meme-tile {:display :grid
+                     :grid-area :image
                      :justify-items :center}
      [:.meme-card {:position :relative}]] 
-    [:.action {:margin :auto}]]])
+    [:.action {:margin :auto
+               :grid-area :action}]]])
