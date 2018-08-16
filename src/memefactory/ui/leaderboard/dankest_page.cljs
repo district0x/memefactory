@@ -62,7 +62,12 @@
       [app-layout
        {:meta {:title "MemeFactory"
                :description "Description"}}
-       [:div.leaderboard.dankests
-        [dankest-memes-tiles]]])))
+       [:div.leaderboard-dankest-page
+        [:section.dankest
+         [:div.dankest-panel
+          [:div.icon]
+          [:h2.title "LEADERBOARDS - DANKEST"]
+          [:h3.title "lorem ipsum"]
+          [dankest-memes-tiles]]]]])))
 
 

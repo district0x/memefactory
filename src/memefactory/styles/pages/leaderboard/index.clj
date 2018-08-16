@@ -8,14 +8,17 @@
             [memefactory.styles.base.fonts :refer [font]]
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [memefactory.styles.component.search :refer [search-panel]]
+            [memefactory.styles.component.panels :refer [panel-with-icon]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
             [clojure.string :as str]))
 
 (defstyles core
-  [:.leaderboard-index-page
-   (search-panel {:background-panel-image "/assets/icons/search-background.png"
-                  :color :mymemefolio-green
-                  :icon "/assets/icons/mymemefolio-green.png"})
-
-   ])
+  [:.leaderboard-dankest-page
+   [:section.dankest
+    {:padding-top (em 2)
+     :margin-right (em 6)
+     :margin-left (em 6)}
+    [:.dankest-panel
+     (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
+                       :color :leaderboard-curator-bg})]]])
