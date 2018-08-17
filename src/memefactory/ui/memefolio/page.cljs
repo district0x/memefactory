@@ -197,24 +197,25 @@
                               :pending-text "Issuing..."
                               :on-click (fn []
                                           (dispatch [:meme/mint (merge @form-data
-                                                                                {:meme/title title
-                                                                                 :reg-entry/address address
-                                                                                 :send-tx/id tx-id})]))}
-         "Issue"]
-        [:label "Max " max-amount]]])))
+                                                                       {:meme/title title
+                                                                        :reg-entry/address address
+                                                                        :send-tx/id tx-id})]))}
+         "Issue"]]
+       [:label "Max " max-amount]])))
 
 (defmethod panel :created [_ state]
-  [:div.tiles
+  [:div
    (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
                             :meme/title :meme/total-supply :meme/total-minted
                             :reg-entry/status] :as meme}]
                  (when address
                    (let [status (graphql-utils/gql-name->kw status)]
-                     ^{:key address} [:div.meme-card-front
-                                      [tiles/meme-image image-hash]
-                                      [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                 nil
-                                                                 {:reg-entry/address address}])}
+                     ^{:key address} [:div.compact-tile
+                                      [:div.container
+                                       [tiles/meme-front-tile {} meme]]
+                                      [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                                        nil
+                                                                        {:reg-entry/address address}])}
                                        [:div [:b (str "#" number " " title)]]
                                        [:div [:span (str total-minted "/" total-supply" Issued")]]
                                        [:div

@@ -3,6 +3,7 @@
             [garden.stylesheet :refer [at-media]]
             [clojure.string :as s]
             [memefactory.styles.base.icons :refer [icons]]
+            [memefactory.styles.component.buttons :refer [button]]
             [memefactory.styles.base.borders :refer [border-top border-bottom]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
@@ -76,19 +77,45 @@
          :line-height (em 2)
          :margin-left (em 1)}
         [:b {:margin-right (em 0.2)}]]]]]]
-   [:section.tiles
-    {:display :block
-     :margin-top 0
+   [:.tiles
+    {:margin-top 0
      :padding-top (em 2)
      :padding-bottom (em 2)
      :margin-right (em 6)
      :margin-left (em 6)
      :background-color (color :meme-panel-bg)
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-     :border-radius "0em 0em 1em 1em"}
-    [">div>div"
+     :border-radius "1em 1em 1em 1em"}
+    [">div>div>div"
      {:display :flex
       :flex-wrap :wrap
-      :justify-content :space-evenly}]]
+      :justify-content :space-evenly}
+     [:.footer {:text-align :center}]
+     [:.issue-form {:text-align :center
+                    :margin-top (em 1)}
+      [:.field {:display :grid
+                :grid-template-columns "50% 50%"
+                :margin-left "25%"
+                :margin-right "25%"
+                :overflow :hidden
+                :width "60%"
+                :height (em 2.5)
+                :border-radius (em 2)}
+       [:button 
+        (font :bungee)
+        {:display "block"
+         :bottom (em 2)
+         :border-radius 0
+         :height (em 3)
+         :width "100%"
+         :border-style "none"
+         :color (color :white)
+         :background-color (color :purple)}
+        [:&:disabled
+         {:opacity 0.3}]]
+       [:input {:background-color (color :search-input-bg)
+                :text-align :center
+                :height (em 3)}
+        [:.help-block {:display :none}]]]]]]
    [:section.tabs
     (tabs)]])
