@@ -47,7 +47,10 @@
     :background-color (color "gray")
     :width (em card-width)
     :height (em card-height)
-    :border-radius "1em"}
+    :border-radius "1em"
+    :border "1px solid"
+    :border-color (color :light-pink)
+    :overflow :hidden}
    [:img
     {:width (em card-width)
      :height (em card-height)}]
@@ -91,10 +94,12 @@
               :white-space :nowrap}]]]]]
   [:.compact-tile
    {:background (color :meme-panel-bg)
+    :width (em card-width)
     :margin (em 1)
     ;; :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
     :display :block
-    :position :relative}
+    :position :relative
+    :text-align :center}
    [:.footer
     {:position :relative
      :bottom 0}
