@@ -85,18 +85,19 @@
      :margin-left (em 6)
      :background-color (color :meme-panel-bg)
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-     :border-radius "1em 1em 1em 1em"}
+     :border-radius "0em 0em 1em 1em"}
     [">div>div>div"
      {:display :flex
       :flex-wrap :wrap
       :justify-content :space-evenly}
-     [:.footer {:text-align :center}]
+     [:.footer {:text-align :center
+                :color (color :meme-tile-footer)}]
      [:.issue-form {:text-align :center
                     :margin-top (em 1)}
       [:.field {:display :grid
                 :grid-template-columns "50% 50%"
-                :margin-left "25%"
-                :margin-right "25%"
+                :margin-left :auto
+                :margin-right :auto
                 :overflow :hidden
                 :width "60%"
                 :height (em 2.5)
