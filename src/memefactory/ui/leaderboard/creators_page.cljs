@@ -36,11 +36,13 @@
 
  
 (defn creator-tile [{:keys [:user/address :user/creator-total-earned :user/total-created-memes
-                            :user/total-created-memes-whitelisted :user/largest-sale] :as creator}]
+                            :user/total-created-memes-whitelisted :user/largest-sale] :as creator}
+                    num]
   (let [meme (-> largest-sale
                  :meme-auction/meme-token
                  :meme-token/meme)]
    [:div.user-tile
+    [:div.number (str "#" num)]
     [:span.user-address address]
     [:ul
      [:li [with-label "Earned:" [:span.earned (str creator-total-earned)]]]
@@ -77,29 +79,35 @@
             [app-layout
              {:meta {:title "MemeFactory"
                      :description "Description"}}
-             [:div.leaderboard-creators
-              [:h1 "LEADERBOARDS - CREATORS"]
-              [:p "lorem ipsum"]
-              (let [total (get-in @users-search [:search-users :total-count])]
-                [select-input
-                 {:form-data form-data
-                  :id :order-by;; TODO Do this !!!!!!!!!! 
-                  :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
-                            {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
-                            {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}])
-              [:div.creators
-               [react-infinite {:element-height 280
-                                :container-height 300
-                                :infinite-load-begin-edge-offset 100
-                                :use-window-as-scroll-container true
-                                :on-infinite-load (fn []
-                                                    (when-not (:graphql/loading? @users-search)
-                                                      (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]
-                                                        (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                                        (when (or has-next-page (empty? all-creators))
-                                                          (re-search-users end-cursor)))))}
-                (doall
-                 (for [creator all-creators]
-                   ^{:key (:user/address creator)}
-                   [creator-tile creator]))]]]])))))
+             [:div.leaderboard-creators-page
+              [:section.creators
+               [:div.creators-panel
+                [:h2.title "LEADERBOARDS - CREATORS"]
+                [:h3.title "lorem ipsum"]
+                [:div.order
+                 (let [total (get-in @users-search [:search-users :total-count])]
+                   [select-input
+                    {:form-data form-data
+                     :id :order-by;; TODO Do this !!!!!!!!!! 
+                     :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
+                               {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
+                               {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}])]
+                [:div.creators
+                 [react-infinite {:element-height 280
+                                  :container-height 300
+                                  :infinite-load-begin-edge-offset 100
+                                  :use-window-as-scroll-container true
+                                  :on-infinite-load (fn []
+                                                      (when-not (:graphql/loading? @users-search)
+                                                        (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]
+                                                          (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                                          (when (or has-next-page (empty? all-creators))
+                                                            (re-search-users end-cursor)))))}
+                  (doall
+                   (map
+                    (fn [creator num]
+                      ^{:key (:user/address creator)}
+                      [creator-tile creator num])
+                    all-creators
+                    (iterate inc 1)))]]]]]])))))
   )
