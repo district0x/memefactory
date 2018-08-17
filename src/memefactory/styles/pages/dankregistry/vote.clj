@@ -28,8 +28,12 @@
   [:.dank-registry-vote-page
    [:section.vote-header
     {:padding-top (em 2)
-     :margin-right (em 2)
-     :margin-left (em 2)}
+     :margin-right (em 6)
+     :margin-left (em 6)}
+    (for-media-max :large
+                   [:&
+                    {:margin-right (em 2)
+                     :margin-left (em 2)}])
     [:.registry-vote-header
      (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
                        :color :purple})

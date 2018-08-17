@@ -22,6 +22,7 @@
                     {:margin-right (em 1)
                      :margin-left (em 1)}])
     {:margin-right (em 6)
+     :position :relative
      :border-radius "1em 1em 1em 1em"
      :background-color (c/color :meme-panel-bg)
      :background-size [(em 10) (em 10)]
@@ -35,7 +36,7 @@
      (font :bungee)
      (for-media-max :tablet
                     [:&
-                     {:margin-top (em 4)
+                     {:margin-top (em 1)
                       :font-size (px 19)}])
      {:white-space :nowrap
       :position :relative
@@ -58,6 +59,7 @@
                       :margin-left :auto
                       :right 0
                       :left 0
+                      :position :static
                       }])
      {:display :block
       :z-index 1

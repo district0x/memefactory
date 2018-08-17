@@ -17,8 +17,12 @@
   [:.dank-registry-challenge
    [:.challenge-header
     {:padding-top (em 2)
-     :margin-right (em 2)
-     :margin-left (em 2)}
+     :margin-right (em 6)
+     :margin-left (em 6)}
+    (for-media-max :large
+                   [:&
+                    {:margin-right (em 2)
+                     :margin-left (em 2)}])
     [:.challenge-info
      (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
                        :color :sky-blue})

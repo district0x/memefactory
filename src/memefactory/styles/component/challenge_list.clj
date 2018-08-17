@@ -13,7 +13,12 @@
 
 (defstyles core
   [:.challenges.panel   
-   {:padding (em 2)}
+   {:padding-left (em 6)
+    :padding-right (em 6)}
+   (for-media-max :tablet
+                  [:&
+                   {:padding-right (em 2)
+                    :padding-left (em 2)}])
    [:.controls {:width (em 11)
                 :margin-left :auto
                 :margin-right 0}] 
