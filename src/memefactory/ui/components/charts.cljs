@@ -2,9 +2,10 @@
   (:require [cljsjs.d3]
             [reagent.core :as r]))
 
-(defn donut-chart [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]}]
+(defn donut-chart [{:keys [:reg-entry/address :challenge/votes-for :challenge/votes-against :challenge/votes-total]}]
   (r/create-class
-   {:reagent-render (fn [] [:div#donutchart])
+   {:reagent-render (fn [{:keys [:reg-entry/address :challenge/votes-for :challenge/votes-against :challenge/votes-total]}]
+                      [:div {:id (str "donutchart-" address)}])
     :component-did-mount (fn []
                            (let [width 170
                                  height 170
@@ -25,9 +26,9 @@
                                                  .scaleOrdinal
                                                  (.range (clj->js ["#04ffcc" "#ffeb01"])))]
                              (-> js/d3
-                                 (.select "#donutchart")
+                                 (.select (str "#donutchart-" address))
                                  (.append "svg")
-                                 (.attr "class" "chart")
+                                 (.attr "class" (str "chart-" address))
                                  (.attr "width" width)
                                  (.attr "height" height)
                                  (.append "g")
@@ -44,7 +45,7 @@
                                                    (aget d "data" "votes")))))
 
                              (-> js/d3
-                                 (.select ".chart")
+                                 (.select (str ".chart-" address))
                                  (.append "g")
                                  (.attr "transform" (str "translate(" (/ width 2) "," (/ height 2) ")"))
                                  (.append "foreignObject")

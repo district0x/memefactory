@@ -38,17 +38,19 @@
   (let [active-account (subscribe [::accounts-subs/active-account])]
     (when @active-account
       (let [response (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
-                                                         [:challenge/votes-for
+                                                         [:reg-entry/address
+                                                          :challenge/votes-for
                                                           :challenge/votes-against
                                                           :challenge/votes-total]]]}])]
         (when-not (:graphql/loading? @response)
-          (if-let [meme (:meme @response)]
+          (if-let [meme-voting (:meme @response)]
             (let [tx-id address
-                  {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]} meme
+                  {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]} meme-voting
                   tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/collect-all-rewards tx-id}])
                   tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/collect-all-rewards tx-id}])]
               [:div.collect-reward
-               [charts/donut-chart meme]
+               (println "meme voting " meme-voting)
+               [charts/donut-chart meme-voting]
                [:ul.vote-info
                 [:li [with-label (str "Voted dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]]
                 [:li [with-label (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]]
