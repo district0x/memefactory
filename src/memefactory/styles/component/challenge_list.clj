@@ -59,7 +59,8 @@
              :display :inline}]]
       [:li {:margin-bottom (em 0.2)}
        [:div {:display :flex}
-        [:label {:margin-right (em 0.2)}]
+        [:label {:margin-right (em 0.2)
+                 :white-space :nowrap}]
         [:span {:overflow :hidden
                 :white-space :nowrap
                 :text-overflow :ellipsis}]]]]]

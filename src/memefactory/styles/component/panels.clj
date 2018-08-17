@@ -24,7 +24,7 @@
                      :margin-left :auto
                      :right 0
                      :left 0
-                     }])
+                     :position :static}])
     {:display :block
      :background-size [(em 4) (em 4)]
      :background-repeat :no-repeat
@@ -39,8 +39,7 @@
     (font :bungee)
     (for-media-max :tablet
                    [:&
-                    {:margin-top (em 4)
-                     :font-size (px 19)}])
+                    {:font-size (px 19)}])
     {:white-space :nowrap
      :position :relative
      ;; :color (c/color :section-caption)

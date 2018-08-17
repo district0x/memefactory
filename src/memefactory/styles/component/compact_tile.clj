@@ -85,8 +85,10 @@
                    :list-style :none}
       [:>li {:margin-top (em 1)
              :margin-bottom (em 1)}]
-      [:label {:font-weight :bold
-               }]]]]]
+      [:label {:font-weight :bold}]
+      [:span {:overflow :hidden
+              :text-overflow :ellipsis
+              :white-space :nowrap}]]]]]
   [:.compact-tile
    {:background (color :meme-panel-bg)
     :margin (em 1)

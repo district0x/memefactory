@@ -16,7 +16,8 @@
    [district.ui.graphql.subs :as gql]
    [district.format :as format]
    [memefactory.ui.components.tiles :refer [meme-image]]
-   [reagent.ratom :refer [reaction]]))
+   [reagent.ratom :refer [reaction]]
+   [cljs-web3.core :as web3]))
 
 
 
@@ -86,12 +87,11 @@
                         :placeholder "Issuance"
                         :errors errors
                         :id :issuance}]
-            [:span.max-issuance (str "Max " max-meme-issuance)] 
+            #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
             [:div.submit
              [:button {:on-click (fn []
                                    (dispatch [::dr-events/upload-meme @form-data dank-deposit])
                                    (reset! form-data {}))
                        :disabled (not (empty? @critical-errors))}
               "Submit"]
-             [:span.dank (format/format-token dank-deposit {:token "DANK"})]]]]
-          ]]))))
+             [:span.dank (format/format-token (web3/from-wei dank-deposit :ether) {:token "DANK"})]]]]]]))))

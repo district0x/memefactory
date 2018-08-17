@@ -28,7 +28,9 @@
      (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
                        :color :purple})
      [:.get-dank-button
-      (get-dank-button)]]]
+      (get-dank-button)]]
+
+    ]
    [:.upload
     {:display :grid
      :grid-template-columns "50% 50%"
@@ -51,15 +53,16 @@
       (for-media-max :tablet
                      [:&
                       {:margin-right 0}])
-      [:.dropzone {:width (em compact-tile/card-width)
-                   :height (em compact-tile/card-height)}]
       [:img {:width (em compact-tile/card-width)
              :height (em compact-tile/card-height)}]
       [:.input-group {:width (px 200)
                       :right 0
                       :left 0
                       :margin-left :auto
-                      :margin-right :auto}]
+                      :margin-right :auto}
+       [:.dropzone {:width (em compact-tile/card-width)
+                    :height (em compact-tile/card-height)}]
+       [:.file-name {:display :none}]]
       [:label.file-input-label
        {:margin-right :auto
         :margin-left :auto
