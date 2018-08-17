@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as r]
    [district.ui.component.active-account :refer [active-account]]
-   [district.ui.component.active-account-balance :refer [active-account-balance]]
+   [district.ui.component.active-account-balance :refer [active-account-balance] :as account-balances]
    [district.ui.component.form.input :as inputs :refer [text-input*]]
    [re-frame.core :refer [subscribe dispatch]]
    [memefactory.ui.subs :as mf-subs]
@@ -85,14 +85,14 @@
           [:div "No Accounts"]
           [:div.accounts
            [active-account-balance
-            {:token :DANK
+            {:token-code :DANK
+             :contract :DANK
              :class :dank
              :locale "en-US"
              :max-fraction-digits 3
              :min-fraction-digits 2}]
            [active-account-balance
-            {:token :ETH
-             :class :eth
+            {:token-code :ETH
              :locale "en-US"
              :max-fraction-digits 3
              :min-fraction-digits 2}]])
