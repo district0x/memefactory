@@ -69,7 +69,7 @@
                                                         :meme/image-hash]))}]
         [:div.overlay
          [:div.info
-          [:div (str meme-auction)]
+          ;; [:div (str meme-auction)]
           [:ul.meme-data
            [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]
            [:li [:label "Current Price:"] [:span (format/format-eth price)]]
