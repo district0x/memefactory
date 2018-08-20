@@ -21,4 +21,17 @@
      :margin-left (em 6)}
     [:.dankest-panel
      (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
-                       :color :leaderboard-curator-bg})]]])
+                       :color :leaderboard-curator-bg})]
+    [:.tiles
+     {:display :block
+      :margin-top (em 2)
+      :padding-top (em 2)
+      :padding-bottom (em 2)
+      :margin-right (em 6)
+      :margin-left (em 6)
+      :background-color (color :meme-panel-bg)
+      :border-radius "1em 1em 1em 1em"}
+     [">div>div"
+      {:display :flex
+       :flex-wrap :wrap
+       :justify-content :space-evenly}]]]])
