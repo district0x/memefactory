@@ -25,7 +25,8 @@
             [print.foo :refer [look] :include-macros true]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [reagent.ratom :as ratom]))
+            [reagent.ratom :as ratom]
+            [memefactory.ui.contract.meme :as meme]))
 
 (def default-tab :collected)
 
@@ -99,7 +100,7 @@
   (let [sell? (r/atom false)]
     (fn []
       (if-not @sell?
-        [:div.collected-tile-back
+        [:div.meme-card.back
          [:div [:b (str "#" number)]]
          [:button {:on-click #(swap! sell? not)}
           "Sell"]]
@@ -119,20 +120,21 @@
                          token-count (->> token-ids
                                           (filter shared-utils/not-nil?)
                                           count)]
-                     ^{:key address} [:div
+                     ^{:key address} [:div.compact-tile
                                       [tiles/flippable-tile {:id address
-                                                             :front [tiles/meme-image image-hash]
+                                                             :front [tiles/meme-front-tile {} meme]
                                                              :back [collected-tile-back {:meme/number number
                                                                                          :meme/title title
                                                                                          :meme/owned-meme-tokens owned-meme-tokens
                                                                                          :meme-auction/token-count token-count
                                                                                          :meme-auction/token-ids token-ids}]}]
-                                      [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                 nil
-                                                                 {:reg-entry/address address}])}
-                                       [:div [:b (str "#" number " " title)]]
-                                       (when (and token-count total-supply)
-                                         [:div [:span (str "Owning " token-count " out of " total-supply)]])]])))
+                                      [:div.footer
+                                       [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                                  nil
+                                                                  {:reg-entry/address address}])}
+                                        [:div [:b (str "#" number " " title)]]
+                                        (when (and token-count total-supply)
+                                          [:div [:span (str "Owning " token-count " out of " total-supply)]])]]])))
                state))])
 
 (defmethod rank :collected [_ active-account]
@@ -196,7 +198,7 @@
                               :pending? @tx-pending?
                               :pending-text "Issuing..."
                               :on-click (fn []
-                                          (dispatch [:meme/mint (merge @form-data
+                                          (dispatch [::meme/mint (merge @form-data
                                                                        {:meme/title title
                                                                         :reg-entry/address address
                                                                         :send-tx/id tx-id})]))}
