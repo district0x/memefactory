@@ -466,12 +466,7 @@
                {:meta {:title "MemeFactory"
                        :description "Description"}}
 
-               [:div.meme-detail {:style {:display "grid"
-                                          :grid-template-areas
-                                          "'image image image rank rank rank'
-                                           'history history history history history history'
-                                           'challenge challenge challenge challenge challenge challenge'
-                                           'related related related related related related'"}}
+               [:div.meme-detail-page
                 [:div {:style {:grid-area "image"}}
                  [tiles/meme-image image-hash]]
                 [:div {:style {:grid-area "rank"}}
