@@ -19,7 +19,7 @@
    (search-panel {:background-panel-image "/assets/icons/search-background.png"
                   :color :mymemefolio-green
                   :icon "/assets/icons/mymemefolio-green.png"})
-
+   [:.help-block {:display :none}] ;; TODO What to do about this
    [:.total
     {:position :relative
      :margin-right (em 6)
@@ -116,7 +116,53 @@
          {:opacity 0.3}]]
        [:input {:background-color (color :search-input-bg)
                 :text-align :center
-                :height (em 3)}
-        [:.help-block {:display :none}]]]]]]
+                :height (em 3)}]]]]
+    [:.collected-tile-back {:height "100%"
+                            :background-color (color :violet)}
+     [:.sell {:display :grid 
+              :grid-template-rows "75% 25%"
+              :width "100%"}
+      [:.top {:width "30%"
+              :margin-left :auto
+              :margin-right :auto}
+       [:b (font :bungee)
+        {:font-size (em 3)
+         :color (color :purple)
+         :display :block
+         :margin-bottom (em 0.4)
+         :margin-top (em 2)}]
+       [:img {:max-width "100%"
+              :height :auto}]]
+      [:.bottom {:background-color (color :purple)}
+       [:button (button {:background-color :violet
+                         :color :white
+                         :height (em 3)
+                         :width "75%"})
+        {:margin-left :auto
+         :margin-right :auto
+         :margin-top (em 1.5)}]]]
+     [:.sell-form {:background-color :white
+                   :width "100%"
+                   :padding (em 1)
+                   :text-align :left}
+      [:h1 (font :bungee)
+       {:color (color :purple)
+        :font-size (em 1)
+        :text-align :center}]
+      [:.form-panel {}
+       [:label {:width "30%"
+                :text-alight :left}]
+       [:.input-group {:display :inline-block
+                       :width "60%"}]
+       [:button.cancel (button {:color :white
+                                :background-color (color :tags-grey)
+                                :width "40%"})
+        {:font-size (em 0.8)}]
+       [:button.create-offering (button {:color :white
+                                         :background-color (color :purple)
+                                         :width "65%"})
+        {:font-size (em 0.7)
+         :padding (em 0.4)}]]
+      ]]]
    [:section.tabs
     (tabs)]])

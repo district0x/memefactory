@@ -26,7 +26,8 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
             [reagent.ratom :as ratom]
-            [memefactory.ui.contract.meme :as meme]))
+            [memefactory.ui.contract.meme :as meme]
+            [memefactory.ui.contract.meme-token :as meme-token]))
 
 (def default-tab :collected)
 
@@ -82,13 +83,14 @@
                                     :errors errors
                                     :id :meme-auction/description}]]
            [:div.buttons
-            [:button {:on-click #(swap! show? not)} "Cancel"]
+            [:button.cancel {:on-click #(swap! show? not)} "Cancel"]
             [tx-button/tx-button {:primary true
                                   :disabled false
+                                  :class "create-offering"
                                   :pending? @tx-pending?
                                   :pending-text "Creating offering..."
                                   :on-click (fn []
-                                              (dispatch [:meme-token/transfer-multi-and-start-auction (merge @form-data
+                                              (dispatch [::meme-token/transfer-multi-and-start-auction (merge @form-data
                                                                                                              {:send-tx/id tx-id
                                                                                                               :meme/title title
                                                                                                               :meme-auction/token-ids (->> token-ids
@@ -99,17 +101,23 @@
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]
   (let [sell? (r/atom false)]
     (fn []
-      (if-not @sell?
-        [:div.meme-card.back
-         [:div [:b (str "#" number)]]
-         [:button {:on-click #(swap! sell? not)}
-          "Sell"]]
-        [:div
-         [:h1 (str "Sell" "#" number " " title)]
-         [sell-form {:meme/title title
-                     :meme-auction/token-ids token-ids
-                     :meme-auction/token-count token-count
-                     :show? sell?}]]))))
+      [:div.collected-tile-back.meme-card.back
+       (if-not @sell?
+         [:div.sell
+          [:div.top
+           [:b (str "#" number)]
+           [:img {:src "/assets/icons/mememouth.png"}]]
+          [:div.bottom
+           [:button {:on-click (fn [e]
+                                 (.stopPropagation e)
+                                 (swap! sell? not))}
+            "Sell"]]]
+         [:div.sell-form
+          [:h1 (str "Sell" "#" number " " title)]
+          [sell-form {:meme/title title
+                      :meme-auction/token-ids token-ids
+                      :meme-auction/token-count token-count
+                      :show? sell?}]])])))
 
 (defmethod panel :collected [_ state]
   [:div.tiles
@@ -121,7 +129,7 @@
                                           (filter shared-utils/not-nil?)
                                           count)]
                      ^{:key address} [:div.compact-tile
-                                      [tiles/flippable-tile {:id address
+                                      [tiles/flippable-tile {;; :id address TODO Ask Filip about this
                                                              :front [tiles/meme-front-tile {} meme]
                                                              :back [collected-tile-back {:meme/number number
                                                                                          :meme/title title
