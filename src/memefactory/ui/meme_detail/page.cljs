@@ -467,33 +467,33 @@
                        :description "Description"}}
 
                [:div.meme-detail-page
-                [:div {:style {:grid-area "image"}}
-                 [tiles/meme-image image-hash]]
-                [:div {:style {:grid-area "rank"}}
-                 [:h1 title]
-                 [:div.status (case (graphql-utils/gql-name->kw status)
-                                :reg-entry.status/whitelisted [:label "In Registry"]
-                                :reg-entry.status/blacklisted [:label "Rejected"]
-                                [:label "Challenged"])]
-                 [:div.description description]
-                 [:div.text (format/pluralize total-supply "card") ]
-                 [:div.text (str "You own " token-count) ]
-                 [meme-creator-component creator]
-                 (for [tag-name tags]
-                   ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
-                                                                    :route.marketplace/index
-                                                                    nil
-                                                                    {:search-tags [tag-name]}])
-                                              :style {:display "inline"}} tag-name])
-                 [:div.buttons
-                  [:button {:on-click #(dispatch [::router-events/navigate
-                                                  :route.marketplace/index
-                                                  nil
-                                                  {:term title}])} "Search On Marketplace"]
-                  [:button {:on-click #(dispatch [::router-events/navigate
-                                                  :route.memefolio/index
-                                                  nil
-                                                  {:term title}])} "Search On Memefolio"]]]
+                [:section.meme-detail
+                 [:div.meme-image
+                  [tiles/meme-image image-hash]]
+                 [:div.rank
+                  [:h1 title]
+                  [:div.status (case (graphql-utils/gql-name->kw status)
+                                 :reg-entry.status/whitelisted [:label "In Registry"]
+                                 :reg-entry.status/blacklisted [:label "Rejected"]
+                                 [:label "Challenged"])]
+                  [:div.description description]
+                  [:div.text (format/pluralize total-supply "card") ]
+                  [:div.text (str "You own " token-count) ]
+                  [meme-creator-component creator]
+                  (for [tag-name tags]
+                    ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
+                                                                     :route.marketplace/index
+                                                                     nil
+                                                                     {:search-tags [tag-name]}])} tag-name])
+                  [:div.buttons
+                   [:button {:on-click #(dispatch [::router-events/navigate
+                                                   :route.marketplace/index
+                                                   nil
+                                                   {:term title}])} "Search On Marketplace"]
+                   [:button {:on-click #(dispatch [::router-events/navigate
+                                                   :route.memefolio/index
+                                                   nil
+                                                   {:term title}])} "Search On Memefolio"]]]]
                 [:div.history {:style {:grid-area "history"}}
                  [history-component address]]
                 [:div.challenge {:style {:grid-area "challenge"}}

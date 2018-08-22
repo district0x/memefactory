@@ -16,10 +16,18 @@
 
 (defstyles core
   [:.meme-detail-page
-   {:display "grid"
-    :grid-template-areas
-    (str
-     "'image image image rank rank rank'"
-     "'history history history history history history'"
-     "'challenge challenge challenge challenge challenge challenge'"
-     "'related related related related related related'")}])
+   {;;:display "grid"
+    ;; :grid-template-areas (str
+    ;;                       "'image image image rank rank rank'"
+    ;;                       "'history history history history history history'"
+    ;;                       "'challenge challenge challenge challenge challenge challenge'"
+    ;;                       "'related related related related related related'")
+    }
+   [:section.meme-detail
+    {:background (color :meme-panel-bg)
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+     :border-radius "1em 1em 1em 1em"
+     :position :relative}
+    [:.meme-image
+     {;;:grid-area "image"
+      }]]])
