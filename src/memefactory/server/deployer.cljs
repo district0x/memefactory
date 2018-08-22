@@ -124,6 +124,9 @@
                                                               district-config-placeholder :district-config
                                                               meme-token-placeholder :meme-token}})))
 
+(defn deploy-dank-faucet! [default-opts]
+  (deploy-smart-contract! :dank-faucet (merge default-opts {:gas 1700000})))
+
 (defn deploy [{:keys [:write? :initial-registry-params :transfer-dank-token-to-accounts
                       :use-n-account-as-deposit-collector :use-n-account-as-cut-collector]
                :as deploy-opts}]
@@ -212,6 +215,8 @@
      (registry/set-factory [:param-change-registry :param-change-registry-fwd]
                            {:factory (contract-address :param-change-factory) :factory? true}
                            deploy-opts)
+
+     (deploy-dank-faucet! deploy-opts)
 
      (deploy-meme-auction-factory-fwd! deploy-opts)
      (ds-auth/set-authority :meme-auction-factory-fwd (contract-address :ds-guard) deploy-opts)
