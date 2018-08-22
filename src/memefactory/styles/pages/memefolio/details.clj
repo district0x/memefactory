@@ -24,10 +24,15 @@
     ;;                       "'related related related related related related'")
     }
    [:section.meme-detail
-    {:background (color :meme-panel-bg)
-     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-     :border-radius "1em 1em 1em 1em"
-     :position :relative}
-    [:.meme-image
-     {;;:grid-area "image"
-      }]]])
+    {:padding (em 3)}
+    [:.meme-info
+     {:background (color :meme-panel-bg)
+      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+      :border-radius "1em 1em 1em 1em"
+      :display :grid
+      :grid-template-columns "34% 66%"
+      :grid-template-rows "100%"
+      :position :relative}
+     [:.meme-image
+      {:border-radius "1em 1em 1em 1em"}]
+     ]]])
