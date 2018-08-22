@@ -157,9 +157,10 @@
      (doseq [t all-tables]
        (println "#######" (str/upper-case t) "#######")
        (select [:*] :from [(keyword t)])
-       (println "\n\n")))))
+       #_(println "\n\n")))))
 
 (defn print-statuses []
+  (web3-evm/mine! @web3) ;; We need to mine a block so time make sense
   (->> (db/all {:select [:v.* :re.*]
                 :from [[:reg-entries :re]]
                 :left-join [[:votes :v] [:= :re.reg-entry/address :v.reg-entry/address]]})
@@ -179,7 +180,7 @@
                :v? (count (filter #(and (pos? (:vote/amount %))
                                         (or (zero? (:vote/revealed-on %))
                                             (nil? (:vote/revealed-on %)))) votes))}))
-       print-table))
+       #_print-table))
 
 (defn increase-time-to-next-period [re-address]
   (let [now (last-block-timestamp)
@@ -200,9 +201,9 @@
   (->> (web3-eth/accounts @web3)
        (map (fn [account]
               {:account account
-               :dank (dank-token/balance-of account)
-               :eth (web3-eth/get-balance @web3 account)}))
-       print-table))
+               :dank (bn/number (dank-token/balance-of account))
+               :eth (bn/number (web3-eth/get-balance @web3 account))}))
+       #_print-table))
 
 (defn print-params []
   (let [param-keys [:max-total-supply :deposit :challenge-period-duration
@@ -211,7 +212,7 @@
     (->> (eternal-db/get-uint-values :meme-registry-db param-keys)
          (map bn/number)
          (zipmap param-keys)
-         (pprint/pprint))))
+         #_pprint/pprint)))
 
 (defn print-ranks-cache []
   (pprint/pprint @@memefactory.server.ranks-cache/ranks-cache))
