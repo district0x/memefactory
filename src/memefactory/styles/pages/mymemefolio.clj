@@ -12,9 +12,11 @@
             [memefactory.styles.component.panels :refer [tabs]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [memefactory.styles.pages.memefolio.details :as details]))
 
 (defstyles core
+  details/core
   [:.memefolio-page
    (search-panel {:background-panel-image "/assets/icons/search-background.png"
                   :color :mymemefolio-green
