@@ -12,7 +12,8 @@
             [memefactory.shared.utils :as shared-utils]
             [print.foo :refer [look] :include-macros true]
             [re-frame.core :refer [subscribe dispatch]]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [memefactory.ui.contract.meme-auction :as meme-auction]))
 
 (defn- img-url-stub
   ([]
@@ -51,7 +52,7 @@
 
 (defn auction-front-tile [opts meme-token]
   [:div.meme-card.front
-   [:img {:src (img-url-stub (get-in meme-token [:meme-token/meme :meme/image-hash]))}]])
+   (meme-image (get-in meme-token [:meme-token/meme :meme/image-hash]))])
 
 (defn auction-back-tile [{:keys [:on-buy-click] :as opts} meme-auction]
   (let [tx-id (str (random-uuid))
@@ -81,7 +82,7 @@
           [inputs/pending-button {:pending? @tx-pending?
                                   :pending-text "Buying auction ..."
                                   :on-click (fn []
-                                              (dispatch [:meme-auction/buy {:send-tx/id tx-id
+                                              (dispatch [::meme-auction/buy {:send-tx/id tx-id
                                                                             :meme-auction/address (:meme-auction/address meme-auction)
                                                                             :value price}]))}
            "Buy"]]]]))))

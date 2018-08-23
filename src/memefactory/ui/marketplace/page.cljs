@@ -48,9 +48,7 @@
                                     {:id @form-data
                                      :disable-fetch? true}])
         all-auctions (->> @auctions-search
-                          (mapcat (fn [r] (-> r :search-meme-auctions :items)))
-                          ;; TODO remove this, don't know why subscription is returning nil item
-                          (remove #(nil? (:reg-entry/address %))))]
+                          (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
     (println "All auctions" (map :meme-auction/address all-auctions))
     [:div.tiles
      [react-infinite {:element-height 280
@@ -67,9 +65,8 @@
                                                             :id @form-data}])))))}
       (doall
        (for [{:keys [:meme-auction/address] :as auc} all-auctions]
-         (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
-           ^{:key address}
-           [tiles/auction-tile {} auc])))]]))
+         ^{:key address}
+         [tiles/auction-tile {} auc]))]]))
 
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])

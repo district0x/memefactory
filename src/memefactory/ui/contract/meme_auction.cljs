@@ -19,12 +19,11 @@
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :value] :as args}]]
    (let [active-account (account-queries/active-account db)]
-     {:dispatch [::tx-events/send-tx {:instance address
+     {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme-auction address))
                                       :fn :buy
-                                      :args [active-account
-                                             address
-                                             value]
+                                      :args []
                                       :tx-opts {:from active-account
+                                                :value value
                                                 :gas 6000000}
                                       :tx-id {:meme-auction/buy id}
                                       :on-tx-success-n [[::logging/success [::buy]]

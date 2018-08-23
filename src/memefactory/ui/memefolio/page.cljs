@@ -65,23 +65,28 @@
            [inputs/with-label "Amount"
             [inputs/text-input {:form-data form-data
                                 :errors errors
-                                :id :meme-auction/amount}]]
+                                :id :meme-auction/amount
+                                :on-click #(.stopPropagation %)}]]
            [inputs/with-label "Start Price"
             [inputs/amount-input {:form-data form-data
                                   :errors errors
-                                  :id :meme-auction/start-price}]]
+                                  :id :meme-auction/start-price
+                                  :on-click #(.stopPropagation %)}]]
            [inputs/with-label "End Price"
             [inputs/amount-input {:form-data form-data
                                   :errors errors
-                                  :id :meme-auction/end-price}]]
+                                  :id :meme-auction/end-price
+                                  :on-click #(.stopPropagation %)}]]
            [inputs/with-label "Duration"
             [inputs/int-input {:form-data form-data
                                :errors errors
-                               :id :meme-auction/duration}]]
+                               :id :meme-auction/duration
+                               :on-click #(.stopPropagation %)}]]
            [inputs/with-label "Short sales pitch"
             [inputs/textarea-input {:form-data form-data
                                     :errors errors
-                                    :id :meme-auction/description}]]
+                                    :id :meme-auction/description
+                                    :on-click #(.stopPropagation %)}]]
            [:div.buttons
             [:button.cancel {:on-click #(swap! show? not)} "Cancel"]
             [tx-button/tx-button {:primary true
