@@ -7,7 +7,7 @@
    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
    [memefactory.styles.base.fonts :refer [font]]
    [memefactory.styles.base.fonts :refer [font]]
-   [memefactory.styles.component.buttons :refer [button]]
+   [memefactory.styles.component.buttons :refer [button tag]]
    [garden.units :refer [px em pt]]))
 
 
@@ -52,16 +52,7 @@
        :color (color :menu-text)}
       [:&.tags ;; TODO refactor out tags from here
        {:margin-top (em 2)}
-       [:li {:text-transform :capitalize
-             :background-color (color :tags-grey)
-             :margin (em 0.3)
-             :padding-left (em 1.5)
-             :padding-right (em 1.5)
-             :padding-top (em 0.5)
-             :border "1px solid #e1b4ef"
-             :padding-bottom (em 0.5)
-             :border-radius (em 2)
-             :display :inline}]]
+       [:li (tag)]]
       [:li {:margin-bottom (em 0.2)}
        [:div {:display :flex}
         [:label {:margin-right (em 0.2)

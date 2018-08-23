@@ -469,29 +469,32 @@
                [:div.meme-detail-page
                 [:section.meme-detail
                  [:div.meme-info
+                  [:div.meme-num
+                   "#97"]
                   [:div.meme-image
                    [tiles/meme-image image-hash]]
                   [:div.registry
                    [:h1 title]
                    [:div.status (case (graphql-utils/gql-name->kw status)
-                                  :reg-entry.status/whitelisted [:label "In Registry"]
-                                  :reg-entry.status/blacklisted [:label "Rejected"]
-                                  [:label "Challenged"])]
+                                  :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
+                                  :reg-entry.status/blacklisted [:label.rejected "Rejected"]
+                                  [:label.challenged "Challenged"])]
                    [:div.description description]
                    [:div.text (format/pluralize total-supply "card") ]
                    [:div.text (str "You own " token-count) ]
                    [meme-creator-component creator]
-                   (for [tag-name tags]
-                     ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
-                                                                      :route.marketplace/index
-                                                                      nil
-                                                                      {:search-tags [tag-name]}])} tag-name])
+                   [:div.tags
+                    (for [tag-name tags]
+                      ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
+                                                                       :route.marketplace/index
+                                                                       nil
+                                                                       {:search-tags [tag-name]}])} tag-name])]
                    [:div.buttons
-                    [:button {:on-click #(dispatch [::router-events/navigate
+                    [:button.search.marketplace {:on-click #(dispatch [::router-events/navigate
                                                     :route.marketplace/index
                                                     nil
                                                     {:term title}])} "Search On Marketplace"]
-                    [:button {:on-click #(dispatch [::router-events/navigate
+                    [:button.search.memefolio {:on-click #(dispatch [::router-events/navigate
                                                     :route.memefolio/index
                                                     nil
                                                     {:term title}])} "Search On Memefolio"]]]]]

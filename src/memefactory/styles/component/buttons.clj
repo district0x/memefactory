@@ -45,3 +45,16 @@
     :border-radius "0 0 1em 1em"
     :text-align :center
     :left (px 0)}])
+
+(defn tag []
+  [:&
+   {:text-transform :capitalize
+    :background-color (c/color :tags-grey)
+    :margin (em 0.3)
+    :padding-left (em 1.5)
+    :padding-right (em 1.5)
+    :padding-top (em 0.5)
+    :border "1px solid #e1b4ef"
+    :padding-bottom (em 0.5)
+    :border-radius (em 2)
+    :display :inline}])
