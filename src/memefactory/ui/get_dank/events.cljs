@@ -23,7 +23,7 @@
                   :tx-opts {:from active-account
                             :gas 6000000}
                   :tx-id {:tx-id :dank-faucet/get-initial-dank}
-                  :on-tx-success-n [[::logging/success [::create-meme]]
+                  :on-tx-success-n [[::logging/success [::added-phone-number]]
                                     [::notification-events/show
                                      "You've got DANK!"]]
                   :on-tx-hash-error [::logging/error [::dank-faucet]]
