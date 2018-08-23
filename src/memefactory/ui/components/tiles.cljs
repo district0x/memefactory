@@ -54,6 +54,10 @@
   [:div.meme-card.front
    (meme-image (get-in meme-token [:meme-token/meme :meme/image-hash]))])
 
+(defn format-price [price]
+  (format/format-eth (/ price 1e18) {:max-fraction-digits 7
+                                     :min-fraction-digits 2}))
+
 (defn auction-back-tile [{:keys [:on-buy-click] :as opts} meme-auction]
   (let [tx-id (str (random-uuid))
         now (subscribe [:district.ui.now.subs/now])
@@ -73,9 +77,9 @@
           ;; [:div (str meme-auction)]
           [:ul.meme-data
            [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]
-           [:li [:label "Current Price:"] [:span (format/format-eth price)]]
-           [:li [:label "Start Price:"] [:span (format/format-eth (:meme-auction/start-price meme-auction))]]
-           [:li [:label "End Price:"] [:span (format/format-eth (:meme-auction/end-price meme-auction))]]
+           [:li [:label "Current Price:"] [:span (format-price price)]]
+           [:li [:label "Start Price:"] [:span (format-price (:meme-auction/start-price meme-auction))]]
+           [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]
            [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
           [:hr]
           [:p.description (:meme-auction/description meme-auction)]
@@ -100,7 +104,7 @@
           [:div.number-minted (str (:meme-token/number meme-token)
                                    "/"
                                    (-> meme-token :meme-token/meme :meme/total-minted))]
-          [:div.price (format/format-eth price)]]]))))
+          [:div.price (format-price price)]]]))))
 
 (defn meme-front-tile [opts {:keys [:meme/image-hash] :as meme}]
 

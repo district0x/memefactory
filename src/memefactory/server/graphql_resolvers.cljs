@@ -179,10 +179,12 @@
    :case
    [:not= :ma.meme-auction/canceled-on nil]                                       (enum :meme-auction.status/canceled)
    [:and
-    [:< [:+ :ma.meme-auction/started-on :ma.meme-auction/duration] now]
+    [:<= now [:+ :ma.meme-auction/started-on :ma.meme-auction/duration]]
     [:= :ma.meme-auction/bought-on nil]]                                          (enum :meme-auction.status/active)
    :else                                                                          (enum :meme-auction.status/done)))
 
+;; If testing this by hand remember params like statuses should be string and not keywords
+;; like (search-meme-auctions-query-resolver nil {:statuses [(enum :meme-auction.status/active)]})
 (defn search-meme-auctions-query-resolver [_ {:keys [:title :tags :tags-or :order-by :order-dir :group-by :statuses :seller :first :after] :as args}]
   (log/debug "search-meme-auctions-query-resolver" args)
   (try-catch-throw
@@ -207,8 +209,8 @@
                                                   {:select [(sql/call :count :*)]
                                                    :from [[:meme-tags :mtts]]
                                                    :where [:and
-                                                                     [:= :mtts.reg-entry/address :m.reg-entry/address]
-                                                                     [:in :mtts.tag/name tags]]}])
+                                                           [:= :mtts.reg-entry/address :m.reg-entry/address]
+                                                           [:in :mtts.tag/name tags]]}])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/price      :ma.meme-auction/bought-for

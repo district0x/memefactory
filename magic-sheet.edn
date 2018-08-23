@@ -1,4 +1,14 @@
-{"14a9da7b-3c60-4a42-aa11-c04e37dce86c"
+{"5f031b62-ff75-45fe-b2bb-7f3e41aaa1f8"
+ {:y 533.0,
+  :key "N",
+  :w 184.0,
+  :title "Now",
+  :h 102.0,
+  :node-id "5f031b62-ff75-45fe-b2bb-7f3e41aaa1f8",
+  :result-type :as-value,
+  :code "(memefactory.server.graphql-resolvers/last-block-timestamp)",
+  :x 606.0},
+ "14a9da7b-3c60-4a42-aa11-c04e37dce86c"
  {:y 7.0,
   :key "R",
   :w 226.0,
@@ -18,6 +28,16 @@
   :result-type :as-table,
   :code "(district.server.db/all {:select [:*] :from [:reg-entries]})",
   :x 960.0},
+ "f4d5024d-17e3-46d5-a4d3-97f9a5600cee"
+ {:y 475.0,
+  :key "M",
+  :w 182.0,
+  :title "Mine",
+  :h 55.0,
+  :node-id "f4d5024d-17e3-46d5-a4d3-97f9a5600cee",
+  :result-type nil,
+  :code "(cljs-web3.evm/mine! @district.server.web3/web3)",
+  :x 607.0},
  "42028980-9666-4b61-8157-c2b943026b17"
  {:y 219.0,
   :key "P",
@@ -48,7 +68,18 @@
   :result-type nil,
   :code
   "(memefactory.server.dev/increase-time-to-next-period \"${address}\")",
-  :x 32.0},
+  :x 33.0},
+ "c3568bc1-925d-4f72-8a33-b5a93022fe93"
+ {:y 642.0,
+  :key "A",
+  :w 806.0,
+  :title "Auctions",
+  :h 190.0,
+  :node-id "c3568bc1-925d-4f72-8a33-b5a93022fe93",
+  :result-type :as-table,
+  :code
+  "(district.server.db/all {:select [:*] :from [[:meme-tokens :mt]] :join [[:meme-auctions :ma] [:= :mt.meme-token/token-id :ma.meme-auction/token-id]]})",
+  :x 891.0},
  "09c269aa-8766-4942-9ebb-2c72f4eec53f"
  {:y 534.0,
   :key "T",
@@ -72,21 +103,10 @@
  "7259247b-835f-4476-bb82-3f3c694e3dda"
  {:y 640.0,
   :key "S",
-  :w 858.0,
+  :w 849.0,
   :title "Statuses",
   :h 188.0,
   :node-id "7259247b-835f-4476-bb82-3f3c694e3dda",
   :result-type :as-table,
   :code "(memefactory.server.dev/print-statuses)",
-  :x 33.0},
- "18223169-35d6-4850-a5eb-94b6a2487ceb"
- {:y 582.0,
-  :key "A",
-  :w 722.0,
-  :title "Auctions",
-  :h 319.0,
-  :node-id "18223169-35d6-4850-a5eb-94b6a2487ceb",
-  :result-type :as-table,
-  :code
-  "(district.server.db/all {:select [:*] :from [:meme-auctions]})",
-  :x 960.0}}
+  :x 42.0}}
