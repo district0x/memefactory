@@ -11,6 +11,16 @@
 
 (defmulti panel (fn [tab & opts] tab))
 
+(defn selling-back-tile [address number]
+  [:div.selling-tile-back.meme-card.back
+   [:div.sell
+    [:div.top
+     [:b (str "#" number)]
+     [:img {:src "/assets/icons/mememouth.png"}]]
+    [:div.bottom
+     [:button {:on-click (fn [e] (.stopPropagation e))}
+      "Cancel Sell"]]]])
+
 (defmethod panel :selling [_ state]
   [:div.tiles
    (doall
@@ -20,8 +30,9 @@
                    {:keys [:meme/title :meme/image-hash :meme/total-minted]} meme
                    now (subscribe [::now-subs/now])
                    price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
-               ^{:key address} [:div.meme-card-front
-                                [tiles/meme-image image-hash]
+               ^{:key address} [:div.compact-tile
+                                [tiles/flippable-tile {:front [tiles/meme-front-tile {} meme]
+                                                       :back [selling-back-tile address number]}]
                                 [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                            nil
                                                            {:reg-entry/address (:reg-entry/address meme)}])}

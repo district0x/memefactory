@@ -15,6 +15,30 @@
             [clojure.string :as str]
             [memefactory.styles.pages.memefolio.details :as details]))
 
+(defn button-tile-back []
+  [:.sell {:display :grid 
+           :grid-template-rows "75% 25%"
+           :width "100%"}
+   [:.top {:width "30%"
+           :margin-left :auto
+           :margin-right :auto}
+    [:b (font :bungee)
+     {:font-size (em 3)
+      :color (color :purple)
+      :display :block
+      :margin-bottom (em 0.4)
+      :margin-top (em 2)}]
+    [:img {:max-width "100%"
+           :height :auto}]]
+   [:.bottom {:background-color (color :purple)}
+    [:button (button {:background-color :violet
+                      :color :white
+                      :height (em 3)
+                      :width "75%"})
+     {:margin-left :auto
+      :margin-right :auto
+      :margin-top (em 1.5)}]]])
+
 (defstyles core
   details/core
   [:.memefolio-page
@@ -119,28 +143,7 @@
                 :height (em 3)}]]]]
     [:.collected-tile-back {:height "100%"
                             :background-color (color :violet)}
-     [:.sell {:display :grid 
-              :grid-template-rows "75% 25%"
-              :width "100%"}
-      [:.top {:width "30%"
-              :margin-left :auto
-              :margin-right :auto}
-       [:b (font :bungee)
-        {:font-size (em 3)
-         :color (color :purple)
-         :display :block
-         :margin-bottom (em 0.4)
-         :margin-top (em 2)}]
-       [:img {:max-width "100%"
-              :height :auto}]]
-      [:.bottom {:background-color (color :purple)}
-       [:button (button {:background-color :violet
-                         :color :white
-                         :height (em 3)
-                         :width "75%"})
-        {:margin-left :auto
-         :margin-right :auto
-         :margin-top (em 1.5)}]]]
+     (button-tile-back)
      [:.sell-form {:background-color :white
                    :width "100%"
                    :padding (em 1)
@@ -163,6 +166,9 @@
                                          :width "65%"})
         {:font-size (em 0.7)
          :padding (em 0.4)}]]
-      ]]]
+      ]]
+    [:.selling-tile-back {:height "100%"
+                            :background-color (color :violet)}
+     (button-tile-back)]]
    [:section.tabs
     (tabs)]])
