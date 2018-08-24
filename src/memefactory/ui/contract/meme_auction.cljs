@@ -19,7 +19,7 @@
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :value] :as args}]]
    (let [active-account (account-queries/active-account db)]
-     {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme-auction address))
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-auction address)
                                       :fn :buy
                                       :args []
                                       :tx-opts {:from active-account
@@ -29,4 +29,20 @@
                                       :on-tx-success-n [[::logging/success [::buy]]
                                                         [::notification-events/show (gstring/format "Auction %s is now yours" address)]]
                                       :on-tx-hash-error [::logging/error [::buy]]
-                                      :on-tx-error [::logging/error [:buy]]}]})))
+                                      :on-tx-error [::logging/error [::buy]]}]})))
+
+(reg-event-fx
+ ::cancel
+ [interceptors]
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address] :as args}]]
+   (let [active-account (account-queries/active-account db)]
+     {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme-auction address))
+                                      :fn :cancel
+                                      :args []
+                                      :tx-opts {:from active-account
+                                                :gas 6000000}
+                                      :tx-id {:meme-auction/cancel id}
+                                      :on-tx-success-n [[::logging/success [::cancel]]
+                                                        [::notification-events/show (gstring/format "Auction %s canceled" address)]]
+                                      :on-tx-hash-error [::logging/error [::cancel]]
+                                      :on-tx-error [::logging/error [::cancel]]}]})))

@@ -7,19 +7,28 @@
             [district.time :as time]
             [district.format :as format]
             [cljs-web3.core :as web3]
-            ))
+            [district.ui.web3-tx-id.subs :as tx-id-subs]
+            [district.ui.component.form.input :as inputs]
+            [memefactory.ui.contract.meme-auction :as meme-auction]))
 
 (defmulti panel (fn [tab & opts] tab))
 
 (defn selling-back-tile [address number]
-  [:div.selling-tile-back.meme-card.back
-   [:div.sell
-    [:div.top
-     [:b (str "#" number)]
-     [:img {:src "/assets/icons/mememouth.png"}]]
-    [:div.bottom
-     [:button {:on-click (fn [e] (.stopPropagation e))}
-      "Cancel Sell"]]]])
+  (let [tx-id (str (random-uuid))
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/cancel tx-id}])]
+   [:div.selling-tile-back.meme-card.back
+    [:div.sell
+     [:div.top
+      [:b (str "#" number)]
+      [:img {:src "/assets/icons/mememouth.png"}]]
+     [:div.bottom
+      [inputs/pending-button {:pending? @tx-pending?
+                              :pending-text "Cancelling auction ..."
+                              :on-click (fn [e]
+                                          (.stopPropagation e)        
+                                          (dispatch [::meme-auction/cancel {:send-tx/id tx-id
+                                                                            :meme-auction/address address}]))}
+       "Cancel Sell"]]]]))
 
 (defmethod panel :selling [_ state]
   [:div.tiles
