@@ -232,7 +232,7 @@
                    :on-event #(dispatch-event :contract/param-change %1 %2)}
                   {:watcher meme-auction-factory/meme-auction-event
                    :on-event #(dispatch-event :contract/meme-auction %1 %2)}
-                  #_{:watcher meme-token/meme-token-transfer-event 
+                  {:watcher meme-token/meme-token-transfer-event 
                    :on-event #(dispatch-event :contract/meme-token %1 %2)}]]  
     (concat
 
