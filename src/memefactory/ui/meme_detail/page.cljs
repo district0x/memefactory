@@ -169,35 +169,44 @@
                                                          [:meme-auction/meme-token
                                                           [:meme-token/token-id]]]]]]]}])]
         (when-not (:graphql/loading? @query)
-          [:h1 "Marketplace history"]
-          [:table {:style {:table-layout "fixed"
-                           :border-collapse "collapse"}}
-           [:thead [:tr {:style {:display "block"}}
-                    [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
-                          :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
-                    [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
-                          :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
-                    [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
-                          :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
-                    [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
-                          :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
-                    [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
-                          :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
-           [:tbody {:style {:display "block"
-                            :width "100%"
-                            :overflow "auto"
-                            :height "100px"}}
-            (doall
-             (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
-                           :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
-               (when address
-                 ^{:key address}
-                 [:tr
-                  [:td (:meme-token/token-id meme-token)]
-                  [:td (:user/address seller)]
-                  [:td (:user/address buyer)]
-                  [:td end-price]
-                  [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))]])))))
+          [:div
+           [:h1.title "Marketplace history"]
+           [:table
+            [:thead [:tr
+                     [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
+                     [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
+                     [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
+                     [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
+                     [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
+            [:tbody
+             #_[:tr
+              [:td "1"]
+              [:td "adr"]
+              [:td "adr"]
+              [:td "33"]
+              [:td "some days ago"]]
+             #_[:tr
+              [:td "1"]
+              [:td "adr"]
+              [:td "adr"]
+              [:td "33"]
+              [:td "some days ago"]]
+             (doall
+              (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
+                            :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
+                (when address
+                  ^{:key address}
+                  [:tr
+                   [:td (:meme-token/token-id meme-token)]
+                   [:td (:user/address seller)]
+                   [:td (:user/address buyer)]
+                   [:td end-price]
+                   [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))]]])))))
 
 (defn challenge-header [created-on]
   [:div
@@ -498,8 +507,9 @@
                                                     :route.memefolio/index
                                                     nil
                                                     {:term title}])} "Search On Memefolio"]]]]]
-                [:div.history {:style {:grid-area "history"}}
-                 [history-component address]]
+                [:section.history
+                 [:div.history-component
+                  [history-component address]]]
                 [:div.challenge {:style {:grid-area "challenge"}}
                  [challenge-component meme]]
                 [:div.related {:style {:grid-area "related"}}

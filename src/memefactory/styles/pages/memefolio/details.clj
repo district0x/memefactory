@@ -80,4 +80,63 @@
         [:&.marketplace {:background-color (color :purple)
                          :color (color :white)}]
         [:&.memefolio {:background-color (color :pink)
-                         :color (color :white)}]]]]]]])
+                         :color (color :white)}]]]]]]
+
+   [:section.history
+    {:padding (em 3)}
+    [:.history-component
+     {:background (color :meme-panel-bg)
+      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+      :border-radius "1em 1em 1em 1em"
+      :position :relative}
+     [:h1.title
+      (font :bungee)
+      (for-media-max :tablet
+                     [:&
+                      {:font-size (px 19)}])
+      {:white-space :nowrap
+       :position :relative
+       :color (color :purple)
+       ;; :font-size (em 1.2)
+       :padding-top (em 1)
+       :margin-bottom (em 0.1)
+       :text-align :center}]
+     [:table
+      {:border-spacing "0px"}
+      [:th.down:after
+       {:content "''"
+        :background-repeat :no-repeat
+        :height (em 1)
+        :width (em 1)
+        :margin-left (em 0.2)
+        :display :inline-block
+        :background-position "center bottom";
+        :transform "scale(0.5, 0.5)"
+        :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
+      [:th.up:after
+       {:content "''"
+        :background-repeat :no-repeat
+        :height (em 1)
+        :width (em 1)
+        :margin-left (em 0.2)
+        :display :inline-block
+        :background-position "center bottom";
+        :transform "scale(0.5, 0.5) rotate(180deg);"
+        :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
+      [:td {:padding-left (em 0.5)
+            :line-height (em 2)}]
+      [:thead
+       [:tr
+        [:th
+         {:text-align :left
+          :cursor :pointer
+          :padding-left (em 0.5)
+          :background-color (color :table-header-bg)}]]]
+      [:tbody
+       [:tr
+        ["&:nth-child(even)"
+         {:background-color (color :tags-grey)}]
+        [:td
+         (border-bottom {:color (color :table-border)})]]]
+      {:width "100%"
+       :padding (em 1)}]]]])

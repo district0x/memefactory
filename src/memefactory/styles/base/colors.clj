@@ -33,6 +33,8 @@
                     :tags-grey "#eff5ff"
                     :curator-card-bg "#f2f4fb"
                     :leaderboard-curator-bg "#9cc717"
+                    :table-header-bg "#ffd200"
+                    :table-border "#e1b4ef"
                     })
 
 (defn color [name]
