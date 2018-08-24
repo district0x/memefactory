@@ -37,7 +37,7 @@
 (defn get-ipfs-meta [meta-hash & [default]]
   (js/Promise.
    (fn [resolve reject]
-     (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-meme-data)     
+     (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-meme-data)
      (ifiles/fget (str "/ipfs/" meta-hash)
                   {:req-opts {:compress false}}
                   (fn [err content]
@@ -133,9 +133,9 @@
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
 
   (try-catch
-    (let [voter (web3-utils/uint->address (first data))
-          vote (registry-entry/load-vote registry-entry voter)]
-      (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
+   (let [voter (web3-utils/uint->address (first data))
+         vote (registry-entry/load-vote registry-entry voter)]
+     (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
 (defmethod process-event [:contract/registry-entry :vote-revealed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
@@ -150,26 +150,26 @@
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
 
   (try-catch
-    (let [voter (web3-utils/uint->address (first data))
-          vote (registry-entry/load-vote registry-entry voter)
-          reward (second data)]
-      (db/update-vote! vote)
-      (db/inc-user-field! voter :user/voter-total-earned (bn/number reward)))))
+   (let [voter (web3-utils/uint->address (first data))
+         vote (registry-entry/load-vote registry-entry voter)
+         reward (second data)]
+     (db/update-vote! vote)
+     (db/inc-user-field! voter :user/voter-total-earned (bn/number reward)))))
 
 (defmethod process-event [:contract/registry-entry :challenge-reward-claimed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
-  
-  (try-catch
-    (let [{:keys [:challenge/challenger :reg-entry/deposit] :as reg-entry}
-          (merge (registry-entry/load-registry-entry registry-entry)
-                 (registry-entry/load-registry-entry-challenge registry-entry))]
 
-      (db/update-registry-entry! reg-entry)
-      (db/inc-user-field! (:challenge/challenger reg-entry) :user/challenger-total-earned deposit))))
+  (try-catch
+   (let [{:keys [:challenge/challenger :reg-entry/deposit] :as reg-entry}
+         (merge (registry-entry/load-registry-entry registry-entry)
+                (registry-entry/load-registry-entry-challenge registry-entry))]
+
+     (db/update-registry-entry! reg-entry)
+     (db/inc-user-field! (:challenge/challenger reg-entry) :user/challenger-total-earned deposit))))
 
 (defmethod process-event [:contract/meme :minted]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
-  
+
   (try-catch
    (let [[_ token-id-start token-id-end] data]
      (db/insert-meme-tokens! {:token-id-start (bn/number token-id-start)
@@ -179,8 +179,8 @@
                                      :meme/first-mint-on timestamp}))))
 
 (defmethod process-event [:contract/meme-auction :auction-started]
- [_ {:keys [:meme-auction :timestamp :data] :as ev}]
-  
+  [_ {:keys [:meme-auction :timestamp :data] :as ev}]
+
   (try-catch
    (db/insert-or-update-meme-auction! (meme-auction/load-meme-auction meme-auction))))
 
@@ -199,7 +199,7 @@
                                          :meme-auction/bought-on timestamp
                                          :meme-auction/buyer (web3-utils/uint->address buyer)}))))
 
-(defmethod process-event [:contract/meme-token :transfer]
+(defmethod process-event [:contract/meme-token :transfer-from]
   [_ ev]
 
   (try-catch
@@ -218,22 +218,22 @@
                (assoc :event-type event-type)
                (update :timestamp bn/number)
                (update :version bn/number))]
-    (log/info (str info-text " " contract-type " " event-type) {:ev ev} ::dispatch-event)  
+    (log/info (str info-text " " contract-type " " event-type) {:ev ev} ::dispatch-event)
     (process-event contract-type ev)))
 
 (defn start [{:keys [:initial-param-query] :as opts}]
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
-  #_(on-start initial-param-query) 
+  #_(on-start initial-param-query)
   (let [last-block-number (last-block-number)
         watchers [{:watcher (partial registry/registry-entry-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme %1 %2)} 
+                   :on-event #(dispatch-event :contract/meme %1 %2)}
                   {:watcher (partial registry/registry-entry-event [:param-change-registry :param-change-registry-fwd])
                    :on-event #(dispatch-event :contract/param-change %1 %2)}
                   {:watcher meme-auction-factory/meme-auction-event
                    :on-event #(dispatch-event :contract/meme-auction %1 %2)}
-                  {:watcher meme-token/meme-token-transfer-event 
-                   :on-event #(dispatch-event :contract/meme-token %1 %2)}]]  
+                  {:watcher meme-token/meme-token-transfer-event
+                   :on-event #(dispatch-event :contract/meme-token %1 %2)}]]
     (concat
 
      ;; Replay every past events (from block 0 to (dec last-block-number))
@@ -245,7 +245,7 @@
             doall))
 
      ;; Filters that will watch for last event and dispatch
-     (->> watchers 
+     (->> watchers
           (map (fn [{:keys [watcher on-event]}]
                  (apply watcher [{} "latest" on-event])))
           doall))))
@@ -253,4 +253,3 @@
 (defn stop [syncer]
   (doseq [filter (remove nil? @syncer)]
     (web3-eth/stop-watching! filter (fn [err]))))
-
