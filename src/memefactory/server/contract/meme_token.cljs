@@ -26,5 +26,5 @@
                              :data (meme-auction/start-auction-data (select-keys params [:start-price :end-price :duration :description]))}
                             opts))
 
-(defn transfer-event [& args]
-  (apply contract-call :meme-token :Transfer args))
+(defn meme-token-transfer-event [& args]
+  (apply contract-call :meme-token :transfer args))
