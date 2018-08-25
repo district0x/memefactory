@@ -27,4 +27,4 @@
                             opts))
 
 (defn meme-token-transfer-event [& args]
-  (apply contract-call :meme-token :transfer args))
+  (apply contract-call :meme-token :Transfer args))
