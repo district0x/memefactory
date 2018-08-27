@@ -139,4 +139,46 @@
         [:td
          (border-bottom {:color (color :table-border)})]]]
       {:width "100%"
-       :padding (em 1)}]]]])
+       :padding (em 1)}]]]
+
+   [:section.challenge
+    {:padding (em 3)}
+    [:.challenge-component
+     {:background (color :meme-panel-bg)
+      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+      :border-radius "1em 1em 1em 1em"
+      :position :relative
+      :display :grid
+      :grid-template-columns "30% 30% 40%"
+      :grid-template-rows "40% 60%"}
+     [">*" {:padding (em 1)
+            :color (color :menu-text)
+            :margin (em 1)}]
+     [:.status
+      {:border-right "1px solid #AAA"}]
+     [:.challenger
+      {:border-right "1px solid #AAA"}]
+     [:.header {:grid-column "1 / span 3"}
+      [:h1.title
+       (font :bungee)
+       (for-media-max :tablet
+                      [:&
+                       {:font-size (px 19)}])
+       {:white-space :nowrap
+        :position :relative
+        :color (color :purple)
+        ;; :font-size (em 1.2)
+        :padding-top (em 1)
+        :margin-bottom (em 0.1)
+        :text-align :center}]
+      [:h2.title
+       {:white-space :nowrap
+        :margin-top (em 0.1)
+        :position :relative
+        :color (color :section-subcaption)
+        :font-size (px 15)
+        :text-align :center}]]
+     ;; [:.challenge-component
+     ;;  {}]
+     ]]
+   ])

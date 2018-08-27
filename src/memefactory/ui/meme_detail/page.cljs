@@ -184,18 +184,6 @@
                      [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
                            :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
             [:tbody
-             #_[:tr
-              [:td "1"]
-              [:td "adr"]
-              [:td "adr"]
-              [:td "33"]
-              [:td "some days ago"]]
-             #_[:tr
-              [:td "1"]
-              [:td "adr"]
-              [:td "adr"]
-              [:td "33"]
-              [:td "some days ago"]]
              (doall
               (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
                             :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
@@ -210,11 +198,12 @@
 
 (defn challenge-header [created-on]
   [:div
-   [:h1 "Challenge"]
+   [:h1.title "Challenge"]
    (if created-on
-     [:span (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]
+     [:h2.title
+      (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]
      [:div
-      [:span "This meme hasn't been challenged."]
+      [:h2.title "This meme hasn't been challenged."]
       [:p description]])])
 
 (defn challenger-component [{:keys [:challenge/comment :challenge/challenger] :as meme}]
@@ -398,61 +387,57 @@
 
 (defmethod challenge-component :reg-entry.status/reveal-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  (let [areas "'header header header header header header'
-               'status status challenger challenger vote vote'"]
-    [:div.challenge-component {:style {:display "grid"
-                                       :grid-template-areas areas}}
-     [:div.header {:style {:grid-area "header"}}
-      [challenge-header created-on]]
-     [:div.status {:style {:grid-area "status"}}
-      [status-component status]]
-     [:div.challenger {:style {:grid-area "challenger"}}
-      [challenger-component meme]]
-     [:div.challenge {:style {:grid-area "vote"}}
-      [reveal-vote-component meme]]]))
+  ;; let [areas "'header header header header header header'
+  ;;              'status status challenger challenger vote vote'"]
+  [:div.challenge-component
+   [:div.header
+    [challenge-header created-on]]
+   [:div.status
+    [status-component status]]
+   [:div.challenger
+    [challenger-component meme]]
+   [:div.challenge
+    [reveal-vote-component meme]]])
 
 (defmethod challenge-component :reg-entry.status/commit-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  (let [areas "'header header header header header header'
-               'status status challenger challenger vote vote'"]
-    [:div.challenge-component {:style {:display "grid"
-                                       :grid-template-areas areas}}
-     [:div.header {:style {:grid-area "header"}}
-      [challenge-header created-on]]
-     [:div.status {:style {:grid-area "status"}}
-      [status-component status]]
-     [:div.challenger {:style {:grid-area "challenger"}}
-      [challenger-component meme]]
-     [:div.challenge {:style {:grid-area "vote"}}
-      [vote-component meme]]]))
+  ;; let [areas "'header header header header header header'
+  ;;              'status status challenger challenger vote vote'"]
+  [:div.challenge-component
+   [:div.header
+    [challenge-header created-on]]
+   [:div.status
+    [status-component status]]
+   [:div.challenger
+    [challenger-component meme]]
+   [:div.challenge
+    [vote-component meme]]])
 
 (defmethod challenge-component :reg-entry.status/challenge-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  (let [areas "'header header header header header header'
-               'status status status challenge challenge challenge'"]
-    [:div.challenge-component {:style {:display "grid"
-                                       :grid-template-areas areas}}
-     [:div.header {:style {:grid-area "header"}}
-      [challenge-header created-on]]
-     [:div.status {:style {:grid-area "status"}}
-      [status-component status]]
-     [:div.challenge {:style {:grid-area "challenge"}}
-      [challenge-meme-component meme]]]))
+  ;; let [areas "'header header header header header header'
+  ;;              'status status status challenge challenge challenge'"]
+  [:div.challenge-component
+   [:div.header
+    [challenge-header created-on]]
+   [:div.status
+    [status-component status]]
+   [:div.challenge
+    [challenge-meme-component meme]]])
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  (let [areas "'header header header header header header'
-               'status status challenger challenger votes votes'"]
-    [:div.challenge-component {:style {:display "grid"
-                                       :grid-template-areas areas}}
-     [:div.header {:style {:grid-area "header"}}
-      [challenge-header created-on]]
-     [:div.status {:style {:grid-area "status"}}
-      [status-component status]]
-     [:div.challenger {:style {:grid-area "challenger"}}
-      [challenger-component meme]]
-     [:div.votes {:style {:grid-area "votes"}}
-      [votes-component meme]]]))
+  ;; let [areas "'header header header header header header'
+  ;;              'status status challenger challenger votes votes'"]
+  [:div.challenge-component
+   [:div.header
+    [challenge-header created-on]]
+   [:div.status
+    [status-component status]]
+   [:div.challenger
+    [challenger-component meme]]
+   [:div.votes
+    [votes-component meme]]])
 
 (defmethod page :route.meme-detail/index []
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -510,7 +495,7 @@
                 [:section.history
                  [:div.history-component
                   [history-component address]]]
-                [:div.challenge {:style {:grid-area "challenge"}}
+                [:section.challenge
                  [challenge-component meme]]
-                [:div.related {:style {:grid-area "related"}}
+                [:section.related
                  [related-memes-container address tags]]]])))))))
