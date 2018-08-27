@@ -169,7 +169,6 @@
 
 (defmethod process-event [:contract/meme :minted]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
-
   (try-catch
    (let [[_ token-id-start token-id-end] data]
      (db/insert-meme-tokens! {:token-id-start (bn/number token-id-start)
@@ -208,12 +207,18 @@
                                              :meme-token/owner _to
                                              :meme-token/transferred-on (bn/number _timestamp)}))))
 
+(defmethod process-event :default
+  [k ev]
+  (log/warn (str "No precess-event defined for processing " k ev) ))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of events processors ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn dispatch-event [contract-type err {:keys [args]}]
-  (let [event-type (cs/->kebab-case-keyword (web3-utils/bytes32->str (:event-type args)))
+(defn dispatch-event [contract-type err {:keys [args event] :as a}]
+  (let [event-type (cond
+                     (:event-type args) (cs/->kebab-case-keyword (web3-utils/bytes32->str (:event-type args)))
+                     event      (cs/->kebab-case-keyword event)) 
         ev (-> args
                (assoc :event-type event-type)
                (update :timestamp bn/number)
