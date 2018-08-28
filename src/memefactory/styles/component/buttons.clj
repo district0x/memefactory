@@ -58,3 +58,14 @@
     :padding-bottom (em 0.5)
     :border-radius (em 2)
     :display :inline}])
+
+(defn vote-button-icon []
+  [:&:before {:content "''" 
+              :background-image "url('/assets/icons/dankregistry.png')"
+              :background-size "20px 20px"
+              :display :inline-block
+              :background-repeat :no-repeat
+              :width (px 20)
+              :position :relative
+              :margin-right (px 10)
+              :height (px 20)}])

@@ -10,19 +10,10 @@
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
             [memefactory.styles.component.panels :refer [panel-with-icon tabs]]
-            [memefactory.styles.component.buttons :refer [get-dank-button button]]
+            [memefactory.styles.component.buttons :refer [get-dank-button button vote-button-icon]]
             [clojure.string :as str]))
 
-(defn vote-button-icon []
-  [:&:before {:content "''" 
-              :background-image "url('/assets/icons/dankregistry.png')"
-              :background-size "20px 20px"
-              :display :inline-block
-              :background-repeat :no-repeat
-              :width (px 20)
-              :position :relative
-              :margin-right (px 10)
-              :height (px 20)}])
+
 
 (defstyles core
   [:.dank-registry-vote-page

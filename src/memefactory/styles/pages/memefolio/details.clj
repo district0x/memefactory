@@ -3,7 +3,7 @@
             [garden.stylesheet :refer [at-media]]
             [clojure.string :as s]
             [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.component.buttons :refer [button tag]]
+            [memefactory.styles.component.buttons :refer [button tag vote-button-icon]]
             [memefactory.styles.base.borders :refer [border-top border-bottom]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
@@ -153,7 +153,7 @@
       :grid-template-rows "40% 60%"}
      [">*" {:padding (em 1)
             :color (color :menu-text)
-            :margin (em 1)}]
+            :margin-bottom (em 1)}]
      [:.status
       {:border-right "1px solid #AAA"}]
      [:.challenger
@@ -181,4 +181,31 @@
      ;; [:.challenge-component
      ;;  {}]
      ]]
-   ])
+   [:.vote {:display :grid
+            :margin-left (em 6)
+            :margin-right (em 6)}
+    (for-media-max :large
+                   [:&
+                    {:margin-right (em 2)
+                     :margin-left (em 2)}])
+    [:.vote-input {:display :grid
+                   :grid-template-columns "80% 20%"
+                   :border-bottom "1px solid"
+                   :margin-bottom (em 1)}
+     [:.help-block {:display :none}]]
+    [:.vote-dank
+     [:button
+      {:margin-bottom (em 2)}
+      (button {:background-color :rare-meme-icon-bg
+               :color :violet
+               :height (em 3)
+               :width "100%"})
+      (vote-button-icon)]]
+    [:.vote-stank
+     [:button
+      (button {:background-color :random-meme-icon-bg
+               :color :violet
+               :height (em 3)
+               :width "100%"})
+      (vote-button-icon)
+      [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]])

@@ -345,37 +345,36 @@
        [:div description]
        [remaining-time-component (ui-utils/gql-date->date commit-period-end)]
        [inputs/with-label "Amount "
-        [:div
-         [inputs/text-input {:form-data form-data
-                             :id :vote/amount-for
-                             :errors errors}]
-         [:span "DANK"]
-         [tx-button/tx-button {:primary true
-                               :disabled (or (-> @errors :local :vote/amount-for empty? not)
-                                             @tx-success?)
-                               :pending? @tx-pending?
-                               :pending-text "Voting..."
-                               :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                                               :reg-entry/address (:reg-entry/address meme)
-                                                                                               :vote/option :vote.option/vote-for
-                                                                                               :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
+        [:div.vote-dank
+         [inputs/amount-input {:form-data form-data
+                               :id :vote/amount-for
+                               :placeholder "DANK"
+                               :errors errors}]
+         [inputs/pending-button
+          {:pending? @tx-pending?
+           :disabled (or (-> @errors :local :vote/amount-for empty? not)
+                         @tx-success?)
+           :pending-text "Voting..."
+           :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                           :reg-entry/address (:reg-entry/address meme)
+                                                                           :vote/option :vote.option/vote-for
+                                                                           :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
           "Vote Dank"]]]
        [inputs/with-label "Amount "
-        [:div
-         [inputs/text-input {:form-data form-data
+        [:div.vote-stank
+         [inputs/amount-input {:form-data form-data
                              :id :vote/amount-against
                              :errors errors}]
-         [:span "DANK"]
-         [tx-button/tx-button {:primary true
-                               :disabled (or (-> @errors :local :vote/amount-against empty? not)
-                                             @tx-success?)
-                               :pending? @tx-pending?
-                               :pending-text "Voting..."
-                               :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                                               :reg-entry/address (:reg-entry/address meme)
-                                                                                               :vote/option :vote.option/vote-against
-                                                                                               :vote/amount (-> @form-data :vote/amount-against js/parseInt)}])}
-          "Vote STANK"]]]
+         [inputs/pending-button
+          {:pending? @tx-pending?
+           :disabled (or (-> @errors :local :vote/amount-against empty? not)
+                         @tx-success?)
+           :pending-text "Voting..."
+           :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                           :reg-entry/address (:reg-entry/address meme)
+                                                                           :vote/option :vote.option/vote-against
+                                                                           :vote/amount (-> @form-data :vote/amount-against js/parseInt)}])}
+          "Vote Stank"]]]
        [:div "You can vote with up to " (format/format-token @balance-dank {:token "DANK"})]
        [:div "Token will be returned to you after revealing your vote."]])))
 
