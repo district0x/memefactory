@@ -170,10 +170,14 @@
 (defmethod process-event [:contract/meme :minted]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
   (try-catch
-   (let [[_ token-id-start token-id-end] data]
+   (let [[creator token-id-start token-id-end] data]
      (db/insert-meme-tokens! {:token-id-start (bn/number token-id-start)
                               :token-id-end (bn/number token-id-end)
                               :reg-entry/address registry-entry})
+     (doseq [tid (range (bn/number token-id-start) (inc (bn/number token-id-end)))]
+       (db/insert-or-replace-meme-token-owner {:meme-token/token-id tid 
+                                               :meme-token/owner (web3/to-hex creator)
+                                               :meme-token/transferred-on (bn/number timestamp)}))
      (db/update-meme-first-mint-on! {:reg-entry/address registry-entry
                                      :meme/first-mint-on timestamp}))))
 
