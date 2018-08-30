@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.24;
 
 import "./token/ERC721Receiver.sol";
 import "./MemeToken.sol";
@@ -15,13 +15,13 @@ contract MemeAuctionFactory is ERC721Receiver {
   mapping(address => bool) public isMemeAuction;
 
   modifier onlyMemeAuction() {
-    require(isMemeAuction[msg.sender]);
+    require(isMemeAuction[msg.sender], "MemeAuctionFactory: onlyMemeAuction falied");
     _;
   }
 
   function construct(MemeToken _memeToken) public {
-    require(address(_memeToken) != 0x0);
-    require(!wasContstructed);
+    require(address(_memeToken) != 0x0, "MemeAuctionFactory: _memeToken address is 0x0");
+    require(!wasContstructed, "MemeAuctionFactory: Was already constructed");
     memeToken = _memeToken;
     wasContstructed = true;
   }

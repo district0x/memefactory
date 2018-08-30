@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import "auth/DSAuth.sol";
 import "db/EternalDb.sol";
@@ -28,24 +28,24 @@ contract Registry is DSAuth {
    * @param _db Address of EternalDb related to this registry
    */
   function construct(EternalDb _db) {
-    require(address(_db) != 0x0);
+    require(address(_db) != 0x0, "Registry: Address can't be 0x0");
     db = _db;
     wasConstructed = true;
     owner = msg.sender;
   }
 
   modifier onlyFactory() {
-    require(isFactory(msg.sender));
+    require(isFactory(msg.sender), "Registry: Sender should be factory");
     _;
   }
 
   modifier onlyRegistryEntry() {
-    require(isRegistryEntry(msg.sender));
+    require(isRegistryEntry(msg.sender), "Registry: Sender should registry entry");
     _;
   }
 
   modifier notEmergency() {
-    require(!isEmergency());
+    require(!isEmergency(),"Registry: Emergency mode is enable");
     _;
   }
 

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.24;
 
 import "./token/ERC721Receiver.sol";
 import "./MemeToken.sol";
@@ -25,15 +25,15 @@ contract MemeAuction is ERC721Receiver {
   string public description;
 
   modifier notEmergency() {
-    require(!registry.isEmergency());
+    require(!registry.isEmergency(),"MemeAuction: Emergency mode enabled");
     _;
   }
 
   function construct(address _seller, uint _tokenId)
   notEmergency
   {
-    require(_seller != 0x0);
-    require(seller == 0x0);
+    require(_seller != 0x0,"MemeAuction: _seller is 0x0");
+    require(seller == 0x0, "MemeAcution: seller is 0x0");
     seller = _seller;
     tokenId = _tokenId;
   }
@@ -41,12 +41,12 @@ contract MemeAuction is ERC721Receiver {
   function startAuction(uint _startPrice, uint _endPrice, uint _duration, string _description)
   notEmergency
   {
-    require(memeToken.ownerOf(tokenId) == address(this));
-    require(startedOn == 0);
-    require(_duration <= registry.db().getUIntValue(maxDurationKey));
+    require(memeToken.ownerOf(tokenId) == address(this), "MemeAuction: Not the owner of the token");
+    require(startedOn == 0, "MemeAuction: Already started");
+    require(_duration <= registry.db().getUIntValue(maxDurationKey),"MemeAuction: duration > maxDurationKey");
 //    // Require that all auctions have a duration of
 //    // at least one minute. (Keeps our math from getting hairy!)
-    require(_duration >= 1 minutes);
+    require(_duration >= 1 minutes, "MemeAuction: duration < 1 minute");
     startPrice = _startPrice;
     description = _description;
     endPrice = _endPrice;
@@ -66,9 +66,9 @@ contract MemeAuction is ERC721Receiver {
   public
   notEmergency
   {
-    require(startedOn > 0);
+    require(startedOn > 0, "MemeAuction: Can't buy because not started");
     var price = currentPrice();
-    require(msg.value >= price);
+    require(msg.value >= price, "MemeAuction: Can't buy because money sent is lower than price");
     uint auctioneerCut = 0;
     uint sellerProceeds = 0;
     if (price > 0) {
@@ -94,8 +94,8 @@ contract MemeAuction is ERC721Receiver {
   }
 
   function cancel() public {
-    require(startedOn > 0);
-    require(msg.sender == seller);
+    require(startedOn > 0, "MemeAuction: Can't cancel because not started");
+    require(msg.sender == seller, "MemeAuction: Can't cancel because sender is not seller");
     memeToken.safeTransferFrom(this, seller, tokenId);
     memeAuctionFactory.fireMemeAuctionEvent("canceled");
   }
@@ -105,9 +105,9 @@ contract MemeAuction is ERC721Receiver {
   notEmergency
   returns (bytes4)
   {
-    require(_tokenId == tokenId);
-    require(startedOn == 0);
-    require(this.call(_data));
+    require(_tokenId == tokenId, "MemeAuction: _tokenId is not tokenId");
+    require(startedOn == 0, "MemeAuction: Already started");
+    require(this.call(_data), "MemeAuction: No data to call");
     return ERC721_RECEIVED;
   }
 

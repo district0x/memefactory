@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import "RegistryEntry.sol";
 import "db/EternalDb.sol";
@@ -62,10 +62,10 @@ contract ParamChange is RegistryEntry {
   public
   notEmergency
   {
-    require(isOriginalValueCurrentValue());
-    require(!wasApplied());
-    require(isWhitelisted());
-    require(registryToken.transfer(creator, deposit));
+    require(isOriginalValueCurrentValue(), "ParamChange: current value is not original value");
+    require(!wasApplied(), "ParamChange: already applied");
+    require(isWhitelisted(), "ParamChange: not whitelisted");
+    require(registryToken.transfer(creator, deposit), "ParamChange: could not transfer deposit");
     db.setUIntValue(sha3(key), value);
     appliedOn = now;
     registry.fireRegistryEntryEvent("changeApplied", version);

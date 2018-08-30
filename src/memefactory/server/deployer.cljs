@@ -73,7 +73,7 @@
                                                              {forwarder-target-placeholder :param-change-registry}})))
 
 (defn deploy-meme! [default-opts]
-  (deploy-smart-contract! :meme (merge default-opts {:gas 4000000
+  (deploy-smart-contract! :meme (merge default-opts {:gas 6721975
                                                      :placeholder-replacements
                                                      {dank-token-placeholder :DANK
                                                       registry-placeholder :meme-registry-fwd
@@ -81,7 +81,7 @@
                                                       meme-token-placeholder :meme-token}})))
 
 (defn deploy-param-change! [default-opts]
-  (deploy-smart-contract! :param-change (merge default-opts {:gas 3700000
+  (deploy-smart-contract! :param-change (merge default-opts {:gas 6721975
                                                              :placeholder-replacements
                                                              {dank-token-placeholder :DANK
                                                               registry-placeholder :param-change-registry-fwd}})))

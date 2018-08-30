@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import "RegistryEntry.sol";
 import "MemeToken.sol";
@@ -44,8 +44,8 @@ contract Meme is RegistryEntry {
   {
     super.construct(_creator, _version);
 
-    require(_totalSupply > 0);
-    require(_totalSupply <= registry.db().getUIntValue(maxTotalSupplyKey));
+    require(_totalSupply > 0, "Meme: totalSupply should be > 0");
+    require(_totalSupply <= registry.db().getUIntValue(maxTotalSupplyKey), "Meme: totalSupply shoud be < maxTotalSupply");
     totalSupply = _totalSupply;
     metaHash = _metaHash;
   }
@@ -59,8 +59,8 @@ contract Meme is RegistryEntry {
   notEmergency
   onlyWhitelisted
   {
-    require(!wasChallenged());
-    require(registryToken.transfer(districtConfig.depositCollector(), deposit));
+    require(!wasChallenged(), "Meme: Is challenged");
+    require(registryToken.transfer(districtConfig.depositCollector(), deposit), "Meme: can't transfer deposit");
     registry.fireRegistryEntryEvent("depositTransferred", version);
   }
 
@@ -73,7 +73,7 @@ contract Meme is RegistryEntry {
     if (_amount == 0 || _amount > restSupply) {
       _amount = restSupply;
     }
-    require(_amount > 0);
+    require(_amount > 0, "Meme: Amount should be > 0");
     tokenIdStart = memeToken.totalSupply().add(1);
     uint tokenIdEnd = tokenIdStart.add(_amount);
     for (uint i = tokenIdStart; i < tokenIdEnd; i++) {

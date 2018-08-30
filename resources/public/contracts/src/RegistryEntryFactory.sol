@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import "Registry.sol";
 import "proxy/Forwarder.sol";
@@ -32,8 +32,8 @@ contract RegistryEntryFactory is ApproveAndCallFallBack {
   function createRegistryEntry(address _creator) internal returns (address) {
     uint deposit = registry.db().getUIntValue(depositKey);
     address regEntry = new Forwarder();
-    require(registryToken.transferFrom(_creator, this, deposit));
-    require(registryToken.approve(regEntry, deposit));
+    require(registryToken.transferFrom(_creator, this, deposit), "RegistryEntryFactory: couldn't transfer deposit");
+    require(registryToken.approve(regEntry, deposit), "RegistryEntryFactory: Deposit not approved");
     registry.addRegistryEntry(regEntry);
     return regEntry;
   }
@@ -55,6 +55,6 @@ contract RegistryEntryFactory is ApproveAndCallFallBack {
     bytes _data)
   public
   {
-    require(this.call(_data));
+    require(this.call(_data), "RegistryEntryFactory: couldn't call data");
   }
 }
