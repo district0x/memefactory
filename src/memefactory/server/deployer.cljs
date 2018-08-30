@@ -49,14 +49,14 @@
                                                                             meme-auction-cut]})))
 
 (defn deploy-meme-registry-db! [default-opts]
-  (deploy-smart-contract! :meme-registry-db (merge default-opts {:gas 1700000})))
+  (deploy-smart-contract! :meme-registry-db (merge default-opts {:gas #_1700000 2000000})))
 
 (defn deploy-param-change-registry-db! [default-opts]
-  (deploy-smart-contract! :param-change-registry-db (merge default-opts {:gas 1700000})))
+  (deploy-smart-contract! :param-change-registry-db (merge default-opts {:gas #_1700000 2000000})))
 
 
 (defn deploy-meme-registry! [default-opts]
-  (deploy-smart-contract! :meme-registry (merge default-opts {:gas 1000000})))
+  (deploy-smart-contract! :meme-registry (merge default-opts {:gas 1500000 #_1000000})))
 
 (defn deploy-param-change-registry! [default-opts]
   (deploy-smart-contract! :param-change-registry (merge default-opts {:gas 1700000})))
@@ -81,7 +81,8 @@
                                                       meme-token-placeholder :meme-token}})))
 
 (defn deploy-param-change! [default-opts]
-  (deploy-smart-contract! :param-change (merge default-opts {:gas 6721975
+
+  (deploy-smart-contract! :param-change (merge default-opts {:gas 5000000
                                                              :placeholder-replacements
                                                              {dank-token-placeholder :DANK
                                                               registry-placeholder :param-change-registry-fwd}})))

@@ -11,21 +11,16 @@ import "math/SafeMath.sol";
  *
  * @dev It contains all state and logic related to TCR challenging and voting
  * Full copy of this contract is NOT deployed with each submission in order to save gas. Only forwarder contracts
- * pointing into single intance of it.
+ * pointing into single instance of it.
  * This contract is meant to be extended by domain specific registry entry contracts (Meme, ParamChange)
  */
 
 contract RegistryEntry is ApproveAndCallFallBack {
   using SafeMath for uint;
 
+  uint public constant oneHundred = 100;
   Registry public constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
   MiniMeToken public constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
-  bytes32 public constant challengePeriodDurationKey = sha3("challengePeriodDuration");
-  bytes32 public constant commitPeriodDurationKey = sha3("commitPeriodDuration");
-  bytes32 public constant revealPeriodDurationKey = sha3("revealPeriodDuration");
-  bytes32 public constant depositKey = sha3("deposit");
-  bytes32 public constant challengeDispensationKey = sha3("challengeDispensation");
-  bytes32 public constant voteQuorumKey = sha3("voteQuorum");
 
   enum Status {ChallengePeriod, CommitPeriod, RevealPeriod, Blacklisted, Whitelisted}
 
@@ -54,6 +49,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     uint amount;
     uint revealedOn;
     uint claimedRewardOn;
+    uint reclaimedVoteAmountOn;
   }
 
   enum VoteOption {NoVote, VoteFor, VoteAgainst}
@@ -91,12 +87,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
   public
   {
     require(challengePeriodEnd == 0, "RegistryEntry: Challenge period end is not 0");
-    deposit = registry.db().getUIntValue(depositKey);
+    deposit = registry.db().getUIntValue(registry.depositKey());
 
     require(registryToken.transferFrom(msg.sender, this, deposit), "RegistryEntry: Couldn't transfer deposit");
-    challengePeriodEnd = now.add(registry.db().getUIntValue(challengePeriodDurationKey));
-    creator = _creator;
+    challengePeriodEnd = now.add(registry.db().getUIntValue(registry.challengePeriodDurationKey()));
 
+    creator = _creator;
     version = _version;
 
     registry.fireRegistryEntryEvent("constructed", version);
@@ -116,7 +112,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     address _challenger,
     bytes _challengeMetaHash
   )
-  public
+  external
   notEmergency
   {
     require(isChallengePeriodActive(),"RegistryEntry: Not in challenge period");
@@ -124,13 +120,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(registryToken.transferFrom(_challenger, this, deposit),"RegistryEntry: Couldn't transfer deposit");
 
     challenge.challenger = _challenger;
-    challenge.voteQuorum = registry.db().getUIntValue(voteQuorumKey);
-    uint commitDuration = registry.db().getUIntValue(commitPeriodDurationKey);
-    uint revealDuration = registry.db().getUIntValue(revealPeriodDurationKey);
-    
+    challenge.voteQuorum = registry.db().getUIntValue(registry.voteQuorumKey());
+    uint commitDuration = registry.db().getUIntValue(registry.commitPeriodDurationKey());
+    uint revealDuration = registry.db().getUIntValue(registry.revealPeriodDurationKey());
+
     challenge.commitPeriodEnd = now.add(commitDuration);
     challenge.revealPeriodEnd = challenge.commitPeriodEnd.add(revealDuration);
-    challenge.rewardPool = ((100 - registry.db().getUIntValue(challengeDispensationKey)).mul(deposit)) / 100;
+    challenge.rewardPool = oneHundred.sub(registry.db().getUIntValue(registry.challengeDispensationKey())).mul(deposit).div(oneHundred);
     challenge.metaHash = _challengeMetaHash;
 
     registry.fireRegistryEntryEvent("challengeCreated", version);
@@ -140,6 +136,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @dev Commits encrypted vote to challenged entry
    * Locks voter's tokens in this contract. Returns when vote is revealed
    * Must be within commit period
+   * Same address can't make a second vote for the same challenge
 
    * @param _voter Address of a voter
    * @param _amount Amount of tokens to vote with
@@ -150,12 +147,14 @@ contract RegistryEntry is ApproveAndCallFallBack {
     uint _amount,
     bytes32 _secretHash
   )
-  public
+  external
   notEmergency
   {
     require(isVoteCommitPeriodActive(), "RegistryEntry: Not in voting period");
     require(_amount > 0, "RegistryEntry: Voting amount should be more than 0");
+    require(!hasVoted(_voter));
     require(registryToken.transferFrom(_voter, this, _amount), "RegistryEntry: Couldn't transfer voting amount");
+
     challenge.vote[_voter].secretHash = _secretHash;
     challenge.vote[_voter].amount = _amount;
 
@@ -169,24 +168,27 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * Returns registryToken back to the voter
    * Must be within reveal period
 
+   * @param _voter address that made the vote
    * @param _voteOption Vote option voter previously voted with
    * @param _salt Salt with which user previously encrypted his vote option
    */
-  function revealVote(
+  function doRevealVote(
+    address _voter,
     VoteOption _voteOption,
     string _salt
   )
-  public
+  private
   notEmergency
   {
     require(isVoteRevealPeriodActive(), "RegistryEntry: Reveal period is not active");
-    require(sha3(uint(_voteOption), _salt) == challenge.vote[msg.sender].secretHash, "RegistryEntry: Invalid sha");
-    require(!isVoteRevealed(msg.sender), "RegistryEntry: Vote was already revealed");
+    require(sha3(uint(_voteOption), _salt) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha");
+    require(!isVoteRevealed(_voter), "RegistryEntry: Vote was already revealed");
 
-    challenge.vote[msg.sender].revealedOn = now;
-    uint amount = challenge.vote[msg.sender].amount;
-    require(registryToken.transfer(msg.sender, amount), "RegistryEntry: Couldn't transfer amount");
-    challenge.vote[msg.sender].option = _voteOption;
+    challenge.vote[_voter].revealedOn = now;
+    uint amount = challenge.vote[_voter].amount;
+    require(registryToken.transfer(_voter, amount), "RegistryEntry: Couldn't transfer amount");
+    challenge.vote[_voter].option = _voteOption;
+
     if (_voteOption == VoteOption.VoteFor) {
       challenge.votesFor = challenge.votesFor.add(amount);
     } else if (_voteOption == VoteOption.VoteAgainst) {
@@ -196,8 +198,57 @@ contract RegistryEntry is ApproveAndCallFallBack {
     }
 
     var eventData = new uint[](1);
-    eventData[0] = uint(msg.sender);
+    eventData[0] = uint(_voter);
     registry.fireRegistryEntryEvent("voteRevealed", version, eventData);
+  }
+
+  function revealVote(
+    VoteOption _voteOption,
+    string _salt
+  )
+  external
+  {
+    address _voter = msg.sender;
+    doRevealVote(_voter, _voteOption, _salt);
+  }
+
+  function revealVote2(
+    address _voter,
+    VoteOption _voteOption,
+    string _salt
+  )
+  external
+  {
+    doRevealVote(_voter, _voteOption, _salt);
+  }
+
+    /**
+   * @dev Refunds vote deposit after reveal period
+   * Can be called by anybody, to claim voter's reward to him
+   * Can't be called if vote was revealed
+   * Can't be called twice for the same vote
+
+   * @param _voter Address of a voter
+   */
+  function reclaimVoteDeposit(address _voter)
+    public
+    notEmergency {
+
+    if (_voter == 0x0) {
+      _voter = msg.sender;
+    }
+
+    require(isVoteRevealPeriodOver());
+    require(!isVoteRevealed(_voter));
+    require(!isVoteDepositReclaimed(_voter));
+
+    uint amount = challenge.vote[_voter].amount;
+    require(registryToken.transfer(_voter, amount));
+
+    var eventData = new uint[](1);
+    eventData[0] = uint(msg.sender);
+
+    registry.fireRegistryEntryEvent("voteDepositReclaimed", version, eventData);
   }
 
   /**
@@ -254,8 +305,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @dev Simple wrapper to claim challenge and voter reward for a user
    */
   function claimAllRewards(address _user)
-    public
-    notEmergency
+  external
+  notEmergency
   {
     claimChallengeReward();
     claimVoteReward(_user);
@@ -341,6 +392,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
     return now <= challenge.commitPeriodEnd;
   }
 
+  function hasVoted(address _voter) public constant returns (bool) {
+    return challenge.vote[_voter].amount != 0;
+  }
+
   function isVoteRevealPeriodActive() public constant returns (bool) {
     return !isVoteCommitPeriodActive() && now <= challenge.revealPeriodEnd;
   }
@@ -355,6 +410,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
   function isVoteRewardClaimed(address _voter) public constant returns (bool) {
     return challenge.vote[_voter].claimedRewardOn > 0;
+  }
+
+  function isVoteDepositReclaimed(address _voter) public constant returns (bool) {
+    return challenge.vote[_voter].reclaimedVoteAmountOn > 0;
   }
 
   function isChallengeRewardClaimed() public constant returns (bool) {
@@ -415,9 +474,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
   function voteReward(address _voter) public constant returns (uint) {
     uint winningAmount = winningVotesAmount();
     uint voterAmount = 0;
-    if (votedWinningVoteOption(_voter)) {
-      voterAmount = challenge.vote[_voter].amount;
+
+    if (!votedWinningVoteOption(_voter)) {
+      return voterAmount;
     }
+
+    voterAmount = challenge.vote[_voter].amount;
     return (voterAmount.mul(challenge.rewardPool)) / winningAmount;
   }
 
@@ -444,7 +506,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @dev Returns all basic state related to this contract for simpler offchain access
    * For challenge info see loadRegistryEntryChallenge()
    */
-  function loadRegistryEntry() public constant returns (uint, Status, address, uint, uint) {
+  function loadRegistryEntry()
+    external
+    constant
+    returns (uint, Status, address, uint, uint) {
     return (
     version,
     status(),
@@ -457,8 +522,11 @@ contract RegistryEntry is ApproveAndCallFallBack {
   /**
    * @dev Returns all challenge state related to this contract for simpler offchain access
    */
-  function loadRegistryEntryChallenge() public constant returns (uint, address, uint, bytes, uint, uint, uint, uint, uint, uint) {
-    return (    
+  function loadRegistryEntryChallenge()
+    external
+    constant
+    returns (uint, address, uint, bytes, uint, uint, uint, uint, uint, uint) {
+    return (
     challengePeriodEnd,
     challenge.challenger,
     challenge.rewardPool,
@@ -477,7 +545,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
    *
    * @param _voter Address of a voter
    */
-  function loadVote(address _voter) public constant returns (bytes32, VoteOption, uint, uint, uint) {
+  function loadVote(address _voter)
+    external
+    constant
+    returns (bytes32, VoteOption, uint, uint, uint) {
     Vote vtr = challenge.vote[_voter];
     return (
     vtr.secretHash,
@@ -487,4 +558,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
     vtr.claimedRewardOn
     );
   }
+
+  function bytesToUint(bytes b) public returns (uint256) {
+    uint256 number;
+    for(uint i = 0; i < b.length; i++){
+      number = number + uint(b[i]) * (2 ** (8 * (b.length - (i + 1))));
+    }
+    return number;
+  }
+
 }

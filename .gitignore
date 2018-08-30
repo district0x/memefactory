@@ -17,7 +17,7 @@ pom.xml.asc
 /.node-xmlhttprequest-sync-*
 /resources/public/css/
 /resources/semantic/dist/
-/resources/public/contracts/build/*.bin
+resources/public/contracts/build/
 /npm-debug.log
 /config.edn
 /dev-server/

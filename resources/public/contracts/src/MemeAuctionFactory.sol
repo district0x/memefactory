@@ -11,7 +11,7 @@ contract MemeAuctionFactory is ERC721Receiver {
   event MemeAuctionEvent(address indexed memeAuction, bytes32 indexed eventType, uint version, uint timestamp, uint[] data);
 
   MemeToken public memeToken;
-  bool public wasContstructed;
+  bool public wasConstructed;
   mapping(address => bool) public isMemeAuction;
 
   modifier onlyMemeAuction() {
@@ -21,9 +21,10 @@ contract MemeAuctionFactory is ERC721Receiver {
 
   function construct(MemeToken _memeToken) public {
     require(address(_memeToken) != 0x0, "MemeAuctionFactory: _memeToken address is 0x0");
-    require(!wasContstructed, "MemeAuctionFactory: Was already constructed");
+    require(!wasConstructed, "MemeAuctionFactory: Was already constructed");
+
     memeToken = _memeToken;
-    wasContstructed = true;
+    wasConstructed = true;
   }
 
   function onERC721Received(address _from, uint256 _tokenId, bytes _data) public returns (bytes4) {
