@@ -28,7 +28,7 @@
 
 
 (use-fixtures
-  :each {:before (create-before-fixture)
+  :once {:before (create-before-fixture)
          :after after-fixture})
 
 

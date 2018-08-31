@@ -16,7 +16,7 @@
             [print.foo :refer [look] :include-macros true]))
  
 (use-fixtures
-  :each {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
+  :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})
          :after test-utils/after-fixture})
@@ -75,7 +75,12 @@
    (testing "Unauthorised address cannot call this method"
      (is (thrown? js/Error
                   (contract-call  :param-change-registry :set-emergency true
-                                  {:from (first (web3-eth/accounts @web3))}))))))
+                                  {:from (first (web3-eth/accounts @web3))}))))
+
+   ;; Disabling emergency mode!!!!
+   (contract-call  [:meme-registry :meme-registry-fwd]
+                   :set-emergency false
+                   {:from (last (web3-eth/accounts @web3))})))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; MutableForwarder ;;

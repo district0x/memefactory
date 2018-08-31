@@ -20,7 +20,7 @@
             [print.foo :include-macros true :refer [look]]))
 
 (use-fixtures
-  :each {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
+  :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})
          :after test-utils/after-fixture})
@@ -132,7 +132,7 @@
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
         {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
-        vote-amount (dank-token/balance-of voter-addr)
+        vote-amount 10
         reg-balance-before-vote (dank-token/balance-of address)
         salt "abc"
         vote-option :vote.option/vote-for
@@ -178,8 +178,10 @@
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
         {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
-        vote-amount (bn/number (dank-token/balance-of voter-addr))
-        salt "abc"
+        voter-addr1-init-balance (dank-token/balance-of voter-addr)
+        voter-addr2-init-balance (dank-token/balance-of voter-addr2)
+        vote-amount 10
+        salt "abc" 
         _ (registry-entry/approve-and-commit-vote registry-entry
                                                   {:amount vote-amount
                                                    :salt salt
@@ -192,8 +194,8 @@
                                                   {:from voter-addr2})]
 
     (testing "Vote transferred DANK from the voter to the registry entry"
-      (is (zero? (bn/number (dank-token/balance-of voter-addr))))
-      (is (zero? (bn/number (dank-token/balance-of voter-addr2)))))
+      (is (bn/= (dank-token/balance-of voter-addr) (bn/- voter-addr1-init-balance vote-amount) ))
+      (is (bn/= (dank-token/balance-of voter-addr2) (bn/- voter-addr2-init-balance vote-amount) )))
 
     (testing "Vote cannot be revealed outside vote reveal period"
       (is (thrown? js/Error
@@ -234,8 +236,10 @@
         (is (= (-> vote2 :vote/option vote-options) :vote.option/vote-against)))
 
       (testing "Revealing returned DANK token back to voters"
-        (is (= vote-amount (bn/number (dank-token/balance-of voter-addr))))
-        (is (= vote-amount (bn/number (dank-token/balance-of voter-addr2)))))
+        (is (bn/= (bn/number (dank-token/balance-of voter-addr))
+                  (+ vote-amount (bn/number voter-addr1-init-balance))))
+        (is (bn/= (bn/number (dank-token/balance-of voter-addr2))
+                  (+ vote-amount (bn/number voter-addr2-init-balance)))))
 
       (testing "Vote cannot be revealed twice"
         (is (thrown? js/Error (reveal-vote1)))))))
@@ -257,7 +261,7 @@
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
         {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
-        vote-amount (bn/number (dank-token/balance-of voter-addr))
+        vote-amount 10
         salt "abc"
         _ (registry-entry/approve-and-commit-vote registry-entry
                                                   {:amount vote-amount
@@ -313,7 +317,7 @@
                                                           :meta-hash sample-meta-hash-1}
                                                          {:from challenger-addr})
           {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
-          vote-amount (bn/number (dank-token/balance-of voter-addr))
+          vote-amount 10
           salt "abc"
           _ (registry-entry/approve-and-commit-vote registry-entry
                                                     {:amount vote-amount

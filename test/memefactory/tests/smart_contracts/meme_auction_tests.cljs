@@ -21,7 +21,7 @@
             [cljs.core.async :as async :refer-macros [go]]))
 
 (use-fixtures 
-  :each {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
+  :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})
          :after test-utils/after-fixture})
@@ -146,7 +146,7 @@
           buy-tx (meme-auction/buy auction-address {:from buyer-addr :value (web3/to-wei 0.2 :ether)})
           [_ current-price _ _] (-> (meme-auction-factory/meme-auction-event-in-tx buy-tx)
                                     :args :data)
-          buy-gas (:gas-used (web3-eth/get-transaction-receipt @web3 buy-tx))]
+          buy-gas (-> (:gas-used (web3-eth/get-transaction-receipt @web3 buy-tx)) (bn/* 2e10))]
       
       (testing "Buys token collectible under valid conditions"
         (is buy-tx)) 
