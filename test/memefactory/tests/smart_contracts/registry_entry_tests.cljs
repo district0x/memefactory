@@ -19,7 +19,7 @@
             [memefactory.tests.smart-contracts.utils :as test-utils]
             [print.foo :include-macros true :refer [look]]))
 
-(use-fixtures
+#_(use-fixtures
   :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})

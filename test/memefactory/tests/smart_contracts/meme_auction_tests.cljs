@@ -20,7 +20,7 @@
             [print.foo :refer [look] :include-macros true]
             [cljs.core.async :as async :refer-macros [go]]))
 
-(use-fixtures 
+#_(use-fixtures 
   :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})

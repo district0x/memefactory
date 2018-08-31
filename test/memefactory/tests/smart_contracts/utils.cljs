@@ -40,7 +40,8 @@
                                                       :deposit (web3/to-wei 10 :ether)
                                                       :challenge-dispensation 50
                                                       :vote-quorum 50}}}
-                            deployer-opts)}]
+                            deployer-opts)
+                 :ranks-cache {:ttl (t/in-millis (t/minutes 60))}}]
        (-> (mount/with-args args)
            (mount/only [#'district.server.web3/web3
                         #'district.server.smart-contracts/smart-contracts

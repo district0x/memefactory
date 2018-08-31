@@ -12,7 +12,8 @@
             [memefactory.tests.smart-contracts.meme-tests]
             [memefactory.tests.smart-contracts.param-change-tests]
             [memefactory.tests.smart-contracts.registry-entry-tests]
-            [memefactory.tests.smart-contracts.registry-tests]))
+            [memefactory.tests.smart-contracts.registry-tests]
+            [memefactory.tests.smart-contracts.utils :as test-utils]))
 
 (nodejs/enable-util-print!)
 
@@ -24,6 +25,12 @@
                                                 {:kw->gql-name graphql-utils/kw->gql-name
                                                  :gql-name->kw graphql-utils/gql-name->kw})
                     :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
+
+;; Lets prepare everything for the tests!!!
+
+((test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
+                                    :use-n-account-as-deposit-collector 3
+                                    :meme-auction-cut 10}))
 
 (doo-tests
  'memefactory.tests.smart-contracts.deployment-tests

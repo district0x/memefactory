@@ -27,7 +27,7 @@
     [district.web3-utils :as web3-utils]))
 
 
-(use-fixtures
+#_(use-fixtures
   :once {:before (create-before-fixture)
          :after after-fixture})
 
