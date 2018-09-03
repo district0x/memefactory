@@ -14,8 +14,8 @@
             [memefactory.tests.smart-contracts.utils :as test-utils]
             [print.foo :include-macros true :refer [look]]))
 
-(use-fixtures
-  :each {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
+#_(use-fixtures 
+  :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})
          :after test-utils/after-fixture})
@@ -27,7 +27,7 @@
 ;; ParamChange ;;
 ;;;;;;;;;;;;;;;;;
 
-(deftest approve-and-create-param-change-test
+(deftest approve-and-create-param-change-test  
   (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
         [deposit challenge-period-duration]
         (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
@@ -57,7 +57,7 @@
                                                        {:amount deposit}
                                                        {:from challenger-addr})))))
 
-(deftest apply-param-change-test
+(deftest apply-param-change-test 
   (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
         [deposit challenge-period-duration]
         (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])

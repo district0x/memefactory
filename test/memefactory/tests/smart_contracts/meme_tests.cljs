@@ -15,8 +15,8 @@
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
 
-(use-fixtures
-  :each {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
+#_(use-fixtures
+  :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})
          :after test-utils/after-fixture})

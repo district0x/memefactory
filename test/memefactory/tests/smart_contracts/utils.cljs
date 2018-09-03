@@ -28,7 +28,7 @@
                              {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
                                               :commit-period-duration (t/in-seconds (t/minutes 2))
                                               :reveal-period-duration (t/in-seconds (t/minutes 1))
-                                              :deposit (web3/to-wei 1000 :ether)
+                                              :deposit (web3/to-wei 10 :ether)
                                               :challenge-dispensation 50
                                               :vote-quorum 50
                                               :max-total-supply 10
@@ -37,10 +37,11 @@
                               :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
                                                       :commit-period-duration (t/in-seconds (t/minutes 2))
                                                       :reveal-period-duration (t/in-seconds (t/minutes 1))
-                                                      :deposit (web3/to-wei 1000 :ether)
+                                                      :deposit (web3/to-wei 10 :ether)
                                                       :challenge-dispensation 50
                                                       :vote-quorum 50}}}
-                            deployer-opts)}]
+                            deployer-opts)
+                 :ranks-cache {:ttl (t/in-millis (t/minutes 60))}}]
        (-> (mount/with-args args)
            (mount/only [#'district.server.web3/web3
                         #'district.server.smart-contracts/smart-contracts

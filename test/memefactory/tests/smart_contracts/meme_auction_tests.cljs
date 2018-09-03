@@ -9,9 +9,7 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.meme :as meme]
             [memefactory.server.contract.meme-auction :as meme-auction]
-            [memefactory.server.contract.meme-auction-factory
-             :as
-             meme-auction-factory]
+            [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
             [memefactory.server.contract.meme-factory :as meme-factory]
             [memefactory.server.contract.meme-registry :as meme-registry]
             [memefactory.server.contract.meme-token :as meme-token]
@@ -20,11 +18,11 @@
             [print.foo :refer [look] :include-macros true]
             [cljs.core.async :as async :refer-macros [go]]))
 
-(use-fixtures
-  :each {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
-                                                    :use-n-account-as-deposit-collector 3
-                                                    :meme-auction-cut 10})
-         :after test-utils/after-fixture})
+#_(use-fixtures
+    :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
+                                                      :use-n-account-as-deposit-collector 3
+                                                      :meme-auction-cut 10})
+           :after test-utils/after-fixture})
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
@@ -149,7 +147,6 @@
           [_ current-price _ _] (-> (meme-auction-factory/meme-auction-event-in-tx buy-tx)
                                     :args :data)
           buy-gas (-> (:gas-used (web3-eth/get-transaction-receipt @web3 buy-tx)) (bn/* gas-price))]
-
       (testing "Buys token collectible under valid conditions"
         (is buy-tx))
 

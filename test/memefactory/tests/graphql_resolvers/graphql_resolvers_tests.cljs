@@ -155,21 +155,27 @@
       (meme-db/insert-registry-entry! pc)
       (meme-db/insert-param-change! pc))))
 
+(defn after-fixture []
+  (mount.core/stop #'memefactory.server.db/memefactory-db
+                   #'district.server.graphql/graphql))
+
 (defn before-fixture []
+  ;; Just make sure everything is stopped
+  (after-fixture)
   (-> (mount/with-args
-        {:config {:default {:logging {:level "info"
-                                      :console? true}
-                            :web3 {:port 8549} ;; this is only needed because we are using blockchain timestamp
-                            :graphql {:port 6400
-                                      :middlewares [logging-middlewares]
-                                      :schema (utils/build-schema graphql-schema
-                                                                  resolvers-map
-                                                                  {:kw->gql-name graphql-utils/kw->gql-name
-                                                                   :gql-name->kw graphql-utils/gql-name->kw})
-                                      :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
-                                      :path "/graphql"
-                                      :graphiql true}
-                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}}}})
+        {:logging {:level "info"
+                   :console? true}
+         :web3 {:port 8549} ;; this is only needed because we are using blockchain timestamp
+         :graphql {:port 6400
+                   :middlewares [logging-middlewares]
+                   :schema (utils/build-schema graphql-schema
+                                               resolvers-map
+                                               {:kw->gql-name graphql-utils/kw->gql-name
+                                                :gql-name->kw graphql-utils/gql-name->kw})
+                   :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
+                   :path "/graphql"
+                   :graphiql true}
+         :ranks-cache {:ttl (t/in-millis (t/minutes 60))}})
       (mount/except [#'memefactory.server.deployer/deployer
                      #'memefactory.server.generator/generator
                      #'district.server.smart-contracts/smart-contracts
@@ -177,9 +183,7 @@
       (mount.core/start))
   (generate-some-data!))
 
-(defn after-fixture []
-  (mount.core/stop #'memefactory.server.db/memefactory-db
-                   #'district.server.graphql/graphql))
+
 
 (use-fixtures :once {:before before-fixture :after after-fixture})
 
