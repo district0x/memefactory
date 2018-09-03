@@ -386,6 +386,7 @@
       (println e)
       (println (.-stack e)))))
 
+;; TODO
 (deftest reclaim-vote-deposit-test
   (let [[voter-addr creator-addr challenger-addr] (web3-eth/accounts @web3)
         [max-total-supply deposit challenge-period-duration
@@ -401,7 +402,7 @@
                                                        {:amount deposit
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
-        {:keys [:reg-entry/address :challenge/commit-period-end]} (look (load-registry-entry registry-entry))
+        {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
         vote-amount 10
         salt "abc"
         _ (registry-entry/approve-and-commit-vote registry-entry
@@ -411,18 +412,18 @@
                                                   {:from voter-addr})]
 
     ;; after reveal period
-    (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
+    (web3-evm/increase-time! @web3 [(inc (+ commit-period-duration reveal-period-duration))])
 
     (let [balance-before-reclaim (dank-token/balance-of voter-addr)
-          vote-deposit-reclaim #(registry-entry/reclaim-vote-deposit registry-entry {:from voter-addr})
-          reward-claim-tx (vote-deposit-reclaim)
+          reclaim-vote-deposit #(registry-entry/reclaim-vote-deposit registry-entry {:from voter-addr})
+          reward-claim-tx (reclaim-vote-deposit)
           balance-after-reclaim (dank-token/balance-of voter-addr)]
 
       (testing "Vote reward can be claimed under valid condidtions"
         (is reward-claim-tx))
 
-      (testing "vote amount is reclaimed"
-        (is (bn/= vote-amount (bn/- balance-after-reclaim balance-before-reclaim))))
+      (testing "Vote amount is reclaimed"
+        (is (= vote-amount (bn/number (bn/- balance-after-reclaim balance-before-reclaim)))))
 
       (testing "Cannot be called twice"
-        (is (thrown? js/Error (vote-deposit-reclaim)))))))
+        (is (thrown? js/Error (reclaim-vote-deposit)))))))

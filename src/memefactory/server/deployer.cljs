@@ -13,6 +13,7 @@
     [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
     [memefactory.server.contract.mutable-forwarder :as mutable-forwarder]
     [memefactory.server.contract.registry :as registry]
+    [memefactory.server.macros :as macros :refer [try-catch-throw]]
     [mount.core :as mount :refer [defstate]]))
 
 (declare deploy)
@@ -73,19 +74,20 @@
                                                              {forwarder-target-placeholder :param-change-registry}})))
 
 (defn deploy-meme! [default-opts]
-  (deploy-smart-contract! :meme (merge default-opts {:gas 6721975
-                                                     :placeholder-replacements
-                                                     {dank-token-placeholder :DANK
-                                                      registry-placeholder :meme-registry-fwd
-                                                      district-config-placeholder :district-config
-                                                      meme-token-placeholder :meme-token}})))
+  (try-catch-throw
+   (deploy-smart-contract! :meme (merge default-opts {:gas 6721975
+                                                      :placeholder-replacements
+                                                      {dank-token-placeholder :DANK
+                                                       registry-placeholder :meme-registry-fwd
+                                                       district-config-placeholder :district-config
+                                                       meme-token-placeholder :meme-token}}))))
 
 (defn deploy-param-change! [default-opts]
-
-  (deploy-smart-contract! :param-change (merge default-opts {:gas 5000000
-                                                             :placeholder-replacements
-                                                             {dank-token-placeholder :DANK
-                                                              registry-placeholder :param-change-registry-fwd}})))
+  (try-catch-throw
+   (deploy-smart-contract! :param-change (merge default-opts {:gas 6000000
+                                                              :placeholder-replacements
+                                                              {dank-token-placeholder :DANK
+                                                               registry-placeholder :param-change-registry-fwd}}))))
 
 
 (defn deploy-meme-factory! [default-opts]

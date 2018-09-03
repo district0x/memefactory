@@ -152,8 +152,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
   {
     require(isVoteCommitPeriodActive(), "RegistryEntry: Not in voting period");
     require(_amount > 0, "RegistryEntry: Voting amount should be more than 0");
-    require(!hasVoted(_voter));
-    require(registryToken.transferFrom(_voter, this, _amount), "RegistryEntry: Couldn't transfer voting amount");
+    require(!hasVoted(_voter), "RegistryEntry: voting address has already commited a vote");
+    require(registryToken.transferFrom(_voter, this, _amount), "RegistryEntry: Couldn't transfer vote amount");
 
     challenge.vote[_voter].secretHash = _secretHash;
     challenge.vote[_voter].amount = _amount;
@@ -238,12 +238,14 @@ contract RegistryEntry is ApproveAndCallFallBack {
       _voter = msg.sender;
     }
 
-    require(isVoteRevealPeriodOver());
-    require(!isVoteRevealed(_voter));
-    require(!isVoteDepositReclaimed(_voter));
+    require(isVoteRevealPeriodOver(), "RegistryEntry: voting period is not yet over");
+    require(!isVoteRevealed(_voter), "RegistryEntry: vote was revealed");
+    require(!isVoteDepositReclaimed(_voter), "RegistryEntry: vote deposit was already reclaimed");
 
     uint amount = challenge.vote[_voter].amount;
-    require(registryToken.transfer(_voter, amount));
+    require(registryToken.transfer(_voter, amount), "RegistryEntry: token transfer failed");
+
+    challenge.vote[_voter].reclaimedVoteAmountOn = now;
 
     var eventData = new uint[](1);
     eventData[0] = uint(msg.sender);
