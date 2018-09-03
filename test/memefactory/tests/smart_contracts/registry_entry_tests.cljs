@@ -12,9 +12,7 @@
             [memefactory.server.contract.meme-registry :as meme-registry]
             [memefactory.server.contract.minime-token :as minime-token]
             [memefactory.server.contract.registry-entry :as registry-entry]
-            [memefactory.shared.contract.registry-entry
-             :refer
-             [vote-option->num vote-options]]
+            [memefactory.shared.contract.registry-entry :refer [vote-option->num vote-options]]
             [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
             [memefactory.tests.smart-contracts.utils :as test-utils]
             [print.foo :include-macros true :refer [look]]))
@@ -27,7 +25,6 @@
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
-
 
 ;;;;;;;;;;;;;;;;;;;
 ;; RegistryEntry ;;
@@ -114,7 +111,6 @@
                                 {:amount deposit
                                  :meta-hash sample-meta-hash-2}))))))))
 
-
 (deftest approve-and-commit-vote-test
   (let [[voter-addr creator-addr challenger-addr voter-addr2] (web3-eth/accounts @web3)
         voter-init-balance (dank-token/balance-of voter-addr)
@@ -162,6 +158,37 @@
                                                                      :vote-option vote-option}
                                                                     {:from voter-addr2}))))))
 
+(deftest approve-and-commit-vote-rejection-tests
+  (let [[voter-addr creator-addr challenger-addr] (web3-eth/accounts @web3)
+        [max-total-supply deposit challenge-period-duration
+         commit-period-duration reveal-period-duration max-auction-duration
+         vote-quorum challenge-dispensation]
+        (->> (eternal-db/get-uint-values :meme-registry-db
+                                         [:max-total-supply :deposit :challenge-period-duration
+                                          :commit-period-duration :reveal-period-duration :max-auction-duration
+                                          :vote-quorum :challenge-dispensation])
+             (map bn/number))
+        registry-entry (create-meme creator-addr deposit max-total-supply sample-meta-hash-1)
+        _ (registry-entry/approve-and-create-challenge registry-entry
+                                                       {:amount deposit
+                                                        :meta-hash sample-meta-hash-1}
+                                                       {:from challenger-addr})
+        {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
+        first-vote-amount (-> (dank-token/balance-of voter-addr) (bn/number) (/ 2))
+        salt "abc"
+        _ (registry-entry/approve-and-commit-vote registry-entry
+                                                  {:amount first-vote-amount
+                                                   :salt salt
+                                                   :vote-option :vote.option/vote-for}
+                                                  {:from voter-addr})]
+
+    (testing "Can't make second vote"
+      (is (thrown? js/Error (registry-entry/approve-and-commit-vote registry-entry
+                                                                    {:amount (dank-token/balance-of voter-addr)
+                                                                     :salt salt
+                                                                     :vote-option :vote.option/vote-against}
+                                                                    {:from voter-addr}))))))
+
 (deftest reveal-vote-test
   (let [[voter-addr creator-addr challenger-addr voter-addr2] (web3-eth/accounts @web3)
         [max-total-supply deposit challenge-period-duration
@@ -181,7 +208,7 @@
         voter-addr1-init-balance (dank-token/balance-of voter-addr)
         voter-addr2-init-balance (dank-token/balance-of voter-addr2)
         vote-amount 10
-        salt "abc" 
+        salt "abc"
         _ (registry-entry/approve-and-commit-vote registry-entry
                                                   {:amount vote-amount
                                                    :salt salt
@@ -358,3 +385,45 @@
     (catch js/Error e
       (println e)
       (println (.-stack e)))))
+
+;; TODO
+(deftest reclaim-vote-deposit-test
+  (let [[voter-addr creator-addr challenger-addr] (web3-eth/accounts @web3)
+        [max-total-supply deposit challenge-period-duration
+         commit-period-duration reveal-period-duration max-auction-duration
+         vote-quorum challenge-dispensation]
+        (->> (eternal-db/get-uint-values :meme-registry-db
+                                         [:max-total-supply :deposit :challenge-period-duration
+                                          :commit-period-duration :reveal-period-duration :max-auction-duration
+                                          :vote-quorum :challenge-dispensation])
+             (map bn/number))
+        registry-entry (create-meme creator-addr deposit max-total-supply sample-meta-hash-1)
+        _ (registry-entry/approve-and-create-challenge registry-entry
+                                                       {:amount deposit
+                                                        :meta-hash sample-meta-hash-1}
+                                                       {:from challenger-addr})
+        {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
+        vote-amount 10
+        salt "abc"
+        _ (registry-entry/approve-and-commit-vote registry-entry
+                                                  {:amount (bn/number vote-amount)
+                                                   :salt salt
+                                                   :vote-option :vote.option/vote-for}
+                                                  {:from voter-addr})]
+
+    ;; after reveal period
+    (web3-evm/increase-time! @web3 [(inc (+ commit-period-duration reveal-period-duration))])
+
+    (let [balance-before-reclaim (dank-token/balance-of voter-addr)
+          reclaim-vote-deposit #(registry-entry/reclaim-vote-deposit registry-entry {:from voter-addr})
+          reward-claim-tx (reclaim-vote-deposit)
+          balance-after-reclaim (dank-token/balance-of voter-addr)]
+
+      (testing "Vote reward can be claimed under valid condidtions"
+        (is reward-claim-tx))
+
+      (testing "Vote amount is reclaimed"
+        (is (= vote-amount (bn/number (bn/- balance-after-reclaim balance-before-reclaim)))))
+
+      (testing "Cannot be called twice"
+        (is (thrown? js/Error (reclaim-vote-deposit)))))))

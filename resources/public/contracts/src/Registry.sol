@@ -17,6 +17,15 @@ contract Registry is DSAuth {
 
   event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version, uint timestamp, uint[] data);
 
+  bytes32 public constant challengePeriodDurationKey = sha3("challengePeriodDuration");
+  bytes32 public constant commitPeriodDurationKey = sha3("commitPeriodDuration");
+  bytes32 public constant revealPeriodDurationKey = sha3("revealPeriodDuration");
+  bytes32 public constant depositKey = sha3("deposit");
+  bytes32 public constant challengeDispensationKey = sha3("challengeDispensation");
+  bytes32 public constant voteQuorumKey = sha3("voteQuorum");
+  bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
+  bytes32 public constant maxAuctionDurationKey = sha3("maxAuctionDuration");
+
   EternalDb public db;
   bool wasConstructed;
 
@@ -27,8 +36,11 @@ contract Registry is DSAuth {
 
    * @param _db Address of EternalDb related to this registry
    */
-  function construct(EternalDb _db) {
+  function construct(EternalDb _db)
+  external
+  {
     require(address(_db) != 0x0, "Registry: Address can't be 0x0");
+
     db = _db;
     wasConstructed = true;
     owner = msg.sender;
@@ -57,6 +69,7 @@ contract Registry is DSAuth {
    * @param _isFactory Whether the address is allowed factory
    */
   function setFactory(address _factory, bool _isFactory)
+  external
   auth
   {
     db.setBooleanValue(sha3("isFactory", _factory), _isFactory);
@@ -69,6 +82,7 @@ contract Registry is DSAuth {
    * @param _registryEntry Address of new registry entry
    */
   function addRegistryEntry(address _registryEntry)
+  external
   onlyFactory
   notEmergency
   {
@@ -82,12 +96,14 @@ contract Registry is DSAuth {
    * @param _isEmergency True if emergency is happening
    */
   function setEmergency(bool _isEmergency)
+  external
   auth
   {
     db.setBooleanValue("isEmergency", _isEmergency);
   }
 
   function fireRegistryEntryEvent(bytes32 _eventType, uint _version)
+  external
   onlyRegistryEntry
   {
     fireRegistryEntryEvent(_eventType, _version, new uint[](0));
@@ -102,9 +118,10 @@ contract Registry is DSAuth {
    * @param _data Additional data related to event
    */
   function fireRegistryEntryEvent(bytes32 _eventType, uint _version, uint[] _data)
+  public
   onlyRegistryEntry
   {
-    RegistryEntryEvent(msg.sender, _eventType, _version, now, _data);
+    emit RegistryEntryEvent(msg.sender, _eventType, _version, now, _data);
   }
 
   /**

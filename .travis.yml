@@ -10,7 +10,7 @@ notifications:
     - mike@district0x.io
   slack:
     on_success: always
-    on_failure: always    
+    on_failure: always
     rooms:
     - district0x:53vhalUfg0MitsQwzjP5PWdd#travis-ci
 before_install:

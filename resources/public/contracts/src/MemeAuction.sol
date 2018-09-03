@@ -11,7 +11,6 @@ import "./DistrictConfig.sol";
 contract MemeAuction is ERC721Receiver {
   using SafeMath for uint;
 
-  bytes32 public constant maxDurationKey = sha3("maxAuctionDuration");
   DistrictConfig public constant districtConfig = DistrictConfig(0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd);
   Registry public constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
   MemeToken public constant memeToken = MemeToken(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
@@ -30,6 +29,7 @@ contract MemeAuction is ERC721Receiver {
   }
 
   function construct(address _seller, uint _tokenId)
+  external
   notEmergency
   {
     require(_seller != 0x0,"MemeAuction: _seller is 0x0");
@@ -39,14 +39,16 @@ contract MemeAuction is ERC721Receiver {
   }
 
   function startAuction(uint _startPrice, uint _endPrice, uint _duration, string _description)
+  external
   notEmergency
   {
     require(memeToken.ownerOf(tokenId) == address(this), "MemeAuction: Not the owner of the token");
     require(startedOn == 0, "MemeAuction: Already started");
-    require(_duration <= registry.db().getUIntValue(maxDurationKey),"MemeAuction: duration > maxDurationKey");
-//    // Require that all auctions have a duration of
-//    // at least one minute. (Keeps our math from getting hairy!)
+    require(_duration <= registry.db().getUIntValue(registry.maxAuctionDurationKey()),"MemeAuction: duration > maxDurationKey");
+    // Require that all auctions have a duration of
+    // at least one minute. (Keeps our math from getting hairy!)
     require(_duration >= 1 minutes, "MemeAuction: duration < 1 minute");
+
     startPrice = _startPrice;
     description = _description;
     endPrice = _endPrice;
@@ -93,15 +95,18 @@ contract MemeAuction is ERC721Receiver {
     memeAuctionFactory.fireMemeAuctionEvent("buy", eventData);
   }
 
-  function cancel() public {
+  function cancel()
+  external
+  {
     require(startedOn > 0, "MemeAuction: Can't cancel because not started");
     require(msg.sender == seller, "MemeAuction: Can't cancel because sender is not seller");
+
     memeToken.safeTransferFrom(this, seller, tokenId);
     memeAuctionFactory.fireMemeAuctionEvent("canceled");
   }
 
   function onERC721Received(address _from, uint256 _tokenId, bytes _data)
-  public
+  public  
   notEmergency
   returns (bytes4)
   {
@@ -136,7 +141,6 @@ contract MemeAuction is ERC721Receiver {
       secondsPassed
     );
   }
-
 
   /// @dev Computes the current price of an auction. Factored out
   ///  from _currentPrice so we can run extensive unit tests.
@@ -181,14 +185,20 @@ contract MemeAuction is ERC721Receiver {
 
   /// @dev Computes owner's cut of a sale.
   /// @param _price - Sale price of NFT.
-  function computeCut(uint256 _price) public constant returns (uint256) {
-    return _price.add(districtConfig.memeAuctionCut()) / 10000;
+  function computeCut(uint256 _price)
+    public    
+    constant
+    returns (uint256) {
+    return _price.mul(districtConfig.memeAuctionCut()).div(10000);
   }
 
   /**
    * @dev Returns all state related to this contract for simpler offchain access
    */
-  function loadMemeAuction() public constant returns (address, uint, uint, uint, uint, uint, address, string) {
+  function loadMemeAuction()
+    external
+    constant
+    returns (address, uint, uint, uint, uint, uint, address, string) {
     return (
     seller,
     tokenId,

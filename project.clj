@@ -72,7 +72,7 @@
             [lein-cljsbuild "1.1.7"]
             [lein-figwheel "0.5.16"]
             [lein-shell "0.5.0"]
-            [lein-solc "1.0.1"]
+            [lein-solc "1.0.1-1"]
             [lein-doo "0.1.8"]
             [lein-npm "0.6.2"]
             [lein-pdo "0.1.1"]
@@ -126,7 +126,8 @@
                                   [com.cemerick/piggieback "0.2.2"]
                                   [figwheel-sidecar "0.5.16"]
                                   [org.clojure/tools.reader "1.3.0"]
-                                  [re-frisk "0.5.3"]]
+                                  [re-frisk "0.5.3"]
+                                  [lein-doo "0.1.8"]]
                    :source-paths ["dev" "src"]
                    :resource-paths ["resources"]}}
 
