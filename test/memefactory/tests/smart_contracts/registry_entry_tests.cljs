@@ -208,7 +208,7 @@
         voter-addr1-init-balance (dank-token/balance-of voter-addr)
         voter-addr2-init-balance (dank-token/balance-of voter-addr2)
         vote-amount 10
-        salt "abc" 
+        salt "abc"
         _ (registry-entry/approve-and-commit-vote registry-entry
                                                   {:amount vote-amount
                                                    :salt salt
@@ -401,21 +401,20 @@
                                                        {:amount deposit
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
-        {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
-        vote-amount (dank-token/balance-of voter-addr)
+        {:keys [:reg-entry/address :challenge/commit-period-end]} (look (load-registry-entry registry-entry))
+        vote-amount 10
         salt "abc"
         _ (registry-entry/approve-and-commit-vote registry-entry
                                                   {:amount (bn/number vote-amount)
                                                    :salt salt
                                                    :vote-option :vote.option/vote-for}
-                                                  {:from voter-addr})
-        _ (web3-evm/increase-time! @web3 [(inc commit-period-duration)])]
+                                                  {:from voter-addr})]
 
+    ;; after reveal period
     (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
 
     (let [balance-before-reclaim (dank-token/balance-of voter-addr)
           vote-deposit-reclaim #(registry-entry/reclaim-vote-deposit registry-entry {:from voter-addr})
-
           reward-claim-tx (vote-deposit-reclaim)
           balance-after-reclaim (dank-token/balance-of voter-addr)]
 
