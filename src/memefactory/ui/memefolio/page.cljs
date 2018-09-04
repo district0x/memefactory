@@ -57,8 +57,12 @@
                                :meme-auction/end-price 0.01
                                :meme-auction/duration max-duration
                                :meme-auction/description "description"})
-            errors (r/atom {:local {:meme-auction/amount {:hint (str "Max " token-count)}
-                                    :meme-auction/duration {:hint (str "Max " max-duration)}}})
+            errors (ratom/reaction {:local {:meme-auction/amount {:hint (str "Max " token-count)
+                                                                  :error (when-not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count))
+                                                                           (str "Should be between 0 and " token-count))}
+                                            :meme-auction/duration {:hint (str "Max " max-duration)
+                                                                    :error (when-not (< 0 (js/parseInt (:meme-auction/duration @form-data)) max-duration)
+                                                                             (str "Should be less than " max-duration))}}})
             tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
         (fn []
           [:div.form-panel
@@ -195,10 +199,11 @@
 (defn issue-form [{:keys [:meme/title :reg-entry/address :max-amount]}]
   (let [tx-id (str (random-uuid))
         form-data (r/atom {:meme/amount max-amount})
-        errors (ratom/reaction {:local #(let [{:keys [:amount]} @form-data]
-                                          (and (not (js/isNaN amount))
-                                               (int? amount)
-                                               (<= amount max-amount)))})
+        errors (ratom/reaction {:local (let [{:keys [:amount]} @form-data]
+                                         (when (and (not (js/isNaN amount))
+                                                    (int? amount)
+                                                    (<= amount max-amount))
+                                           {:meme/amount {:error (str "Amount should be an integer, and smaller than " max-amount)}}))})
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/mint tx-id}])]
     (fn []
       [:div.issue-form
@@ -207,7 +212,7 @@
                             :errors errors
                             :id :meme/amount}]
         [tx-button/tx-button {:primary true
-                              :disabled false
+                              :disabled (not (pos? max-amount))
                               :pending? @tx-pending?
                               :pending-text "Issuing..."
                               :on-click (fn []

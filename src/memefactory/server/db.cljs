@@ -293,6 +293,14 @@
     (update-meme! {:reg-entry/address address
                    :meme/first-mint-on first-mint-on})))
 
+(defn increment-meme-total-minted! [address inc-by]
+  (let [val (-> (db/get {:select [:meme/total-minted]
+                         :from [:memes]
+                         :where [:= :reg-entry/address address]})
+                :meme/total-minted)]
+    (update-meme! {:reg-entry/address address
+                   :meme/total-minted (+ val inc-by)})))
+
 
 (defn inc-meme-total-trade-volume! [{:keys [:reg-entry/address :amount]}]
   (db/run! {:update :memes

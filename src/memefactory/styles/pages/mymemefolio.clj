@@ -157,15 +157,18 @@
                 :text-alight :left}]
        [:.input-group {:display :inline-block
                        :width "60%"}]
-       [:button.cancel (button {:color :white
-                                :background-color (color :tags-grey)
-                                :width "40%"})
-        {:font-size (em 0.8)}]
-       [:button.create-offering (button {:color :white
-                                         :background-color (color :purple)
-                                         :width "65%"})
-        {:font-size (em 0.7)
-         :padding (em 0.4)}]]
+       [:.buttons {:display :inline-flex
+                   :margin-top (em 1)}
+        [:button.cancel (button {:color :white
+                                 :background-color (color :tags-grey)
+                                 :height (em 3)})
+         {:font-size (em 0.8)}]
+        [:button.create-offering (button {:color :white
+                                          :height (em 3)
+                                          :background-color (color :purple)
+                                          :width "55%"})
+         {:font-size (em 0.7)
+          :padding (em 0.4)}]]]
       ]]
     [:.selling-tile-back {:height "100%"
                             :background-color (color :violet)}
