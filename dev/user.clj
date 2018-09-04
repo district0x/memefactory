@@ -13,8 +13,8 @@
   (figwheel-sidecar.repl-api/start-figwheel!
    (-> (figwheel-sidecar.config/fetch-config)
        (assoc-in [:data :figwheel-options :nrepl-port]  7778))
-    "dev")
-  (figwheel-sidecar.repl-api/cljs-repl "dev"))
+    "dev-ui")
+  (figwheel-sidecar.repl-api/cljs-repl "dev-ui"))
 
 (defn start-tests! []
   (figwheel-sidecar.repl-api/start-figwheel!

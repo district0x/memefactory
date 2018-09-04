@@ -192,7 +192,7 @@
 
           (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
 
-          (param-change-registry/apply-param-change (look registry-entry) {:from account}))))))
+          (param-change-registry/apply-param-change registry-entry {:from account}))))))
 
 (defn start [opts]
   (let [opts (assoc opts :accounts (web3-eth/accounts @web3))]

@@ -150,7 +150,7 @@
                                    :optimizations :none
                                    :closure-defines {goog.DEBUG true}
                                    :source-map true}}
-                       {:id "dev"
+                       {:id "dev-ui"
                         :source-paths ["src/memefactory/ui" "src/memefactory/shared"]
                         :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
                         :compiler {:main "memefactory.ui.core"

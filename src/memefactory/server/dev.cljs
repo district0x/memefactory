@@ -118,10 +118,7 @@
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                                               :print-gas-usage? true
                                               :auto-mining? true}
-                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
-                            :syncer {:initial-param-query {:meme-registry-db [:max-total-supply
-                                                                              :max-auction-duration
-                                                                              :deposit]}}}}})
+                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}}}})
       (mount/except [#'memefactory.server.deployer/deployer
                      #'memefactory.server.generator/generator])
       (mount/start)

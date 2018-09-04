@@ -19,4 +19,4 @@
                                                   (map solidity-sha3))))
 
 (defn change-applied-event [contract-key & args]
-  (apply contract-call contract-key :ChangeAppliedEvent args))
+  (apply contract-call contract-key :EternalDbEvent args))

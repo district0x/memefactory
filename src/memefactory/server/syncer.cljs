@@ -2,6 +2,7 @@
   (:require [bignumber.core :as bn]
             [camel-snake-kebab.core :as cs :include-macros true]
             [cljs-ipfs-api.files :as ifiles]
+            [cljs-solidity-sha3.core :refer [solidity-sha3]]
             [cljs-web3.core :as web3]
             [cljs-web3.eth :as web3-eth]
             [district.server.config :refer [config]]
@@ -19,10 +20,10 @@
             [memefactory.server.db :as db]
             [memefactory.server.deployer]
             [memefactory.server.generator]
+            [memefactory.server.macros :refer [try-catch]]
             [mount.core :as mount :refer [defstate]]
             [print.foo :refer [look] :include-macros true]
-            [taoensso.timbre :as log])
-  (:require-macros [memefactory.server.macros :refer [try-catch]]))
+            [taoensso.timbre :as log]))
 
 (declare start)
 (declare stop)
@@ -60,21 +61,6 @@
 (defn- last-block-number []
   (web3-eth/block-number @web3))
 
-(defn on-start
-  "Queries for inital parameter values"
-  [initial-param-query]
-  (try-catch
-   (doall
-    (doseq [[contract-key fields] initial-param-query]
-      (doseq [[k v] (zipmap fields (->> (eternal-db/get-uint-values contract-key fields)
-                                        (map bn/number)))]
-        (db/insert-or-replace-param-change! {:reg-entry/address "initinitinitinitinitinitinitinitinitinit"
-                                             :param-change/db (smart-contracts/contract-address contract-key)
-                                             :param-change/key (name k)
-                                             :param-change/value v
-                                             ;; TODO: can we get that date?
-                                             :param-change/applied-on 0}))))))
-
 (derive :contract/meme         :contract/registry-entry)
 (derive :contract/param-change :contract/registry-entry)
 
@@ -84,7 +70,6 @@
 
 (defmulti process-event (fn [contract-type ev] [contract-type (:event-type ev)]))
 
-
 (defn add-registry-entry [registry-entry timestamp]
   (db/insert-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
                                     (registry-entry/load-registry-entry-challenge registry-entry)
@@ -92,7 +77,6 @@
 
 (defmethod process-event [:contract/meme :constructed]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
-
   (try-catch
    (add-registry-entry registry-entry timestamp)
    (let [{:keys [:meme/meta-hash] :as meme} (meme/load-meme registry-entry)]
@@ -110,15 +94,12 @@
 
 (defmethod process-event [:contract/param-change :constructed]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
-
   (try-catch
    (add-registry-entry registry-entry timestamp)
    (db/insert-param-change! (param-change/load-param-change registry-entry))))
 
-
 (defmethod process-event [:contract/registry-entry :challenge-created]
   [_ {:keys [:registry-entry :timestamp] :as ev}]
-
   (try-catch
    (let [challenge (registry-entry/load-registry-entry-challenge registry-entry)]
      (.then (get-ipfs-meta (:challenge/meta-hash challenge) {:comment "Dummy comment"})
@@ -131,7 +112,6 @@
 
 (defmethod process-event [:contract/registry-entry :vote-committed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
-
   (try-catch
    (let [voter (web3-utils/uint->address (first data))
          vote (registry-entry/load-vote registry-entry voter)]
@@ -139,7 +119,6 @@
 
 (defmethod process-event [:contract/registry-entry :vote-revealed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
-
   (try-catch
    (let [voter (web3-utils/uint->address (first data))]
      (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
@@ -148,7 +127,6 @@
 
 (defmethod process-event [:contract/registry-entry :vote-reward-claimed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
-
   (try-catch
    (let [voter (web3-utils/uint->address (first data))
          vote (registry-entry/load-vote registry-entry voter)
@@ -158,7 +136,6 @@
 
 (defmethod process-event [:contract/registry-entry :challenge-reward-claimed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
-
   (try-catch
    (let [{:keys [:challenge/challenger :reg-entry/deposit] :as reg-entry}
          (merge (registry-entry/load-registry-entry registry-entry)
@@ -175,7 +152,7 @@
                               :token-id-end (bn/number token-id-end)
                               :reg-entry/address registry-entry})
      (doseq [tid (range (bn/number token-id-start) (inc (bn/number token-id-end)))]
-       (db/insert-or-replace-meme-token-owner {:meme-token/token-id tid 
+       (db/insert-or-replace-meme-token-owner {:meme-token/token-id tid
                                                :meme-token/owner (web3/to-hex creator)
                                                :meme-token/transferred-on (bn/number timestamp)}))
      (db/update-meme-first-mint-on! {:reg-entry/address registry-entry
@@ -183,13 +160,11 @@
 
 (defmethod process-event [:contract/meme-auction :auction-started]
   [_ {:keys [:meme-auction :timestamp :data] :as ev}]
-
   (try-catch
    (db/insert-or-update-meme-auction! (meme-auction/load-meme-auction meme-auction))))
 
 (defmethod process-event [:contract/meme-auction :auction-buy]
   [_ {:keys [:meme-auction :timestamp :data] :as ev}]
-
   (try-catch
    (let [[buyer price] data
          price (bn/number price)
@@ -204,12 +179,40 @@
 
 (defmethod process-event [:contract/meme-token :transfer-from]
   [_ ev]
-
   (try-catch
    (let [{:keys [:_to :_token-id :_timestamp]} ev]
      (db/insert-or-replace-meme-token-owner {:meme-token/token-id (bn/number _token-id)
                                              :meme-token/owner _to
                                              :meme-token/transferred-on (bn/number _timestamp)}))))
+
+;; TODO: applied changes via TCR
+(defmethod process-event [:contract/eternal-db :eternal-db-event]
+  [_ ev]
+  (try-catch
+   (let [{:keys [:contract-address :records :values :timestamp]} ev
+         param-keys (cond
+                      (= (smart-contracts/contract-address :meme-registry-db) contract-address)
+                      (-> @config :deployer :initial-registry-params :meme-registry keys)
+
+                      (= (smart-contracts/contract-address :param-change-registry-db) contract-address)
+                      (-> @config :deployer :initial-registry-params :param-change-registry keys)
+
+                      :else [])]
+
+     (doseq [idx (range 0 (count param-keys))]
+       (let [record (nth records idx)
+             reg-entry (solidity-sha3 contract-address record)]
+         (db/insert-registry-entry! {:reg-entry/address reg-entry
+                                     :reg-entry/version -1
+                                     :reg-entry/creator contract-address
+                                     :reg-entry/deposit -1
+                                     :reg-entry/created-on timestamp
+                                     :reg-entry/challenge-period-end timestamp})
+         (db/insert-param-change! {:reg-entry/address reg-entry
+                                              :param-change/db contract-address
+                                              :param-change/key (name (nth param-keys idx))
+                                              :param-change/value (bn/number (nth values idx))
+                                              :param-change/applied-on timestamp}))))))
 
 (defmethod process-event :default
   [k ev]
@@ -222,8 +225,9 @@
 (defn dispatch-event [contract-type err {:keys [args event] :as a}]
   (let [event-type (cond
                      (:event-type args) (cs/->kebab-case-keyword (web3-utils/bytes32->str (:event-type args)))
-                     event      (cs/->kebab-case-keyword event)) 
+                     event      (cs/->kebab-case-keyword event))
         ev (-> args
+               (assoc :contract-address (:address a))
                (assoc :event-type event-type)
                (update :timestamp bn/number)
                (update :version bn/number))]
@@ -233,7 +237,6 @@
 (defn start [{:keys [:initial-param-query] :as opts}]
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
-  #_(on-start initial-param-query)
   (let [last-block-number (last-block-number)
         watchers [{:watcher (partial registry/registry-entry-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme %1 %2)}
@@ -242,7 +245,9 @@
                   {:watcher meme-auction-factory/meme-auction-event
                    :on-event #(dispatch-event :contract/meme-auction %1 %2)}
                   {:watcher meme-token/meme-token-transfer-event
-                   :on-event #(dispatch-event :contract/meme-token %1 %2)}]]
+                   :on-event #(dispatch-event :contract/meme-token %1 %2)}
+                  {:watcher (partial eternal-db/change-applied-event [:param-change-registry-db])
+                   :on-event #(dispatch-event :contract/eternal-db %1 %2)}]]
     (concat
 
      ;; Replay every past events (from block 0 to (dec last-block-number))

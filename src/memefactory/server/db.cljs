@@ -97,7 +97,7 @@
    [:param-change/value :unsigned :integer not-nil]
    [:param-change/applied-on :unsigned :integer default-nil]
    [(sql/call :primary-key :reg-entry/address)]
-   #_[[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]])
+   [[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]])
 
 (def votes-columns
   [[:reg-entry/address address not-nil]
