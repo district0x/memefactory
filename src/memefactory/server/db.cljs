@@ -77,11 +77,11 @@
 
 (def meme-auctions-columns
   [[:meme-auction/address address not-nil]
-   [:meme-auction/token-id :unsigned :integer #_not-nil]
-   [:meme-auction/seller address #_not-nil]
+   [:meme-auction/token-id :unsigned :integer not-nil]
+   [:meme-auction/seller address not-nil]
    [:meme-auction/buyer address default-nil]
-   [:meme-auction/start-price :BIG :INT #_not-nil]
-   [:meme-auction/end-price :BIG :INT #_not-nil]
+   [:meme-auction/start-price :BIG :INT not-nil]
+   [:meme-auction/end-price :BIG :INT not-nil]
    [:meme-auction/started-on :unsigned :integer default-nil]
    [:meme-auction/duration :unsigned :integer default-nil]
    [:meme-auction/bought-on :unsigned :integer default-nil]
@@ -90,14 +90,23 @@
    [:meme-auction/description :varchar default-nil]
    [(sql/call :primary-key :meme-auction/address)]])
 
+(def initial-params-columns
+  [[:initial-param/key :varchar not-nil]
+   [:initial-param/db address not-nil]
+   [:initial-param/value :unsigned :integer not-nil]
+   [:initial-param/set-on :unsigned :integer default-nil]
+   [(sql/call :primary-key :initial-param/key :initial-param/db)]])
+
 (def param-changes-columns
   [[:reg-entry/address address not-nil]
    [:param-change/db address not-nil]
    [:param-change/key :varchar not-nil]
    [:param-change/value :unsigned :integer not-nil]
+   [:param-change/initial-value :unsigned :integer not-nil]
    [:param-change/applied-on :unsigned :integer default-nil]
    [(sql/call :primary-key :reg-entry/address)]
-   [[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]])
+   [[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]
+   #_[[(sql/call :foreign-key :param-change/initial-value) (sql/call :references :initial-params :initial-param/value)]]])
 
 (def votes-columns
   [[:reg-entry/address address not-nil]
@@ -127,6 +136,7 @@
 (def meme-tags-column-names (map first meme-tags-columns))
 (def meme-auctions-column-names (filter keyword? (map first meme-auctions-columns)))
 (def param-change-column-names (filter keyword? (map first param-changes-columns)))
+(def initial-params-column-names (filter keyword? (map first initial-params-columns)))
 (def votes-column-names (map first votes-columns))
 (def tags-column-names (map first tags-columns))
 (def user-column-names (filter keyword? (map first user-columns)))
@@ -165,6 +175,9 @@
   (db/run! {:create-table [:users]
             :with-columns [user-columns]})
 
+  (db/run! {:create-table [:initial-params]
+            :with-columns [initial-params-columns]})
+
   ;; TODO create indexes
   #_(doseq [column (rest registry-entry-column-names)]
       (db/run! {:create-index (index-name column) :on [:offerings column]})))
@@ -180,7 +193,8 @@
   (db/run! {:drop-table [:memes]})
   (db/run! {:drop-table [:param-changes]})
   (db/run! {:drop-table [:reg-entries]})
-  (db/run! {:drop-table [:users]}))
+  (db/run! {:drop-table [:users]})
+  (db/run! {:drop-table [:initial-params]}))
 
 (defn create-insert-fn [table-name column-names & [{:keys [:insert-or-replace?]}]]
   (fn [item]
@@ -216,7 +230,6 @@
 (def get-registry-entry (create-get-fn :reg-entries :reg-entry/address))
 
 (def insert-meme! (create-insert-fn :memes (filter #(not= % :meme/number) meme-column-names)))
-
 (def update-meme! (create-update-fn :memes meme-column-names :reg-entry/address))
 
 (def insert-meme-auction! (create-insert-fn :meme-auctions meme-auctions-column-names))
@@ -227,6 +240,14 @@
 
 (def insert-vote! (create-insert-fn :votes votes-column-names))
 (def update-vote! (create-update-fn :votes votes-column-names [:reg-entry/address :vote/voter]))
+
+(def insert-initial-param! (create-insert-fn :initial-params initial-params-column-names))
+
+(defn get-initial-param [key db]
+  (db/get {:select [:*]
+           :from [:initial-params]
+           :where [:and [:= :initial-param/key key]
+                   [:= :initial-param/db db]]}))
 
 (def get-user (create-get-fn :users :user/address))
 
@@ -243,6 +264,9 @@
 (def insert-or-replace-param-change! (create-insert-fn :param-changes
                                                        param-change-column-names
                                                        {:insert-or-replace? true}))
+
+(defn initial-param-exists? [key db]
+  (boolean (seq (get-initial-param key db))))
 
 (defn meme-auction-exists? [address]
   (boolean (seq (db/get {:select [1]
@@ -276,10 +300,11 @@
             :where [:= :reg-entry/address address]}))
 
 
-(defn user-exists? [user-address]
-  (boolean (seq (db/get {:select [1]
-                         :from [:users]
-                         :where [:= :user/address user-address]}))))
+(defn user-exists? [address]
+  (boolean (seq (get-user {:user/address address})
+                #_(db/get {:select [1]
+                           :from [:users]
+                           :where [:= :user/address user-address]}))))
 
 (defn tag-exists? [name]
   (boolean (seq (db/get {:select [1]

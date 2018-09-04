@@ -79,7 +79,7 @@ contract ParamChange is RegistryEntry {
     db.setUIntValue(record, value);
     appliedOn = now;
     /* we listen to eternal-db now, no need for this event */
-    /* registry.fireRegistryEntryEvent("changeApplied", version); */
+    registry.fireRegistryEntryEvent("changeApplied", version);
   }
 
   /**
@@ -102,7 +102,7 @@ contract ParamChange is RegistryEntry {
         }
       }
 
-      // see MeemAuction.sol
+      // see MemeAuction.sol
       if(record == registry.maxAuctionDurationKey()) {
         if(value > 1 minutes) {
           return true;

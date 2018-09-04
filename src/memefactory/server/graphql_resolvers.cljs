@@ -880,13 +880,15 @@
   (get (ranks-cache/get-rank :curator-rank curator-rank)
        address))
 
+;; TODO: test
 (defn param-change->original-value-resolver [{:keys [:param-change/db :param-change/key] :as args}]
   (log/debug "param-change->original-value-resolver" args)
-  (:param-change/value (db/get {:select [:param-change/value]
-                                :from [:param-changes]
-                                :where [:= key :param-changes.param-change/key]
-                                :order-by [[:param-changes.param-change/applied-on :asc]]
-                                :limit 1})))
+  (:param-change/value (second (db/all {:select [:param-change/value]
+                                        :from [:param-changes]
+                                        :where [[:not= :param-changes.param-change/applied-on nil]
+                                                [:= key :param-changes.param-change/key]]
+                                        :order-by [[:param-changes.param-change/applied-on :asc]]
+                                        :limit 2}))))
 
 (def resolvers-map
   {:Query {:meme meme-query-resolver

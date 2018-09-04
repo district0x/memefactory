@@ -92,11 +92,22 @@
                   (doseq [t search-tags]
                     (db/tag-meme! (:reg-entry/address meme) t)))))))))
 
+(defn- process-param-change [registry-entry]
+  (let [{:keys [:param-change/key :param-change/db] :as param-change} (param-change/load-param-change registry-entry)
+        {:keys [:initial-param/value] :as initial-param} (db/get-initial-param key db)]
+    (db/insert-or-replace-param-change! (assoc param-change :param-change/initial-value value))))
+
 (defmethod process-event [:contract/param-change :constructed]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
   (try-catch
    (add-registry-entry registry-entry timestamp)
-   (db/insert-param-change! (param-change/load-param-change registry-entry))))
+   (process-param-change registry-entry)))
+
+(defmethod process-event [:contract/param-change :change-applied]
+  [contract-type {:keys [:registry-entry :timestamp] :as ev}]
+  (try-catch
+   ;; TODO: could also just change applied date to timestamp
+   (process-param-change registry-entry)))
 
 (defmethod process-event [:contract/registry-entry :challenge-created]
   [_ {:keys [:registry-entry :timestamp] :as ev}]
@@ -185,7 +196,6 @@
                                              :meme-token/owner _to
                                              :meme-token/transferred-on (bn/number _timestamp)}))))
 
-;; TODO: applied changes via TCR
 (defmethod process-event [:contract/eternal-db :eternal-db-event]
   [_ ev]
   (try-catch
@@ -195,28 +205,20 @@
                       (-> @config :deployer :initial-registry-params :meme-registry keys)
 
                       (= (smart-contracts/contract-address :param-change-registry-db) contract-address)
-                      (-> @config :deployer :initial-registry-params :param-change-registry keys)
+                      (-> @config :deployer :initial-registry-params :param-change-registry keys))]
 
-                      :else [])]
-
-     (doseq [idx (range 0 (count param-keys))]
+     (doseq [idx (range 0 (count values))]
        (let [record (nth records idx)
-             reg-entry (solidity-sha3 contract-address record)]
-         (db/insert-registry-entry! {:reg-entry/address reg-entry
-                                     :reg-entry/version -1
-                                     :reg-entry/creator contract-address
-                                     :reg-entry/deposit -1
-                                     :reg-entry/created-on timestamp
-                                     :reg-entry/challenge-period-end timestamp})
-         (db/insert-param-change! {:reg-entry/address reg-entry
-                                              :param-change/db contract-address
-                                              :param-change/key (name (nth param-keys idx))
-                                              :param-change/value (bn/number (nth values idx))
-                                              :param-change/applied-on timestamp}))))))
+             k (name (nth param-keys idx))]
+         (when-not (db/initial-param-exists? k contract-address)
+           (db/insert-initial-param! {:initial-param/key k
+                                      :initial-param/db contract-address
+                                      :initial-param/value (bn/number (nth values idx))
+                                      :initial-param/set-on timestamp})))))))
 
 (defmethod process-event :default
   [k ev]
-  (log/warn (str "No precess-event defined for processing " k ev) ))
+  (log/warn (str "No process-event defined for processing " k ev) ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of events processors ;;
@@ -238,16 +240,16 @@
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
   (let [last-block-number (last-block-number)
-        watchers [{:watcher (partial registry/registry-entry-event [:meme-registry :meme-registry-fwd])
+        watchers [{:watcher (partial eternal-db/change-applied-event [:param-change-registry-db])
+                   :on-event #(dispatch-event :contract/eternal-db %1 %2)}
+                  {:watcher (partial registry/registry-entry-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme %1 %2)}
                   {:watcher (partial registry/registry-entry-event [:param-change-registry :param-change-registry-fwd])
                    :on-event #(dispatch-event :contract/param-change %1 %2)}
                   {:watcher meme-auction-factory/meme-auction-event
                    :on-event #(dispatch-event :contract/meme-auction %1 %2)}
                   {:watcher meme-token/meme-token-transfer-event
-                   :on-event #(dispatch-event :contract/meme-token %1 %2)}
-                  {:watcher (partial eternal-db/change-applied-event [:param-change-registry-db])
-                   :on-event #(dispatch-event :contract/eternal-db %1 %2)}]]
+                   :on-event #(dispatch-event :contract/meme-token %1 %2)}]]
     (concat
 
      ;; Replay every past events (from block 0 to (dec last-block-number))
