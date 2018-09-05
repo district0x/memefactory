@@ -17,6 +17,7 @@
      :transition-duration "0.3s"
      :z-index 1
      :margin-top (em 0.5)
+     :margin-left (em 0.6)
      :margin-bottom 0
      :display :block}]
    [:&:focus-within :&.filled
