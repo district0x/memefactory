@@ -3,6 +3,7 @@
             [cljs-time.coerce :as time-coerce]
             [cljs.test :refer-macros [deftest is testing use-fixtures run-tests]]
             [clojure.pprint :refer [pprint print-table]]
+            [clojure.set :refer [difference]]
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
@@ -108,18 +109,31 @@
                                           {:meme-auction/buyer "BUYERADDR"
                                            :meme-auction/bought-for (+ 70 idx)
                                            :meme-auction/bought-on (+ now duration)}))))))
-        param-changes (for [i (range 5)]
-                        {:reg-entry/address (str "PCHANGEADDR" i)
-                         :reg-entry/version 1
-                         :reg-entry/creator (str "CADDR" i)
-                         :reg-entry/deposit 1000
-                         :reg-entry/created-on now
-                         :reg-entry/challenge-period-end (+ now (hours->seconds 1))
-                         :param-change/db "MEMEREGISTRYADDR"
-                         :param-change/key (get ["deposit" "challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration" "deposit"] i)
-                         :param-change/initial-value 1000
-                         :param-change/value (get [2000 1e6 1e5 1e5 8000] i)
-                         :param-change/applied-on (+ now (hours->seconds i))})]
+        initial-params (let [k ["deposit" "challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration"]
+                             v [1000 1e5 1e4 1e4]]
+                         (for [i (range (count k))]
+                           {:initial-param/key (get k i)
+                            :initial-param/db "MEMEREGISTRYADDR"
+                            :initial-param/value (get v i)
+                            :initial-param/set-on now}))
+        param-changes (let [v [2000 1e6 1e5 1e5 3000]]
+                        (for [i (range (count v))]
+                          {:reg-entry/address (str "PCHANGEADDR" i)
+                           :reg-entry/version 1
+                           :reg-entry/creator (str "CADDR" i)
+                           :reg-entry/deposit 1000
+                           :reg-entry/created-on now
+                           :reg-entry/challenge-period-end (+ now (hours->seconds 1))
+                           :param-change/db "MEMEREGISTRYADDR"
+                           :param-change/key (get ["deposit" "challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration" "deposit"] i)
+                           :param-change/initial-value (case i
+                                                         0 (:initial-param/value (nth initial-params 0))
+                                                         1 (:initial-param/value (nth initial-params 1))
+                                                         2 (:initial-param/value (nth initial-params 2))
+                                                         3 (:initial-param/value (nth initial-params 3))
+                                                         4 (:initial-param/value (nth initial-params 0)))
+                           :param-change/value (get v i)
+                           :param-change/applied-on (+ now (hours->seconds i))}))]
 
     ;; Generate some users
     (doseq [u all-users]
@@ -409,14 +423,12 @@
 
 (deftest search-param-changes-test
   (testing "Search params should retrieve paginated values"
-    (is (= {:total-count 5,
-            :end-cursor "5",
+    (is (= {:total-count 2,
+            :end-cursor "2",
             :items [#:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 2000}
-                    #:param-change{:db "MEMEREGISTRYADDR" :key "challengePeriodDuration" :value 1000000}
-                    #:param-change{:db "MEMEREGISTRYADDR" :key "commitPeriodDuration" :value 100000}
-                    #:param-change{:db "MEMEREGISTRYADDR" :key "revealPeriodDuration" :value 100000}
-                    #:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 8000}]}
-           (-> (graphql/run-query {:queries [[:search-param-changes
+                    #:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 3000}]}
+           (-> (graphql/run-query {:queries [[:search-param-changes {:key "deposit"
+                                                                     :db "MEMEREGISTRYADDR"}
                                               [:total-count
                                                :end-cursor
                                                [:items [:param-change/db
@@ -427,16 +439,17 @@
   (testing "Search params order-by abd group-by can be used to retrieve most recent parameter values"
     (is (= {:total-count 1,
             :end-cursor "1",
-            :items [#:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 8000}]}
-           (-> (graphql/run-query {:queries [[:search-param-changes {:key "deposit" :group-by :param-changes.group-by/key :order-by :param-changes.order-by/applied-on :order-dir :asc}
+            :items [#:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 3000}]}
+           (-> (graphql/run-query {:queries [[:search-param-changes {:key "deposit" :db "MEMEREGISTRYADDR"
+                                                                     :group-by :param-changes.group-by/key
+                                                                     :order-by :param-changes.order-by/applied-on
+                                                                     :order-dir :asc}
                                               [:total-count
                                                :end-cursor
                                                [:items [:param-change/db
                                                         :param-change/key
                                                         :param-change/value]]]]]})
-               :data :search-param-changes))))
-
-  )
+               :data :search-param-changes)))))
 
 (deftest user-test
   (testing "Test non existing user is nil"
@@ -650,10 +663,10 @@
 
 (deftest params-test
   (testing "Should retrieve params collection"
-    (is (= [{:param/value 2000} {:param/value 100000} {:param/value 8000}]
-           (-> (graphql/run-query {:queries [[:params {:db "MEMEREGISTRYADDR" :keys ["commitPeriodDuration" "deposit"]}
-                                              [:param/value]]]})
-               :data :params)))))
+    (is (empty? (difference #{{:param/value 1e5} {:param/value 2000} {:param/value 3000}}
+                            (set (-> (graphql/run-query {:queries [[:params {:db "MEMEREGISTRYADDR" :keys ["commitPeriodDuration" "deposit"]}
+                                                                    [:param/value]]]})
+                                     :data :params)))))))
 
 (deftest ranks-test
   (testing "Should retrieve ranks correctly"

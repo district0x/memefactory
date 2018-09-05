@@ -14,7 +14,6 @@
             [district.server.web3 :as web3]
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
-            [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]
@@ -250,7 +249,10 @@
                                               :as args}]
   (log/debug "search-param-changes args" args)
   (try-catch-throw
-   (let [db (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
+   ;; or enum address
+   (let [db (if (contains? #{"memeRegistryDb" "paramChangeRegistryDb"} db)
+              (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
+              db)
          param-changes-query (cond-> {:select [:*]
                                       :from [:param-changes]
                                       :left-join [:reg-entries [:= :reg-entries.reg-entry/address :param-changes.reg-entry/address]]}
@@ -424,16 +426,6 @@
   (log/debug "config-query-resolver")
   (try-catch-throw
    (select-keys @config whitelisted-config-keys)))
-
-(defn eternal-db-query-resolver [_ _ _ document]
-  (log/warn "Deprecated resolver! Please use search-param-changes-query-resolver!")
-  (try-catch-throw
-   (let [contract-key (-> document (query-fields) first)
-         fields (query-fields document contract-key)]
-     (log/debug "eternal-db-query-resolver fields" {:contract-key contract-key
-                                                    :fields fields})
-     {contract-key (zipmap fields (->> (eternal-db/get-uint-values contract-key fields)
-                                       (map bn/number)))})))
 
 (defn vote->option-resolver [{:keys [:vote/option] :as vote}]
   (cond
@@ -925,8 +917,7 @@
            :param param-query-resolver
            :params params-query-resolver
            :overall-stats overall-stats-resolver
-           :config config-query-resolver
-           :eternal-db eternal-db-query-resolver}
+           :config config-query-resolver}
    :Vote {:vote/option vote->option-resolver
           :vote/reward vote->reward-resolver}
    :Meme {:reg-entry/status reg-entry->status-resolver

@@ -45,7 +45,7 @@
 
     paramChange(regEntry_address: ID!): ParamChange
     searchParamChanges(key: String!,
-                       db: ParamChangeDb!,
+                       db: String!,
                        orderBy: ParamChangesOrderBy,
                        orderDir: OrderDir,
                        groupBy: ParamChangesGroupBy,
@@ -64,7 +64,6 @@
     params(db: String!, keys: [String!]): [Parameter]
     overallStats : OverallStats
     config: Config
-    eternalDb: EternalDb
   }
 
   enum OrderDir {
@@ -130,11 +129,6 @@
    enum ParamChangesGroupBy {
      paramChanges_groupBy_key
    }
-
-  enum ParamChangeDb {
-    paramChangeRegistryDb
-    memeRegistryDb
-  }
 
   enum RegEntryStatus {
     regEntry_status_challengePeriod
@@ -416,17 +410,5 @@
     endpoint: String
     gateway: String
   }
-
-  type EternalDb {
-    memeRegistryDb: MemeRegistryDb
-  }
-
-  type MemeRegistryDb {
-    maxTotalSupply: Int
-    maxAuctionDuration: Int
-    deposit: Float
-    commitPeriodDuration: Int
-    revealPeriodDuration: Int
-  }
-
-")
+"
+  )

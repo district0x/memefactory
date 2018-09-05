@@ -272,6 +272,7 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
         response (subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :deposit)
+                                                                            :db (graphql-utils/kw->gql-name :meme-registry-db)
                                                                             :group-by :param-changes.group-by/key
                                                                             :order-by :param-changes.order-by/applied-on}
                                                      [[:items [:param-change/value]]]]]}])]

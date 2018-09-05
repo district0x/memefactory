@@ -42,6 +42,7 @@
                          :meme-auction/token-ids
                          :show?]}]
   (let [response (subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :max-auction-duration)
+                                                                            :db (graphql-utils/kw->gql-name :meme-registry-db)
                                                                             :group-by :param-changes.group-by/key
                                                                             :order-by :param-changes.order-by/applied-on}
                                                      [[:items [:param-change/value]]]]]}])]
