@@ -17,8 +17,8 @@
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]
-            [memefactory.server.ranks-cache :as ranks-cache])
-  (:require-macros [memefactory.server.macros :refer [try-catch-throw]]))
+            [memefactory.server.macros :refer [try-catch-throw]]
+            [memefactory.server.ranks-cache :as ranks-cache]))
 
 (def enum graphql-utils/kw->gql-name)
 

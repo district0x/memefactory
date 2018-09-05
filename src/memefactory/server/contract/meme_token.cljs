@@ -1,8 +1,8 @@
 (ns memefactory.server.contract.meme-token
   (:require
     [district.server.smart-contracts :refer [contract-call contract-address]]
-    [memefactory.server.contract.meme-auction :as meme-auction])
-  (:require-macros [memefactory.server.macros :refer [try-catch]]))
+    [memefactory.server.contract.meme-auction :as meme-auction]
+    [memefactory.server.macros :refer [try-catch]]))
 
 (defn total-supply []
   (contract-call :meme-token :total-supply))

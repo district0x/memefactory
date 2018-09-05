@@ -28,8 +28,8 @@
     [memefactory.server.deployer]
     [taoensso.timbre :as log]
     [mount.core :as mount :refer [defstate]]
-    [print.foo :refer [look] :include-macros true])
-  (:require-macros [memefactory.server.macros :refer [try-catch]]))
+    [print.foo :refer [look] :include-macros true]
+    [memefactory.server.macros :refer [try-catch]]))
 
 (def fs (js/require "fs"))
 
