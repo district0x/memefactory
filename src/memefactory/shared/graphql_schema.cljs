@@ -44,7 +44,8 @@
     searchTags(first: Int, after: String): TagList
 
     paramChange(regEntry_address: ID!): ParamChange
-    searchParamChanges(key: String,
+    searchParamChanges(key: String!,
+                       db: ParamChangeDb!,
                        orderBy: ParamChangesOrderBy,
                        orderDir: OrderDir,
                        groupBy: ParamChangesGroupBy,
@@ -97,7 +98,7 @@
     memeAuctions_orderBy_buyer
     memeAuctions_orderBy_price
     memeAuctions_orderBy_startedOn
-    memeAuctions_orderBy_boughtOn  
+    memeAuctions_orderBy_boughtOn
     memeAuctions_orderBy_tokenId
     memeAuctions_orderBy_memeTotalMinted
     memeAuctions_orderBy_random
@@ -129,6 +130,11 @@
    enum ParamChangesGroupBy {
      paramChanges_groupBy_key
    }
+
+  enum ParamChangeDb {
+    paramChangeRegistryDb
+    memeRegistryDb
+  }
 
   enum RegEntryStatus {
     regEntry_status_challengePeriod
@@ -303,7 +309,7 @@
     challenge_vote(vote_voter: ID!): Vote
     challenge_voteWinningVoteOption(vote_voter: ID!): Boolean
     challenge_allRewards(user_address: ID!): Int
-  
+
     \"Balance of voting token of a voter. This is client-side only, server doesn't return this\"
     challenge_availableVoteAmount(voter: ID!): Int
 
@@ -422,5 +428,5 @@
     commitPeriodDuration: Int
     revealPeriodDuration: Int
   }
-  
+
 ")

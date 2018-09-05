@@ -10,6 +10,7 @@
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
+            [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :as web3]
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
@@ -244,29 +245,49 @@
      (log/debug "param-change query" sql-query)
      sql-query)))
 
-(defn search-param-changes-query-resolver [_ {:keys [:key :order-by :order-dir :group-by :first :after]
+(defn search-param-changes-query-resolver [_ {:keys [:key :db :order-by :order-dir :group-by :first :after]
                                               :or {order-dir :asc}
                                               :as args}]
   (log/debug "search-param-changes args" args)
   (try-catch-throw
-   (let [sql-query (cond-> {:select [:*]
-                            :from [:param-changes]
-                            :left-join [:reg-entries [:= :reg-entries.reg-entry/address :param-changes.reg-entry/address]]}
+   (let [db (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
+         param-changes-query (cond-> {:select [:*]
+                                      :from [:param-changes]
+                                      :left-join [:reg-entries [:= :reg-entries.reg-entry/address :param-changes.reg-entry/address]]}
 
-                     key (sqlh/merge-where [:= key :param-changes.param-change/key])
+                               key (sqlh/merge-where [:= key :param-changes.param-change/key])
 
-                     order-by (sqlh/merge-where [:not= nil :param-changes.param-change/applied-on])
+                               db (sqlh/merge-where [:= db :param-changes.param-change/db])
 
-                     order-by (sqlh/merge-order-by [[(get {:param-changes.order-by/applied-on :param-changes.param-change/applied-on}
-                                                          (graphql-utils/gql-name->kw order-by))
-                                                     order-dir]])
+                               order-by (sqlh/merge-where [:not= nil :param-changes.param-change/applied-on])
 
-                     group-by (merge {:group-by [(get {:param-changes.group-by/key :param-changes.param-change/key}
-                                                      (graphql-utils/gql-name->kw group-by))]}))]
-     (paged-query sql-query
-                  first
-                  (when after
-                    (js/parseInt after))))))
+                               order-by (sqlh/merge-order-by [[(get {:param-changes.order-by/applied-on :param-changes.param-change/applied-on}
+                                                                    (graphql-utils/gql-name->kw order-by))
+                                                               order-dir]])
+
+                               group-by (merge {:group-by [(get {:param-changes.group-by/key :param-changes.param-change/key}
+                                                                (graphql-utils/gql-name->kw group-by))]}))
+
+         param-changes-result (paged-query param-changes-query
+                                           first
+                                           (when after
+                                             (js/parseInt after)))]
+
+     (if-not (= 0 (:total-count param-changes-result))
+       param-changes-result
+       (do
+         (log/debug "No parameter changes could be retrieved. Querying for initial parameters")
+         (let [initial-params-query {:select [[:initial-params.initial-param/key :param-change/key]
+                                              [:initial-params.initial-param/db :param-change/db]
+                                              [:initial-params.initial-param/value :param-change/value]
+                                              [:initial-params.initial-param/set-on :param-change/applied-on]]
+                                     :from [:initial-params]
+                                     :where [:and [:= key :initial-params.initial-param/key]
+                                             [:= db :initial-params.initial-param/db]]}]
+           (paged-query initial-params-query
+                        first
+                        (when after
+                          (js/parseInt after)))))))))
 
 (defn user-query-resolver [_ {:keys [:user/address] :as args} context debug]
   (log/debug "user args" args)
@@ -885,7 +906,7 @@
   (log/debug "param-change->original-value-resolver" args)
   (:param-change/value (second (db/all {:select [:param-change/value]
                                         :from [:param-changes]
-                                        :where [[:not= :param-changes.param-change/applied-on nil]
+                                        :where [:and [:not= :param-changes.param-change/applied-on nil]
                                                 [:= key :param-changes.param-change/key]]
                                         :order-by [[:param-changes.param-change/applied-on :asc]]
                                         :limit 2}))))
