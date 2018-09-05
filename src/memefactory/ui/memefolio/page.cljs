@@ -67,31 +67,31 @@
             tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
         (fn []
           [:div.form-panel
-           [inputs/with-label "Amount"
-            [inputs/text-input {:form-data form-data
-                                :errors errors
-                                :id :meme-auction/amount
-                                :on-click #(.stopPropagation %)}]]
-           [inputs/with-label "Start Price"
-            [inputs/amount-input {:form-data form-data
-                                  :errors errors
-                                  :id :meme-auction/start-price
-                                  :on-click #(.stopPropagation %)}]]
-           [inputs/with-label "End Price"
-            [inputs/amount-input {:form-data form-data
-                                  :errors errors
-                                  :id :meme-auction/end-price
-                                  :on-click #(.stopPropagation %)}]]
-           [inputs/with-label "Duration"
-            [inputs/int-input {:form-data form-data
+           [inputs/text-input {:form-data form-data
+                               :placeholder "Amount"
                                :errors errors
-                               :id :meme-auction/duration
-                               :on-click #(.stopPropagation %)}]]
-           [inputs/with-label "Short sales pitch"
-            [inputs/textarea-input {:form-data form-data
-                                    :errors errors
-                                    :id :meme-auction/description
-                                    :on-click #(.stopPropagation %)}]]
+                               :id :meme-auction/amount
+                               :on-click #(.stopPropagation %)}]
+           [inputs/amount-input {:form-data form-data
+                                 :placeholder "Start Price"
+                                 :errors errors
+                                 :id :meme-auction/start-price
+                                 :on-click #(.stopPropagation %)}]
+           [inputs/amount-input {:form-data form-data
+                                 :placeholder "End Price"
+                                 :errors errors
+                                 :id :meme-auction/end-price
+                                 :on-click #(.stopPropagation %)}]
+           [inputs/int-input {:form-data form-data
+                              :placeholder "Duration"
+                              :errors errors
+                              :id :meme-auction/duration
+                              :on-click #(.stopPropagation %)}]
+           [inputs/textarea-input {:form-data form-data
+                                   :placeholder "Short sales pitch"
+                                   :errors errors
+                                   :id :meme-auction/description
+                                   :on-click #(.stopPropagation %)}]
            [:div.buttons
             [:button.cancel {:on-click #(swap! show? not)} "Cancel"]
             [tx-button/tx-button {:primary true
