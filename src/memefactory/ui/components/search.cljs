@@ -41,9 +41,6 @@
                     :group-class :options
                     :options select-options
                     :on-change on-select-change}]
-     [:div (get-by-path @form-data [selected-tags-id])]
-     [:div (str selected-tags-id)]
-     [:div (str @form-data)]
      [with-label
       "Tags"
       [chip-input {:form-data form-data
