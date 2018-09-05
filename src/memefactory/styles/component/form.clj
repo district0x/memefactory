@@ -9,6 +9,20 @@
    [garden.units :refer [px em pt]]))
 
 (defstyles core
+
+  [".labeled-input-group"
+   [">label"
+    {:position :absolute
+     :transition-property "font-size margin-top"
+     :transition-duration "0.3s"
+     :z-index 1
+     :margin-top (em 0.5)
+     :margin-bottom 0
+     :display :block}]
+   [:&:focus-within :&.filled
+    [">label"
+     {:margin-top (em -0.5)
+      :font-size (em 0.6)}]]]
   [:.dropzone
    {:width (px 200)
     :height (px 200)
