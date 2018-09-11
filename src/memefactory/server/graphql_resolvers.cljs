@@ -5,8 +5,6 @@
             [cljs-web3.eth :as web3-eth]
             [cljs.nodejs :as nodejs]
             [clojure.string :as str]
-            [clojure.string :as str]
-            [clojure.string :as string]
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
