@@ -45,7 +45,8 @@
    (search-panel {:background-panel-image "/assets/icons/search-background.png"
                   :color :mymemefolio-green
                   :icon "/assets/icons/mymemefolio-green.png"})
-   [:.help-block {:display :none}] ;; TODO What to do about this
+   [:.help-block {:line-height (px 5)
+                  :font-size (px 9)}]
    [:.total
     {:position :relative
      :margin-right (em 6)
@@ -151,12 +152,12 @@
       [:h1 (font :bungee)
        {:color (color :purple)
         :font-size (em 1)
-        :text-align :center}]
+        :text-align :center
+        :margin-bottom (em 1)}]
       [:.form-panel {}
-       [:label {:width "30%"
-                :text-alight :left}]
-       [:.input-group {:display :inline-block
-                       :width "60%"}]
+       [:textarea {:background (color :tags-grey)
+                   :border :none
+                   :border-radius (em 0.4)}]
        [:.buttons {:display :inline-flex
                    :margin-top (em 1)}
         [:button.cancel (button {:color :white
@@ -168,8 +169,7 @@
                                           :background-color (color :purple)
                                           :width "55%"})
          {:font-size (em 0.7)
-          :padding (em 0.4)}]]]
-      ]]
+          :padding (em 0.4)}]]]]]
     [:.selling-tile-back {:height "100%"
                             :background-color (color :violet)}
      (button-tile-back)]]
