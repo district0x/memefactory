@@ -20,7 +20,7 @@
             [memefactory.server.db :as db]
             [memefactory.server.deployer]
             [memefactory.server.generator]
-            [memefactory.server.macros :refer [try-catch]]
+            [district.shared.error-handling :refer [try-catch]]
             [mount.core :as mount :refer [defstate]]
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]))

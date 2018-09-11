@@ -29,7 +29,7 @@
     [taoensso.timbre :as log]
     [mount.core :as mount :refer [defstate]]
     [print.foo :refer [look] :include-macros true]
-    [memefactory.server.macros :refer [try-catch]]))
+    [district.shared.error-handling :refer [try-catch]]))
 
 (def fs (js/require "fs"))
 

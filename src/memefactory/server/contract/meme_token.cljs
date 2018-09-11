@@ -2,7 +2,7 @@
   (:require
     [district.server.smart-contracts :refer [contract-call contract-address]]
     [memefactory.server.contract.meme-auction :as meme-auction]
-    [memefactory.server.macros :refer [try-catch]]))
+    [district.shared.error-handling :refer [try-catch]]))
 
 (defn total-supply []
   (contract-call :meme-token :total-supply))

@@ -11,4 +11,3 @@
 -/target
 -/node_modules
 -/.cljs_node_repl
--/server

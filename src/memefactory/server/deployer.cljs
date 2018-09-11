@@ -13,7 +13,7 @@
     [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
     [memefactory.server.contract.mutable-forwarder :as mutable-forwarder]
     [memefactory.server.contract.registry :as registry]
-    [memefactory.server.macros :as macros :refer [try-catch-throw]]
+    [district.shared.error-handling :as macros :refer [try-catch-throw]]
     [mount.core :as mount :refer [defstate]]))
 
 (declare deploy)
