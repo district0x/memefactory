@@ -33,7 +33,8 @@
                  :vote/option
                  :vote/amount
                  :vote/revealed-on
-                 :vote/claimed-reward-on])
+                 :vote/claimed-reward-on
+                 :vote/reclaimed-deposit-on])
 
 (def vote-options
   {0 :vote.option/no-vote
@@ -82,4 +83,5 @@
         (update :vote/option (if parse-vote-option? parse-vote-option bn/number))
         (update :vote/amount bn/number)
         (update :vote/revealed-on (constantly (shared-utils/parse-uint-date (:vote/revealed-on voter) parse-dates?)))
-        (update :vote/claimed-reward-on (constantly (shared-utils/parse-uint-date (:vote/claimed-reward-on voter) parse-dates?)))))))
+        (update :vote/claimed-reward-on (constantly (shared-utils/parse-uint-date (:vote/claimed-reward-on voter) parse-dates?)))
+        (update :vote/reclaimed-amount-on (constantly (shared-utils/parse-uint-date (:vote/reclaimed-deposit-on voter) parse-dates?)))))))

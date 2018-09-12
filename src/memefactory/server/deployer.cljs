@@ -1,20 +1,20 @@
 (ns memefactory.server.deployer
-  (:require
-    [cljs-web3.core :as web3]
-    [cljs-web3.eth :as web3-eth]
-    [district.cljs-utils :refer [rand-str]]
-    [district.server.config :refer [config]]
-    [district.server.smart-contracts :refer [contract-event-in-tx contract-address deploy-smart-contract! write-smart-contracts!]]
-    [district.server.web3 :refer [web3]]
-    [memefactory.server.contract.dank-token :as dank-token]
-    [memefactory.server.contract.ds-auth :as ds-auth]
-    [memefactory.server.contract.ds-guard :as ds-guard]
-    [memefactory.server.contract.eternal-db :as eternal-db]
-    [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
-    [memefactory.server.contract.mutable-forwarder :as mutable-forwarder]
-    [memefactory.server.contract.registry :as registry]
-    [district.shared.error-handling :as macros :refer [try-catch-throw]]
-    [mount.core :as mount :refer [defstate]]))
+  (:require [cljs-web3.eth :as web3-eth]
+            [district.cljs-utils :refer [rand-str]]
+            [district.server.config :refer [config]]
+            [district.server.smart-contracts :refer [contract-event-in-tx contract-address deploy-smart-contract! write-smart-contracts!]]
+            [district.server.web3 :refer [web3]]
+            [district.shared.error-handling :refer [try-catch-throw]]
+            [memefactory.server.contract.dank-token :as dank-token]
+            [memefactory.server.contract.ds-auth :as ds-auth]
+            [memefactory.server.contract.ds-guard :as ds-guard]
+            [memefactory.server.contract.eternal-db :as eternal-db]
+            [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
+            [memefactory.server.contract.mutable-forwarder :as mutable-forwarder]
+            [memefactory.server.contract.registry :as registry]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]
+            [cljs-web3.core :as web3]))
 
 (declare deploy)
 (defstate ^{:on-reload :noop} deployer

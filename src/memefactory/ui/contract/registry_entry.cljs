@@ -103,3 +103,20 @@
                                                         [::notification-events/show (gstring/format "Succesfully claimed reward from %s" from)]]
                                       :on-tx-hash-error [::logging/error [::claim-vote-reward]]
                                       :on-tx-error [::logging/error [::claim-vote-reward]]}]})))
+
+
+(re-frame/reg-event-fx
+ ::reclaim-vote-amount
+ [interceptors]
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address] :as args}]]
+   (let [active-account (account-queries/active-account db)]
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
+                                      :fn :reclaim-vote-amount
+                                      :args [active-account]
+                                      :tx-opts {:from active-account
+                                                :gas 6000000}
+                                      :tx-id {::reclaim-vote-amount id}
+                                      :on-tx-success-n [[::logging/success [::reclaim-vote-amount]]
+                                                        [::notification-events/show "Succesfully reclaimed vote amount"]]
+                                      :on-tx-hash-error [::logging/error [::reclaim-vote-amount]]
+                                      :on-tx-error [::logging/error [::reclaim-vote-amount]]}]})))

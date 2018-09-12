@@ -386,8 +386,7 @@
       (println e)
       (println (.-stack e)))))
 
-;; TODO
-(deftest reclaim-vote-deposit-test
+(deftest reclaim-vote-amount-test
   (let [[voter-addr creator-addr challenger-addr] (web3-eth/accounts @web3)
         [max-total-supply deposit challenge-period-duration
          commit-period-duration reveal-period-duration max-auction-duration
@@ -415,7 +414,7 @@
     (web3-evm/increase-time! @web3 [(inc (+ commit-period-duration reveal-period-duration))])
 
     (let [balance-before-reclaim (dank-token/balance-of voter-addr)
-          reclaim-vote-deposit #(registry-entry/reclaim-vote-deposit registry-entry {:from voter-addr})
+          reclaim-vote-deposit #(registry-entry/reclaim-vote-amount registry-entry {:from voter-addr})
           reward-claim-tx (reclaim-vote-deposit)
           balance-after-reclaim (dank-token/balance-of voter-addr)]
 

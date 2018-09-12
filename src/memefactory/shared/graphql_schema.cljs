@@ -166,6 +166,7 @@
     voteOption_noVote
     voteOption_voteFor
     voteOption_voteAgainst
+    voteOption_notRevealed
   }
 
   type Vote {
@@ -174,6 +175,7 @@
     vote_amount: Float
     vote_revealedOn: Date
     vote_claimedRewardOn: Date
+    vote_reclaimedAmountOn: Date
     vote_reward: Int
   }
 

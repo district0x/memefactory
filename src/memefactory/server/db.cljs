@@ -116,6 +116,7 @@
    [:vote/created-on :unsigned :integer default-nil]
    [:vote/revealed-on :unsigned :integer default-nil]
    [:vote/claimed-reward-on :unsigned :integer default-nil]
+   [:vote/reclaimed-amount-on :unsigned :integer default-nil]
    [(sql/call :primary-key :vote/voter :reg-entry/address)]
    [[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]])
 

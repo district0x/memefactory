@@ -17,7 +17,7 @@
             [district.ui.web3-account-balances.subs :as account-balances-subs]
             [district.ui.web3-accounts.subs :as accounts-subs]
             [district.ui.web3-tx-id.subs :as tx-id-subs]
-            [memefactory.shared.utils :as shared-utils]
+            [memefactory.shared.utils :as shared-utils :refer [not-nil?]]
             [memefactory.ui.components.app-layout :as app-layout]
             [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
             [memefactory.ui.components.panels :refer [panel]]
@@ -80,8 +80,8 @@
                [:challenge/vote {:vote/voter active-account}
                 [:vote/option
                  :vote/reward
-                 :vote/claimed-reward-on]]
-               ]]]})
+                 :vote/claimed-reward-on
+                 :vote/reclaimed-amount-on]]]]]})
 
 (defn meme-creator-component [{:keys [:user/address :user/creator-rank :user/total-created-memes
                                       :user/total-created-memes-whitelisted] :as creator}]
@@ -231,38 +231,53 @@
 
 (defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
                                :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
-  (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on]} vote
-        active-account (subscribe [::accounts-subs/active-account])
-        option (graphql-utils/gql-name->kw option)
-        reward (if (nil? reward) 0 reward)
-        tx-id (:reg-entry/address meme)
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])]
-    [:div
-     [charts/donut-chart meme]
-     [:div {:style {:float "right"}}
-      [:div.dank (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
-      [:div.stank (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]
-      [:div.total (str "Total voted: " votes-total)]
-      (when (contains? #{:vote-option/vote-for :vote-option/vote-against} option)
-        [:div
-         [:div.vote (str "You voted: " (case option
-                                         :vote-option/vote-for "DANK"
-                                         :vote-option/vote-against "STANK"))]
-         [:div.reward (str "Your reward: " (format/format-token reward {:token "DANK"}))]
-         (when-not (= 0 reward)
-           [tx-button/tx-button {:primary true
-                                 :disabled (or (= 0 reward)
-                                               (shared-utils/not-nil? claimed-reward-on)
-                                               @tx-success?)
-                                 :pending? @tx-pending?
-                                 :pending-text "Collecting reward..."
-                                 :on-click #(dispatch [::registry-entry/claim-vote-reward {:send-tx/id tx-id
-                                                                                           :reg-entry/address (:reg-entry/address meme)
-                                                                                           :from (case option
-                                                                                                   :vote-option/vote-for (:user/address challenger)
-                                                                                                   :vote-option/vote-against (:user/address creator))}])}
-            "Collect Reward"])])]]))
+  (when vote
+    (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on :vote/reclaimed-amount-on]} vote
+          active-account (subscribe [::accounts-subs/active-account])
+          option (graphql-utils/gql-name->kw option)
+          reward (if (nil? reward) 0 reward)
+          tx-id (:reg-entry/address meme)
+          claim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
+          claim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])
+          reclaim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reclaim-vote-amount tx-id}])
+          reclaim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reclaim-vote-amount tx-id}])]
+      [:div
+       (when (> 0 votes-total) 
+         [charts/donut-chart meme])
+       [:div {:style {:float "right"}}
+        [:div.dank (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
+        [:div.stank (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]
+        [:div.total (str "Total voted: " votes-total)]
+        (cond
+          (= :vote-option/not-revealed option)
+          [tx-button/tx-button {:primary true
+                                :disabled  (or (not-nil? reclaimed-amount-on)
+                                               @reclaim-tx-success?)
+                                :pending? @reclaim-tx-pending?
+                                :pending-text "Reclaiming vote amount..."
+                                :on-click #(dispatch [::registry-entry/reclaim-vote-amount {:send-tx/id tx-id
+                                                                                            :reg-entry/address (:reg-entry/address meme)}])}
+           "Reclaim vote amount"]
+          
+          (contains? #{:vote-option/vote-for :vote-option/vote-against} option)
+          [:div
+           [:div.vote (str "You voted: " (case option
+                                           :vote-option/vote-for "DANK"
+                                           :vote-option/vote-against "STANK"))]
+           [:div.reward (str "Your reward: " (format/format-token reward {:token "DANK"}))]
+           (when-not (= 0 reward)
+             [tx-button/tx-button {:primary true
+                                   :disabled (or (= 0 reward)
+                                                 (not-nil? claimed-reward-on)
+                                                 @claim-tx-success?)
+                                   :pending? @claim-tx-pending?
+                                   :pending-text "Collecting reward..."
+                                   :on-click #(dispatch [::registry-entry/claim-vote-reward {:send-tx/id tx-id
+                                                                                             :reg-entry/address (:reg-entry/address meme)
+                                                                                             :from (case option
+                                                                                                     :vote-option/vote-for (:user/address challenger)
+                                                                                                     :vote-option/vote-against (:user/address creator))}])}
+              "Collect Reward"])])]])))
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit] :as meme}]
   (let [form-data (r/atom {:challenge/comment nil})
@@ -445,7 +460,7 @@
       (let [address (-> @(re-frame/subscribe [::router-subs/active-page]) :query :address)
             response (subscribe [::gql/query (build-meme-query address @active-account)])]
         (when-not (:graphql/loading? @response)
-          (if-let [meme (-> @response :meme)]
+          (if-let [meme (-> @response :meme)]            
             (let [{:keys [:reg-entry/status :meme/image-hash :meme/title :reg-entry/status :meme/total-supply
                           :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger]} meme
                   token-count (->> owned-meme-tokens
@@ -453,9 +468,6 @@
                                    (filter shared-utils/not-nil?)
                                    count)
                   tags (mapv :tag/name tags)]
-
-              (prn status)
-
               [app-layout/app-layout
                {:meta {:title "MemeFactory"
                        :description "Description"}}

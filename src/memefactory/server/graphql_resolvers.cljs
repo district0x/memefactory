@@ -3,6 +3,7 @@
             [cljs-time.core :as t]
             [cljs-web3.core :as web3-core]
             [cljs-web3.eth :as web3-eth]
+            [cljs.core.match :refer-macros [match]]
             [cljs.nodejs :as nodejs]
             [clojure.string :as str]
             [district.graphql-utils :as graphql-utils]
@@ -425,15 +426,13 @@
   (try-catch-throw
    (select-keys @config whitelisted-config-keys)))
 
-(defn vote->option-resolver [{:keys [:vote/option] :as vote}]
-  (cond
-    (= 1 option)
-    (enum :vote-option/vote-for)
-
-    (= 2 option)
-    (enum :vote-option/vote-against)
-
-    :else (enum :vote-option/no-vote)))
+(defn vote->option-resolver [{:keys [:vote/option :vote/amount] :as vote}]
+   (log/debug "vote->option-resolver args" vote)
+  (match [(nil? amount) (= 1 option) (= 2 option)]
+         [true _ _] (enum :vote-option/no-vote)
+         [false true false] (enum :vote-option/vote-for)
+         [false false true] (enum :vote-option/vote-against)
+         [false _ _] (enum :vote-option/not-revealed)))
 
 (defn reg-entry->status-resolver [reg-entry]
   (enum (reg-entry-status (last-block-timestamp) reg-entry)))

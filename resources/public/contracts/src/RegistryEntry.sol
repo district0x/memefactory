@@ -230,7 +230,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
    * @param _voter Address of a voter
    */
-  function reclaimVoteDeposit(address _voter)
+  function reclaimVoteAmount(address _voter)
     public
     notEmergency {
 
@@ -240,7 +240,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     require(isVoteRevealPeriodOver(), "RegistryEntry: voting period is not yet over");
     require(!isVoteRevealed(_voter), "RegistryEntry: vote was revealed");
-    require(!isVoteDepositReclaimed(_voter), "RegistryEntry: vote deposit was already reclaimed");
+    require(!isVoteAmountReclaimed(_voter), "RegistryEntry: vote deposit was already reclaimed");
 
     uint amount = challenge.vote[_voter].amount;
     require(registryToken.transfer(_voter, amount), "RegistryEntry: token transfer failed");
@@ -250,7 +250,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     var eventData = new uint[](1);
     eventData[0] = uint(msg.sender);
 
-    registry.fireRegistryEntryEvent("voteDepositReclaimed", version, eventData);
+    registry.fireRegistryEntryEvent("voteAmountReclaimed", version, eventData);
   }
 
   /**
@@ -414,7 +414,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     return challenge.vote[_voter].claimedRewardOn > 0;
   }
 
-  function isVoteDepositReclaimed(address _voter) public constant returns (bool) {
+  function isVoteAmountReclaimed(address _voter) public constant returns (bool) {
     return challenge.vote[_voter].reclaimedVoteAmountOn > 0;
   }
 
@@ -550,14 +550,15 @@ contract RegistryEntry is ApproveAndCallFallBack {
   function loadVote(address _voter)
     external
     constant
-    returns (bytes32, VoteOption, uint, uint, uint) {
+    returns (bytes32, VoteOption, uint, uint, uint, uint) {
     Vote vtr = challenge.vote[_voter];
     return (
     vtr.secretHash,
     vtr.option,
     vtr.amount,
     vtr.revealedOn,
-    vtr.claimedRewardOn
+    vtr.claimedRewardOn,
+    vtr.reclaimedVoteAmountOn
     );
   }
 

@@ -145,6 +145,13 @@
      (db/update-vote! vote)
      (db/inc-user-field! voter :user/voter-total-earned (bn/number reward)))))
 
+(defmethod process-event [:contract/registry-entry :vote-amount-reclaimed]
+  [_ {:keys [:registry-entry :timestamp :data] :as ev}]
+  (try-catch
+   (let [voter (web3-utils/uint->address (first data))
+         vote (registry-entry/load-vote registry-entry voter)]
+     (db/update-vote! vote))))
+
 (defmethod process-event [:contract/registry-entry :challenge-reward-claimed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
   (try-catch
@@ -229,7 +236,7 @@
 (defn dispatch-event [contract-type err {:keys [args event] :as a}]
   (let [event-type (cond
                      (:event-type args) (cs/->kebab-case-keyword (web3-utils/bytes32->str (:event-type args)))
-                     event      (cs/->kebab-case-keyword event))
+                     event (cs/->kebab-case-keyword event))
         ev (-> args
                (assoc :contract-address (:address a))
                (assoc :event-type event-type)
