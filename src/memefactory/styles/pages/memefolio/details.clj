@@ -3,6 +3,7 @@
             [garden.stylesheet :refer [at-media]]
             [clojure.string :as s]
             [memefactory.styles.base.icons :refer [icons]]
+            [memefactory.styles.component.overflow :refer [of-ellipsis]]
             [memefactory.styles.component.buttons :refer [button tag vote-button-icon]]
             [memefactory.styles.base.borders :refer [border-top border-bottom]]
             [memefactory.styles.base.colors :refer [color]]
@@ -16,13 +17,6 @@
 
 (defstyles core
   [:.meme-detail-page
-   {;;:display "grid"
-    ;; :grid-template-areas (str
-    ;;                       "'image image image rank rank rank'"
-    ;;                       "'history history history history history history'"
-    ;;                       "'challenge challenge challenge challenge challenge challenge'"
-    ;;                       "'related related related related related related'")
-    }
    [:section.meme-detail
     {:padding (em 3)}
     [:.meme-info
@@ -33,6 +27,10 @@
       :grid-template-columns "34% 66%"
       :grid-template-rows "100%"
       :position :relative}
+     (for-media-max :tablet
+                    [:&
+                     {:grid-template-columns "100%"
+                      :margin-bottom (em 2)}])
      [:.meme-num
       (font :bungee)
       {:position "absolute"
@@ -48,6 +46,7 @@
        :border-radius "1em 1em 1em 1em"}]
      [:.registry
       {:padding (em 1)}
+      [:.address (of-ellipsis)]
       [:h1
        (font :bungee)
        {:color (color :purple)}]
@@ -73,8 +72,14 @@
        [:button (tag)]]
       [:.buttons
        {:display :flex}
+       (for-media-max :tablet
+                      [:&
+                       {:flex-direction :column}])
        [:button.search
         (button {:color :meme-buy-button})
+        (for-media-max :tablet
+                       [:&
+                        {:min-width (em 15)}])
         {:min-width (em 18)
          :margin (em 1)}
         [:&.marketplace {:background-color (color :purple)
