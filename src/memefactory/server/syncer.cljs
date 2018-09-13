@@ -215,8 +215,7 @@
 
                       (= (smart-contracts/contract-address :param-change-registry-db) contract-address)
                       (-> @config :deployer :initial-registry-params :param-change-registry keys))]
-
-     (doseq [idx (range 0 (count values))]
+     (doseq [idx (range 0 (count param-keys))]
        (let [record (nth records idx)
              k (name (nth param-keys idx))]
          (when-not (db/initial-param-exists? k contract-address)
