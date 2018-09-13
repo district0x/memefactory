@@ -13,10 +13,12 @@
             [memefactory.styles.component.panels :refer [tabs]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
+            [memefactory.styles.component.overflow :refer [of-ellipsis]]
             [clojure.string :as str]))
 
 (defstyles core
   [:.meme-detail-page
+   [:.address (of-ellipsis)]
    [:section.meme-detail
     {:padding (em 3)}
     [:.meme-info
@@ -46,7 +48,6 @@
        :border-radius "1em 1em 1em 1em"}]
      [:.registry
       {:padding (em 1)}
-      [:.address (of-ellipsis)]
       [:h1
        (font :bungee)
        {:color (color :purple)}]
@@ -72,7 +73,7 @@
        [:button (tag)]]
       [:.buttons
        {:display :flex}
-       (for-media-max :tablet
+       (for-media-max :large
                       [:&
                        {:flex-direction :column}])
        [:button.search
@@ -156,14 +157,30 @@
       :display :grid
       :grid-template-columns "30% 30% 40%"
       :grid-template-rows "40% 60%"}
+     (for-media-max :tablet
+                    [:&
+                     {:grid-template-columns "100%"
+                      :grid-template-rows "100%"
+                      :margin-bottom (em 2)}])
      [">*" {:padding (em 1)
             :color (color :menu-text)
-            :margin-bottom (em 1)}]
+            :margin-bottom (em 1)}
+      ]
+     
      [:.status
-      {:border-right "1px solid #AAA"}]
+      {:border-right "1px solid #AAA"}
+      (for-media-max :tablet
+                     [:&
+                      {:border-right "0px"}])]
      [:.challenger
-      {:border-right "1px solid #AAA"}]
+      {:border-right "1px solid #AAA"}
+      (for-media-max :tablet
+                     [:&
+                      {:border-right "0px"}])]
      [:.header {:grid-column "1 / span 3"}
+      (for-media-max :tablet
+                     [:&
+                      {:grid-column "1"}])
       [:h1.title
        (font :bungee)
        (for-media-max :tablet
@@ -177,6 +194,9 @@
         :margin-bottom (em 0.1)
         :text-align :center}]
       [:h2.title
+       (for-media-max :tablet
+                      [:&
+                       {:white-space :normal}])
        {:white-space :nowrap
         :margin-top (em 0.1)
         :position :relative
@@ -193,6 +213,10 @@
                    [:&
                     {:margin-right (em 2)
                      :margin-left (em 2)}])
+    (for-media-max :tablet
+                   [:&
+                    {:margin-right (em 0)
+                     :margin-left (em 0)}])
     [:.vote-input {:display :grid
                    :grid-template-columns "80% 20%"
                    :border-bottom "1px solid"
