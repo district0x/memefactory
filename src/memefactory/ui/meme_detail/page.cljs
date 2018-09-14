@@ -184,17 +184,35 @@
                      [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
                            :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
             [:tbody
+             #_[:tr
+              [:td.meme-token "TOKEN ID"]
+              [:td.seller-address "TOKEN ADDR"]
+              [:td.buyer-address "USER ADDR"]
+              [:td.end-price "PRICE"]
+              [:td.time "TIME AGO"]]
+             #_[:tr
+              [:td.meme-token "TOKEN ID"]
+              [:td.seller-address "TOKEN ADDR"]
+              [:td.buyer-address "USER ADDR"]
+              [:td.end-price "PRICE"]
+              [:td.time "TIME AGO"]]
+             #_[:tr
+              [:td.meme-token "TOKEN ID"]
+              [:td.seller-address "TOKEN ADDR"]
+              [:td.buyer-address "USER ADDR"]
+              [:td.end-price "PRICE"]
+              [:td.time "TIME AGO"]]
              (doall
               (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
                             :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
                 (when address
                   ^{:key address}
                   [:tr
-                   [:td (:meme-token/token-id meme-token)]
-                   [:td (:user/address seller)]
-                   [:td (:user/address buyer)]
-                   [:td end-price]
-                   [:td (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))]]])))))
+                   [:td.meme-token (:meme-token/token-id meme-token)]
+                   [:td.seller-address (:user/address seller)]
+                   [:td.buyer-address (:user/address buyer)]
+                   [:td.end-price end-price]
+                   [:td.time (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))]]])))))
 
 (defn challenge-header [created-on]
   [:div

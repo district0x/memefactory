@@ -89,12 +89,17 @@
                          :color (color :white)}]]]]]]
 
    [:section.history
-    {:padding (em 3)}
+    {:padding (em 3)
+     :color (color :menu-text)}
     [:.history-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"
       :position :relative}
+     (for-media-max :tablet
+                    [:&
+                     {:max-height (em 30)
+                      :overflow-y :auto}])
      [:h1.title
       (font :bungee)
       (for-media-max :tablet
@@ -131,7 +136,11 @@
         :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
       [:td {:padding-left (em 0.5)
             :line-height (em 2)}]
+      
       [:thead
+       (for-media-max :tablet
+                      [:&
+                       {:display :none}])
        [:tr
         [:th
          {:text-align :left
@@ -142,8 +151,38 @@
        [:tr
         ["&:nth-child(even)"
          {:background-color (color :tags-grey)}]
+        (for-media-max :tablet
+                       [:&
+                        ["&:not(:last-child)"
+                         (border-bottom {:color (color :table-border)})]
+                        {:display :flex
+                         :flex-direction :column}])
         [:td
-         (border-bottom {:color (color :table-border)})]]]
+         (border-bottom {:color (color :table-border)})
+         (for-media-max :tablet
+                        [:&
+                         {:border-bottom :none}])
+         (for-media-max :tablet
+                        [:&:before
+                         {:font-weight "bold"
+                          :margin-right (em 0.2)
+                          :display :inline-block}])
+         (for-media-max :tablet
+                        [:&.meme-token:before
+                         {:content "'Token ID:'"}])
+         (for-media-max :tablet
+                        [:&.seller-address:before
+                         {:content "'Seller:'"}]) 
+         (for-media-max :tablet
+                        [:&.buyer-address:before
+                         {:content "'Buyer:'"}])
+         (for-media-max :tablet
+                        [:&.end-price:before
+                         {:content "'Price:'"}])
+         (for-media-max :tablet
+                        [:&.time:before
+                         {:content "'Time Ago:'"}])
+         ]]]
       {:width "100%"
        :padding (em 1)}]]]
 
