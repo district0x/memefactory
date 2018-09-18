@@ -13,10 +13,12 @@
             [memefactory.styles.component.panels :refer [tabs]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
+            [memefactory.styles.component.overflow :refer [of-ellipsis]]
             [clojure.string :as str]))
 
 (defstyles core
   [:.meme-detail-page
+   [:.address (of-ellipsis)]
    [:section.meme-detail
     {:padding (em 3)}
     [:.meme-info
@@ -46,7 +48,6 @@
        :border-radius "1em 1em 1em 1em"}]
      [:.registry
       {:padding (em 1)}
-      [:.address (of-ellipsis)]
       [:h1
        (font :bungee)
        {:color (color :purple)}]
@@ -72,7 +73,7 @@
        [:button (tag)]]
       [:.buttons
        {:display :flex}
-       (for-media-max :tablet
+       (for-media-max :large
                       [:&
                        {:flex-direction :column}])
        [:button.search
@@ -88,12 +89,17 @@
                          :color (color :white)}]]]]]]
 
    [:section.history
-    {:padding (em 3)}
+    {:padding (em 3)
+     :color (color :menu-text)}
     [:.history-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"
       :position :relative}
+     (for-media-max :tablet
+                    [:&
+                     {:max-height (em 30)
+                      :overflow-y :auto}])
      [:h1.title
       (font :bungee)
       (for-media-max :tablet
@@ -130,7 +136,11 @@
         :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
       [:td {:padding-left (em 0.5)
             :line-height (em 2)}]
+      
       [:thead
+       (for-media-max :tablet
+                      [:&
+                       {:display :none}])
        [:tr
         [:th
          {:text-align :left
@@ -141,8 +151,38 @@
        [:tr
         ["&:nth-child(even)"
          {:background-color (color :tags-grey)}]
+        (for-media-max :tablet
+                       [:&
+                        ["&:not(:last-child)"
+                         (border-bottom {:color (color :table-border)})]
+                        {:display :flex
+                         :flex-direction :column}])
         [:td
-         (border-bottom {:color (color :table-border)})]]]
+         (border-bottom {:color (color :table-border)})
+         (for-media-max :tablet
+                        [:&
+                         {:border-bottom :none}])
+         (for-media-max :tablet
+                        [:&:before
+                         {:font-weight "bold"
+                          :margin-right (em 0.2)
+                          :display :inline-block}])
+         (for-media-max :tablet
+                        [:&.meme-token:before
+                         {:content "'Token ID:'"}])
+         (for-media-max :tablet
+                        [:&.seller-address:before
+                         {:content "'Seller:'"}]) 
+         (for-media-max :tablet
+                        [:&.buyer-address:before
+                         {:content "'Buyer:'"}])
+         (for-media-max :tablet
+                        [:&.end-price:before
+                         {:content "'Price:'"}])
+         (for-media-max :tablet
+                        [:&.time:before
+                         {:content "'Time Ago:'"}])
+         ]]]
       {:width "100%"
        :padding (em 1)}]]]
 
@@ -156,14 +196,30 @@
       :display :grid
       :grid-template-columns "30% 30% 40%"
       :grid-template-rows "40% 60%"}
+     (for-media-max :tablet
+                    [:&
+                     {:grid-template-columns "100%"
+                      :grid-template-rows "100%"
+                      :margin-bottom (em 2)}])
      [">*" {:padding (em 1)
             :color (color :menu-text)
-            :margin-bottom (em 1)}]
+            :margin-bottom (em 1)}
+      ]
+     
      [:.status
-      {:border-right "1px solid #AAA"}]
+      {:border-right "1px solid #AAA"}
+      (for-media-max :tablet
+                     [:&
+                      {:border-right "0px"}])]
      [:.challenger
-      {:border-right "1px solid #AAA"}]
+      {:border-right "1px solid #AAA"}
+      (for-media-max :tablet
+                     [:&
+                      {:border-right "0px"}])]
      [:.header {:grid-column "1 / span 3"}
+      (for-media-max :tablet
+                     [:&
+                      {:grid-column "1"}])
       [:h1.title
        (font :bungee)
        (for-media-max :tablet
@@ -177,6 +233,9 @@
         :margin-bottom (em 0.1)
         :text-align :center}]
       [:h2.title
+       (for-media-max :tablet
+                      [:&
+                       {:white-space :normal}])
        {:white-space :nowrap
         :margin-top (em 0.1)
         :position :relative
@@ -193,6 +252,10 @@
                    [:&
                     {:margin-right (em 2)
                      :margin-left (em 2)}])
+    (for-media-max :tablet
+                   [:&
+                    {:margin-right (em 0)
+                     :margin-left (em 0)}])
     [:.vote-input {:display :grid
                    :grid-template-columns "80% 20%"
                    :border-bottom "1px solid"
