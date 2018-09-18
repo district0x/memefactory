@@ -1,35 +1,34 @@
 (ns memefactory.server.generator
-  (:require
-    [bignumber.core :as bn]
-    [cljs-ipfs-api.files :as ipfs-files]
-    [cljs-web3.core :as web3]
-    [cljs-web3.eth :as web3-eth]
-    [cljs-web3.evm :as web3-evm]
-    [cljs-web3.utils :refer [js->cljkk camel-case]]
-    [district.cljs-utils :refer [rand-str]]
-    [district.format :as format]
-    [district.server.config :refer [config]]
-    [district.server.smart-contracts :refer [contract-address contract-call instance]]
-    [district.server.web3 :refer [web3]]
-    [memefactory.server.contract.dank-token :as dank-token]
-    [memefactory.server.contract.eternal-db :as eternal-db]
-    [memefactory.server.contract.meme :as meme]
-    [memefactory.server.contract.meme-auction :as meme-auction]
-    [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
-    [memefactory.server.contract.meme-factory :as meme-factory]
-    [memefactory.server.contract.meme-registry :as meme-registry]
-    [memefactory.server.contract.meme-token :as meme-token]
-    [memefactory.server.contract.minime-token :as minime-token]
-    [memefactory.server.contract.param-change :as param-change]
-    [memefactory.server.contract.param-change-factory :as param-change-factory]
-    [memefactory.server.contract.param-change-registry :as param-change-registry]
-    [memefactory.server.contract.registry :as registry]
-    [memefactory.server.contract.registry-entry :as registry-entry]
-    [memefactory.server.deployer]
-    [taoensso.timbre :as log]
-    [mount.core :as mount :refer [defstate]]
-    [print.foo :refer [look] :include-macros true]
-    [district.shared.error-handling :refer [try-catch]]))
+  (:require [bignumber.core :as bn]
+            [cljs-ipfs-api.files :as ipfs-files]
+            [cljs-web3.core :as web3]
+            [cljs-web3.eth :as web3-eth]
+            [cljs-web3.evm :as web3-evm]
+            [cljs-web3.utils :refer [js->cljkk camel-case]]
+            [district.cljs-utils :refer [rand-str]]
+            [district.format :as format]
+            [district.server.config :refer [config]]
+            [district.server.smart-contracts :refer [smart-contracts contract-address contract-call instance]]
+            [district.server.web3 :refer [web3]]
+            [memefactory.server.contract.dank-token :as dank-token]
+            [memefactory.server.contract.eternal-db :as eternal-db]
+            [memefactory.server.contract.meme :as meme]
+            [memefactory.server.contract.meme-auction :as meme-auction]
+            [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
+            [memefactory.server.contract.meme-factory :as meme-factory]
+            [memefactory.server.contract.meme-registry :as meme-registry]
+            [memefactory.server.contract.meme-token :as meme-token]
+            [memefactory.server.contract.minime-token :as minime-token]
+            [memefactory.server.contract.param-change :as param-change]
+            [memefactory.server.contract.param-change-factory :as param-change-factory]
+            [memefactory.server.contract.param-change-registry :as param-change-registry]
+            [memefactory.server.contract.registry :as registry]
+            [memefactory.server.contract.registry-entry :as registry-entry]
+            [memefactory.server.deployer]
+            [taoensso.timbre :as log]
+            [mount.core :as mount :refer [defstate]]
+            [print.foo :refer [look] :include-macros true]
+            [district.shared.error-handling :refer [try-catch]]))
 
 (def fs (js/require "fs"))
 
@@ -92,7 +91,7 @@
                                   :use-accounts use-accounts
                                   :items-per-account items-per-account
                                   :scenarios scenarios})]
-    (log/info "Going to generate" scenarios ::generate-memes)
+    (log/info "Going to generate" {:scenarios scenarios :deposit deposit} ::generate-memes)
     (doseq [[account {:keys [:scenario-type]}] scenarios]
       (-> (upload-meme)
           (.then upload-meme-meta)
@@ -106,12 +105,11 @@
                                                                            :amount deposit}
                                                                           {:from account})]
 
-
                         (when-not (= :scenario/create scenario-type)
                           (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx tx-hash)]
 
                             (when-not registry-entry
-                              (throw (js/Error. "Registry Entry wasn't found")))
+                              (throw (js/Error. "Meme registry entry wasn't found")))
 
                             (registry-entry/approve-and-create-challenge registry-entry
                                                                          {:meta-hash meta-hash
@@ -188,7 +186,7 @@
         (when-not (= scenario-type :scenario/create)
 
           (when-not registry-entry
-            (throw (js/Error. "Registry Entry wasn't found")))
+            (throw (js/Error. "Param change registry entry wasn't found")))
 
           (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
 
@@ -197,4 +195,4 @@
 (defn start [opts]
   (let [opts (assoc opts :accounts (web3-eth/accounts @web3))]
     (generate-memes opts)
-    (generate-param-changes opts)))
+    #_(generate-param-changes opts)))

@@ -171,7 +171,7 @@
                               :token-id-end (bn/number token-id-end)
                               :reg-entry/address registry-entry})
      (doseq [tid tokens-ids]
-       (db/insert-or-replace-meme-token-owner {:meme-token/token-id tid 
+       (db/insert-or-replace-meme-token-owner {:meme-token/token-id tid
                                                :meme-token/owner (web3/to-hex creator)
                                                :meme-token/transferred-on (bn/number timestamp)}))
      (db/update-meme-first-mint-on! {:reg-entry/address registry-entry
@@ -215,14 +215,15 @@
 
                       (= (smart-contracts/contract-address :param-change-registry-db) contract-address)
                       (-> @config :deployer :initial-registry-params :param-change-registry keys))]
-     (doseq [idx (range 0 (count param-keys))]
-       (let [record (nth records idx)
-             k (name (nth param-keys idx))]
-         (when-not (db/initial-param-exists? k contract-address)
-           (db/insert-initial-param! {:initial-param/key k
-                                      :initial-param/db contract-address
-                                      :initial-param/value (bn/number (nth values idx))
-                                      :initial-param/set-on timestamp})))))))
+     (when param-keys
+       (doseq [idx (range 0 (count values))]
+         (let [record (nth records idx)
+               k (name (nth param-keys idx))]
+           (when-not (db/initial-param-exists? k contract-address)
+             (db/insert-initial-param! {:initial-param/key k
+                                        :initial-param/db contract-address
+                                        :initial-param/value (bn/number (nth values idx))
+                                        :initial-param/set-on timestamp}))))))))
 
 (defmethod process-event :default
   [k ev]
