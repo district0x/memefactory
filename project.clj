@@ -91,7 +91,7 @@
                        [solc "0.4.20"]
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]
-
+                       [deasync "0.1.11"]
                        ;; this isn't required directly by memefactory but  0.6.1 is broken and
                        ;; district0x/district-server-web3 needs [ganache-core "2.0.2"]   who also needs "ethereumjs-wallet": "~0.6.0"
                        ;; https://github.com/ethereumjs/ethereumjs-wallet/issues/64
