@@ -68,12 +68,18 @@
 ;; Event processors ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(defmulti process-event (fn [contract-type ev] [contract-type (:event-type ev)]))
-
-(defn add-registry-entry [registry-entry timestamp]
+(defn- add-registry-entry [registry-entry timestamp]
   (db/insert-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
                                     (registry-entry/load-registry-entry-challenge registry-entry)
                                     {:reg-entry/created-on timestamp})))
+
+(defn- add-param-change [registry-entry]
+  (let [{:keys [:param-change/key :param-change/db] :as param-change} (param-change/load-param-change registry-entry)
+        {:keys [:initial-param/value] :as initial-param} (db/get-initial-param key db)]
+    (db/insert-or-replace-param-change! (assoc param-change :param-change/initial-value value))))
+
+
+(defmulti process-event (fn [contract-type ev] [contract-type (:event-type ev)]))
 
 (defmethod process-event [:contract/meme :constructed]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
@@ -92,22 +98,18 @@
                   (doseq [t search-tags]
                     (db/tag-meme! (:reg-entry/address meme) t)))))))))
 
-(defn- process-param-change [registry-entry]
-  (let [{:keys [:param-change/key :param-change/db] :as param-change} (param-change/load-param-change registry-entry)
-        {:keys [:initial-param/value] :as initial-param} (db/get-initial-param key db)]
-    (db/insert-or-replace-param-change! (assoc param-change :param-change/initial-value value))))
 
 (defmethod process-event [:contract/param-change :constructed]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
   (try-catch
    (add-registry-entry registry-entry timestamp)
-   (process-param-change registry-entry)))
+   (add-param-change registry-entry)))
 
 (defmethod process-event [:contract/param-change :change-applied]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
   (try-catch
    ;; TODO: could also just change applied date to timestamp
-   (process-param-change registry-entry)))
+   (add-param-change registry-entry)))
 
 (defmethod process-event [:contract/registry-entry :challenge-created]
   [_ {:keys [:registry-entry :timestamp] :as ev}]
@@ -183,7 +185,7 @@
   (try-catch
    (db/insert-or-update-meme-auction! (meme-auction/load-meme-auction meme-auction))))
 
-(defmethod process-event [:contract/meme-auction :auction-buy]
+(defmethod process-event [:contract/meme-auction :buy]
   [_ {:keys [:meme-auction :timestamp :data] :as ev}]
   (try-catch
    (let [[buyer price] data
@@ -197,7 +199,7 @@
                                          :meme-auction/bought-on timestamp
                                          :meme-auction/buyer (web3-utils/uint->address buyer)}))))
 
-(defmethod process-event [:contract/meme-token :transfer-from]
+(defmethod process-event [:contract/meme-token :transfer]
   [_ ev]
   (try-catch
    (let [{:keys [:_to :_token-id :_timestamp]} ev]
@@ -226,8 +228,8 @@
                                         :initial-param/set-on timestamp}))))))))
 
 (defmethod process-event :default
-  [k ev]
-  (log/warn (str "No process-event defined for processing " k ev) ))
+  [contract-type {:keys [:event-type] :as evt}]
+  (log/warn (str "No process-event method defined for processing" " " contract-type " " event-type) evt ::process-event))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of events processors ;;
@@ -242,12 +244,17 @@
                (assoc :event-type event-type)
                (update :timestamp bn/number)
                (update :version bn/number))]
-    (log/info (str info-text " " contract-type " " event-type) {:ev ev} ::dispatch-event)
+    (log/info (str "Dispatching" " " info-text " " contract-type " " event-type) {:ev ev} ::dispatch-event)
     (process-event contract-type ev)))
 
 (defn start [{:keys [:initial-param-query] :as opts}]
+
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
+
+  (when-not (= ::db/started @db/memefactory-db)
+    (throw (js/Error. "Database module has not started")))
+
   (let [last-block-number (last-block-number)
         watchers [{:watcher (partial eternal-db/change-applied-event [:param-change-registry-db])
                    :on-event #(dispatch-event :contract/eternal-db %1 %2)}
