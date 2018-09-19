@@ -46,6 +46,7 @@
      :font-size (px 25)
      :margin-top (em 0.3)
      :margin-bottom (em 0.1)
+     :padding-top (em 0.5)
      :text-align :center}]
    [:h3.title
     {:white-space :nowrap

@@ -43,6 +43,7 @@
       ;; :color (color :section-caption)
       :font-size (px 25)
       :margin-top (em 0.3)
+      :padding-top (em 0.2)
       :margin-bottom (em 0.1)
       :text-align :center}]
     [:.header :h3
@@ -88,12 +89,14 @@
       [:.help-block {:height :2px}]]
      [:.options {:grid-area :dropdown}]
      [:.ac-options {:grid-area :chip}]
-     [:.check-cheapest {:grid-area :checkbox}
+     [:.check-cheapest
+      {:padding-top (em 0.4)
+       :grid-area :checkbox}
       [:label {:font-size "8px"
                :position :absolute
                :margin-left (em 2)
                :margin-top (em 0.6)
-               :line-height "0.5em"}]
+               :line-height "0.9em"}]
       [:.help-block {:display :none}]]]]
    [:.search-form
     (for-media-max :tablet

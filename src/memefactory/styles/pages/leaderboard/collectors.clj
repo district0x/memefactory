@@ -71,5 +71,5 @@
      {:position :absolute
       :display :block
       :right (em 2)
-      :top (em 2.5)}]
+      :top (em 3.5)}]
     ]])
