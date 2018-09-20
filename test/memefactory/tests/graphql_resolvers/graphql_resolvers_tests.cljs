@@ -191,9 +191,7 @@
                    :path "/graphql"
                    :graphiql true}
          :ranks-cache {:ttl (t/in-millis (t/minutes 60))}})
-      (mount/except [#'memefactory.server.deployer/deployer
-                     #'memefactory.server.generator/generator
-                     #'district.server.smart-contracts/smart-contracts
+      (mount/except [#'district.server.smart-contracts/smart-contracts
                      #'memefactory.server.syncer/syncer])
       (mount.core/start))
   (generate-some-data!))
