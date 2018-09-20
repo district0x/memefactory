@@ -179,6 +179,8 @@
   (db/run! {:create-table [:initial-params]
             :with-columns [initial-params-columns]})
 
+  ::started
+
   ;; TODO create indexes
   #_(doseq [column (rest registry-entry-column-names)]
       (db/run! {:create-index (index-name column) :on [:offerings column]})))

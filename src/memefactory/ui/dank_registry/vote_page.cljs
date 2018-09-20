@@ -4,7 +4,7 @@
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [reagent.core :as r]
    [print.foo :refer [look] :include-macros true]
-   [district.ui.component.form.input :refer [select-input with-label text-input pending-button]]
+   [district.ui.component.form.input :refer [select-input with-label text-input amount-input pending-button]]
    [react-infinite]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.dank-registry.events :as dr-events]
@@ -52,10 +52,12 @@
                (println "meme voting " meme-voting)
                [charts/donut-chart meme-voting]
                [:ul.vote-info
-                [:li [with-label (str "Voted dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]]
-                [:li [with-label (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]]
-                [:li [with-label "Total voted: " (gstring/format "%d" votes-total)]]
-                [:li [with-label "Your reward: " (format/format-token all-rewards {:token "DANK"})]]]
+                [:li
+                 (str "Voted dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
+                [:li
+                 (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]
+                [:li "Total voted: " (gstring/format "%d" votes-total)]
+                [:li "Your reward: " (format/format-token all-rewards {:token "DANK"})]]
                [pending-button {:pending? @tx-pending?
                                 :disabled (or (not (pos? all-rewards))
                                               @tx-pending? @tx-success?)
@@ -86,9 +88,12 @@
          [:div.vote-dank
           [:div.vote-input
            [with-label "Amount "
-            [text-input {:form-data form-data
-                         :id :amount-vote-for
-                         :errors errors}]]
+            [amount-input {:form-data form-data
+                           :id :amount-vote-for
+                           :errors errors}]
+            {;;:group-class :name
+             :form-data form-data
+             :id :amount-vote-for}]
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
@@ -103,9 +108,12 @@
          [:div.vote-stank
           [:div.vote-input
            [with-label "Amount "
-            [text-input {:form-data form-data
+            [amount-input {:form-data form-data
                          :id :amount-vote-against
-                         :errors errors}]]
+                         :errors errors}]
+            {;;:group-class :name
+             :form-data form-data
+             :id :amount-vote-against}]
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."

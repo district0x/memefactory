@@ -36,7 +36,7 @@
   [:.chip-input
    {:display :flex
     :color (color :menu-text)}
-   [:ol.chips {:margin-top 0
+   [:ol.chips {:line-height (em 0.9)
                :margin-bottom (em 0.3)
                :padding-left 0
                :display :flex}
@@ -63,8 +63,9 @@
     {:display :inline
      :width "100%"}
     ["input[type=text]"
-     {:line-height (em 2.5)
-      }]
+     {:line-height (em 0.9)
+      :padding-top (em 1.3)
+      :padding-bottom (em 0.7)}]
     [:ol.options
      {:position :absolute
       :border-radius "0 0 0.3em 0.3em"

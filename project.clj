@@ -25,7 +25,7 @@
                  [district0x/district-server-graphql "1.0.15"]
                  [district0x/district-server-logging "1.0.2"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.0.8"]
+                 [district0x/district-server-smart-contracts "1.0.9"]
                  [district0x/district-server-web3 "1.0.1"]
                  [district0x/district-server-web3-watcher "1.0.2"]
                  [district0x/district-ui-component-active-account "1.0.0"]
@@ -91,7 +91,7 @@
                        [solc "0.4.20"]
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]
-
+                       [deasync "0.1.11"]
                        ;; this isn't required directly by memefactory but  0.6.1 is broken and
                        ;; district0x/district-server-web3 needs [ganache-core "2.0.2"]   who also needs "ethereumjs-wallet": "~0.6.0"
                        ;; https://github.com/ethereumjs/ethereumjs-wallet/issues/64

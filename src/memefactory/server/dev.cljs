@@ -26,16 +26,17 @@
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
             [memefactory.server.deployer]
-            [memefactory.server.emailer]
             [memefactory.server.generator]
-            [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause last-block-timestamp]]            
+            [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause last-block-timestamp]]
             [memefactory.server.ipfs]
             [memefactory.server.syncer]
+            [memefactory.server.macros :refer [defer]]
             [memefactory.server.ranks-cache]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.smart-contracts]
             [mount.core :as mount]
-            [print.foo :include-macros true]))
+            [taoensso.timbre :as log]
+            [print.foo :refer [look] :include-macros true]))
 
 (nodejs/enable-util-print!)
 
@@ -61,7 +62,10 @@
                          #'district.server.web3/web3
                          #'district.server.smart-contracts/smart-contracts))
 
-(defn redeploy []
+(defn redeploy
+  "Redeploy smart contracts"
+  []
+  (log/warn "Redeploying contracts, please be patient..." ::redeploy)
   (memefactory.server.deployer/deploy
    {:transfer-dank-token-to-accounts 1
     :initial-registry-params
@@ -79,9 +83,13 @@
                              :deposit (web3/to-wei 10 :ether)
                              :challenge-dispensation 50
                              :vote-quorum 50}}
-    :write? true}))
+    :write? true})
+  (log/info "Finished redploying contracts" ::redeploy))
 
-(defn generate-data []
+(defn generate-data
+  "Generate dev data"
+  []
+  (log/warn "Generating data, please be patient..." ::generate-date)
   (let [opts {:memes/use-accounts 1
               :memes/items-per-account 2
               :memes/scenarios [:scenario/create]
@@ -90,14 +98,16 @@
               :param-changes/scenarios []
               :accounts (web3-eth/accounts @web3)}]
     (memefactory.server.generator/generate-memes opts)
-    (memefactory.server.generator/generate-param-changes opts)))
+    (memefactory.server.generator/generate-param-changes opts))
+  (log/info "Finished generating data" ::generate-data))
 
 (defn resync []
-  (mount/stop #'memefactory.server.db/memefactory-db
-              #'memefactory.server.syncer/syncer)
-  (-> (mount/start #'memefactory.server.db/memefactory-db
-                   #'memefactory.server.syncer/syncer)
-      pprint/pprint))
+  (defer
+    (mount/stop #'memefactory.server.db/memefactory-db
+                #'memefactory.server.syncer/syncer)
+    (-> (mount/start #'memefactory.server.db/memefactory-db
+                     #'memefactory.server.syncer/syncer)
+        pprint/pprint)))
 
 (defn -main [& _]
   (-> (mount/with-args
@@ -216,7 +226,7 @@
   ;; Contract call log instrument snippet p
   ;; paste in UI repl or SERVER repl
   (let [cc cljs-web3.eth/contract-call]
-    (set! cljs-web3.eth/contract-call 
+    (set! cljs-web3.eth/contract-call
           (fn [contract-instance method & args]
             (let [method-name (camel-snake-kebab.core/->camelCase (name method))
                   method-abi (->> (js->clj (.-abi contract-instance) :keywordize-keys true)
