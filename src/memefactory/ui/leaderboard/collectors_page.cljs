@@ -45,21 +45,21 @@
     [:div.number (str "#" num)]
     [:span.user-address address]
     [:ul ;; TODO complete these after Matus comments
-     [:li [with-label "Unique Memes:" [:span.unique (gstring/format "%d/%d (%d%%)"
-                                                                    total-collected-memes
-                                                                    total-memes-count
-                                                                    (/ (* 100 total-collected-memes)
-                                                                       total-memes-count))]]]
-     [:li [with-label "Total Cards:" [:span.total-cards (gstring/format "%d/%d"
-                                                                        total-collected-token-ids
-                                                                        total-tokens-count)]]]
+     [:li "Unique Memes: " [:span.unique (gstring/format "%d/%d (%d%%)"
+                                                                   total-collected-memes
+                                                                   total-memes-count
+                                                                   (/ (* 100 total-collected-memes)
+                                                                      total-memes-count))]]
+     [:li "Total Cards: " [:span.total-cards (gstring/format "%d/%d"
+                                                                       total-collected-token-ids
+                                                                       total-tokens-count)]]
      (when (:meme/title meme)
-       [:li [with-label "Largest Buy:" [:span.best-sale (gstring/format "%f ETH (#%d %s)"
-                                                                        (-> largest-sale :meme-auction/bought-for)
-                                                                        (-> largest-sale
-                                                                            :meme-auction/meme-token
-                                                                            :meme-token/number)
-                                                                        (:meme/title meme))]]])]]))
+       [:li "Largest Buy: " [:span.best-sale (gstring/format "%f ETH (#%d %s)"
+                                                                       (-> largest-sale :meme-auction/bought-for)
+                                                                       (-> largest-sale
+                                                                           :meme-auction/meme-token
+                                                                           :meme-token/number)
+                                                                       (:meme/title meme))]])]]))
 
 
 (defmethod page :route.leaderboard/collectors []

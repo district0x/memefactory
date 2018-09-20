@@ -45,19 +45,19 @@
     [:div.number (str "#" num)]
     [:span.user-address address]
     [:ul
-     [:li [with-label "Earned:" [:span.earned (str creator-total-earned)]]]
-     [:li [with-label "Success Rate:" [:span.success-rate (gstring/format "%d/%d (%d)"
+     [:li "Earned: " [:span.earned (str creator-total-earned)]]
+     [:li "Success Rate: " [:span.success-rate (gstring/format "%d/%d (%d)"
                                                                           total-created-memes-whitelisted
                                                                           total-created-memes
                                                                           (/ (* 100 total-created-memes-whitelisted)
-                                                                             total-created-memes))]]]
+                                                                             total-created-memes))]]
      (when (:meme/title meme)
-       [:li [with-label "Best single card sale:" [:span.best-sale (gstring/format "%f ETH (#%d %s)"
-                                                                                  (-> largest-sale :meme-auction/bought-for)
-                                                                                  (-> largest-sale
-                                                                                      :meme-auction/meme-token
-                                                                                      :meme-token/number)
-                                                                                  (:meme/title meme))]]])]]))
+       [:li "Best single card sale: " [:span.best-sale (gstring/format "%f ETH (#%d %s)"
+                                                                                 (-> largest-sale :meme-auction/bought-for)
+                                                                                 (-> largest-sale
+                                                                                     :meme-auction/meme-token
+                                                                                     :meme-token/number)
+                                                                                 (:meme/title meme))]])]]))
 
 
 (defmethod page :route.leaderboard/creators []  

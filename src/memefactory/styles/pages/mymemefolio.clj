@@ -71,6 +71,9 @@
     #_[">*"
      {:padding-top (em 1)
       :padding-bottom (em 1)}]
+    [".stats>*"
+     {:padding-right (em 1)
+      :padding-left (em 1)}]
     [">.rank"
      {:width "100%"}]
     [".rank>.stats>.rank"
