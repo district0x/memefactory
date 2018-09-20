@@ -34,8 +34,6 @@
 (def fs (js/require "fs"))
 
 (declare start)
-(defstate ^{:on-reload :noop} generator :start (start (merge (:generator @config)
-                                                             (:generator (mount/args)))))
 
 (defn get-scenarios [{:keys [:accounts :use-accounts :items-per-account :scenarios]}]
   (when (and (pos? use-accounts)
@@ -193,8 +191,3 @@
           (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
 
           (param-change-registry/apply-param-change registry-entry {:from account}))))))
-
-(defn start [opts]
-  (let [opts (assoc opts :accounts (web3-eth/accounts @web3))]
-    (generate-memes opts)
-    (generate-param-changes opts)))

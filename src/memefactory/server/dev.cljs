@@ -62,13 +62,35 @@
                          #'district.server.smart-contracts/smart-contracts))
 
 (defn redeploy []
-  (mount/stop)
-  (-> (mount/with-args
-        (merge
-          (mount/args)
-          {:deployer {:write? true}}))
-    (mount/start)
-    pprint/pprint))
+  (memefactory.server.deployer/deploy
+   {:transfer-dank-token-to-accounts 1
+    :initial-registry-params
+    {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                     :commit-period-duration (t/in-seconds (t/minutes 20))
+                     :reveal-period-duration (t/in-seconds (t/minutes 10))
+                     :deposit (web3/to-wei 1 :ether)
+                     :challenge-dispensation 50
+                     :vote-quorum 50
+                     :max-total-supply 10
+                     :max-auction-duration (t/in-seconds (t/weeks 20))}
+     :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                             :commit-period-duration (t/in-seconds (t/minutes 20))
+                             :reveal-period-duration (t/in-seconds (t/minutes 10))
+                             :deposit (web3/to-wei 10 :ether)
+                             :challenge-dispensation 50
+                             :vote-quorum 50}}
+    :write? true}))
+
+(defn generate-data []
+  (let [opts {:memes/use-accounts 1
+              :memes/items-per-account 2
+              :memes/scenarios [:scenario/create]
+              :param-changes/use-accounts 1
+              :param-changes/items-per-account 1
+              :param-changes/scenarios []
+              :accounts (web3-eth/accounts @web3)}]
+    (memefactory.server.generator/generate-memes opts)
+    (memefactory.server.generator/generate-param-changes opts)))
 
 (defn resync []
   (mount/stop #'memefactory.server.db/memefactory-db
@@ -91,36 +113,11 @@
                                       :path "/graphql"
                                       :graphiql true}
                             :web3 {:port 8549}
-                            :generator {:memes/use-accounts 1
-                                        :memes/items-per-account 1
-                                        :memes/scenarios [:scenario/buy]
-                                        :param-changes/use-accounts 1
-                                        :param-changes/items-per-account 1
-                                        :param-changes/scenarios [:scenario/apply-param-change]}
-
-                            :deployer {:transfer-dank-token-to-accounts 1
-                                       :initial-registry-params
-                                       {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                                                        :commit-period-duration (t/in-seconds (t/minutes 2))
-                                                        :reveal-period-duration (t/in-seconds (t/minutes 1))
-                                                        :deposit (web3/to-wei 1000 :ether)
-                                                        :challenge-dispensation 50
-                                                        :vote-quorum 50
-                                                        :max-total-supply 10
-                                                        :max-auction-duration (t/in-seconds (t/weeks 20))}
-                                        :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                                                                :commit-period-duration (t/in-seconds (t/minutes 2))
-                                                                :reveal-period-duration (t/in-seconds (t/minutes 1))
-                                                                :deposit (web3/to-wei 1000 :ether)
-                                                                :challenge-dispensation 50
-                                                                :vote-quorum 50}}}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                                               :print-gas-usage? true
                                               :auto-mining? true}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}}}})
-      (mount/except [#'memefactory.server.deployer/deployer
-                     #'memefactory.server.generator/generator])
       (mount/start)
       pprint/pprint))
 
@@ -233,3 +230,4 @@
                                  (map (fn [p] (str (:type p) " " (:name p) " = " (:value p))))
                                  (clojure.string/join ",\n"))")")
               (apply cc (into [contract-instance method] args)))))))
+

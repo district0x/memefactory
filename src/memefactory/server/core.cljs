@@ -50,22 +50,9 @@
                                                   #'memefactory.server.emailer/emailer))}
          :syncer {:ipfs-config {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}}
          :ranks-cache {:ttl (t/in-millis (t/minutes 60))}})
-    (mount/except [#'memefactory.server.deployer/deployer
-                   #'memefactory.server.generator/generator])
-    (mount/start))
+      (mount/start))
   (warn "System started" {:config @config}))
 
 (set! *main-cli-fn* -main)
 
-(comment
-  (-> (mount/only [#'memefactory.server.generator/generator])
-      (mount/stop)
-      cljs.pprint/pprint)
 
-  (-> (mount/with-args {:generator {:memes/use-accounts 1
-                                    :memes/items-per-account 3
-                                    :memes/scenarios [:scenario/buy]}})
-      (mount/only [#'memefactory.server.generator/generator])
-      (mount/start)
-      cljs.pprint/pprint)
- )

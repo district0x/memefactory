@@ -17,9 +17,6 @@
             [cljs-web3.core :as web3]))
 
 (declare deploy)
-(defstate ^{:on-reload :noop} deployer
-  :start (deploy (merge (:deployer @config)
-                        (:deployer (mount/args)))))
 
 (def registry-placeholder "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed")
 (def dank-token-placeholder "deaddeaddeaddeaddeaddeaddeaddeaddeaddead")
