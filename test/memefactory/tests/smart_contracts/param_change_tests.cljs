@@ -8,17 +8,14 @@
             [district.server.web3 :refer [web3]]
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.param-change :as param-change]
-            [memefactory.server.contract.param-change-factory
-             :as
-             param-change-factory]
-            [memefactory.server.contract.param-change-registry
-             :as
-             param-change-registry]
+            [memefactory.server.contract.param-change-factory :as param-change-factory]
+            [memefactory.server.contract.param-change-registry :as param-change-registry]
             [memefactory.server.contract.registry-entry :as registry-entry]
-            [memefactory.tests.smart-contracts.utils :as test-utils]))
+            [memefactory.tests.smart-contracts.utils :as test-utils]
+            [print.foo :include-macros true :refer [look]]))
 
-(use-fixtures
-  :each {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
+#_(use-fixtures 
+  :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})
          :after test-utils/after-fixture})
@@ -30,7 +27,7 @@
 ;; ParamChange ;;
 ;;;;;;;;;;;;;;;;;
 
-(deftest approve-and-create-param-change-test
+(deftest approve-and-create-param-change-test  
   (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
         [deposit challenge-period-duration]
         (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
@@ -60,7 +57,7 @@
                                                        {:amount deposit}
                                                        {:from challenger-addr})))))
 
-(deftest apply-param-change-test
+(deftest apply-param-change-test 
   (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
         [deposit challenge-period-duration]
         (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
@@ -107,5 +104,14 @@
     
     (testing "Param change cannot be applied if original value is not current value"
       (is (thrown? js/Error
-                   (param-change-registry/apply-param-change other-registry-entry {:from creator-addr}))))))
+                   (param-change-registry/apply-param-change other-registry-entry {:from creator-addr}))))
+
+    (testing "Invalid Param change cannot be created"
+      (is (thrown? js/Error
+                   (param-change-factory/approve-and-create-param-change
+                    {:db (contract-address :meme-registry-db)
+                     :key :challenge-dispensation
+                     :value 101
+                     :amount deposit}
+                    {:from creator-addr}))))))
 

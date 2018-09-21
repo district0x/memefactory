@@ -17,3 +17,6 @@
   (contract-call contract-key :get-u-int-values (->> kws
                                                   (map cs/->camelCaseString)
                                                   (map solidity-sha3))))
+
+(defn change-applied-event [contract-key & args]
+  (apply contract-call contract-key :EternalDbEvent args))

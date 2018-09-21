@@ -1,6 +1,9 @@
 pragma solidity ^0.4.18;
 
 contract Controlled {
+
+  event ControllerChangedEvent(address newController);
+
   /// @notice The address of the controller is the only address that can call
   ///  a function with this modifier
   modifier onlyController { require(msg.sender == controller); _; }
@@ -13,5 +16,6 @@ contract Controlled {
   /// @param _newController The new controller of the contract
   function changeController(address _newController) public onlyController {
     controller = _newController;
+    emit ControllerChangedEvent(_newController);
   }
 }

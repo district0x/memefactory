@@ -14,6 +14,8 @@ contract EternalDb is DSAuth {
 
   enum Types {UInt, String, Address, Bytes, Bytes32, Boolean, Int}
 
+  event EternalDbEvent(bytes32[] records, uint[] values, uint timestamp);
+
   function EternalDb(){
   }
 
@@ -38,6 +40,11 @@ contract EternalDb is DSAuth {
   auth
   {
     UIntStorage[record] = value;
+    bytes32[] memory records = new bytes32[](1);
+    records[0] = record;
+    uint[] memory values = new uint[](1);
+    values[0] = value;
+    emit EternalDbEvent(records, values, now);
   }
 
   function setUIntValues(bytes32[] records, uint[] values)
@@ -46,6 +53,7 @@ contract EternalDb is DSAuth {
     for (uint i = 0; i < records.length; i++) {
       UIntStorage[records[i]] = values[i];
     }
+    emit EternalDbEvent(records, values, now);
   }
 
   function deleteUIntValue(bytes32 record)

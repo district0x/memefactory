@@ -1,9 +1,9 @@
 (ns memefactory.shared.contract.registry-entry
-  (:require
-    [bignumber.core :as bn]
-    [cljs-web3.core :as web3]
-    [clojure.set :as set]
-    [district.web3-utils :refer [web3-time->local-date-time empty-address? wei->eth-number]]))
+  (:require [bignumber.core :as bn]
+            [cljs-web3.core :as web3]
+            [clojure.set :as set]
+            [district.web3-utils :refer [empty-address? wei->eth-number]]
+            [memefactory.shared.utils :as shared-utils]))
 
 (def statuses
   {0 :reg-entry.status/challenge-period
@@ -33,7 +33,8 @@
                  :vote/option
                  :vote/amount
                  :vote/revealed-on
-                 :vote/claimed-reward-on])
+                 :vote/claimed-reward-on
+                 :vote/reclaimed-deposit-on])
 
 (def vote-options
   {0 :vote.option/no-vote
@@ -53,22 +54,22 @@
         (update :reg-entry/version bn/number)
         (update :reg-entry/deposit wei->eth-number)
         (update :reg-entry/status parse-status)
-        (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))))))
+        (update :reg-entry/challenge-period-end (constantly (shared-utils/parse-uint-date (:reg-entry/challenge-period-end registry-entry) parse-dates?)))))))
 
-(defn parse-load-registry-entry-challenge [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]]
+(defn parse-load-registry-entry-challenge [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]] 
   (when registry-entry
     (let [registry-entry (zipmap load-registry-entry-challenge-keys registry-entry)]
       (-> registry-entry
-          (update :reg-entry/challenge-period-end (if parse-dates? web3-time->local-date-time bn/number))
+          (update :reg-entry/challenge-period-end (constantly (shared-utils/parse-uint-date (:reg-entry/challenge-period-end registry-entry) parse-dates?)))
           (update :challenge/challenger #(when-not (empty-address? %) %))
           (update :challenge/reward-pool wei->eth-number)
           (update :challenge/meta-hash #(when-not (empty-address? %) (web3/to-ascii %)))
-          (update :challenge/commit-period-end (if parse-dates? web3-time->local-date-time bn/number))
-          (update :challenge/reveal-period-end (if parse-dates? web3-time->local-date-time bn/number))
+          (update :challenge/commit-period-end (constantly (shared-utils/parse-uint-date (:challenge/commit-period-end registry-entry) parse-dates?)))
+          (update :challenge/reveal-period-end (constantly (shared-utils/parse-uint-date (:challenge/reveal-period-end registry-entry) parse-dates?)))
           (update :challenge/votes-for bn/number)
           (update :challenge/vote-quorum bn/number)
           (update :challenge/votes-against bn/number)
-          (update :challenge/claimed-reward-on (if parse-dates? web3-time->local-date-time bn/number))))))
+          (update :challenge/claimed-reward-on (constantly (shared-utils/parse-uint-date (:challenge/claimed-reward-on registry-entry) parse-dates?)))))))
 
 (defn parse-vote-option [vote-option]
   (vote-options (bn/number vote-option)))
@@ -81,5 +82,6 @@
         (assoc :vote/voter voter-address)
         (update :vote/option (if parse-vote-option? parse-vote-option bn/number))
         (update :vote/amount bn/number)
-        (update :vote/revealed-on (if parse-dates? web3-time->local-date-time bn/number))
-        (update :vote/claimed-reward-on (if parse-dates? web3-time->local-date-time bn/number))))))
+        (update :vote/revealed-on (constantly (shared-utils/parse-uint-date (:vote/revealed-on voter) parse-dates?)))
+        (update :vote/claimed-reward-on (constantly (shared-utils/parse-uint-date (:vote/claimed-reward-on voter) parse-dates?)))
+        (update :vote/reclaimed-amount-on (constantly (shared-utils/parse-uint-date (:vote/reclaimed-deposit-on voter) parse-dates?)))))))

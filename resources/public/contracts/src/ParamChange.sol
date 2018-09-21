@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import "RegistryEntry.sol";
 import "db/EternalDb.sol";
@@ -25,6 +25,7 @@ contract ParamChange is RegistryEntry {
    * @dev Constructor for this contract.
    * Native constructor is not used, because users create only forwarders into single instance of this contract,
    * therefore constructor must be called explicitly.
+   * Can only be called if the parameter value is within its allowed domain.
 
    * @param _creator Creator of a meme
    * @param _version Version of Meme contract
@@ -39,14 +40,18 @@ contract ParamChange is RegistryEntry {
     string _key,
     uint _value
   )
-  public
+  external
   {
+    bytes32 record = sha3(_key);
+    require(isChangeAllowed(record, _value));
+
     super.construct(_creator, _version);
+
     db = EternalDb(_db);
     key = _key;
     value = _value;
     valueType = EternalDb.Types.UInt;
-    originalValue = db.getUIntValue(sha3(key));
+    originalValue = db.getUIntValue(record);
   }
 
   /**
@@ -59,16 +64,52 @@ contract ParamChange is RegistryEntry {
    * Creator gets deposit back
    */
   function applyChange()
-  public
+  external
   notEmergency
   {
-    require(isOriginalValueCurrentValue());
-    require(!wasApplied());
-    require(isWhitelisted());
-    require(registryToken.transfer(creator, deposit));
-    db.setUIntValue(sha3(key), value);
+    /* TODO: needed? Contract shouldn't get created in the first place */
+    bytes32 record = sha3(key);
+    require(isChangeAllowed(record, value));
+
+    require(isOriginalValueCurrentValue(), "ParamChange: current value is not original value");
+    require(!wasApplied(), "ParamChange: already applied");
+    require(isWhitelisted(), "ParamChange: not whitelisted");
+    require(registryToken.transfer(creator, deposit), "ParamChange: could not transfer deposit");
+    
+    db.setUIntValue(record, value);
     appliedOn = now;
+    /* we listen to eternal-db now, no need for this event */
     registry.fireRegistryEntryEvent("changeApplied", version);
+  }
+
+  /**
+   * @dev Returns true when parameter key is in a whitelisted set and the parameter
+   * value is within the allowed set of values.
+   */
+  function isChangeAllowed(bytes32 record, uint value) public constant returns (bool) {
+
+      if(record == registry.challengePeriodDurationKey() || record == registry.commitPeriodDurationKey() ||
+         record == registry.revealPeriodDurationKey() || record == registry.depositKey()) {
+        if(value > 0) {
+          return true;
+        }
+      }
+
+      if(record == registry.challengeDispensationKey() || record == registry.voteQuorumKey() ||
+         record == registry.maxTotalSupplyKey()) {
+        if (value >= 0 && value <= 100) {
+          return true;
+        }
+      }
+
+      // see MemeAuction.sol
+      if(record == registry.maxAuctionDurationKey()) {
+        if(value > 1 minutes) {
+          return true;
+        }
+      }
+
+    return false;
   }
 
   /**
@@ -88,7 +129,10 @@ contract ParamChange is RegistryEntry {
   /**
    * @dev Returns all state related to this contract for simpler offchain access
    */
-  function loadParamChange() public constant returns (EternalDb, string, EternalDb.Types, uint, uint) {
+  function loadParamChange()
+    external
+    constant
+    returns (EternalDb, string, EternalDb.Types, uint, uint) {
     return (
     db,
     key,

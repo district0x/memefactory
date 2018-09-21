@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import "token/ERC721Token.sol";
 import "Registry.sol";
@@ -15,7 +15,7 @@ contract MemeToken is ERC721Token {
   Registry public registry;
 
   modifier onlyRegistryEntry() {
-    require(registry.isRegistryEntry(msg.sender));
+    require(registry.isRegistryEntry(msg.sender),"MemeToken: onlyRegistryEntry failed");
     _;
   }
 

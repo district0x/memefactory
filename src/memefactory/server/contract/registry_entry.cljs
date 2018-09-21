@@ -63,6 +63,9 @@
 (defn claim-vote-reward [contract-addr & [opts]]
   (contract-call (instance :meme contract-addr) :claim-vote-reward (:from opts) (merge {:gas 500000} opts)))
 
+(defn reclaim-vote-amount [contract-addr & [opts]]
+  (contract-call (instance :meme contract-addr) :reclaim-vote-amount (:from opts) (merge {:gas 500000} opts)))
+
 (defn load-vote [contract-addr voter-address]
   (parse-load-vote
     contract-addr

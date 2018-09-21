@@ -1,24 +1,22 @@
 (ns memefactory.server.deployer
-  (:require
-    [cljs-web3.core :as web3]
-    [cljs-web3.eth :as web3-eth]
-    [district.cljs-utils :refer [rand-str]]
-    [district.server.config :refer [config]]
-    [district.server.smart-contracts :refer [contract-event-in-tx contract-address deploy-smart-contract! write-smart-contracts!]]
-    [district.server.web3 :refer [web3]]
-    [memefactory.server.contract.dank-token :as dank-token]
-    [memefactory.server.contract.ds-auth :as ds-auth]
-    [memefactory.server.contract.ds-guard :as ds-guard]
-    [memefactory.server.contract.eternal-db :as eternal-db]
-    [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
-    [memefactory.server.contract.mutable-forwarder :as mutable-forwarder]
-    [memefactory.server.contract.registry :as registry]
-    [mount.core :as mount :refer [defstate]]))
+  (:require [cljs-web3.eth :as web3-eth]
+            [district.cljs-utils :refer [rand-str]]
+            [district.server.config :refer [config]]
+            [district.server.smart-contracts :refer [contract-event-in-tx contract-address deploy-smart-contract! write-smart-contracts!]]
+            [district.server.web3 :refer [web3]]
+            [district.shared.error-handling :refer [try-catch-throw]]
+            [memefactory.server.contract.dank-token :as dank-token]
+            [memefactory.server.contract.ds-auth :as ds-auth]
+            [memefactory.server.contract.ds-guard :as ds-guard]
+            [memefactory.server.contract.eternal-db :as eternal-db]
+            [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
+            [memefactory.server.contract.mutable-forwarder :as mutable-forwarder]
+            [memefactory.server.contract.registry :as registry]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]
+            [cljs-web3.core :as web3]))
 
 (declare deploy)
-(defstate ^{:on-reload :noop} deployer
-  :start (deploy (merge (:deployer @config)
-                        (:deployer (mount/args)))))
 
 (def registry-placeholder "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed")
 (def dank-token-placeholder "deaddeaddeaddeaddeaddeaddeaddeaddeaddead")
@@ -49,14 +47,14 @@
                                                                             meme-auction-cut]})))
 
 (defn deploy-meme-registry-db! [default-opts]
-  (deploy-smart-contract! :meme-registry-db (merge default-opts {:gas 1700000})))
+  (deploy-smart-contract! :meme-registry-db (merge default-opts {:gas #_1700000 2000000})))
 
 (defn deploy-param-change-registry-db! [default-opts]
-  (deploy-smart-contract! :param-change-registry-db (merge default-opts {:gas 1700000})))
+  (deploy-smart-contract! :param-change-registry-db (merge default-opts {:gas #_1700000 2000000})))
 
 
 (defn deploy-meme-registry! [default-opts]
-  (deploy-smart-contract! :meme-registry (merge default-opts {:gas 1000000})))
+  (deploy-smart-contract! :meme-registry (merge default-opts {:gas 1500000 #_1000000})))
 
 (defn deploy-param-change-registry! [default-opts]
   (deploy-smart-contract! :param-change-registry (merge default-opts {:gas 1700000})))
@@ -73,18 +71,20 @@
                                                              {forwarder-target-placeholder :param-change-registry}})))
 
 (defn deploy-meme! [default-opts]
-  (deploy-smart-contract! :meme (merge default-opts {:gas 4000000
-                                                     :placeholder-replacements
-                                                     {dank-token-placeholder :DANK
-                                                      registry-placeholder :meme-registry-fwd
-                                                      district-config-placeholder :district-config
-                                                      meme-token-placeholder :meme-token}})))
+  (try-catch-throw
+   (deploy-smart-contract! :meme (merge default-opts {:gas 6721975
+                                                      :placeholder-replacements
+                                                      {dank-token-placeholder :DANK
+                                                       registry-placeholder :meme-registry-fwd
+                                                       district-config-placeholder :district-config
+                                                       meme-token-placeholder :meme-token}}))))
 
 (defn deploy-param-change! [default-opts]
-  (deploy-smart-contract! :param-change (merge default-opts {:gas 3700000
-                                                             :placeholder-replacements
-                                                             {dank-token-placeholder :DANK
-                                                              registry-placeholder :param-change-registry-fwd}})))
+  (try-catch-throw
+   (deploy-smart-contract! :param-change (merge default-opts {:gas 6000000
+                                                              :placeholder-replacements
+                                                              {dank-token-placeholder :DANK
+                                                               registry-placeholder :param-change-registry-fwd}}))))
 
 
 (defn deploy-meme-factory! [default-opts]
@@ -164,7 +164,6 @@
                       :dst (contract-address :ds-guard)
                       :sig ds-guard/ANY}
                      deploy-opts)
-
 
     (deploy-meme-token! deploy-opts)
 

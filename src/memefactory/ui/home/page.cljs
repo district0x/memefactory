@@ -1,64 +1,102 @@
 (ns memefactory.ui.home.page
   (:require
-    [district.ui.component.page :refer [page]]
-    [district.ui.graphql.subs :as gql]
-    [memefactory.ui.home.events]
-    [re-frame.core :refer [subscribe]]))
+   [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
+   [memefactory.ui.marketplace.events :as mk-events]
+   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [re-frame.core :refer [subscribe dispatch]]
+   [reagent.core :as r]
+   [react-infinite]
+   [memefactory.shared.utils :as shared-utils]
+   [memefactory.ui.components.tiles :as tiles]
+   [print.foo :refer [look] :include-macros true]
+   [memefactory.ui.utils :as utils]))
 
-(defn component2 [{:keys [:a]}]
-  (let [data (subscribe [::gql/query {:queries [[:search-memes
-                                                 {:a a}
-                                                 [[:items [:meme/title]]]]
-                                                [:meme
-                                                 {:reg-entry/address "0x123"}
-                                                 [:meme/title]]]}])]
-    (fn []
-      [:div
-       (cond
-         (:graphql/loading? @data)
-         [:div "Loading..."]
+(defn auctions-list [auctions]
+  [:div.tiles
+   (doall
+    (for [{:keys [:meme-auction/address] :as auc} auctions]
+      (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
+        ^{:key address}
+        [tiles/auction-tile {:on-buy-click #()} auc])))])
 
-         (:graphql/errors @data)
-         [:div "Error: " (first (:graphql/errors @data))]
+(def auction-node-graph [:meme-auction/address
+                         :meme-auction/start-price
+                         :meme-auction/end-price
+                         :meme-auction/duration
+                         :meme-auction/description
+                         [:meme-auction/seller [:user/address]]
+                         [:meme-auction/meme-token
+                          [:meme-token/number
+                           [:meme-token/meme
+                            [:meme/title
+                             :meme/image-hash
+                             :meme/total-minted]]]]])
 
-         :else
-         (for [{:keys [:meme/title]} (:items (:search-memes @data))]
-           [:div
-            {:key title}
-            title]))])))
+(def new-on-marketplace-query
+  [:search-meme-auctions
+   {:order-by :meme-auctions.order-by/started-on
+    :first 6}
+   [[:items auction-node-graph]]])
 
+(def rare-finds-query
+  [:search-meme-auctions
+   {:order-by :meme-auctions.order-by/meme-total-minted
+    :order-dir :asc
+    :first 6}
+   [[:items auction-node-graph]]])
 
-(defn component1 [{:keys [:id]}]
-  (let [data (subscribe [::gql/query {:operation {:operation/type :query
-                                                  :operation/name :memes-query}
-                                      :queries [[:search-memes
-                                                 {:a :$id}
-                                                 [[:items [:meme/title]]]]]
-                                      :variables [{:variable/name :$id
-                                                   :variable/type :Int!}]}
-                         {:variables {:id id}}])]
-    (fn []
-      [:div
-       (cond
-         (:graphql/loading? @data)
-         [:div "Loading..."]
-
-         (:graphql/errors @data)
-         [:div "Error: " (first (:graphql/errors @data))]
-
-         :else
-         (for [{:keys [:meme/title]} (:items (:search-memes (print.foo/look @data)))]
-           [:div
-            {:key title}
-            title]))
-       [component2
-        {:a 54}]])))
+(def random-picks-query
+  [:search-meme-auctions
+   {:order-by :meme-auctions.order-by/random
+    :first 6}
+   [[:items auction-node-graph]]])
 
 (defmethod page :route/home []
-  [:div
-   [component2
-    {:a 92}]
-   [component1
-    {:id 77}]
-   [component1
-    {:id 79}]])
+  (let [search-atom (r/atom {:term ""})
+        new-on-market (subscribe [::gql/query {:queries [new-on-marketplace-query]}])
+        rare-finds (subscribe [::gql/query {:queries [rare-finds-query]}])
+        random-picks (subscribe [::gql/query {:queries [random-picks-query]}])] 
+    (fn []
+      [app-layout
+       {:meta {:title "MemeFactory"
+               :description "Description"}
+        :search-atom search-atom}
+       [:div.home
+        [:p.inspired "Inspired by the work of Simon de la Rouviere and his Curation Markets design, the third district to be deployed to dthe district0x."]
+        [:section.meme-highlights
+         [:div.new-on-marketplace
+          [:div.icon]
+          [:div.header
+           [:div.middle
+            [:h2.title "New On Marketplace"]
+            [:h3.title "Lorem ipsum ..."]]]
+          [auctions-list (-> @new-on-market :search-meme-auctions :items)]
+          [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
+                                                 {:order-by "started-on"
+                                                  :order-dir "desc"})} "See More"]]
+
+         [:div.rare-finds
+          [:div.icon]
+          [:div.header
+           [:div.middle
+            [:h2.title "Rare Finds"]
+            [:h3.title "Lorem ipsum ..."]]]
+          [auctions-list (-> @rare-finds :search-meme-auctions :items)]
+          [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
+                                                 {:order-by "meme-total-minted"
+                                                  :order-dir "asc"})}
+           "See More"]]
+
+         [:div.random-pics
+          [:div.icon]
+          [:div.header
+           [:div.middle
+            [:h2.title "Random Picks"]
+            [:h3.title "Lorem ipsum ..."]]]
+          [auctions-list (-> @random-picks :search-meme-auctions :items)]
+          [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
+                                                 {:order-by "random"})}
+           "See More"]]]]])))
+
+

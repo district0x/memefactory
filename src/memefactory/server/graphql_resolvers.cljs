@@ -1,22 +1,29 @@
 (ns memefactory.server.graphql-resolvers
-  (:require [cljs.nodejs :as nodejs]
-            [clojure.string :as string]
-            [district.server.db :as db]
-            [district.graphql-utils :as graphql-utils]
-            [honeysql.core :as sql]
-            [honeysql.helpers :as sqlh]
-            [district.server.web3 :as web3]
+  (:require [bignumber.core :as bn]
+            [cljs-time.core :as t]
             [cljs-web3.core :as web3-core]
             [cljs-web3.eth :as web3-eth]
-            [taoensso.timbre :as log]
-            [memefactory.server.db :as meme-db]
+            [cljs.core.match :refer-macros [match]]
+            [cljs.nodejs :as nodejs]
             [clojure.string :as str]
-            [print.foo :refer [look] :include-macros true])
-  (:require-macros [memefactory.server.macros :refer [try-catch-throw]]))
+            [district.graphql-utils :as graphql-utils]
+            [district.server.config :refer [config]]
+            [district.server.db :as db]
+            [district.server.smart-contracts :as smart-contracts]
+            [district.server.web3 :as web3]
+            [honeysql.core :as sql]
+            [honeysql.helpers :as sqlh]
+            [memefactory.shared.contract.registry-entry :as registry-entry]
+            [print.foo :refer [look] :include-macros true]
+            [taoensso.timbre :as log]
+            [district.shared.error-handling :refer [try-catch-throw]]
+            [memefactory.server.ranks-cache :as ranks-cache]))
 
 (def enum graphql-utils/kw->gql-name)
 
 (def graphql-fields (nodejs/require "graphql-fields"))
+
+(def whitelisted-config-keys [:ipfs])
 
 (defn- query-fields
   "Returns the first order fields"
@@ -24,8 +31,8 @@
   (->> (-> document
            graphql-fields
            (js->clj))
-       (#(if-let [p (name path)]
-           (get-in % [p])
+       (#(if path
+           (get-in % [(-> path enum name)])
            %))
        keys
        (map graphql-utils/gql-name->kw)
@@ -62,17 +69,19 @@
 
 (defn reg-entry-status [now {:keys [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
                                     :challenge/commit-period-end :challenge/commit-period-end
-                                    :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against]}]
-
+                                    :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against] :as reg-entry}]
   (cond
     (and (< now challenge-period-end) (not challenger)) :reg-entry.status/challenge-period
     (< now commit-period-end)                           :reg-entry.status/commit-period
     (< now reveal-period-end)                           :reg-entry.status/reveal-period
-    (or (< votes-against votes-for)
-        (< challenge-period-end now))                   :reg-entry.status/whitelisted
-    :else                                               :reg-entry.status/blacklisted))
+    (and (pos? reveal-period-end)
+         (> now reveal-period-end)) (if (< votes-against votes-for)
+                                      :reg-entry.status/whitelisted
+                                      :reg-entry.status/blacklisted)
+    :else :reg-entry.status/whitelisted))
 
-(defn meme-status-sql-clause [now]
+
+(defn reg-entry-status-sql-clause [now]
   (sql/call ;; TODO: can we remove aliases here?
    :case
    [:and
@@ -80,12 +89,16 @@
     [:= :re.challenge/challenger nil]]                        (enum :reg-entry.status/challenge-period)
    [:< now :re.challenge/commit-period-end]                   (enum :reg-entry.status/commit-period)
    [:< now :re.challenge/reveal-period-end]                   (enum :reg-entry.status/reveal-period)
-   [:or
-    [:< :re.challenge/votes-against :re.challenge/votes-for]
-    [:< :re.reg-entry/challenge-period-end now]]              (enum :reg-entry.status/whitelisted)
-   :else                                                      (enum :reg-entry.status/blacklisted)))
+   [:and
+    [:> :re.challenge/reveal-period-end 0]
+    [:> now :re.challenge/reveal-period-end]]  (sql/call :case
+                                                         [:< :re.challenge/votes-against :re.challenge/votes-for]
+                                                         (enum :reg-entry.status/whitelisted)
 
-(defn search-memes-query-resolver [_ {:keys [:statuses :order-by :order-dir :owner :creator :curator :first :after] :as args}]
+                                                         :else (enum :reg-entry.status/blacklisted))
+   :else (enum :reg-entry.status/whitelisted)))
+
+(defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :order-by :order-dir :owner :creator :curator :first :after] :as args}]
   (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
@@ -100,12 +113,22 @@
                                       :from [[:meme-tokens :mt]]
                                       :join [[:meme-token-owners :mto]
                                              [:= :mto.meme-token/token-id :mt.meme-token/token-id]]} :tokens]
-                                    [:= :m.reg-entry/address :tokens.reg-entry/address]]}
+                                    [:= :m.reg-entry/address :tokens.reg-entry/address]
+                                    [:meme-tags :mtags] [:= :mtags.reg-entry/address :m.reg-entry/address]]}
 
+                 title        (sqlh/merge-where [:like :m.meme/title (str "%" title "%")])
+                 tags          (sqlh/merge-where [:=
+                                                  (count tags)
+                                                  {:select [(sql/call :count :*)]
+                                                   :from [[:meme-tags :mtts]]
+                                                   :where [:and
+                                                                     [:= :mtts.reg-entry/address :m.reg-entry/address]
+                                                                     [:in :mtts.tag/name tags]]}])
+                 tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  creator      (sqlh/merge-where [:= :re.reg-entry/creator creator])
                  curator      (sqlh/merge-where [:= :re.challenge/challenger curator])
                  owner        (sqlh/merge-where [:= :tokens.meme-token/owner owner])
-                 statuses-set (sqlh/merge-where [:in (meme-status-sql-clause now) statuses-set])
+                 statuses-set (sqlh/merge-where [:in (reg-entry-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:memes.order-by/reveal-period-end    :re.challenge/reveal-period-end
                                                            :memes.order-by/commited-period-end  :re.challenge/commit-period-end
                                                            :memes.order-by/challenge-period-end :re.reg-entry/challenge-period-end
@@ -128,11 +151,10 @@
          query (cond-> {:select [:mto.* :mt.*]
                         :from [[:meme-tokens :mt]]
                         :join [[:reg-entries :re] [:= :mt.reg-entry/address :re.reg-entry/address]
-                               [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]
-                               [:meme-auctions :ma] [:= :ma.meme-auction/token-id :mt.meme-token/token-id]]
+                               [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]]
                         :left-join [[:meme-token-owners :mto] [:= :mto.meme-token/token-id :mt.meme-token/token-id]]}
                  owner        (sqlh/merge-where [:= :mto.meme-token/owner owner])
-                 statuses-set (sqlh/merge-where [:in (meme-status-sql-clause now) statuses-set])
+                 statuses-set (sqlh/merge-where [:in (reg-entry-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-tokens.order-by/meme-number    :mt.meme-token/number
                                                            :meme-tokens.order-by/meme-title     :m.meme/title
                                                            :meme-tokens.order-by/transferred-on :mt.meme-token/transferred-on
@@ -156,10 +178,12 @@
    :case
    [:not= :ma.meme-auction/canceled-on nil]                                       (enum :meme-auction.status/canceled)
    [:and
-    [:< [:+ :ma.meme-auction/started-on :ma.meme-auction/duration] now]
+    [:<= now [:+ :ma.meme-auction/started-on :ma.meme-auction/duration]]
     [:= :ma.meme-auction/bought-on nil]]                                          (enum :meme-auction.status/active)
    :else                                                                          (enum :meme-auction.status/done)))
 
+;; If testing this by hand remember params like statuses should be string and not keywords
+;; like (search-meme-auctions-query-resolver nil {:statuses [(enum :meme-auction.status/active)]})
 (defn search-meme-auctions-query-resolver [_ {:keys [:title :tags :tags-or :order-by :order-dir :group-by :statuses :seller :first :after] :as args}]
   (log/debug "search-meme-auctions-query-resolver" args)
   (try-catch-throw
@@ -177,21 +201,23 @@
                         :join [[:meme-tokens :mt] [:= :mt.meme-token/token-id :ma.meme-auction/token-id]
                                [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]]
                         :left-join [[:meme-tags :mtags] [:= :mtags.reg-entry/address :m.reg-entry/address]]}
-                 title         (sqlh/merge-where [:= :m.meme/title title])
+                 title         (sqlh/merge-where [:like :m.meme/title (str "%" title "%")])
                  seller        (sqlh/merge-where [:= :ma.meme-auction/seller seller])
                  tags          (sqlh/merge-where [:=
                                                   (count tags)
                                                   {:select [(sql/call :count :*)]
                                                    :from [[:meme-tags :mtts]]
                                                    :where [:and
-                                                                     [:= :mtts.reg-entry/address :m.reg-entry/address]
-                                                                     [:in :mtts.tag/name tags]]}])
+                                                           [:= :mtts.reg-entry/address :m.reg-entry/address]
+                                                           [:in :mtts.tag/name tags]]}])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/price      :ma.meme-auction/bought-for
                                                            :meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                            :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
-                                                           :meme-auctions.order-by/token-id   :ma.meme-auction/token-id}
+                                                           :meme-auctions.order-by/token-id   :ma.meme-auction/token-id
+                                                           :meme-auctions.order-by/meme-total-minted :m.meme/total-minted
+                                                           :meme-auctions.order-by/random     (sql/call :random)}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]])
@@ -217,15 +243,52 @@
      (log/debug "param-change query" sql-query)
      sql-query)))
 
-(defn search-param-changes-query-resolver [_ {:keys [:first :after] :as args}]
+(defn search-param-changes-query-resolver [_ {:keys [:key :db :order-by :order-dir :group-by :first :after]
+                                              :or {order-dir :asc}
+                                              :as args}]
   (log/debug "search-param-changes args" args)
   (try-catch-throw
-   (paged-query {:select [:*]
-                 :from [:param-changes]
-                 :join [:reg-entries [:= :reg-entries.reg-entry/address :param-changes.reg-entry/address]]}
-                first
-                (when after
-                  (js/parseInt after)))))
+   ;; or enum address
+   (let [db (if (contains? #{"memeRegistryDb" "paramChangeRegistryDb"} db)
+              (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
+              db)
+         param-changes-query (cond-> {:select [:*]
+                                      :from [:param-changes]
+                                      :left-join [:reg-entries [:= :reg-entries.reg-entry/address :param-changes.reg-entry/address]]}
+
+                               key (sqlh/merge-where [:= key :param-changes.param-change/key])
+
+                               db (sqlh/merge-where [:= db :param-changes.param-change/db])
+
+                               order-by (sqlh/merge-where [:not= nil :param-changes.param-change/applied-on])
+
+                               order-by (sqlh/merge-order-by [[(get {:param-changes.order-by/applied-on :param-changes.param-change/applied-on}
+                                                                    (graphql-utils/gql-name->kw order-by))
+                                                               order-dir]])
+
+                               group-by (merge {:group-by [(get {:param-changes.group-by/key :param-changes.param-change/key}
+                                                                (graphql-utils/gql-name->kw group-by))]}))
+
+         param-changes-result (paged-query param-changes-query
+                                           first
+                                           (when after
+                                             (js/parseInt after)))]
+
+     (if-not (= 0 (:total-count param-changes-result))
+       param-changes-result
+       (do
+         (log/debug "No parameter changes could be retrieved. Querying for initial parameters")
+         (let [initial-params-query {:select [[:initial-params.initial-param/key :param-change/key]
+                                              [:initial-params.initial-param/db :param-change/db]
+                                              [:initial-params.initial-param/value :param-change/value]
+                                              [:initial-params.initial-param/set-on :param-change/applied-on]]
+                                     :from [:initial-params]
+                                     :where [:and [:= key :initial-params.initial-param/key]
+                                             [:= db :initial-params.initial-param/db]]}]
+           (paged-query initial-params-query
+                        first
+                        (when after
+                          (js/parseInt after)))))))))
 
 (defn user-query-resolver [_ {:keys [:user/address] :as args} context debug]
   (log/debug "user args" args)
@@ -255,11 +318,12 @@
                                               :users.order-by/total-created-memes :user/total-created-memes}
                                              (graphql-utils/gql-name->kw order-by)))
          fields (conj (query-fields document :items) order-by-clause)
-         select? (fn [c] (contains? fields c))
+         select? #(contains? fields %)
          query (paged-query {:select (remove nil?
                                              [:*
                                               (when (select? :user/curator-total-earned)
-                                                [[:+ :users.user/voter-total-earned :users.user/challenger-total-earned] :user/curator-total-earned])
+                                                [(sql/call :+ :users.user/voter-total-earned :users.user/challenger-total-earned)
+                                                 :user/curator-total-earned])
                                               (when (select? :user/total-participated-votes-success)
                                                 [{:select [:%count.*]
                                                   :from [:votes]
@@ -351,15 +415,24 @@
      (log/debug "params-query-resolver" sql-query)
      sql-query)))
 
-(defn vote->option-resolver [{:keys [:vote/option] :as vote}]
-  (cond
-    (= 1 option)
-    (enum :vote-option/vote-for)
+(defn overall-stats-resolver [_ _]
+  {:total-memes-count (:count (db/get {:select [[(sql/call :count :*) :count]]
+                                :from [:memes]}))
+   :total-tokens-count (:count (db/get {:select [[(sql/call :count :*) :count]]
+                                        :from [:meme-tokens]}))})
 
-    (= 0 option)
-    (enum :vote-option/vote-against)
+(defn config-query-resolver []
+  (log/debug "config-query-resolver")
+  (try-catch-throw
+   (select-keys @config whitelisted-config-keys)))
 
-    :else (enum :vote-option/no-vote)))
+(defn vote->option-resolver [{:keys [:vote/option :vote/amount] :as vote}]
+   (log/debug "vote->option-resolver args" vote)
+  (match [(nil? amount) (= 1 option) (= 2 option)]
+         [true _ _] (enum :vote-option/no-vote)
+         [false true false] (enum :vote-option/vote-for)
+         [false false true] (enum :vote-option/vote-against)
+         [false _ _] (enum :vote-option/not-revealed)))
 
 (defn reg-entry->status-resolver [reg-entry]
   (enum (reg-entry-status (last-block-timestamp) reg-entry)))
@@ -367,6 +440,51 @@
 (defn reg-entry->creator-resolver [{:keys [:reg-entry/creator] :as reg-entry}]
   (log/debug "reg-entry->creator-resolver args" reg-entry)
   {:user/address creator})
+
+(defn reg-entry-winning-vote-option [{:keys [:reg-entry/address]}]
+  (->> (db/all {:select [:vote/option [(sql/call :count) :count]]
+                :from [:votes]
+                :where [:and
+                        [:not= :vote/revealed-on nil]
+                        [:= :reg-entry/address address]]
+                :group-by [:vote/option]})
+       (apply (partial max-key :count))
+       :vote/option
+       registry-entry/vote-options))
+
+(defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
+  (log/debug "reg-entry->vote-winning-vote-option-resolver args" args)
+  (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry))
+    (let [{:keys [:vote/option]} (db/get {:select [:vote/option]
+                                          :from [:votes]
+                                          :where [:and
+                                                  [:= address :reg-entry/address]
+                                                  [:= voter :vote/voter]]})]
+      (and option
+           (= option (reg-entry-winning-vote-option reg-entry))))))
+
+(defn reg-entry->all-rewards-resolver [{:keys [:reg-entry/address :challenge/reward-pool :challenge/claimed-reward-on
+                                               :reg-entry/deposit :challenge/challenger :challenge/votes-against :challenge/votes-for] :as reg-entry} args]
+  (let [challenger-amount (if (and (zero? claimed-reward-on)
+                                   (= challenger (:user/address args)))
+                            (- deposit reward-pool)
+                            0)
+        voter-amount (let [{:keys [:vote/option :vote/amount]}
+                           (db/get {:select [:vote/option :vote/amount]
+                                    :from [:votes]
+                                    :where [:and
+                                            [:= address :reg-entry/address]
+                                            [:= (:user/address args) :vote/voter]]})
+                           winning-option (reg-entry-winning-vote-option reg-entry)
+                           winning-amount (case winning-option
+                                            :vote.option/vote-against votes-against
+                                            :vote.option/vote-for votes-for
+                                            0)]
+                       (if (and (= winning-option (registry-entry/vote-options option))
+                                (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry)))
+                         (/ (* amount reward-pool) winning-amount)
+                         0))]
+    (+ challenger-amount voter-amount)))
 
 (defn reg-entry->challenger [{:keys [:challenge/challenger] :as reg-entry}]
   (log/debug "reg-entry->challenger-resolver args" reg-entry)
@@ -382,19 +500,23 @@
   (log/debug "challenge->votes-total-resolver args" reg-entry)
   (+ votes-against votes-for))
 
-(defn vote->reward-resolver [{:keys [:reg-entry/address :challenge/reward-pool :vote/option] :as vote}]
+(defn vote->reward-resolver [{:keys [:reg-entry/address :vote/option] :as vote}]
   (log/debug "vote->reward-resolver args" vote)
   (try-catch-throw
-   (let [now (last-block-timestamp)
-         status (reg-entry-status now vote)
-         {:keys [:votes/for :votes/against] :as sql-query} (db/get {:select [[{:select [:%count.*]
-                                                                               :from [:votes]
-                                                                               :where [:and [:= address :votes.reg-entry/address]
-                                                                                       [:= 1 :votes.vote/option]]} :votes/for]
-                                                                             [{:select [:%count.*]
-                                                                               :from [:votes]
-                                                                               :where [:and [:= address :votes.reg-entry/address]
-                                                                                       [:= 2 :votes.vote/option]]} :votes/against]]})]
+   (let [status (reg-entry-status (last-block-timestamp) (db/get {:select [:*]
+                                                                  :from [:reg-entries]
+                                                                  :where [:= address :reg-entry/address]}))
+         {:keys [:challenge/reward-pool :votes/for :votes/against] :as sql-query} (db/get {:select [[{:select [:challenge/reward-pool]
+                                                                                                      :from [:reg-entries]
+                                                                                                      :where [:= address :reg-entry/address]} :challenge/reward-pool]
+                                                                                                    [{:select [:%count.*]
+                                                                                                      :from [:votes]
+                                                                                                      :where [:and [:= address :votes.reg-entry/address]
+                                                                                                              [:= 1 :votes.vote/option]]} :votes/for]
+                                                                                                    [{:select [:%count.*]
+                                                                                                      :from [:votes]
+                                                                                                      :where [:and [:= address :votes.reg-entry/address]
+                                                                                                              [:= 2 :votes.vote/option]]} :votes/against]]})]
      (log/debug "vote->reward-resolver query" sql-query)
      (cond
        (and (= :reg-entry.status/whitelisted status)
@@ -402,18 +524,19 @@
        (/ reward-pool for)
 
        (and (= :reg-entry.status/blacklisted status)
-            (= option 0))
+            (= option 2))
        (/ reward-pool against)
 
        :else nil))))
 
-(defn reg-entry->vote [{:keys [:reg-entry/address] :as reg-entry} {:keys [:vote/voter]}]
-  (log/debug "reg-entry->vote args" {:reg-entry reg-entry :voter voter} )
+(defn reg-entry->vote-resolver [{:keys [:reg-entry/address] :as reg-entry} {:keys [:vote/voter]}]
+  (log/debug "reg-entry->vote args" {:reg-entry reg-entry :voter voter})
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:votes]
-                            :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
-                            :where [:= voter :votes.vote/voter]})]
+                            :where [:and
+                                    [:= voter :votes.vote/voter]
+                                    [:= address :votes.reg-entry/address]]})]
      (log/debug "reg-entry->vote query" sql-query)
      sql-query)))
 
@@ -422,8 +545,7 @@
    (let [query (merge {:select [:mto.* :mt.*]
                        :modifiers [:distinct]
                        :from [[:meme-tokens :mt]]
-                       :join [[:reg-entries :re] [:= :mt.reg-entry/address :re.reg-entry/address]
-                              [:meme-auctions :ma] [:= :ma.meme-auction/token-id :mt.meme-token/token-id]]
+                       :join [[:reg-entries :re] [:= :mt.reg-entry/address :re.reg-entry/address]]
                        :left-join [[:meme-token-owners :mto] [:= :mto.meme-token/token-id :mt.meme-token/token-id]]
                        :where [:and
                                [:= :mt.reg-entry/address address]
@@ -435,6 +557,26 @@
    (db/all {:select [:tag/name]
             :from [:meme-tags]
             :where [:= :reg-entry/address address]})))
+
+(defn meme->meme-auctions-resolver [{:keys [:reg-entry/address] :as meme} {:keys [:order-by :order-dir] :as opts}]
+  (log/debug "meme->meme-auctions-resolver" {:args meme :opts opts})
+  (try-catch-throw
+   (let [sql-query (db/all (merge {:select [:*]
+                                   :from [:meme-auctions]
+                                   :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-auctions.meme-auction/token-id]
+                                          :memes [:= :memes.reg-entry/address :meme-tokens.reg-entry/address]]
+                                   :where [:= :memes.reg-entry/address address]}
+                                  (when order-by
+                                    {:order-by [[(get {:meme-auctions.order-by/token-id :meme-auctions.meme-auction/token-id
+                                                       :meme-auctions.order-by/seller :meme-auctions.meme-auction/seller
+                                                       :meme-auctions.order-by/buyer :meme-auctions.meme-auction/buyer
+                                                       :meme-auctions.order-by/price :meme-auctions.meme-auction/bought-for
+                                                       :meme-auctions.order-by/bought-on :meme-auctions.meme-auction/bought-on}
+                                                      (graphql-utils/gql-name->kw order-by))
+                                                 (or (keyword order-dir) :asc)]]})))]
+
+     (log/debug "meme->meme-auctions-resolver query" sql-query)
+     sql-query)))
 
 (defn meme-list->items-resolver [meme-list]
   (:items meme-list))
@@ -471,7 +613,7 @@
   {:user/address seller})
 
 (defn meme-auction->buyer-resolver [{:keys [:meme-auction/buyer :meme-auction/bought-on] :as meme-auction}]
-  (log/debug "meme-auction->buyer-resolver args" bought-on)
+  (log/debug "meme-auction->buyer-resolver args" meme-auction)
   (when bought-on
     {:user/address buyer}))
 
@@ -545,9 +687,9 @@
                             :from [:meme-auctions]
                             :join [:reg-entries [:= address :reg-entries.reg-entry/creator]
                                    :memes [:= :memes.reg-entry/address :reg-entries.reg-entry/address]]
-                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/end-price)]
+                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/bought-for)]
                                               :from [:meme-auctions]}
-                                          :meme-auctions.meme-auction/end-price]
+                                          :meme-auctions.meme-auction/bought-for]
                                     [:= address :meme-auction/seller]]})]
      (log/debug "user->creator-largest-sale-resolver query" sql-query)
      sql-query)))
@@ -557,12 +699,14 @@
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:meme-auctions]
-                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/end-price)]
-                                              :from [:meme-auctions]}
-                                          :meme-auctions.meme-auction/end-price]
+                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/bought-for)]
+                                              :from [:meme-auctions]
+                                              :where [:= address :meme-auction/seller]}
+                                          :meme-auctions.meme-auction/bought-for]
                                     [:= address :meme-auction/seller]]})]
      (log/debug "user->largest-sale-resolver query" sql-query)
-     sql-query)))
+     (when (not-empty sql-query)
+       sql-query))))
 
 (defn user->total-collected-token-ids-resolver
   "Amount of meme tokenIds owned by user"
@@ -585,8 +729,8 @@
   (try-catch-throw
    (if total-collected-memes
      total-collected-memes
-     (let [sql-query (when address 
-                       (db/get {:select [[(sql/call :count-distinct :meme-tokens.reg-entry/address) :user/total-collected-memes]] 
+     (let [sql-query (when address
+                       (db/get {:select [[(sql/call :count-distinct :meme-tokens.reg-entry/address) :user/total-collected-memes]]
                                 :from [:meme-token-owners]
                                 :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-token-owners.meme-token/token-id]]
                                 :where [:= address :meme-token-owners.meme-token/owner]}))]
@@ -631,7 +775,7 @@
                        (db/get {:select [[:%count.* :user/total-created-challenges-success]]
                                 :from [:reg-entries]
                                 :where [:and [:> (last-block-timestamp) :reg-entries.challenge/reveal-period-end]
-                                        [:> :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
+                                        [:< :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
                                         [:= address :reg-entries.challenge/challenger]]}))]
        (log/debug "user->total-created-challenges-success-resolver query" sql-query)
        (:user/total-created-challenges-success sql-query)))))
@@ -660,14 +804,20 @@
      total-participated-votes-success
      (let [now (last-block-timestamp)
            sql-query (when address
-                       (db/get {:select [[:%count.* :user/total-participated-votes-success]]
+                       (db/all {:select [:*]
                                 :from [:votes]
                                 :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
-                                :where [:and [:> now :reg-entries.challenge/reveal-period-end]
-                                        [:> :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
-                                        [:= address :votes.vote/voter]]}))]
+                                :where [:= address :votes.vote/voter]}))]
        (log/debug "user->total-participated-votes-success-resolver query" sql-query)
-       (:user/total-participated-votes-success sql-query)))))
+       (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
+                 (let [ status (reg-entry-status (last-block-timestamp) reg-entry)]
+                   (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
+                           (and (= :reg-entry.status/blacklisted status) (= 2 option)))
+                     (inc total)
+                     total)
+                   ))
+               0
+               sql-query)))))
 
 (defn user->curator-total-earned-resolver
   [{:keys [:user/voter-total-earned
@@ -679,6 +829,76 @@
      curator-total-earned
      (when (and voter-total-earned challenger-total-earned)
        (+ voter-total-earned challenger-total-earned)))))
+
+(defn user->creator-total-earned-resolver [user]
+  (try-catch-throw
+   (->> (db/all {:select [:*]
+                 :from [:meme-auctions]
+                 :where  [:= :meme-auction/seller (:user/address user)]})
+        (map :meme-auction/bought-for)
+        (reduce +))))
+
+(defn all-users [] (db/all {:select [:*] :from [:users]}))
+
+(defn creator-rank []
+  (let [users-whitelisted-memes (->> (db/all {:select [:re.reg-entry/creator [(sql/call :count :*) :count] [(reg-entry-status-sql-clause (last-block-timestamp)) :status]]
+                                              :from [[:reg-entries :re]]
+                                              :group-by [:status]
+                                              :having [:= :status (graphql-utils/kw->gql-name :reg-entry.status/whitelisted)]})
+                                    (map (fn [{:keys [:reg-entry/creator :count]}] [creator count]))
+                                    (into {}))]
+    (->> (all-users)
+         (map #(assoc % :white-listed-memes (get users-whitelisted-memes (:user/address %) 0)))
+         (sort-by :white-listed-memes >)
+         (map-indexed (fn [idx u] [(:user/address u) idx]))
+         (into {}))))
+
+(defn challenger-rank []
+  (->> (db/all {:select [:u.user/address :u.user/challenger-total-earned]
+                :from [[:users :u]]
+                :order-by [[:u.user/challenger-total-earned :desc]]})
+       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (into {})))
+
+(defn voter-rank []
+  (->> (db/all {:select [:u.user/address :u.user/voter-total-earned]
+                :from [[:users :u]]
+                :order-by [[:u.user/voter-total-earned :desc]]})
+       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (into {})))
+
+(defn curator-rank []
+  (->> (db/all {:select [:u.user/address [(sql/call :+ :u.user/challenger-total-earned :u.user/voter-total-earned) :curator-total-earned]]
+                :from [[:users :u]]
+                :order-by [[:curator-total-earned :desc]]})
+       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (into {})))
+
+(defn user->creator-rank-resolver [{:keys [:user/address]}]
+  (get (ranks-cache/get-rank :creator-rank creator-rank)
+       address))
+
+(defn user->challenger-rank-resolver [{:keys [:user/address]}]
+  (get (ranks-cache/get-rank :challenger-rank challenger-rank)
+       address))
+
+(defn user->voter-rank-resolver [{:keys [:user/address]}]
+  (get (ranks-cache/get-rank :voter-rank voter-rank)
+       address))
+
+(defn user->curator-rank-resolver [{:keys [:user/address]}]
+  (get (ranks-cache/get-rank :curator-rank curator-rank)
+       address))
+
+;; TODO: test
+(defn param-change->original-value-resolver [{:keys [:param-change/db :param-change/key] :as args}]
+  (log/debug "param-change->original-value-resolver" args)
+  (:param-change/value (second (db/all {:select [:param-change/value]
+                                        :from [:param-changes]
+                                        :where [:and [:not= :param-changes.param-change/applied-on nil]
+                                                [:= key :param-changes.param-change/key]]
+                                        :order-by [[:param-changes.param-change/applied-on :asc]]
+                                        :limit 2}))))
 
 (def resolvers-map
   {:Query {:meme meme-query-resolver
@@ -692,15 +912,21 @@
            :user user-query-resolver
            :search-users search-users-query-resolver
            :param param-query-resolver
-           :params params-query-resolver}
+           :params params-query-resolver
+           :overall-stats overall-stats-resolver
+           :config config-query-resolver}
    :Vote {:vote/option vote->option-resolver
           :vote/reward vote->reward-resolver}
    :Meme {:reg-entry/status reg-entry->status-resolver
           :reg-entry/creator reg-entry->creator-resolver
+          :challenge/vote-winning-vote-option reg-entry->vote-winning-vote-option-resolver
+          :challenge/all-rewards reg-entry->all-rewards-resolver
           :challenge/challenger reg-entry->challenger
-          :challenge/vote reg-entry->vote
+          :challenge/votes-total reg-entry->votes-total-resolver
+          :challenge/vote reg-entry->vote-resolver
           :meme/owned-meme-tokens meme->owned-meme-tokens
-          :meme/tags meme->tags}
+          :meme/tags meme->tags
+          :meme/meme-auctions meme->meme-auctions-resolver}
    :MemeList {:items meme-list->items-resolver}
    :TagList {:items tag-list->items-resolver}
    :MemeToken {:meme-token/owner meme-token->owner-resolver
@@ -715,7 +941,8 @@
                  :reg-entry/creator reg-entry->creator-resolver
                  :challenge/challenger reg-entry->challenger
                  :challenge/votes-total reg-entry->votes-total-resolver
-                 :challenge/vote reg-entry->vote}
+                 :challenge/vote reg-entry->vote-resolver
+                 :param-change/original-value param-change->original-value-resolver}
    :ParamChangeList {:items param-change-list->items-resolver}
    :User {:user/total-created-memes user->total-created-memes-resolver
           :user/total-created-memes-whitelisted user->total-created-memes-whitelisted-resolver
@@ -728,6 +955,10 @@
           :user/total-created-challenges-success user->total-created-challenges-success-resolver
           :user/total-participated-votes user->total-participated-votes-resolver
           :user/total-participated-votes-success user->total-participated-votes-success-resolver
-          :user/curator-total-earned user->curator-total-earned-resolver}
+          :user/curator-total-earned user->curator-total-earned-resolver
+          :user/creator-total-earned user->creator-total-earned-resolver
+          :user/creator-rank user->creator-rank-resolver
+          :user/challenger-rank user->challenger-rank-resolver
+          :user/voter-rank user->voter-rank-resolver
+          :user/curator-rank user->curator-rank-resolver}
    :UserList {:items user-list->items-resolver}})
-

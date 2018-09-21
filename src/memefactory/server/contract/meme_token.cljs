@@ -1,7 +1,8 @@
 (ns memefactory.server.contract.meme-token
   (:require
     [district.server.smart-contracts :refer [contract-call contract-address]]
-    [memefactory.server.contract.meme-auction :as meme-auction]))
+    [memefactory.server.contract.meme-auction :as meme-auction]
+    [district.shared.error-handling :refer [try-catch]]))
 
 (defn total-supply []
   (contract-call :meme-token :total-supply))
@@ -18,14 +19,12 @@
 (defn safe-transfer-from [{:keys [:from :to :token-id]} & [opts]]
   (contract-call :meme-token :safe-transfer-from from to token-id (merge {:gas 3000000} opts)))
 
-(defn transfer-multi-and-start-auction [{:keys [:from :token-ids :start-price :end-price :duration] :as params} & [opts]]
+(defn transfer-multi-and-start-auction [{:keys [:from :token-ids :start-price :end-price :duration :description] :as params} & [opts]]
   (safe-transfer-from-multi {:from from
                              :to (contract-address :meme-auction-factory-fwd)
                              :token-ids token-ids
-                             :data (meme-auction/start-auction-data (select-keys params [:start-price :end-price :duration]))}
+                             :data (meme-auction/start-auction-data (select-keys params [:start-price :end-price :duration :description]))}
                             opts))
 
-(defn transfer-event [& args]
+(defn meme-token-transfer-event [& args]
   (apply contract-call :meme-token :Transfer args))
-
-

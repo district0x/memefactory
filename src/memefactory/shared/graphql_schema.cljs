@@ -7,8 +7,12 @@
   type Query {
     meme(regEntry_address: ID!): Meme
     searchMemes(statuses: [RegEntryStatus],
+                title: String,
+                tags: [ID],
+                tagsOr: [ID],
                 orderBy: MemesOrderBy,
                 orderDir: OrderDir,
+                groupBy: MemesGroupBy,
                 owner: String,
                 creator: String,
                 curator: String,
@@ -40,9 +44,13 @@
     searchTags(first: Int, after: String): TagList
 
     paramChange(regEntry_address: ID!): ParamChange
-    searchParamChanges(
-      first: Int,
-      after: String
+    searchParamChanges(key: String!,
+                       db: String!,
+                       orderBy: ParamChangesOrderBy,
+                       orderDir: OrderDir,
+                       groupBy: ParamChangesGroupBy,
+                       first: Int,
+                       after: String
     ): ParamChangeList
 
     user(user_address: ID!): User
@@ -54,6 +62,8 @@
 
     param(db: String!, key: String!): Parameter
     params(db: String!, keys: [String!]): [Parameter]
+    overallStats : OverallStats
+    config: Config
   }
 
   enum OrderDir {
@@ -71,6 +81,10 @@
     memes_orderBy_totalMinted
   }
 
+  enum MemesGroupBy {
+    memes_groupBy_title
+  }
+
   enum MemeTokensOrderBy {
     memeTokens_orderBy_memeNumber
     memeTokens_orderBy_memeTitle
@@ -79,15 +93,19 @@
   }
 
   enum MemeAuctionsOrderBy {
+    memeAuctions_orderBy_seller
+    memeAuctions_orderBy_buyer
     memeAuctions_orderBy_price
     memeAuctions_orderBy_startedOn
     memeAuctions_orderBy_boughtOn
     memeAuctions_orderBy_tokenId
+    memeAuctions_orderBy_memeTotalMinted
+    memeAuctions_orderBy_random
   }
 
   enum UsersOrderBy {
     users_orderBy_address
-    Users_orderBy_voterTotalEarned
+    users_orderBy_voterTotalEarned
     users_orderBy_challengerTotalEarned
     users_orderBy_curatorTotalEarned
     users_orderBy_totalParticipatedVotesSuccess
@@ -103,6 +121,14 @@
   enum MemeAuctionsGroupBy {
     memeAuctions_groupBy_cheapest
   }
+
+  enum ParamChangesOrderBy {
+    paramChanges_orderBy_appliedOn
+  }
+
+   enum ParamChangesGroupBy {
+     paramChanges_groupBy_key
+   }
 
   enum RegEntryStatus {
     regEntry_status_challengePeriod
@@ -127,17 +153,20 @@
     challenge_rewardPool: Int
     challenge_commitPeriodEnd: Date
     challenge_revealPeriodEnd: Date
-    challenge_votesFor: Int
-    challenge_votesAgainst: Int
-    challenge_votesTotal: Int
+    challenge_votesFor: Float
+    challenge_votesAgainst: Float
+    challenge_votesTotal: Float
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
+    challenge_voteWinningVoteOption(vote_voter: ID!): Boolean
+    challenge_allRewards(user_address: ID!): Int
   }
 
   enum VoteOption {
     voteOption_noVote
     voteOption_voteFor
     voteOption_voteAgainst
+    voteOption_notRevealed
   }
 
   type Vote {
@@ -146,6 +175,7 @@
     vote_amount: Float
     vote_revealedOn: Date
     vote_claimedRewardOn: Date
+    vote_reclaimedAmountOn: Date
     vote_reward: Int
   }
 
@@ -164,11 +194,13 @@
     challenge_rewardPool: Int
     challenge_commitPeriodEnd: Date
     challenge_revealPeriodEnd: Date
-    challenge_votesFor: Int
-    challenge_votesAgainst: Int
-    challenge_votesTotal: Int
+    challenge_votesFor: Float
+    challenge_votesAgainst: Float
+    challenge_votesTotal: Float
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
+    challenge_voteWinningVoteOption(vote_voter: ID!): Boolean
+    challenge_allRewards(user_address: ID!): Int
 
     \"Balance of voting token of a voter. This is client-side only, server doesn't return this\"
     challenge_availableVoteAmount(voter: ID!): Int
@@ -187,6 +219,8 @@
     meme_ownedMemeTokens(owner: String): [MemeToken]
 
     meme_tags: [Tag]
+    meme_memeAuctions(orderBy: MemeAuctionsOrderBy,
+                      orderDir: OrderDir): [MemeAuction]
   }
 
   type MemeList {
@@ -239,6 +273,7 @@
     memeAuction_boughtOn: Date
     memeAuction_status: MemeAuctionStatus
     memeAuction_memeToken: MemeToken
+    memeAuction_description: String
   }
 
   type MemeAuctionList {
@@ -263,19 +298,21 @@
     challenge_rewardPool: Int
     challenge_commitPeriodEnd: Date
     challenge_revealPeriodEnd: Date
-    challenge_votesFor: Int
-    challenge_votesAgainst: Int
-    challenge_votesTotal: Int
+    challenge_votesFor: Float
+    challenge_votesAgainst: Float
+    challenge_votesTotal: Float
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
+    challenge_voteWinningVoteOption(vote_voter: ID!): Boolean
+    challenge_allRewards(user_address: ID!): Int
 
     \"Balance of voting token of a voter. This is client-side only, server doesn't return this\"
     challenge_availableVoteAmount(voter: ID!): Int
 
     paramChange_db: String
     paramChange_key: String
-    paramChange_value: Int
-    paramChange_originalValue: Int
+    paramChange_value: Float
+    paramChange_originalValue: Float
     paramChange_appliedOn: Date
   }
 
@@ -341,6 +378,9 @@
     \"Sum of user_challengerTotalEarned and user_voterTotalEarned\"
     user_curatorTotalEarned: Float
 
+    \"Users total earned as a creator \"
+    user_creatorTotalEarned: Float
+
     \"Position of curator in leaderboard according to user_curatorTotalEarned\"
     user_curatorRank: Int
   }
@@ -358,4 +398,19 @@
     param_value: Float
   }
 
-")
+  type OverallStats {
+    totalMemesCount: Int
+    totalTokensCount: Int
+  }
+
+  type Config {
+   ipfs: Ipfs
+  }
+
+  type Ipfs {
+    host: String
+    endpoint: String
+    gateway: String
+  }
+"
+  )

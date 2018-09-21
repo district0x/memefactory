@@ -1,0 +1,18 @@
+** Styling todos
+
+- [ ] Finish back of sell form styles
+
+** UI functionality todos
+- [ ] Add loadings spinners on every page
+- [ ] Can't type on token issue input, showing error in console
+- [ ] After issuing tokens, update remainings tokens or disable if no more tokens to issue
+- [ ] After token sell we should somehow update the interface so it doesn't look like you can selle them again
+- [X] Memefolio selling tab doesn't show selling tokens
+
+** Server todos
+
+** Smart contracts todos
+
+
+
+
