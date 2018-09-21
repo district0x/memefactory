@@ -68,13 +68,17 @@
     :height (em 3)
     :line-height (em 3)
     :flex-wrap :wrap
-    :justify-content :flex-start}
+    :justify-content :space-evenly}
    (for-media-max :tablet
                   [:&
                    {:margin-right (em 2)
                     :margin-left (em 2)}])
    [">div"
-    {:padding-right (em 4)}
+    (for-media-max :tablet
+                   [:&
+                    {:padding-right (em 0.2)
+                     :padding-left (em 0.2)}])
+    {:padding-right (em 1)}
     [:a
      {:color (c/color :section-subcaption)}]
     [:&.selected

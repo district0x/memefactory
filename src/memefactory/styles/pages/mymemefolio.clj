@@ -53,6 +53,11 @@
      :margin-right (em 6)
      :margin-left (em 6)
      :height 1}
+    (for-media-max :tablet
+                   [:&
+                    {:margin-right (em 2)
+                     :margin-top (em 2)
+                     :margin-left (em 6)}])
     [">div"
      {:right (em 0)
       :font-size (em 0.9)
@@ -68,12 +73,17 @@
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :background-color (color :yellow)
      :border-radius "1em 1em 0em 0em"}
+    (for-media-max :tablet
+                   [:&
+                    {:margin-right (em 1)
+                     :margin-left (em 1)}])
     #_[">*"
      {:padding-top (em 1)
       :padding-bottom (em 1)}]
     [".stats>*"
      {:padding-right (em 1)
-      :padding-left (em 1)}]
+      :padding-left (em 1)}
+     ]
     [">.rank"
      {:width "100%"}]
     [".rank>.stats>.rank"
@@ -85,12 +95,17 @@
       :padding-left (em 1)
       :display :table-cell
       :font-size (em 1)}
+     (for-media-max :tablet
+                    [:&
+                     {:border-radius "1em 1em 0em 0em"}])
      [:&.big
       {:line-height (em 6)}]]
     [:.stats
      {:display :flex
       :line-height (em 3)}
-     [:&.]
+     (for-media-max :tablet
+                    [:&
+                     {:flex-direction :column}])
      [:.unique-memes :.largest-buy
       {:margin-right (em 1)
        :margin-left (em 1)}]
@@ -115,6 +130,10 @@
      :margin-right (em 6)
      :margin-left (em 6)
      :background-color (color :meme-panel-bg)}
+    (for-media-max :tablet
+                   [:&
+                    {:margin-right (em 1)
+                     :margin-left (em 1)}])
     [">div>div>div"
      {:display :flex
       :flex-wrap :wrap
