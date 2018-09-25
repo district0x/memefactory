@@ -17,7 +17,8 @@
    [district.format :as format]
    [memefactory.ui.components.tiles :refer [meme-image]]
    [reagent.ratom :refer [reaction]]
-   [cljs-web3.core :as web3]))
+   [cljs-web3.core :as web3]
+   [district.graphql-utils :as graphql-utils]))
 
 
 
@@ -47,10 +48,12 @@
                                      (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-meme-issuance))))})
         critical-errors (reaction (index-by-type @errors :error))]
     (fn []
-      (let [dank-deposit (look (get-in @(subscribe [::gql/query {:queries [[:eternal-db
-                                                                            [[:meme-registry-db
-                                                                              [:deposit]]]]]}])
-                                       [:eternal-db :meme-registry-db :deposit]))]
+      (let [dank-deposit (get-in (look @(subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :deposit)
+                                                                            :db (graphql-utils/kw->gql-name :meme-registry-db)
+                                                                            :group-by :param-changes.group-by/key
+                                                                            :order-by :param-changes.order-by/applied-on}
+                                                                            [[:items [:param-change/value]]]]]}]))
+                                 [:eternal-db :meme-registry-db :deposit])]
         [app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
