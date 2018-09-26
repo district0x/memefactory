@@ -103,8 +103,8 @@
    (let [statuses-set (when statuses (set statuses))
          page-start-idx (when after (js/parseInt after))
          page-size first
-         now (quot (.getTime (js/Date.)) 1000)
-         query (cond-> {:select [:re.* :m.*]
+         now (utils/now-in-seconds)
+         query (cond-> {:select [:re.* :m.* :votes.votes]
                         :modifiers [:distinct]
                         :from [[:memes :m]]
                         :join [[:reg-entries :re] [:= :m.reg-entry/address :re.reg-entry/address]]
@@ -113,7 +113,15 @@
                                       :join [[:meme-token-owners :mto]
                                              [:= :mto.meme-token/token-id :mt.meme-token/token-id]]} :tokens]
                                     [:= :m.reg-entry/address :tokens.reg-entry/address]
-                                    [:meme-tags :mtags] [:= :mtags.reg-entry/address :m.reg-entry/address]]}
+                                    
+                                    [:meme-tags :mtags]
+                                    [:= :mtags.reg-entry/address :m.reg-entry/address]
+
+                                    [{:select [:v.reg-entry/address [(sql/call :sum :v.vote/amount) :votes]]
+                                      :from [[:votes :v]]
+                                      :where [:> :v.vote/created-on (- now (* 24 60 60))] ;; past 24h
+                                      :group-by [:v.reg-entry/address]} :votes]
+                                    [:= :m.reg-entry/address :votes.reg-entry/address]]}
 
                  title        (sqlh/merge-where [:like :m.meme/title (str "%" title "%")])
                  tags          (sqlh/merge-where [:=
@@ -134,7 +142,8 @@
                                                            :memes.order-by/total-trade-volume   :m.meme/total-trade-volume
                                                            :memes.order-by/created-on           :re.reg-entry/created-on
                                                            :memes.order-by/number               :m.meme/number
-                                                           :memes.order-by/total-minted         :m.meme/total-minted}
+                                                           :memes.order-by/total-minted         :m.meme/total-minted
+                                                           :memes.order-by/daily-total-votes    :votes.votes}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]]))]
@@ -495,9 +504,12 @@
      (when challenger
        sql-query))))
 
-(defn reg-entry->votes-total-resolver [{:keys [:challenge/votes-against :challenge/votes-for] :as reg-entry}]
+(defn reg-entry->votes-total-resolver [{:keys [:reg-entry/address] :as reg-entry}]
   (log/debug "challenge->votes-total-resolver args" reg-entry)
-  (+ votes-against votes-for))
+  (-> (db/get {:select [[(sql/call :sum :v.vote/amount) :total-votes]]
+               :from [[:votes :v]]
+               :where [:= :v.reg-entry/address address]})
+      :total-votes))
 
 (defn vote->reward-resolver [{:keys [:reg-entry/address :vote/option] :as vote}]
   (log/debug "vote->reward-resolver args" vote)

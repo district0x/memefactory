@@ -76,6 +76,7 @@
     memes_orderBy_commitPeriodEnd
     memes_orderBy_challengePeriodEnd
     memes_orderBy_totalTradeVolume
+    memes_orderBy_dailyTotalVotes
     memes_orderBy_createdOn
     memes_orderBy_number
     memes_orderBy_totalMinted

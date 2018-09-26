@@ -20,6 +20,15 @@
         ^{:key address}
         [tiles/auction-tile {:on-buy-click #()} auc])))])
 
+(defn memes-list [memes]
+  [:div.tiles
+   (doall
+    (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
+      ^{:key address}
+      [:div
+       [tiles/meme-tile {:on-buy-click #()} m]
+       [:div.votes-total (str "Vote amount "(or votes-total 0))]]))])
+
 (def auction-node-graph [:meme-auction/address
                          :meme-auction/start-price
                          :meme-auction/end-price
@@ -52,11 +61,23 @@
     :first 6}
    [[:items auction-node-graph]]])
 
+(def trending-votes-query
+  [:search-memes
+   {:order-by :memes.order-by/daily-total-votes
+    :order-dir :desc
+    :first 6}
+   [[:items [:reg-entry/address
+             :meme/title
+             :meme/image-hash
+             :challenge/votes-total]]]])
+
 (defmethod page :route/home []
   (let [search-atom (r/atom {:term ""})
         new-on-market (subscribe [::gql/query {:queries [new-on-marketplace-query]}])
         rare-finds (subscribe [::gql/query {:queries [rare-finds-query]}])
-        random-picks (subscribe [::gql/query {:queries [random-picks-query]}])] 
+        random-picks (subscribe [::gql/query {:queries [random-picks-query]}])
+        trending-votes (subscribe [::gql/query {:queries [trending-votes-query]}])
+        ] 
     (fn []
       [app-layout
        {:meta {:title "MemeFactory"
@@ -97,6 +118,14 @@
           [auctions-list (-> @random-picks :search-meme-auctions :items)]
           [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
                                                  {:order-by "random"})}
-           "See More"]]]]])))
+           "See More"]]
+
+         [:div.trending-votes
+          [:div.icon]
+          [:div.header
+           [:div.middle
+            [:h2.title "Trending Votes"]
+            [:h3.title "Lorem ipsum ..."]]]
+          [memes-list (-> @trending-votes :search-memes :items)]]]]])))
 
 
