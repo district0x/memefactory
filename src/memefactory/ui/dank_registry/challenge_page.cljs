@@ -20,7 +20,8 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [react-infinite]
    [reagent.core :as r]
-   [reagent.ratom :refer [reaction]]))
+   [reagent.ratom :refer [reaction]]
+   [district.graphql-utils :as graphql-utils]))
 
 (defn header []
   [:div.challenge-info
@@ -40,9 +41,12 @@
                                      (empty? comment)
                                      (assoc :comment "Comment shouldn't be empty.")))})]
     (fn [{:keys [:reg-entry/address]}]
-      (let [dank-deposit (get-in @(subscribe [::gql/query {:queries [[:eternal-db 
-                                                                      [[:meme-registry-db
-                                                                        [:deposit]]]]]}]) [:eternal-db :meme-registry-db :deposit])]
+      (let [dank-deposit (get-in @(subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :deposit)
+                                                                                             :db (graphql-utils/kw->gql-name :meme-registry-db)
+                                                                                             :group-by :param-changes.group-by/key
+                                                                                             :order-by :param-changes.order-by/applied-on}
+                                                                      [[:items [:param-change/value]]]]]}])
+                                 [:search-param-changes :items 0 :param-change/value])]
         [:div.challenge-controls
          [:div.vs
           [:img.vs-left {:src "/assets/icons/mememouth.png"}]

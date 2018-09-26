@@ -48,11 +48,11 @@
                                      (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-meme-issuance))))})
         critical-errors (reaction (index-by-type @errors :error))]
     (fn []
-      (let [dank-deposit (get-in (look @(subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :deposit)
-                                                                            :db (graphql-utils/kw->gql-name :meme-registry-db)
-                                                                            :group-by :param-changes.group-by/key
-                                                                            :order-by :param-changes.order-by/applied-on}
-                                                                            [[:items [:param-change/value]]]]]}]))
+      (let [dank-deposit (get-in @(subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :deposit)
+                                                                                             :db (graphql-utils/kw->gql-name :meme-registry-db)
+                                                                                             :group-by :param-changes.group-by/key
+                                                                                             :order-by :param-changes.order-by/applied-on}
+                                                                      [[:items [:param-change/value]]]]]}])
                                  [:search-param-changes :items 0 :param-change/value])]
         [app-layout
          {:meta {:title "MemeFactory"
