@@ -126,7 +126,7 @@
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                                               :print-gas-usage? true
-                                              :auto-mining? true}
+                                              :auto-mining? false}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}}}})
       (mount/start)
       pprint/pprint))

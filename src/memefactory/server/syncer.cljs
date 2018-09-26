@@ -211,25 +211,21 @@
   [_ ev]
   (try-catch
    (let [{:keys [:contract-address :records :values :timestamp]} ev
-         param-keys (cond
-                      (= (smart-contracts/contract-address :meme-registry-db) contract-address)
-                      (-> @config :deployer :initial-registry-params :meme-registry keys)
-
-                      (= (smart-contracts/contract-address :param-change-registry-db) contract-address)
-                      (-> @config :deployer :initial-registry-params :param-change-registry keys))]
-     (when param-keys
-       (doseq [idx (range 0 (count values))]
-         (let [record (nth records idx)
-               k (name (nth param-keys idx))]
-           (when-not (db/initial-param-exists? k contract-address)
-             (db/insert-initial-param! {:initial-param/key k
-                                        :initial-param/db contract-address
-                                        :initial-param/value (bn/number (nth values idx))
-                                        :initial-param/set-on timestamp}))))))))
+         records->values (zipmap records values)
+         keys->values (->> #{"challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration" "deposit"
+                             "challengeDispensation" "voteQuorum" "maxTotalSupply" "maxAuctionDuration"}
+                           (map (fn [k] (when-let [v (records->values (web3/sha3 k))] [k v])))
+                           (into {}))]
+     (doseq [[k v] keys->values]
+       (when-not (db/initial-param-exists? k contract-address)
+           (db/insert-initial-param! {:initial-param/key k
+                                      :initial-param/db contract-address
+                                      :initial-param/value (bn/number v)
+                                      :initial-param/set-on timestamp}))))))
 
 (defmethod process-event :default
   [contract-type {:keys [:event-type] :as evt}]
-  (log/warn (str "No process-event method defined for processing" " " contract-type " " event-type) evt ::process-event))
+  (log/warn (str "No process-event method defined for processing contract-type: " contract-type " event-type: " event-type) evt ::process-event))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of events processors ;;
