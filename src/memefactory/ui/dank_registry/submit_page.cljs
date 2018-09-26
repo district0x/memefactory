@@ -53,7 +53,7 @@
                                                                             :group-by :param-changes.group-by/key
                                                                             :order-by :param-changes.order-by/applied-on}
                                                                             [[:items [:param-change/value]]]]]}]))
-                                 [:eternal-db :meme-registry-db :deposit])]
+                                 [:search-param-changes :items 0 :param-change/value])]
         [app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
