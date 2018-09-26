@@ -3,6 +3,7 @@
             [cljs-time.core :as t]
             [cljs-web3.core :as web3-core]
             [cljs-web3.eth :as web3-eth]
+            [cljs-web3.async.eth :as web3-eth-async]
             [cljs.core.match :refer-macros [match]]
             [cljs.nodejs :as nodejs]
             [clojure.string :as str]
@@ -17,7 +18,8 @@
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]
             [district.shared.error-handling :refer [try-catch-throw]]
-            [memefactory.server.ranks-cache :as ranks-cache]))
+            [memefactory.server.ranks-cache :as ranks-cache]
+            [memefactory.server.utils :as utils]))
 
 (def enum graphql-utils/kw->gql-name)
 
@@ -37,9 +39,6 @@
        keys
        (map graphql-utils/gql-name->kw)
        set))
-
-(defn- last-block-timestamp []
-  (->> (web3-eth/block-number @web3/web3) (web3-eth/get-block @web3/web3) :timestamp))
 
 (defn paged-query
   "Execute a paged query.
@@ -62,7 +61,7 @@
 
 (defn meme-query-resolver [_ {:keys [:reg-entry/address] :as args}]
   (db/get {:select [:*]
-           :from [[:memes :m] [:reg-entries :re]]
+           :from [[:memes :m] [:reg-entries :re]] 
            :where [:and
                    [:= :m.reg-entry/address :re.reg-entry/address]
                    [:= :re.reg-entry/address address]]}))
@@ -102,9 +101,9 @@
   (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
-         now (last-block-timestamp)
          page-start-idx (when after (js/parseInt after))
          page-size first
+         now (quot (.getTime (js/Date.)) 1000)
          query (cond-> {:select [:re.* :m.*]
                         :modifiers [:distinct]
                         :from [[:memes :m]]
@@ -122,8 +121,8 @@
                                                   {:select [(sql/call :count :*)]
                                                    :from [[:meme-tags :mtts]]
                                                    :where [:and
-                                                                     [:= :mtts.reg-entry/address :m.reg-entry/address]
-                                                                     [:in :mtts.tag/name tags]]}])
+                                                           [:= :mtts.reg-entry/address :m.reg-entry/address]
+                                                           [:in :mtts.tag/name tags]]}])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  creator      (sqlh/merge-where [:= :re.reg-entry/creator creator])
                  curator      (sqlh/merge-where [:= :re.challenge/challenger curator])
@@ -145,7 +144,7 @@
   (log/debug "search-meme-tokens-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
-         now (last-block-timestamp)
+         now (utils/now-in-seconds)
          page-start-idx (when after (js/parseInt after))
          page-size first
          query (cond-> {:select [:mto.* :mt.*]
@@ -188,7 +187,7 @@
   (log/debug "search-meme-auctions-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
-         now (last-block-timestamp)
+         now (utils/now-in-seconds)
          page-start-idx (when after (js/parseInt after))
          page-size first
          query (cond-> {:select (cond-> [:ma.*]
@@ -303,7 +302,7 @@
 (defn search-users-query-resolver [_ {:keys [:order-by :order-dir :first :after] :as args} _ document]
   (log/debug "search-users-query-resolver args" args)
   (try-catch-throw
-   (let [now (last-block-timestamp)
+   (let [now (utils/now-in-seconds)
          order-by-clause (when order-by (get {:users.order-by/address :user/address
                                               :users.order-by/voter-total-earned :user/voter-total-earned
                                               :users.order-by/challenger-total-earned :user/challenger-total-earned
@@ -435,7 +434,7 @@
          [false _ _] (enum :vote-option/not-revealed)))
 
 (defn reg-entry->status-resolver [reg-entry]
-  (enum (reg-entry-status (last-block-timestamp) reg-entry)))
+  (enum (reg-entry-status (utils/now-in-seconds) reg-entry)))
 
 (defn reg-entry->creator-resolver [{:keys [:reg-entry/creator] :as reg-entry}]
   (log/debug "reg-entry->creator-resolver args" reg-entry)
@@ -454,7 +453,7 @@
 
 (defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
   (log/debug "reg-entry->vote-winning-vote-option-resolver args" args)
-  (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry))
+  (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry))
     (let [{:keys [:vote/option]} (db/get {:select [:vote/option]
                                           :from [:votes]
                                           :where [:and
@@ -481,7 +480,7 @@
                                             :vote.option/vote-for votes-for
                                             0)]
                        (if (and (= winning-option (registry-entry/vote-options option))
-                                (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (last-block-timestamp) reg-entry)))
+                                (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry)))
                          (/ (* amount reward-pool) winning-amount)
                          0))]
     (+ challenger-amount voter-amount)))
@@ -503,7 +502,7 @@
 (defn vote->reward-resolver [{:keys [:reg-entry/address :vote/option] :as vote}]
   (log/debug "vote->reward-resolver args" vote)
   (try-catch-throw
-   (let [status (reg-entry-status (last-block-timestamp) (db/get {:select [:*]
+   (let [status (reg-entry-status (utils/now-in-seconds) (db/get {:select [:*]
                                                                   :from [:reg-entries]
                                                                   :where [:= address :reg-entry/address]}))
          {:keys [:challenge/reward-pool :votes/for :votes/against] :as sql-query} (db/get {:select [[{:select [:challenge/reward-pool]
@@ -627,7 +626,7 @@
     (not (nil? canceled-on))
     (enum :meme-auction.status/canceled)
 
-    (and (nil? bought-on) (< (last-block-timestamp) (+ started-on duration)))
+    (and (nil? bought-on) (< (utils/now-in-seconds) (+ started-on duration)))
     (enum :meme-auction.status/active)
 
     :else (enum :meme-auction.status/done)))
@@ -675,7 +674,7 @@
                                   :join [:reg-entries [:= :reg-entries.reg-entry/address :memes.reg-entry/address]]
                                   :where [:= address :reg-entries.reg-entry/creator]}))]
          (log/debug "user->total-created-memes-whitelisted-resolver query" sql-query)
-         (count (filter (fn [e] (= :reg-entry.status/whitelisted (reg-entry-status (last-block-timestamp) e)))
+         (count (filter (fn [e] (= :reg-entry.status/whitelisted (reg-entry-status (utils/now-in-seconds) e)))
                         sql-query)))))))
 
 (defn user->creator-largest-sale-resolver
@@ -774,7 +773,7 @@
      (let [sql-query (when address
                        (db/get {:select [[:%count.* :user/total-created-challenges-success]]
                                 :from [:reg-entries]
-                                :where [:and [:> (last-block-timestamp) :reg-entries.challenge/reveal-period-end]
+                                :where [:and [:> (utils/now-in-seconds) :reg-entries.challenge/reveal-period-end]
                                         [:< :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
                                         [:= address :reg-entries.challenge/challenger]]}))]
        (log/debug "user->total-created-challenges-success-resolver query" sql-query)
@@ -802,7 +801,7 @@
   (try-catch-throw
    (if total-participated-votes-success
      total-participated-votes-success
-     (let [now (last-block-timestamp)
+     (let [now (utils/now-in-seconds)
            sql-query (when address
                        (db/all {:select [:*]
                                 :from [:votes]
@@ -810,7 +809,7 @@
                                 :where [:= address :votes.vote/voter]}))]
        (log/debug "user->total-participated-votes-success-resolver query" sql-query)
        (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
-                 (let [ status (reg-entry-status (last-block-timestamp) reg-entry)]
+                 (let [ status (reg-entry-status (utils/now-in-seconds) reg-entry)]
                    (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
                            (and (= :reg-entry.status/blacklisted status) (= 2 option)))
                      (inc total)
@@ -841,7 +840,7 @@
 (defn all-users [] (db/all {:select [:*] :from [:users]}))
 
 (defn creator-rank []
-  (let [users-whitelisted-memes (->> (db/all {:select [:re.reg-entry/creator [(sql/call :count :*) :count] [(reg-entry-status-sql-clause (last-block-timestamp)) :status]]
+  (let [users-whitelisted-memes (->> (db/all {:select [:re.reg-entry/creator [(sql/call :count :*) :count] [(reg-entry-status-sql-clause (utils/now-in-seconds)) :status]]
                                               :from [[:reg-entries :re]]
                                               :group-by [:status]
                                               :having [:= :status (graphql-utils/kw->gql-name :reg-entry.status/whitelisted)]})

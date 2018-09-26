@@ -14,6 +14,7 @@
             [district.server.db :as db]
             [district.server.graphql :as graphql]
             [district.server.graphql.utils :as utils]
+            [memefactory.server.utils :as server-utils]
             [district.server.logging :refer [logging]]
             [district.server.middleware.logging :refer [logging-middlewares]]
             [district.server.smart-contracts]
@@ -27,7 +28,7 @@
             [memefactory.server.db]
             [memefactory.server.deployer]
             [memefactory.server.generator]
-            [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause last-block-timestamp]]
+            [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.ipfs]
             [memefactory.server.syncer]
             [memefactory.server.macros :refer [defer]]
@@ -163,7 +164,7 @@
        (select [:*] :from [(keyword t)])
        #_(println "\n\n")))))
 
-(defn print-statuses []
+(defn print-statuses [] 
   (web3-evm/mine! @web3) ;; We need to mine a block so time make sense
   (->> (db/all {:select [:v.* :re.*]
                 :from [[:reg-entries :re]]
@@ -171,8 +172,8 @@
        (group-by :reg-entry/address)
        (map (fn [[address [r :as votes]]]
               {:address address
-               :server-status (name (reg-entry-status (last-block-timestamp) r))
-               :query-status (-> (db/get {:select [[(reg-entry-status-sql-clause (last-block-timestamp)) :status]]
+               :server-status (name (reg-entry-status (server-utils/now-in-seconds) r))
+               :query-status (-> (db/get {:select [[(reg-entry-status-sql-clause (server-utils/now-in-seconds)) :status]]
                                           :from  [[:reg-entries :re]]
                                           :where [:= :re.reg-entry/address address]})
                                  :status
@@ -187,7 +188,7 @@
        #_print-table))
 
 (defn increase-time-to-next-period [re-address]
-  (let [now (last-block-timestamp)
+  (let [now (server-utils/now-in-seconds)
         entry (db/get {:select [:*]
                        :from [:reg-entries]
                        :where [:= :reg-entry/address re-address]})
