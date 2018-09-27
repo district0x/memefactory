@@ -1,12 +1,50 @@
 ** Styling todos
+For more detail search this texts inside https://github.com/district0x/memefactory/issues/34
 
-- [ ] Finish back of sell form styles
+- [] Sidebar is wider than it should be (Juan)
+- [] Font size and color in sidebar is wrong (Juan)
+- [] "Inspired by the work of Simon..." is wrong font-size, font-weight, margins (Juan)
+- [] "See More" is wrong color and size (Juan)
+- [] Magnifier in top bar is wrong size (Juan)
+- [] Vertical spaces between menu items in sidebar are wrong ()
+- [] It shows 4 items in each section, but there should be 3 ()
+- [] Logo should be clickable and take to home page ()
+- [] "Meme Title 2" should be clickable and take to home page ()
+- [] Why this cannot show full number, while in designs can ()
+- [] Logo on the right shouldn't be there ()
+- [] Weird text error ()
+- [] Shows 5 images, when I scroll to the bottom shows 6 ()
+- [] In designs, title is be blue color with different icon, magnifier also blue ()
+- [] Cursor is too close to title ()
+- [] Title and icon are blue in designs ()
+- [] Subtitle is wrong font-size and color ()
+- [] Buttons are wrong font-size, not looking as in designs ()
+- [] Tags don't work (probably not styling issue) ()
+- [] DANK number is on the wrong size ()
+- [] Inputs have too much space in between them, vertically ()
+- [] Tabs have too big margin towards bottom ()
+- [] Select field not styled ()
+- [] Vote buttons are broken ()
+- [] Tags have wrong font-size and border size ()
+- [] This is supposed to look like this ()
+- [] Wrong font-size and color ()
+- [] Missing spaces after colon ()
+- [] Select not styled ()
+- [] NaN shouldn't be displayed ()
+- [] Fonts inside yellow bar are completely off compared to design ()
+- [] Tabs have wrong vertical margins ()
+- [] "Group by memes" is not at right side as it should be ()
+- [] Shadow is wrong ()
+- [] Font spacing is very off compared to design ()
+- [] Checkboxes are broken ()
+- [] White underlying divs ()
+- [] Should have ellipsis ()
 
 ** UI functionality todos
 - [ ] Add loadings spinners on every page
-- [ ] Can't type on token issue input, showing error in console
+- [X] Can't type on token issue input, showing error in console
 - [ ] After issuing tokens, update remainings tokens or disable if no more tokens to issue
-- [ ] After token sell we should somehow update the interface so it doesn't look like you can selle them again
+- [ ] After token sell we should somehow update the interface so it doesn't look like you can sell them again
 - [X] Memefolio selling tab doesn't show selling tokens
 
 ** Server todos
