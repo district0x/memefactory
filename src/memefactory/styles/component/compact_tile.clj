@@ -69,7 +69,6 @@
              :left (px 0)
              :right (px 0)
              :position :absolute
-             :font-style :italic
              :text-align :center
              :perspective "inherit"}
      [:hr {:margin (em 1)}]
@@ -79,7 +78,8 @@
        :margin-right :auto
        :margin-left :auto
        :position "absolute"}
-      (button {:color :meme-buy-button}) 
+      (button {:background-color :meme-buy-button
+               :color :light-light-grey}) 
       [:&:after {:content ;;"&#8594;"
                  "' →'"}]]
      [:.meme-data {:text-align :center

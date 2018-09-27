@@ -26,11 +26,9 @@
                      :margin-left (em 2)}])
     [:.submit-info
      (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
-                       :color :purple})
+                       :color :sky-blue})
      [:.get-dank-button
-      (get-dank-button)]]
-
-    ]
+      (get-dank-button)]]]
    [:.upload
     {:display :grid
      :grid-template-columns "50% 50%"

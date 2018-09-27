@@ -131,7 +131,7 @@
        [:div.app-menu
         {:class (when-not @drawer-open? "closed")}
         [:div.menu-content
-         [:div.logo {:on-click #(dispatch [:district.ui.router.events/navigate :route/home {}])}
+         [:div.mf-logo {:on-click #(dispatch [:district.ui.router.events/navigate :route/home {}])}
           [:img {:src "/assets/icons/mememouth.png"}]
           [:span "MEME FACTORY"]]
          [app-menu nav-menu-items @active-page]]

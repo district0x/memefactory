@@ -42,7 +42,6 @@
                     {:font-size (px 19)}])
     {:white-space :nowrap
      :position :relative
-     ;; :color (c/color :section-caption)
      :font-size (px 25)
      :margin-top (em 0.3)
      :margin-bottom (em 0.1)
