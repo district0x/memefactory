@@ -4,6 +4,7 @@
    [district.ui.component.active-account :refer [active-account]]
    [district.ui.component.active-account-balance :refer [active-account-balance] :as account-balances]
    [district.ui.component.form.input :as inputs :refer [text-input*]]
+   [district.ui.router.events]
    [re-frame.core :refer [subscribe dispatch]]
    [memefactory.ui.subs :as mf-subs]
    [memefactory.ui.utils :as mf-utils]))
@@ -79,7 +80,7 @@
        [:div.tracker-section
         {:on-click (fn []
                      (if (empty? @my-addresses)
-                       (dispatch [:district0x.location/nav-to :route/how-it-works {}])
+                       (dispatch [:district.ui.router.events/navigate :route/how-it-works {}])
                        (dispatch [:district0x.transaction-log/set-open (not @open?)])))}
         (if false;;(empty? @my-addresses)
           [:div "No Accounts"]
@@ -88,15 +89,10 @@
             {:token-code :DANK
              :contract :DANK
              :class :dank
-             :locale "en-US"
-             :max-fraction-digits 3
-             :min-fraction-digits 2}]
+             :locale "en-US"}]
            [active-account-balance
             {:token-code :ETH
-             :locale "en-US"
-             :max-fraction-digits 3
-             :min-fraction-digits 2}]])
-        [:i.icon.transactions]]])))
+             :locale "en-US"}]])]])))
 
 (defn current-page? [a b]
   (= a b))
@@ -135,6 +131,9 @@
        [:div.app-menu
         {:class (when-not @drawer-open? "closed")}
         [:div.menu-content
+         [:div.logo {:on-click #(dispatch [:district.ui.router.events/navigate :route/home {}])}
+          [:img {:src "/assets/icons/mememouth.png"}]
+          [:span "MEME FACTORY"]]
          [app-menu nav-menu-items @active-page]]
         [district0x-banner]]
        [:div.app-content

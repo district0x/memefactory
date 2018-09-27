@@ -29,7 +29,7 @@
                  [district0x/district-server-web3 "1.0.1"]
                  [district0x/district-server-web3-watcher "1.0.2"]
                  [district0x/district-ui-component-active-account "1.0.0"]
-                 [district0x/district-ui-component-active-account-balance "1.0.0"]
+                 [district0x/district-ui-component-active-account-balance "1.0.1"]
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
                  #_[district0x/district-ui-component-input "1.0.0"]

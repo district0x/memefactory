@@ -12,22 +12,31 @@
    [print.foo :refer [look] :include-macros true]
    [memefactory.ui.utils :as utils]))
 
+
+(defn take-max-multiple-of [n xs]
+  (if (< (count xs) n)
+    xs
+    (->> (partition n xs)
+         (apply concat))))
+
 (defn auctions-list [auctions]
-  [:div.tiles
-   (doall
-    (for [{:keys [:meme-auction/address] :as auc} auctions]
-      (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
-        ^{:key address}
-        [tiles/auction-tile {:on-buy-click #()} auc])))])
+  (let [auctions (take-max-multiple-of 3 auctions)]
+   [:div.tiles
+    (doall
+     (for [{:keys [:meme-auction/address] :as auc} auctions]
+       (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
+         ^{:key address}
+         [tiles/auction-tile {:on-buy-click #()} auc])))]))
 
 (defn memes-list [memes]
-  [:div.tiles
-   (doall
-    (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
-      ^{:key address}
-      [:div
-       [tiles/meme-tile {:on-buy-click #()} m]
-       [:div.votes-total (str "Vote amount "(or votes-total 0))]]))])
+  (let [memes (take-max-multiple-of 3 memes)]
+   [:div.tiles
+    (doall
+     (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
+       ^{:key address}
+       [:div
+        [tiles/meme-tile {:on-buy-click #()} m]
+        [:div.votes-total (str "Vote amount "(or votes-total 0))]]))]))
 
 (def auction-node-graph [:meme-auction/address
                          :meme-auction/start-price
