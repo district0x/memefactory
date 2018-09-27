@@ -71,5 +71,6 @@
      {:position :absolute
       :display :block
       :right (em 2)
-      :top (em 3.5)}]
-    ]])
+      :top (em 3.5)}
+     [:.input-group
+      [:.help-block {:display :none}]]]]])

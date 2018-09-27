@@ -22,6 +22,13 @@
     [:.curators-panel
      (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
                        :color :leaderboard-curator-bg})]
+    [:div.order
+     {:position :absolute
+      :display :block
+      :right (em 2)
+      :top (em 3.5)}
+     [:.input-group
+      [:.help-block {:display :none}]]]
     ["div.curators > div"
      {:width "100%"}
      ["> div"

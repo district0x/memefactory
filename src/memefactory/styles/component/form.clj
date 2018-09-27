@@ -133,9 +133,15 @@
   [:select
    {:overflow :hidden
     :width "100%"
-    :border-radius "0.3em"
-    :padding "0.4em"
+    :border-radius "0.5em"
+    :outline "0px"
+    :border "0px"
+    :padding-top "0.65em"
+    :padding-left "0.7em"
+    :padding-bottom "0.35em"
     :color (color :menu-text)
+
+    :background-color (color :search-input-bg)
     :-webkit-appearance :none
     :-moz-appearance :none
     :background-size ["0.6em"  "0.6em"]

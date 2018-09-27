@@ -87,7 +87,8 @@
        "'. checkbox .'\n")}
      [:.name {:grid-area :name}
       [:.help-block {:height :2px}]]
-     [:.options {:grid-area :dropdown}]
+     [:.options {:grid-area :dropdown}
+      [:.help-block {:display :none}]]
      [:.ac-options {:grid-area :chip}]
      [:.check-cheapest
       {:padding-top (em 0.4)

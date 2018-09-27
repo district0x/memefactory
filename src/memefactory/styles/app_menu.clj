@@ -38,7 +38,7 @@
       :position :absolute
       :height (rem 4)
       :width (rem 4)
-      :background-image (str "url('/assets/icons/mememouth.png')")}]
+      :background-image (str "url('/assets/icons/mf-logo.svg')")}]
     {:overflow-x :hidden
      :overflow-y :auto
      :background (color :white)}
