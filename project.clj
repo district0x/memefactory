@@ -149,7 +149,8 @@
                                    :output-dir "dev-server"
                                    :target :nodejs
                                    :optimizations :none
-                                   :closure-defines {goog.DEBUG true}
+                                   :closure-defines {'goog.DEBUG true
+                                                     'memefactory.server.utils/time-source "blockchain"}
                                    :source-map true}}
                        {:id "dev-ui"
                         :source-paths ["src/memefactory/ui" "src/memefactory/shared"]
@@ -161,7 +162,7 @@
                                    :source-map-timestamp true
                                    :preloads [print.foo.preloads.devtools
                                               re-frisk.preload]
-                                   :closure-defines {goog.DEBUG true}
+                                   :closure-defines {'goog.DEBUG true}
                                    :external-config {:devtools/config {:features-to-install :all}}}}
                        {:id "server"
                         :source-paths ["src"]
@@ -171,14 +172,15 @@
                                    :target :nodejs
                                    :optimizations :simple
                                    :source-map "server/memefactory.js.map"
-                                   :closure-defines {goog.DEBUG false}
+                                   :closure-defines {'goog.DEBUG false
+                                                     'memefactory.server.utils/time-source "js-date"}
                                    :pretty-print false}}
                        {:id "ui"
                         :source-paths ["src"]
                         :compiler {:main "memefactory.ui.core"
                                    :output-to "resources/public/js/compiled/app.js"
                                    :optimizations :advanced
-                                   :closure-defines {goog.DEBUG false}
+                                   :closure-defines {'goog.DEBUG false}
                                    :pretty-print false
                                    :pseudo-names false}}
                                               {:id "server-tests"
@@ -190,5 +192,5 @@
                                    :target :nodejs,
                                    :optimizations :none,
                                    :verbose false
-                                   ;;:closure-defines {goog.DEBUG true}
+                                   :closure-defines {'memefactory.server.utils/time-source "blockchain"}
                                    :source-map true}}]})

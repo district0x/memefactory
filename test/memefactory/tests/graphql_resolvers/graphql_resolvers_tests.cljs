@@ -16,11 +16,12 @@
             [memefactory.server.db :as meme-db]
             [memefactory.server.deployer]
             [memefactory.server.generator]
-            [memefactory.server.graphql-resolvers :as resolvers :refer [resolvers-map last-block-timestamp]]
+            [memefactory.server.graphql-resolvers :as resolvers :refer [resolvers-map]]
             [memefactory.server.syncer]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [mount.core :as mount]
-            [print.foo :include-macros true :refer [look]]))
+            [print.foo :include-macros true :refer [look]]
+            [memefactory.server.utils :as server-utils]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mock some data on the DB ;;
@@ -30,7 +31,7 @@
   (* n 60 60))
 
 (defn generate-some-data! []
-  (let [now (last-block-timestamp)
+  (let [now (server-utils/now-in-seconds)
         [in-commit-per in-reveal-per wl1 wl2 bl wl3 & r] (for [i (range 10)]
                                                            {:reg-entry/address (str "MEMEADDR" i)
                                                             :reg-entry/version 1
