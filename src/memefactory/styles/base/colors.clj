@@ -13,7 +13,7 @@
                     :border-line "#eff1f5"
                     :search-input-bg "#f2f4fb"
                     :menu-logo "#ff0090"
-                    :menu-text "#47608e"
+                    :menu-text "#687595"
                     :menu-text-hover "#5b6d8e"
                     :main-content-bg "#f2f4fb"
                     :meme-panel-bg "#FFFFFF"

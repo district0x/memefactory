@@ -10,7 +10,7 @@
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [garden.units :refer [pt px em rem]]))
 
-(def menu-gutter (px 15))
+(def menu-gutter (px 12))
 
 (defstyles core
   [:.app-container
@@ -62,9 +62,9 @@
      ]
     [:ul.node {:padding-left (em 0)}]
     [:ul.node
-     [:.item {:font-size (pt 16)}]
+     [:.item {:font-size (pt 13)}]
      [:ul.node {:padding-left (em 0)}
-      [:.item {:font-size (pt 14)}]]]
+      [:.item {:font-size (pt 11)}]]]
     [:ul.node
      {:list-style :none}
      [:.item

@@ -89,7 +89,7 @@
        :border-style :none
        :padding-left (em 1)
        :height (em 2)
-       :width (em 20)}
+       :width (em 26)}
       [:&:focus {:outline :none}]]
      [:.go-button
       {:display :block

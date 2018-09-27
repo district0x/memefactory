@@ -10,7 +10,7 @@
   [:.app-container
    {:display :grid
     :min-height (em 90)}
-   (grid-columns "20%" "80%")
+   (grid-columns "200px" "1fr")
    (for-media-max :tablet
                   [:&
                    (grid-columns "100%")])])

@@ -21,7 +21,9 @@
     :margin-left :auto
     :padding-top (em 7)
     :text-align :center
-    :width "50%"}
+    :font-weight :lighter
+    :font-size (pt 14)
+    :width "41%"}
    [:&:before
     {:content "''"
      :background-size [(em 4) (em 4)]
