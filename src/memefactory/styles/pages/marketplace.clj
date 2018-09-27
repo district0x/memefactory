@@ -14,9 +14,9 @@
 
 (defstyles core
   [:.marketplace-page
-   (search-panel {:background-panel-image "/assets/icons/search-background.png"
+   (search-panel {:background-panel-image "/assets/icons/mf-search.svg"
                   :color :new-meme-icon-bg
-                  :icon "/assets/icons/marketplaceicon.png"})
+                  :icon "/assets/icons/cart-green-blue.svg"})
    [:.tiles
     {:display :block
      :margin-top (em 2)

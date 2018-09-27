@@ -25,10 +25,9 @@
      :position :relative
      :border-radius "1em 1em 1em 1em"
      :background-color (c/color :meme-panel-bg)
-     :background-size [(em 10) (em 10)]
+     :background-size [(em 13) (em 13)]
      :background-repeat :no-repeat
-     :background-position-y :bottom
-     :background-position-x :right
+     :background-position "right -3em bottom -1.2em"
      :background-image (str "url('" background-panel-image "')")
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :margin-left (em 6)}
@@ -66,6 +65,8 @@
       :z-index 1
       :background-size [(em 4) (em 4)]
       :background-repeat :no-repeat
+      :background-position-x (em 1)
+      :background-position-y (em 0.7)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "0em 0em 1em 1em"
       :margin-left (em 2)

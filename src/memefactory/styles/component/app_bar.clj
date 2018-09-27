@@ -22,7 +22,7 @@
      :background-position "5px 5px"
      :background-repeat :no-repeat
      ;; :margin-left (rem -3)
-     :background-image (str "url('/assets/icons/mememouth.png')")
+     :background-image (str "url('/assets/icons/mf-logo.svg')")
      }
     [:&:before
      (font :bungee)
@@ -143,7 +143,7 @@
         :height (em 2)
         :width (em 1)
         :content "''"
-        :background-image (str "url('/assets/icons/ethereum.png')")}
+        :background-image (str "url('/assets/icons/ethereum.svg')")}
        ]
       [:.balance
        (font :bungee)

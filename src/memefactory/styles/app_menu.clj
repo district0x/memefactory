@@ -45,19 +45,19 @@
        {:font-size (px 18)
         :line-height (em 1.4)
         :color (color :menu-logo)}]]
-     
+
      [(sel/> :.menu-content :.node :.node-content :.item)
       (border-top {:color (color :border-line)})
       {:padding-top (em 1)
        :padding-bottom (em 1)}]
-     
+
      [:ul.node {:padding-left (em 0)}]
 
      [:ul.node
       [:.item {:font-size (pt 13)}]
       [:ul.node {:padding-left (em 0)}
        [:.item {:font-size (pt 11)}]]]
-     
+
      [:ul.node
       {:list-style :none}
       [:.item
@@ -90,7 +90,7 @@
                  [(keyword (str "&." (name cls)))
                   [:a:before
                    {:content "''"
-                    :background-image (str "url('/assets/icons/" img ".png')")}]])
+                    :background-image (str "url('/assets/icons/" img ".svg')")}]])
                icons))]]]
     [:.district0x-banner
      (font :filson)
@@ -110,12 +110,10 @@
       :background-position "right bottom";
       :background-repeat :no-repeat
       :background-image "url('/assets/icons/conveyer.png')"}
-     [:.logo {:content "url('/assets/icons/district0x-footer-logo.png')"
+     [:.logo {:content "url('/assets/icons/district0x.svg')"
               :height (em 2)
               ;; :background-position "left bottom";
               ;; :background-repeat :no-repeat
               ;; :background-image ""
               :margin-top (em -5)
-              :margin-bottom (em 1)}]
-     
-     ]]])
+              :margin-bottom (em 1)}]]]])

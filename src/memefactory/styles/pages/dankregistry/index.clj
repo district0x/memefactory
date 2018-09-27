@@ -14,9 +14,9 @@
 
 (defstyles core
   [:.dank-registry-index-page
-   (search-panel {:background-panel-image "/assets/icons/search-background.png"
+   (search-panel {:background-panel-image "/assets/icons/mf-search2.svg"
                   :color :mymemefolio-green
-                  :icon "/assets/icons/mymemefolio-green.png"})
+                  :icon "/assets/icons/portfolio2.svg"})
 
    [:.tiles
     {:display :block
