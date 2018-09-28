@@ -50,7 +50,10 @@
          (font :bungee)]
         ]
        [:h3.address
-        {:font-weight :bold}]
+        {:font-weight :bold
+         :overflow "hidden"
+         :text-overflow "ellipsis"
+         :width "100%"}]
        [:h4
         (font :bungee)
         {:color (color :purple)

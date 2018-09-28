@@ -30,7 +30,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Wrong font-size and color                                                   ()
 - [ ] Missing spaces after colon                                                  ()
 - [X] Select not styled                                                           (Wambat)
-- [ ] NaN shouldn't be displayed                                                  ()
+- [X] NaN shouldn't be displayed                                                  (Filip)
 - [ ] Fonts inside yellow bar are completely off compared to design               ()
 - [ ] Tabs have wrong vertical margins                                            ()
 - [ ] "Group by memes" is not at right side as it should be                       ()
