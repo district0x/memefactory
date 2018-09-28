@@ -47,7 +47,8 @@
                          [:meme-auction/meme-token
                           [:meme-token/number
                            [:meme-token/meme
-                            [:meme/title
+                            [:reg-entry/address
+                             :meme/title
                              :meme/image-hash
                              :meme/total-minted]]]]])
 
@@ -86,7 +87,7 @@
         rare-finds (subscribe [::gql/query {:queries [rare-finds-query]}])
         random-picks (subscribe [::gql/query {:queries [random-picks-query]}])
         trending-votes (subscribe [::gql/query {:queries [trending-votes-query]}])
-        ] 
+        ]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory"
@@ -136,5 +137,3 @@
             [:h2.title "Trending Votes"]
             [:h3.title "Lorem ipsum ..."]]]
           [memes-list (-> @trending-votes :search-memes :items)]]]]])))
-
-

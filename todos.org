@@ -9,7 +9,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Vertical spaces between menu items in sidebar are wrong                     (Juan)
 - [X] It shows 4 items in each section, but there should be 3                     (Juan)
 - [X] Logo should be clickable and take to home page                              (Juan)
-- [ ] "Meme Title 2" should be clickable and take to meme detail page             (Juan)
+- [X] "Meme Title 2" should be clickable and take to meme detail page             (Juan)
 - [X] Why this cannot show full number, while in designs can                      (Juan)
 - [X] Logo on the right shouldn't be there                                        (Juan)
 - [X] Weird text error                                                            (Juan)
@@ -38,9 +38,10 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Font spacing is very off compared to design                                 ()
 - [ ] Checkboxes are broken                                                       ()
 - [ ] White underlying divs                                                       ()
+
 - [X] Should have ellipsis                                                        (Filip)
 - [X] SVG images instead of png                                                   (Wambat)
- 
+
 ** UI functionality todos
 - [ ] Add loadings spinners on every page
 - [X] Can't type on token issue input, showing error in console
@@ -51,7 +52,3 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 ** Server todos
 
 ** Smart contracts todos
-
-
-
-

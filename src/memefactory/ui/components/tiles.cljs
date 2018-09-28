@@ -13,7 +13,8 @@
             [print.foo :refer [look] :include-macros true]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [memefactory.ui.contract.meme-auction :as meme-auction]))
+            [memefactory.ui.contract.meme-auction :as meme-auction]
+            [district.ui.router.events :as router-events]))
 
 (defn- img-url-stub
   ([]
@@ -100,7 +101,10 @@
          [flippable-tile {:front [auction-front-tile opts meme-token]
                           :back [auction-back-tile opts meme-auction]}]
          [:div.footer
-          [:div.title (-> meme-token :meme-token/meme :meme/title)]
+          [:div.title {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                             nil
+                                             {:reg-entry/address (-> meme-token :meme-token/meme :reg-entry/address)}])}
+           (-> meme-token :meme-token/meme :meme/title)]
           [:div.number-minted (str (:meme-token/number meme-token)
                                    "/"
                                    (-> meme-token :meme-token/meme :meme/total-minted))]

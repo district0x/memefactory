@@ -107,7 +107,8 @@
      {:text-align :center
       :color (color :meme-tile-footer)}]
     [:.title {:margin-top (em 1)
-              :font-weight :bold}]
+              :font-weight :bold
+              :cursor :pointer}]
     [:.number-minted {:margin-top (em 0.3)}]
     [:.price
      (font :bungee)

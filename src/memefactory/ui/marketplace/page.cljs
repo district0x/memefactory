@@ -40,6 +40,7 @@
               [:meme-token/number
                [:meme-token/meme
                 [:meme/title
+                 :reg-entry/address
                  :meme/image-hash
                  :meme/total-minted]]]]]]]])
 
@@ -105,4 +106,4 @@
             [marketplace-tiles form-data]]]]]))))
 
 (defmethod page :route.marketplace/index []
-  [index-page]) 
+  [index-page])
