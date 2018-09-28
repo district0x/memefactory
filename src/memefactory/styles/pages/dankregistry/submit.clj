@@ -79,17 +79,24 @@
         :margin-right :auto
         :margin-left 0}
        #_(button {:color :meme-buy-button})]]
+
      [:&.form-panel
       {:margin-left (em 1)
-       :padding-top (em 7)
+       ;; :padding-top (em 7)
        :padding-left (em 7)
-       :padding-right (em 7)}
+       :padding-right (em 7)
+       }
       (for-media-max :tablet
                      [:&
                       {:margin-left 0
-                       :margin-top (em 2)
+                       ;; :margin-top (em 2)
                        :padding-left (em 2)
-                       :padding-right (em 2)}])
+                       :padding-right (em 2)
+                       }])
+      [:.chip-input
+       [:.autocomplete-input
+        ["input[type=text]"
+         {:padding-top 0}]]]
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:display :flex
                  :position :relative
