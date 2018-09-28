@@ -25,7 +25,7 @@
                     {:margin-right (em 2)
                      :margin-left (em 2)}])
     [:.submit-info
-     (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
+     (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
                        :color :sky-blue})
      [:.get-dank-button
       (get-dank-button)]]]

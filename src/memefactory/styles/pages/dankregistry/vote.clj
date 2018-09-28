@@ -26,7 +26,7 @@
                     {:margin-right (em 2)
                      :margin-left (em 2)}])
     [:.registry-vote-header
-     (panel-with-icon {:url "/assets/icons/memesubmiticon.png"
+     (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
                        :color :purple})
      [:.get-dank-button
       (get-dank-button)]]]
