@@ -91,19 +91,16 @@
                        :padding-left (em 2)
                        :padding-right (em 2)}])
       [:.max-issuance {:font-size (em 0.8)}]
-      [:.submit {:position :relative
+      [:.submit {:display :flex
+                 :position :relative
                  :justify-content :center
-                 :align-items :center
-                 :display :flex}
+                 :align-items :center}
        [:button
-        {:right 0
-         :left 0
-         :margin-right :auto
+        {:margin-right :auto
          :margin-left 0}
         (button {:background-color :purple
                  :color :white
                  :height (em 3)
                  :width (em 10)})]
-       [:.dank {:display :block
-                :vertical-align :middle
+       [:.dank {:flex 1
                 :margin-left (em 1)}]]]]]])
