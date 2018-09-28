@@ -25,9 +25,15 @@
     :font-size (pt 14)
     :width "41%"}
    [:&:before
-    {:content "''"
-     :background-size [(em 4) (em 4)]
+    (font :bungee)
+    {:content "'MF'"
+     :color "black"
+     :font-size (em 1.3)
+     :line-height (em 3)
+     :background-size [(em 3) (em 3)]
      :background-repeat :no-repeat
+     :background-position-y (em 2)
+     :background-position-x :center
      :top (em 2)
      ;; :center (rem 0)
      :position :absolute
@@ -37,7 +43,7 @@
      :left 0
      :height (em 4)
      :width (em 4)
-     :background-image (str "url('/assets/icons/mf.png')")}]]
+     :background-image (str "url('/assets/icons/mouth.svg')")}]]
 
   [:.meme-highlights
    (for-media-max :tablet
