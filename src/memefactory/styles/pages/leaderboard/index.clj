@@ -20,7 +20,7 @@
      :margin-right (em 6)
      :margin-left (em 6)}
     [:.dankest-panel
-     (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
+     (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})]
     [:.tiles
      {:display :block

@@ -44,10 +44,7 @@
   [:.memefolio-page
    (search-panel {:background-panel-image "/assets/icons/search-background.png"
                   :color :mymemefolio-green
-                  :icon "/assets/icons/mymemefolio-green.png"})
-   ;;TODO removed, it was offsetting the focus line. []wambat]
-   ;; [:.help-block {:line-height (px 5)
-   ;;                :font-size (px 9)}]
+                  :icon "/assets/icons/portfolio2.svg"})
    [:.total
     {:position :relative
      :margin-right (em 6)

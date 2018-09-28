@@ -55,6 +55,8 @@
      :font-size (px 15)
      :text-align :center}]
    [:.icon {:background-color (c/color color)
+            :background-position-x (em 1)
+            :background-position-y :center
             :background-image (str "url('" url "')")}]
    [:h2.title {:color (c/color color)}]
    ])

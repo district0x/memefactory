@@ -119,6 +119,8 @@
     {:display :block
      :background-size [(em 4) (em 4)]
      :background-repeat :no-repeat
+     :background-position-x (em 1)
+     :background-position-y :center
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :border-radius "0em 0em 1em 1em"
      :margin-left (em 2)
@@ -130,17 +132,25 @@
     (for-media-max :tablet
                    [:.more {:background-color (color :new-meme-icon-bg)}])
     [:.icon {:background-color (color :new-meme-icon-bg)
-             :background-image (str "url('/assets/icons/newicon.png')")}]
+             :background-image (str "url('/assets/icons/new.svg')")}]
     [:h2.title {:color (color :new-meme-icon-bg)}]]
    [:.rare-finds
     (for-media-max :tablet
                    [:.more {:background-color (color :rare-meme-icon-bg)}])
     [:.icon {:background-color (color :rare-meme-icon-bg)
-             :background-image (str "url('/assets/icons/rarefindicon.png')")}]
+             :background-image (str "url('/assets/icons/diamond.svg')")}]
     [:h2.title {:color (color :rare-meme-icon-bg)}]]
+   
    [:.random-pics
     (for-media-max :tablet
                    [:.more {:background-color (color :random-meme-icon-bg)}])
     [:.icon {:background-color (color :random-meme-icon-bg)
-                           :background-image (str "url('/assets/icons/randomicon.png')")}]
-    [:h2.title {:color (color :random-meme-icon-bg)}]]])
+                           :background-image (str "url('/assets/icons/network2.svg')")}]
+    [:h2.title {:color (color :random-meme-icon-bg)}]]
+   [:.trending-votes
+    (for-media-max :tablet
+                   [:.more {:background-color (color :random-meme-icon-bg)}])
+    [:.icon {:background-color (color :blue)
+             :background-image (str "url('/assets/icons/memesubmiticon.svg')")}]
+    [:h2.title {:color (color :blue)}]]
+   ])
