@@ -14,7 +14,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Logo on the right shouldn't be there                                        (Juan)
 - [X] Weird text error                                                            (Juan)
 - [X] Shows 5 images, when I scroll to the bottom shows 6                         (Juan)
-- [ ] In designs, title is be blue color with different icon, magnifier also blue (Juan)
+- [X] In designs, title is be blue color with different icon, magnifier also blue (Juan)
 - [ ] Cursor is too close to title                                                (Juan)
 - [X] Title and icon are blue in designs                                          (Juan)
 - [X] Subtitle is wrong font-size and color                                       (Juan)
@@ -40,6 +40,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] White underlying divs                                                       ()
 - [X] Should have ellipsis                                                        (Filip)
 - [X] SVG images instead of png                                                   (Wambat)
+- [ ] Tiles should display as 3 columns grid                                      (Wambat)
 
 ** UI functionality todos
 - [ ] Add loadings spinners on every page

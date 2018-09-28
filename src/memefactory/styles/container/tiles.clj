@@ -9,7 +9,6 @@
 
 (defstyles core
   [:.tiles
-   {:display :grid
-    :grid-template-columns "1fr 1fr 1fr"}
-   [:.compact-tile
-    {:margin :auto}]])
+   {:display :flex
+    :flex-wrap :wrap
+    :justify-content :space-evenly}])
