@@ -19,7 +19,8 @@
                   :icon "/assets/icons/portfolio2.svg"})
 
    [:.tiles
-    {:display :block
+    {:display :grid
+     :grid-template-columns "1fr 1fr 1fr"
      :margin-top (em 2)
      :padding-top (em 2)
      :padding-bottom (em 2)
@@ -27,7 +28,5 @@
      :margin-left (em 6)
      :background-color (color :meme-panel-bg)
      :border-radius "1em 1em 1em 1em"}
-    [">div>div"
-     {:display :flex
-      :flex-wrap :wrap
-      :justify-content :space-evenly}]]])
+    [:.compact-tile
+     {:margin :auto}]]])

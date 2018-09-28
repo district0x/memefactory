@@ -13,7 +13,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Why this cannot show full number, while in designs can                      (Juan)
 - [X] Logo on the right shouldn't be there                                        (Juan)
 - [X] Weird text error                                                            (Juan)
-- [ ] Shows 5 images, when I scroll to the bottom shows 6                         (Juan)
+- [X] Shows 5 images, when I scroll to the bottom shows 6                         (Juan)
 - [ ] In designs, title is be blue color with different icon, magnifier also blue (Juan)
 - [ ] Cursor is too close to title                                                (Juan)
 - [X] Title and icon are blue in designs                                          (Juan)
