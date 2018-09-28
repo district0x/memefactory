@@ -42,7 +42,7 @@
 (defstyles core
   details/core
   [:.memefolio-page
-   (search-panel {:background-panel-image "/assets/icons/search-background.png"
+   (search-panel {:background-panel-image "/assets/icons/mf-search.svg"
                   :color :mymemefolio-green
                   :icon "/assets/icons/portfolio2.svg"})
    [:.total
