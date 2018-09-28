@@ -40,7 +40,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] White underlying divs                                                       ()
 - [X] Should have ellipsis                                                        (Filip)
 - [X] SVG images instead of png                                                   (Wambat)
-- [ ] Tiles should display as 3 columns grid                                      (Wambat)
+- [X] Tiles should display as 3 columns grid                                      (Wambat)
 
 ** UI functionality todos
 - [ ] Add loadings spinners on every page
