@@ -55,7 +55,7 @@
        (doall
         (for [{:keys [id label on-check-filter-change]} check-filters]
           ^{:key id} [:div {:class (str "check-cheapest" )};;(name id)
-                      [:label label]
                       [checkbox-input {:form-data form-data
                                        :id id
-                                       :on-change on-check-filter-change}]])))]]])
+                                       :on-change on-check-filter-change}]
+                      [:label label]])))]]])

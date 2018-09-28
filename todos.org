@@ -33,7 +33,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] NaN shouldn't be displayed                                                  (Filip)
 - [ ] Fonts inside yellow bar are completely off compared to design               ()
 - [ ] Tabs have wrong vertical margins                                            ()
-- [ ] "Group by memes" is not at right side as it should be                       (Filip)
+- [X] "Group by memes" is not at right side as it should be                       (Filip)
 - [ ] Shadow is wrong                                                             ()
 - [ ] Font spacing is very off compared to design                                 ()
 - [ ] Checkboxes are broken                                                       ()

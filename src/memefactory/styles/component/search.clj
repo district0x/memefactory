@@ -92,13 +92,18 @@
       [:.help-block {:display :none}]]
      [:.ac-options {:grid-area :chip}]
      [:.check-cheapest
-      {:padding-top (em 0.4)
-       :grid-area :checkbox}
+      {;; grid box properties
+       :padding-top (em 0.4)
+       :grid-area :checkbox
+       :justify-self :end
+       ;; container properties
+       :display :flex
+       :justify-content :center
+       :align-items :center}
       [:label {:font-size "8px"
-               :position :absolute
-               :margin-left (em 2)
-               :margin-top (em 0.6)
-               :line-height "0.9em"}]
+               :flex 1
+               :margin-left (em 0.3)
+               :margin-bottom (em 0.5)}]
       [:.help-block {:display :none}]]]]
    [:.search-form
     (for-media-max :tablet
