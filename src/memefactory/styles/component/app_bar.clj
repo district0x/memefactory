@@ -68,17 +68,18 @@
     {:align-items :left
      :width (px 250)
      :padding "0 10px"}
-    [:.active-account-select
+    [:.active-account ;;-select
      [:i.dropdown.icon:before
       {:content "url('/assets/icons/dropdown.png')" ;;No, we can't just bg scale, thanks upstream !important
        :display :inline-flex
-       :transform "scale(.5)"
-       }]]
-    [:.active-address-select
-     [:.item
-      {:white-space :nowrap
-       :overflow :hidden
-       :text-overflow :ellipsis}]]]
+       :transform "scale(.5)"}]
+
+     [:span.text
+      {:overflow "hidden"
+       :white-space "nowrap"
+       :text-overflow "ellipsis"
+       :width "100%"
+       :display "inline-block"}]]]
 
    [:.search-section
     [:.search
@@ -124,7 +125,7 @@
       :height "100%"
       :align-items :center
       :justify-content :center}
-     
+
      [:.active-account-balance
       {:display :block
        :height "100%"
@@ -155,7 +156,7 @@
         :right 0;
         :width (em 4)
         :margin-right "auto"
-        :margin-left "auto" 
+        :margin-left "auto"
         :top (em 0.3)
         :overflow :hidden
         :text-overflow :ellipsis}]
@@ -168,7 +169,7 @@
         :right 0;
         :width (em 2)
         :margin-right "auto"
-        :margin-left "auto" 
+        :margin-left "auto"
         :bottom (em 0.3)}]
       ]]]
    ])
