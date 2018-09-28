@@ -38,7 +38,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Font spacing is very off compared to design                                 ()
 - [ ] Checkboxes are broken                                                       ()
 - [ ] White underlying divs                                                       ()
-- [ ] Should have ellipsis                                                        ()
+- [ ] Should have ellipsis                                                        (Filip)
 - [X] SVG images instead of png                                                   (Wambat)
  
 ** UI functionality todos
