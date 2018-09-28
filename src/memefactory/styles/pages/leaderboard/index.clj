@@ -23,8 +23,7 @@
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})]
     [:.tiles
-     {:display :block
-      :margin-top (em 2)
+     {:margin-top (em 2)
       :padding-top (em 2)
       :padding-bottom (em 2)
       :margin-right (em 6)

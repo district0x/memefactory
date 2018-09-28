@@ -19,8 +19,7 @@
                   :icon "/assets/icons/portfolio2.svg"})
 
    [:.tiles
-    {:display :block
-     :margin-top (em 2)
+    {:margin-top (em 2)
      :padding-top (em 2)
      :padding-bottom (em 2)
      :margin-right (em 6)

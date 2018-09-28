@@ -34,9 +34,9 @@
      (doall
       (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
         ^{:key address}
-        [:div.tile-wrapper
-         [tiles/meme-tile {:on-buy-click #()} m]
-         #_[:div.votes-total (str "Vote amount "(or votes-total 0))]]))]))
+        ;;:div.tile-wrapper
+        [tiles/meme-tile {:on-buy-click #()} m]
+        #_[:div.votes-total (str "Vote amount "(or votes-total 0))]))]))
 
 (def auction-node-graph [:meme-auction/address
                          :meme-auction/start-price

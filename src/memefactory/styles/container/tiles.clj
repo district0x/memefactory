@@ -11,4 +11,6 @@
   [:.tiles
    {:display :flex
     :flex-wrap :wrap
-    :justify-content :space-evenly}])
+    :justify-content :space-around}
+   [">*"
+    {:flex "1 0 calc(26% - 1em)"}]])

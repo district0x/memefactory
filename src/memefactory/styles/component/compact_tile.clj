@@ -18,6 +18,10 @@
 (defstyles core
   [:.container
    {:transform-style :preserve-3d
+    :margin-right :auto
+    :margin-left :auto
+    :left 0
+    :right 0
     :width (em card-width)
     :height (em card-height)
     :perspective (px 10000)}
