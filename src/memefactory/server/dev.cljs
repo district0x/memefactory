@@ -67,48 +67,54 @@
   "Redeploy smart contracts"
   []
   (log/warn "Redeploying contracts, please be patient..." ::redeploy)
-  (memefactory.server.deployer/deploy
-   {:transfer-dank-token-to-accounts 1
-    :initial-registry-params
-    {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                     :commit-period-duration (t/in-seconds (t/minutes 20))
-                     :reveal-period-duration (t/in-seconds (t/minutes 10))
-                     :deposit (web3/to-wei 1 :ether)
-                     :challenge-dispensation 50
-                     :vote-quorum 50
-                     :max-total-supply 10
-                     :max-auction-duration (t/in-seconds (t/weeks 20))}
-     :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                             :commit-period-duration (t/in-seconds (t/minutes 20))
-                             :reveal-period-duration (t/in-seconds (t/minutes 10))
-                             :deposit (web3/to-wei 10 :ether)
-                             :challenge-dispensation 50
-                             :vote-quorum 50}}
-    :write? true})
-  (log/info "Finished redploying contracts" ::redeploy))
+  (defer
+    (memefactory.server.deployer/deploy
+     {:transfer-dank-token-to-accounts 1
+      :initial-registry-params
+      {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                       :commit-period-duration (t/in-seconds (t/minutes 20))
+                       :reveal-period-duration (t/in-seconds (t/minutes 10))
+                       :deposit (web3/to-wei 1 :ether)
+                       :challenge-dispensation 50
+                       :vote-quorum 50
+                       :max-total-supply 10
+                       :max-auction-duration (t/in-seconds (t/weeks 20))}
+       :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                               :commit-period-duration (t/in-seconds (t/minutes 20))
+                               :reveal-period-duration (t/in-seconds (t/minutes 10))
+                               :deposit (web3/to-wei 10 :ether)
+                               :challenge-dispensation 50
+                               :vote-quorum 50}}
+      :write? true})
+    (log/info "Finished redploying contracts" ::redeploy)))
 
 (defn generate-data
   "Generate dev data"
   []
   (log/warn "Generating data, please be patient..." ::generate-date)
-  (let [opts {:memes/use-accounts 1
-              :memes/items-per-account 2
-              :memes/scenarios [:scenario/create]
-              :param-changes/use-accounts 1
-              :param-changes/items-per-account 1
-              :param-changes/scenarios []
-              :accounts (web3-eth/accounts @web3)}]
-    (memefactory.server.generator/generate-memes opts)
-    (memefactory.server.generator/generate-param-changes opts))
-  (log/info "Finished generating data" ::generate-data))
+  (defer
+    (let [opts (merge
+                (or (:generator @config)
+                    {:memes/use-accounts 1
+                     :memes/items-per-account 2
+                     :memes/scenarios [:scenario/create]
+                     :param-changes/use-accounts 1
+                     :param-changes/items-per-account 1
+                     :param-changes/scenarios []})
+                {:accounts (web3-eth/accounts @web3)})]
+      (memefactory.server.generator/generate-memes opts)
+      (memefactory.server.generator/generate-param-changes opts))
+    (log/info "Finished generating data" ::generate-data)))
 
 (defn resync []
+  (log/warn "Syncing internal database, please be patient..." ::resync)
   (defer
     (mount/stop #'memefactory.server.db/memefactory-db
                 #'memefactory.server.syncer/syncer)
     (-> (mount/start #'memefactory.server.db/memefactory-db
                      #'memefactory.server.syncer/syncer)
-        pprint/pprint)))
+        pprint/pprint)
+    (log/info "Finished syncing database" ::resync)))
 
 (defn -main [& _]
   (-> (mount/with-args
@@ -164,7 +170,7 @@
        (select [:*] :from [(keyword t)])
        #_(println "\n\n")))))
 
-(defn print-statuses [] 
+(defn print-statuses []
   (web3-evm/mine! @web3) ;; We need to mine a block so time make sense
   (->> (db/all {:select [:v.* :re.*]
                 :from [[:reg-entries :re]]
@@ -241,4 +247,3 @@
                                  (map (fn [p] (str (:type p) " " (:name p) " = " (:value p))))
                                  (clojure.string/join ",\n"))")")
               (apply cc (into [contract-instance method] args)))))))
-
