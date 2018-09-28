@@ -21,7 +21,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Buttons are wrong font-size, not looking as in designs                      (Juan)
 - [ ] Tags don't work (probably not styling issue)                                (Juan)
 - [X] DANK number is on the wrong side                                            (Filip)
-- [ ] Inputs have too much space in between them, vertically                      ()
+- [ ] Inputs have too much space in between them, vertically                      (Filip)
 - [ ] Tabs have too big margin towards bottom                                     ()
 - [X] Select field not styled                                                     (Wambat)
 - [ ] Vote buttons are broken                                                     ()
@@ -38,7 +38,6 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Font spacing is very off compared to design                                 ()
 - [ ] Checkboxes are broken                                                       ()
 - [ ] White underlying divs                                                       ()
-
 - [X] Should have ellipsis                                                        (Filip)
 - [X] SVG images instead of png                                                   (Wambat)
 
