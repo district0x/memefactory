@@ -18,15 +18,14 @@
                   :color :new-meme-icon-bg
                   :icon "/assets/icons/cart-green-blue.svg"})
    [:.tiles
-    {:display :block
-     :margin-top (em 2)
+    {:margin-top (em 2)
      :padding-top (em 2)
      :padding-bottom (em 2)
      :margin-right (em 6)
      :margin-left (em 6)
      :background-color (color :meme-panel-bg)
      :border-radius "1em 1em 1em 1em"}
-    [">div>div"
+    #_[">div>div"
      {:display :flex
       :flex-wrap :wrap
       :justify-content :space-evenly}]]

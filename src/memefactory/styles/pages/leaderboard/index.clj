@@ -29,8 +29,4 @@
       :margin-right (em 6)
       :margin-left (em 6)
       :background-color (color :meme-panel-bg)
-      :border-radius "1em 1em 1em 1em"}
-     [">div>div"
-      {:display :flex
-       :flex-wrap :wrap
-       :justify-content :space-evenly}]]]])
+      :border-radius "1em 1em 1em 1em"}]]])

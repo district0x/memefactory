@@ -51,19 +51,20 @@
         all-auctions (->> @auctions-search
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
     (println "All auctions" (map :meme-auction/address all-auctions))
-    [:div.tiles
-     [react-infinite {:element-height 280
-                      :container-height 300
-                      :infinite-load-begin-edge-offset 100
-                      :use-window-as-scroll-container true
-                      :on-infinite-load (fn []
-                                          (when-not (:graphql/loading? @auctions-search)
-                                            (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
-                                              (println "Scrolled to load more" has-next-page end-cursor)
-                                              (when (or has-next-page (empty? all-auctions))
-                                                (dispatch [:district.ui.graphql.events/query
-                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                            :id @form-data}])))))}
+    
+    [react-infinite {:element-height 280
+                     :container-height 300
+                     :infinite-load-begin-edge-offset 100
+                     :use-window-as-scroll-container true
+                     :on-infinite-load (fn []
+                                         (when-not (:graphql/loading? @auctions-search)
+                                           (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
+                                             (println "Scrolled to load more" has-next-page end-cursor)
+                                             (when (or has-next-page (empty? all-auctions))
+                                               (dispatch [:district.ui.graphql.events/query
+                                                          {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                           :id @form-data}])))))}
+     [:div.tiles
       (doall
        (for [{:keys [:meme-auction/address] :as auc} all-auctions]
          ^{:key address}
