@@ -39,7 +39,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Checkboxes are broken                                                       ()
 - [ ] White underlying divs                                                       ()
 - [ ] Should have ellipsis                                                        ()
-- [ ] SVG images instead of png                                                   (Wambat)
+- [X] SVG images instead of png                                                   (Wambat)
  
 ** UI functionality todos
 - [ ] Add loadings spinners on every page
