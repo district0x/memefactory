@@ -104,9 +104,11 @@
      (for-media-max :tablet
                     [:&
                      {:flex-direction :column}])
-     [:.unique-memes :.largest-buy
-      {:margin-right (em 1)
+     [:.var
+      {:color (color :section-subcaption)
+       :margin-right (em 1)
        :margin-left (em 1)}]
+
      [:.curator
       {:display :grid
        :flex-grow 1

@@ -180,16 +180,16 @@
         [:div.stats
          [:div.rank
           (str "RANK: " collector-rank)]
-         [:div.unique-memes
+         [:div.var
           [:b "Unique Memes: "]
           (str total-collected-memes "/" (-> @query :search-memes :total-count))]
-         [:div.unique-memes
+         [:div.var
           [:b "Total Cards: "]
           [:span (str total-collected-token-ids "/" (-> @query :search-meme-tokens :total-count))]]
-         [:div.largest-buy
+         [:div.var
           [:b "Largest buy: "]
           [:span (str (format/format-eth (web3/from-wei bought-for :ether))
-                      "(#" number " " title ")")]]]))))
+                      " (#" number " " title ")")]]]))))
 
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
@@ -279,14 +279,14 @@
         [:div.stats
          [:div.rank
           (str "RANK: " creator-rank)]
-         [:div.earned
+         [:div.var
           [:b "Earned: "]
           (format/format-eth (web3/from-wei creator-total-earned :ether))]
-         [:div.success-rate
+         [:div.var
           [:b "Success Rate: "]
           (str total-created-memes-whitelisted "/" total-created-memes " ("
                (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
-         [:div.best-sale
+         [:div.var
           [:b "Best Single Card Sale: "]
           (str (-> (:meme-auction/end-price largest-sale)
                    (web3/from-wei :ether)
@@ -347,17 +347,17 @@
          [:div.rank.big
           (str "RANK: " curator-rank)]
          [:div.curator
-          [:div.challenges
+          [:div
            [:div.label "CHALLENGES:"]
            [:div [:b "Success Rate:"] total-created-challenges-success "/" total-created-challenges
             " (" (format/format-percentage total-created-challenges-success total-created-challenges)  ")"]
            [:div [:b "Earned:"] (str (web3/from-wei challenger-total-earned :ether) " DANK")]]
-          [:div.votes
+          [:div
            [:div.label "VOTES:"]
            [:div [:b "Success Rate:"] total-participated-votes "/" total-participated-votes-success
             " (" (format/format-percentage total-participated-votes-success total-participated-votes)  ")"]
            [:div [:b "Earned:"] (str (web3/from-wei voter-total-earned :ether) " DANK")]]
-          [:div.total-earnings
+          [:div
            [:div.label "TOTAL-EARNINGS:"]
            [:div (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")]]]]))))
 
@@ -628,18 +628,19 @@
                                                         :id :challenged?}]}))]]
 
        [:section.tabs
-        (map (fn [tab-id]
-               ^{:key tab-id} [:div
-                               {:class (when (= @tab
-                                                tab-id) "selected")}
-                               [:a {:on-click (fn [evt]
-                                                (.preventDefault evt)
-                                                (reset! tab tab-id))
-                                    :href "#"}
-                                (-> tab-id
-                                    cljs.core/name
-                                    (str/capitalize))]])
-             [:collected :created :curated :selling :sold])]
+        (doall
+         (map (fn [tab-id]
+                ^{:key tab-id} [:div
+                                {:class (when (= @tab
+                                                 tab-id) "selected")}
+                                [:a {:on-click (fn [evt]
+                                                 (.preventDefault evt)
+                                                 (reset! tab tab-id))
+                                     :href "#"}
+                                 (-> tab-id
+                                     cljs.core/name
+                                     (str/capitalize))]])
+              [:collected :created :curated :selling :sold]))]
        [:div.total
         [total @tab @active-account]]
        [:section.stats
