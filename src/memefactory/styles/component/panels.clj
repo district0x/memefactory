@@ -64,6 +64,8 @@
 (defn tabs []
   [:&
    {:display :flex
+    :margin-top (em 2)
+    :margin-bottom (em 0)
     :margin-right (em 6)
     :margin-left (em 6)
     :height (em 3)

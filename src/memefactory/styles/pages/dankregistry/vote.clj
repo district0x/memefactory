@@ -32,6 +32,14 @@
       (get-dank-button)]]]
    [:.tabs-titles
     (tabs)]
+   [:.selected-tab-body
+    [:.controls {:display :block
+                 :right (em 0)
+                 :height 0
+                 :top (em -3)
+                 :position :relative}
+     [:select {:background-color :white}]
+     [:.help-block {:display :none}]]]
    [:.vote {:display :grid
             :margin-left (em 6)
             :margin-right (em 6)}
@@ -59,8 +67,7 @@
                :height (em 3)
                :width "100%"})
       (vote-button-icon)
-      [:&:before {:transform "scaleX(-1) scaleY(-1)"}]
-      ]]]
+      [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
    [:.reveal
     {:text-align :center}
     [:img {:width (em 7)}]
@@ -80,4 +87,4 @@
      (button {:background-color :purple
               :color :white
               :height (em 3)
-              :width (em 14)}) ]]]) 
+              :width (em 14)})]]])
