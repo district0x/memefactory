@@ -85,7 +85,8 @@
       (str
        "'name dropdown .'\n"
        "'chip chip .'\n"
-       "'. checkbox .'\n")}
+       "'. checkbox .'\n")
+      :color (c/color :section-subcaption)}
      [:.name {:grid-area :name}
       [:.help-block {:height :2px}]]
      [:.options {:grid-area :dropdown}
