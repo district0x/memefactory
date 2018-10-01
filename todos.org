@@ -34,7 +34,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Fonts inside yellow bar are completely off compared to design               ()
 - [ ] Tabs have wrong vertical margins                                            ()
 - [X] "Group by memes" is not at right side as it should be                       (Filip)
-- [ ] Shadow is wrong                                                             (Filip)
+- [X] Shadow is wrong                                                             (Filip)
 - [X] Font spacing is very off compared to design                                 (Filip)
 - [X] Checkboxes are broken                                                       (Filip)
 - [ ] White underlying divs                                                       ()
