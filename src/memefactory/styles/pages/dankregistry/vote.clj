@@ -39,7 +39,14 @@
                  :top (em -3)
                  :position :relative}
      [:select {:background-color :white}]
-     [:.help-block {:display :none}]]]
+     [:.help-block {:display :none}]
+     (for-media-max :tablet
+                    [:&
+                     {:display :inline-block
+                      :height (em 1)
+                      :padding-top (em 1)
+                      :width "100% !important"
+                      :top (em -1)}])]]
    [:.vote {:display :grid
             :margin-left (em 6)
             :margin-right (em 6)}
