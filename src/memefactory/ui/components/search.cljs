@@ -52,10 +52,10 @@
        :form-data form-data
        :id [selected-tags-id]}]
      (when check-filters
-       (doall
-        (for [{:keys [id label on-check-filter-change]} check-filters]
-          ^{:key id} [:div {:class (str "check-cheapest" )};;(name id)
-                      [checkbox-input {:form-data form-data
-                                       :id id
-                                       :on-change on-check-filter-change}]
-                      [:label label]])))]]])
+       [:div.check-group (doall
+                          (for [{:keys [id label on-check-filter-change]} check-filters]
+                            ^{:key id} [:div.single-check
+                                        [checkbox-input {:form-data form-data
+                                                         :id id
+                                                         :on-change on-check-filter-change}]
+                                        [:label label]]))])]]])

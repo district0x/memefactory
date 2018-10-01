@@ -91,19 +91,22 @@
      [:.options {:grid-area :dropdown}
       [:.help-block {:display :none}]]
      [:.ac-options {:grid-area :chip}]
-     [:.check-cheapest
+     [:.check-group
       {;; grid box properties
-       :padding-top (em 0.4)
+       ;;
        :grid-area :checkbox
        :justify-self :end
        ;; container properties
-       :display :flex
-       :justify-content :center
-       :align-items :center}
-      [:label {:font-size "8px"
-               :flex 1
-               :margin-left (em 0.3)
-               :margin-bottom (em 0.5)}]
+       :display :flex}
+      [:.single-check
+       {:display :flex
+        :justify-content :center
+        :align-items :center
+        :padding-left (em 0.4)}
+       [:label {:font-size "8px"
+                :flex 1
+                :margin-left (em 0.3)
+                :margin-bottom (em 0.5)}]]
       [:.help-block {:display :none}]]]]
    [:.search-form
     (for-media-max :tablet
