@@ -19,7 +19,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Title and icon are blue in designs                                          (Juan)
 - [X] Subtitle is wrong font-size and color                                       (Juan)
 - [ ] Buttons are wrong font-size, not looking as in designs                      (Juan)
-- [ ] Tags don't work (probably not styling issue)                                (Juan)
+- [X] Tags don't work (probably not styling issue)                                (Juan)
 - [X] DANK number is on the wrong side                                            (Filip)
 - [X] Inputs have too much space in between them, vertically                      (Filip)
 - [X] Tabs have too big margin towards bottom                                     (wambat)

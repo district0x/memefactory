@@ -9,6 +9,7 @@
     [memefactory.server.deployer]
     [memefactory.server.emailer]
     [memefactory.server.generator]
+    [memefactory.server.ipfs]
     [memefactory.server.syncer]
     [memefactory.server.ranks-cache]
     [memefactory.shared.smart-contracts]
@@ -54,5 +55,3 @@
   (warn "System started" {:config @config}))
 
 (set! *main-cli-fn* -main)
-
-
