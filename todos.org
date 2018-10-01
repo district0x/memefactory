@@ -36,7 +36,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] "Group by memes" is not at right side as it should be                       (Filip)
 - [ ] Shadow is wrong                                                             ()
 - [ ] Font spacing is very off compared to design                                 ()
-- [ ] Checkboxes are broken                                                       ()
+- [ ] Checkboxes are broken                                                       (Filip)
 - [ ] White underlying divs                                                       ()
 - [X] Should have ellipsis                                                        (Filip)
 - [X] SVG images instead of png                                                   (Wambat)
