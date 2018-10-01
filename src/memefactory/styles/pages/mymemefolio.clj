@@ -16,7 +16,7 @@
             [memefactory.styles.pages.memefolio.details :as details]))
 
 (defn button-tile-back []
-  [:.sell {:display :grid 
+  [:.sell {:display :grid
            :grid-template-rows "75% 25%"
            :width "100%"}
    [:.top {:width "30%"
@@ -69,7 +69,8 @@
      :margin-left (em 6)
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :background-color (color :yellow)
-     :border-radius "1em 1em 0em 0em"}
+     :border-radius "1em 1em 0em 0em"
+     :letter-spacing (em 0.01)}
     (for-media-max :tablet
                    [:&
                     {:margin-right (em 1)
@@ -116,7 +117,8 @@
         {:color (color :pink)}
         (font :bungee)]
        [">*"
-        {:margin-right (em 1)
+        {:color (color :section-subcaption)
+         :margin-right (em 1)
          :line-height (em 2)
          :margin-left (em 1)}
         [:b {:margin-right (em 0.2)}]]]]]]
@@ -147,7 +149,7 @@
                 :width "60%"
                 :height (em 2.5)
                 :border-radius (em 2)}
-       [:button 
+       [:button
         (font :bungee)
         {:display "block"
          :bottom (em 2)
