@@ -16,7 +16,7 @@
             [memefactory.ui.contract.meme-auction :as meme-auction]
             [district.ui.router.events :as router-events]))
 
-(defn- img-url-stub
+#_(defn- img-url-stub
   ([]
    (img-url-stub (rand-int 2)))
   ([n]
@@ -29,11 +29,11 @@
 
 (defn meme-image [image-hash]
   (let [gateway (subscribe [::gql/query
-                            {:queries [[:config 
-                                        [[:ipfs [:gateway]]]]]}])]        
+                            {:queries [[:config
+                                        [[:ipfs [:gateway]]]]]}])]
     (when-not (:graphql/loading? @gateway)
       (if-let [url (-> @gateway :config :ipfs :gateway)]
-       [:img.meme-image {:src (str (format/ensure-trailing-slash url) image-hash)}]))))
+        [:img.meme-image {:src (str (format/ensure-trailing-slash url) image-hash)}]))))
 
 (defn flippable-tile [{:keys [:front :back :id]}]
   (let [flipped? (r/atom false)
@@ -70,12 +70,11 @@
                                            end-time)
             price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
        [:div.meme-card.back
-        [:img {:src (img-url-stub (get-in meme-auction [:meme-auction/meme-token
-                                                        :meme-token/meme
-                                                        :meme/image-hash]))}]
+        (meme-image (get-in meme-auction [:meme-auction/meme-token
+                                          :meme-token/meme
+                                          :meme/image-hash]))
         [:div.overlay
          [:div.info
-          ;; [:div (str meme-auction)]
           [:ul.meme-data
            [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]
            [:li [:label "Current Price:"] [:span (format-price price)]]
