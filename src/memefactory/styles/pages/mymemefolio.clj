@@ -67,7 +67,7 @@
      :padding-bottom (em 0)
      :margin-right (em 6)
      :margin-left (em 6)
-     :box-shadow ".3em 0 0px 0px rgba(0,0,0,0.05)"
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :background-color (color :yellow)
      :border-radius "1em 1em 0em 0em"
      :letter-spacing (em 0.01)}
@@ -128,7 +128,9 @@
      :padding-bottom (em 2)
      :margin-right (em 6)
      :margin-left (em 6)
-     :background-color (color :meme-panel-bg)}
+     :background-color (color :meme-panel-bg)
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+     }
     (for-media-max :tablet
                    [:&
                     {:margin-right (em 1)
