@@ -62,7 +62,7 @@
 
 (defn vote-button-icon []
   [:&:before {:content "''"
-              :background-image "url('/assets/icons/dankregistry.svg')"
+              :background-image "url('/assets/icons/thumb-up.svg')"
               :background-size "20px 20px"
               :display :inline-block
               :background-repeat :no-repeat

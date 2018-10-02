@@ -66,7 +66,10 @@
                :color :violet
                :height (em 3)
                :width "100%"})
-      (vote-button-icon)]]
+      (vote-button-icon)
+      {:white-space :nowrap
+       :padding-right (em 1)
+       :padding-left (em 1)}]]
     [:.vote-stank
      [:button 
       (button {:background-color :random-meme-icon-bg
@@ -74,6 +77,9 @@
                :height (em 3)
                :width "100%"})
       (vote-button-icon)
+      {:white-space :nowrap
+       :padding-right (em 1)
+       :padding-left (em 1)}
       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
    [:.reveal
     {:text-align :center}
