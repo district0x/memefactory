@@ -54,9 +54,10 @@
     :padding-left (em 1.5)
     :padding-right (em 1.5)
     :padding-top (em 0.5)
-    :border "1px solid #e1b4ef"
     :padding-bottom (em 0.5)
+    :border "0.5px solid #e1b4ef"
     :border-radius (em 2)
+    :font-size (em 0.8)
     :display :inline}])
 
 (defn vote-button-icon []

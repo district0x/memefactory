@@ -12,7 +12,7 @@
 
 
 (defstyles core
-  [:.challenges.panel   
+  [:.challenges.panel
    {:padding-left (em 6)
     :padding-right (em 6)}
    (for-media-max :tablet
@@ -21,7 +21,7 @@
                     :padding-left (em 2)}])
    [:.controls {:width (em 11)
                 :margin-left :auto
-                :margin-right 0}] 
+                :margin-right 0}]
    [:.challenge
     {:display :grid
      :grid-template "'info image action'"
