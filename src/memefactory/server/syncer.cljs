@@ -253,7 +253,9 @@
     (throw (js/Error. "Database module has not started")))
 
   (let [last-block-number (last-block-number)
-        watchers [{:watcher (partial eternal-db/change-applied-event [:param-change-registry-db])
+        watchers [{:watcher (partial eternal-db/change-applied-event :param-change-registry-db)
+                   :on-event #(dispatch-event :contract/eternal-db %1 %2)}
+                  {:watcher (partial eternal-db/change-applied-event :meme-registry-db)
                    :on-event #(dispatch-event :contract/eternal-db %1 %2)}
                   {:watcher (partial registry/registry-entry-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme %1 %2)}
