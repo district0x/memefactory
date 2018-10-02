@@ -62,7 +62,7 @@
 (defn- last-block-number []
   (web3-eth/block-number @web3))
 
-(derive :contract/meme         :contract/registry-entry)
+(derive :contract/meme :contract/registry-entry)
 (derive :contract/param-change :contract/registry-entry)
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -168,18 +168,24 @@
 (defmethod process-event [:contract/meme :minted]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
   (try-catch
-   (let [[creator token-id-start token-id-end] data
-         tokens-ids (range (bn/number token-id-start) (inc (bn/number token-id-end)))]
-     (db/insert-meme-tokens! {:token-id-start (bn/number token-id-start)
-                              :token-id-end (bn/number token-id-end)
+   (let [[creator token-id-start token-id-end total-minted] data
+         timestamp (bn/number timestamp)
+         token-id-start (bn/number token-id-start)
+         token-id-end (bn/number token-id-end)
+         total-minted (bn/number total-minted)]
+
+     (db/insert-meme-tokens! {:token-id-start token-id-start
+                              :token-id-end token-id-end
                               :reg-entry/address registry-entry})
-     (doseq [tid tokens-ids]
+
+     (doseq [tid (range token-id-start (inc token-id-end))]
        (db/insert-or-replace-meme-token-owner {:meme-token/token-id tid
                                                :meme-token/owner (web3/to-hex creator)
-                                               :meme-token/transferred-on (bn/number timestamp)}))
-     (db/update-meme-first-mint-on! {:reg-entry/address registry-entry
-                                     :meme/first-mint-on timestamp})
-     (db/increment-meme-total-minted! registry-entry (count tokens-ids)))))
+                                               :meme-token/transferred-on timestamp}))
+
+     (db/update-meme-first-mint-on! registry-entry timestamp)
+     (db/update-meme-token-id-start! registry-entry token-id-start)
+     (db/update-meme-total-minted! registry-entry total-minted))))
 
 (defmethod process-event [:contract/meme-auction :auction-started]
   [_ {:keys [:meme-auction :timestamp :data] :as ev}]

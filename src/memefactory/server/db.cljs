@@ -8,7 +8,7 @@
             [medley.core :as medley]
             [mount.core :as mount :refer [defstate]]
             [print.foo :refer [look] :include-macros true]
-            [taoensso.timbre :as logging :refer-macros [info warn error]]))
+            [taoensso.timbre :as log]))
 
 (declare start)
 (declare stop)
@@ -46,7 +46,7 @@
    [:meme/meta-hash ipfs-hash not-nil]
    [:meme/total-supply :unsigned :integer not-nil]
    [:meme/total-minted :unsigned :integer not-nil]
-   [:meme/token-id-start :unsigned :integer not-nil]
+   [:meme/token-id-start :unsigned :integer default-nil #_not-nil]
    [:meme/total-trade-volume :BIG :INT default-nil]
    [:meme/first-mint-on :unsigned :integer default-nil]
    [(sql/call :primary-key :meme/number)]
@@ -287,23 +287,21 @@
                :where [:= :reg-entry/address reg-entry-address]})
     :meme/total-trade-volume))
 
-
-(defn update-meme-first-mint-on! [{:keys [:reg-entry/address :meme/first-mint-on]}]
+(defn update-meme-first-mint-on! [address first-mint-on]
   (when-not (-> (db/get {:select [:meme/first-mint-on]
                          :from [:memes]
                          :where [:= :reg-entry/address address]})
-              :meme/first-mint-on)
+                :meme/first-mint-on)
     (update-meme! {:reg-entry/address address
                    :meme/first-mint-on first-mint-on})))
 
-(defn increment-meme-total-minted! [address inc-by]
-  (let [val (-> (db/get {:select [:meme/total-minted]
-                         :from [:memes]
-                         :where [:= :reg-entry/address address]})
-                :meme/total-minted)]
-    (update-meme! {:reg-entry/address address
-                   :meme/total-minted (+ val inc-by)})))
+(defn update-meme-token-id-start! [address token-id-start]
+  (update-meme! {:reg-entry/address address
+                 :meme/token-id-start token-id-start}))
 
+(defn update-meme-total-minted! [address total-minted]
+  (update-meme! {:reg-entry/address address
+                 :meme/total-minted total-minted}))
 
 (defn inc-meme-total-trade-volume! [{:keys [:reg-entry/address :amount]}]
   (db/run! {:update :memes

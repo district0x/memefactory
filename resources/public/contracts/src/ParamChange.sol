@@ -78,7 +78,7 @@ contract ParamChange is RegistryEntry {
     
     db.setUIntValue(record, value);
     appliedOn = now;
-    /* we listen to eternal-db now, no need for this event */
+    /* TODO: needed? we listen to eternal-db now */
     registry.fireRegistryEntryEvent("changeApplied", version);
   }
 

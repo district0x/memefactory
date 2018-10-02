@@ -1,8 +1,8 @@
 (ns memefactory.shared.contract.meme
-  (:require
-    [bignumber.core :as bn]
-    [cljs-web3.core :as web3]
-    [district.web3-utils :refer [web3-time->local-date-time empty-address? wei->eth-number]]))
+  (:require [bignumber.core :as bn]
+            [cljs-web3.core :as web3]
+            [district.web3-utils :refer [web3-time->local-date-time empty-address? wei->eth-number]]
+            [memefactory.shared.utils :as shared-utils]))
 
 (def load-meme-keys [:meme/meta-hash
                      :meme/total-supply
@@ -13,8 +13,9 @@
   (when meme
     (let [meme (zipmap load-meme-keys meme)]
       (-> meme
-        (assoc :reg-entry/address contract-addr)
-        (update :meme/meta-hash web3/to-ascii)
-        (update :meme/total-supply bn/number)
-        (update :meme/total-minted bn/number)
-        (update :meme/token-id-start bn/number)))))
+          (assoc :reg-entry/address contract-addr)
+          (update :meme/meta-hash web3/to-ascii)
+          (update :meme/total-supply bn/number)
+          (update :meme/total-minted bn/number)
+          (update :meme/token-id-start (constantly (shared-utils/parse-uint (:meme/token-id-start meme)))
+                  #_bn/number)))))
