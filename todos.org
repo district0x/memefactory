@@ -37,7 +37,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Shadow is wrong                                                             (Filip)
 - [X] Font spacing is very off compared to design                                 (Filip)
 - [X] Checkboxes are broken                                                       (Filip)
-- [ ] White underlying divs                                                       (wambat)
+- [X] White underlying divs                                                       (wambat)
 - [X] Should have ellipsis                                                        (Filip)
 - [X] SVG images instead of png                                                   (Wambat)
 - [X] Tiles should display as 3 columns grid                                      (Wambat)
