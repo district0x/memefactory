@@ -69,7 +69,7 @@
     :margin-right (em 6)
     :margin-left (em 6)
     :height (em 3)
-    :line-height (em 3)
+    ;; :line-height (em 3)
     :flex-wrap :wrap
     :justify-content :flex-start}
    (for-media-max :tablet

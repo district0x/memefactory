@@ -69,23 +69,24 @@
   (log/warn "Redeploying contracts, please be patient..." ::redeploy)
   (defer
     (memefactory.server.deployer/deploy
-     {:transfer-dank-token-to-accounts 1
-      :initial-registry-params
-      {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                       :commit-period-duration (t/in-seconds (t/minutes 20))
-                       :reveal-period-duration (t/in-seconds (t/minutes 10))
-                       :deposit (web3/to-wei 1 :ether)
-                       :challenge-dispensation 50
-                       :vote-quorum 50
-                       :max-total-supply 10
-                       :max-auction-duration (t/in-seconds (t/weeks 20))}
-       :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                               :commit-period-duration (t/in-seconds (t/minutes 20))
-                               :reveal-period-duration (t/in-seconds (t/minutes 10))
-                               :deposit (web3/to-wei 10 :ether)
-                               :challenge-dispensation 50
-                               :vote-quorum 50}}
-      :write? true})
+     (or (:deployer @config)
+         {:transfer-dank-token-to-accounts 1
+          :initial-registry-params
+          {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                           :commit-period-duration (t/in-seconds (t/minutes 20))
+                           :reveal-period-duration (t/in-seconds (t/minutes 10))
+                           :deposit (web3/to-wei 1 :ether)
+                           :challenge-dispensation 50
+                           :vote-quorum 50
+                           :max-total-supply 10
+                           :max-auction-duration (t/in-seconds (t/weeks 20))}
+           :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                                   :commit-period-duration (t/in-seconds (t/minutes 20))
+                                   :reveal-period-duration (t/in-seconds (t/minutes 10))
+                                   :deposit (web3/to-wei 10 :ether)
+                                   :challenge-dispensation 50
+                                   :vote-quorum 50}}
+          :write? true}))
     (log/info "Finished redploying contracts" ::redeploy)))
 
 (defn generate-data

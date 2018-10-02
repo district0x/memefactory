@@ -32,7 +32,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Select not styled                                                           (Wambat)
 - [X] NaN shouldn't be displayed                                                  (Filip)
 - [X] Fonts inside yellow bar are completely off compared to design               (Filip)
-- [ ] Tabs have wrong vertical margins                                            (Filip)
+- [X] Tabs have wrong vertical margins                                            (Filip)
 - [X] "Group by memes" is not at right side as it should be                       (Filip)
 - [X] Shadow is wrong                                                             (Filip)
 - [X] Font spacing is very off compared to design                                 (Filip)

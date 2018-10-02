@@ -46,20 +46,20 @@
                   :color :mymemefolio-green
                   :icon "/assets/icons/portfolio2.svg"})
    [:.total
-    {:position :relative
-     :margin-right (em 6)
-     :margin-left (em 6)
-     :height 1}
+    {:position :fixed
+     :right (em 4)
+     :font-size (em 0.9)
+     :color (color :section-subcaption)}
     (for-media-max :tablet
                    [:&
                     {:margin-right (em 2)
                      :margin-top (em 2)
                      :margin-left (em 6)}])
-    [">div"
-     {:right (em 0)
-      :font-size (em 0.9)
-      :position :absolute
-      :top (em -2)}]]
+    #_[">div"
+       {:right (em 0)
+        :font-size (em 0.9)
+        ;; :position :absolute
+        :top (em -2)}]]
    [:section.stats
     {:display :flex
      :margin-top 0
@@ -76,8 +76,8 @@
                     {:margin-right (em 1)
                      :margin-left (em 1)}])
     #_[">*"
-     {:padding-top (em 1)
-      :padding-bottom (em 1)}]
+       {:padding-top (em 1)
+        :padding-bottom (em 1)}]
     [".stats>*"
      {:padding-right (em 1)
       :padding-left (em 1)}

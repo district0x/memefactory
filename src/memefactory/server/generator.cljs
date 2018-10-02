@@ -187,5 +187,4 @@
             (throw (js/Error. "Param change registry entry wasn't found")))
 
           (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
-
           (param-change-registry/apply-param-change registry-entry {:from account}))))))

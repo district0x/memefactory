@@ -640,9 +640,9 @@
                                  (-> tab-id
                                      cljs.core/name
                                      (str/capitalize))]])
-              [:collected :created :curated :selling :sold]))]
-       [:div.total
-        [total @tab @active-account]]
+              [:collected :created :curated :selling :sold]))
+        [:div.total
+         [total @tab @active-account]]]
        [:section.stats
         (when (not (contains? #{:selling :sold} @tab))
           [:div.rank
