@@ -69,6 +69,7 @@
       (vote-button-icon)
       {:white-space :nowrap
        :padding-right (em 1)
+       :padding-bottom (em 0.4)
        :padding-left (em 1)}]]
     [:.vote-stank
      [:button 
@@ -79,6 +80,7 @@
       (vote-button-icon)
       {:white-space :nowrap
        :padding-right (em 1)
+       :padding-bottom (em 0.4)
        :padding-left (em 1)}
       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
    [:.reveal

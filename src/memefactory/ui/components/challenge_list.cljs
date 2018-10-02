@@ -57,13 +57,13 @@
 
 (defn user-info [user class]
   [:ol {:class class}
-   [:li "Rank:" [:span (gstring/format "#%d (?)" (or (:user/creator-rank user) 0))]]
-   [:li "Success Rate:" [:span (gstring/format "%d/%d (%d%%)"
+   [:li "Rank: " [:span (gstring/format "#%d (?)" (or (:user/creator-rank user) 0))]]
+   [:li "Success Rate: " [:span (gstring/format "%d/%d (%d%%)"
                                                           (:user/total-created-memes-whitelisted user)
                                                           (:user/total-created-memes user)
                                                           (/ (* 100 (:user/total-created-memes-whitelisted user))
                                                              (:user/total-created-memes user)))]] 
-   [:li "Address:" [:span.address (-> user :user/address)]]])
+   [:li "Address: " [:span.address (-> user :user/address)]]])
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child] }]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
@@ -74,12 +74,12 @@
      (cond-> [:div.info
               [:h2 title]
               [:ol.meme
-               [:li "Created:" [:span (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
+               [:li "Created: " [:span (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
                                                      format/format-time-units
                                                      (str " ago"))]]
-               [:li "Challenge period ends in:" [:span (-> (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))
+               [:li "Challenge period ends in: " [:span (-> (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))
                                                                       format/format-time-units)]]
-               [:li "Issued:" [:span total-supply]]]
+               [:li "Issued: " [:span total-supply]]]
               [:h3 "Creator"]
               [user-info creator :creator]
               [:span.challenge-comment comment]

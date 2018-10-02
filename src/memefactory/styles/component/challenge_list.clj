@@ -47,6 +47,7 @@
            :margin 0}]
      [:ol
       {:list-style-type :none
+       :font-size (em 0.8)
        :padding 0
        :margin-top (em 0.4)
        :color (color :menu-text)}
