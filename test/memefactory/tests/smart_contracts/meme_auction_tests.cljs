@@ -70,7 +70,8 @@
           (let [current-price (bn/number (meme-auction/current-price meme-auction))
                 correct-price? (or (= current-price 99850000000000000)  ;; if one second passed
                                    (= current-price 99700000000000000)  ;; if two seconds passed
-                                   (= current-price 99550000000000000)) ;; if three seconds passed
+                                   (= current-price 99550000000000000)  ;; if three seconds passed
+                                   (= current-price 99400000000000000)) ;; if four seconds passed
                 ]
             (when-not correct-price? (.log js/console "Auction was bought for " current-price))
             (is correct-price?))))

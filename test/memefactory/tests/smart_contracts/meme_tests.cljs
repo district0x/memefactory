@@ -20,7 +20,7 @@
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})
          :after test-utils/after-fixture})
- 
+
 ;;;;;;;;;;;
 ;; Meme  ;;
 ;;;;;;;;;;;
@@ -36,7 +36,7 @@
       :args :registry-entry))
 
 (deftest approve-and-create-meme-test
-  (let [[creator-addr] (web3-eth/accounts @web3) 
+  (let [[creator-addr] (web3-eth/accounts @web3)
         [max-total-supply deposit] (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :deposit])
                                         (map bn/number))
         registry-entry (create-meme creator-addr deposit max-total-supply sample-meta-hash-1)]
@@ -64,9 +64,9 @@
       ;; it will not be whitelisted because we are still in challenge period
       (is (thrown? js/Error
                    (meme/transfer-deposit registry-entry))))
-    
+
     (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
-    
+
     ;; all conditions shold be valid after challenge period
     (testing "Meme deposit can be transferred from whitelisted meme to depositCollector address"
       (meme/transfer-deposit registry-entry)
@@ -83,9 +83,9 @@
     (testing "Meme cant be minted if it's not whitelisted"
       ;; it will not be whitelisted because we are still in challenge period
       (is (thrown? js/Error (meme/mint registry-entry max-total-supply {}))))
-    
+
     (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
-    
+
     ;; Now meme should be whitelisted
     (let [mint-count (quot max-total-supply 2)]
      (testing "Meme can be minted under valid conditions"
