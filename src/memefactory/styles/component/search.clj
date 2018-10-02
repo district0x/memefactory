@@ -86,6 +86,7 @@
        "'name dropdown .'\n"
        "'chip chip .'\n"
        "'. checkbox .'\n")
+      :grid-column-gap (em 2)
       :color (c/color :section-subcaption)}
      [:.name {:grid-area :name}
       [:.help-block {:height :2px}]]

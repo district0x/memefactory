@@ -60,7 +60,7 @@
     :display :inline}])
 
 (defn vote-button-icon []
-  [:&:before {:content "''" 
+  [:&:before {:content "''"
               :background-image "url('/assets/icons/dankregistry.svg')"
               :background-size "20px 20px"
               :display :inline-block

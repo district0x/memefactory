@@ -65,12 +65,13 @@
        {:margin-right :auto
         :margin-left :auto
         :padding-top (em 1)
-        :padding-left (em 1)
-        :margin-top (em 0.5)}
+        :padding-left (em 1.9)
+        :margin-top (em 0.5)
+        :font-size (px 12)}
        (button {:background-color :purple
                 :color :white
-                :width (em 10)
-                :height (em 3)})]
+                :width (em 12)
+                :height (em 3.1)})]
       ["input[type=file]"
        {:display :none}
        #_{:right 0
@@ -104,7 +105,9 @@
                  :align-items :center}
        [:button
         {:margin-right :auto
-         :margin-left 0}
+         :margin-left 0
+         :padding-top (em 0.5)
+         :font-size (px 12)}
         (button {:background-color :purple
                  :color :white
                  :height (em 3)
