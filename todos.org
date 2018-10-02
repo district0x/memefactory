@@ -43,11 +43,11 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Tiles should display as 3 columns grid                                      (Wambat)
 
 ** UI functionality todos
-- [ ] Add loadings spinners on every page
-- [X] Can't type on token issue input, showing error in console
-- [ ] After issuing tokens, update remainings tokens or disable if no more tokens to issue
-- [ ] After token sell we should somehow update the interface so it doesn't look like you can sell them again
-- [X] Memefolio selling tab doesn't show selling tokens
+- [ ] Add loadings spinners on every page                                                                     ()
+- [X] Can't type on token issue input, showing error in console                                               ()
+- [ ] After issuing tokens, update remainings tokens or disable if no more tokens to issue                    ()
+- [ ] After token sell we should somehow update the interface so it doesn't look like you can sell them again ()
+- [X] Memefolio selling tab doesn't show selling tokens                                                       ()
 
 ** Server todos
 

@@ -260,7 +260,7 @@
           reclaim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reclaim-vote-amount tx-id}])
           reclaim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reclaim-vote-amount tx-id}])]
       [:div
-       (when (> 0 votes-total) 
+       (when (< 0 votes-total)
          [charts/donut-chart meme])
        [:div {:style {:float "right"}}
         [:div.dank (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
@@ -276,7 +276,7 @@
                                 :on-click #(dispatch [::registry-entry/reclaim-vote-amount {:send-tx/id tx-id
                                                                                             :reg-entry/address (:reg-entry/address meme)}])}
            "Reclaim vote amount"]
-          
+
           (contains? #{:vote-option/vote-for :vote-option/vote-against} option)
           [:div
            [:div.vote (str "You voted: " (case option
@@ -478,7 +478,7 @@
       (let [address (-> @(re-frame/subscribe [::router-subs/active-page]) :query :address)
             response (subscribe [::gql/query (build-meme-query address @active-account)])]
         (when-not (:graphql/loading? @response)
-          (if-let [meme (-> @response :meme)]            
+          (if-let [meme (-> @response :meme)]
             (let [{:keys [:reg-entry/status :meme/image-hash :meme/title :reg-entry/status :meme/total-supply
                           :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger]} meme
                   token-count (->> owned-meme-tokens
