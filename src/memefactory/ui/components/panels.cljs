@@ -25,12 +25,12 @@
       [inputs/pending-button {:pending? @tx-pending?
                               :pending-text "Cancelling auction ..."
                               :on-click (fn [e]
-                                          (.stopPropagation e)        
+                                          (.stopPropagation e)
                                           (dispatch [::meme-auction/cancel {:send-tx/id tx-id
                                                                             :meme-auction/address address}]))}
        "Cancel Sell"]]]]))
 
-(defmethod panel :selling [_ state]
+(defmethod panel :selling [_ state refresh-query]
   [:div.tiles
    (doall
     (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]

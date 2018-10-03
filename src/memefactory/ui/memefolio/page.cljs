@@ -206,7 +206,7 @@
     (when-not (:graphql/loading? @query)
       [:div "Total "  (get-in @query [:search-memes :total-count])])))
 
-(defn issue-form [{:keys [:meme/title :reg-entry/address :max-amount]}]
+(defn issue-form [{:keys [:meme/title :reg-entry/address :max-amount]} refresh-query]
   (let [tx-id (str (random-uuid))
         form-data (r/atom {:meme/amount max-amount})
         errors (ratom/reaction {:local (let [{:keys [:amount]} @form-data]
@@ -229,11 +229,12 @@
                                           (dispatch [::meme/mint (merge @form-data
                                                                        {:meme/title title
                                                                         :reg-entry/address address
-                                                                        :send-tx/id tx-id})]))}
+                                                                        :send-tx/id tx-id})
+                                                     refresh-query]))}
          "Issue"]]
        [:label "Max " max-amount]])))
 
-(defmethod panel :created [_ state]
+(defmethod panel :created [_ state refresh-query]
   [:div
    (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
                             :meme/title :meme/total-supply :meme/total-minted
@@ -256,7 +257,8 @@
                                       (when (= status :reg-entry.status/whitelisted)
                                         [issue-form {:meme/title title
                                                      :reg-entry/address address
-                                                     :max-amount (- total-supply total-minted)}])])))
+                                                     :max-amount (- total-supply total-minted)}
+                                         refresh-query])])))
                state))])
 
 ;; TODO: loading indicators
@@ -320,7 +322,7 @@
     (when-not (:graphql/loading? @query)
       [:div "Total " (get-in @query [:search-memes :total-count])])))
 
-(defmethod panel :curated [_ state]
+(defmethod panel :curated [_ state refresh-query]
   [:div.tiles
    (doall
     (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
@@ -395,7 +397,7 @@
     (when-not (:graphql/loading? @query)
       [:div "Total " (get-in @query [:search-meme-auctions :total-count])])))
 
-(defmethod panel :sold [_ state]
+(defmethod panel :sold [_ state refresh-query]
   [:div.tiles
    (doall
     (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
@@ -574,17 +576,18 @@
                                        new (filter #(not-contains? (set result) %)
                                                    (f (first queries)))]
                                    (into result new))))))
-        query (subscribe [::gql/query {:queries (build-query tab {:active-account active-account
-                                                                  :prefix prefix
-                                                                  :form-data form-data
-                                                                  :after 0
-                                                                  :first scroll-interval})}
-                          {:id (merge form-data
-                                      {:tab tab})}])
+        query (build-query tab {:active-account active-account
+                                :prefix prefix
+                                :form-data form-data
+                                :after 0
+                                :first scroll-interval})
+        query-id (merge form-data {:tab tab})
+        query-subs (subscribe [::gql/query {:queries query}
+                               {:id query-id}])
         k (case prefix
             :memes :search-memes
             :meme-auctions :search-meme-auctions)
-        state (mapcat #_safe-mapcat (fn [q] (get-in q [k :items])) @query)]
+        state (mapcat #_safe-mapcat (fn [q] (get-in q [k :items])) @query-subs)]
 
     (prn "re-render" tab (map #(get-in % [(case prefix
                                               :memes :reg-entry/address
@@ -592,10 +595,10 @@
     [:div.scroll-area
      (if (empty? state)
        [:div.loading]
-       [panel tab state])
+       [panel tab state {:query query :query-id query-id}])
      [infinite-scroll {:load-fn (fn []
-                                  ;;when-not (:graphql/loading? @query)
-                                  (let [{:keys [:has-next-page :end-cursor]} (k (last @query))]
+                                  ;;when-not (:graphql/loading? @query-subs)
+                                  (let [{:keys [:has-next-page :end-cursor]} (k (last @query-subs))]
                                     (when (or has-next-page (empty? state))
                                       (dispatch [::gql-events/query
                                                  {:query {:queries (build-query tab {:active-account active-account
@@ -603,8 +606,7 @@
                                                                                      :form-data form-data
                                                                                      :first scroll-interval
                                                                                      :after end-cursor})}
-                                                  :id (merge form-data
-                                                             {:tab tab})}]))))}]]))
+                                                  :id query-id}]))))}]]))
 
 (defn tabbed-pane [tab prefix form-data]
   (let [active-account (subscribe [::accounts-subs/active-account])
