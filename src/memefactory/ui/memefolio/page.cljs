@@ -156,40 +156,49 @@
                state))])
 
 (defmethod rank :collected [_ active-account]
-  (let [query (subscribe [::gql/query
-                          {:queries [[:user {:user/address active-account}
-                                      [:user/address
-                                       ;;:user/collector-rank
-                                       :user/total-collected-memes
-                                       :user/total-collected-token-ids
-                                       [:user/largest-buy [:meme-auction/bought-for
-                                                           [:meme-auction/meme-token
-                                                            [:meme-token/number
-                                                             [:meme-token/meme
-                                                              [:meme/title
-                                                               :meme/image-hash
-                                                               :meme/total-minted]]]]]]]]
-                                     [:search-memes [:total-count]]
-                                     [:search-meme-tokens [:total-count]]]}])]
-    (when-not (:graphql/loading? @query)
-      (let [{:keys [:user/collector-rank :user/total-collected-memes :user/total-collected-token-ids
-                    :user/largest-buy]} (:user @query)
-            {:keys [:meme-auction/bought-for :meme-auction/meme-token]} largest-buy
-            {:keys [:meme-token/number :meme-token/meme]} meme-token
-            {:keys [:meme/title]} meme]
-        [:div.stats
-         [:div.rank
-          (str "RANK: " collector-rank)]
-         [:div.var
-          [:b "Unique Memes: "]
-          (str total-collected-memes "/" (-> @query :search-memes :total-count))]
-         [:div.var
-          [:b "Total Cards: "]
-          [:span (str total-collected-token-ids "/" (-> @query :search-meme-tokens :total-count))]]
-         [:div.var
-          [:b "Largest buy: "]
+  (let [query (if active-account
+                (subscribe [::gql/query
+                            {:queries [[:user {:user/address active-account}
+                                        [:user/address
+                                         ;;:user/collector-rank
+                                         :user/total-collected-memes
+                                         :user/total-collected-token-ids
+                                         [:user/largest-buy [:meme-auction/bought-for
+                                                             [:meme-auction/meme-token
+                                                              [:meme-token/number
+                                                               [:meme-token/meme
+                                                                [:meme/title
+                                                                 :meme/image-hash
+                                                                 :meme/total-minted]]]]]]]]
+                                       [:search-memes [:total-count]]
+                                       [:search-meme-tokens [:total-count]]]}])
+                (ratom/reaction {:graphql/loading? true}))]
+    (let [{:keys [:user/collector-rank :user/total-collected-memes :user/total-collected-token-ids
+                  :user/largest-buy]} (:user @query)
+          {:keys [:meme-auction/bought-for :meme-auction/meme-token]} largest-buy
+          {:keys [:meme-token/number :meme-token/meme]} meme-token
+          {:keys [:meme/title]} meme
+          total-memes-count (-> @query :search-memes :total-count)
+          total-meme-tokens-count (-> @query :search-meme-tokens :total-count)]
+      [:div.stats
+       [:div.rank
+        (str "RANK: ") (or [:div.loading] collector-rank)]
+       [:div.var
+        [:b "Unique Memes: "]
+        (if (and total-collected-memes total-memes-count)
+          (str total-collected-memes "/" total-memes-count)
+          [:div.loading])]
+       [:div.var
+        [:b "Total Cards: "]
+        (if (and total-collected-token-ids total-meme-tokens-count)
+          [:span (str total-collected-token-ids "/" total-meme-tokens-count)]
+          [:div.loading])]
+       [:div.var
+        [:b "Largest buy: "]
+        (if (and bought-for number title)
           [:span (str (format/format-eth (web3/from-wei bought-for :ether))
-                      " (#" number " " title ")")]]]))))
+                      " (#" number " " title ")")]
+          [:div.loading])]])))
 
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
@@ -405,6 +414,9 @@
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))
 
 (defn build-query [tab {:keys [:active-account :form-data :prefix :first :after] :as opts}]
+
+#_(prn "@build-query" active-account opts)
+
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner active-account
@@ -550,24 +562,30 @@
                                                     new (filter #(not-contains? (set result) %)
                                                                 (f (first queries)))]
                                                 (into result new))))))]
-    (let [query (subscribe [::gql/query {:queries (build-query tab {:active-account active-account
-                                                                    :prefix prefix
-                                                                    :form-data form-data
-                                                                    :after 0
-                                                                    :first scroll-interval})}
-                            {:id (merge form-data
-                                        {:tab tab})}])
+    (let [query (atom nil) #_(subscribe [::gql/query {:queries (build-query tab {:active-account active-account
+                                                                             :prefix prefix
+                                                                             :form-data form-data
+                                                                             :after 0
+                                                                             :first scroll-interval})}
+                                     {:id (merge form-data
+                                                 {:tab tab})}])
           k (case prefix
               :memes :search-memes
               :meme-auctions :search-meme-auctions)
           state (safe-mapcat (fn [q] (get-in q [k :items])) @query)]
 
-      (prn "re-render" tab (map #(get-in % [(case prefix
+      #_(prn @query)
+      #_(prn "re-render" tab (map #(get-in % [(case prefix
                                               :memes :reg-entry/address
                                               :meme-auctions :meme-auction/address)]) state))
 
+       ;; TODO : show loader
+      #_[:div.loading]
+
       [:div.scroll-area
+
        [panel tab state]
+
        [infinite-scroll {:load-fn (fn []
                                     (when-not (:graphql/loading? @query)
                                       (let [{:keys [:has-next-page :end-cursor]} (k (last @query))]
@@ -581,6 +599,7 @@
                                                       :id (merge form-data
                                                                  {:tab tab})}])))))}]])))
 
+;; TODO : render when active-account
 (defn tabbed-pane [tab prefix form-data]
   (let [active-account (subscribe [::accounts-subs/active-account])
         tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
@@ -647,7 +666,6 @@
         (when (not (contains? #{:selling :sold} @tab))
           [:div.rank
            [rank @tab @active-account]])]
-
        [:section.tiles
         [:div.panel
          [scrolling-container @tab {:active-account @active-account :form-data @form-data :prefix prefix}]]]])))

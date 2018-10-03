@@ -44,10 +44,11 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 
 ** UI functionality todos
 - [ ] Add loadings spinners on every page                                                                     (Filip)
-- [X] Can't type on token issue input, showing error in console                                               (wambat)
+- [ ] Can't type on token issue input, showing error in console                                               ()
 - [ ] After issuing tokens, update remainings tokens or disable if no more tokens to issue                    ()
 - [ ] After token sell we should somehow update the interface so it doesn't look like you can sell them again ()
-- [X] Memefolio selling tab doesn't show selling tokens                                                       (wambat)
+- [ ] Memefolio selling tab doesn't show selling tokens                                                       ()
+- [ ] Memefolio colector rank not displaying                                                                  ()
 
 ** Server todos
 

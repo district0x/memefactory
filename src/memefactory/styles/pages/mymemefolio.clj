@@ -45,7 +45,7 @@
    (search-panel {:background-panel-image "/assets/icons/mf-search.svg"
                   :color :mymemefolio-green
                   :icon "/assets/icons/portfolio2.svg"})
-   [:.loader
+   [:.loading
     {:border "6px solid black"
      :border-top  "6px solid white"
      :border-radius "50%"
@@ -54,9 +54,10 @@
      :animation-name :spin
      :animation-duration "2s"
      :animation-iteration-count :infinite
-     :animation-timing-function :linear}]
+     :animation-timing-function :linear
+     :margin :auto}]
    [:.total
-    {:position :fixed
+    {:position :absolute
      :right (em 4)
      :font-size (em 0.9)
      :color (color :section-subcaption)}
@@ -64,12 +65,7 @@
                    [:&
                     {:margin-right (em 2)
                      :margin-top (em 2)
-                     :margin-left (em 6)}])
-    #_[">div"
-       {:right (em 0)
-        :font-size (em 0.9)
-        ;; :position :absolute
-        :top (em -2)}]]
+                     :margin-left (em 6)}])]
    [:section.stats
     {:display :flex
      :margin-top 0
