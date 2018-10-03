@@ -45,6 +45,16 @@
    (search-panel {:background-panel-image "/assets/icons/mf-search.svg"
                   :color :mymemefolio-green
                   :icon "/assets/icons/portfolio2.svg"})
+   [:.loader
+    {:border "6px solid black"
+     :border-top  "6px solid white"
+     :border-radius "50%"
+     :width (em 2)
+     :height (em 2)
+     :animation-name :spin
+     :animation-duration "2s"
+     :animation-iteration-count :infinite
+     :animation-timing-function :linear}]
    [:.total
     {:position :fixed
      :right (em 4)
@@ -198,7 +208,7 @@
          {:font-size (em 0.7)
           :padding (em 0.4)}]]]]]
     [:.selling-tile-back {:height "100%"
-                            :background-color (color :violet)}
+                          :background-color (color :violet)}
      (button-tile-back)]]
    [:section.tabs
     (tabs)]])

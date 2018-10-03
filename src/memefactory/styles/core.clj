@@ -1,6 +1,7 @@
 (ns memefactory.styles.core
   (:require [garden.def :refer [defstyles]]
             [garden.units :refer [px]]
+            [memefactory.styles.animations :as animations]
             [memefactory.styles.app-layout :as app-layout]
             [memefactory.styles.component.app-bar :as app-bar]
             [memefactory.styles.component.main-content :as main-content]
@@ -18,6 +19,7 @@
             [memefactory.styles.component.challenge-list :as challenge-list]))
 
 (defstyles main
+  animations/core
   app-layout/core
   app-menu/core
   main-content/core
