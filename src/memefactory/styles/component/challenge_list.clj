@@ -19,9 +19,27 @@
                   [:&
                    {:padding-right (em 2)
                     :padding-left (em 2)}])
-   [:.controls {:width (em 11)
+   #_[:.controls {:width (em 11)
                 :margin-left :auto
                 :margin-right 0}]
+   [:.controls {:display :block
+                :margin-top (em 4)
+                :margin-left :auto
+                :margin-right 0
+                :width (em 11)
+                :right (em 0)
+                :height 0
+                :top (em -3)
+                :position :relative}
+    [:select {:background-color :white}]
+    [:.help-block {:display :none}]
+    (for-media-max :tablet
+                   [:&
+                    {:display :inline-block
+                     :height (em 1)
+                     :padding-top (em 1)
+                     :width "100% !important"
+                     :top (em -1)}])]
    [:.challenge
     {:display :grid
      :grid-template "'info image action'"

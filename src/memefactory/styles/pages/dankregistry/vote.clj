@@ -72,7 +72,7 @@
        :padding-bottom (em 0.4)
        :padding-left (em 1)}]]
     [:.vote-stank
-     [:button 
+     [:button
       (button {:background-color :random-meme-icon-bg
                :color :violet
                :height (em 3)

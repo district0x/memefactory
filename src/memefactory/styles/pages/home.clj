@@ -132,6 +132,8 @@
     (for-media-max :tablet
                    [:.more {:background-color (color :new-meme-icon-bg)}])
     [:.icon {:background-color (color :new-meme-icon-bg)
+             :background-position-x (em 0.75)
+             :background-position-y (em 0.70)
              :background-image (str "url('/assets/icons/new.svg')")}]
     [:h2.title {:color (color :new-meme-icon-bg)}]]
    [:.rare-finds
@@ -140,7 +142,7 @@
     [:.icon {:background-color (color :rare-meme-icon-bg)
              :background-image (str "url('/assets/icons/diamond.svg')")}]
     [:h2.title {:color (color :rare-meme-icon-bg)}]]
-   
+
    [:.random-pics
     (for-media-max :tablet
                    [:.more {:background-color (color :random-meme-icon-bg)}])
