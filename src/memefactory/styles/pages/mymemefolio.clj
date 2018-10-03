@@ -142,7 +142,8 @@
       :flex-wrap :wrap
       :justify-content :space-evenly}
      [:.footer {:text-align :center
-                :color (color :meme-tile-footer)}]
+                :color (color :meme-tile-footer)
+                :cursor :pointer}]
      [:.issue-form {:text-align :center
                     :margin-top (em 1)}
       [:.field {:display :grid
