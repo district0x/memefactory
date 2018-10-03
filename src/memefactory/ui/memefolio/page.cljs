@@ -29,7 +29,7 @@
             [memefactory.ui.contract.meme :as meme]
             [memefactory.ui.contract.meme-token :as meme-token]))
 
-(def default-tab :collected)
+(def default-tab :curated)
 
 (def scroll-interval 5)
 
@@ -182,7 +182,7 @@
           total-meme-tokens-count (-> @query :search-meme-tokens :total-count)]
       [:div.stats
        [:div.rank
-        (str "RANK: ") (or [:div.loading] collector-rank)]
+        (str "RANK: ") (or collector-rank [:div.loading])]
        [:div.var
         [:b "Unique Memes: "]
         (if (and total-collected-memes total-memes-count)
@@ -259,48 +259,59 @@
                                                      :max-amount (- total-supply total-minted)}])])))
                state))])
 
+;; TODO: loading indicators
 (defmethod rank :created [_ active-account]
-  (let [query (subscribe [::gql/query
-                          {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
-                                      [[:items [:meme-auction/start-price
-                                                :meme-auction/end-price
-                                                :meme-auction/bought-for]]]]
-                                     [:user {:user/address active-account}
-                                      [:user/total-created-memes
-                                       :user/total-created-memes-whitelisted
-                                       :user/creator-rank
-                                       [:user/largest-sale [:meme-auction/start-price
-                                                            :meme-auction/end-price
-                                                            :meme-auction/bought-for
-                                                            [:meme-auction/meme-token
-                                                             [:meme-token/number
-                                                              [:meme-token/meme
-                                                               [:meme/title]]]]]]]]]}])]
-    (when-not (:graphql/loading? @query)
-      (let [{:keys [:user/total-created-memes :user/total-created-memes-whitelisted :user/creator-rank :user/largest-sale]} (-> @query :user)
-            {:keys [:meme-auction/meme-token]} largest-sale
-            {:keys [:meme-token/number :meme-token/meme]} meme-token
-            {:keys [:meme/title]} meme
-            creator-total-earned (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
-                                           (+ total-earned end-price))
-                                         0
-                                         (-> @query :search-meme-auctions :items))]
-        [:div.stats
-         [:div.rank
-          (str "RANK: " creator-rank)]
-         [:div.var
-          [:b "Earned: "]
-          (format/format-eth (web3/from-wei creator-total-earned :ether))]
-         [:div.var
-          [:b "Success Rate: "]
+  (let [query (if active-account
+                (subscribe [::gql/query
+                            {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
+                                        [[:items [:meme-auction/start-price
+                                                  :meme-auction/end-price
+                                                  :meme-auction/bought-for]]]]
+                                       [:user {:user/address active-account}
+                                        [:user/total-created-memes
+                                         :user/total-created-memes-whitelisted
+                                         :user/creator-rank
+                                         [:user/largest-sale [:meme-auction/start-price
+                                                              :meme-auction/end-price
+                                                              :meme-auction/bought-for
+                                                              [:meme-auction/meme-token
+                                                               [:meme-token/number
+                                                                [:meme-token/meme
+                                                                 [:meme/title]]]]]]]]]}])
+                (ratom/reaction {:graphql/loading? true}))]
+
+    #_(prn _ active-account @query)
+
+    (let [{:keys [:user/total-created-memes :user/total-created-memes-whitelisted :user/creator-rank :user/largest-sale]} (-> @query :user)
+          {:keys [:meme-auction/meme-token]} largest-sale
+          {:keys [:meme-token/number :meme-token/meme]} meme-token
+          {:keys [:meme/title]} meme
+          creator-total-earned (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
+                                         (+ total-earned end-price))
+                                       0
+                                       (-> @query :search-meme-auctions :items))]
+      [:div.stats
+       [:div.rank
+        (str "RANK: ") (or creator-rank [:div.loading])]
+       [:div.var
+        [:b "Earned: "]
+        (if-not (:graphql/loading? @query) #_creator-total-earned
+          (format/format-eth (web3/from-wei creator-total-earned :ether))
+          [:div.loading])]
+       [:div.var
+        [:b "Success Rate: "]
+        (if (and total-created-memes-whitelisted total-created-memes)
           (str total-created-memes-whitelisted "/" total-created-memes " ("
-               (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
-         [:div.var
-          [:b "Best Single Card Sale: "]
+               (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")
+          [:div.loading])]
+       [:div.var
+        [:b "Best Single Card Sale: "]
+        (if (and largest-sale number title)
           (str (-> (:meme-auction/end-price largest-sale)
                    (web3/from-wei :ether)
                    format/format-eth)
-               " (#" number " " title ")")]]))))
+               " (#" number " " title ")")
+          [:div.loading])]])))
 
 (defmethod total :created [_ active-account]
   (let [query (subscribe [::gql/query
@@ -553,53 +564,48 @@
                             :meme/total-minted]]]]]]]]])))
 
 (defn scrolling-container [tab {:keys [:form-data :active-account :prefix]}]
-  (letfn [(safe-mapcat [f queries] (loop [queries queries
-                                          result []]
-                                     (if (empty? queries)
-                                       result
-                                       (recur (rest queries)
-                                              (let [not-contains? (complement contains?)
-                                                    new (filter #(not-contains? (set result) %)
-                                                                (f (first queries)))]
-                                                (into result new))))))]
-    (let [query (atom nil) #_(subscribe [::gql/query {:queries (build-query tab {:active-account active-account
-                                                                             :prefix prefix
-                                                                             :form-data form-data
-                                                                             :after 0
-                                                                             :first scroll-interval})}
-                                     {:id (merge form-data
-                                                 {:tab tab})}])
-          k (case prefix
-              :memes :search-memes
-              :meme-auctions :search-meme-auctions)
-          state (safe-mapcat (fn [q] (get-in q [k :items])) @query)]
+  (let [safe-mapcat (fn [f queries]
+                      (loop [queries queries
+                             result []]
+                        (if (empty? queries)
+                          result
+                          (recur (rest queries)
+                                 (let [not-contains? (complement contains?)
+                                       new (filter #(not-contains? (set result) %)
+                                                   (f (first queries)))]
+                                   (into result new))))))
+        query (subscribe [::gql/query {:queries (build-query tab {:active-account active-account
+                                                                  :prefix prefix
+                                                                  :form-data form-data
+                                                                  :after 0
+                                                                  :first scroll-interval})}
+                          {:id (merge form-data
+                                      {:tab tab})}])
+        k (case prefix
+            :memes :search-memes
+            :meme-auctions :search-meme-auctions)
+        state (mapcat #_safe-mapcat (fn [q] (get-in q [k :items])) @query)]
 
-      #_(prn @query)
-      #_(prn "re-render" tab (map #(get-in % [(case prefix
+    (prn "re-render" tab (map #(get-in % [(case prefix
                                               :memes :reg-entry/address
                                               :meme-auctions :meme-auction/address)]) state))
+    [:div.scroll-area
+     (if (empty? state)
+       [:div.loading]
+       [panel tab state])
+     [infinite-scroll {:load-fn (fn []
+                                  ;;when-not (:graphql/loading? @query)
+                                  (let [{:keys [:has-next-page :end-cursor]} (k (last @query))]
+                                    (when (or has-next-page (empty? state))
+                                      (dispatch [::gql-events/query
+                                                 {:query {:queries (build-query tab {:active-account active-account
+                                                                                     :prefix prefix
+                                                                                     :form-data form-data
+                                                                                     :first scroll-interval
+                                                                                     :after end-cursor})}
+                                                  :id (merge form-data
+                                                             {:tab tab})}]))))}]]))
 
-       ;; TODO : show loader
-      #_[:div.loading]
-
-      [:div.scroll-area
-
-       [panel tab state]
-
-       [infinite-scroll {:load-fn (fn []
-                                    (when-not (:graphql/loading? @query)
-                                      (let [{:keys [:has-next-page :end-cursor]} (k (last @query))]
-                                        (when (or has-next-page (empty? state))
-                                          (dispatch [::gql-events/query
-                                                     {:query {:queries (build-query tab {:active-account active-account
-                                                                                         :prefix prefix
-                                                                                         :form-data form-data
-                                                                                         :first scroll-interval
-                                                                                         :after end-cursor})}
-                                                      :id (merge form-data
-                                                                 {:tab tab})}])))))}]])))
-
-;; TODO : render when active-account
 (defn tabbed-pane [tab prefix form-data]
   (let [active-account (subscribe [::accounts-subs/active-account])
         tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
