@@ -18,26 +18,27 @@
 
 (defstyles core
   [:.meme-detail-page
+
+   [:.loading
+    {;; ovverride attr
+     :color "black"
+     :border-top-color "white"
+     :border-width (em 0.4)
+     :border-top-width (em 0.4)
+     :width (em 2)
+     :height (em 2)
+     ;; common attr
+     :border-style :solid
+     :border-top-style :solid
+     :border-radius "50%"
+     :animation-name :spin
+     :animation-duration "2s"
+     :animation-iteration-count :infinite
+     :animation-timing-function :linear}]
+
    [:.address (of-ellipsis)]
    [:section.meme-detail
     {:padding (em 3)}
-
-    [:.loading
-     {;; ovverride attr
-      :color "black"
-      :border-top-color "white"
-      :border-width (em 0.4)
-      :border-top-width (em 0.4)
-      :width (em 2)
-      :height (em 2)
-      ;; common attr
-      :border-style :solid
-      :border-top-style :solid
-      :border-radius "50%"
-      :animation-name :spin
-      :animation-duration "2s"
-      :animation-iteration-count :infinite
-      :animation-timing-function :linear}]
 
     [:.meme-info
      {:background (color :meme-panel-bg)
@@ -51,6 +52,31 @@
                     [:&
                      {:grid-template-columns "100%"
                       :margin-bottom (em 2)}])
+
+     ;; TODO: centerded in grid column
+     [:.loading
+      {
+
+       ;; :border-color (color :purple)
+       ;; :border-top-color (color :yellow)
+
+       :align-self :center
+       :justify-self :center
+
+       ;; :border-width (em 0.3)
+       ;; :border-top-width (em 0.3)
+       ;; :width (em 0.9)
+       ;; :height (em 0.9)
+
+       :color (color :busy-grey)
+       :border-top-color (color :white)
+       :border-width (em 1)
+       :border-top-width (em 1)
+       :width (em 7)
+       :height (em 7)
+
+       }]
+
      [:.meme-number
       (font :bungee)
       {:position :absolute
@@ -72,15 +98,7 @@
         :height (em 0.9)}]]
      [:.meme-image
       {:padding (em 1)
-       :border-radius "1em 1em 1em 1em"}
-      [:.loading
-       {:border-color (color :busy-grey)
-        :border-top-color (color :white)
-        ;; :margin :auto
-        :border-width (em 1)
-        :border-top-width (em 1)
-        :width (em 7)
-        :height (em 7)}]]
+       :border-radius "1em 1em 1em 1em"}]
      [:.registry
       {:padding (em 1)}
       [:h1
@@ -98,15 +116,7 @@
       [:.status
        {:display :flex
         :line-height (em 1)}
-       [:.loading
-        {:border-color (color :menu-text)
-         :border-top-color (color :white)
-         :margin :auto
-         :margin-left 0
-         :border-width (em 0.3)
-         :border-top-width (em 0.3)
-         :width (em 1)
-         :height (em 1)}]
+
        [:&:before
         {:content "''"
          :height (em 2.2)
@@ -121,20 +131,7 @@
          :font-weight :bold
          :color (color :menu-text)}]]
       [:.description, :.text
-       {:color (color :menu-text)}
-       [">div"
-        {:display :flex
-         ;; :margin :auto
-         :line-height (em 0.8)}
-        [:.loadingo
-          {:border-color (color :section-subcaption)
-           :border-top-color (color :white)
-           ;; :margin :auto
-           :margin-right (em 0.3)
-           :border-width (em 0.1)
-           :border-top-width (em 0.1)
-           :width (em 0.7)
-           :height (em 0.7)}]]]
+       {:color (color :menu-text)}]
       [:.tags
        [:button (tag)]]
       [:.buttons

@@ -95,7 +95,6 @@
      [:.ac-options {:grid-area :chip}]
      [:.check-group
       {;; grid box properties
-       ;;
        :grid-area :checkbox
        :justify-self :end
        ;; container properties

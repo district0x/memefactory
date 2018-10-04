@@ -83,6 +83,7 @@
                  :vote/claimed-reward-on
                  :vote/reclaimed-amount-on]]]]]})
 
+;; TODO: loaidng indicators
 (defn meme-creator-component [{:keys [:user/address :user/creator-rank :user/total-created-memes
                                       :user/total-created-memes-whitelisted] :as creator}]
   (let [query (subscribe [::gql/query
@@ -95,14 +96,14 @@
                                      0
                                      (-> @query :search-meme-auctions :items))]
 
-    (when-not (:graphql/loading? @query)
-      [:div.creator
-       [:b "Creator"]
-       [:div.rank (str "Rank: #" creator-rank " ("
-                       (format/format-token creator-total-earned {:token "DANK"}) ")")]
-       [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
-                          (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
-       [:div.address (str "Address: " address)]])))
+    ;;when-not (:graphql/loading? @query)
+    [:div.creator
+     [:b "Creator"]
+     [:div.rank (str "Rank: #" creator-rank " ("
+                     (format/format-token creator-total-earned {:token "DANK"}) ")")]
+     [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
+                        (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
+     [:div.address (str "Address: " address)]]))
 
 (defn related-memes-component [state]
   (panel :selling state))
@@ -168,9 +169,11 @@
                                                           [:user/address]]
                                                          [:meme-auction/meme-token
                                                           [:meme-token/token-id]]]]]]]}])]
-        (when-not (:graphql/loading? @query)
-          [:div
-           [:h1.title "Marketplace history"]
+        ;;when-not (:graphql/loading? @query)
+        [:div
+         [:h1.title "Marketplace history"]
+         (if true #_(:graphql/loading? @query)
+           [:div.loading]
            [:table
             [:thead [:tr
                      [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
@@ -184,24 +187,6 @@
                      [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
                            :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
             [:tbody
-             #_[:tr
-              [:td.meme-token "TOKEN ID"]
-              [:td.seller-address "TOKEN ADDR"]
-              [:td.buyer-address "USER ADDR"]
-              [:td.end-price "PRICE"]
-              [:td.time "TIME AGO"]]
-             #_[:tr
-              [:td.meme-token "TOKEN ID"]
-              [:td.seller-address "TOKEN ADDR"]
-              [:td.buyer-address "USER ADDR"]
-              [:td.end-price "PRICE"]
-              [:td.time "TIME AGO"]]
-             #_[:tr
-              [:td.meme-token "TOKEN ID"]
-              [:td.seller-address "TOKEN ADDR"]
-              [:td.buyer-address "USER ADDR"]
-              [:td.end-price "PRICE"]
-              [:td.time "TIME AGO"]]
              (doall
               (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
                             :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
@@ -212,7 +197,7 @@
                    [:td.seller-address (:user/address seller)]
                    [:td.buyer-address (:user/address buyer)]
                    [:td.end-price end-price]
-                   [:td.time (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))]]])))))
+                   [:td.time (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))]])]))))
 
 (defn challenge-header [created-on]
   [:div
@@ -487,7 +472,7 @@
                          count)
         tags (mapv :tag/name tags)]
 
-    (prn @response)
+    #_(prn @response)
 
     [app-layout/app-layout
      {:meta {:title "MemeFactory"
@@ -496,34 +481,30 @@
      [:div.meme-detail-page
       [:section.meme-detail
        [:div.meme-info
-        [:div.meme-number (or number [:div.loading])]
+        [:div.meme-number (or nil #_number [:div.loading])]
         [:div.meme-image
-         ;; TODO: loading before ipfs resolves hash
-         [tiles/meme-image image-hash]
-         #_[:div.loading]]
-        [:div.registry
-         [:h1 (or title [:div.loading])]
-         [:div.status (if status
-                        (case (graphql-utils/gql-name->kw status)
+         ;; TODO: loading before ipfs resolves hash (placeholder indicator)
+         [tiles/meme-image image-hash]]
+
+        (if-not nil #_meme
+          [:div.loading]
+          [:div.registry
+           [:h1 title]
+           [:div.status (case (graphql-utils/gql-name->kw status)
                           :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
                           :reg-entry.status/blacklisted [:label.rejected "Rejected"]
-                          [:label.challenged "Challenged"])
-                        [:div.loading.status])]
-         [:div.description description]
-         [:div.text (if total-supply
-                      (format/pluralize total-supply "card")
-                      [:div [:div.loading] "cards"])]
-         [:div.text (if token-count
-                      (str "You own " token-count)
-                      [:div "You own " [:br] [:div.loading]])]
-         [meme-creator-component creator]
-           #_[:div.tags
+                          [:label.challenged "Challenged"])]
+           [:div.description description]
+           [:div.text (format/pluralize total-supply "card")]
+           [:div.text (str "You own " token-count)]
+           [meme-creator-component creator]
+           [:div.tags
             (for [tag-name tags]
               ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
                                                                :route.marketplace/index
                                                                nil
                                                                {:search-tags [tag-name]}])} tag-name])]
-           #_[:div.buttons
+           [:div.buttons
             [:button.search.marketplace {:on-click #(dispatch [::router-events/navigate
                                                                :route.marketplace/index
                                                                nil
@@ -531,11 +512,16 @@
             [:button.search.memefolio {:on-click #(dispatch [::router-events/navigate
                                                              :route.memefolio/index
                                                              nil
-                                                             {:term title}])} "Search On Memefolio"]]]]]
-      #_[:section.history
+                                                             {:term title}])} "Search On Memefolio"]]])
+
+        ]]
+
+      [:section.history
          [:div.history-component
           [history-component address]]]
+
       #_[:section.challenge
          [challenge-component meme]]
+
       #_[:section.related
          [related-memes-container address tags]]]]))

@@ -183,7 +183,7 @@
                     {:margin-right (em 1)
                      :margin-left (em 1)}])
     [:.loading
-     {:border-color (color :busy-grey)
+     {:color (color :busy-grey)
       :border-top-color (color :white)
       :margin :auto
       :border-width (em 1)
