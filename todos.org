@@ -47,8 +47,8 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Can't type on token issue input, showing error in console                                               (Juan)
 - [ ] After issuing tokens, update remainings tokens or disable if no more tokens to issue                    (Juan)
 - [ ] After token sell we should somehow update the interface so it doesn't look like you can sell them again (Juan)
-- [ ] Memefolio selling tab doesn't show selling tokens                                                       ()
-- [ ] Memefolio colector rank not displaying                                                                  ()
+- [ ] Memefolio selling tab doesn't show selling tokens                                                       (Filip)
+- [X] Memefolio colector rank not displaying                                                                  ()
 
 ** Server todos
 
