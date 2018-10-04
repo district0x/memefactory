@@ -18,7 +18,6 @@
 
 (defstyles core
   [:.meme-detail-page
-
    [:.loading
     {;; ovverride attr
      :color "black"
@@ -35,11 +34,9 @@
      :animation-duration "2s"
      :animation-iteration-count :infinite
      :animation-timing-function :linear}]
-
    [:.address (of-ellipsis)]
    [:section.meme-detail
     {:padding (em 3)}
-
     [:.meme-info
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -52,31 +49,15 @@
                     [:&
                      {:grid-template-columns "100%"
                       :margin-bottom (em 2)}])
-
-     ;; TODO: centerded in grid column
      [:.loading
-      {
-
-       ;; :border-color (color :purple)
-       ;; :border-top-color (color :yellow)
-
-       :align-self :center
+      {:align-self :center
        :justify-self :center
-
-       ;; :border-width (em 0.3)
-       ;; :border-top-width (em 0.3)
-       ;; :width (em 0.9)
-       ;; :height (em 0.9)
-
        :color (color :busy-grey)
        :border-top-color (color :white)
        :border-width (em 1)
        :border-top-width (em 1)
        :width (em 7)
-       :height (em 7)
-
-       }]
-
+       :height (em 7)}]
      [:.meme-number
       (font :bungee)
       {:position :absolute
@@ -116,7 +97,6 @@
       [:.status
        {:display :flex
         :line-height (em 1)}
-
        [:&:before
         {:content "''"
          :height (em 2.2)
@@ -150,7 +130,6 @@
                          :color (color :white)}]
         [:&.memefolio {:background-color (color :pink)
                          :color (color :white)}]]]]]]
-
    [:section.history
     {:padding (em 3)
      :color (color :menu-text)}
@@ -158,7 +137,8 @@
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"
-      :position :relative}
+      ;; :position :relative
+      }
      (for-media-max :tablet
                     [:&
                      {:max-height (em 30)
@@ -175,6 +155,15 @@
        :padding-top (em 1)
        :margin-bottom (em 0.1)
        :text-align :center}]
+
+     [:.loading
+      {:margin :auto
+       :color (color :table-header-bg)
+
+       }
+      ]
+
+
      [:table
       {:border-spacing "0px"}
       [:th.down:after
@@ -251,6 +240,21 @@
 
    [:section.challenge
     {:padding (em 3)}
+    [:h1.title
+       (font :bungee)
+       (for-media-max :tablet
+                      [:&
+                       {:font-size (px 19)}])
+       {:white-space :nowrap
+        :position :relative
+        :color (color :purple)
+        ;; :font-size (em 1.2)
+        :padding-top (em 1)
+        :margin-bottom (em 0.1)
+        :text-align :center}]
+    [:.loading
+     {:color (color :menu-text)
+      :margin :auto}]
     [:.challenge-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -266,9 +270,7 @@
                       :margin-bottom (em 2)}])
      [">*" {:padding (em 1)
             :color (color :menu-text)
-            :margin-bottom (em 1)}
-      ]
-
+            :margin-bottom (em 1)}]
      [:.status
       {:border-right "1px solid #AAA"}
       (for-media-max :tablet
@@ -279,22 +281,14 @@
       (for-media-max :tablet
                      [:&
                       {:border-right "0px"}])]
+     [:.votes
+      {:display :grid
+       :grid-template-columns "50% 50%"
+       :grid-template-rows "100%"}]
      [:.header {:grid-column "1 / span 3"}
       (for-media-max :tablet
                      [:&
                       {:grid-column "1"}])
-      [:h1.title
-       (font :bungee)
-       (for-media-max :tablet
-                      [:&
-                       {:font-size (px 19)}])
-       {:white-space :nowrap
-        :position :relative
-        :color (color :purple)
-        ;; :font-size (em 1.2)
-        :padding-top (em 1)
-        :margin-bottom (em 0.1)
-        :text-align :center}]
       [:h2.title
        (for-media-max :tablet
                       [:&
@@ -304,10 +298,7 @@
         :position :relative
         :color (color :section-subcaption)
         :font-size (px 15)
-        :text-align :center}]]
-     ;; [:.challenge-component
-     ;;  {}]
-     ]]
+        :text-align :center}]]]]
    [:.vote {:display :grid
             :margin-left (em 6)
             :margin-right (em 6)}
