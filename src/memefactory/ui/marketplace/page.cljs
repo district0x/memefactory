@@ -51,7 +51,7 @@
         all-auctions (->> @auctions-search
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
     (println "All auctions" (map :meme-auction/address all-auctions))
-    
+
     [react-infinite {:element-height 280
                      :container-height 300
                      :infinite-load-begin-edge-offset 100
@@ -65,10 +65,12 @@
                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}
                                                            :id @form-data}])))))}
      [:div.tiles
-      (doall
-       (for [{:keys [:meme-auction/address] :as auc} all-auctions]
-         ^{:key address}
-         [tiles/auction-tile {} auc]))]]))
+      (if (empty? all-auctions)
+        [:div.loading]
+        (doall
+         (for [{:keys [:meme-auction/address] :as auc} all-auctions]
+           ^{:key address}
+           [tiles/auction-tile {} auc])))]]))
 
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])
