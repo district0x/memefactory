@@ -72,7 +72,7 @@
   (let [tx-id address
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])
-        form-data (r/atom {})
+        form-data (r/atom {:amount-vote-for nil, :amount-vote-against nil})
         errors (reaction {:local (let [{:keys [amount-vote-for amount-vote-against]} @form-data]
                                    (cond-> {}
                                      (not (try (< 0 (js/parseInt amount-vote-for)) (catch js/Error e nil)))
