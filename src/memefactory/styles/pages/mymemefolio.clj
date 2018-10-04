@@ -46,26 +46,59 @@
                   :color :mymemefolio-green
                   :icon "/assets/icons/portfolio2.svg"})
    [:.loading
-    {:border "6px solid black"
-     :border-top  "6px solid white"
-     :border-radius "50%"
+    {
+
+     ;; :border "6px solid black"
+     ;; :border-top "6px solid white"
+
+     :border-width (em 0.4)
+     :border-style :solid
+     :color "black"
+
+     :border-top-width (em 0.4)
+     :border-top-style :solid
+     :border-top-color "white"
+
      :width (em 2)
      :height (em 2)
+
+     :border-radius "50%"
      :animation-name :spin
      :animation-duration "2s"
      :animation-iteration-count :infinite
      :animation-timing-function :linear
-     :margin :auto}]
+     }]
    [:.total
     {:position :absolute
      :right (em 4)
      :font-size (em 0.9)
-     :color (color :section-subcaption)}
+     :color (color :section-subcaption)
+
+     }
     (for-media-max :tablet
                    [:&
                     {:margin-right (em 2)
                      :margin-top (em 2)
-                     :margin-left (em 6)}])]
+                     :margin-left (em 6)}])
+
+    [">div"
+     {:display :flex
+      :margin :auto}
+     [">div"
+      {
+       :border-color (color :section-subcaption)
+       :border-top-color (color :white)
+       :margin :auto
+       :margin-left (em 0.3)
+
+       :border-width (em 0.1)
+       :border-top-width (em 0.1)
+       :width (em 0.7)
+       :height (em 0.7)
+
+       }]]
+
+    ]
    [:section.stats
     {:display :flex
      :margin-top 0
@@ -81,29 +114,45 @@
                    [:&
                     {:margin-right (em 1)
                      :margin-left (em 1)}])
-    #_[">*"
-       {:padding-top (em 1)
-        :padding-bottom (em 1)}]
     [".stats>*"
      {:padding-right (em 1)
       :padding-left (em 1)}
      ]
-    [">.rank"
-     {:width "100%"}]
+    #_[">.rank"
+     {:width "100%"}
+     ]
     [".rank>.stats>.rank"
      (font :bungee)
      {:color (color :purple)
       :border-radius "1em 0em 0em 0em"
-      :background-color (color "#ffd800")
+      :background-color (color :rank-yellow)
       :padding-right (em 1)
       :padding-left (em 1)
-      :display :table-cell
-      :font-size (em 1)}
+      ;; :display :table-cell
+      :font-size (em 1)
+      :display :flex
+      :margin :auto}
      (for-media-max :tablet
                     [:&
                      {:border-radius "1em 1em 0em 0em"}])
      [:&.big
-      {:line-height (em 6)}]]
+      {:line-height (em 6)}]
+
+       [">div"
+       {
+        :border-color (color :purple)
+        :border-top-color (color :rank-yellow)
+        :margin :auto
+        :margin-left (em 0.5)
+
+        :border-width (em 0.3)
+        :border-top-width (em 0.3)
+        :width (em 1)
+        :height (em 1)
+
+        }]
+
+     ]
     [:.stats
      {:display :flex
       :line-height (em 3)}
@@ -113,7 +162,28 @@
      [:.var
       {:color (color :section-subcaption)
        :margin-right (em 1)
-       :margin-left (em 1)}]
+       :margin-left (em 1)
+       :display :flex
+       :margin :auto
+       }
+      [">b"
+       {:padding-right (em 1)}]
+      [">div"
+       {
+        :border-color (color :section-subcaption)
+        :border-top-color (color :yellow)
+        :margin :auto
+
+        :border-width (em 0.3)
+        :border-top-width (em 0.3)
+        :width (em 1)
+        :height (em 1)
+
+        }]
+
+
+
+      ]
 
      [:.curator
       {:display :grid

@@ -29,7 +29,7 @@
             [memefactory.ui.contract.meme :as meme]
             [memefactory.ui.contract.meme-token :as meme-token]))
 
-(def default-tab :curated)
+(def default-tab :collected)
 
 (def scroll-interval 5)
 
@@ -155,6 +155,7 @@
                                           [:div [:span (str "Owning " token-count " out of " total-supply)]])]]])))
                state))])
 
+;; TODO : style spinners
 (defmethod rank :collected [_ active-account]
   (let [query (if active-account
                 (subscribe [::gql/query
@@ -199,12 +200,6 @@
           [:span (str (format/format-eth (web3/from-wei bought-for :ether))
                       " (#" number " " title ")")]
           [:div.loading])]])))
-
-(defmethod total :collected [_ active-account]
-  (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
-                                                  [:total-count]]]}])]
-    (when-not (:graphql/loading? @query)
-      [:div "Total "  (get-in @query [:search-memes :total-count])])))
 
 (defn issue-form [{:keys [:meme/title :reg-entry/address :max-amount]} refresh-query]
   (let [tx-id (str (random-uuid))
@@ -261,7 +256,6 @@
                                          refresh-query])])))
                state))])
 
-;; TODO: loading indicators
 (defmethod rank :created [_ active-account]
   (let [query (if active-account
                 (subscribe [::gql/query
@@ -315,13 +309,6 @@
                " (#" number " " title ")")
           [:div.loading])]])))
 
-(defmethod total :created [_ active-account]
-  (let [query (subscribe [::gql/query
-                          {:queries [[:search-memes {:creator active-account}
-                                      [:total-count]]]}])]
-    (when-not (:graphql/loading? @query)
-      [:div "Total " (get-in @query [:search-memes :total-count])])))
-
 (defmethod panel :curated [_ state refresh-query]
   [:div.tiles
    (doall
@@ -361,41 +348,75 @@
                                        :user/total-participated-votes
                                        :user/total-participated-votes-success
                                        :user/voter-total-earned]]]}])]
-    (when-not (:graphql/loading? @query)
-      (let [{:keys [:user/curator-rank :user/total-created-challenges :user/total-created-challenges-success
-                    :user/challenger-total-earned :user/total-participated-votes :user/total-participated-votes-success
-                    :user/voter-total-earned]} (:user @query)]
-        [:div.stats
-         [:div.rank.big
-          (str "RANK: " curator-rank)]
-         [:div.curator
-          [:div
-           [:div.label "CHALLENGES:"]
-           [:div [:b "Success Rate:"] total-created-challenges-success "/" total-created-challenges
-            " (" (format/format-percentage total-created-challenges-success total-created-challenges)  ")"]
-           [:div [:b "Earned:"] (str (web3/from-wei challenger-total-earned :ether) " DANK")]]
-          [:div
-           [:div.label "VOTES:"]
-           [:div [:b "Success Rate:"] total-participated-votes "/" total-participated-votes-success
-            " (" (format/format-percentage total-participated-votes-success total-participated-votes)  ")"]
-           [:div [:b "Earned:"] (str (web3/from-wei voter-total-earned :ether) " DANK")]]
-          [:div
-           [:div.label "TOTAL-EARNINGS:"]
-           [:div (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")]]]]))))
+    (let [{:keys [:user/curator-rank :user/total-created-challenges :user/total-created-challenges-success
+                  :user/challenger-total-earned :user/total-participated-votes :user/total-participated-votes-success
+                  :user/voter-total-earned]} (:user @query)]
+      [:div.stats
+       [:div.rank.big
+        (str "RANK: ") (or curator-rank [:div.loading])]
+       [:div.curator
+        [:div
+         [:div.label "CHALLENGES:"]
+         [:div [:b "Success Rate:"]
+          (if (and total-created-challenges-success total-created-challenges)
+              (str total-created-challenges-success "/" total-created-challenges
+                    " (" (format/format-percentage total-created-challenges-success total-created-challenges)  ")")
+              [:div.loading])]
+         [:div [:b "Earned:"]
+          (if challenger-total-earned
+              (str (web3/from-wei challenger-total-earned :ether) " DANK")
+              [:div.loading])]]
+        [:div
+         [:div.label "VOTES:"]
+         [:div [:b "Success Rate:"]
+          (if (and total-participated-votes total-participated-votes-success)
+              (str total-participated-votes "/" total-participated-votes-success
+                   " (" (format/format-percentage total-participated-votes-success total-participated-votes)  ")")
+              [:div.loading])]
+         [:div [:b "Earned:"]
+          (if voter-total-earned
+            (str (web3/from-wei voter-total-earned :ether) " DANK")
+            [:div.loading])]]
+        [:div
+         [:div.label "TOTAL-EARNINGS:"]
+         [:div
+          (if (and challenger-total-earned voter-total-earned)
+              (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")
+              [:div.loading])]]]])))
+
+(defmethod total :collected [_ active-account]
+  (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
+                                                  [:total-count]]]}])]
+    (let [total (get-in @query [:search-memes :total-count])]
+      [:div "Total " (or total [:div.loading])])))
+
+(defmethod total :created [_ active-account]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:search-memes {:creator active-account}
+                                      [:total-count]]]}])]
+    (let [total (get-in @query [:search-memes :total-count])]
+      [:div "Total " (or total [:div.loading])])))
 
 (defmethod total :curated [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:curator active-account}
                                       [:total-count]]]}])]
-    (when-not (:graphql/loading? @query)
-      [:div "Total " (get-in @query [:search-memes :total-count])])))
+    (let [total (get-in @query [:search-memes :total-count])] ;;when-not (:graphql/loading? @query)
+      [:div "Total " (or total [:div.loading])])))
 
 (defmethod total :selling [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/active]}
                                       [:total-count]]]}])]
-    (when-not (:graphql/loading? @query)
-      [:div "Total " (get-in @query [:search-meme-auctions :total-count])])))
+    (let [total (get-in @query [:search-meme-auctions :total-count])]
+      [:div "Total " (or total [:div.loading])])))
+
+(defmethod total :sold [_ active-account form-data]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
+                                      [:total-count]]]}])]
+    (let [total (get-in @query [:search-meme-auctions :total-count])]
+      [:div "Total " (or total [:div.loading])])))
 
 (defmethod panel :sold [_ state refresh-query]
   [:div.tiles
@@ -415,13 +436,6 @@
                                  [:div.number-minted (str number "/" total-minted)]
                                  [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
          state))])
-
-(defmethod total :sold [_ active-account form-data]
-  (let [query (subscribe [::gql/query
-                          {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
-                                      [:total-count]]]}])]
-    (when-not (:graphql/loading? @query)
-      [:div "Total " (get-in @query [:search-meme-auctions :total-count])])))
 
 (defn- build-order-by [prefix order-by]
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))

@@ -20,7 +20,7 @@
                     :meme-panel-bg "#FFFFFF"
                     :meme-bg "rgba(73,35,86,.85)"
                     :meme-bg-bottom "#9d0adb"
-                    :meme-buy-button "#2f0149" 
+                    :meme-buy-button "#2f0149"
                     :meme-buy-button-text "white"
                     :meme-info-text "white"
                     :meme-tile-footer "#47608e"
@@ -36,6 +36,8 @@
                     :leaderboard-curator-bg "#9cc717"
                     :table-header-bg "#ffd200"
                     :table-border "#e1b4ef"
+                    :busy-grey "#5c5c5c"
+                    :rank-yellow "#ffd800"
                     })
 
 (defn color [name]
