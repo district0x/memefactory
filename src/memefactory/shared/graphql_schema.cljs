@@ -151,7 +151,7 @@
     challenge_createdOn: Date
     challenge_comment: String
     challenge_votingToken: String
-    challenge_rewardPool: Int
+    challenge_rewardPool: Float
     challenge_commitPeriodEnd: Date
     challenge_revealPeriodEnd: Date
     challenge_votesFor: Float
@@ -177,7 +177,7 @@
     vote_revealedOn: Date
     vote_claimedRewardOn: Date
     vote_reclaimedAmountOn: Date
-    vote_reward: Int
+    vote_reward: Float
   }
 
   type Meme implements RegEntry {
@@ -192,7 +192,7 @@
     challenge_createdOn: Date
     challenge_comment: String
     challenge_votingToken: String
-    challenge_rewardPool: Int
+    challenge_rewardPool: Float
     challenge_commitPeriodEnd: Date
     challenge_revealPeriodEnd: Date
     challenge_votesFor: Float
@@ -296,7 +296,7 @@
     challenge_createdOn: Date
     challenge_comment: String
     challenge_votingToken: String
-    challenge_rewardPool: Int
+    challenge_rewardPool: Float
     challenge_commitPeriodEnd: Date
     challenge_revealPeriodEnd: Date
     challenge_votesFor: Float

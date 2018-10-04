@@ -155,7 +155,6 @@
                                           [:div [:span (str "Owning " token-count " out of " total-supply)]])]]])))
                state))])
 
-;; TODO : style spinners
 (defmethod rank :collected [_ active-account]
   (let [query (if active-account
                 (subscribe [::gql/query
@@ -352,6 +351,7 @@
                                      [:i.icon.thumbs.down.outline]])]]])))
          state))])
 
+;; TODO : style spinners
 (defmethod rank :curated [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:user {:user/address active-account}
@@ -681,7 +681,6 @@
                                                         :id :voted?}
                                                        {:label "Challenged"
                                                         :id :challenged?}]}))]]
-
        [:section.tabs
         (doall
          (map (fn [tab-id]

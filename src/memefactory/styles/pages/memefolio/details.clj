@@ -21,6 +21,24 @@
    [:.address (of-ellipsis)]
    [:section.meme-detail
     {:padding (em 3)}
+
+    [:.loading
+     {;; ovverride attr
+      :color "black"
+      :border-top-color "white"
+      :border-width (em 0.4)
+      :border-top-width (em 0.4)
+      :width (em 2)
+      :height (em 2)
+      ;; common attr
+      :border-style :solid
+      :border-top-style :solid
+      :border-radius "50%"
+      :animation-name :spin
+      :animation-duration "2s"
+      :animation-iteration-count :infinite
+      :animation-timing-function :linear}]
+
     [:.meme-info
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -33,27 +51,62 @@
                     [:&
                      {:grid-template-columns "100%"
                       :margin-bottom (em 2)}])
-     [:.meme-num
+     [:.meme-number
       (font :bungee)
-      {:position "absolute"
-       :display "block"
+      {:position :absolute
+       :display :block
        :color (color :purple)
        :left (em 3.1)
        :padding (em 1)
        :font-size (em 1.1)
        :border-radius "0em 0em 1em 1em"
-       :background-color (color :yellow)}]
+       :background-color (color :yellow)}
+      [:.loading
+       {:border-color (color :purple)
+        :border-top-color (color :yellow)
+        ;; :margin :auto
+        ;; :margin-left (em 0.5)
+        :border-width (em 0.3)
+        :border-top-width (em 0.3)
+        :width (em 0.9)
+        :height (em 0.9)}]]
      [:.meme-image
       {:padding (em 1)
-       :border-radius "1em 1em 1em 1em"}]
+       :border-radius "1em 1em 1em 1em"}
+      [:.loading
+       {:border-color (color :busy-grey)
+        :border-top-color (color :white)
+        ;; :margin :auto
+        :border-width (em 1)
+        :border-top-width (em 1)
+        :width (em 7)
+        :height (em 7)}]]
      [:.registry
       {:padding (em 1)}
       [:h1
        (font :bungee)
-       {:color (color :purple)}]
+       {:color (color :purple)}
+       [:.loading
+        {:border-color (color :purple)
+         :border-top-color (color :white)
+         :margin :auto
+         :margin-left (em 0.5)
+         :border-width (em 0.3)
+         :border-top-width (em 0.3)
+         :width (em 1)
+         :height (em 1)}]]
       [:.status
        {:display :flex
         :line-height (em 1)}
+       [:.loading
+        {:border-color (color :menu-text)
+         :border-top-color (color :white)
+         :margin :auto
+         :margin-left 0
+         :border-width (em 0.3)
+         :border-top-width (em 0.3)
+         :width (em 1)
+         :height (em 1)}]
        [:&:before
         {:content "''"
          :height (em 2.2)
@@ -68,7 +121,20 @@
          :font-weight :bold
          :color (color :menu-text)}]]
       [:.description, :.text
-       {:color (color :menu-text)}]
+       {:color (color :menu-text)}
+       [">div"
+        {:display :flex
+         ;; :margin :auto
+         :line-height (em 0.8)}
+        [:.loadingo
+          {:border-color (color :section-subcaption)
+           :border-top-color (color :white)
+           ;; :margin :auto
+           :margin-right (em 0.3)
+           :border-width (em 0.1)
+           :border-top-width (em 0.1)
+           :width (em 0.7)
+           :height (em 0.7)}]]]
       [:.tags
        [:button (tag)]]
       [:.buttons
@@ -136,7 +202,7 @@
         :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
       [:td {:padding-left (em 0.5)
             :line-height (em 2)}]
-      
+
       [:thead
        (for-media-max :tablet
                       [:&
@@ -172,7 +238,7 @@
                          {:content "'Token ID:'"}])
          (for-media-max :tablet
                         [:&.seller-address:before
-                         {:content "'Seller:'"}]) 
+                         {:content "'Seller:'"}])
          (for-media-max :tablet
                         [:&.buyer-address:before
                          {:content "'Buyer:'"}])
@@ -205,7 +271,7 @@
             :color (color :menu-text)
             :margin-bottom (em 1)}
       ]
-     
+
      [:.status
       {:border-right "1px solid #AAA"}
       (for-media-max :tablet
