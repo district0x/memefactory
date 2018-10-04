@@ -19,9 +19,14 @@
     {:padding-top (em 2)
      :margin-right (em 6)
      :margin-left (em 6)}
+    (for-media-max :tablet
+                   [:& {
+                        :margin-right (em 1)
+                        :margin-left (em 1)}])
     [:.collectors-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
-                       :color :leaderboard-curator-bg})]
+                       :color :leaderboard-curator-bg})
+     [:h2.title {:white-space :normal}]]
     ["div.collectors > div"
      {:width "100%"}
      ["> div"
@@ -31,6 +36,7 @@
        :justify-content :center
        :flex-wrap :wrap}
       [:.user-tile
+       {:min-width (em 18)}
        ["> *"
         {:display :block
          :margin-bottom (em 0.5)
@@ -76,4 +82,14 @@
       :right (em 2)
       :top (em 3.5)}
      [:.input-group
-      [:.help-block {:display :none}]]]]])
+      [:.help-block {:display :none}]]
+     (for-media-max :tablet
+                    [:&
+                     {:display :inline-block
+                      :position :relative
+                      :height (em 1)
+                      :padding-top (em 1)
+                      :width "calc(100% - 2em)"
+                      :margin-left (em 3)
+                      :margin-right (em 3)
+                      :top (em -1)}])]]])

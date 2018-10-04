@@ -21,6 +21,7 @@
                      :display :block
                      :right (px 50)
                      :left 0
+                     :background-color (color :white)
                      :min-height (px 1800)
                      :position :absolute}])
     [:&.closed
