@@ -18,7 +18,7 @@
 (reg-event-fx
  ::mint
  [interceptors]
- (fn [{:keys [:db]} [{:keys [:send-tx/id :meme/title :reg-entry/address :meme/amount] :as args} {:keys [query query-id]}]]
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :meme/title :reg-entry/address :meme/amount] :as args}]]
    (let [active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :mint
@@ -28,7 +28,7 @@
                                       :tx-id {:meme/mint id}
                                       :on-tx-success-n [[::logging/success [::mint]]
                                                         [::notification-events/show (gstring/format " %s successfully minted" title)]
-                                                        ;; TODO Fix if we refresh something with id it will accumulate
-                                                        #_[::gql-events/query {:query {:queries query} :id query-id}]]
+                                                        [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}
+                                                                                                [:meme/total-minted]]]}}]]
                                       :on-tx-hash-error [::logging/error [::mint]]
                                       :on-tx-error [::logging/error [::mint]]}]})))

@@ -30,7 +30,7 @@
                                                                             :meme-auction/address address}]))}
        "Cancel Sell"]]]]))
 
-(defmethod panel :selling [_ state refresh-query]
+(defmethod panel :selling [_ state]
   [:div.tiles
    (doall
     (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]

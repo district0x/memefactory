@@ -41,11 +41,12 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Should have ellipsis                                                        (Filip)
 - [X] SVG images instead of png                                                   (Wambat)
 - [X] Tiles should display as 3 columns grid                                      (Wambat)
+- [ ] Fix sell form styles                                                        ()
 
 ** UI functionality todos
 - [ ] Add loadings spinners on every page                                                                     (Filip)
 - [X] Can't type on token issue input, showing error in console                                               (Juan)
-- [ ] After issuing tokens, update remainings tokens or disable if no more tokens to issue                    (Juan)
+- [X] After issuing tokens, update remainings tokens or disable if no more tokens to issue                    (Juan)
 - [ ] After token sell we should somehow update the interface so it doesn't look like you can sell them again (Juan)
 - [X] Memefolio selling tab doesn't show selling tokens                                                       (Filip)
 - [ ] Memefolio colector rank not displaying                                                                  ()

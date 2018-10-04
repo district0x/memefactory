@@ -201,35 +201,42 @@
                       " (#" number " " title ")")]
           [:div.loading])]])))
 
-(defn issue-form [{:keys [:meme/title :reg-entry/address :max-amount]} refresh-query]
+(defmethod total :collected [_ active-account]
+  (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
+                                                  [:total-count]]]}])]
+    (when-not (:graphql/loading? @query)
+      [:div "Total "  (get-in @query [:search-memes :total-count])])))
+
+(defn issue-form [{:keys [:meme/title :reg-entry/address :meme/total-supply :meme/total-minted]}]
   (let [tx-id (str (random-uuid))
-        form-data (r/atom {:meme/amount max-amount})
+        max-amount (- total-supply total-minted)
+        form-data (r/atom {:meme/amount max-amount}) ;; TODO fix how can we refresh this when component updated
         errors (ratom/reaction {:local (let [{:keys [:amount]} @form-data]
                                          (when (and (not (js/isNaN amount))
                                                     (int? amount)
                                                     (<= amount max-amount))
                                            {:meme/amount {:error (str "Amount should be an integer, and smaller than " max-amount)}}))})
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/mint tx-id}])]
-    (fn []
-      [:div.issue-form
-       [:div.field
-        [inputs/text-input {:form-data form-data
-                            :errors errors
-                            :id :meme/amount}]
-        [tx-button/tx-button {:primary true
-                              :disabled (not (pos? max-amount))
-                              :pending? @tx-pending?
-                              :pending-text "Issuing..."
-                              :on-click (fn []
-                                          (dispatch [::meme/mint (merge @form-data
-                                                                       {:meme/title title
-                                                                        :reg-entry/address address
-                                                                        :send-tx/id tx-id})
-                                                     refresh-query]))}
-         "Issue"]]
-       [:label "Max " max-amount]])))
+    (fn [{:keys [:meme/title :reg-entry/address :meme/total-supply :meme/total-minted]}]
+      (let [max-amount (- total-supply total-minted)]
+        [:div.issue-form
+         [:div.field
+          [inputs/text-input {:form-data form-data
+                              :errors errors
+                              :id :meme/amount}]
+          [tx-button/tx-button {:primary true
+                                :disabled (not (pos? max-amount))
+                                :pending? @tx-pending?
+                                :pending-text "Issuing..."
+                                :on-click (fn []
+                                            (dispatch [::meme/mint (merge @form-data
+                                                                          {:meme/title title
+                                                                           :reg-entry/address address
+                                                                           :send-tx/id tx-id})]))}
+           "Issue"]]
+         [:label "Max " max-amount]]))))
 
-(defmethod panel :created [_ state refresh-query]
+(defmethod panel :created [_ state]
   [:div
    (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
                             :meme/title :meme/total-supply :meme/total-minted
@@ -252,8 +259,8 @@
                                       (when (= status :reg-entry.status/whitelisted)
                                         [issue-form {:meme/title title
                                                      :reg-entry/address address
-                                                     :max-amount (- total-supply total-minted)}
-                                         refresh-query])])))
+                                                     :meme/total-supply total-supply
+                                                     :meme/total-minted total-minted}])])))
                state))])
 
 (defmethod rank :created [_ active-account]
@@ -309,7 +316,14 @@
                " (#" number " " title ")")
           [:div.loading])]])))
 
-(defmethod panel :curated [_ state refresh-query]
+(defmethod total :created [_ active-account]
+  (let [query (subscribe [::gql/query
+                          {:queries [[:search-memes {:creator active-account}
+                                      [:total-count]]]}])]
+    (when-not (:graphql/loading? @query)
+      [:div "Total " (get-in @query [:search-memes :total-count])])))
+
+(defmethod panel :curated [_ state]
   [:div.tiles
    (doall
     (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
@@ -418,7 +432,7 @@
     (let [total (get-in @query [:search-meme-auctions :total-count])]
       [:div "Total " (or total [:div.loading])])))
 
-(defmethod panel :sold [_ state refresh-query]
+(defmethod panel :sold [_ state]
   [:div.tiles
    (doall
     (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
@@ -609,7 +623,7 @@
     [:div.scroll-area
      (if (empty? state)
        [:div.loading]
-       [panel tab state {:query query :query-id query-id}])
+       [panel tab state])
      [infinite-scroll {:load-fn (fn []
                                   ;;when-not (:graphql/loading? @query-subs)
                                   (let [{:keys [:has-next-page :end-cursor]} (k (last @query-subs))]
