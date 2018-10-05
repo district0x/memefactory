@@ -114,7 +114,9 @@
     :text-align :center}
    [:.footer
     {:position :relative
-     :bottom 0}
+     :bottom 0
+     :cursor :pointer
+     }
     [:.title :.number-minted :.price
      {:text-align :center
       :color (color :meme-tile-footer)}]

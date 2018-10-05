@@ -65,7 +65,7 @@
                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}
                                                            :id @form-data}])))))}
      [:div.tiles
-      (if (empty? all-auctions)
+      (if (:graphql/loading? @auctions-search)
         [:div.loading]
         (doall
          (for [{:keys [:meme-auction/address] :as auc} all-auctions]

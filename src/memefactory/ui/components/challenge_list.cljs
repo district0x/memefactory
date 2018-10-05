@@ -22,38 +22,38 @@
 
 (defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]}]
   (let [{:keys [:order-by :order-dir]} data]
-    (look [:search-memes
-           (cond-> (merge {:first page-size} query-params)
-             after                   (assoc :after after)
-             order-by                (assoc :order-by (keyword "memes.order-by" order-by))
-             order-dir               (assoc :order-dir (keyword order-dir)))
-           [:total-count
-            :end-cursor
-            :has-next-page
-            [:items (cond-> [:reg-entry/address
-                             :reg-entry/created-on
-                             :reg-entry/challenge-period-end
-                             :reg-entry/status
-                             :challenge/comment
-                             :meme/total-supply
-                             :meme/image-hash
-                             :meme/title
-                             [:meme/tags [:tag/name]]
-                             [:reg-entry/creator [:user/address
-                                                  :user/creator-rank
-                                                  :user/total-created-memes
-                                                  :user/total-created-memes-whitelisted]]]
-                      include-challenger-info? (conj [:challenge/challenger [:user/address
-                                                                             :user/creator-rank
-                                                                             :user/total-created-memes
-                                                                             :user/total-created-memes-whitelisted]])
-                      active-account (into [[:challenge/vote {:vote/voter active-account}
-                                             [:vote/secret-hash
-                                              :vote/revealed-on
-                                              :vote/option
-                                              :vote/amount]]
-                                            [:challenge/vote-winning-vote-option {:vote/voter active-account}]
-                                            [:challenge/all-rewards {:user/address active-account}]]))]]])))
+    [:search-memes
+     (cond-> (merge {:first page-size} query-params)
+       after (assoc :after after)
+       order-by (assoc :order-by (keyword "memes.order-by" order-by))
+       order-dir (assoc :order-dir (keyword order-dir)))
+     [:total-count
+      :end-cursor
+      :has-next-page
+      [:items (cond-> [:reg-entry/address
+                       :reg-entry/created-on
+                       :reg-entry/challenge-period-end
+                       :reg-entry/status
+                       :challenge/comment
+                       :meme/total-supply
+                       :meme/image-hash
+                       :meme/title
+                       [:meme/tags [:tag/name]]
+                       [:reg-entry/creator [:user/address
+                                            :user/creator-rank
+                                            :user/total-created-memes
+                                            :user/total-created-memes-whitelisted]]]
+                include-challenger-info? (conj [:challenge/challenger [:user/address
+                                                                       :user/creator-rank
+                                                                       :user/total-created-memes
+                                                                       :user/total-created-memes-whitelisted]])
+                active-account (into [[:challenge/vote {:vote/voter active-account}
+                                       [:vote/secret-hash
+                                        :vote/revealed-on
+                                        :vote/option
+                                        :vote/amount]]
+                                      [:challenge/vote-winning-vote-option {:vote/voter active-account}]
+                                      [:challenge/all-rewards {:user/address active-account}]]))]]]))
 
 (defn user-info [user class]
   [:ol {:class class}
@@ -114,27 +114,30 @@
                            (remove #(nil? (:reg-entry/address %))))]
         (.log js/console "ALL Rendering here" all-memes)
         (println "All memes " (map :reg-entry/address all-memes))
-        (if (:graphql/loading? @meme-search)
-          [:div "Loading..."]
-          [:div.challenges.panel
-           [:div.controls
-            [select-input {:form-data form-data
-                           :id :order-by
-                           :options sort-options
-                           :on-change #(re-search nil)}]]
-           [:div.memes
-            [react-infinite {:element-height 400
-                             :infinite-load-begin-edge-offset 100
-                             :use-window-as-scroll-container true
-                             :on-infinite-load (fn []
-                                                 (when-not (:graphql/loading? @meme-search)
-                                                   (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
-                                                     (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                                     (when has-next-page
-                                                       (re-search end-cursor)))))}
+        ;;if (:graphql/loading? @meme-search)
+        #_[:div "Loading..."]
+        [:div.challenges.panel
+         [:div.controls
+          [select-input {:form-data form-data
+                         :id :order-by
+                         :options sort-options
+                         :on-change #(re-search nil)}]]
+         [:div.memes
+          [react-infinite {:element-height 400
+                           :infinite-load-begin-edge-offset 100
+                           :use-window-as-scroll-container true
+                           :on-infinite-load (fn []
+                                               (when-not (:graphql/loading? @meme-search)
+                                                 (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
+                                                   (.log js/console "Scrolled to load more" has-next-page end-cursor)
+                                                   (when has-next-page
+                                                     (re-search end-cursor)))))}
+
+           (if (:graphql/loading? @meme-search)
+             [:div.loading]
              (doall
               (for [{:keys [:reg-entry/address] :as meme} all-memes]
                 ^{:key address}
                 [challenge {:entry meme
                             :include-challenger-info? include-challenger-info?
-                            :action-child action-child}]))]]])))))
+                            :action-child action-child}])))]]]))))

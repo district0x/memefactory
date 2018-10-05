@@ -627,7 +627,7 @@
                                               :memes :reg-entry/address
                                               :meme-auctions :meme-auction/address)]) state))
     [:div.scroll-area
-     (if (empty? state)
+     (if (:graphql/loading? @query-subs)
        [:div.loading]
        [panel tab state])
      [infinite-scroll {:load-fn (fn []

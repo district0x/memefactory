@@ -172,7 +172,7 @@
                                                           [:meme-token/token-id]]]]]]]}])]
         [:div.history-component
          [:h1.title "Marketplace history"]
-         (if #_true (:graphql/loading? @query)
+         (if (:graphql/loading? @query)
              [:div.loading]
              [:table
               [:thead [:tr

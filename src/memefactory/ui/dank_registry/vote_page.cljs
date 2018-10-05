@@ -137,7 +137,7 @@
        [pending-button {:pending? @tx-pending?
                         :pending-text "Revealing ..."
                         :disabled (or (not (pos? (:vote/amount vote)))
-                                      (look @tx-pending?) (look @tx-success?))
+                                      @tx-pending? @tx-success?)
                         :on-click (fn []
                                     (dispatch [::registry-entry/reveal-vote
                                                {:send-tx/id tx-id

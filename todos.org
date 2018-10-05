@@ -45,7 +45,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Dankregistry/browse meme footer should link to meme-detail page             ()
 - [ ] Dankregistry/browse meme card back has only creator address                 ()
 - [ ] Dankregistry/browse meme card back has no image (see marketplace)           ()
-- [ ] Clickable links ahould have :cursor :pointer                                ()
+- [X] Clickable links ahould have :cursor :pointer                                (Filip)
 
 ** UI functionality todos
 - [ ] Add loadings spinners on every page                                                                     (Filip)
@@ -54,6 +54,9 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] After token sell we should somehow update the interface so it doesn't look like you can sell them again (Juan)
 - [X] Memefolio selling tab doesn't show selling tokens                                                       (Filip)
 - [ ] Memefolio colector rank not displaying                                                                  ()
+- [ ] dankregistry/vote vote buttons don't work (tx always reverts)                                           ()
+- [ ] dankregistry/vote vote creator rank not displaying                                                      ()
+- [ ] dankregistry/vote max tokens number is not right                                                        ()
 
 ** Server todos
 

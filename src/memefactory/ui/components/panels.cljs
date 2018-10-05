@@ -42,7 +42,7 @@
                ^{:key address} [:div.compact-tile
                                 [tiles/flippable-tile {:front [tiles/meme-image image-hash] #_[tiles/meme-front-tile {} meme]
                                                        :back [selling-back-tile address number]}]
-                                [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                            nil
                                                            {:reg-entry/address (:reg-entry/address meme)}])}
                                  [:div.title [:b (str "#" number " " title)]]

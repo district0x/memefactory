@@ -52,7 +52,7 @@
                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}
                                                            :id @form-data}])))))}
      [:div.tiles
-      (if (empty? all-memes)
+      (if (:graphql/loading? @meme-search)
         [:div.loading]
         (doall
          (for [{:keys [:reg-entry/address] :as meme} all-memes]
