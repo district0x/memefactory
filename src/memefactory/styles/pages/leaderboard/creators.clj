@@ -15,6 +15,22 @@
 
 (defstyles core
   [:.leaderboard-creators-page
+   [:.loading
+    {;;:flex :none
+     :color (color :busy-grey)
+     :border-top-color (color :white)
+     :margin :auto
+     :border-width (em 1)
+     :border-top-width (em 1)
+     :width (em 7)
+     :height (em 7)
+     :border-style :solid
+     :border-top-style :solid
+     :border-radius "50%"
+     :animation-name :spin
+     :animation-duration "2s"
+     :animation-iteration-count :infinite
+     :animation-timing-function :linear}]
    [:section.creators
     {:padding-top (em 2)
      :margin-right (em 6)
@@ -36,7 +52,17 @@
        :justify-content :center
        :flex-wrap :wrap}
       [:.user-tile
-       {:min-width (em 18)}
+       {:min-width (em 18)
+        :width (em 20)
+        :display :block
+        :height (em 30)
+        :margin (em 1)
+        :border-radius "1em"
+        :padding (em 1)
+        :vertical-align :middle
+        :text-align :center
+        :background-color (color :curator-card-bg)
+        }
        ["> *"
         {:display :block
          :margin-bottom (em 0.5)
@@ -65,17 +91,16 @@
         [:label {:margin-right (em 0.3)}]
         [:span
          {:font-weight :normal}]]
-
-       {:width (em 20)
-        :display :block
-        :height (em 30)
-        :margin (em 1)
-        :border-radius "1em"
-        :padding (em 1)
-        :vertical-align :middle
-        :text-align :center
-        :background-color (color :curator-card-bg)}]]]
-
+       #_{:width (em 20)
+          :display :block
+          :height (em 30)
+          :margin (em 1)
+          :border-radius "1em"
+          :padding (em 1)
+          :vertical-align :middle
+          :text-align :center
+          :background-color (color :curator-card-bg)}
+       ]]]
     [:div.order
      {:position :absolute
       :display :block
