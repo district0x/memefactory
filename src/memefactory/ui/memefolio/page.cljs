@@ -40,6 +40,7 @@
 (defn sell-form [{:keys [:meme/title
                          :meme-auction/token-count
                          :meme-auction/token-ids
+                         :reg-entry/address
                          :show?]}]
   (let [response (subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :max-auction-duration)
                                                                             :db (graphql-utils/kw->gql-name :meme-registry-db)
@@ -104,12 +105,13 @@
                                               (dispatch [::meme-token/transfer-multi-and-start-auction (merge @form-data
                                                                                                              {:send-tx/id tx-id
                                                                                                               :meme/title title
+                                                                                                              :reg-entry/address address
                                                                                                               :meme-auction/token-ids (->> token-ids
                                                                                                                                            (take (int (:meme-auction/amount @form-data)))
                                                                                                                                            (map int))})]))}
              "Create Offering"]]])))))
 
-(defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids]}]
+(defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids :reg-entry/address]}]
   (let [sell? (r/atom false)]
     (fn []
       [:div.collected-tile-back.meme-card.back
@@ -128,6 +130,7 @@
           [sell-form {:meme/title title
                       :meme-auction/token-ids token-ids
                       :meme-auction/token-count token-count
+                      :reg-entry/address address
                       :show? sell?}]])])))
 
 (defmethod panel :collected [_ state]
@@ -144,6 +147,7 @@
                                                              :front [tiles/meme-front-tile {} meme]
                                                              :back [collected-tile-back {:meme/number number
                                                                                          :meme/title title
+                                                                                         :reg-entry/address address
                                                                                          :meme/owned-meme-tokens owned-meme-tokens
                                                                                          :meme-auction/token-count token-count
                                                                                          :meme-auction/token-ids token-ids}]}]
