@@ -61,13 +61,15 @@
      [:.meme-number
       (font :bungee)
       {:position :absolute
+       :z-index 2
        :display :block
        :color (color :purple)
        :left (em 3.1)
        :padding (em 1)
        :font-size (em 1.1)
        :border-radius "0em 0em 1em 1em"
-       :background-color (color :yellow)}
+       :background-color (color :yellow)
+       }
       [:.loading
        {:border-color (color :purple)
         :border-top-color (color :yellow)
@@ -77,9 +79,6 @@
         :border-top-width (em 0.3)
         :width (em 0.9)
         :height (em 0.9)}]]
-     [:.meme-image
-      {:padding (em 1)
-       :border-radius "1em 1em 1em 1em"}]
      [:.registry
       {:padding (em 1)}
       [:h1
@@ -129,7 +128,7 @@
         [:&.marketplace {:background-color (color :purple)
                          :color (color :white)}]
         [:&.memefolio {:background-color (color :pink)
-                         :color (color :white)}]]]]]]
+                       :color (color :white)}]]]]]]
    [:section.history
     {:padding (em 3)
      :color (color :menu-text)}
@@ -155,15 +154,9 @@
        :padding-top (em 1)
        :margin-bottom (em 0.1)
        :text-align :center}]
-
      [:.loading
       {:margin :auto
-       :color (color :table-header-bg)
-
-       }
-      ]
-
-
+       :color (color :table-header-bg)}]
      [:table
       {:border-spacing "0px"}
       [:th.down:after
@@ -188,7 +181,6 @@
         :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
       [:td {:padding-left (em 0.5)
             :line-height (em 2)}]
-
       [:thead
        (for-media-max :tablet
                       [:&
@@ -237,21 +229,20 @@
          ]]]
       {:width "100%"
        :padding (em 1)}]]]
-
    [:section.challenge
     {:padding (em 3)}
     [:h1.title
-       (font :bungee)
-       (for-media-max :tablet
-                      [:&
-                       {:font-size (px 19)}])
-       {:white-space :nowrap
-        :position :relative
-        :color (color :purple)
-        ;; :font-size (em 1.2)
-        :padding-top (em 1)
-        :margin-bottom (em 0.1)
-        :text-align :center}]
+     (font :bungee)
+     (for-media-max :tablet
+                    [:&
+                     {:font-size (px 19)}])
+     {:white-space :nowrap
+      :position :relative
+      :color (color :purple)
+      ;; :font-size (em 1.2)
+      :padding-top (em 1)
+      :margin-bottom (em 0.1)
+      :text-align :center}]
     [:.loading
      {:color (color :menu-text)
       :margin :auto}]

@@ -327,7 +327,7 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])]
     (fn []
-      [:div.reveal #_ challenge
+      [:div.reveal
        [:div description]
        [remaining-time-component (ui-utils/gql-date->date reveal-period-end)]
        [tx-button/tx-button {:primary true
@@ -358,7 +358,7 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])]
     (fn []
-      [:div.vote ;;.challenge
+      [:div.vote
        [:div description]
        [remaining-time-component (ui-utils/gql-date->date commit-period-end)]
        [inputs/with-label "Amount "
@@ -455,43 +455,42 @@
      [:div.meme-detail-page
       [:section.meme-detail
        [:div.meme-info
-        [:div.meme-number (or #_nil number [:div.loading])]
-        [:div.meme-image
-         ;; TODO: loading before ipfs resolves hash (placeholder indicator)
+        [:div.meme-number (or number [:div.loading])]
+        [:div.container
          [tiles/meme-image image-hash]]
-        (if-not #_nil status
-                [:div.loading]
-                [:div.registry
-                 [:h1 title]
-                 [:div.status (case (graphql-utils/gql-name->kw status)
-                                  :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
-                                  :reg-entry.status/blacklisted [:label.rejected "Rejected"]
-                                  [:label.challenged "Challenged"])]
-                 [:div.description description]
-                 [:div.text (format/pluralize total-supply "card")]
-                 [:div.text (str "You own " token-count)]
-                 [meme-creator-component creator]
-                 [:div.tags
-                  (for [tag-name tags]
-                    ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
-                                                                     :route.marketplace/index
-                                                                     nil
-                                                                     {:search-tags [tag-name]}])} tag-name])]
-                 [:div.buttons
-                  [:button.search.marketplace {:on-click #(dispatch [::router-events/navigate
-                                                                     :route.marketplace/index
-                                                                     nil
-                                                                     {:term title}])} "Search On Marketplace"]
-                  [:button.search.memefolio {:on-click #(dispatch [::router-events/navigate
-                                                                   :route.memefolio/index
-                                                                   nil
-                                                                   {:term title}])} "Search On Memefolio"]]])]]
+        (if-not status
+          [:div.loading]
+          [:div.registry
+           [:h1 title]
+           [:div.status (case (graphql-utils/gql-name->kw status)
+                          :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
+                          :reg-entry.status/blacklisted [:label.rejected "Rejected"]
+                          [:label.challenged "Challenged"])]
+           [:div.description description]
+           [:div.text (format/pluralize total-supply "card")]
+           [:div.text (str "You own " token-count)]
+           [meme-creator-component creator]
+           [:div.tags
+            (for [tag-name tags]
+              ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
+                                                               :route.marketplace/index
+                                                               nil
+                                                               {:search-tags [tag-name]}])} tag-name])]
+           [:div.buttons
+            [:button.search.marketplace {:on-click #(dispatch [::router-events/navigate
+                                                               :route.marketplace/index
+                                                               nil
+                                                               {:term title}])} "Search On Marketplace"]
+            [:button.search.memefolio {:on-click #(dispatch [::router-events/navigate
+                                                             :route.memefolio/index
+                                                             nil
+                                                             {:term title}])} "Search On Memefolio"]]])]]
       [:section.history
        [history-component address]]
       [:section.challenge
        [:h1.title "Challenge"]
-       (if #_nil status
-           [challenge-component meme]
-           [:div.loading])]
+       (if status
+         [challenge-component meme]
+         [:div.loading])]
       [:section.related
        [related-memes-container address tags]]]]))

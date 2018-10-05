@@ -55,7 +55,15 @@
     :border "1px solid"
     :border-color (color :light-pink)
     :overflow :hidden}
-   [:img
+   [:.meme-placehodler
+    [">*"
+     {:position :absolute;
+      :margin :auto
+      :top 0
+      :left 0
+      :right 0
+      :bottom 0}]]
+   [:.meme-image
     {:width (em card-width)
      :height (em card-height)}]
    [:.overlay {:position :absolute
@@ -83,7 +91,7 @@
        :margin-left :auto
        :position "absolute"}
       (button {:background-color :meme-buy-button
-               :color :light-light-grey}) 
+               :color :light-light-grey})
       [:&:after {:content ;;"&#8594;"
                  "' →'"}]]
      [:.meme-data {:text-align :center
