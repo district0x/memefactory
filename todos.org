@@ -42,7 +42,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] SVG images instead of png                                                   (Wambat)
 - [X] Tiles should display as 3 columns grid                                      (Wambat)
 - [X] Fix sell form styles                                                        (Juan)
-- [ ] Dankregistry/browse meme footer should link to meme-detail page             (Filip)
+- [X] Dankregistry/browse meme footer should link to meme-detail page             (Filip)
 - [ ] Dankregistry/browse meme card back has only creator address                 ()
 - [ ] Dankregistry/browse meme card back has no image (see marketplace)           ()
 - [X] Clickable links ahould have :cursor :pointer                                (Filip)

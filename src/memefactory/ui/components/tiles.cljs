@@ -83,13 +83,12 @@
     (fn []
       (let [price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
         [:div.compact-tile
-         [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])] #_[auction-front-tile opts meme-token]
+         [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
                           :back [auction-back-tile opts meme-auction]}]
-         [:div.footer
-          [:div.title {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+         [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                              nil
                                              {:reg-entry/address (-> meme-token :meme-token/meme :reg-entry/address)}])}
-           (-> meme-token :meme-token/meme :meme/title)]
+          [:div.title (-> meme-token :meme-token/meme :meme/title)]
           [:div.number-minted (str (:meme-token/number meme-token)
                                    "/"
                                    (-> meme-token :meme-token/meme :meme/total-minted))]
@@ -103,9 +102,11 @@
       [:li [:label "Creator:"]
        [:span (-> meme :reg-entry/creator :user/address)]]]]]])
 
-(defn meme-tile [{:keys [:meme/image-hash] :as meme}]
+(defn meme-tile [{:keys [:reg-entry/address :meme/image-hash] :as meme}]
   [:div.compact-tile
    [flippable-tile {:front [meme-image image-hash]
                     :back [meme-back-tile meme]}]
-   [:div.footer
+   [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                              nil
+                                                              {:reg-entry/address address}])}
     [:div.title (-> meme :meme/title)]]])
