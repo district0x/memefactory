@@ -52,10 +52,12 @@
                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}
                                                            :id @form-data}])))))}
      [:div.tiles
-      (doall
-       (for [{:keys [:reg-entry/address] :as meme} all-memes]
-         ^{:key address}
-         [tiles/meme-tile {} meme]))]]))
+      (if (empty? all-memes)
+        [:div.loading]
+        (doall
+         (for [{:keys [:reg-entry/address] :as meme} all-memes]
+           ^{:key address}
+           [tiles/meme-tile meme])))]]))
 
 (defmethod page :route.dank-registry/browse []
   (let [active-page (subscribe [::router-subs/active-page])

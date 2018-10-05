@@ -18,8 +18,8 @@
                   :color :new-meme-icon-bg
                   :icon "/assets/icons/cart-green-blue.svg"})
    ;; TODO: don;t know where this is coming from, but need to override flex that breaks loading div
-   [".tiles>*"
-    {:flex :none}]
+   #_[".tiles>*"
+      {:flex :none}]
    [:.tiles
     {:display :flex
      :margin-top (em 2)
@@ -28,7 +28,8 @@
      :background-color (color :meme-panel-bg)
      :border-radius "1em 1em 1em 1em"}
     [:.loading
-     {:color (color :busy-grey)
+     {:flex :none
+      :color (color :busy-grey)
       :border-top-color (color :white)
       :margin :auto
       :border-width (em 1)
@@ -42,7 +43,9 @@
       :animation-duration "2s"
       :animation-iteration-count :infinite
       :animation-timing-function :linear}]
-
+    #_[:.container
+       [:.meme-card.front
+        {:backface-visibility :visible}]]
     #_[">div>div"
        {:display :flex
         :flex-wrap :wrap

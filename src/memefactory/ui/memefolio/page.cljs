@@ -144,7 +144,7 @@
                                           count)]
                      ^{:key address} [:div.compact-tile
                                       [tiles/flippable-tile {;; :id address TODO Ask Filip about this
-                                                             :front [tiles/meme-front-tile {} meme]
+                                                             :front (tiles/meme-image image-hash) #_[tiles/meme-front-tile {} meme]
                                                              :back [collected-tile-back {:meme/number number
                                                                                          :meme/title title
                                                                                          :reg-entry/address address
@@ -249,7 +249,8 @@
                    (let [status (graphql-utils/gql-name->kw status)]
                      ^{:key address} [:div.compact-tile
                                       [:div.container
-                                       [tiles/meme-front-tile {} meme]]
+                                       [tiles/meme-image image-hash]
+                                       #_[tiles/meme-front-tile {} meme]]
                                       [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                                         nil
                                                                         {:reg-entry/address address}])}

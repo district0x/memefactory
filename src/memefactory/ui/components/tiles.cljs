@@ -16,6 +16,10 @@
             [memefactory.ui.contract.meme-auction :as meme-auction]
             [district.ui.router.events :as router-events]))
 
+(defn- format-price [price]
+  (format/format-eth (/ price 1e18) {:max-fraction-digits 7
+                                     :min-fraction-digits 2}))
+
 (defn meme-image [image-hash]
   (let [url (-> @(subscribe [::gql/query
                              {:queries [[:config
@@ -42,14 +46,6 @@
        back
        front])))
 
-(defn auction-front-tile [opts meme-token]
-  ;;:div.meme-card.front
-  (meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])))
-
-(defn format-price [price]
-  (format/format-eth (/ price 1e18) {:max-fraction-digits 7
-                                     :min-fraction-digits 2}))
-
 (defn auction-back-tile [{:keys [:on-buy-click] :as opts} meme-auction]
   (let [tx-id (str (random-uuid))
         now (subscribe [:district.ui.now.subs/now])
@@ -61,9 +57,9 @@
                                            end-time)
             price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
         [:div.meme-card.back
-         (meme-image (get-in meme-auction [:meme-auction/meme-token
+         [meme-image (get-in meme-auction [:meme-auction/meme-token
                                            :meme-token/meme
-                                           :meme/image-hash]))
+                                           :meme/image-hash])]
          [:div.overlay
           [:div.info
            [:ul.meme-data
@@ -82,13 +78,12 @@
                                                                               :value price}]))}
             "Buy"]]]]))))
 
-
 (defn auction-tile [{:keys [:on-buy-click] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]
   (let [now (subscribe [:district.ui.now.subs/now])]
     (fn []
       (let [price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
         [:div.compact-tile
-         [flippable-tile {:front [auction-front-tile opts meme-token]
+         [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])] #_[auction-front-tile opts meme-token]
                           :back [auction-back-tile opts meme-auction]}]
          [:div.footer
           [:div.title {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
@@ -100,21 +95,17 @@
                                    (-> meme-token :meme-token/meme :meme/total-minted))]
           [:div.price (format-price price)]]]))))
 
-(defn meme-front-tile [opts {:keys [:meme/image-hash] :as meme}]
-
-  [:div.meme-card.front
-   (meme-image image-hash)])
-
-(defn meme-back-tile [opts {:keys [] :as meme}]
+(defn meme-back-tile [meme]
   [:div.meme-card.back
    [:div.overlay
     [:div.info
      [:ul.meme-data
-      [:li [:label "Creator:"] [:span (-> meme :reg-entry/creator :user/address )]]]]]])
+      [:li [:label "Creator:"]
+       [:span (-> meme :reg-entry/creator :user/address)]]]]]])
 
-(defn meme-tile [opts {:keys [] :as meme}]
+(defn meme-tile [{:keys [:meme/image-hash] :as meme}]
   [:div.compact-tile
-   [flippable-tile {:front [meme-front-tile opts meme]
-                    :back [meme-back-tile opts meme]}]
+   [flippable-tile {:front [meme-image image-hash]
+                    :back [meme-back-tile meme]}]
    [:div.footer
     [:div.title (-> meme :meme/title)]]])

@@ -23,46 +23,46 @@
 (defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]}]
   (let [{:keys [:order-by :order-dir]} data]
     (look [:search-memes
-      (cond-> (merge {:first page-size} query-params)
-        after                   (assoc :after after)
-        order-by                (assoc :order-by (keyword "memes.order-by" order-by))
-        order-dir               (assoc :order-dir (keyword order-dir)))
-      [:total-count
-       :end-cursor
-       :has-next-page
-       [:items (cond-> [:reg-entry/address
-                        :reg-entry/created-on
-                        :reg-entry/challenge-period-end
-                        :reg-entry/status
-                        :challenge/comment
-                        :meme/total-supply
-                        :meme/image-hash
-                        :meme/title
-                        [:meme/tags [:tag/name]]
-                        [:reg-entry/creator [:user/address
-                                             :user/creator-rank
-                                             :user/total-created-memes
-                                             :user/total-created-memes-whitelisted]]]
-                 include-challenger-info? (conj [:challenge/challenger [:user/address
-                                                                        :user/creator-rank
-                                                                        :user/total-created-memes
-                                                                        :user/total-created-memes-whitelisted]])
-                 active-account (into [[:challenge/vote {:vote/voter active-account}
-                                        [:vote/secret-hash
-                                         :vote/revealed-on
-                                         :vote/option
-                                         :vote/amount]]
-                                       [:challenge/vote-winning-vote-option {:vote/voter active-account}]
-                                       [:challenge/all-rewards {:user/address active-account}]]))]]])))
+           (cond-> (merge {:first page-size} query-params)
+             after                   (assoc :after after)
+             order-by                (assoc :order-by (keyword "memes.order-by" order-by))
+             order-dir               (assoc :order-dir (keyword order-dir)))
+           [:total-count
+            :end-cursor
+            :has-next-page
+            [:items (cond-> [:reg-entry/address
+                             :reg-entry/created-on
+                             :reg-entry/challenge-period-end
+                             :reg-entry/status
+                             :challenge/comment
+                             :meme/total-supply
+                             :meme/image-hash
+                             :meme/title
+                             [:meme/tags [:tag/name]]
+                             [:reg-entry/creator [:user/address
+                                                  :user/creator-rank
+                                                  :user/total-created-memes
+                                                  :user/total-created-memes-whitelisted]]]
+                      include-challenger-info? (conj [:challenge/challenger [:user/address
+                                                                             :user/creator-rank
+                                                                             :user/total-created-memes
+                                                                             :user/total-created-memes-whitelisted]])
+                      active-account (into [[:challenge/vote {:vote/voter active-account}
+                                             [:vote/secret-hash
+                                              :vote/revealed-on
+                                              :vote/option
+                                              :vote/amount]]
+                                            [:challenge/vote-winning-vote-option {:vote/voter active-account}]
+                                            [:challenge/all-rewards {:user/address active-account}]]))]]])))
 
 (defn user-info [user class]
   [:ol {:class class}
    [:li "Rank: " [:span (gstring/format "#%d (?)" (or (:user/creator-rank user) 0))]]
    [:li "Success Rate: " [:span (gstring/format "%d/%d (%d%%)"
-                                                          (:user/total-created-memes-whitelisted user)
-                                                          (:user/total-created-memes user)
-                                                          (/ (* 100 (:user/total-created-memes-whitelisted user))
-                                                             (:user/total-created-memes user)))]] 
+                                                (:user/total-created-memes-whitelisted user)
+                                                (:user/total-created-memes user)
+                                                (/ (* 100 (:user/total-created-memes-whitelisted user))
+                                                   (:user/total-created-memes user)))]]
    [:li "Address: " [:span.address (-> user :user/address)]]])
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child] }]
@@ -75,10 +75,10 @@
               [:h2 title]
               [:ol.meme
                [:li "Created: " [:span (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
-                                                     format/format-time-units
-                                                     (str " ago"))]]
+                                           format/format-time-units
+                                           (str " ago"))]]
                [:li "Challenge period ends in: " [:span (-> (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))
-                                                                      format/format-time-units)]]
+                                                            format/format-time-units)]]
                [:li "Issued: " [:span total-supply]]]
               [:h3 "Creator"]
               [user-info creator :creator]
@@ -89,9 +89,9 @@
                   name])]]
        include-challenger-info? (into [[:h3 "Challenger"]
                                        [user-info challenger :challenger]]))
-     
+
      [:div.meme-tile
-      [tiles/meme-front-tile {} entry]]
+      [tiles/meme-image image-hash] #_[tiles/meme-front-tile {} entry]]
      [:div.action
       [action-child entry]]]))
 
@@ -111,10 +111,9 @@
             all-memes (->> @meme-search
                            (mapcat (fn [r] (-> r :search-memes :items)))
                            ;; TODO remove this, don't know why subscription is returning nil item
-
                            (remove #(nil? (:reg-entry/address %))))]
         (.log js/console "ALL Rendering here" all-memes)
-         (println "All memes " (map :reg-entry/address all-memes))
+        (println "All memes " (map :reg-entry/address all-memes))
         (if (:graphql/loading? @meme-search)
           [:div "Loading..."]
           [:div.challenges.panel
@@ -131,7 +130,7 @@
                                                  (when-not (:graphql/loading? @meme-search)
                                                    (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
                                                      (.log js/console "Scrolled to load more" has-next-page end-cursor)
-                                                     (when has-next-page 
+                                                     (when has-next-page
                                                        (re-search end-cursor)))))}
              (doall
               (for [{:keys [:reg-entry/address] :as meme} all-memes]
