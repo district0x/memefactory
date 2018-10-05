@@ -60,13 +60,16 @@
                       :margin-right :auto}
        [:.dropzone {:width (em compact-tile/card-width)
                     :height (em compact-tile/card-height)}]
-       [:.file-name {:display :none}]]
+       [:.file-name {:display :none}]
+       [:.help-block
+        {:border-top :none
+         :margin-bottom (em 2)}]]
       [:label.file-input-label
        {:margin-right :auto
         :margin-left :auto
         :padding-top (em 1)
         :padding-left (em 1.9)
-        :margin-top (em 0.5)
+        :margin-top (em 3)
         :font-size (px 12)}
        (button {:background-color :purple
                 :color :white
