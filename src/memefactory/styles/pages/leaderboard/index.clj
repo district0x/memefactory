@@ -15,6 +15,22 @@
 
 (defstyles core
   [:.leaderboard-dankest-page
+   [:.loading
+    {:flex :none
+     :color (color :busy-grey)
+     :border-top-color (color :white)
+     :margin :auto
+     :border-width (em 1)
+     :border-top-width (em 1)
+     :width (em 7)
+     :height (em 7)
+     :border-style :solid
+     :border-top-style :solid
+     :border-radius "50%"
+     :animation-name :spin
+     :animation-duration "2s"
+     :animation-iteration-count :infinite
+     :animation-timing-function :linear}]
    [:section.dankest
     {:padding-top (em 2)
      :margin-right (em 6)

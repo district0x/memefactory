@@ -91,7 +91,7 @@
                                        [user-info challenger :challenger]]))
 
      [:div.meme-tile
-      [tiles/meme-image image-hash] #_[tiles/meme-front-tile {} entry]]
+      [tiles/meme-image image-hash]]
      [:div.action
       [action-child entry]]]))
 
@@ -114,8 +114,6 @@
                            (remove #(nil? (:reg-entry/address %))))]
         (.log js/console "ALL Rendering here" all-memes)
         (println "All memes " (map :reg-entry/address all-memes))
-        ;;if (:graphql/loading? @meme-search)
-        #_[:div "Loading..."]
         [:div.challenges.panel
          [:div.controls
           [select-input {:form-data form-data

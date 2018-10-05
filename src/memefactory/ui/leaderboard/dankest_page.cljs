@@ -51,10 +51,12 @@
                                                           {:query {:queries [(build-tiles-query end-cursor)]}
                                                            :id :dankest}])))))}
      [:div.tiles
-      (doall
-       (for [{:keys [:reg-entry/address] :as meme} all-memes]
-         ^{:key address}
-         [tiles/meme-tile {} meme]))]])) 
+      (if (:graphql/loading? @meme-search)
+        [:div.loading]
+        (doall
+         (for [{:keys [:reg-entry/address] :as meme} all-memes]
+           ^{:key address}
+           [tiles/meme-tile {} meme])))]]))
 
 (defmethod page :route.leaderboard/dankest []
   (let [active-page (subscribe [::router-subs/active-page])]
@@ -69,5 +71,3 @@
           [:h2.title "LEADERBOARDS - DANKEST"]
           [:h3.title "lorem ipsum"]
           [dankest-memes-tiles]]]]])))
-
-

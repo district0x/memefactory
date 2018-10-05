@@ -143,8 +143,7 @@
                                           (filter shared-utils/not-nil?)
                                           count)]
                      ^{:key address} [:div.compact-tile
-                                      [tiles/flippable-tile {;; :id address TODO Ask Filip about this
-                                                             :front (tiles/meme-image image-hash) #_[tiles/meme-front-tile {} meme]
+                                      [tiles/flippable-tile {:front (tiles/meme-image image-hash)
                                                              :back [collected-tile-back {:meme/number number
                                                                                          :meme/title title
                                                                                          :reg-entry/address address
@@ -152,12 +151,12 @@
                                                                                          :meme-auction/token-count token-count
                                                                                          :meme-auction/token-ids token-ids}]}]
                                       [:div.footer
-                                       [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                  nil
-                                                                  {:reg-entry/address address}])}
-                                        [:div [:b (str "#" number " " title)]]
-                                        (when (and token-count total-supply)
-                                          [:div [:span (str "Owning " token-count " out of " total-supply)]])]]])))
+                                       {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                              nil
+                                                              {:reg-entry/address address}])}
+                                       [:div.title (str "#" number " " title)]
+                                       (when (and token-count total-supply)
+                                         [:div.number-minted (str "Owning " token-count " out of " total-supply)])]])))
                state))])
 
 (defmethod rank :collected [_ active-account]

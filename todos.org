@@ -57,6 +57,10 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] dankregistry/vote vote buttons don't work (tx always reverts)                                           ()
 - [ ] dankregistry/vote vote creator rank not displaying                                                      ()
 - [ ] dankregistry/vote max tokens number is not right                                                        ()
+- [ ] leaderboards/dankest is empty                                                                           ()
+
+** code quality
+- [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
 
 ** Server todos
 
