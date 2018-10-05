@@ -107,6 +107,7 @@
        [:label {:font-size "8px"
                 :flex 1
                 :margin-left (em 0.3)
+                :white-space :nowrap
                 :margin-bottom (em 0.5)}]]
       [:.help-block {:display :none}]]]]
    [:.search-form
