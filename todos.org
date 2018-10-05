@@ -41,7 +41,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Should have ellipsis                                                        (Filip)
 - [X] SVG images instead of png                                                   (Wambat)
 - [X] Tiles should display as 3 columns grid                                      (Wambat)
-- [ ] Fix sell form styles                                                        ()
+- [X] Fix sell form styles                                                        (Juan)
 
 ** UI functionality todos
 - [ ] Add loadings spinners on every page                                                                     (Filip)

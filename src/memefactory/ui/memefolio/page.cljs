@@ -57,7 +57,7 @@
                                :meme-auction/start-price 0.1
                                :meme-auction/end-price 0.01
                                :meme-auction/duration max-duration
-                               :meme-auction/description "description"})
+                               :meme-auction/description ""})
             errors (ratom/reaction {:local {:meme-auction/amount {:hint (str "Max " token-count)
                                                                   :error (when-not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count))
                                                                            (str "Should be between 0 and " token-count))}
@@ -88,6 +88,7 @@
                               :id :meme-auction/duration
                               :on-click #(.stopPropagation %)}]
            [inputs/textarea-input {:form-data form-data
+                                   :class "sales-pitch"
                                    :placeholder "Short sales pitch"
                                    :errors errors
                                    :id :meme-auction/description

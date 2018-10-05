@@ -235,20 +235,27 @@
         :text-align :center
         :margin-bottom (em 1)}]
       [:.form-panel {}
+       [:.input-group {}
+        [:.help-block {:height (em 1)}
+         [:&:before {:width 0}]]]
        [:textarea {:background (color :tags-grey)
                    :border :none
                    :border-radius (em 0.4)}]
        [:.buttons {:display :inline-flex
-                   :margin-top (em 1)}
+                   :justify-content :space-evenly
+                   :font-size (px 12)
+                   :margin-top (em 1)
+                   :width "100%"}
         [:button.cancel (button {:color :white
-                                 :background-color (color :tags-grey)
-                                 :height (em 3)})
-         {:font-size (em 0.8)}]
+                                 :background-color (color :cancel-button)
+                                 :height (em 4)
+                                 :width "40%"})
+         {:font-size (em 0.6)}]
         [:button.create-offering (button {:color :white
-                                          :height (em 3)
+                                          :height (em 4)
                                           :background-color (color :purple)
-                                          :width "55%"})
-         {:font-size (em 0.7)
+                                          :width "50%"})
+         {:font-size (em 0.6)
           :padding (em 0.4)}]]]]]
     [:.selling-tile-back {:height "100%"
                           :background-color (color :violet)}

@@ -38,6 +38,7 @@
                     :table-border "#e1b4ef"
                     :busy-grey "#5c5c5c"
                     :rank-yellow "#ffd800"
+                    :cancel-button "#d0e5e8"
                     })
 
 (defn color [name]
