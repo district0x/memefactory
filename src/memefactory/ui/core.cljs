@@ -43,6 +43,26 @@
     [print.foo :include-macros true]
     [re-frisk.core :refer [enable-re-frisk!]]))
 
+(goog-define environment "prod")
+
+(def development-config
+  {:time-source "blockchain"
+   :web3 {:url "http://localhost:8549"}
+   :graphql {:schema graphql-schema
+             :url "http://localhost:6300/graphql"}
+   :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}})
+
+(def production-config
+  {:time-source "js-date"
+   :web3 {:url "http://localhost:8545"}
+   :graphql {:schema graphql-schema
+             :url "http://localhost:6300/graphql"}
+   :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}})
+
+(defn get-config [env-name]
+  (get {"dev" development-config
+        "prod" production-config} env-name production-config))
+
 (def debug? ^boolean js/goog.DEBUG)
 
 (defn dev-setup []
@@ -56,8 +76,8 @@
   (s/check-asserts debug?)
   (dev-setup)
   (-> (mount/with-args
-        (merge {:web3 {:url "http://localhost:8549"}
-                :smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)}
+        (merge (get-config environment)
+               {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)}
                 :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
                 :web3-account-balances {:for-contracts [:ETH :DANK]}
                 :web3-tx-log {:open-on-tx-hash? true
@@ -66,8 +86,5 @@
                                  :component-var #'router}
                 :router {:routes routes
                          :default-route :route/home}
-                :router-google-analytics {:enabled? (not debug?)}
-                :graphql {:schema graphql-schema
-                          :url "http://localhost:6300/graphql"}
-                :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}}))
+                :router-google-analytics {:enabled? (not debug?)}}))
       (mount/start)))
