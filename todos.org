@@ -55,7 +55,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] After issuing tokens, update remainings tokens or disable if no more tokens to issue                    (Juan)
 - [X] After token sell we should somehow update the interface so it doesn't look like you can sell them again (Juan)
 - [X] Memefolio selling tab doesn't show selling tokens                                                       (Filip)
-- [ ] Memefolio colector rank not displaying                                                                  (Juan)    <- Waiting for rank definition
+- [X] Memefolio colector rank not displaying                                                                  (Juan)
 - [ ] dankregistry/vote vote buttons don't work (tx always reverts)                                           (Juan)    <- Couldn't reproduce
 - [X] dankregistry/vote vote creator rank not displaying                                                      (Juan)
 - [ ] dankregistry/vote max tokens number is not right                                                        ()

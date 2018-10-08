@@ -886,7 +886,12 @@
        (into {})))
 
 (defn collector-rank []
-  {})
+  (->> (db/all {:select [:mto.meme-token/owner [(sql/call :count :*) :uniq-memes]]
+                :from [[:meme-token-owners :mto]]
+                :group-by [:mto.meme-token/owner]
+                :order-by [[:uniq-memes :desc]]})
+       (map-indexed (fn [idx {:keys [:meme-token/owner]}] [owner idx]))
+       (into {})))
 
 (defn user->creator-rank-resolver [{:keys [:user/address]}]
   (get (ranks-cache/get-rank :creator-rank creator-rank)
