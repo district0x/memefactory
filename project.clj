@@ -181,10 +181,10 @@
                         :compiler {:main "memefactory.ui.core"
                                    :output-to "resources/public/js/compiled/app.js"
                                    :optimizations :advanced
-                                   :closure-defines {"goog.DEBUG" false}
                                    :pretty-print false
                                    :pseudo-names false
-                                   :closure-defines {memefactory.ui.core.environment "prod"}}}
+                                   :closure-defines {"goog.DEBUG" false
+                                                     memefactory.ui.core.environment "prod"}}}
                        {:id "server-tests"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
                         :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
