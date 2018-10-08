@@ -57,7 +57,7 @@
 
 (defn user-info [user class]
   [:ol {:class class}
-   [:li "Rank: " [:span (gstring/format "#%d (?)" (or (:user/creator-rank user) 0))]]
+   [:li "Rank: " [:span (gstring/format "#%d" (or (:user/creator-rank user) 0))]]
    [:li "Success Rate: " [:span (gstring/format "%d/%d (%d%%)"
                                                 (:user/total-created-memes-whitelisted user)
                                                 (:user/total-created-memes user)

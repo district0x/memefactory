@@ -61,7 +61,7 @@
 
 (defn meme-query-resolver [_ {:keys [:reg-entry/address] :as args}]
   (db/get {:select [:*]
-           :from [[:memes :m] [:reg-entries :re]] 
+           :from [[:memes :m] [:reg-entries :re]]
            :where [:and
                    [:= :m.reg-entry/address :re.reg-entry/address]
                    [:= :re.reg-entry/address address]]}))
@@ -113,7 +113,7 @@
                                       :join [[:meme-token-owners :mto]
                                              [:= :mto.meme-token/token-id :mt.meme-token/token-id]]} :tokens]
                                     [:= :m.reg-entry/address :tokens.reg-entry/address]
-                                    
+
                                     [:meme-tags :mtags]
                                     [:= :mtags.reg-entry/address :m.reg-entry/address]
 
@@ -885,6 +885,9 @@
        (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
        (into {})))
 
+(defn collector-rank []
+  {})
+
 (defn user->creator-rank-resolver [{:keys [:user/address]}]
   (get (ranks-cache/get-rank :creator-rank creator-rank)
        address))
@@ -899,6 +902,10 @@
 
 (defn user->curator-rank-resolver [{:keys [:user/address]}]
   (get (ranks-cache/get-rank :curator-rank curator-rank)
+       address))
+
+(defn user->collector-rank-resolver [{:keys [:user/address]}]
+  (get (ranks-cache/get-rank :collector-rank collector-rank)
        address))
 
 ;; TODO: test
@@ -971,5 +978,7 @@
           :user/creator-rank user->creator-rank-resolver
           :user/challenger-rank user->challenger-rank-resolver
           :user/voter-rank user->voter-rank-resolver
-          :user/curator-rank user->curator-rank-resolver}
+          :user/curator-rank user->curator-rank-resolver
+          :user/collector-rank user->collector-rank-resolver
+          }
    :UserList {:items user-list->items-resolver}})

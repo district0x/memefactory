@@ -340,6 +340,9 @@
     \"Position of a creator in leaderboard according to user_totalCreatedMemesWhitelisted\"
     user_creatorRank: Int
 
+    \"Position of a collector in leaderboard \"
+    user_collectorRank: Int
+
     \"Amount of meme tokenIds owned by user\"
     user_totalCollectedTokenIds: Int
 

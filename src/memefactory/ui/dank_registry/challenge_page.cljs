@@ -12,7 +12,7 @@
    [goog.string :as gstring]
    [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.components.app-layout :refer [app-layout]]
-   [memefactory.ui.components.challenge-list :refer [challenge-list]]   
+   [memefactory.ui.components.challenge-list :refer [challenge-list]]
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.dank-registry.events :as dr-events]
@@ -33,7 +33,7 @@
 (defn open-challenge-action [{:keys [:reg-entry/address]}]
   (let [form-data (r/atom {})
         open? (r/atom false)
-        tx-id address
+        tx-id (str address "challenge")
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
         errors (reaction {:local (let [{:keys [comment]} @form-data]
@@ -84,4 +84,3 @@
                      :key :challenge-page
                      :sort-options [{:key "created-on" :value "Newest"}
                                     {:key "challenge-period-end" :value "Challenge period end"}]}]]])
-

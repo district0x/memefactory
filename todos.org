@@ -43,8 +43,8 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Tiles should display as 3 columns grid                                      (Wambat)
 - [X] Fix sell form styles                                                        (Juan)
 - [X] Dankregistry/browse meme footer should link to meme-detail page             (Filip)
-- [ ] Dankregistry/browse meme footer has only meme title (see wireframes)        (Juan)
-- [ ] Dankregistry/browse meme card back has only creator address                 ()
+- [ ] Dankregistry/browse meme footer has only meme title (see wireframes)        ()        <- Wrong in design since they are memes and not auctions or tokens
+- [ ] Dankregistry/browse meme card back has only creator address                 ()        <- Still not defined what to show there
 - [ ] Dankregistry/browse meme card back has no image (see marketplace)           (Juan)
 - [X] Clickable links ahould have :cursor :pointer                                (Filip)
 - [ ] Leaderboards/creators selector has broken styling (text overflows)          (Juan)
@@ -55,9 +55,9 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] After issuing tokens, update remainings tokens or disable if no more tokens to issue                    (Juan)
 - [X] After token sell we should somehow update the interface so it doesn't look like you can sell them again (Juan)
 - [X] Memefolio selling tab doesn't show selling tokens                                                       (Filip)
-- [ ] Memefolio colector rank not displaying                                                                  ()
-- [ ] dankregistry/vote vote buttons don't work (tx always reverts)                                           ()
-- [ ] dankregistry/vote vote creator rank not displaying                                                      ()
+- [ ] Memefolio colector rank not displaying                                                                  (Juan)    <- Waiting for rank definition
+- [ ] dankregistry/vote vote buttons don't work (tx always reverts)                                           (Juan)    <- Couldn't reproduce
+- [X] dankregistry/vote vote creator rank not displaying                                                      (Juan)
 - [ ] dankregistry/vote max tokens number is not right                                                        ()
 - [ ] leaderboards/dankest doesn't show any memes                                                             ()
 - [ ]  leaderboards/creators selector doesn;t display the total number (is nil)                               ()

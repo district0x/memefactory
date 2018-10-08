@@ -164,7 +164,7 @@
                 (subscribe [::gql/query
                             {:queries [[:user {:user/address active-account}
                                         [:user/address
-                                         ;;:user/collector-rank
+                                         :user/collector-rank
                                          :user/total-collected-memes
                                          :user/total-collected-token-ids
                                          [:user/largest-buy [:meme-auction/bought-for
