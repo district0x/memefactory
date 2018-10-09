@@ -86,7 +86,8 @@
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
   (try-catch
    (add-registry-entry registry-entry timestamp)
-   (let [{:keys [:meme/meta-hash] :as meme} (meme/load-meme registry-entry)]
+   (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
+         {:keys [:meme/meta-hash] :as meme} (meme/load-meme registry-entry)]
      (.then (get-ipfs-meta meta-hash {:title "Dummy meme title"
                                       :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
                                       :search-tags nil})
@@ -97,7 +98,9 @@
                                          :meme/title title}))
                 (when search-tags
                   (doseq [t search-tags]
-                    (db/tag-meme! (:reg-entry/address meme) t)))))))))
+                    (db/tag-meme! (:reg-entry/address meme) t)))
+
+                (db/update-user! {:user/address creator})))))))
 
 
 (defmethod process-event [:contract/param-change :constructed]

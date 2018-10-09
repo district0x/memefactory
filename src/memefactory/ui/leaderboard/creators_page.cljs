@@ -44,7 +44,7 @@
      [:span.user-address address]
      [:ul
       [:li "Earned: " [:span.earned (str creator-total-earned)]]
-      [:li "Success Rate: " [:span.success-rate (gstring/format "%d/%d (%d)"
+      [:li "Success Rate: " [:span.success-rate (gstring/format "%d/%d (%d%%)"
                                                                 total-created-memes-whitelisted
                                                                 total-created-memes
                                                                 (/ (* 100 total-created-memes-whitelisted)

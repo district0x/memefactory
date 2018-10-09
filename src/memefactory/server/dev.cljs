@@ -229,6 +229,11 @@
 (defn print-ranks-cache []
   (pprint/pprint @@memefactory.server.ranks-cache/ranks-cache))
 
+(defn transfer-dank [account dank-amount]
+  (let [accounts (web3-eth/accounts @web3)]
+   (dank-token/transfer {:to account :amount (web3/to-wei dank-amount :ether)}
+                        ;; this is the deployer of dank-token so it owns the initial amount
+                        {:from (last accounts)})))
 
 (comment
   ;; Contract call log instrument snippet p

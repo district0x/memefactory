@@ -33,7 +33,7 @@
 (defn open-challenge-action [{:keys [:reg-entry/address]}]
   (let [form-data (r/atom {})
         open? (r/atom false)
-        tx-id (str address "challenge")
+        tx-id (str address "challenges")
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
         errors (reaction {:local (let [{:keys [comment]} @form-data]

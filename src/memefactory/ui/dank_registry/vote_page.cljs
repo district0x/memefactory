@@ -19,6 +19,7 @@
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
    [district.ui.web3-accounts.subs :as accounts-subs]
+   [district.ui.web3-account-balances.subs :as balance-subs]
    [district.graphql-utils :as graphql-utils]
    [reagent.ratom :refer [reaction]]
    [memefactory.ui.components.charts :as charts]))
@@ -69,7 +70,7 @@
                 "Collect Reward"]])))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote] :as meme}]
-  (let [tx-id address
+  (let [tx-id (str address "vote")
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])
         form-data (r/atom {:amount-vote-for nil, :amount-vote-against nil})
@@ -83,7 +84,8 @@
     (fn [{:keys [:reg-entry/address :challenge/vote] :as meme}]
       (let [voted? (or (pos? (:vote/amount vote))
                        @tx-pending?
-                       @tx-success?)]
+                       @tx-success?)
+            account-balance @(subscribe [::balance-subs/active-account-balance :DANK])]
         [:div.vote
          [:div.vote-dank
           [:div.vote-input
@@ -109,8 +111,8 @@
           [:div.vote-input
            [with-label "Amount "
             [amount-input {:form-data form-data
-                         :id :amount-vote-against
-                         :errors errors}]
+                           :id :amount-vote-against
+                           :errors errors}]
             {;;:group-class :name
              :form-data form-data
              :id :amount-vote-against}]
@@ -124,7 +126,8 @@
                                                                                             :vote/option :vote.option/vote-against
                                                                                             :vote/amount (-> @form-data :amount-vote-against js/parseInt)}]))}
            "Vote Stank"]]
-         [:p.max-vote-tokens "You can vote with up to 1123455 DANK tokens."]
+         [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
+                                             (format/format-token (/ account-balance 1e18) {:token "DANK"}))]
          [:p.token-return  "Tokens will be returned to you after revealing your vote."]]))))
 
 (defn reveal-action [{:keys [:challenge/vote :reg-entry/address] :as meme}]

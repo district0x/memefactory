@@ -28,6 +28,7 @@
     [:items [:reg-entry/address
              [:reg-entry/creator [:user/address]]
              :meme/image-hash
+             :meme/title
              :meme/total-minted
              :meme/total-trade-volume]]]])
 
@@ -56,7 +57,7 @@
         (doall
          (for [{:keys [:reg-entry/address] :as meme} all-memes]
            ^{:key address}
-           [tiles/meme-tile {} meme])))]]))
+           [tiles/meme-tile meme])))]]))
 
 (defmethod page :route.leaderboard/dankest []
   (let [active-page (subscribe [::router-subs/active-page])]
