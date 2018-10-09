@@ -240,7 +240,7 @@
          [:label "Max " max-amount]]))))
 
 (defmethod panel :created [_ state]
-  [:div
+  [:div.tiles
    (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
                             :meme/title :meme/total-supply :meme/total-minted
                             :reg-entry/status] :as meme}]
@@ -334,26 +334,30 @@
                       :meme/title :challenge/vote] :as meme}]
            (when address
              (let [{:keys [:vote/option]} vote]
-               ^{:key address} [:div.meme-card-front
-                                [tiles/meme-image image-hash]
-                                [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                           nil
-                                                           {:reg-entry/address address}])}
-                                 [:div [:b (str "#" number " " title)]]
-                                 [:div
-                                  (cond
-                                    (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
-                                    [:label
-                                     [:b "Voted Unrevealed"]]
+               ^{:key address}
 
-                                    (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
-                                    [:label "Voted Dank"
-                                     [:i.icon.thumbs.up.outline]]
+               [:div.compact-tile
+                [:div.container
+                 [:div.meme-card-front
+                  [tiles/meme-image image-hash]
+                  [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                             nil
+                                             {:reg-entry/address address}])}
+                   [:div [:b (str "#" number " " title)]]
+                   [:div
+                    (cond
+                      (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
+                      [:label
+                       [:b "Voted Unrevealed"]]
 
-                                    (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
-                                    [:label
-                                     [:b "Voted Stank"]
-                                     [:i.icon.thumbs.down.outline]])]]])))
+                      (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
+                      [:label "Voted Dank"
+                       [:i.icon.thumbs.up.outline]]
+
+                      (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
+                      [:label
+                       [:b "Voted Stank"]
+                       [:i.icon.thumbs.down.outline]])]]]]])))
          state))])
 
 ;; TODO : style spinners
@@ -446,14 +450,17 @@
                    {:keys [:meme/title :meme/image-hash :meme/total-minted]} meme
                    now (subscribe [:district.ui.now.subs/now])
                    price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
-               ^{:key address} [:div.meme-card-front
-                                [tiles/meme-image image-hash]
-                                [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                           nil
-                                                           {:reg-entry/address (:reg-entry/address meme)}])}
-                                 [:div.title [:b (str "#" number " " title)]]
-                                 [:div.number-minted (str number "/" total-minted)]
-                                 [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
+               ^{:key address}
+               [:div.compact-tile
+                [:div.container
+                 [:div.meme-card-front
+                  [tiles/meme-image image-hash]
+                  [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                             nil
+                                             {:reg-entry/address (:reg-entry/address meme)}])}
+                   [:div.title [:b (str "#" number " " title)]]
+                   [:div.number-minted (str number "/" total-minted)]
+                   [:div.price (format/format-eth (web3/from-wei price :ether))]]]]])))
          state))])
 
 (defn- build-order-by [prefix order-by]
@@ -706,9 +713,8 @@
         (when (not (contains? #{:selling :sold} @tab))
           [:div.rank
            [rank @tab @active-account]])]
-       [:section.tiles
-        [:div.panel
-         [scrolling-container @tab {:active-account @active-account :form-data @form-data :prefix prefix}]]]])))
+       [:div.panel
+        [scrolling-container @tab {:active-account @active-account :form-data @form-data :prefix prefix}]]])))
 
 (defmethod page :route.memefolio/index []
   (let [active-tab (r/atom default-tab)]

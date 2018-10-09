@@ -173,8 +173,6 @@
     {:margin-top 0
      :padding-top (em 2)
      :padding-bottom (em 2)
-     :margin-right (em 6)
-     :margin-left (em 6)
      :background-color (color :meme-panel-bg)
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      }
@@ -190,10 +188,10 @@
       :border-top-width (em 1)
       :width (em 7)
       :height (em 7)}]
-    [">div>div>div"
-     {:display :flex
-      :flex-wrap :wrap
-      :justify-content :space-evenly}
+    [:.compact-tile
+     ;; {:display :flex
+     ;;  :flex-wrap :wrap
+     ;;  :justify-content :space-evenly}
      [:.footer {:text-align :center
                 :color (color :meme-tile-footer)
                 :cursor :pointer}]
