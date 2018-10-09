@@ -58,9 +58,9 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Memefolio colector rank not displaying                                                                  (Juan)
 - [ ] dankregistry/vote vote buttons don't work (tx always reverts)                                           (Juan)    <- Couldn't reproduce
 - [X] dankregistry/vote vote creator rank not displaying                                                      (Juan)
-- [ ] dankregistry/vote max tokens number is not right                                                        ()
-- [ ] leaderboards/dankest doesn't show any memes                                                             ()
-- [ ] leaderboards/creators selector doesn't display the total number (is nil)                                ()
+- [ ] dankregistry/vote max tokens number is not right                                                        (Juan)
+- [ ] leaderboards/dankest doesn't show any memes                                                             (Juan)
+- [ ] leaderboards/creators selector doesn't display the total number (is nil)                                (Juan)
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
