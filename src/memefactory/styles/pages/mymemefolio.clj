@@ -97,15 +97,13 @@
      :letter-spacing (em 0.01)}
     (for-media-max :tablet
                    [:&
-                    {:margin-right (em 1)
+                    {:display :block
+                     :margin-right (em 1)
                      :margin-left (em 1)}])
     [".stats>*"
      {:padding-right (em 1)
       :padding-left (em 1)}
-     ]
-    #_[">.rank"
-       {:width "100%"}
-       ]
+     [:& [:b {:white-space :nowrap}]]]
     [".rank>.stats>.rank"
      (font :bungee)
      {:color (color :purple)
@@ -119,7 +117,8 @@
       :margin :auto}
      (for-media-max :tablet
                     [:&
-                     {:border-radius "1em 1em 0em 0em"}])
+                     {:width "100%"
+                      :border-radius "1em 1em 0em 0em"}])
      [:&.big
       {:line-height (em 6)}]
      [:.loading
@@ -156,10 +155,12 @@
         :height (em 1)}]]
      [:.curator
       {:display :grid
-       :flex-grow 1
-       :grid-cols "100%"}
+       :flex-grow 1}
       [">div"
        {:display :flex}
+       (for-media-max :tablet
+                      [:&
+                       {:flex-direction :column}])
        [:.label
         {:color (color :pink)}
         (font :bungee)]
@@ -199,6 +200,7 @@
                     :margin-top (em 1)}
       [:.field {:display :grid
                 :grid-template-columns "50% 50%"
+                :max-width (em 16)
                 :margin-left :auto
                 :margin-right :auto
                 :overflow :hidden
