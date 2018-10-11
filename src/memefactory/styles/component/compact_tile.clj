@@ -42,6 +42,7 @@
      {:transition "transform .7s cubic-bezier(0.4, 0.2, 0.2, 1)"}]
     [:&.front
      {:transform-style :preserve-3d
+      :pointer-events :none
       :transform "rotateY(-180deg)"}]
     [:&.back
      {:transform-style :preserve-3d
