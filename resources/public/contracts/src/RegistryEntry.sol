@@ -151,7 +151,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @param _voteOption Vote option voter previously voted with
    * @param _salt Salt with which user previously encrypted his vote option
    */
-  function RevealVote(
+  function revealVote(
     address _voter,
     RegistryEntryLib.VoteOption _voteOption,
     string _salt
