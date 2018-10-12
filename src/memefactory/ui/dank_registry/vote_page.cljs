@@ -22,7 +22,8 @@
    [district.ui.web3-account-balances.subs :as balance-subs]
    [district.graphql-utils :as graphql-utils]
    [reagent.ratom :refer [reaction]]
-   [memefactory.ui.components.charts :as charts]))
+   [memefactory.ui.components.charts :as charts]
+   [cljs-web3.core :as web3]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -104,7 +105,10 @@
                                        (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                             :reg-entry/address address
                                                                                             :vote/option :vote.option/vote-for
-                                                                                            :vote/amount (-> @form-data :amount-vote-for js/parseInt)}]))}
+                                                                                            :vote/amount (-> @form-data
+                                                                                                             :amount-vote-for
+                                                                                                             js/parseInt
+                                                                                                             (web3/to-wei :ether))}]))}
            [:i.vote-dank]
            "Vote Dank"]]
          [:div.vote-stank
@@ -124,7 +128,10 @@
                                        (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                             :reg-entry/address address
                                                                                             :vote/option :vote.option/vote-against
-                                                                                            :vote/amount (-> @form-data :amount-vote-against js/parseInt)}]))}
+                                                                                            :vote/amount (-> @form-data
+                                                                                                             :amount-vote-against
+                                                                                                             js/parseInt
+                                                                                                             (web3/to-wei :ether))}]))}
            "Vote Stank"]]
          [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
                                              (format/format-token (/ account-balance 1e18) {:token "DANK"}))]

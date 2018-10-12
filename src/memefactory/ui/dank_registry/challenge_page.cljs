@@ -68,7 +68,7 @@
                                                                                         :comment (:comment @form-data)
                                                                                         :deposit dank-deposit}]))}
              "Challenge"]
-            [:span.dank (format/format-token dank-deposit  {:token "DANK"})]]
+            [:span.dank (format/format-token (/ dank-deposit 1e18)  {:token "DANK"})]]
            [:button.open-challenge {:on-click #(swap! open? not)} "Challenge"])]))))
 
 (defmethod page :route.dank-registry/challenge []

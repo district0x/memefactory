@@ -62,14 +62,13 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] dankregistry/vote max tokens number is not right                                                        (Juan)
 - [X] leaderboards/dankest doesn't show any memes                                                             (Juan)
 - [ ] leaderboards/creators selector doesn't display the total number (is nil)                                (Juan)    <- Couldn't reproduce
-- [ ] Submit screen, max total supply hint and error messages are wrong                                       (Juan)
-- [ ] DANK balance in below challege button needs to be divided by 1e18                                       (Juan)
-- [ ] DANK Balance didn't went down when voting, maybe voting in wei?
-- [ ] DANK Balance didn't went down when voting, maybe voting in wei?
-- [ ] Collected rank and largest buy spinning forever in memefolio
-- [ ] Created best single card sale spinnig forever in memefolio
-- [ ] When opening page at memefolio/index doesn show Collected until you switch to other tab and back
-- [ ] Sell functionality, duration should be less than is not showing
+- [X] Submit screen, max total supply hint and error messages are wrong                                       (Juan)
+- [X] DANK balance below challege button needs to be divided by 1e18                                          (Juan)
+- [X] DANK Balance didn't went down when voting, maybe voting in wei?                                         (Juan)
+- [ ] Collected rank and largest buy spinning forever in memefolio                                            (Juan)
+- [ ] Created best single card sale spinnig forever in memefolio                                              (Juan)
+- [ ] When opening page at memefolio/index doesn show Collected until you switch to other tab and back        (Juan)
+- [ ] Sell functionality, duration should be less than is not showing                                         (Juan)
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()

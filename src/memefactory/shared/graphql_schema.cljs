@@ -320,7 +320,7 @@
   type ParamChangeList {
     items: [ParamChange]
     totalCount: Int
-    endCursor: ID
+    endCursor: String
     hasNextPage: Boolean
   }
 
