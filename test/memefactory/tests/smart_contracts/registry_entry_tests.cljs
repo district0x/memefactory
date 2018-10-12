@@ -227,24 +227,28 @@
     (testing "Vote cannot be revealed outside vote reveal period"
       (is (thrown? js/Error
                    (registry-entry/reveal-vote registry-entry
-                                               {:vote-option :vote.option/vote-for
+                                               {:address voter-address
+                                                :vote-option :vote.option/vote-for
                                                 :salt salt}
-                                               {:from voter-addr}))))
+                                               {:from voter-address}))))
     (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
 
     (testing "Vote cannot be revealed with incorrect salt"
       (is (thrown? js/Error
                    (registry-entry/reveal-vote registry-entry
-                                               {:vote-option :vote.option/vote-for
+                                               {:address voter-addr
+                                                :vote-option :vote.option/vote-for
                                                 :salt (str salt "x")}
                                                {:from voter-addr}))))
 
     (let [reveal-vote1 #(registry-entry/reveal-vote registry-entry
-                                                    {:vote-option :vote.option/vote-for
+                                                    {:address voter-address
+                                                     :vote-option :vote.option/vote-for
                                                      :salt (str salt)}
                                                     {:from voter-addr})
           _ (registry-entry/reveal-vote registry-entry
-                                        {:vote-option :vote.option/vote-against
+                                        {:address voter-addr2
+                                         :vote-option :vote.option/vote-against
                                          :salt (str salt)}
                                         {:from voter-addr2})
           reveal-tx (reveal-vote1)
@@ -297,7 +301,8 @@
                                                   {:from voter-addr})
         _ (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
         _ (registry-entry/reveal-vote registry-entry
-                                      {:vote-option :vote.option/vote-for
+                                      {:address voter-addr
+                                       :vote-option :vote.option/vote-for
                                        :salt (str salt)}
                                       {:from voter-addr})]
 
@@ -353,7 +358,8 @@
                                                     {:from voter-addr})
           _ (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
           _ (registry-entry/reveal-vote registry-entry
-                                        {:vote-option :vote.option/vote-against
+                                        {:address voter-addr
+                                         :vote-option :vote.option/vote-against
                                          :salt (str salt)}
                                         {:from voter-addr})
           balance-before-claim (dank-token/balance-of challenger-addr)]
