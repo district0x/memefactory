@@ -48,6 +48,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Dankregistry/browse meme card back has no image (see marketplace)           (Juan)
 - [X] Clickable links ahould have :cursor :pointer                                (Filip)
 - [ ] Leaderboards/creators selector has broken styling (text overflows)          (Juan)
+- [ ] Token sell functionality styles broken
 
 ** UI functionality todos
 - [X] Add loadings spinners on every page                                                                     (Filip)
@@ -61,11 +62,20 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] dankregistry/vote max tokens number is not right                                                        (Juan)
 - [X] leaderboards/dankest doesn't show any memes                                                             (Juan)
 - [ ] leaderboards/creators selector doesn't display the total number (is nil)                                (Juan)    <- Couldn't reproduce
+- [ ] Submit screen, max total supply hint and error messages are wrong                                       (Juan)
+- [ ] DANK balance in below challege button needs to be divided by 1e18                                       (Juan)
+- [ ] DANK Balance didn't went down when voting, maybe voting in wei?
+- [ ] DANK Balance didn't went down when voting, maybe voting in wei?
+- [ ] Collected rank and largest buy spinning forever in memefolio
+- [ ] Created best single card sale spinnig forever in memefolio
+- [ ] When opening page at memefolio/index doesn show Collected until you switch to other tab and back
+- [ ] Sell functionality, duration should be less than is not showing
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
 
 ** Server todos
 - [ ] make memefactory.server.utils/time_source a config module variable like the rest of them                ()
-
+- [ ] cors OPTIONS for preflight requests non accepted
+-
 ** Smart contracts todos

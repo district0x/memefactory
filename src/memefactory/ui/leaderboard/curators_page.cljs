@@ -11,7 +11,7 @@
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(def page-size 2)
+(def page-size 12)
 
 (defn build-curators-query [{:keys [order-by after]}]
   [:search-users

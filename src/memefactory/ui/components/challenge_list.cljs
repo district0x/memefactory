@@ -18,7 +18,7 @@
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(def page-size 1)
+(def page-size 12)
 
 (defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]}]
   (let [{:keys [:order-by :order-dir]} data]

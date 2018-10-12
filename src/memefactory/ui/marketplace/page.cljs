@@ -16,7 +16,7 @@
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(def page-size 2)
+(def page-size 12)
 
 (defn build-tiles-query [{:keys [:search-term :search-tags :order-by :order-dir :only-cheapest?]} after]
   [:search-meme-auctions

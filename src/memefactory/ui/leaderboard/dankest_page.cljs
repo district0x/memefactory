@@ -14,7 +14,7 @@
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(def page-size 2)
+(def page-size 12)
 
 (defn build-tiles-query [after]
   [:search-memes

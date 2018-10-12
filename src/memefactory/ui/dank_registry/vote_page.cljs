@@ -26,7 +26,7 @@
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(def page-size 2)
+(def page-size 12)
 
 (defn header []
   [:div.registry-vote-header
