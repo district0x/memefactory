@@ -242,7 +242,7 @@
                                                {:from voter-addr}))))
 
     (let [reveal-vote1 #(registry-entry/reveal-vote registry-entry
-                                                    {:address voter-address
+                                                    {:address voter-addr
                                                      :vote-option :vote.option/vote-for
                                                      :salt (str salt)}
                                                     {:from voter-addr})
