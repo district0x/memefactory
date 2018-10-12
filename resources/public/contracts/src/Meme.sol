@@ -85,7 +85,6 @@ contract Meme is RegistryEntry {
     eventData[1] = tokenIdStart;
     eventData[2] = tokenIdEnd - 1;
     eventData[3] = totalMinted;
-    /* eventData[3] = bytesToUint(metaHash); */
     registry.fireRegistryEntryEvent("minted", version, eventData);
   }
 
