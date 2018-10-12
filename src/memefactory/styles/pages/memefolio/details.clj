@@ -37,6 +37,10 @@
    [:.address (of-ellipsis)]
    [:section.meme-detail
     {:padding (em 3)}
+    (for-media-max :tablet
+                   [:&
+                    {:padding-right (em 1)
+                     :padding-left (em 1)}])
     [:.meme-info
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -132,6 +136,10 @@
    [:section.history
     {:padding (em 3)
      :color (color :menu-text)}
+    (for-media-max :tablet
+                   [:&
+                    {:padding-right (em 1)
+                     :padding-left (em 1)}])
     [:.history-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -141,7 +149,8 @@
      (for-media-max :tablet
                     [:&
                      {:max-height (em 30)
-                      :overflow-y :auto}])
+                      :overflow-y :auto
+                      :overflow-x :hidden}])
      [:h1.title
       (font :bungee)
       (for-media-max :tablet
@@ -231,6 +240,10 @@
        :padding (em 1)}]]]
    [:section.challenge
     {:padding (em 3)}
+    (for-media-max :tablet
+                   [:&
+                    {:padding-right (em 1)
+                     :padding-left (em 1)}])
     [:h1.title
      (font :bungee)
      (for-media-max :tablet
@@ -321,4 +334,15 @@
                :height (em 3)
                :width "100%"})
       (vote-button-icon)
-      [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]])
+      [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
+   [:section.related
+    {:padding (em 3)}
+    (for-media-max :tablet
+                   [:&
+                    {:padding-right (em 1)
+                     :padding-left (em 1)}])
+    [:.scroll-area
+     {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+      :background-color :white
+      :color (color :menu-text)
+      :border-radius (em 1)}]]])
