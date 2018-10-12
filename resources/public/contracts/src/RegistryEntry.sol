@@ -160,7 +160,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
   notEmergency
   {
     require(isVoteRevealPeriodActive(), "RegistryEntry: Reveal period is not active");
-    require(sha3(uint(_voteOption), _salt) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha");
+    /* require(sha3(uint(_voteOption), _salt) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha"); */
+    require(keccak256(abi.encodePacked(uint(_voteOption), _salt)) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha");
     require(!isVoteRevealed(_voter), "RegistryEntry: Vote was already revealed");
 
     challenge.vote[_voter].revealedOn = now;
@@ -197,7 +198,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
       _voter = msg.sender;
     }
 
-    require(isVoteRevealPeriodOver(), "RegistryEntry: voting period is not yet over");
+    require(challenge.isVoteRevealPeriodOver(), "RegistryEntry: voting period is not yet over");
     require(!isVoteRevealed(_voter), "RegistryEntry: vote was revealed");
     require(!isVoteAmountReclaimed(_voter), "RegistryEntry: vote deposit was already reclaimed");
 
@@ -229,10 +230,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
     if (_voter == 0x0) {
       _voter = msg.sender;
     }
-    require(isVoteRevealPeriodOver(), "RegistryEntry: Vote reveal period is not over yet");
+    require(challenge.isVoteRevealPeriodOver(), "RegistryEntry: Vote reveal period is not over yet");
     require(!isVoteRewardClaimed(_voter) , "RegistryEntry: Vote rewards has been already claimed");
     require(isVoteRevealed(_voter), "RegistryEntry: Vote is not revealed yet");
-    require(votedWinningVoteOption(_voter), "RegistryEntry: Can't give you a reward, is not the winning option");
+    require(challenge.votedWinningVoteOption(_voter), "RegistryEntry: Can't give you a reward, your vote is not the winning option");
     uint reward = voteReward(_voter);
     require(reward > 0, "RegistryEntry: Reward should be positive");
     require(registryToken.transfer(_voter, reward), "RegistryEntry: Can't transfer reward");
@@ -253,7 +254,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
   public
   notEmergency
   {
-    require(isVoteRevealPeriodOver(), "RegistryEntry: Vote reveal period is not over yet");
+    require(challenge.isVoteRevealPeriodOver(), "RegistryEntry: Vote reveal period is not over yet");
     require(!isChallengeRewardClaimed(),"RegistryEntry: Vote reward already claimed");
     require(!isWinningOptionVoteFor(), "RegistryEntry: Is not the winning option");
     require(registryToken.transfer(challenge.challenger, challenge.challengeReward(deposit)), "RegistryEntry: Can't transfer reward");
@@ -290,7 +291,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     bytes _data)
   public
   {
-    require(this.call(_data), "RegistryEntry: couldn't call data");
+    require(address(this).call(_data), "RegistryEntry: couldn't call data");
   }
 
   /**
@@ -305,7 +306,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
       return Status.CommitPeriod;
     } else if (isVoteRevealPeriodActive()) {
       return Status.RevealPeriod;
-    } else if (isVoteRevealPeriodOver()) {
+    } else if (challenge.isVoteRevealPeriodOver()) {
       if (isWinningOptionVoteFor()) {
         return Status.Whitelisted;
       } else {
@@ -336,10 +337,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
     return !challenge.isVoteCommitPeriodActive() && now <= challenge.revealPeriodEnd;
   }
 
-  function isVoteRevealPeriodOver() public constant returns (bool) {
-    return challenge.revealPeriodEnd > 0 && now > challenge.revealPeriodEnd;
-  }
-
   function isVoteRevealed(address _voter) public constant returns (bool) {
     return challenge.vote[_voter].revealedOn > 0;
   }
@@ -357,31 +354,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
   }
 
   /**
-   * @dev Returns winning vote option in held voting according to vote quorum
-   * If voteQuorum is 50, any majority of votes will win
-   * If voteQuorum is 24, only 25 votes out of 100 is enough to VoteFor be winning option
-   *
-   * @return Winning vote option
-   */
-  function winningVoteOption() public constant returns (RegistryEntryLib.VoteOption) {
-    if (!isVoteRevealPeriodOver()) {
-      return RegistryEntryLib.VoteOption.NoVote;
-    }
-
-    if (challenge.votesFor.mul(100) > challenge.voteQuorum.mul(challenge.votesFor.add(challenge.votesAgainst))) {
-      return RegistryEntryLib.VoteOption.VoteFor;
-    } else {
-      return RegistryEntryLib.VoteOption.VoteAgainst;
-    }
-  }
-
-  /**
    * @dev Returns whether VoteFor is winning vote option
    *
    * @return True if VoteFor is winning option
    */
   function isWinningOptionVoteFor() public constant returns (bool) {
-    return winningVoteOption() == RegistryEntryLib.VoteOption.VoteFor;
+    return challenge.winningVoteOption() == RegistryEntryLib.VoteOption.VoteFor;
   }
 
   /**
@@ -390,7 +368,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @return Amount of votes
    */
   function winningVotesAmount() public constant returns (uint) {
-    RegistryEntryLib.VoteOption voteOption = winningVoteOption();
+    RegistryEntryLib.VoteOption voteOption = challenge.winningVoteOption();
 
     if (voteOption == RegistryEntryLib.VoteOption.VoteFor) {
       return challenge.votesFor;
@@ -411,22 +389,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
     uint winningAmount = winningVotesAmount();
     uint voterAmount = 0;
 
-    if (!votedWinningVoteOption(_voter)) {
+    if (!challenge.votedWinningVoteOption(_voter)) {
       return voterAmount;
     }
 
     voterAmount = challenge.vote[_voter].amount;
     return (voterAmount.mul(challenge.rewardPool)) / winningAmount;
-  }
-
-  /**
-   * @dev Returns whether voter voted for winning vote option
-   * @param _voter Address of a voter
-   *
-   * @return True if voter voted for a winning vote option
-   */
-  function votedWinningVoteOption(address _voter) public constant returns (bool) {
-    return challenge.vote[_voter].option == winningVoteOption();
   }
 
   /**
@@ -476,7 +444,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     external
     constant
     returns (bytes32, RegistryEntryLib.VoteOption, uint, uint, uint, uint) {
-    RegistryEntryLib.Vote vtr = challenge.vote[_voter];
+    RegistryEntryLib.Vote storage vtr = challenge.vote[_voter];
     return (
     vtr.secretHash,
     vtr.option,

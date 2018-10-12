@@ -5,9 +5,9 @@ import "math/SafeMath.sol";
 library RegistryEntryLib {
 
   using SafeMath for uint;
-  
+
   enum VoteOption {NoVote, VoteFor, VoteAgainst}
-  
+
   struct Vote {
     bytes32 secretHash;
     VoteOption option;
@@ -56,6 +56,47 @@ library RegistryEntryLib {
     return now <= self.commitPeriodEnd;
   }
 
+  function isVoteRevealPeriodOver(Challenge storage self)
+    internal
+    constant
+    returns (bool) {
+    return self.revealPeriodEnd > 0 && now > self.revealPeriodEnd;
+  }
+
+  /**
+   * @dev Returns winning vote option in held voting according to vote quorum
+   * If voteQuorum is 50, any majority of votes will win
+   * If voteQuorum is 24, only 25 votes out of 100 is enough to VoteFor be winning option
+   *
+   * @return Winning vote option
+   */
+  function winningVoteOption(Challenge storage self)
+    internal
+    constant
+    returns (VoteOption) {
+    if (!isVoteRevealPeriodOver(self)) {
+      return VoteOption.NoVote;
+    }
+
+    if (self.votesFor.mul(100) > self.voteQuorum.mul(self.votesFor.add(self.votesAgainst))) {
+      return VoteOption.VoteFor;
+    } else {
+      return VoteOption.VoteAgainst;
+    }
+  }
+
+  /**
+   * @dev Returns whether voter voted for winning vote option
+   * @param _voter Address of a voter
+   *
+   * @return True if voter voted for a winning vote option
+   */
+  function votedWinningVoteOption(Challenge storage self, address _voter)
+    internal
+    constant
+    returns (bool) {
+    return self.vote[_voter].option == winningVoteOption(self);
+  }
 
 
 
@@ -78,7 +119,7 @@ library RegistryEntryLib {
 
 
 
-  
+
     /**
    * @dev Returns date when registry entry was whitelisted
    * Since this doesn't happen with any transaction, it's either reveal or challenge period end
@@ -99,5 +140,5 @@ library RegistryEntryLib {
   /*   } */
   /* } */
 
-  
+
 }
