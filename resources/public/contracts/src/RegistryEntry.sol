@@ -160,8 +160,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
   notEmergency
   {
     require(isVoteRevealPeriodActive(), "RegistryEntry: Reveal period is not active");
-    /* require(sha3(uint(_voteOption), _salt) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha"); */
-    require(keccak256(abi.encodePacked(uint(_voteOption), _salt)) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha");
+    require(sha3(uint(_voteOption), _salt) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha");
+    /* require(keccak256(abi.encodePacked(uint(_voteOption), _salt)) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha"); */
     require(!isVoteRevealed(_voter), "RegistryEntry: Vote was already revealed");
 
     challenge.vote[_voter].revealedOn = now;
