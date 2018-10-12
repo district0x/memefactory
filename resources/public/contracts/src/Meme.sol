@@ -59,7 +59,7 @@ contract Meme is RegistryEntry {
   notEmergency
   onlyWhitelisted
   {
-    require(!wasChallenged(), "Meme: Is challenged");
+    require(!challenge.wasChallenged(), "Meme: Is challenged");
     require(registryToken.transfer(districtConfig.depositCollector(), deposit), "Meme: can't transfer deposit");
     registry.fireRegistryEntryEvent("depositTransferred", version);
   }
