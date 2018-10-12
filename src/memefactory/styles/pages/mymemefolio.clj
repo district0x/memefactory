@@ -18,6 +18,7 @@
 (defn button-tile-back []
   [:.sell {:display :grid
            :grid-template-rows "75% 25%"
+           :height "100%"
            :width "100%"}
    [:.top {:width "30%"
            :margin-left :auto
