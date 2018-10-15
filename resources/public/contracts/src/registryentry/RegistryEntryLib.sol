@@ -98,8 +98,59 @@ library RegistryEntryLib {
     return self.vote[_voter].option == winningVoteOption(self);
   }
 
+  /**
+   * @dev Returns whether VoteFor is winning vote option
+   *
+   * @return True if VoteFor is winning option
+   */
+  function isWinningOptionVoteFor(Challenge storage self)
+    internal
+    constant
+    returns (bool) {
+    return winningVoteOption(self) == VoteOption.VoteFor;
+  }
 
+  /**
+   * @dev Returns amount of votes for winning vote option
+   *
+   * @return Amount of votes
+   */
+  function winningVotesAmount(Challenge storage self)
+    private
+    constant
+    returns (uint) {
+    VoteOption voteOption = winningVoteOption(self);
 
+    if (voteOption == VoteOption.VoteFor) {
+      return self.votesFor;
+    } else if (voteOption == VoteOption.VoteAgainst) {
+      return self.votesAgainst;
+    } else {
+      return 0;
+    }
+  }  
+
+  
+  /**
+   * @dev Returns token reward amount belonging to a voter for voting for a winning option
+   * @param _voter Address of a voter
+   *
+   * @return Amount of tokens
+   */
+  function voteReward(Challenge storage self, address _voter)
+    internal
+    constant
+    returns (uint) {
+    uint winningAmount = winningVotesAmount(self);
+    uint voterAmount = 0;
+
+    if (!votedWinningVoteOption(self, _voter)) {
+      return voterAmount;
+    }
+
+    voterAmount = self.vote[_voter].amount;
+    return (voterAmount.mul(self.rewardPool)) / winningAmount;
+  }
 
 
 
