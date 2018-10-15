@@ -33,6 +33,30 @@ library RegistryEntryLib {
     mapping(address => Vote) vote;
   }
 
+  // External functions
+
+  /**
+   * @dev Returns date when registry entry was whitelisted
+   * Since this doesn't happen with any transaction, it's either reveal or challenge period end
+
+   * @return UNIX time of whitelisting
+   */
+  /* function whitelistedOn(Challenge storage self) */
+  /*   external */
+  /*   constant */
+  /*   returns (uint) { */
+  /*   if (!isWhitelisted()) { */
+  /*     return 0; */
+  /*   } */
+  /*   if (self.wasChallenged()) { */
+  /*     return self.revealPeriodEnd; */
+  /*   } else { */
+  /*     return challengePeriodEnd; */
+  /*   } */
+  /* } */
+
+  // Internal functions
+
   function isVoteRevealPeriodActive(Challenge storage self)
     internal
     constant
@@ -82,12 +106,7 @@ library RegistryEntryLib {
     return status(self) == Status.Whitelisted;
   }
 
-  function isBlacklisted(Challenge storage self)
-    internal
-    constant
-    returns (bool) {
-    return status(self) == Status.Blacklisted;
-  }
+
 
   function isVoteCommitPeriodActive(Challenge storage self)
     internal
@@ -114,7 +133,7 @@ library RegistryEntryLib {
     returns (bool) {
     return winningVoteOption(self) == VoteOption.VoteFor;
   }
-  
+
   function hasVoted(Challenge storage self, address _voter)
     internal
     constant
@@ -181,48 +200,6 @@ library RegistryEntryLib {
   }
 
   /**
-   * @dev Returns winning vote option in held voting according to vote quorum
-   * If voteQuorum is 50, any majority of votes will win
-   * If voteQuorum is 24, only 25 votes out of 100 is enough to VoteFor be winning option
-   *
-   * @return Winning vote option
-   */
-  function winningVoteOption(Challenge storage self)
-    internal
-    constant
-    returns (VoteOption) {
-    if (!isVoteRevealPeriodOver(self)) {
-      return VoteOption.NoVote;
-    }
-
-    if (self.votesFor.mul(100) > self.voteQuorum.mul(self.votesFor.add(self.votesAgainst))) {
-      return VoteOption.VoteFor;
-    } else {
-      return VoteOption.VoteAgainst;
-    }
-  }
-
-  /**
-   * @dev Returns amount of votes for winning vote option
-   *
-   * @return Amount of votes
-   */
-  function winningVotesAmount(Challenge storage self)
-    internal
-    constant
-    returns (uint) {
-    VoteOption voteOption = winningVoteOption(self);
-
-    if (voteOption == VoteOption.VoteFor) {
-      return self.votesFor;
-    } else if (voteOption == VoteOption.VoteAgainst) {
-      return self.votesAgainst;
-    } else {
-      return 0;
-    }
-  }
-
-  /**
    * @dev Returns token reward amount belonging to a voter for voting for a winning option
    * @param _voter Address of a voter
    *
@@ -243,25 +220,55 @@ library RegistryEntryLib {
     return (voterAmount.mul(self.rewardPool)) / winningAmount;
   }
 
+  // Private functions
+
+  function isBlacklisted(Challenge storage self)
+    private
+    constant
+    returns (bool) {
+    return status(self) == Status.Blacklisted;
+  }
+
   /**
-   * @dev Returns date when registry entry was whitelisted
-   * Since this doesn't happen with any transaction, it's either reveal or challenge period end
-
-   * @return UNIX time of whitelisting
+   * @dev Returns winning vote option in held voting according to vote quorum
+   * If voteQuorum is 50, any majority of votes will win
+   * If voteQuorum is 24, only 25 votes out of 100 is enough to VoteFor be winning option
+   *
+   * @return Winning vote option
    */
-  /* function whitelistedOn(Challenge storage self) */
-  /*   external */
-  /*   constant */
-  /*   returns (uint) { */
-  /*   if (!isWhitelisted()) { */
-  /*     return 0; */
-  /*   } */
-  /*   if (self.wasChallenged()) { */
-  /*     return self.revealPeriodEnd; */
-  /*   } else { */
-  /*     return challengePeriodEnd; */
-  /*   } */
-  /* } */
+  function winningVoteOption(Challenge storage self)
+    private
+    constant
+    returns (VoteOption) {
+    if (!isVoteRevealPeriodOver(self)) {
+      return VoteOption.NoVote;
+    }
 
+    if (self.votesFor.mul(100) > self.voteQuorum.mul(self.votesFor.add(self.votesAgainst))) {
+      return VoteOption.VoteFor;
+    } else {
+      return VoteOption.VoteAgainst;
+    }
+  }
+
+  /**
+   * @dev Returns amount of votes for winning vote option
+   *
+   * @return Amount of votes
+   */
+  function winningVotesAmount(Challenge storage self)
+    private
+    constant
+    returns (uint) {
+    VoteOption voteOption = winningVoteOption(self);
+
+    if (voteOption == VoteOption.VoteFor) {
+      return self.votesFor;
+    } else if (voteOption == VoteOption.VoteAgainst) {
+      return self.votesAgainst;
+    } else {
+      return 0;
+    }
+  }
 
 }

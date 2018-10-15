@@ -16,12 +16,12 @@ import "./DistrictConfig.sol";
 
 contract Meme is RegistryEntry {
 
-  DistrictConfig public constant districtConfig = DistrictConfig(0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd);
-  MemeToken public constant memeToken = MemeToken(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
-  bytes public metaHash;
-  uint public tokenIdStart;
-  uint public totalSupply;
-  uint public totalMinted;
+  DistrictConfig private constant districtConfig = DistrictConfig(0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd);
+  MemeToken private constant memeToken = MemeToken(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
+  bytes private metaHash;
+  uint private tokenIdStart;
+  uint private totalSupply;
+  uint private totalMinted;
 
   /**
    * @dev Constructor for this contract.
