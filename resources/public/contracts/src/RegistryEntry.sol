@@ -160,8 +160,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
   notEmergency
   {
     require(isVoteRevealPeriodActive(), "RegistryEntry: Reveal period is not active");
-    require(sha3(uint(_voteOption), _salt) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha");
-    /* require(keccak256(abi.encodePacked(uint(_voteOption), _salt)) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha"); */
+    /* require(sha3(uint(_voteOption), _salt) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha"); */
+    require(keccak256(abi.encodePacked(uint(_voteOption), _salt)) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha");
     require(!isVoteRevealed(_voter), "RegistryEntry: Vote was already revealed");
 
     challenge.vote[_voter].revealedOn = now;
@@ -181,7 +181,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     eventData[0] = uint(_voter);
     registry.fireRegistryEntryEvent("voteRevealed", version, eventData);
   }
-
+  
     /**
    * @dev Refunds vote deposit after reveal period
    * Can be called by anybody, to claim voter's reward to him
@@ -234,7 +234,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(!isVoteRewardClaimed(_voter) , "RegistryEntry: Vote rewards has been already claimed");
     require(isVoteRevealed(_voter), "RegistryEntry: Vote is not revealed yet");
     require(challenge.votedWinningVoteOption(_voter), "RegistryEntry: Can't give you a reward, your vote is not the winning option");
-    uint reward = voteReward(_voter);
+    uint reward = challenge.voteReward(_voter);
     require(reward > 0, "RegistryEntry: Reward should be positive");
     require(registryToken.transfer(_voter, reward), "RegistryEntry: Can't transfer reward");
     challenge.vote[_voter].claimedRewardOn = now;
@@ -256,13 +256,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
   {
     require(challenge.isVoteRevealPeriodOver(), "RegistryEntry: Vote reveal period is not over yet");
     require(!isChallengeRewardClaimed(),"RegistryEntry: Vote reward already claimed");
-    require(!isWinningOptionVoteFor(), "RegistryEntry: Is not the winning option");
+    require(!challenge.isWinningOptionVoteFor(), "RegistryEntry: Is not the winning option");
     require(registryToken.transfer(challenge.challenger, challenge.challengeReward(deposit)), "RegistryEntry: Can't transfer reward");
     challenge.claimedRewardOn = now;
 
     registry.fireRegistryEntryEvent("challengeRewardClaimed", version);
   }
-
+  
   /**
    * @dev Simple wrapper to claim challenge and voter reward for a user
    */
@@ -307,7 +307,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     } else if (isVoteRevealPeriodActive()) {
       return Status.RevealPeriod;
     } else if (challenge.isVoteRevealPeriodOver()) {
-      if (isWinningOptionVoteFor()) {
+      if (challenge.isWinningOptionVoteFor()) {
         return Status.Whitelisted;
       } else {
         return Status.Blacklisted;
@@ -316,7 +316,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
       return Status.Whitelisted;
     }
   }
-
+  
   function isChallengePeriodActive() public constant returns (bool) {
     return now <= challengePeriodEnd;
   }
@@ -352,51 +352,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
   function isChallengeRewardClaimed() public constant returns (bool) {
     return challenge.claimedRewardOn > 0;
   }
-
-  /**
-   * @dev Returns whether VoteFor is winning vote option
-   *
-   * @return True if VoteFor is winning option
-   */
-  function isWinningOptionVoteFor() public constant returns (bool) {
-    return challenge.winningVoteOption() == RegistryEntryLib.VoteOption.VoteFor;
-  }
-
-  /**
-   * @dev Returns amount of votes for winning vote option
-   *
-   * @return Amount of votes
-   */
-  function winningVotesAmount() public constant returns (uint) {
-    RegistryEntryLib.VoteOption voteOption = challenge.winningVoteOption();
-
-    if (voteOption == RegistryEntryLib.VoteOption.VoteFor) {
-      return challenge.votesFor;
-    } else if (voteOption == RegistryEntryLib.VoteOption.VoteAgainst) {
-      return challenge.votesAgainst;
-    } else {
-      return 0;
-    }
-  }
-
-  /**
-   * @dev Returns token reward amount belonging to a voter for voting for a winning option
-   * @param _voter Address of a voter
-   *
-   * @return Amount of tokens
-   */
-  function voteReward(address _voter) public constant returns (uint) {
-    uint winningAmount = winningVotesAmount();
-    uint voterAmount = 0;
-
-    if (!challenge.votedWinningVoteOption(_voter)) {
-      return voterAmount;
-    }
-
-    voterAmount = challenge.vote[_voter].amount;
-    return (voterAmount.mul(challenge.rewardPool)) / winningAmount;
-  }
-
+ 
   /**
    * @dev Returns all basic state related to this contract for simpler offchain access
    * For challenge info see loadRegistryEntryChallenge()
