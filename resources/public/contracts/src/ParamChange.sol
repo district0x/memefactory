@@ -14,12 +14,12 @@ import "db/EternalDb.sol";
 
 contract ParamChange is RegistryEntry {
 
-  EternalDb public db;
-  string public key;
-  EternalDb.Types public valueType;
-  uint public value;
-  uint public originalValue;
-  uint public appliedOn;
+  EternalDb private db;
+  string private key;
+  EternalDb.Types private valueType;
+  uint private value;
+  uint private originalValue;
+  uint private appliedOn;
 
   /**
    * @dev Constructor for this contract.
@@ -75,7 +75,7 @@ contract ParamChange is RegistryEntry {
     require(!wasApplied(), "ParamChange: already applied");
     require(challenge.isWhitelisted(), "ParamChange: not whitelisted");
     require(registryToken.transfer(creator, deposit), "ParamChange: could not transfer deposit");
-    
+
     db.setUIntValue(record, value);
     appliedOn = now;
     /* TODO: needed? we listen to eternal-db now */

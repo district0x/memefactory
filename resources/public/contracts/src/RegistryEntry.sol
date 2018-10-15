@@ -21,15 +21,15 @@ contract RegistryEntry is ApproveAndCallFallBack {
   using SafeMath for uint;
   using RegistryEntryLib for RegistryEntryLib.Challenge;
 
-  uint public constant oneHundred = 100;
-  Registry public constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
-  MiniMeToken public constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
+  uint private constant oneHundred = 100;
+  Registry internal constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
+  MiniMeToken internal constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
 
-  address public creator;
-  uint public version;
-  uint public deposit;
+  address internal creator;
+  uint internal version;
+  uint internal deposit;
   /* uint public challengePeriodEnd; */
-  RegistryEntryLib.Challenge public challenge;
+  RegistryEntryLib.Challenge internal challenge;
 
   /**
    * @dev Modifier that disables function if registry is in emergency state
@@ -58,18 +58,17 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @param _version Version of Meme contract
    */
   function construct(
-    address _creator,
-    uint _version
-  )
-  public
+                     address _creator,
+                     uint _version
+                     )
+    public
   {
     require(challenge.challengePeriodEnd == 0, "RegistryEntry: Challenge period end is not 0");
     deposit = registry.db().getUIntValue(registry.depositKey());
 
     require(registryToken.transferFrom(msg.sender, this, deposit), "RegistryEntry: Couldn't transfer deposit");
-    /* challenge.challengePeriodEnd = now.add(registry.db().getUIntValue(registry.challengePeriodDurationKey())); */
-
-        challenge.challengePeriodEnd = now.add(registry.db().getUIntValue(registry.challengePeriodDurationKey()));
+    /* challengePeriodEnd = now.add(registry.db().getUIntValue(registry.challengePeriodDurationKey())); */
+    challenge.challengePeriodEnd = now.add(registry.db().getUIntValue(registry.challengePeriodDurationKey()));
 
     creator = _creator;
     version = _version;
@@ -88,11 +87,11 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @param _challengeMetaHash IPFS hash of meta data related to this challenge
    */
   function createChallenge(
-    address _challenger,
-    bytes _challengeMetaHash
-  )
-  external
-  notEmergency
+                           address _challenger,
+                           bytes _challengeMetaHash
+                           )
+    external
+    notEmergency
   {
     require(challenge.isChallengePeriodActive(),"RegistryEntry: Not in challenge period");
     require(!challenge.wasChallenged(), "RegistryEntry: Was already challenged");
@@ -122,12 +121,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @param _secretHash Encrypted vote option with salt. sha3(voteOption, salt)
    */
   function commitVote(
-    address _voter,
-    uint _amount,
-    bytes32 _secretHash
-  )
-  external
-  notEmergency
+                      address _voter,
+                      uint _amount,
+                      bytes32 _secretHash
+                      )
+    external
+    notEmergency
   {
     require(challenge.isVoteCommitPeriodActive(), "RegistryEntry: Not in voting period");
     require(_amount > 0, "RegistryEntry: Voting amount should be more than 0");
@@ -152,12 +151,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @param _salt Salt with which user previously encrypted his vote option
    */
   function revealVote(
-    address _voter,
-    RegistryEntryLib.VoteOption _voteOption,
-    string _salt
-  )
-  external
-  notEmergency
+                      address _voter,
+                      RegistryEntryLib.VoteOption _voteOption,
+                      string _salt
+                      )
+    external
+    notEmergency
   {
     require(challenge.isVoteRevealPeriodActive(), "RegistryEntry: Reveal period is not active");
     /* require(sha3(uint(_voteOption), _salt) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha"); */
@@ -182,7 +181,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     registry.fireRegistryEntryEvent("voteRevealed", version, eventData);
   }
 
-    /**
+  /**
    * @dev Refunds vote deposit after reveal period
    * Can be called by anybody, to claim voter's reward to him
    * Can't be called if vote was revealed
@@ -222,10 +221,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @param _voter Address of a voter
    */
   function claimVoteReward(
-    address _voter
-  )
-  public
-  notEmergency
+                           address _voter
+                           )
+    public
+    notEmergency
   {
     if (_voter == 0x0) {
       _voter = msg.sender;
@@ -251,8 +250,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * Can be called by anybody, to claim challenger's reward to him/her
    */
   function claimChallengeReward()
-  public
-  notEmergency
+    public
+    notEmergency
   {
     require(challenge.isVoteRevealPeriodOver(), "RegistryEntry: Vote reveal period is not over yet");
     require(!challenge.isChallengeRewardClaimed(),"RegistryEntry: Vote reward already claimed");
@@ -267,8 +266,8 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @dev Simple wrapper to claim challenge and voter reward for a user
    */
   function claimAllRewards(address _user)
-  external
-  notEmergency
+    external
+    notEmergency
   {
     claimChallengeReward();
     claimVoteReward(_user);
@@ -285,11 +284,11 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @param _data Bytecode of a function and passed parameters, that should be called after token approval
    */
   function receiveApproval(
-    address _from,
-    uint256 _amount,
-    address _token,
-    bytes _data)
-  public
+                           address _from,
+                           uint256 _amount,
+                           address _token,
+                           bytes _data)
+    public
   {
     require(address(this).call(_data), "RegistryEntry: couldn't call data");
   }
@@ -303,12 +302,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
     constant
     returns (uint, RegistryEntryLib.Status, address, uint, uint) {
     return (
-    version,
-    challenge.status(),
-    creator,
-    deposit,
-    challenge.challengePeriodEnd
-    );
+            version,
+            challenge.status(),
+            creator,
+            deposit,
+            challenge.challengePeriodEnd
+            );
   }
 
   /**
@@ -319,17 +318,17 @@ contract RegistryEntry is ApproveAndCallFallBack {
     constant
     returns (uint, address, uint, bytes, uint, uint, uint, uint, uint, uint) {
     return (
-    challenge.challengePeriodEnd,
-    challenge.challenger,
-    challenge.rewardPool,
-    challenge.metaHash,
-    challenge.commitPeriodEnd,
-    challenge.revealPeriodEnd,
-    challenge.votesFor,
-    challenge.votesAgainst,
-    challenge.claimedRewardOn,
-    challenge.voteQuorum
-    );
+            challenge.challengePeriodEnd,
+            challenge.challenger,
+            challenge.rewardPool,
+            challenge.metaHash,
+            challenge.commitPeriodEnd,
+            challenge.revealPeriodEnd,
+            challenge.votesFor,
+            challenge.votesAgainst,
+            challenge.claimedRewardOn,
+            challenge.voteQuorum
+            );
   }
 
   /**
@@ -343,13 +342,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
     returns (bytes32, RegistryEntryLib.VoteOption, uint, uint, uint, uint) {
     RegistryEntryLib.Vote storage vtr = challenge.vote[_voter];
     return (
-    vtr.secretHash,
-    vtr.option,
-    vtr.amount,
-    vtr.revealedOn,
-    vtr.claimedRewardOn,
-    vtr.reclaimedVoteAmountOn
-    );
+            vtr.secretHash,
+            vtr.option,
+            vtr.amount,
+            vtr.revealedOn,
+            vtr.claimedRewardOn,
+            vtr.reclaimedVoteAmountOn
+            );
   }
 
 }
