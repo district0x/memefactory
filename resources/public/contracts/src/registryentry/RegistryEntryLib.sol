@@ -8,6 +8,8 @@ library RegistryEntryLib {
 
   enum VoteOption {NoVote, VoteFor, VoteAgainst}
 
+  enum Status {ChallengePeriod, CommitPeriod, RevealPeriod, Blacklisted, Whitelisted}
+
   struct Vote {
     bytes32 secretHash;
     VoteOption option;
@@ -24,29 +26,67 @@ library RegistryEntryLib {
     bytes metaHash;
     uint commitPeriodEnd;
     uint revealPeriodEnd;
+    uint challengePeriodEnd;
     uint votesFor;
     uint votesAgainst;
     uint claimedRewardOn;
     mapping(address => Vote) vote;
   }
 
-  function wasChallenged(Challenge storage self)
+  function isVoteRevealPeriodActive(Challenge storage self)
     internal
     constant
     returns (bool) {
-    return self.challenger != 0x0;
+    return !isVoteCommitPeriodActive(self) && now <= self.revealPeriodEnd;
   }
 
-  /**
-   * @dev Returns token reward amount belonging to a challenger
-   *
-   * @return Amount of token
-   */
-  function challengeReward(Challenge storage self, uint deposit)
+  function isVoteRevealed(Challenge storage self, address _voter)
     internal
     constant
-    returns (uint) {
-    return deposit.sub(self.rewardPool);
+    returns (bool) {
+    return self.vote[_voter].revealedOn > 0;
+  }
+
+  function isVoteRewardClaimed(Challenge storage self, address _voter)
+    internal
+    constant
+    returns (bool) {
+    return self.vote[_voter].claimedRewardOn > 0;
+  }
+
+  function isVoteAmountReclaimed(Challenge storage self, address _voter)
+    internal
+    constant
+    returns (bool) {
+    return self.vote[_voter].reclaimedVoteAmountOn > 0;
+  }
+
+  function isChallengeRewardClaimed(Challenge storage self)
+    internal
+    constant
+    returns (bool) {
+    return self.claimedRewardOn > 0;
+  }
+
+  function isChallengePeriodActive(Challenge storage self)
+    internal
+    constant
+    returns (bool) {
+    return now <= self.challengePeriodEnd;
+  }
+
+  function isWhitelisted(Challenge storage self)
+    internal
+    constant
+    returns (bool) {
+    return status(self) == Status.Whitelisted;
+  }
+
+  function isBlacklisted(Challenge storage self)
+    internal
+    constant
+    returns (bool) {
+    return status(self) == Status.Blacklisted;
   }
 
   function isVoteCommitPeriodActive(Challenge storage self)
@@ -61,6 +101,83 @@ library RegistryEntryLib {
     constant
     returns (bool) {
     return self.revealPeriodEnd > 0 && now > self.revealPeriodEnd;
+  }
+
+  /**
+   * @dev Returns whether VoteFor is winning vote option
+   *
+   * @return True if VoteFor is winning option
+   */
+  function isWinningOptionVoteFor(Challenge storage self)
+    internal
+    constant
+    returns (bool) {
+    return winningVoteOption(self) == VoteOption.VoteFor;
+  }
+  
+  function hasVoted(Challenge storage self, address _voter)
+    internal
+    constant
+    returns (bool) {
+    return self.vote[_voter].amount != 0;
+  }
+
+  function wasChallenged(Challenge storage self)
+    internal
+    constant
+    returns (bool) {
+    return self.challenger != 0x0;
+  }
+
+  /**
+   * @dev Returns whether voter voted for winning vote option
+   * @param _voter Address of a voter
+   *
+   * @return True if voter voted for a winning vote option
+   */
+  function votedWinningVoteOption(Challenge storage self, address _voter)
+    internal
+    constant
+    returns (bool) {
+    return self.vote[_voter].option == winningVoteOption(self);
+  }
+
+  /**
+   * @dev Returns current status of a registry entry
+
+   * @return Status
+   */
+  function status(Challenge storage self)
+    internal
+    constant
+    returns (Status) {
+    if (isChallengePeriodActive(self) && !wasChallenged(self)) {
+      return Status.ChallengePeriod;
+    } else if (isVoteCommitPeriodActive(self)) {
+      return Status.CommitPeriod;
+    } else if (isVoteRevealPeriodActive(self)) {
+      return Status.RevealPeriod;
+    } else if (isVoteRevealPeriodOver(self)) {
+      if (isWinningOptionVoteFor(self)) {
+        return Status.Whitelisted;
+      } else {
+        return Status.Blacklisted;
+      }
+    } else {
+      return Status.Whitelisted;
+    }
+  }
+
+  /**
+   * @dev Returns token reward amount belonging to a challenger
+   *
+   * @return Amount of token
+   */
+  function challengeReward(Challenge storage self, uint deposit)
+    internal
+    constant
+    returns (uint) {
+    return deposit.sub(self.rewardPool);
   }
 
   /**
@@ -86,37 +203,12 @@ library RegistryEntryLib {
   }
 
   /**
-   * @dev Returns whether voter voted for winning vote option
-   * @param _voter Address of a voter
-   *
-   * @return True if voter voted for a winning vote option
-   */
-  function votedWinningVoteOption(Challenge storage self, address _voter)
-    internal
-    constant
-    returns (bool) {
-    return self.vote[_voter].option == winningVoteOption(self);
-  }
-
-  /**
-   * @dev Returns whether VoteFor is winning vote option
-   *
-   * @return True if VoteFor is winning option
-   */
-  function isWinningOptionVoteFor(Challenge storage self)
-    internal
-    constant
-    returns (bool) {
-    return winningVoteOption(self) == VoteOption.VoteFor;
-  }
-
-  /**
    * @dev Returns amount of votes for winning vote option
    *
    * @return Amount of votes
    */
   function winningVotesAmount(Challenge storage self)
-    private
+    internal
     constant
     returns (uint) {
     VoteOption voteOption = winningVoteOption(self);
@@ -128,9 +220,8 @@ library RegistryEntryLib {
     } else {
       return 0;
     }
-  }  
+  }
 
-  
   /**
    * @dev Returns token reward amount belonging to a voter for voting for a winning option
    * @param _voter Address of a voter
@@ -152,26 +243,7 @@ library RegistryEntryLib {
     return (voterAmount.mul(self.rewardPool)) / winningAmount;
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
+  /**
    * @dev Returns date when registry entry was whitelisted
    * Since this doesn't happen with any transaction, it's either reveal or challenge period end
 

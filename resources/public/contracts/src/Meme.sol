@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "RegistryEntry.sol";
 import "MemeToken.sol";
-import "proxy/Forwarder.sol";
+/* import "proxy/Forwarder.sol"; */
 import "./DistrictConfig.sol";
 
 /**
