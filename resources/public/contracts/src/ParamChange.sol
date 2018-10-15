@@ -14,7 +14,7 @@ import "db/EternalDb.sol";
 
 contract ParamChange is RegistryEntry {
 
-  EternalDb private db;
+  EternalDb public db;
   string private key;
   EternalDb.Types private valueType;
   uint private value;
