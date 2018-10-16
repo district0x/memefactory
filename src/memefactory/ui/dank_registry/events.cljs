@@ -38,18 +38,3 @@
                   :args [buffer-data]
                   :on-success [::meme-factory/approve-and-create-meme data deposit]
                   :on-error ::error}})))
-
-(re-frame/reg-event-fx
- ::collect-all-rewards
- (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id]} {:keys [Hash]}]]
-   (let [active-account (account-queries/active-account db)]
-     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
-                                      :fn :claim-all-rewards
-                                      :args [active-account]
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
-                                      :tx-id {:meme/collect-all-rewards id}
-                                      :on-tx-success-n [[::logging/success [:meme/collect-all-rewards]]
-                                                        [::notification-events/show "All rewards collected"]]
-                                      :on-tx-hash-error [::logging/error [:meme/collect-all-rewards]]
-                                      :on-tx-error [::logging/error [:meme/collect-all-rewards]]}]})))

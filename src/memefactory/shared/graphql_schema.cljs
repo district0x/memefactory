@@ -160,7 +160,12 @@
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
     challenge_voteWinningVoteOption(vote_voter: ID!): Boolean
-    challenge_allRewards(user_address: ID!): Int
+    challenge_allRewards(user_address: ID!): Rewards
+  }
+
+  type Rewards{
+    challenge_rewardAmount: Int
+    vote_rewardAmount: Int
   }
 
   enum VoteOption {
@@ -201,7 +206,7 @@
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
     challenge_voteWinningVoteOption(vote_voter: ID!): Boolean
-    challenge_allRewards(user_address: ID!): Int
+    challenge_allRewards(user_address: ID!): Rewards
 
     \"Balance of voting token of a voter. This is client-side only, server doesn't return this\"
     challenge_availableVoteAmount(voter: ID!): Int
@@ -305,7 +310,7 @@
     challenge_claimedRewardOn: Date
     challenge_vote(vote_voter: ID!): Vote
     challenge_voteWinningVoteOption(vote_voter: ID!): Boolean
-    challenge_allRewards(user_address: ID!): Int
+    challenge_allRewards(user_address: ID!): Rewards
 
     \"Balance of voting token of a voter. This is client-side only, server doesn't return this\"
     challenge_availableVoteAmount(voter: ID!): Int

@@ -473,8 +473,10 @@
 
 (defn reg-entry->all-rewards-resolver [{:keys [:reg-entry/address :challenge/reward-pool :challenge/claimed-reward-on
                                                :reg-entry/deposit :challenge/challenger :challenge/votes-against :challenge/votes-for] :as reg-entry} args]
-  (let [challenger-amount (if (and (zero? claimed-reward-on)
-                                   (= challenger (:user/address args)))
+  (let [challenger-amount (if (and (or (zero? claimed-reward-on)
+                                       (not claimed-reward-on))
+                                   (= challenger (:user/address args))
+                                   (= :vote-option/vote-against (reg-entry-winning-vote-option reg-entry)))
                             (- deposit reward-pool)
                             0)
         voter-amount (let [{:keys [:vote/option :vote/amount]}
@@ -492,7 +494,9 @@
                                 (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry)))
                          (/ (* amount reward-pool) winning-amount)
                          0))]
-    (+ challenger-amount voter-amount)))
+    ;; TODO how to do about this?
+    {:challenge/reward-amount (js/Math.ceil challenger-amount)
+     :vote/reward-amount (js/Math.ceil voter-amount)}))
 
 (defn reg-entry->challenger [{:keys [:challenge/challenger] :as reg-entry}]
   (log/debug "reg-entry->challenger-resolver args" reg-entry)

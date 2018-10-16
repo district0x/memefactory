@@ -53,7 +53,9 @@
                                         :vote/option
                                         :vote/amount]]
                                       [:challenge/vote-winning-vote-option {:vote/voter active-account}]
-                                      [:challenge/all-rewards {:user/address active-account}]]))]]]))
+                                      [:challenge/all-rewards {:user/address active-account}
+                                       [:challenge/reward-amount
+                                        :vote/reward-amount]]]))]]]))
 
 (defn user-info [user class]
   [:ol {:class class}

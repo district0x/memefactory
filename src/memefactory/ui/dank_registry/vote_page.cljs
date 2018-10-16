@@ -8,6 +8,7 @@
    [react-infinite]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.dank-registry.events :as dr-events]
+   [memefactory.ui.contract.registry-entry :as re-events]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [district.ui.graphql.subs :as gql]
    [goog.string :as gstring]
@@ -46,10 +47,14 @@
                                                           :challenge/votes-total]]]}])]
         (when-not (:graphql/loading? @response)
           (if-let [meme-voting (:meme @response)]
-            (let [tx-id address
+            (let [ch-reward-tx-id (str address "challenge-reward")
+                  vote-reward-tx-id (str address "vote-reward")
+                  {:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
                   {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]} meme-voting
-                  tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/collect-all-rewards tx-id}])
-                  tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/collect-all-rewards tx-id}])]
+                  claim-vote-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/claim-vote-rewards vote-reward-tx-id}])
+                  claim-vote-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/claim-vote-rewards vote-reward-tx-id}])
+                  claim-challenge-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/claim-challenge-rewards ch-reward-tx-id}])
+                  claim-challenge-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/claim-challenge-rewards ch-reward-tx-id}])]
               [:div.collect-reward
                (println "meme voting " meme-voting)
                [charts/donut-chart meme-voting]
@@ -59,16 +64,27 @@
                 [:li
                  (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]
                 [:li "Total voted: " (gstring/format "%d" votes-total)]
-                [:li "Your reward: " (format/format-token all-rewards {:token "DANK"})]]
-               [pending-button {:pending? @tx-pending?
-                                :disabled (or (not (pos? all-rewards))
-                                              @tx-pending? @tx-success?)
+                [:li "Your reward: " (format/format-token (+ (:challenge/reward-amount all-rewards)
+                                                             (:vote/reward-amount all-rewards))
+                                                          {:token "DANK"})]]
+               [pending-button {:pending? @claim-vote-reward-tx-pending?
+                                :disabled (or (not (pos? (:vote/reward-amount all-rewards)))
+                                              @claim-vote-reward-tx-pending? @claim-vote-reward-tx-success?)
                                 :pending-text "Collecting ..."
                                 :on-click (fn []
-                                            (dispatch [::dr-events/collect-all-rewards {:send-tx/id tx-id
-                                                                                        :active-account @active-account
-                                                                                        :reg-entry/address address}]))}
-                "Collect Reward"]])))))))
+                                            (dispatch [::re-events/claim-vote-reward {:send-tx/id vote-reward-tx-id
+                                                                                      :active-account @active-account
+                                                                                      :reg-entry/address address}]))}
+                "Collect Vote Reward"]
+               [pending-button {:pending? @claim-challenge-reward-tx-pending?
+                                :disabled (or (not (pos? (:challenge/reward-amount all-rewards)))
+                                              @claim-challenge-reward-tx-pending? @claim-challenge-reward-tx-success?)
+                                :pending-text "Collecting ..."
+                                :on-click (fn []
+                                            (dispatch [::re-events/claim-challenge-reward {:send-tx/id ch-reward-tx-id
+                                                                                           :active-account @active-account
+                                                                                           :reg-entry/address address}]))}
+                "Collect Challenge Reward"]])))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote] :as meme}]
   (let [tx-id (str address "vote")
