@@ -171,7 +171,7 @@
       :border-radius "1em 1em 1em 1em"
       ;; :position :relative
       }
-     (for-media-max :tablet
+     #_(for-media-max :tablet
                     [:&
                      {:max-height (em 30)
                       :overflow-y :auto
@@ -193,6 +193,13 @@
        :color (color :table-header-bg)}]
      [:table
       {:border-spacing "0px"}
+      (for-media-max :tablet
+                     [:&
+                      {:max-height (em 30)
+                       :overflow-y :auto
+                       :overflow-x :hidden
+                       :display :block}
+                      [:tbody {:display :block}]])
       [:th.down:after
        {:content "''"
         :background-repeat :no-repeat
@@ -249,11 +256,15 @@
                         [:&.meme-token:before
                          {:content "'Token ID:'"}])
          (for-media-max :tablet
-                        [:&.seller-address:before
-                         {:content "'Seller:'"}])
+                        [:&.seller-address
+                         (of-ellipsis)
+                         [:&.before
+                          {:content "'Seller:'"}]])
          (for-media-max :tablet
-                        [:&.buyer-address:before
-                         {:content "'Buyer:'"}])
+                        [:&.buyer-address
+                         (of-ellipsis)
+                         [:&.before
+                          {:content "'Buyer:'"}]])
          (for-media-max :tablet
                         [:&.end-price:before
                          {:content "'Price:'"}])
