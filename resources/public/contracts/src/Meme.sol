@@ -34,17 +34,19 @@ contract Meme is RegistryEntry {
    * @param _totalSupply This meme's token total supply
    */
   function construct(
-    address _creator,
-    uint _version,
-    bytes _metaHash,
-    uint _totalSupply
-  )
-  external
+                     address _creator,
+                     uint _version,
+                     bytes _metaHash,
+                     uint _totalSupply
+                     )
+    external
   {
     super.construct(_creator, _version);
 
-    require(_totalSupply > 0, "Meme: totalSupply should be > 0");
-    require(_totalSupply <= registry.db().getUIntValue(registry.maxTotalSupplyKey()), "Meme: totalSupply shoud be < maxTotalSupply");
+    /* require(_totalSupply > 0, "Meme: totalSupply should be > 0"); */
+    /* require(_totalSupply <= registry.db().getUIntValue(registry.maxTotalSupplyKey()), "Meme: totalSupply shoud be < maxTotalSupply"); */
+    require(_totalSupply > 0);
+    require(_totalSupply <= registry.db().getUIntValue(registry.maxTotalSupplyKey()));
 
     totalSupply = _totalSupply;
     metaHash = _metaHash;
@@ -55,25 +57,31 @@ contract Meme is RegistryEntry {
    * Must be callable only for whitelisted unchallenged registry entries
    */
   function transferDeposit()
-  external
-  notEmergency
-  onlyWhitelisted
+    external
+    notEmergency
+    onlyWhitelisted
   {
-    require(!challenge.wasChallenged(), "Meme: Is challenged");
-    require(registryToken.transfer(districtConfig.depositCollector(), deposit), "Meme: can't transfer deposit");
+    /* require(!challenge.wasChallenged(), "Meme: Is challenged"); */
+    /* require(registryToken.transfer(districtConfig.depositCollector(), deposit), "Meme: can't transfer deposit"); */
+    require(!challenge.wasChallenged());
+    require(registryToken.transfer(districtConfig.depositCollector(), deposit));
+
     registry.fireRegistryEntryEvent("depositTransferred", version);
   }
 
   function mint(uint _amount)
-  public
-  notEmergency
-  onlyWhitelisted
+    public
+    notEmergency
+    onlyWhitelisted
   {
     uint restSupply = totalSupply.sub(totalMinted);
     if (_amount == 0 || _amount > restSupply) {
       _amount = restSupply;
     }
-    require(_amount > 0, "Meme: Amount should be > 0");
+
+    /* require(_amount > 0, "Meme: Amount should be > 0"); */
+    require(_amount > 0);
+
     tokenIdStart = memeToken.totalSupply().add(1);
     uint tokenIdEnd = tokenIdStart.add(_amount);
     for (uint i = tokenIdStart; i < tokenIdEnd; i++) {
@@ -96,10 +104,10 @@ contract Meme is RegistryEntry {
     constant
     returns (bytes, uint, uint, uint) {
     return (
-    metaHash,
-    totalSupply,
-    totalMinted,
-    tokenIdStart
-    );
+            metaHash,
+            totalSupply,
+            totalMinted,
+            tokenIdStart
+            );
   }
 }
