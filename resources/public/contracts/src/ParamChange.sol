@@ -68,22 +68,16 @@ contract ParamChange is RegistryEntry {
   notEmergency
   {
     /* TODO: needed? Contract shouldn't get created in the first place */
-    bytes32 record = sha3(key);
-    require(isChangeAllowed(record, value));
-
-    /* require(isOriginalValueCurrentValue(), "ParamChange: current value is not original value"); */
-    /* require(!wasApplied(), "ParamChange: already applied"); */
-    /* require(challenge.isWhitelisted(), "ParamChange: not whitelisted"); */
-    /* require(registryToken.transfer(creator, deposit), "ParamChange: could not transfer deposit"); */
+    /* bytes32 record = sha3(key); */
+    /* require(isChangeAllowed(record, value)); */
 
     require(isOriginalValueCurrentValue());
     require(!wasApplied());
     require(challenge.isWhitelisted());
     require(registryToken.transfer(creator, deposit));
-    
-    db.setUIntValue(record, value);
+
+    db.setUIntValue(sha3(key), value);
     appliedOn = now;
-    /* TODO: needed? we listen to eternal-db now */
     registry.fireRegistryEntryEvent("changeApplied", version);
   }
 

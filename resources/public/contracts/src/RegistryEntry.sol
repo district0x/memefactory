@@ -1,8 +1,6 @@
 pragma solidity ^0.4.24;
 
 import "Registry.sol";
-/* import "proxy/Forwarder.sol"; */
-/* import "db/EternalDb.sol"; */
 import "token/minime/MiniMeToken.sol";
 import "math/SafeMath.sol";
 
@@ -28,14 +26,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
   address internal creator;
   uint internal version;
   uint internal deposit;
-  /* uint public challengePeriodEnd; */
   RegistryEntryLib.Challenge internal challenge;
 
   /**
    * @dev Modifier that disables function if registry is in emergency state
    */
   modifier notEmergency() {
-    /* require(!registry.isEmergency(), "RegistryEntry: Can't execute in emergency mode"); */
     require(!registry.isEmergency());
     _;
   }
@@ -44,7 +40,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * @dev Modifier that disables function if registry is in emergency state
    */
   modifier onlyWhitelisted() {
-    /* require(challenge.isWhitelisted(), "RegistryEntry: Not whitelisted"); */
     require(challenge.isWhitelisted());
     _;
   }
@@ -65,13 +60,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
                      )
     public
   {
-    /* require(challenge.challengePeriodEnd == 0, "RegistryEntry: Challenge period end is not 0"); */
     require(challenge.challengePeriodEnd == 0);
     deposit = registry.db().getUIntValue(registry.depositKey());
-
-    /* require(registryToken.transferFrom(msg.sender, this, deposit), "RegistryEntry: Couldn't transfer deposit"); */
     require(registryToken.transferFrom(msg.sender, this, deposit));
-    /* challengePeriodEnd = now.add(registry.db().getUIntValue(registry.challengePeriodDurationKey())); */
+
     challenge.challengePeriodEnd = now.add(registry.db().getUIntValue(registry.challengePeriodDurationKey()));
 
     creator = _creator;
@@ -97,10 +89,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
     external
     notEmergency
   {
-    /* require(challenge.isChallengePeriodActive(),"RegistryEntry: Not in challenge period"); */
-    /* require(!challenge.wasChallenged(), "RegistryEntry: Was already challenged"); */
-    /* require(registryToken.transferFrom(_challenger, this, deposit),"RegistryEntry: Couldn't transfer deposit"); */
-
     require(challenge.isChallengePeriodActive());
     require(!challenge.wasChallenged());
     require(registryToken.transferFrom(_challenger, this, deposit));
@@ -136,11 +124,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
     external
     notEmergency
   {
-    /* require(challenge.isVoteCommitPeriodActive(), "RegistryEntry: Not in voting period"); */
-    /* require(_amount > 0, "RegistryEntry: Voting amount should be more than 0"); */
-    /* require(!challenge.hasVoted(_voter), "RegistryEntry: voting address has already commited a vote"); */
-    /* require(registryToken.transferFrom(_voter, this, _amount), "RegistryEntry: Couldn't transfer vote amount"); */
-
     require(challenge.isVoteCommitPeriodActive());
     require(_amount > 0);
     require(!challenge.hasVoted(_voter));
@@ -171,18 +154,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
     external
     notEmergency
   {
-    /* require(challenge.isVoteRevealPeriodActive(), "RegistryEntry: Reveal period is not active"); */
-    /* /\* require(sha3(uint(_voteOption), _salt) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha"); *\/ */
-    /* require(keccak256(abi.encodePacked(uint(_voteOption), _salt)) == challenge.vote[_voter].secretHash, "RegistryEntry: Invalid sha"); */
-    /* require(!challenge.isVoteRevealed(_voter), "RegistryEntry: Vote was already revealed"); */
-
     require(challenge.isVoteRevealPeriodActive());
     require(keccak256(abi.encodePacked(uint(_voteOption), _salt)) == challenge.vote[_voter].secretHash);
     require(!challenge.isVoteRevealed(_voter));
 
     challenge.vote[_voter].revealedOn = now;
     uint amount = challenge.vote[_voter].amount;
-    /* require(registryToken.transfer(_voter, amount), "RegistryEntry: Couldn't transfer amount"); */
     require(registryToken.transfer(_voter, amount));
     challenge.vote[_voter].option = _voteOption;
 
@@ -215,16 +192,11 @@ contract RegistryEntry is ApproveAndCallFallBack {
       _voter = msg.sender;
     }
 
-    /* require(challenge.isVoteRevealPeriodOver(), "RegistryEntry: voting period is not yet over"); */
-    /* require(!challenge.isVoteRevealed(_voter), "RegistryEntry: vote was revealed"); */
-    /* require(!challenge.isVoteAmountReclaimed(_voter), "RegistryEntry: vote deposit was already reclaimed"); */
-
     require(challenge.isVoteRevealPeriodOver());
     require(!challenge.isVoteRevealed(_voter));
     require(!challenge.isVoteAmountReclaimed(_voter));
 
     uint amount = challenge.vote[_voter].amount;
-    /* require(registryToken.transfer(_voter, amount), "RegistryEntry: token transfer failed"); */
     require(registryToken.transfer(_voter, amount));
 
     challenge.vote[_voter].reclaimedVoteAmountOn = now;
@@ -253,19 +225,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
       _voter = msg.sender;
     }
 
-    /* require(challenge.isVoteRevealPeriodOver(), "RegistryEntry: Vote reveal period is not over yet"); */
-    /* require(!challenge.isVoteRewardClaimed(_voter) , "RegistryEntry: Vote rewards has been already claimed"); */
-    /* require(challenge.isVoteRevealed(_voter), "RegistryEntry: Vote is not revealed yet"); */
-    /* require(challenge.votedWinningVoteOption(_voter), "RegistryEntry: Can't give you a reward, your vote is not the winning option"); */
-
     require(challenge.isVoteRevealPeriodOver());
     require(!challenge.isVoteRewardClaimed(_voter));
     require(challenge.isVoteRevealed(_voter));
     require(challenge.votedWinningVoteOption(_voter));
 
     uint reward = challenge.voteReward(_voter);
-    /* require(reward > 0, "RegistryEntry: Reward should be positive"); */
-    /* require(registryToken.transfer(_voter, reward), "RegistryEntry: Can't transfer reward"); */
 
     require(reward > 0);
     require(registryToken.transfer(_voter, reward));
@@ -286,11 +251,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
     public
     notEmergency
   {
-    /* require(challenge.isVoteRevealPeriodOver(), "RegistryEntry: Vote reveal period is not over yet"); */
-    /* require(!challenge.isChallengeRewardClaimed(),"RegistryEntry: Vote reward already claimed"); */
-    /* require(!challenge.isWinningOptionVoteFor(), "RegistryEntry: Is not the winning option"); */
-    /* require(registryToken.transfer(challenge.challenger, challenge.challengeReward(deposit)), "RegistryEntry: Can't transfer reward"); */
-
     require(challenge.isVoteRevealPeriodOver());
     require(!challenge.isChallengeRewardClaimed());
     require(!challenge.isWinningOptionVoteFor());
