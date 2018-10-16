@@ -89,6 +89,22 @@
                                       :on-tx-error [::logging/error [::reveal-vote]]}]})))
 
 (re-frame/reg-event-fx
+ ::claim-challenge-reward
+ [interceptors]
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :from] :as args}]]
+   (let [active-account (account-queries/active-account db)]
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
+                                      :fn :claim-challenge-reward
+                                      :args []
+                                      :tx-opts {:from active-account
+                                                :gas 6000000}
+                                      :tx-id {::claim-challenge-reward id}
+                                      :on-tx-success-n [[::logging/success [::claim-challenge-reward]]
+                                                        [::notification-events/show (gstring/format "Succesfully claimed reward from %s" from)]]
+                                      :on-tx-hash-error [::logging/error [::claim-challenge-reward]]
+                                      :on-tx-error [::logging/error [::claim-challenge-reward]]}]})))
+
+(re-frame/reg-event-fx
  ::claim-vote-reward
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :from] :as args}]]
