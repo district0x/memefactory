@@ -86,7 +86,10 @@ contract ParamChange is RegistryEntry {
    * @dev Returns true when parameter key is in a whitelisted set and the parameter
    * value is within the allowed set of values.
    */
-  function isChangeAllowed(bytes32 record, uint _value) public constant returns (bool) {
+  function isChangeAllowed(bytes32 record, uint _value)
+    private
+    constant
+    returns (bool) {
 
       if(record == registry.challengePeriodDurationKey() || record == registry.commitPeriodDurationKey() ||
          record == registry.revealPeriodDurationKey() || record == registry.depositKey()) {
@@ -115,14 +118,20 @@ contract ParamChange is RegistryEntry {
   /**
    * @dev Returns whether change was already applied
    */
-  function wasApplied() public constant returns (bool) {
+  function wasApplied()
+    private
+    constant
+    returns (bool) {
     return appliedOn > 0;
   }
 
   /**
    * @dev Returns whether parameter value at contract creation is still current parameter value
    */
-  function isOriginalValueCurrentValue() public constant returns (bool) {
+  function isOriginalValueCurrentValue()
+    private
+    constant
+    returns (bool) {
     return db.getUIntValue(sha3(key)) == originalValue;
   }
 
