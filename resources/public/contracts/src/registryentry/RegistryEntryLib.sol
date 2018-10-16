@@ -106,8 +106,6 @@ library RegistryEntryLib {
     return status(self) == Status.Whitelisted;
   }
 
-
-
   function isVoteCommitPeriodActive(Challenge storage self)
     internal
     constant

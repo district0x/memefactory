@@ -340,7 +340,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     external
     constant
     returns (bytes32, RegistryEntryLib.VoteOption, uint, uint, uint, uint) {
-    RegistryEntryLib.Vote storage vtr = challenge.vote[_voter];
+    RegistryEntryLib.Vote vtr = challenge.vote[_voter];
     return (
             vtr.secretHash,
             vtr.option,
