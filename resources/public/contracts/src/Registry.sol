@@ -27,7 +27,7 @@ contract Registry is DSAuth {
   bytes32 public constant maxAuctionDurationKey = sha3("maxAuctionDuration");
 
   EternalDb public db;
-  bool wasConstructed;
+  bool private wasConstructed;
 
   /**
    * @dev Constructor for this contract.
