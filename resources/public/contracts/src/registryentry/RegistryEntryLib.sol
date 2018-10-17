@@ -218,6 +218,31 @@ library RegistryEntryLib {
     return (voterAmount.mul(self.rewardPool)) / winningAmount;
   }
 
+  function bytesToUint(bytes b)
+    internal
+    returns (uint256) {
+    uint256 number;
+    for(uint i = 0; i < b.length; i++){
+      number = number + uint(b[i]) * (2 ** (8 * (b.length - (i + 1))));
+    }
+    return number;
+  }
+
+  function stringToUint(string s)
+    internal
+    constant
+    returns (uint result) {
+    bytes memory b = bytes(s);
+    uint i;
+    result = 0;
+    for (i = 0; i < b.length; i++) {
+      uint c = uint(b[i]);
+      if (c >= 48 && c <= 57) {
+        result = result * 10 + (c - 48);
+      }
+    }
+  }
+
   // Private functions
 
   function isBlacklisted(Challenge storage self)

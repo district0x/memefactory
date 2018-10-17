@@ -3,7 +3,6 @@ pragma solidity ^0.4.24;
 import "Registry.sol";
 import "token/minime/MiniMeToken.sol";
 import "math/SafeMath.sol";
-
 import "registryentry/RegistryEntryLib.sol";
 
 /**
@@ -37,7 +36,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
   }
 
   /**
-   * @dev Modifier that disables function if registry is in emergency state
+   * @dev Modifier that disables function if challenge is not whitelisted
    */
   modifier onlyWhitelisted() {
     require(challenge.isWhitelisted());
@@ -69,7 +68,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     creator = _creator;
     version = _version;
 
-    registry.fireRegistryEntryEvent("constructed", version);
+    /* registry.fireRegistryEntryEvent("constructed", version); */
   }
 
   /**
@@ -103,7 +102,14 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.rewardPool = oneHundred.sub(registry.db().getUIntValue(registry.challengeDispensationKey())).mul(deposit).div(oneHundred);
     challenge.metaHash = _challengeMetaHash;
 
-    registry.fireRegistryEntryEvent("challengeCreated", version);
+    uint[] memory eventData = new uint[](5);
+    eventData[0] = uint(challenge.challenger);
+    eventData[1] = uint(challenge.commitPeriodEnd);
+    eventData[2] = uint(challenge.revealPeriodEnd);
+    eventData[3] = uint(challenge.rewardPool);
+    eventData[4] = RegistryEntryLib.bytesToUint(challenge.metaHash);
+
+    registry.fireRegistryEntryEvent("challengeCreated", version, eventData);
   }
 
   /**
@@ -132,8 +138,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.vote[_voter].secretHash = _secretHash;
     challenge.vote[_voter].amount += _amount;
 
-    var eventData = new uint[](1);
+    var eventData = new uint[](2);
     eventData[0] = uint(_voter);
+    eventData[1] = uint(challenge.vote[_voter].amount);
     registry.fireRegistryEntryEvent("voteCommitted", version, eventData);
   }
 
@@ -171,8 +178,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
       revert();
     }
 
-    var eventData = new uint[](1);
+    var eventData = new uint[](2);
     eventData[0] = uint(_voter);
+    eventData[1] = uint(challenge.vote[_voter].option);
     registry.fireRegistryEntryEvent("voteRevealed", version, eventData);
   }
 
@@ -188,9 +196,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
     public
     notEmergency {
 
-    if (_voter == 0x0) {
-      _voter = msg.sender;
-    }
+    /* if (_voter == 0x0) { */
+    /*   _voter = msg.sender; */
+    /* } */
 
     require(challenge.isVoteRevealPeriodOver());
     require(!challenge.isVoteRevealed(_voter));
@@ -202,7 +210,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.vote[_voter].reclaimedVoteAmountOn = now;
 
     var eventData = new uint[](1);
-    eventData[0] = uint(msg.sender);
+    eventData[0] = uint(_voter);
 
     registry.fireRegistryEntryEvent("voteAmountReclaimed", version, eventData);
   }
@@ -218,12 +226,13 @@ contract RegistryEntry is ApproveAndCallFallBack {
   function claimVoteReward(
                            address _voter
                            )
-    public
+    external
     notEmergency
   {
-    if (_voter == 0x0) {
-      _voter = msg.sender;
-    }
+
+    /* if (_voter == 0x0) { */
+    /*   _voter = msg.sender; */
+    /* } */
 
     require(challenge.isVoteRevealPeriodOver());
     require(!challenge.isVoteRewardClaimed(_voter));
@@ -248,7 +257,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * Can be called by anybody, to claim challenger's reward to him/her
    */
   function claimChallengeReward()
-    public
+    external
     notEmergency
   {
     require(challenge.isVoteRevealPeriodOver());
@@ -258,18 +267,11 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     challenge.claimedRewardOn = now;
 
-    registry.fireRegistryEntryEvent("challengeRewardClaimed", version);
-  }
+    var eventData = new uint[](2);
+    eventData[0] = uint(challenge.challenger);
+    eventData[1] = uint(challenge.challengeReward(deposit));
 
-  /**
-   * @dev Simple wrapper to claim challenge and voter reward for a user
-   */
-  function claimAllRewards(address _user)
-    external
-    notEmergency
-  {
-    claimChallengeReward();
-    claimVoteReward(_user);
+    registry.fireRegistryEntryEvent("challengeRewardClaimed", version, eventData);
   }
 
   /**
@@ -289,66 +291,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
                            bytes _data)
     public
   {
-    /* require(address(this).call(_data), "RegistryEntry: couldn't call data"); */
     require(address(this).call(_data));
-  }
-
-  /**
-   * @dev Returns all basic state related to this contract for simpler offchain access
-   * For challenge info see loadRegistryEntryChallenge()
-   */
-  function loadRegistryEntry()
-    external
-    constant
-    returns (uint, RegistryEntryLib.Status, address, uint, uint) {
-    return (
-            version,
-            challenge.status(),
-            creator,
-            deposit,
-            challenge.challengePeriodEnd
-            );
-  }
-
-  /**
-   * @dev Returns all challenge state related to this contract for simpler offchain access
-   */
-  function loadRegistryEntryChallenge()
-    external
-    constant
-    returns (uint, address, uint, bytes, uint, uint, uint, uint, uint, uint) {
-    return (
-            challenge.challengePeriodEnd,
-            challenge.challenger,
-            challenge.rewardPool,
-            challenge.metaHash,
-            challenge.commitPeriodEnd,
-            challenge.revealPeriodEnd,
-            challenge.votesFor,
-            challenge.votesAgainst,
-            challenge.claimedRewardOn,
-            challenge.voteQuorum
-            );
-  }
-
-  /**
-   * @dev Returns all state related to vote for simpler offchain access
-   *
-   * @param _voter Address of a voter
-   */
-  function loadVote(address _voter)
-    external
-    constant
-    returns (bytes32, RegistryEntryLib.VoteOption, uint, uint, uint, uint) {
-    RegistryEntryLib.Vote vtr = challenge.vote[_voter];
-    return (
-            vtr.secretHash,
-            vtr.option,
-            vtr.amount,
-            vtr.revealedOn,
-            vtr.claimedRewardOn,
-            vtr.reclaimedVoteAmountOn
-            );
   }
 
 }

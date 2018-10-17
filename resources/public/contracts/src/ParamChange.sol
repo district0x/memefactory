@@ -52,6 +52,14 @@ contract ParamChange is RegistryEntry {
     value = _value;
     valueType = EternalDb.Types.UInt;
     originalValue = db.getUIntValue(record);
+
+    var eventData = new uint[](4);
+    eventData[0] = uint(_creator);
+    eventData[1] = uint(db);
+    eventData[2] = RegistryEntryLib.stringToUint(_key);
+    eventData[3] = uint(value);
+
+    registry.fireRegistryEntryEvent("constructed", version, eventData);
   }
 
   /**
@@ -67,18 +75,16 @@ contract ParamChange is RegistryEntry {
   external
   notEmergency
   {
-    /* TODO: needed? Contract shouldn't get created in the first place */
-    /* bytes32 record = sha3(key); */
-    /* require(isChangeAllowed(record, value)); */
-
-    require(isOriginalValueCurrentValue());
-    require(!wasApplied());
+    require(db.getUIntValue(sha3(key)) == originalValue);
+    require(appliedOn < 0);
     require(challenge.isWhitelisted());
     require(registryToken.transfer(creator, deposit));
 
     db.setUIntValue(sha3(key), value);
     appliedOn = now;
-    registry.fireRegistryEntryEvent("changeApplied", version);
+
+    /* we listen to EternalDb now */
+    /* registry.fireRegistryEntryEvent("changeApplied", version); */
   }
 
   /**
@@ -114,39 +120,4 @@ contract ParamChange is RegistryEntry {
     return false;
   }
 
-  /**
-   * @dev Returns whether change was already applied
-   */
-  function wasApplied()
-    private
-    constant
-    returns (bool) {
-    return appliedOn > 0;
-  }
-
-  /**
-   * @dev Returns whether parameter value at contract creation is still current parameter value
-   */
-  function isOriginalValueCurrentValue()
-    private
-    constant
-    returns (bool) {
-    return db.getUIntValue(sha3(key)) == originalValue;
-  }
-
-  /**
-   * @dev Returns all state related to this contract for simpler offchain access
-   */
-  function loadParamChange()
-    external
-    constant
-    returns (EternalDb, string, EternalDb.Types, uint, uint) {
-    return (
-    db,
-    key,
-    valueType,
-    value,
-    appliedOn
-    );
-  }
 }

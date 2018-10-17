@@ -2,7 +2,6 @@ pragma solidity ^0.4.24;
 
 import "RegistryEntry.sol";
 import "MemeToken.sol";
-/* import "proxy/Forwarder.sol"; */
 import "./DistrictConfig.sol";
 
 /**
@@ -43,13 +42,18 @@ contract Meme is RegistryEntry {
   {
     super.construct(_creator, _version);
 
-    /* require(_totalSupply > 0, "Meme: totalSupply should be > 0"); */
-    /* require(_totalSupply <= registry.db().getUIntValue(registry.maxTotalSupplyKey()), "Meme: totalSupply shoud be < maxTotalSupply"); */
     require(_totalSupply > 0);
     require(_totalSupply <= registry.db().getUIntValue(registry.maxTotalSupplyKey()));
 
     totalSupply = _totalSupply;
     metaHash = _metaHash;
+
+    uint[] memory eventData = new uint[](3);
+    eventData[0] = uint(_creator);
+    eventData[1] = RegistryEntryLib.bytesToUint(metaHash);
+    eventData[2] = uint(totalSupply);
+
+    registry.fireRegistryEntryEvent("constructed", version, eventData);
   }
 
   /**
@@ -61,12 +65,11 @@ contract Meme is RegistryEntry {
     notEmergency
     onlyWhitelisted
   {
-    /* require(!challenge.wasChallenged(), "Meme: Is challenged"); */
-    /* require(registryToken.transfer(districtConfig.depositCollector(), deposit), "Meme: can't transfer deposit"); */
     require(!challenge.wasChallenged());
     require(registryToken.transfer(districtConfig.depositCollector(), deposit));
 
-    registry.fireRegistryEntryEvent("depositTransferred", version);
+    /* TODO: needed? */
+    /* registry.fireRegistryEntryEvent("depositTransferred", version); */
   }
 
   function mint(uint _amount)
@@ -79,7 +82,6 @@ contract Meme is RegistryEntry {
       _amount = restSupply;
     }
 
-    /* require(_amount > 0, "Meme: Amount should be > 0"); */
     require(_amount > 0);
 
     tokenIdStart = memeToken.totalSupply().add(1);
@@ -88,26 +90,14 @@ contract Meme is RegistryEntry {
       memeToken.mint(creator, i);
       totalMinted = totalMinted + 1;
     }
-    var eventData = new uint[](4);
+
+    uint[] memory eventData = new uint[](4);
     eventData[0] = uint(creator);
     eventData[1] = tokenIdStart;
     eventData[2] = tokenIdEnd - 1;
     eventData[3] = totalMinted;
+
     registry.fireRegistryEntryEvent("minted", version, eventData);
   }
 
-  /**
-   * @dev Returns all state related to this contract for simpler offchain access
-   */
-  function loadMeme()
-    external
-    constant
-    returns (bytes, uint, uint, uint) {
-    return (
-            metaHash,
-            totalSupply,
-            totalMinted,
-            tokenIdStart
-            );
-  }
 }
