@@ -43,7 +43,7 @@ contract ParamChange is RegistryEntry {
   external
   {
     bytes32 record = sha3(_key);
-    require(isChangeAllowed(record, _value));
+    require(RegistryEntryLib.isChangeAllowed(registry, record, _value));
 
     super.construct(_creator, _version);
 
@@ -85,39 +85,6 @@ contract ParamChange is RegistryEntry {
 
     /* we listen to EternalDb now */
     /* registry.fireRegistryEntryEvent("changeApplied", version); */
-  }
-
-  /**
-   * @dev Returns true when parameter key is in a whitelisted set and the parameter
-   * value is within the allowed set of values.
-   */
-  function isChangeAllowed(bytes32 record, uint _value)
-    private
-    constant
-    returns (bool) {
-
-      if(record == registry.challengePeriodDurationKey() || record == registry.commitPeriodDurationKey() ||
-         record == registry.revealPeriodDurationKey() || record == registry.depositKey()) {
-        if(_value > 0) {
-          return true;
-        }
-      }
-
-      if(record == registry.challengeDispensationKey() || record == registry.voteQuorumKey() ||
-         record == registry.maxTotalSupplyKey()) {
-        if (_value >= 0 && _value <= 100) {
-          return true;
-        }
-      }
-
-      // see MemeAuction.sol
-      if(record == registry.maxAuctionDurationKey()) {
-        if(_value > 1 minutes) {
-          return true;
-        }
-      }
-
-    return false;
   }
 
 }
