@@ -202,7 +202,7 @@
         (if (and bought-for number title)
           [:span (str (format/format-eth (web3/from-wei bought-for :ether))
                       " (#" number " " title ")")]
-          [:div.loading])]])))
+          [:span "None"])]])))
 
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
