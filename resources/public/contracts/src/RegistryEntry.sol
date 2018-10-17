@@ -18,7 +18,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
   using SafeMath for uint;
   using RegistryEntryLib for RegistryEntryLib.Challenge;
 
-  uint private constant oneHundred = 100;
   Registry internal constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
   MiniMeToken internal constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
 
@@ -99,7 +98,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     challenge.commitPeriodEnd = now.add(commitDuration);
     challenge.revealPeriodEnd = challenge.commitPeriodEnd.add(revealDuration);
-    challenge.rewardPool = oneHundred.sub(registry.db().getUIntValue(registry.challengeDispensationKey())).mul(deposit).div(oneHundred);
+    challenge.rewardPool = uint(100).sub(registry.db().getUIntValue(registry.challengeDispensationKey())).mul(deposit).div(uint(100));
     challenge.metaHash = _challengeMetaHash;
 
     uint[] memory eventData = new uint[](5);

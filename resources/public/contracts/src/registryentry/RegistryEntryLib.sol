@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24;
 
+import "Registry.sol";
 import "math/SafeMath.sol";
 
 library RegistryEntryLib {
@@ -217,6 +218,40 @@ library RegistryEntryLib {
     voterAmount = self.vote[_voter].amount;
     return (voterAmount.mul(self.rewardPool)) / winningAmount;
   }
+
+  /**
+   * @dev Returns true when parameter key is in a whitelisted set and the parameter
+   * value is within the allowed set of values.
+   */
+  function isChangeAllowed(Registry registry, bytes32 record, uint _value)
+    internal
+    constant
+    returns (bool) {
+
+      if(record == registry.challengePeriodDurationKey() || record == registry.commitPeriodDurationKey() ||
+         record == registry.revealPeriodDurationKey() || record == registry.depositKey()) {
+        if(_value > 0) {
+          return true;
+        }
+      }
+
+      if(record == registry.challengeDispensationKey() || record == registry.voteQuorumKey() ||
+         record == registry.maxTotalSupplyKey()) {
+        if (_value >= 0 && _value <= 100) {
+          return true;
+        }
+      }
+
+      // see MemeAuction.sol
+      if(record == registry.maxAuctionDurationKey()) {
+        if(_value > 1 minutes) {
+          return true;
+        }
+      }
+
+    return false;
+  }
+
 
   function bytesToUint(bytes b)
     internal
