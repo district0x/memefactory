@@ -22,7 +22,7 @@
      :display :block}]
    [:&:focus-within :&.filled
     [">label"
-     {:margin-top (em -0.5)
+     {:margin-top (em -0.9)
       :font-size (em 0.6)}]]]
   [:.dropzone
    {:width (px 200)

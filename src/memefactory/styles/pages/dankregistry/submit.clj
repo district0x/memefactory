@@ -100,7 +100,8 @@
       [:.chip-input
        [:.autocomplete-input
         ["input[type=text]"
-         {:padding-top 0}]]]
+         ;; {:padding-top 0}
+         ]]]
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:display :flex
                  :position :relative

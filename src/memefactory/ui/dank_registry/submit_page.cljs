@@ -42,7 +42,7 @@
         max-issuance-s (subscribe [::gql/query {:queries [(param-search-query :max-total-supply)]}])
         form-data (r/atom {})
         errors (reaction {:local (let [{:keys [title issuance file-info]} @form-data
-                                       max-issuance (get-in @max-issuance-s [:search-param-changes :items 0 :param-change/value])]
+                                       max-issuance (get-in @max-issuance-s [:search-param-changes :items 0 :param-change/value] 1)]
                                    (cond-> {:issuance {:hint (str "Max " max-issuance)}}
                                      (empty? title)
                                      (assoc-in [:title :error] "Meme title is mandatory")
@@ -51,7 +51,7 @@
                                      (assoc-in [:file-info :error] "No file selected")
 
                                      (not (try
-                                            (< 0 (js/parseInt issuance) max-issuance)
+                                            (<= 0 (js/parseInt issuance) max-issuance)
                                             (catch js/Error e nil)))
                                      (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-issuance))))})
         critical-errors (reaction (index-by-type @errors :error))]
@@ -79,20 +79,26 @@
            ;; [:div (str (:local @errors))]
            ;; [:div (str @critical-errors)]
 
-           [text-input {:form-data form-data
-                        :placeholder "Title"
+           [with-label "Title"
+            [text-input {:form-data form-data
+                         :errors errors
+                         :id :title}]
+            {:form-data form-data
+             :id :title}]
+           [with-label "Tags"
+            [chip-input {:form-data form-data
+                         :chip-set-path [:search-tags]
+                         :ac-options (->> @all-tags-subs :search-tags :items (mapv :tag/name))
+                         :chip-render-fn (fn [c] [:span c])
+                         :on-change (fn [c])}]
+            {:form-data form-data
+             :id :search-tags}]
+           [with-label "Issuance"
+            [int-input {:form-data form-data
                         :errors errors
-                        :id :title}]
-           [chip-input {:form-data form-data
-                        :chip-set-path [:search-tags]
-                        :placeholder "Tags"
-                        :ac-options (->> @all-tags-subs :search-tags :items (mapv :tag/name))
-                        :chip-render-fn (fn [c] [:span c])
-                        :on-change (fn [c])}]
-           [int-input {:form-data form-data
-                       :placeholder "Issuance"
-                       :errors errors
-                       :id :issuance}]
+                        :id :issuance}]
+            {:form-data form-data
+             :id :issuance}]
            #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
            [:div.submit
             [:button {:on-click (fn []
