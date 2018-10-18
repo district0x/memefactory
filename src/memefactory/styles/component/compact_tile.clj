@@ -8,6 +8,7 @@
    [memefactory.styles.base.fonts :refer [font]]
    [memefactory.styles.base.fonts :refer [font]]
    [memefactory.styles.component.buttons :refer [button]]
+   [memefactory.styles.component.overflow :refer [of-ellipsis]]
    [garden.units :refer [px em pt]]))
 
 (def bar-height (px 50))
@@ -84,7 +85,14 @@
              :position :absolute
              :text-align :center
              :perspective "inherit"}
-     [:hr {:margin (em 1)}]
+     [:hr
+      {:margin (em 1)
+       :border 0
+       :height 0
+       :border-top "1px solid rgba(0, 0, 0, 0.1)"
+       :border-bottom "1px solid rgba(255, 255, 255, 0.3)"
+       }]
+     [:.description {:font-style :italic}]
      [:button
       {:right 0
        :left 0
@@ -99,9 +107,27 @@
                    :padding-left 0
                    :font-size (pt 10)
                    :list-style :none}
-      [:>li {:margin-top (em 1)
-             :margin-bottom (em 1)}]
-      [:label {:font-weight :bold}]
+      [:&:before {:content "''"
+                  :margin-top (em 2)
+                  :height (em 3)
+                  :width (em 3)
+                  :display :block
+                  :margin-right :auto
+                  :margin-left :auto
+                  :right 0
+                  :left 0
+                  :background-size "3em, 3em"
+                  :background-repeat "no-repeat"
+                  :background-image "url(/assets/icons/mf-logo.svg)"}]
+      [:>li
+       (of-ellipsis)
+       {:margin-top (em 0.3)
+        :font-size (em 0.7)
+        :padding-right (em 0.5)
+        :padding-left (em 0.5)
+        :margin-bottom (em 0.3)}]
+      [:label {:font-weight :bold
+               :padding-right (em 0.3)}]
       [:span {:overflow :hidden
               :text-overflow :ellipsis
               :white-space :nowrap}]]]]]

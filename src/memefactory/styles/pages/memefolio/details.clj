@@ -13,7 +13,6 @@
             [memefactory.styles.component.panels :refer [tabs]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
-            [memefactory.styles.component.overflow :refer [of-ellipsis]]
             [clojure.string :as str]))
 
 (defn button-tile-back []
