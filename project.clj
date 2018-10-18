@@ -73,7 +73,7 @@
             [lein-cljsbuild "1.1.7"]
             [lein-figwheel "0.5.16"]
             [lein-shell "0.5.0"]
-            [lein-solc "1.0.1-1"]
+            [lein-solc "1.0.2"]
             [lein-doo "0.1.8"]
             [lein-npm "0.6.2"]
             [lein-pdo "0.1.1"]
@@ -102,7 +102,8 @@
          :solc-err-only true
          :verbose false
          :wc true
-         :contracts :all}
+         :contracts :all
+         :optimize-runs {"ParamChange.sol" 1}}
 
   :source-paths ["src" "test"]
 
