@@ -53,13 +53,11 @@ contract ParamChange is RegistryEntry {
     valueType = EternalDb.Types.UInt;
     originalValue = db.getUIntValue(record);
 
-    var eventData = new uint[](4);
-    eventData[0] = uint(_creator);
-    eventData[1] = uint(db);
-    eventData[2] = RegistryEntryLib.stringToUint(_key);
-    eventData[3] = uint(value);
-
-    registry.fireRegistryEntryEvent("constructed", version, eventData);
+    registry.fireParamChangeConstructedEvent(version,
+                                             _creator,
+                                             db,
+                                             _key,
+                                             value);
   }
 
   /**
@@ -83,8 +81,6 @@ contract ParamChange is RegistryEntry {
     db.setUIntValue(sha3(key), value);
     appliedOn = now;
 
-    /* we listen to EternalDb now */
-    /* registry.fireRegistryEntryEvent("changeApplied", version); */
   }
 
 }
