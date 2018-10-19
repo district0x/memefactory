@@ -15,7 +15,17 @@ import "proxy/MutableForwarder.sol"; // Keep it included despite not being used 
 contract Registry is DSAuth {
   address public target; // Keep it here, because this contract is deployed as MutableForwarder
 
-  event RegistryEntryEvent(address indexed registryEntry, bytes32 indexed eventType, uint version, uint timestamp, uint[] data);
+  event MemeConstructedEvent(uint version, address creator, bytes metaHash, uint totalSupply);
+  event MemeMintedEvent(uint version, address creator, uint tokenStartId, uint tokenEndId, uint totalMinted);
+
+  event ChallengeCreatedEvent(uint version, address challenger, uint commitPeriodEnd, uint revealPeriodEnd, uint rewardPool, bytes metahash);
+  event VoteCommittedEvent(uint version, address voter, uint amount);
+  event VoteRevealedEvent(uint version, address voter, uint option);
+  event VoteAmountClaimedEvent(uint version, address voter);
+  event VoteRewardClaimedEvent(uint version, address voter, uint amount);
+  event ChallengeRewardClaimedEvent(uint version, address voter, uint amount);
+
+  event ParamChangeConstructedEvent(uint version, address creator, address db, string key, uint value);
 
   bytes32 public constant challengePeriodDurationKey = sha3("challengePeriodDuration");
   bytes32 public constant commitPeriodDurationKey = sha3("commitPeriodDuration");
@@ -102,26 +112,67 @@ contract Registry is DSAuth {
     db.setBooleanValue("isEmergency", _isEmergency);
   }
 
-  function fireRegistryEntryEvent(bytes32 _eventType, uint _version)
-  external
-  onlyRegistryEntry
-  {
-    fireRegistryEntryEvent(_eventType, _version, new uint[](0));
-  }
-
-  /**
-   * @dev Fires event related to a registry entry
-   * Must be callable only by valid registry entry
-
-   * @param _eventType String identifying event type
-   * @param _version Version of registry entry contract
-   * @param _data Additional data related to event
-   */
-  function fireRegistryEntryEvent(bytes32 _eventType, uint _version, uint[] _data)
+  function fireMemeConstructedEvent(uint version, address creator, bytes metaHash, uint totalSupply)
   public
   onlyRegistryEntry
   {
-    emit RegistryEntryEvent(msg.sender, _eventType, _version, now, _data);
+    emit MemeConstructedEvent(version, creator, metaHash, totalSupply);
+  }
+
+  function fireMemeMintedEvent(uint version, address creator, uint tokenStartId, uint tokenEndId, uint totalMinted)
+  public
+  onlyRegistryEntry
+  {
+    emit MemeMintedEvent(version, creator, tokenStartId, tokenEndId, totalMinted);
+  }
+
+  function fireChallengeCreatedEvent(uint version, address challenger, uint commitPeriodEnd, uint revealPeriodEnd, uint rewardPool, bytes metahash)
+  public
+  onlyRegistryEntry
+  {
+    emit ChallengeCreatedEvent(version,  challenger, commitPeriodEnd, revealPeriodEnd, rewardPool, metahash);
+  }
+
+  function fireVoteCommittedEvent(uint version, address voter, uint amount)
+  public
+  onlyRegistryEntry
+  {
+    emit VoteCommittedEvent(version, voter, amount);
+  }
+
+  function fireVoteRevealedEvent(uint version, address voter, uint option)
+  public
+  onlyRegistryEntry
+  {
+    emit VoteRevealedEvent(version, voter, option);
+  }
+
+  function fireVoteAmountClaimedEvent(uint version, address voter)
+  public
+  onlyRegistryEntry
+  {
+    emit VoteAmountClaimedEvent(version, voter);
+  }
+
+  function fireVoteRewardClaimedEvent(uint version, address voter, uint amount)
+  public
+  onlyRegistryEntry
+  {
+    emit VoteRewardClaimedEvent(version, voter, amount);
+  }
+
+  function fireChallengeRewardClaimedEvent(uint version, address voter, uint amount)
+  public
+  onlyRegistryEntry
+  {
+    emit ChallengeRewardClaimedEvent(version, voter, amount);
+  }
+
+  function fireParamChangeConstructedEvent(uint version, address creator, address db, string key, uint value)
+  public
+  onlyRegistryEntry
+  {
+    emit ParamChangeConstructedEvent(version, creator, db, key, value);
   }
 
   /**

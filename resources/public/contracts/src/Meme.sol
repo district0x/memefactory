@@ -48,12 +48,10 @@ contract Meme is RegistryEntry {
     totalSupply = _totalSupply;
     metaHash = _metaHash;
 
-    uint[] memory eventData = new uint[](3);
-    eventData[0] = uint(_creator);
-    eventData[1] = RegistryEntryLib.bytesToUint(metaHash);
-    eventData[2] = uint(totalSupply);
-
-    registry.fireRegistryEntryEvent("constructed", version, eventData);
+    registry.fireMemeConstructedEvent(version,
+                                      _creator,
+                                      metaHash,
+                                      totalSupply);
   }
 
   /**
@@ -68,8 +66,6 @@ contract Meme is RegistryEntry {
     require(!challenge.wasChallenged());
     require(registryToken.transfer(districtConfig.depositCollector(), deposit));
 
-    /* TODO: needed? */
-    /* registry.fireRegistryEntryEvent("depositTransferred", version); */
   }
 
   function mint(uint _amount)
@@ -91,13 +87,11 @@ contract Meme is RegistryEntry {
       totalMinted = totalMinted + 1;
     }
 
-    uint[] memory eventData = new uint[](4);
-    eventData[0] = uint(creator);
-    eventData[1] = tokenIdStart;
-    eventData[2] = tokenIdEnd - 1;
-    eventData[3] = totalMinted;
-
-    registry.fireRegistryEntryEvent("minted", version, eventData);
+    registry.fireMemeMintedEvent(version,
+                                 creator,
+                                 tokenIdStart,
+                                 tokenIdEnd-1,
+                                 totalMinted);
   }
 
 }

@@ -66,8 +66,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     creator = _creator;
     version = _version;
-
-    /* registry.fireRegistryEntryEvent("constructed", version); */
   }
 
   /**
@@ -101,14 +99,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.rewardPool = uint(100).sub(registry.db().getUIntValue(registry.challengeDispensationKey())).mul(deposit).div(uint(100));
     challenge.metaHash = _challengeMetaHash;
 
-    uint[] memory eventData = new uint[](5);
-    eventData[0] = uint(challenge.challenger);
-    eventData[1] = uint(challenge.commitPeriodEnd);
-    eventData[2] = uint(challenge.revealPeriodEnd);
-    eventData[3] = uint(challenge.rewardPool);
-    eventData[4] = RegistryEntryLib.bytesToUint(challenge.metaHash);
-
-    registry.fireRegistryEntryEvent("challengeCreated", version, eventData);
+    registry.fireChallengeCreatedEvent(version,
+                                       challenge.challenger,
+                                       challenge.commitPeriodEnd,
+                                       challenge.revealPeriodEnd,
+                                       challenge.rewardPool,
+                                       challenge.metaHash);
   }
 
   /**
@@ -137,10 +133,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
     challenge.vote[_voter].secretHash = _secretHash;
     challenge.vote[_voter].amount += _amount;
 
-    var eventData = new uint[](2);
-    eventData[0] = uint(_voter);
-    eventData[1] = uint(challenge.vote[_voter].amount);
-    registry.fireRegistryEntryEvent("voteCommitted", version, eventData);
+    registry.fireVoteCommittedEvent(version,
+                                    _voter,
+                                    challenge.vote[_voter].amount);
   }
 
   /**
@@ -177,10 +172,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
       revert();
     }
 
-    var eventData = new uint[](2);
-    eventData[0] = uint(_voter);
-    eventData[1] = uint(challenge.vote[_voter].option);
-    registry.fireRegistryEntryEvent("voteRevealed", version, eventData);
+    registry.fireVoteRevealedEvent(version,
+                                   _voter,
+                                   uint(challenge.vote[_voter].option));
   }
 
   /**
@@ -208,10 +202,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     challenge.vote[_voter].reclaimedVoteAmountOn = now;
 
-    var eventData = new uint[](1);
-    eventData[0] = uint(_voter);
-
-    registry.fireRegistryEntryEvent("voteAmountReclaimed", version, eventData);
+    registry.fireVoteAmountClaimedEvent(version, _voter);
   }
 
   /**
@@ -244,10 +235,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(registryToken.transfer(_voter, reward));
     challenge.vote[_voter].claimedRewardOn = now;
 
-    var eventData = new uint[](2);
-    eventData[0] = uint(_voter);
-    eventData[1] = uint(reward);
-    registry.fireRegistryEntryEvent("voteRewardClaimed", version, eventData);
+    registry.fireVoteRewardClaimedEvent(version,
+                                        _voter,
+                                        reward);
   }
 
   /**
@@ -266,11 +256,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     challenge.claimedRewardOn = now;
 
-    var eventData = new uint[](2);
-    eventData[0] = uint(challenge.challenger);
-    eventData[1] = uint(challenge.challengeReward(deposit));
-
-    registry.fireRegistryEntryEvent("challengeRewardClaimed", version, eventData);
+    registry.fireChallengeRewardClaimedEvent(version,
+                                             challenge.challenger,
+                                             challenge.challengeReward(deposit));
   }
 
   /**
