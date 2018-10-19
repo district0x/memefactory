@@ -24,6 +24,12 @@
     [">label"
      {:margin-top (em -0.9)
       :font-size (em 0.6)}]]]
+  [:.labeled-input-group.tall-version
+   [">label"
+    {:margin-top (em 1.4)}]
+   [:&:focus-within :&.filled
+    [">label"
+     {:margin-top (em -0.9)}]]]
   [:.dropzone
    {:width (px 200)
     :height (px 200)
