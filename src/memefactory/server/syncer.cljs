@@ -24,7 +24,8 @@
             [mount.core :as mount :refer [defstate]]
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]
-            [memefactory.server.ipfs]))
+            [memefactory.server.ipfs]
+            [clojure.string :as str]))
 
 (declare start)
 (declare stop)
@@ -70,44 +71,51 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- add-registry-entry [registry-entry timestamp]
-  (db/insert-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
-                                    (registry-entry/load-registry-entry-challenge registry-entry)
+  (db/insert-registry-entry! (merge registry-entry
                                     {:reg-entry/created-on timestamp})))
 
-(defn- add-param-change [registry-entry]
-  (let [{:keys [:param-change/key :param-change/db] :as param-change} (param-change/load-param-change registry-entry)
-        {:keys [:initial-param/value] :as initial-param} (db/get-initial-param key db)]
+(defn- add-param-change [{:keys [:param-change/key :param-change/db] :as param-change}]
+  (let [{:keys [:initial-param/value] :as initial-param} (db/get-initial-param key db)]
     (db/insert-or-replace-param-change! (assoc param-change :param-change/initial-value value))))
 
 
 (defmulti process-event (fn [contract-type ev] [contract-type (:event-type ev)]))
 
 (defmethod process-event [:contract/meme :constructed]
-  [contract-type {:keys [:registry-entry :timestamp] :as ev}]
+  [contract-type {:keys [:registry-entry :timestamp :creator :meta-hash
+                         :total-supply :version :deposit :challenge-period-end] :as ev}]
   (try-catch
-   (add-registry-entry registry-entry timestamp)
-   (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
-         {:keys [:meme/meta-hash] :as meme} (meme/load-meme registry-entry)]
-     (.then (get-ipfs-meta meta-hash {:title "Dummy meme title"
-                                      :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
-                                      :search-tags nil})
-            (fn [meme-meta]
-              (let [{:keys [title image-hash search-tags]} meme-meta]
-                (db/insert-meme! (merge meme
-                                        {:meme/image-hash image-hash
-                                         :meme/title title}))
-                (when search-tags
-                  (doseq [t search-tags]
-                    (db/tag-meme! (:reg-entry/address meme) t)))
-
-                (db/update-user! {:user/address creator})))))))
+   (let [registry-entry-data {:reg-entry/address registry-entry
+                              :reg-entry/creator creator
+                              :reg-entry/version version
+                              :reg-entry/created-on timestamp
+                              :reg-entry/deposit (bn/number deposit)
+                              :reg-entry/challenge-period-end (bn/number challenge-period-end)}
+         meme {:reg-entry/address registry-entry
+               :meme/meta-hash (web3/to-ascii meta-hash)
+               :meme/total-supply (bn/number total-supply)
+               :meme/total-minted 0}]
+     (add-registry-entry registry-entry-data timestamp)
+     (let [{:keys [:meme/meta-hash]} meme]
+       (.then (get-ipfs-meta meta-hash {:title "Dummy meme title"
+                                        :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
+                                        :search-tags nil})
+              (fn [meme-meta]
+                (let [{:keys [title image-hash search-tags]} meme-meta]
+                  (db/insert-meme! (merge meme
+                                          {:meme/image-hash image-hash
+                                           :meme/title title}))
+                  (when search-tags
+                    (doseq [t search-tags]
+                      (db/tag-meme! (:reg-entry/address meme) t))))))))))
 
 
 (defmethod process-event [:contract/param-change :constructed]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
   (try-catch
    (add-registry-entry registry-entry timestamp)
-   (add-param-change registry-entry)))
+   ;; TODO Fix this call
+   (add-param-change {})))
 
 (defmethod process-event [:contract/param-change :change-applied]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
@@ -118,10 +126,11 @@
 (defmethod process-event [:contract/registry-entry :challenge-created]
   [_ {:keys [:registry-entry :timestamp] :as ev}]
   (try-catch
-   (let [challenge (registry-entry/load-registry-entry-challenge registry-entry)]
+   (let [challenge  nil      ;; TODO Fix get challenge data from event
+         registry-entry nil] ;; get registry entry from db
      (.then (get-ipfs-meta (:challenge/meta-hash challenge) {:comment "Dummy comment"})
             (fn [challenge-meta]
-              (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
+              (db/update-registry-entry! (merge registry-entry
                                                 challenge
                                                 {:challenge/created-on timestamp
                                                  :challenge/comment (:comment challenge-meta)}))
@@ -131,22 +140,23 @@
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
   (try-catch
    (let [voter (web3-utils/uint->address (first data))
-         vote (registry-entry/load-vote registry-entry voter)]
+         vote nil] ;; TODO Fix get vote info from event
      (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
 (defmethod process-event [:contract/registry-entry :vote-revealed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
   (try-catch
-   (let [voter (web3-utils/uint->address (first data))]
-     (db/update-registry-entry! (merge (registry-entry/load-registry-entry registry-entry)
-                                       (registry-entry/load-registry-entry-challenge registry-entry)))
-     (db/update-vote! (registry-entry/load-vote registry-entry voter)))))
+   (let [voter (web3-utils/uint->address (first data))
+         vote nil            ;; get vote data from event
+         registry-entry nil] ;; TODO Fix get updated registry entry data from event
+     (db/update-registry-entry! registry-entry)
+     (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :vote-reward-claimed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
   (try-catch
    (let [voter (web3-utils/uint->address (first data))
-         vote (registry-entry/load-vote registry-entry voter)
+         vote nil ;; TODO Fix get new vote data from event
          reward (second data)]
      (db/update-vote! vote)
      (db/inc-user-field! voter :user/voter-total-earned (bn/number reward)))))
@@ -155,15 +165,14 @@
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
   (try-catch
    (let [voter (web3-utils/uint->address (first data))
-         vote (registry-entry/load-vote registry-entry voter)]
+         vote nil ] ;; TODO Fix get vote data from event that needs to be updated
      (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :challenge-reward-claimed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
   (try-catch
-   (let [{:keys [:challenge/challenger :reg-entry/deposit] :as reg-entry}
-         (merge (registry-entry/load-registry-entry registry-entry)
-                (registry-entry/load-registry-entry-challenge registry-entry))]
+   (let [reg-entry nil ;; TODO Fix get this info from event
+         {:keys [:challenge/challenger :reg-entry/deposit]} reg-entry]
 
      (db/update-registry-entry! reg-entry)
      (db/inc-user-field! (:challenge/challenger reg-entry) :user/challenger-total-earned deposit))))
@@ -193,7 +202,8 @@
 (defmethod process-event [:contract/meme-auction :auction-started]
   [_ {:keys [:meme-auction :timestamp :data] :as ev}]
   (try-catch
-   (db/insert-or-update-meme-auction! (meme-auction/load-meme-auction meme-auction))))
+   (let [meme-auction nil] ;; TODO Fix get this from event
+     (db/insert-or-update-meme-auction! meme-auction))))
 
 (defmethod process-event [:contract/meme-auction :buy]
   [_ {:keys [:meme-auction :timestamp :data] :as ev}]
@@ -201,7 +211,7 @@
    (let [[buyer price] data
          price (bn/number price)
          {reg-entry-address :reg-entry/address
-          auction-address :meme-auction/address} (meme-auction/load-meme-auction meme-auction)]
+          auction-address :meme-auction/address} nil] ;; TODO Fix, get this info from event
      (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
                                        :amount price})
      (db/insert-or-update-meme-auction! {:meme-auction/address auction-address
@@ -293,3 +303,24 @@
 (defn stop [syncer]
   (doseq [filter (remove nil? @syncer)]
     (web3-eth/stop-watching! filter (fn [err]))))
+
+;; for (uint i = 0; i < 32; i++) {
+;;             b[i] = byte(uint8(x / (2**(8*(31 - i)))));
+;;         }
+
+
+;; (defn uint->bytes [uint-bn]
+;;   (->> (map (fn [i]
+;;               (let [hex (-> (bn/div-to-int uint-bn
+;;                                            (bn/pow (web3/to-big-number 2) (* 8 (- 31 i))))
+;;                             (.toString 16))]
+;;                 (-> (subs hex (- (count hex) 2))
+;;                     (js/parseInt 16))))
+;;             (range 0 32))
+;;        (apply js/String.fromCharCode)))
+
+;; (uint->bytes (web3/to-big-number "5.4493935368480931894975801525381113978709950010311913582966553752998353590377e+76"))
+
+
+;; "0x                            787a7972707776665843715567706b38655052437a716663674e553854445869"
+;; "0x516d655778787936464463333371787a7972707776665843715567706b38655052437a716663674e553854445869" <- (web3/from-ascii "QmeWxxy6FDc33qxzyrpwvfXCqUgpk8ePRCzqfcgNU8TDXi")

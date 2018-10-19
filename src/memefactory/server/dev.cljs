@@ -186,7 +186,6 @@
                                  :status
                                  graphql-utils/gql-name->kw
                                  name)
-               :blockchain-status (name (:reg-entry/status (registry-entry/load-registry-entry address)))
                :v+ (:challenge/votes-for r)
                :v- (:challenge/votes-against r)
                :v? (count (filter #(and (pos? (:vote/amount %))

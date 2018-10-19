@@ -113,8 +113,8 @@
                                                                          {:meta-hash meta-hash
                                                                           :amount deposit}
                                                                          {:from account})
-
-                            (when-not (= :scenario/challenge scenario-type)
+                            ;; TODO FIX THIS
+                            #_(when-not (= :scenario/challenge scenario-type)
                               (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
                                     balance (dank-token/balance-of creator)]
 
