@@ -18,16 +18,6 @@
   [contract-addr]
   (parse-status (contract-call [:meme contract-addr] :status)))
 
-(defn load-registry-entry [contract-addr]
-  (parse-load-registry-entry
-    contract-addr
-    (contract-call (instance :meme contract-addr) :load-registry-entry)))
-
-(defn load-registry-entry-challenge [contract-addr]
-  (parse-load-registry-entry-challenge
-    contract-addr
-    (contract-call (instance :meme contract-addr) :load-registry-entry-challenge)))
-
 (defn create-challenge [contract-addr {:keys [:challenger :meta-hash]} & [opts]]
   (contract-call (instance :meme contract-addr) :create-challenge challenger meta-hash (merge {:gas 1200000} opts)))
 
@@ -65,12 +55,6 @@
 
 (defn reclaim-vote-amount [contract-addr & [opts]]
   (contract-call (instance :meme contract-addr) :reclaim-vote-amount (:from opts) (merge {:gas 500000} opts)))
-
-(defn load-vote [contract-addr voter-address]
-  (parse-load-vote
-    contract-addr
-    voter-address
-    (contract-call (instance :meme contract-addr) :load-vote voter-address)))
 
 (defn vote-reward [contract-addr voter-address]
   (contract-call (instance :meme contract-addr) :vote-reward voter-address))

@@ -106,7 +106,7 @@ contract MemeAuction is ERC721Receiver {
   }
 
   function onERC721Received(address _from, uint256 _tokenId, bytes _data)
-  public  
+  public
   notEmergency
   returns (bytes4)
   {
@@ -186,29 +186,10 @@ contract MemeAuction is ERC721Receiver {
   /// @dev Computes owner's cut of a sale.
   /// @param _price - Sale price of NFT.
   function computeCut(uint256 _price)
-    public    
+    public
     constant
     returns (uint256) {
     return _price.mul(districtConfig.memeAuctionCut()).div(10000);
-  }
-
-  /**
-   * @dev Returns all state related to this contract for simpler offchain access
-   */
-  function loadMemeAuction()
-    external
-    constant
-    returns (address, uint, uint, uint, uint, uint, address, string) {
-    return (
-    seller,
-    tokenId,
-    startPrice,
-    endPrice,
-    duration,
-    startedOn,
-    memeToken.tokenURI(tokenId),
-    description
-    );
   }
 
   function() public payable {
