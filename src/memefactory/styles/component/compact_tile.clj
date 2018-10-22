@@ -101,8 +101,15 @@
        :position "absolute"}
       (button {:background-color :meme-buy-button
                :color :light-light-grey})
-      [:&:after {:content ;;"&#8594;"
-                 "' →'"}]]
+      [:&:after {:content "' '";;"&#8594;" "' →'"
+                 :height (em 1)
+                 :width (em 1)
+                 :display :inline-block
+                 :background-position "0 0.3em"
+                 :margin-left (em 1)
+                 :background-size "1em, 1em"
+                 :background-repeat "no-repeat"
+                 :background-image "url(/assets/icons/arrow-white-right.svg)"}]]
      [:.meme-data {:text-align :center
                    :padding-left 0
                    :font-size (pt 10)
