@@ -74,14 +74,15 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] dankregistry/submit no user feedback when non .png file is rejected
 - [ ] dankregistry/submit always shows 0 DANK y submit button
 - [X] Collect challenge and collect vote rewords separately                                                   (Juan)
+- [ ] Add UI logging (on error send requests to production logging facilities)                                (Filip)
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
 
 
 ** Server todos
-- [ ] make memefactory.server.utils/time_source a config module variable like the rest of them                ()
 - [ ] cors OPTIONS for preflight requests non accepted
 - [X] add logging (with sentry)                                                                               (Filip)
+- [ ] make memefactory.server.utils/time_source a config module variable like the rest of them                (Filip)
 
 ** Smart contracts todos
