@@ -75,7 +75,7 @@
      :position :relative
      ;; :color (color :section-caption)
      :font-size (px 25)
-     :margin-top (em 0.3)
+     :margin-top (em 0.5)
      :margin-bottom (em 0.1)
      :text-align :center}]
    [:h3.title
@@ -153,6 +153,8 @@
     (for-media-max :tablet
                    [:.more {:background-color (color :random-meme-icon-bg)}])
     [:.icon {:background-color (color :blue)
+             :background-position-x (em 0.75)
+             :background-position-y (em 0.70)
              :background-image (str "url('/assets/icons/memesubmiticon.svg')")}]
     [:h2.title {:color (color :blue)}]]
    ])

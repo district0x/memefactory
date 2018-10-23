@@ -143,7 +143,7 @@
     :outline "0px"
     :border "0px"
     :padding-top "0.65em"
-    ;; :padding-left "0.7em"
+    :padding-left "0.7em"
     :padding-bottom "0.35em"
     :color (color :menu-text)
 
