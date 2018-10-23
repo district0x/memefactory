@@ -69,11 +69,13 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] When opening page at memefolio/index doesn show Collected until you switch to other tab and back        (Juan)
 - [ ] Sell functionality, duration should be less than is not showing                                         (Juan)
 - [X] Collect challenge and collect vote rewords separately                                                   (Juan)
+- [ ] Add UI logging (on error send requests to production logging facilities)                                (Filip)
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
 
 ** Server todos
-- [ ] make memefactory.server.utils/time_source a config module variable like the rest of them                ()
+- [ ] add logging (with sentry)                                                                               (Filip)
+- [ ] make memefactory.server.utils/time_source a config module variable like the rest of them                (Filip)
 
 ** Smart contracts todos
