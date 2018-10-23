@@ -88,7 +88,8 @@
    [:a.more {:position :absolute
              :top (em 2)
              :color (color :section-subcaption)
-             :right (em 2)}
+             :text-decoration :underline
+             :right (em 6)}
     (for-media-max :tablet
                    [:&
                     (font :bungee)
@@ -104,8 +105,16 @@
                      :border-radius "0 0 1em 1em"
                      :text-align :center
                      :left (px 0)}])
-    [:&:after {:content "'>'"
-               :margin-left (em 1)
+    [:&:after {;;:content "'>'"
+               :content "''"
+               ;; :background-position-x (em 1)
+               :background-position-y (em 0.4)
+               :background-size [(em 0.4) (em 0.4)]
+               :background-repeat :no-repeat
+               :height (em 1)
+               :width (em 1)
+               :background-image (str "url('/assets/icons/chevron-right.svg')")
+               :margin-left (em 0.7)
                :color (color :pink)
                :display :inline-block}]]
    [:.icon
