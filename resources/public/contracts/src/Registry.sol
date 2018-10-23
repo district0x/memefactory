@@ -23,7 +23,7 @@ contract Registry is DSAuth {
   event VoteRevealedEvent(address registryEntry, uint version, address voter, uint option);
   event VoteAmountClaimedEvent(address registryEntry, uint version, address voter);
   event VoteRewardClaimedEvent(address registryEntry, uint version, address voter, uint amount);
-  event ChallengeRewardClaimedEvent(address registryEntry, uint version, address voter, uint amount);
+  event ChallengeRewardClaimedEvent(address registryEntry, uint version, address challenger, uint amount);
 
   event ParamChangeConstructedEvent(address registryEntry, uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd);
 
@@ -161,11 +161,11 @@ contract Registry is DSAuth {
     emit VoteRewardClaimedEvent(msg.sender, version, voter, amount);
   }
 
-  function fireChallengeRewardClaimedEvent(uint version, address voter, uint amount)
+  function fireChallengeRewardClaimedEvent(uint version, address challenger, uint amount)
   public
   onlyRegistryEntry
   {
-    emit ChallengeRewardClaimedEvent(msg.sender, version, voter, amount);
+    emit ChallengeRewardClaimedEvent(msg.sender, version, challenger, amount);
   }
 
   function fireParamChangeConstructedEvent(uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd)
