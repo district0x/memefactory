@@ -54,7 +54,11 @@ contract MemeAuction is ERC721Receiver {
     endPrice = _endPrice;
     duration = _duration;
     startedOn = now;
-    memeAuctionFactory.fireMemeAuctionEvent("auctionStarted");
+    memeAuctionFactory.fireMemeAuctionStartedEvent(tokenId,
+                                                   seller,
+                                                   startPrice,
+                                                   endPrice,
+                                                   duration);
   }
 
   /**
@@ -87,12 +91,10 @@ contract MemeAuction is ERC721Receiver {
     }
     memeToken.safeTransferFrom(this, msg.sender, tokenId);
 
-    var eventData = new uint[](4);
-    eventData[0] = uint(msg.sender);
-    eventData[1] = price;
-    eventData[2] = auctioneerCut;
-    eventData[3] = sellerProceeds;
-    memeAuctionFactory.fireMemeAuctionEvent("buy", eventData);
+    memeAuctionFactory.fireMemeAuctionBuyEvent(msg.sender,
+                                               price,
+                                               auctioneerCut,
+                                               sellerProceeds);
   }
 
   function cancel()
@@ -102,7 +104,7 @@ contract MemeAuction is ERC721Receiver {
     require(msg.sender == seller, "MemeAuction: Can't cancel because sender is not seller");
 
     memeToken.safeTransferFrom(this, seller, tokenId);
-    memeAuctionFactory.fireMemeAuctionEvent("canceled");
+    memeAuctionFactory.fireMemeAuctionCanceledEvent();
   }
 
   function onERC721Received(address _from, uint256 _tokenId, bytes _data)

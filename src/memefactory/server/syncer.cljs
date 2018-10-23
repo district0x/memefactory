@@ -135,7 +135,8 @@
    (add-param-change registry-entry)))
 
 (defmethod process-event [:contract/registry-entry :challenge-created]
-  [_ {:keys [:registry-entry :challenger :commit-period-end :reveal-period-end :reward-pool :metahash :timestamp] :as ev}]
+  [_ {:keys [:registry-entry :challenger :commit-period-end
+             :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (try-catch
    (let [challenge {:reg-entry/address registry-entry
                     :challenge/challenger challenger
@@ -143,7 +144,8 @@
                     :challenge/reveal-period-end (bn/number reveal-period-end)
                     :challenge/reward-pool (bn/number reward-pool)
                     :challenge/meta-hash (web3/to-ascii metahash)}
-         registry-entry {:reg-entry/address registry-entry}]
+         registry-entry {:reg-entry/address registry-entry
+                         :reg-entry/version version}]
      (.then (get-ipfs-meta (:challenge/meta-hash challenge) {:comment "Dummy comment"})
             (fn [challenge-meta]
               (db/update-registry-entry! (merge registry-entry
@@ -153,62 +155,67 @@
               (db/update-user! {:user/address challenger}))))))
 
 (defmethod process-event [:contract/registry-entry :vote-committed]
-  [_ {:keys [:registry-entry :timestamp :data] :as ev}]
+  [_ {:keys [:registry-entry :timestamp :voter :amount] :as ev}]
   (try-catch
    (let [voter (web3-utils/uint->address (first data))
-         vote nil] ;; TODO Fix get vote info from event
+         vote {:reg-entry/address registry-entry
+               :vote/voter voter
+               :vote/amount (bn/number amount)}]
      (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
 (defmethod process-event [:contract/registry-entry :vote-revealed]
-  [_ {:keys [:registry-entry :timestamp :data] :as ev}]
+  [_ {:keys [:registry-entry :timestamp :version :voter :option] :as ev}]
   (try-catch
-   (let [voter (web3-utils/uint->address (first data))
-         vote nil            ;; get vote data from event
-         registry-entry nil] ;; TODO Fix get updated registry entry data from event
+   (let [vote {:reg-entry/address registry-entry
+               :vote/voter voter
+               :vote/option option}
+         registry-entry {reg-entry/address registry-entry
+                         :reg-entry/version version}]
      (db/update-registry-entry! registry-entry)
      (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :vote-reward-claimed]
-  [_ {:keys [:registry-entry :timestamp :data] :as ev}]
+  [_ {:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (try-catch
-   (let [voter (web3-utils/uint->address (first data))
-         vote nil ;; TODO Fix get new vote data from event
-         reward (second data)]
+   (let [vote {:reg-entry/address registry-entry
+               :vote/voter voter
+               :vote/amount (bn/number amount)}]
      (db/update-vote! vote)
-     (db/inc-user-field! voter :user/voter-total-earned (bn/number reward)))))
+     (db/inc-user-field! voter :user/voter-total-earned (bn/number amount)))))
 
 (defmethod process-event [:contract/registry-entry :vote-amount-reclaimed]
-  [_ {:keys [:registry-entry :timestamp :data] :as ev}]
+  [_ {:keys [:registry-entry :timestamp :version :voter] :as ev}]
   (try-catch
-   (let [voter (web3-utils/uint->address (first data))
-         vote nil ] ;; TODO Fix get vote data from event that needs to be updated
+   (let [vote {:reg-entry/address registry-entry
+               :vote/voter voter}]
      (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :challenge-reward-claimed]
-  [_ {:keys [:registry-entry :timestamp :data] :as ev}]
+  [_ {:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
   (try-catch
-   (let [reg-entry nil ;; TODO Fix get this info from event
+   (let [reg-entry nil
          {:keys [:challenge/challenger :reg-entry/deposit]} reg-entry]
 
-     (db/update-registry-entry! reg-entry)
-     (db/inc-user-field! (:challenge/challenger reg-entry) :user/challenger-total-earned deposit))))
+     (db/update-registry-entry! {:reg-entry/address registry-entry
+                                 :challenge/claimed-reward-on timestamp
+                                 :challenge/reward-amount (bn/number amount)})
+     (db/inc-user-field! challenger :user/challenger-total-earned (bn/number amount)))))
 
 (defmethod process-event [:contract/meme :minted]
-  [_ {:keys [:registry-entry :timestamp :data] :as ev}]
+  [_ {:keys [:registry-entry :timestamp :version :creator :token-start-id :token-end-id :total-minted] :as ev}]
   (try-catch
-   (let [[creator token-id-start token-id-end total-minted] data
-         timestamp (bn/number timestamp)
-         token-id-start (bn/number token-id-start)
-         token-id-end (bn/number token-id-end)
+   (let [timestamp timestamp
+         token-start-id (bn/number token-start-id)
+         token-end-id (bn/number token-end-id)
          total-minted (bn/number total-minted)]
 
-     (db/insert-meme-tokens! {:token-id-start token-id-start
-                              :token-id-end token-id-end
+     (db/insert-meme-tokens! {:token-id-start token-start-id
+                              :token-id-end token-end-id
                               :reg-entry/address registry-entry})
 
-     (doseq [tid (range token-id-start (inc token-id-end))]
+     (doseq [tid (range token-start-id (inc token-end-id))]
        (db/insert-or-replace-meme-token-owner {:meme-token/token-id tid
-                                               :meme-token/owner (web3/to-hex creator)
+                                               :meme-token/owner creator
                                                :meme-token/transferred-on timestamp}))
 
      (db/update-meme-first-mint-on! registry-entry timestamp)
@@ -216,24 +223,26 @@
      (db/update-meme-total-minted! registry-entry total-minted))))
 
 (defmethod process-event [:contract/meme-auction :auction-started]
-  [_ {:keys [:meme-auction :timestamp :data] :as ev}]
+  [_ {:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price :duration] :as ev}]
   (try-catch
-   (let [meme-auction nil] ;; TODO Fix get this from event
+   (let [meme-auction {:meme-auction/address meme-auction
+                       :meme-auction/token-id (bn/number token-id)
+                       :meme-auction/seller seller
+                       :meme-auction/start-price (bn/number start-price)
+                       :meme-auction/end-price (bn/number end-price)
+                       :meme-auction/duration (bn/number duration)}]
      (db/insert-or-update-meme-auction! meme-auction))))
 
 (defmethod process-event [:contract/meme-auction :buy]
-  [_ {:keys [:meme-auction :timestamp :data] :as ev}]
+  [_ {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (try-catch
-   (let [[buyer price] data
-         price (bn/number price)
-         {reg-entry-address :reg-entry/address
-          auction-address :meme-auction/address} nil] ;; TODO Fix, get this info from event
-     (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
+   (let [reg-entry-address nil] ;; TODO Fix retrieve from db
+     #_(db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
                                        :amount price})
-     (db/insert-or-update-meme-auction! {:meme-auction/address auction-address
-                                         :meme-auction/bought-for price
+     (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
+                                         :meme-auction/bought-for (bn/number price)
                                          :meme-auction/bought-on timestamp
-                                         :meme-auction/buyer (web3-utils/uint->address buyer)}))))
+                                         :meme-auction/buyer buyer}))))
 
 (defmethod process-event [:contract/meme-token :transfer]
   [_ ev]
