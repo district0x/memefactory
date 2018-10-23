@@ -54,10 +54,10 @@
 
 
 (defn deploy-meme-registry! [default-opts]
-  (deploy-smart-contract! :meme-registry (merge default-opts {:gas 1500000 #_1000000})))
+  (deploy-smart-contract! :meme-registry (merge default-opts {:gas 2000000 #_1000000})))
 
 (defn deploy-param-change-registry! [default-opts]
-  (deploy-smart-contract! :param-change-registry (merge default-opts {:gas 1700000})))
+  (deploy-smart-contract! :param-change-registry (merge default-opts {:gas 2500000})))
 
 (defn deploy-meme-registry-fwd! [default-opts]
   (deploy-smart-contract! :meme-registry-fwd (merge default-opts {:gas 500000

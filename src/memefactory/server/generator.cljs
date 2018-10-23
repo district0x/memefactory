@@ -103,7 +103,7 @@
                                                                            :amount deposit}
                                                                           {:from account})]
 
-                        (when-not (= :scenario/create scenario-type)
+                        #_(when-not (= :scenario/create scenario-type)
                           (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx tx-hash)]
 
                             (when-not registry-entry
@@ -114,7 +114,7 @@
                                                                           :amount deposit}
                                                                          {:from account})
                             ;; TODO FIX THIS
-                            #_(when-not (= :scenario/challenge scenario-type)
+                            (when-not (= :scenario/challenge scenario-type)
                               (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
                                     balance (dank-token/balance-of creator)]
 
@@ -167,7 +167,7 @@
                                       :param-changes/use-accounts
                                       :param-changes/items-per-account
                                       :param-changes/scenarios]}]
-  (let [[deposit challenge-period-duration] (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
+#_  (let [[deposit challenge-period-duration] (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
                                                  (map bn/number))]
     (doseq [[account {:keys [:scenario-type :param-change-db]}] (get-scenarios {:accounts accounts
                                                                                 :use-accounts use-accounts

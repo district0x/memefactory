@@ -51,7 +51,9 @@ contract Meme is RegistryEntry {
     registry.fireMemeConstructedEvent(version,
                                       _creator,
                                       metaHash,
-                                      totalSupply);
+                                      totalSupply,
+                                      deposit,
+                                      challenge.challengePeriodEnd);
   }
 
   /**
