@@ -25,7 +25,8 @@
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]
             [memefactory.server.ipfs]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [memefactory.server.utils :as server-utils]))
 
 (declare start)
 (declare stop)
@@ -82,18 +83,21 @@
 (defmulti process-event (fn [contract-type ev] [contract-type (:event-type ev)]))
 
 (defmethod process-event [:contract/meme :constructed]
-  [contract-type {:keys [:registry-entry :timestamp :data] :as ev}]
+  [contract-type {:keys [:registry-entry :timestamp :creator :meta-hash
+                         :total-supply :version :deposit :challenge-period-end] :as ev}]
   (try-catch
-   (let [[creator-bn meta-hash-bn total-supply-bn] data
-         registry-entry-data {:reg-entry/address registry-entry
-                              :reg-entry/creator (web3/from-decimal creator-bn)}
+   (let [registry-entry-data {:reg-entry/address registry-entry
+                              :reg-entry/creator creator
+                              :reg-entry/version version
+                              :reg-entry/created-on timestamp
+                              :reg-entry/deposit (bn/number deposit)
+                              :reg-entry/challenge-period-end (bn/number challenge-period-end)}
          meme {:reg-entry/address registry-entry
-               :meme/meta-hash (web3/to-hex meta-hash-bn)
-               :meme/total-supply (bn/number total-supply-bn)}]
-     (log/info "Got reg entry" registry-entry-data)
-     (log/info "Got meme" meme)
-     #_(add-registry-entry registry-entry-data timestamp)
-     #_(let [{:keys [:meme/meta-hash]} meme] ;; TODO Fix get this data from event
+               :meme/meta-hash (web3/to-ascii meta-hash)
+               :meme/total-supply (bn/number total-supply)
+               :meme/total-minted 0}]
+     (add-registry-entry registry-entry-data timestamp)
+     (let [{:keys [:meme/meta-hash]} meme]
        (.then (get-ipfs-meta meta-hash {:title "Dummy meme title"
                                         :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
                                         :search-tags nil})
@@ -108,11 +112,21 @@
 
 
 (defmethod process-event [:contract/param-change :constructed]
-  [contract-type {:keys [:registry-entry :timestamp] :as ev}]
+  [contract-type {:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp] :as ev}]
   (try-catch
-   (add-registry-entry registry-entry timestamp)
+   (add-registry-entry {:reg-entry/address registry-entry
+                        :reg-entry/creator creator
+                        :reg-entry/version version
+                        :reg-entry/created-on timestamp
+                        :reg-entry/deposit (bn/number deposit)
+                        :reg-entry/challenge-period-end (bn/number challenge-period-end)}
+                       timestamp)
    ;; TODO Fix this call
-   (add-param-change {})))
+   (add-param-change {:reg-entry/address registry-entry
+                      :param-change/db db
+                      :param-change/key key
+                      :param-change/value (bn/number value)
+                      :param-change/initial-value nil})))
 
 (defmethod process-event [:contract/param-change :change-applied]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
@@ -121,17 +135,22 @@
    (add-param-change registry-entry)))
 
 (defmethod process-event [:contract/registry-entry :challenge-created]
-  [_ {:keys [:registry-entry :timestamp] :as ev}]
+  [_ {:keys [:registry-entry :challenger :commit-period-end :reveal-period-end :reward-pool :metahash :timestamp] :as ev}]
   (try-catch
-   (let [challenge  nil      ;; TODO Fix get challenge data from event
-         registry-entry nil] ;; get registry entry from db
+   (let [challenge {:reg-entry/address registry-entry
+                    :challenge/challenger challenger
+                    :challenge/commit-period-end (bn/number commit-period-end)
+                    :challenge/reveal-period-end (bn/number reveal-period-end)
+                    :challenge/reward-pool (bn/number reward-pool)
+                    :challenge/meta-hash (web3/to-ascii metahash)}
+         registry-entry {:reg-entry/address registry-entry}]
      (.then (get-ipfs-meta (:challenge/meta-hash challenge) {:comment "Dummy comment"})
             (fn [challenge-meta]
               (db/update-registry-entry! (merge registry-entry
                                                 challenge
                                                 {:challenge/created-on timestamp
                                                  :challenge/comment (:comment challenge-meta)}))
-              (db/update-user! {:user/address (:challenge/challenger challenge)}))))))
+              (db/update-user! {:user/address challenger}))))))
 
 (defmethod process-event [:contract/registry-entry :vote-committed]
   [_ {:keys [:registry-entry :timestamp :data] :as ev}]
@@ -248,14 +267,15 @@
 ;; End of events processors ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn dispatch-event [contract-type err {:keys [args event] :as a}]
-  (let [event-type (cond
-                     (:event-type args) (cs/->kebab-case-keyword (web3-utils/bytes32->str (:event-type args)))
-                     event (cs/->kebab-case-keyword event))
-        ev (-> args
+(defn dispatch-event [contract-type event-type err {:keys [args event] :as a}]
+  (log/info "FULL" a)
+  (let [ev (-> args
                (assoc :contract-address (:address a))
                (assoc :event-type event-type)
-               (update :timestamp bn/number)
+               (update :timestamp (fn [ts]
+                                    (if ts
+                                      (bn/number ts)
+                                      1 #_(server-utils/now-in-seconds))))
                (update :version bn/number))]
     (log/info (str "Dispatching" " " info-text " " contract-type " " event-type) {:ev ev} ::dispatch-event)
     (process-event contract-type ev)))
@@ -270,17 +290,32 @@
 
   (let [last-block-number (last-block-number)
         watchers [{:watcher (partial eternal-db/change-applied-event :param-change-registry-db)
-                   :on-event #(dispatch-event :contract/eternal-db %1 %2)}
+                   :on-event #(dispatch-event :contract/eternal-db :eternal-db-event %1 %2)}
                   {:watcher (partial eternal-db/change-applied-event :meme-registry-db)
-                   :on-event #(dispatch-event :contract/eternal-db %1 %2)}
-                  {:watcher (partial registry/registry-entry-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme %1 %2)}
-                  {:watcher (partial registry/registry-entry-event [:param-change-registry :param-change-registry-fwd])
-                   :on-event #(dispatch-event :contract/param-change %1 %2)}
+                   :on-event #(dispatch-event :contract/eternal-db :eternal-db-event %1 %2)}
+
+                  {:watcher (partial registry/meme-constructed-event [:meme-registry :meme-registry-fwd])
+                   :on-event #(dispatch-event :contract/meme :constructed %1 %2)}
+                  {:watcher (partial registry/meme-minted-event [:meme-registry :meme-registry-fwd])
+                   :on-event #(dispatch-event :contract/meme :minted %1 %2)}
+                  {:watcher (partial registry/challenge-created-event [:meme-registry :meme-registry-fwd])
+                   :on-event #(dispatch-event :contract/meme :challenge-created %1 %2)}
+                  {:watcher (partial registry/vote-committed-event [:meme-registry :meme-registry-fwd])
+                   :on-event #(dispatch-event :contract/meme :vote-committed %1 %2)}
+                  {:watcher (partial registry/vote-revealed-event [:meme-registry :meme-registry-fwd])
+                   :on-event #(dispatch-event :contract/meme :vote-revealed %1 %2)}
+                  {:watcher (partial registry/vote-amount-claimed-event [:meme-registry :meme-registry-fwd])
+                   :on-event #(dispatch-event :contract/meme :vote-amount-claimed %1 %2)}
+                  {:watcher (partial registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd])
+                   :on-event #(dispatch-event :contract/meme :vote-reward-claimed %1 %2)}
+                  {:watcher (partial registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd])
+                   :on-event #(dispatch-event :contract/meme :challenge-reward-claimed %1 %2)}
+
                   {:watcher meme-auction-factory/meme-auction-event
-                   :on-event #(dispatch-event :contract/meme-auction %1 %2)}
+                   :on-event #(dispatch-event :contract/meme-auction nil %1 %2)} ;; TODO Fix auction contract to emit separate events
                   {:watcher meme-token/meme-token-transfer-event
-                   :on-event #(dispatch-event :contract/meme-token %1 %2)}]]
+                   :on-event #(dispatch-event :contract/meme-token nil %1 %2)} ;; TODO Fix meme token contract to emit separate events
+                  ]]
     (concat
 
      ;; Replay every past events (from block 0 to (dec last-block-number))

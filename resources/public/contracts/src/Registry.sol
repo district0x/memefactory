@@ -15,17 +15,17 @@ import "proxy/MutableForwarder.sol"; // Keep it included despite not being used 
 contract Registry is DSAuth {
   address public target; // Keep it here, because this contract is deployed as MutableForwarder
 
-  event MemeConstructedEvent(uint version, address creator, bytes metaHash, uint totalSupply);
-  event MemeMintedEvent(uint version, address creator, uint tokenStartId, uint tokenEndId, uint totalMinted);
+  event MemeConstructedEvent(address registryEntry, uint version, address creator, bytes metaHash, uint totalSupply, uint deposit, uint challengePeriodEnd);
+  event MemeMintedEvent(address registryEntry, uint version, address creator, uint tokenStartId, uint tokenEndId, uint totalMinted);
 
-  event ChallengeCreatedEvent(uint version, address challenger, uint commitPeriodEnd, uint revealPeriodEnd, uint rewardPool, bytes metahash);
-  event VoteCommittedEvent(uint version, address voter, uint amount);
-  event VoteRevealedEvent(uint version, address voter, uint option);
-  event VoteAmountClaimedEvent(uint version, address voter);
-  event VoteRewardClaimedEvent(uint version, address voter, uint amount);
-  event ChallengeRewardClaimedEvent(uint version, address voter, uint amount);
+  event ChallengeCreatedEvent(address registryEntry, uint version, address challenger, uint commitPeriodEnd, uint revealPeriodEnd, uint rewardPool, bytes metahash);
+  event VoteCommittedEvent(address registryEntry, uint version, address voter, uint amount);
+  event VoteRevealedEvent(address registryEntry, uint version, address voter, uint option);
+  event VoteAmountClaimedEvent(address registryEntry, uint version, address voter);
+  event VoteRewardClaimedEvent(address registryEntry, uint version, address voter, uint amount);
+  event ChallengeRewardClaimedEvent(address registryEntry, uint version, address voter, uint amount);
 
-  event ParamChangeConstructedEvent(uint version, address creator, address db, string key, uint value);
+  event ParamChangeConstructedEvent(address registryEntry, uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd);
 
   bytes32 public constant challengePeriodDurationKey = sha3("challengePeriodDuration");
   bytes32 public constant commitPeriodDurationKey = sha3("commitPeriodDuration");
@@ -112,67 +112,67 @@ contract Registry is DSAuth {
     db.setBooleanValue("isEmergency", _isEmergency);
   }
 
-  function fireMemeConstructedEvent(uint version, address creator, bytes metaHash, uint totalSupply)
+  function fireMemeConstructedEvent(uint version, address creator, bytes metaHash, uint totalSupply, uint deposit, uint challengePeriodEnd)
   public
   onlyRegistryEntry
   {
-    emit MemeConstructedEvent(version, creator, metaHash, totalSupply);
+    emit MemeConstructedEvent(msg.sender, version, creator, metaHash, totalSupply, deposit, challengePeriodEnd);
   }
 
   function fireMemeMintedEvent(uint version, address creator, uint tokenStartId, uint tokenEndId, uint totalMinted)
   public
   onlyRegistryEntry
   {
-    emit MemeMintedEvent(version, creator, tokenStartId, tokenEndId, totalMinted);
+    emit MemeMintedEvent(msg.sender, version, creator, tokenStartId, tokenEndId, totalMinted);
   }
 
   function fireChallengeCreatedEvent(uint version, address challenger, uint commitPeriodEnd, uint revealPeriodEnd, uint rewardPool, bytes metahash)
   public
   onlyRegistryEntry
   {
-    emit ChallengeCreatedEvent(version,  challenger, commitPeriodEnd, revealPeriodEnd, rewardPool, metahash);
+    emit ChallengeCreatedEvent(msg.sender, version,  challenger, commitPeriodEnd, revealPeriodEnd, rewardPool, metahash);
   }
 
   function fireVoteCommittedEvent(uint version, address voter, uint amount)
   public
   onlyRegistryEntry
   {
-    emit VoteCommittedEvent(version, voter, amount);
+    emit VoteCommittedEvent(msg.sender, version, voter, amount);
   }
 
   function fireVoteRevealedEvent(uint version, address voter, uint option)
   public
   onlyRegistryEntry
   {
-    emit VoteRevealedEvent(version, voter, option);
+    emit VoteRevealedEvent(msg.sender, version, voter, option);
   }
 
   function fireVoteAmountClaimedEvent(uint version, address voter)
   public
   onlyRegistryEntry
   {
-    emit VoteAmountClaimedEvent(version, voter);
+    emit VoteAmountClaimedEvent(msg.sender, version, voter);
   }
 
   function fireVoteRewardClaimedEvent(uint version, address voter, uint amount)
   public
   onlyRegistryEntry
   {
-    emit VoteRewardClaimedEvent(version, voter, amount);
+    emit VoteRewardClaimedEvent(msg.sender, version, voter, amount);
   }
 
   function fireChallengeRewardClaimedEvent(uint version, address voter, uint amount)
   public
   onlyRegistryEntry
   {
-    emit ChallengeRewardClaimedEvent(version, voter, amount);
+    emit ChallengeRewardClaimedEvent(msg.sender, version, voter, amount);
   }
 
-  function fireParamChangeConstructedEvent(uint version, address creator, address db, string key, uint value)
+  function fireParamChangeConstructedEvent(uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd)
   public
   onlyRegistryEntry
   {
-    emit ParamChangeConstructedEvent(version, creator, db, key, value);
+    emit ParamChangeConstructedEvent(msg.sender, version, creator, db, key, value, deposit, challengePeriodEnd);
   }
 
   /**

@@ -57,7 +57,9 @@ contract ParamChange is RegistryEntry {
                                              _creator,
                                              db,
                                              _key,
-                                             value);
+                                             value,
+                                             deposit,
+                                             challenge.challengePeriodEnd);
   }
 
   /**
