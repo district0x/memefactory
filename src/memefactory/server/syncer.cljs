@@ -157,8 +157,7 @@
 (defmethod process-event [:contract/registry-entry :vote-committed]
   [_ {:keys [:registry-entry :timestamp :voter :amount] :as ev}]
   (try-catch
-   (let [voter (web3-utils/uint->address (first data))
-         vote {:reg-entry/address registry-entry
+   (let [vote {:reg-entry/address registry-entry
                :vote/voter voter
                :vote/amount (bn/number amount)}]
      (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
@@ -168,10 +167,9 @@
   (try-catch
    (let [vote {:reg-entry/address registry-entry
                :vote/voter voter
-               :vote/option option}
-         registry-entry {reg-entry/address registry-entry
-                         :reg-entry/version version}]
-     (db/update-registry-entry! registry-entry)
+               :vote/option option}]
+     (db/update-registry-entry! {:reg-entry/address registry-entry
+                                 :reg-entry/version version})
      (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :vote-reward-claimed]
@@ -219,7 +217,7 @@
                                                :meme-token/transferred-on timestamp}))
 
      (db/update-meme-first-mint-on! registry-entry timestamp)
-     (db/update-meme-token-id-start! registry-entry token-id-start)
+     (db/update-meme-token-id-start! registry-entry token-start-id)
      (db/update-meme-total-minted! registry-entry total-minted))))
 
 (defmethod process-event [:contract/meme-auction :auction-started]
@@ -243,6 +241,10 @@
                                          :meme-auction/bought-for (bn/number price)
                                          :meme-auction/bought-on timestamp
                                          :meme-auction/buyer buyer}))))
+
+(defmethod process-event [:contract/meme-auction :auction-canceled]
+  [_ {:keys [] :as ev}]
+  (log/warn "Meme auction canceled event not implemented"))
 
 (defmethod process-event [:contract/meme-token :transfer]
   [_ ev]
@@ -320,8 +322,13 @@
                   {:watcher (partial registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :challenge-reward-claimed %1 %2)}
 
-                  {:watcher meme-auction-factory/meme-auction-event
-                   :on-event #(dispatch-event :contract/meme-auction nil %1 %2)} ;; TODO Fix auction contract to emit separate events
+                  {:watcher meme-auction-factory/meme-auction-started-event
+                   :on-event #(dispatch-event :contract/meme-auction :auction-started %1 %2)}
+                  {:watcher meme-auction-factory/meme-auction-buy-event
+                   :on-event #(dispatch-event :contract/meme-auction :buy %1 %2)}
+                  {:watcher meme-auction-factory/meme-auction-canceled-event
+                   :on-event #(dispatch-event :contract/meme-auction :auction-canceled %1 %2)}
+
                   {:watcher meme-token/meme-token-transfer-event
                    :on-event #(dispatch-event :contract/meme-token nil %1 %2)} ;; TODO Fix meme token contract to emit separate events
                   ]]
