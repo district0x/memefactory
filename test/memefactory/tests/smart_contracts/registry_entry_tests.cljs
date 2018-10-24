@@ -30,9 +30,6 @@
 ;; RegistryEntry ;;
 ;;;;;;;;;;;;;;;;;;;
 
-(defn load-registry-entry [entry-address]
-  (merge (registry-entry/load-registry-entry entry-address)
-         (registry-entry/load-registry-entry-challenge entry-address)))
 
 (deftest approve-and-create-meme-registry-test
   (let [[creator-addr] (web3-eth/accounts @web3)
@@ -45,7 +42,7 @@
       (is registry-entry))
 
     (testing "Created RegistryEntry has properties initialised as they should be"
-      (let [entry (load-registry-entry registry-entry)]
+      (let [entry nil #_(load-registry-entry registry-entry)] ;; TODO Fix test
         (is (= (web3/from-wei deposit :ether) (str (:reg-entry/deposit entry))))
         (is (= creator-addr (:reg-entry/creator entry)))
         (is (= 1 (:reg-entry/version entry)))
@@ -77,7 +74,7 @@
                                 meme-registry/registry-entry-event-in-tx
                                 :args
                                 (select-keys [:registry-entry :timestamp]))
-        entry (load-registry-entry meme-entry-1)]
+        entry nil #_(load-registry-entry meme-entry-1)] ;; TODO Fix test
 
     (testing "Can create challenge under valid condidtions"
       (is entry))
@@ -127,7 +124,8 @@
                                                        {:amount deposit
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
-        {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
+        ;; TODO Fix test
+        {:keys [:reg-entry/address :challenge/commit-period-end]} nil #_(load-registry-entry registry-entry)
         vote-amount 10
         reg-balance-before-vote (dank-token/balance-of address)
         salt "abc"
@@ -142,7 +140,7 @@
       (is vote-tx))
 
     (testing "Check properties of committed vote"
-      (let [vote (registry-entry/load-vote registry-entry voter-addr)]
+      (let [vote nil #_(registry-entry/load-vote registry-entry voter-addr)] ;; TODO Fix test
         (is (bn/= (dank-token/balance-of address)
                   (bn/+ reg-balance-before-vote vote-amount)))
         (is (= (:vote/secret-hash vote)
@@ -173,7 +171,9 @@
                                                        {:amount deposit
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
-        {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
+        ;; TODO Fix test
+        {:keys [:reg-entry/address :challenge/commit-period-end]} nil #_(load-registry-entry registry-entry)
+
         first-vote-amount (-> (dank-token/balance-of voter-addr) (bn/number) (/ 2))
         salt "abc"
         _ (registry-entry/approve-and-commit-vote registry-entry
@@ -204,7 +204,8 @@
                                                        {:amount deposit
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
-        {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
+        ;; TODO Fix test
+        {:keys [:reg-entry/address :challenge/commit-period-end]} nil #_(load-registry-entry registry-entry)
         voter-addr1-init-balance (dank-token/balance-of voter-addr)
         voter-addr2-init-balance (dank-token/balance-of voter-addr2)
         vote-amount 10
@@ -252,8 +253,9 @@
                                          :salt (str salt)}
                                         {:from voter-addr2})
           reveal-tx (reveal-vote1)
-          vote1 (registry-entry/load-vote registry-entry voter-addr)
-          vote2 (registry-entry/load-vote registry-entry voter-addr2)]
+          ;; TODO Fix test
+          vote1 nil #_(registry-entry/load-vote registry-entry voter-addr)
+          vote2 nil #_(registry-entry/load-vote registry-entry voter-addr2)]
 
       (testing "Vote can be revealed under valid conditions"
         (is reveal-tx))
@@ -291,7 +293,8 @@
                                                        {:amount deposit
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
-        {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
+        ;; TODO Fix test
+        {:keys [:reg-entry/address :challenge/commit-period-end]} nil #_(load-registry-entry registry-entry)
         vote-amount 10
         salt "abc"
         _ (registry-entry/approve-and-commit-vote registry-entry
@@ -315,12 +318,12 @@
           reward-claim #(registry-entry/claim-vote-reward registry-entry {:from voter-addr})
           reward-claim-tx (reward-claim)
           balance-after-claim (dank-token/balance-of voter-addr)
-          entry (load-registry-entry registry-entry)
+          entry nil #_(load-registry-entry registry-entry) ;; TODO Fix test
           timestamp (-> reward-claim-tx
                         meme-registry/registry-entry-event-in-tx
                         :args :timestamp
                         bn/number)
-          vote (registry-entry/load-vote registry-entry voter-addr)]
+          vote nil #_(registry-entry/load-vote registry-entry voter-addr)] ;; TODO Fix test
 
       (testing "Vote reward can be claimed under valid condidtions"
         (is reward-claim-tx))
@@ -348,7 +351,8 @@
                                                          {:amount deposit
                                                           :meta-hash sample-meta-hash-1}
                                                          {:from challenger-addr})
-          {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
+          ;; TODO Fix test
+          {:keys [:reg-entry/address :challenge/commit-period-end]} nil #_(load-registry-entry registry-entry)
           vote-amount 10
           salt "abc"
           _ (registry-entry/approve-and-commit-vote registry-entry
@@ -373,7 +377,8 @@
       (let [reward-claim #(registry-entry/claim-challenge-reward registry-entry {})
             reward-claim-tx (reward-claim)
             balance-after-claim (dank-token/balance-of challenger-addr)
-            entry (load-registry-entry registry-entry)
+            ;; TODO Fix test
+            entry nil #_(load-registry-entry registry-entry)
             timestamp (-> reward-claim-tx
                           meme-registry/registry-entry-event-in-tx
                           :args :timestamp
@@ -407,7 +412,8 @@
                                                        {:amount deposit
                                                         :meta-hash sample-meta-hash-1}
                                                        {:from challenger-addr})
-        {:keys [:reg-entry/address :challenge/commit-period-end]} (load-registry-entry registry-entry)
+        ;; TODO Fix test
+        {:keys [:reg-entry/address :challenge/commit-period-end]} nil #_(load-registry-entry registry-entry)
         vote-amount 10
         salt "abc"
         _ (registry-entry/approve-and-commit-vote registry-entry

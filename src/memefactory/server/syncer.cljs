@@ -159,7 +159,8 @@
   (try-catch
    (let [vote {:reg-entry/address registry-entry
                :vote/voter voter
-               :vote/amount (bn/number amount)}]
+               :vote/amount (bn/number amount)
+               :vote/option 0}] ;; No vote
      (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
 (defmethod process-event [:contract/registry-entry :vote-revealed]
@@ -167,7 +168,8 @@
   (try-catch
    (let [vote {:reg-entry/address registry-entry
                :vote/voter voter
-               :vote/option option}]
+               :vote/option (bn/number option)
+               :vote/revealed-on timestamp}]
      (db/update-registry-entry! {:reg-entry/address registry-entry
                                  :reg-entry/version version})
      (db/update-vote! vote))))
@@ -279,7 +281,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn dispatch-event [contract-type event-type err {:keys [args event] :as a}]
-  (log/info "FULL" a)
   (let [ev (-> args
                (assoc :contract-address (:address a))
                (assoc :event-type event-type)
@@ -330,7 +331,7 @@
                    :on-event #(dispatch-event :contract/meme-auction :auction-canceled %1 %2)}
 
                   {:watcher meme-token/meme-token-transfer-event
-                   :on-event #(dispatch-event :contract/meme-token nil %1 %2)} ;; TODO Fix meme token contract to emit separate events
+                   :on-event #(dispatch-event :contract/meme-token :transfer %1 %2)}
                   ]]
     (concat
 

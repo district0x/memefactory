@@ -143,18 +143,17 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * Returns registryToken back to the voter
    * Must be within reveal period
 
-   * @param _voter address that made the vote
    * @param _voteOption Vote option voter previously voted with
    * @param _salt Salt with which user previously encrypted his vote option
    */
   function revealVote(
-                      address _voter,
                       RegistryEntryLib.VoteOption _voteOption,
                       string _salt
                       )
     external
     notEmergency
   {
+    address _voter=msg.sender;
     require(challenge.isVoteRevealPeriodActive());
     require(keccak256(abi.encodePacked(uint(_voteOption), _salt)) == challenge.vote[_voter].secretHash);
     require(!challenge.isVoteRevealed(_voter));

@@ -79,7 +79,7 @@
          {:keys [option salt]} (get-in store [:votes active-account address])]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :reveal-vote
-                                      :args (look [(reg-entry/vote-option->num option) salt])
+                                      :args [(reg-entry/vote-option->num option) salt]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {::reveal-vote id}

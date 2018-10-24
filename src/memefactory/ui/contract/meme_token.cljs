@@ -34,7 +34,7 @@
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme-token/transfer-multi-and-start-auction id}
-                                      :on-tx-success-n [[::logging/success [::transfer-multi]]
+                                      :on-tx-success-n [[::logging/success [::transfer-multi-and-start-auction]]
                                                         [::notification-events/show (gstring/format "Offering for %s was successfully created" title)]
                                                         [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}
                                                                                                 [:meme/total-supply
