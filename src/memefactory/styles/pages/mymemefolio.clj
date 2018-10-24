@@ -157,6 +157,14 @@
      [:.curator
       {:display :grid
        :flex-grow 1}
+      [:.loading
+       {:width (em 1)
+        :display :inline-block
+        :vertical-align "-10%"
+        :height (em 1)
+        :border-top-color (color :yellow)
+        :border-width (em 0.3)
+        :border-top-width (em 0.3)}]
       [">div"
        {:display :flex}
        (for-media-max :tablet
