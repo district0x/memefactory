@@ -69,8 +69,9 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Created best single card sale spinnig forever in memefolio                                              (Juan)
 - [ ] When opening page at memefolio/index doesn show Collected until you switch to other tab and back        (Juan)
 - [ ] Sell functionality, duration should be less than is not showing                                         (Juan)
-- [ ] Add UI logging (on error send requests to production logging facilities)                                (Filip)
+- [ ] Add logging (with Sentry)                                                                               (Filip)
 - [ ] dankregistry/submit issuance is always 1
+- [ ] dankregistry/submit no user feedback when non .png file is rejected
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
