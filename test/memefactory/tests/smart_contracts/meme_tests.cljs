@@ -8,9 +8,10 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.meme :as meme]
             [memefactory.server.contract.meme-factory :as meme-factory]
-            [memefactory.server.contract.meme-registry :as meme-registry]
+            [memefactory.server.contract.registry :as registry]
             [memefactory.server.contract.meme-token :as meme-token]
-            [memefactory.tests.smart-contracts.utils :as test-utils]))
+            [memefactory.tests.smart-contracts.utils :as test-utils]
+            [print.foo :include-macros true :refer [look]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
@@ -32,10 +33,13 @@
                                              :total-supply total-supply
                                              :amount deposit}
                                             {:from creator-addr})
-      meme-registry/registry-entry-event-in-tx
-      :args :registry-entry))
+      look
+      (registry/meme-constructed-event-in-tx [:meme-registry :meme-registry-fwd])
+      look
+      :args :registry-entry
+      ))
 
-(deftest approve-and-create-meme-test
+#_(deftest approve-and-create-meme-test
   (let [[creator-addr] (web3-eth/accounts @web3)
         [max-total-supply deposit] (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :deposit])
                                         (map bn/number))
@@ -52,7 +56,7 @@
         (is (= (:meme/meta-hash meme) sample-meta-hash-1))
         (is (= (:meme/total-supply meme) max-total-supply))))))
 
-(deftest transfer-deposit-test
+#_(deftest transfer-deposit-test
   (let [[creator-addr _ _ collector-address] (web3-eth/accounts @web3)
         collector-initial-balance (bn/number (dank-token/balance-of collector-address))
         [max-total-supply deposit challenge-period-duration]
@@ -73,7 +77,7 @@
       (let [collector-final-balance (bn/number (dank-token/balance-of collector-address))]
         (is (> collector-final-balance collector-initial-balance))))))
 
-(deftest mint-test
+#_(deftest mint-test
   (let [[creator-addr] (web3-eth/accounts @web3)
         [max-total-supply deposit challenge-period-duration]
         (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :deposit :challenge-period-duration])

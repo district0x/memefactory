@@ -33,10 +33,10 @@
                                     :meme-auction-cut 10}))
 
 (doo-tests
- 'memefactory.tests.smart-contracts.deployment-tests
- 'memefactory.tests.smart-contracts.meme-auction-tests
- 'memefactory.tests.smart-contracts.param-change-tests
- 'memefactory.tests.smart-contracts.registry-entry-tests
- 'memefactory.tests.smart-contracts.registry-tests
- 'memefactory.tests.smart-contracts.meme-tests
- 'memefactory.tests.graphql-resolvers.graphql-resolvers-tests)
+ #_'memefactory.tests.smart-contracts.deployment-tests
+ #_'memefactory.tests.smart-contracts.meme-auction-tests
+ #_'memefactory.tests.smart-contracts.param-change-tests
+ #_'memefactory.tests.smart-contracts.registry-entry-tests
+ #_'memefactory.tests.smart-contracts.registry-tests
+ #_'memefactory.tests.smart-contracts.meme-tests
+ #_'memefactory.tests.graphql-resolvers.graphql-resolvers-tests)
