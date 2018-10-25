@@ -16,7 +16,7 @@
             [memefactory.server.contract.meme-auction :as meme-auction]
             [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
             [memefactory.server.contract.meme-factory :as meme-factory]
-            [memefactory.server.contract.meme-registry :as meme-registry]
+            [memefactory.server.contract.registry :as registry]
             [memefactory.server.contract.meme-token :as meme-token]
             [memefactory.server.contract.minime-token :as minime-token]
             [memefactory.server.contract.param-change :as param-change]
@@ -102,10 +102,9 @@
                                                                            :total-supply total-supply
                                                                            :amount deposit}
                                                                           {:from account})]
-
-                        #_(when-not (= :scenario/create scenario-type)
-                          (let [{{:keys [:registry-entry]} :args} (meme-registry/registry-entry-event-in-tx tx-hash)]
-
+                        (when-not (= :scenario/create scenario-type)
+                          (let [r (registry/meme-constructed-event-in-tx tx-hash [:meme-registry :meme-registry-fwd])
+                                {{:keys [:registry-entry :creator]} :args} r]
                             (when-not registry-entry
                               (throw (js/Error. "Meme registry entry wasn't found")))
 
@@ -113,10 +112,9 @@
                                                                          {:meta-hash meta-hash
                                                                           :amount deposit}
                                                                          {:from account})
-                            ;; TODO FIX THIS
+
                             (when-not (= :scenario/challenge scenario-type)
-                              (let [{:keys [:reg-entry/creator]} (registry-entry/load-registry-entry registry-entry)
-                                    balance (dank-token/balance-of creator)]
+                              (let [balance (dank-token/balance-of creator)]
 
                                 (registry-entry/approve-and-commit-vote registry-entry
                                                                         {:amount balance
@@ -140,7 +138,7 @@
 
                                     (when-not (= :scenario/claim-vote-reward scenario-type)
                                       (let [tx-hash (meme/mint registry-entry (dec total-supply) {:from creator})
-                                            [_ first-token-id last-token-id] (-> (meme-registry/registry-entry-event-in-tx tx-hash)
+                                            [_ first-token-id last-token-id] (-> (registry/meme-minted-event-in-tx [:meme-registry :meme-registry-fwd] tx-hash)
                                                                                  :args
                                                                                  :data
                                                                                  (->> (map bn/number)))
@@ -155,7 +153,7 @@
                                                                                                     :end-price (web3/to-wei 0.01 :ether)
                                                                                                     :duration auction-duration
                                                                                                     :description "some auction"})
-                                              {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-event-in-tx tx-hash)]
+                                              {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-started-event-in-tx tx-hash)]
 
                                           (when-not meme-auction
                                             (throw (js/Error. "Meme Auction wasn't found")))
