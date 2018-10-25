@@ -81,17 +81,18 @@
 
   :npm {:dependencies [#_[semantic-ui "2.2.14"]
                        ;; needed until v0.6.13 is officially released
+                       ["@sentry/node" "4.2.1"]
                        [chalk "2.3.0"]
-                       [express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
-                       [graphql-tools "3.0.1"]
-                       [graphql "0.13.1"]
-                       [express "4.15.3"]
                        [cors "2.8.4"]
+                       [deasync "0.1.11"]
+                       [express "4.15.3"]
+                       [express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
+                       [graphql "0.13.1"]
                        [graphql-fields "1.0.2"]
+                       [graphql-tools "3.0.1"]
                        [solc "0.4.20"]
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]
-                       [deasync "0.1.11"]
                        ;; this isn't required directly by memefactory but  0.6.1 is broken and
                        ;; district0x/district-server-web3 needs [ganache-core "2.0.2"]   who also needs "ethereumjs-wallet": "~0.6.0"
                        ;; https://github.com/ethereumjs/ethereumjs-wallet/issues/64

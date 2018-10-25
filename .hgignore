@@ -6,6 +6,7 @@ pom.xml
 pom.xml.asc
 *.jar
 *.class
+package-lock.json
 /.lein-*
 /.nrepl-port
 .gitignore
