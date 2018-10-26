@@ -48,7 +48,7 @@
                                (merge opts {:gas 1200000})))
 
 (defn reveal-vote [contract-addr {:keys [:address :vote-option :salt]} & [opts]]
-  (contract-call (instance :meme contract-addr) :reveal-vote address (vote-option->num vote-option) salt (merge {:gas 500000} opts)))
+  (contract-call (instance :meme contract-addr) :reveal-vote (vote-option->num vote-option) salt (merge {:gas 500000} opts)))
 
 (defn claim-vote-reward [contract-addr & [opts]]
   (contract-call (instance :meme contract-addr) :claim-vote-reward (:from opts) (merge {:gas 500000} opts)))

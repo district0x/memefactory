@@ -70,7 +70,7 @@
   (defer
     (memefactory.server.deployer/deploy
      (or (:deployer @config)
-         {:transfer-dank-token-to-accounts 1
+         {:transfer-dank-token-to-accounts 2
           :initial-registry-params
           {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
                            :commit-period-duration (t/in-seconds (t/minutes 20))
@@ -97,8 +97,8 @@
     (let [opts (merge
                 (or (:generator @config)
                     {:memes/use-accounts 1
-                     :memes/items-per-account 2
-                     :memes/scenarios [:scenario/create]
+                     :memes/items-per-account 10
+                     :memes/scenarios [:scenario/buy]
                      :param-changes/use-accounts 1
                      :param-changes/items-per-account 1
                      :param-changes/scenarios []})
