@@ -71,20 +71,18 @@
                                                              {forwarder-target-placeholder :param-change-registry}})))
 
 (defn deploy-meme! [default-opts]
-  (try-catch-throw
-   (deploy-smart-contract! :meme (merge default-opts {:gas 6721975
-                                                      :placeholder-replacements
-                                                      {dank-token-placeholder :DANK
-                                                       registry-placeholder :meme-registry-fwd
-                                                       district-config-placeholder :district-config
-                                                       meme-token-placeholder :meme-token}}))))
+  (deploy-smart-contract! :meme (merge default-opts {:gas 6721975
+                                                     :placeholder-replacements
+                                                     {dank-token-placeholder :DANK
+                                                      registry-placeholder :meme-registry-fwd
+                                                      district-config-placeholder :district-config
+                                                      meme-token-placeholder :meme-token}})))
 
 (defn deploy-param-change! [default-opts]
-  (try-catch-throw
-   (deploy-smart-contract! :param-change (merge default-opts {:gas 6000000
-                                                              :placeholder-replacements
-                                                              {dank-token-placeholder :DANK
-                                                               registry-placeholder :param-change-registry-fwd}}))))
+  (deploy-smart-contract! :param-change (merge default-opts {:gas 6000000
+                                                             :placeholder-replacements
+                                                             {dank-token-placeholder :DANK
+                                                              registry-placeholder :param-change-registry-fwd}})))
 
 
 (defn deploy-meme-factory! [default-opts]

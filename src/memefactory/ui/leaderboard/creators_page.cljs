@@ -1,13 +1,16 @@
 (ns memefactory.ui.leaderboard.creators-page
-  (:require [district.ui.component.page :refer [page]]
-            [memefactory.ui.components.app-layout :refer [app-layout]]
-            [re-frame.core :refer [subscribe dispatch]]
-            [reagent.core :as r]
-            [react-infinite]
-            [district.ui.graphql.subs :as gql]
-            [goog.string :as gstring]
-            [district.format :as format]
-            [district.ui.component.form.input :refer [select-input with-label]]))
+  (:require
+   [district.format :as format]
+   [district.ui.component.form.input :refer [select-input with-label]]
+   [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
+   [goog.string :as gstring]
+   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [re-frame.core :refer [subscribe dispatch]]
+   [react-infinite]
+   [reagent.core :as r]
+   [taoensso.timbre :as log]
+   ))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -72,7 +75,9 @@
         ;;if (:graphql/loading? @users-search)
         #_[:div "Loading ...."]
         (let [all-creators (mapcat #(get-in % [:search-users :items]) @users-search)]
-          (.log js/console "All creators " all-creators)
+
+          (log/debug "All creators" {:creators all-creators})
+
           [app-layout
            {:meta {:title "MemeFactory"
                    :description "Description"}}
@@ -97,7 +102,9 @@
                                 :on-infinite-load (fn []
                                                     (when-not (:graphql/loading? @users-search)
                                                       (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]
-                                                        (.log js/console "Scrolled to load more" has-next-page end-cursor)
+
+                                                        (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
+
                                                         (when (or has-next-page (empty? all-creators))
                                                           (re-search-users end-cursor)))))}
                 (if (:graphql/loading? @users-search)

@@ -1,13 +1,16 @@
 (ns memefactory.ui.leaderboard.curators-page
-  (:require [district.ui.component.page :refer [page]]
-            [memefactory.ui.components.app-layout :refer [app-layout]]
-            [re-frame.core :refer [subscribe dispatch]]
-            [reagent.core :as r]
-            [react-infinite]
-            [district.ui.graphql.subs :as gql]
-            [goog.string :as gstring]
-            [district.format :as format]
-            [district.ui.component.form.input :refer [select-input]]))
+  (:require
+   [district.format :as format]
+   [district.ui.component.form.input :refer [select-input]]
+   [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
+   [goog.string :as gstring]
+   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [re-frame.core :refer [subscribe dispatch]]
+   [react-infinite]
+   [reagent.core :as r]
+   [taoensso.timbre :as log]
+   ))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -72,7 +75,9 @@
                               :on-infinite-load (fn []
                                                   (when-not (:graphql/loading? @search-users)
                                                     (let [{:keys [has-next-page end-cursor]} (:search-users (last @search-users))]
-                                                      (.log js/console "Scrolled to load more" has-next-page end-cursor)
+
+                                                      (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/curators)
+
                                                       (when (or has-next-page (empty? lazy-curators))
                                                         (lazy-search-users end-cursor)))))}
               (doall

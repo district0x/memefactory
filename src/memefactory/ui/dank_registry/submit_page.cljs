@@ -1,26 +1,21 @@
 (ns memefactory.ui.dank-registry.submit-page
   (:require
+   [cljs-web3.core :as web3]
+   [district.format :as format]
+   [district.graphql-utils :as graphql-utils]
+   [district.ui.component.form.input :refer [index-by-type file-drag-input with-label chip-input text-input int-input]]
    [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.tiles :refer [meme-image]]
+   [memefactory.ui.dank-registry.events :as dr-events]
+   [print.foo :refer [look] :include-macros true]
+   [re-frame.core :as re-frame]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [print.foo :refer [look] :include-macros true]
-   [district.ui.component.form.input :refer [index-by-type
-                                             file-drag-input
-                                             with-label
-                                             chip-input
-                                             text-input
-                                             int-input]]
-   [memefactory.ui.dank-registry.events :as dr-events]
-   [re-frame.core :as re-frame]
-   [district.ui.graphql.subs :as gql]
-   [district.format :as format]
-   [memefactory.ui.components.tiles :refer [meme-image]]
    [reagent.ratom :refer [reaction]]
-   [cljs-web3.core :as web3]
-   [district.graphql-utils :as graphql-utils]))
-
-
+   [taoensso.timbre :as log]
+   ))
 
 (defn header []
   [:div.submit-info
@@ -72,9 +67,9 @@
                              :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                  (= type "image/png"))
                              :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
-                                                 (prn "Accepted " props))
+                                                 (log/info "Accepted file" props ::file-accepted))
                              :on-file-rejected (fn [{:keys [name type size] :as props}]
-                                                 (prn "Rejected " props))}]]
+                                                 (log/warn "Rejected file" props ::file-rejected))}]]
           [:div.form-panel
            ;; [:div (str (:local @errors))]
            ;; [:div (str @critical-errors)]
