@@ -4,6 +4,7 @@
     [clojure.string :as str]
     [district.ui.component.router :refer [router]]
     [district.ui.graphql]
+    [district.ui.logging]
     [district.ui.notification]
     [district.ui.now]
     [district.ui.reagent-render]
@@ -46,14 +47,18 @@
 (goog-define environment "prod")
 
 (def development-config
-  {:time-source "blockchain"
+  {:logging {:level :info
+             :console? true}
+   :time-source "blockchain"
    :web3 {:url "http://localhost:8549"}
    :graphql {:schema graphql-schema
              :url "http://localhost:6300/graphql"}
    :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}})
 
 (def production-config
-  {:time-source "js-date"
+  {:logging {:level :warn
+             :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"}}
+   :time-source "js-date"
    :web3 {:url "http://localhost:8545"}
    :graphql {:schema graphql-schema
              :url "http://localhost:6300/graphql"}

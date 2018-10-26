@@ -26,10 +26,12 @@
                                                 :value value
                                                 :gas 6000000}
                                       :tx-id {:meme-auction/buy id}
-                                      :on-tx-success-n [[::logging/success [::buy]]
+                                      :on-tx-success-n [[::logging/info "buy tx success" ::buy]
                                                         [::notification-events/show (gstring/format "Auction %s is now yours" address)]]
-                                      :on-tx-hash-error [::logging/error [::buy]]
-                                      :on-tx-error [::logging/error [::buy]]}]})))
+                                      :on-tx-error [::logging/error "buy tx error"
+                                                    {:user {:id active-account}
+                                                     :value value}
+                                                    ::buy]}]})))
 
 (reg-event-fx
  ::cancel
@@ -42,7 +44,9 @@
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme-auction/cancel id}
-                                      :on-tx-success-n [[::logging/success [::cancel]]
+                                      :on-tx-success-n [[::logging/info "cancel tx success" ::cancel]
                                                         [::notification-events/show (gstring/format "Auction %s canceled" address)]]
-                                      :on-tx-hash-error [::logging/error [::cancel]]
-                                      :on-tx-error [::logging/error [::cancel]]}]})))
+                                      :on-tx-error [::logging/error "cancel tx error"
+                                                    {:user {:id active-account}
+                                                     :args args}
+                                                    ::cancel]}]})))

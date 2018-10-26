@@ -22,23 +22,25 @@
    (let [active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-token)
                                       :fn :safe-transfer-from-multi
-                                      :args (look [active-account
-                                              (contract-queries/contract-address db :meme-auction-factory-fwd)
-                                              token-ids
-                                              (web3-eth/contract-get-data (contract-queries/instance db :meme-auction)
-                                                                          :start-auction
-                                                                          (look (web3/to-wei start-price :ether))
-                                                                          (look (web3/to-wei end-price :ether))
-                                                                          (look duration)
-                                                                          (look description))])
+                                      :args [active-account
+                                             (contract-queries/contract-address db :meme-auction-factory-fwd)
+                                             token-ids
+                                             (web3-eth/contract-get-data (contract-queries/instance db :meme-auction)
+                                                                         :start-auction
+                                                                         (web3/to-wei start-price :ether)
+                                                                         (web3/to-wei end-price :ether)
+                                                                         duration
+                                                                         description)]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme-token/transfer-multi-and-start-auction id}
-                                      :on-tx-success-n [[::logging/success [::transfer-multi-and-start-auction]]
+                                      :on-tx-success-n [[::logging/info "transfer-multi-and-start-auction tx success" ::transfer-multi]
                                                         [::notification-events/show (gstring/format "Offering for %s was successfully created" title)]
                                                         [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}
                                                                                                 [:meme/total-supply
                                                                                                  [:meme/owned-meme-tokens {:owner active-account}
                                                                                                   [:meme-token/token-id]]]]]}}]]
-                                      :on-tx-hash-error [::logging/error [:meme-token/transfer-multi-and-start-auction]]
-                                      :on-tx-error [::logging/error [:meme-token/transfer-multi-and-start-auction]]}]})))
+                                      :on-tx-error [::logging/error "transfer-multi-and-start-auction tx error"
+                                                    {:user {:id active-account}
+                                                     :args args}
+                                                    ::transfer-multi-and-start-auction]}]})))

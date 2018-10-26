@@ -1,33 +1,36 @@
 (ns memefactory.ui.memefolio.page
-  (:require [cljs-web3.core :as web3]
-            [cljs.core.match :refer-macros [match]]
-            [clojure.data :as data]
-            [clojure.string :as str]
-            [district.format :as format]
-            [district.graphql-utils :as graphql-utils]
-            [district.time :as time]
-            [district.ui.component.form.input :as inputs]
-            [district.ui.component.page :refer [page]]
-            [district.ui.component.tx-button :as tx-button]
-            [district.ui.graphql.events :as gql-events]
-            [district.ui.graphql.subs :as gql]
-            [district.ui.router.events :as router-events]
-            [district.ui.router.subs :as router-subs]
-            [district.ui.now.subs :as now-subs]
-            [district.ui.web3-accounts.subs :as accounts-subs]
-            [district.ui.web3-tx-id.subs :as tx-id-subs]
-            [memefactory.shared.utils :as shared-utils]
-            [memefactory.ui.components.app-layout :as app-layout]
-            [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-            [memefactory.ui.components.panels :refer [panel]]
-            [memefactory.ui.components.search :as search]
-            [memefactory.ui.components.tiles :as tiles]
-            [print.foo :refer [look] :include-macros true]
-            [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [reagent.core :as r]
-            [reagent.ratom :as ratom]
-            [memefactory.ui.contract.meme :as meme]
-            [memefactory.ui.contract.meme-token :as meme-token]))
+  (:require
+   [cljs-web3.core :as web3]
+   [cljs.core.match :refer-macros [match]]
+   [clojure.data :as data]
+   [clojure.string :as str]
+   [district.format :as format]
+   [district.graphql-utils :as graphql-utils]
+   [district.time :as time]
+   [district.ui.component.form.input :as inputs]
+   [district.ui.component.page :refer [page]]
+   [district.ui.component.tx-button :as tx-button]
+   [district.ui.graphql.events :as gql-events]
+   [district.ui.graphql.subs :as gql]
+   [district.ui.now.subs :as now-subs]
+   [district.ui.router.events :as router-events]
+   [district.ui.router.subs :as router-subs]
+   [district.ui.web3-accounts.subs :as accounts-subs]
+   [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [memefactory.shared.utils :as shared-utils]
+   [memefactory.ui.components.app-layout :as app-layout]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.panels :refer [panel]]
+   [memefactory.ui.components.search :as search]
+   [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.contract.meme :as meme]
+   [memefactory.ui.contract.meme-token :as meme-token]
+   [print.foo :refer [look] :include-macros true]
+   [re-frame.core :as re-frame :refer [subscribe dispatch]]
+   [reagent.core :as r]
+   [reagent.ratom :as ratom]
+   [taoensso.timbre :as log]
+   ))
 
 (def default-tab :collected)
 
@@ -287,7 +290,7 @@
                                                                  [:meme/title]]]]]]]]]}])
                 (ratom/reaction {:graphql/loading? true}))]
 
-    #_(prn _ active-account @query)
+    (log/debug "query" @query)
 
     (let [{:keys [:user/total-created-memes :user/total-created-memes-whitelisted :user/creator-rank :user/largest-sale]} (-> @query :user)
           {:keys [:meme-auction/meme-token]} largest-sale
@@ -467,9 +470,6 @@
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))
 
 (defn build-query [tab {:keys [:active-account :form-data :prefix :first :after] :as opts}]
-
-#_(prn "@build-query" active-account opts)
-
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner active-account
@@ -606,7 +606,7 @@
                             :meme/total-minted]]]]]]]]])))
 
 (defn scrolling-container [tab {:keys [:form-data :active-account :prefix]}]
-  (let [safe-mapcat (fn [f queries]
+  (let [#_safe-mapcat #_(fn [f queries]
                       (loop [queries queries
                              result []]
                         (if (empty? queries)
@@ -629,9 +629,11 @@
             :meme-auctions :search-meme-auctions)
         state (mapcat #_safe-mapcat (fn [q] (get-in q [k :items])) @query-subs)]
 
-    (prn "re-render" tab (map #(get-in % [(case prefix
-                                              :memes :reg-entry/address
-                                              :meme-auctions :meme-auction/address)]) state))
+    (log/debug "re-render" {:tab tab
+                            :state (map #(get-in % [(case prefix
+                                                      :memes :reg-entry/address
+                                                      :meme-auctions :meme-auction/address)])
+                                        state)})
     [:div.scroll-area
      (if (:graphql/loading? @query-subs)
        [:div.loading]

@@ -1,18 +1,20 @@
 (ns memefactory.ui.marketplace.page
   (:require
+   [district.ui.component.form.input :refer [select-input text-input]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
-   [memefactory.ui.marketplace.events :as mk-events]
-   [memefactory.ui.components.app-layout :refer [app-layout]]
-   [re-frame.core :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [react-infinite]
-   [memefactory.shared.utils :as shared-utils]
-   [memefactory.ui.components.tiles :as tiles]
    [district.ui.router.subs :as router-subs]
+   [memefactory.shared.utils :as shared-utils]
+   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.search :refer [search-tools]]
+   [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.marketplace.events :as mk-events]
    [print.foo :refer [look] :include-macros true]
-   [district.ui.component.form.input :refer [select-input text-input]]
-   [memefactory.ui.components.search :refer [search-tools]]))
+   [re-frame.core :refer [subscribe dispatch]]
+   [react-infinite]
+   [reagent.core :as r]
+   [taoensso.timbre :as log]
+   ))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -50,7 +52,8 @@
                                      :disable-fetch? true}])
         all-auctions (->> @auctions-search
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
-    (println "All auctions" (map :meme-auction/address all-auctions))
+
+    (log/debug "All auctions" {:auctions (map :meme-auction/address all-auctions)})
 
     [react-infinite {:element-height 280
                      :container-height 300
@@ -59,7 +62,9 @@
                      :on-infinite-load (fn []
                                          (when-not (:graphql/loading? @auctions-search)
                                            (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
-                                             (println "Scrolled to load more" has-next-page end-cursor)
+
+                                             (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
+
                                              (when (or has-next-page (empty? all-auctions))
                                                (dispatch [:district.ui.graphql.events/query
                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}

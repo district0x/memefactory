@@ -1,20 +1,23 @@
 (ns memefactory.ui.components.challenge-list
-  (:require [district.time :as time]
-            [reagent.core :as r]
-            [react-infinite]
-            [district.ui.graphql.subs :as gql]
-            [goog.string :as gstring]
-            [district.time :as time]
-            [cljs-time.extend]
-            [district.format :as format]
-            [cljs-time.core :as t]
-            [district.ui.component.form.input :refer [select-input with-label]]
-            [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [print.foo :refer [look] :include-macros true]
-            [memefactory.ui.utils :as mf-utils]
-            [memefactory.ui.components.tiles :refer [meme-image]]
-            [memefactory.ui.components.tiles :as tiles]
-            [memefactory.ui.utils :as utils]))
+  (:require
+   [cljs-time.core :as t]
+   [cljs-time.extend]
+   [district.format :as format]
+   [district.time :as time]
+   [district.time :as time]
+   [district.ui.component.form.input :refer [select-input with-label]]
+   [district.ui.graphql.subs :as gql]
+   [goog.string :as gstring]
+   [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.components.tiles :refer [meme-image]]
+   [memefactory.ui.utils :as mf-utils]
+   [memefactory.ui.utils :as utils]
+   [print.foo :refer [look] :include-macros true]
+   [re-frame.core :as re-frame :refer [subscribe dispatch]]
+   [react-infinite]
+   [reagent.core :as r]
+   [taoensso.timbre :as log]
+   ))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -114,8 +117,10 @@
                            (mapcat (fn [r] (-> r :search-memes :items)))
                            ;; TODO remove this, don't know why subscription is returning nil item
                            (remove #(nil? (:reg-entry/address %))))]
-        (.log js/console "ALL Rendering here" all-memes)
-        (println "All memes " (map :reg-entry/address all-memes))
+
+        (log/debug "All Rendering here" all-memes ::challenge-list)
+        (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::challenge-list)
+
         [:div.challenges.panel
          [:div.controls
           [select-input {:form-data form-data
@@ -129,7 +134,9 @@
                            :on-infinite-load (fn []
                                                (when-not (:graphql/loading? @meme-search)
                                                  (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
-                                                   (.log js/console "Scrolled to load more" has-next-page end-cursor)
+
+                                                   (log/debug "Scrolled to load more" {:has-next-page has-next-page :end-cursor end-cursor} ::challenge-list)
+
                                                    (when has-next-page
                                                      (re-search end-cursor)))))}
 
