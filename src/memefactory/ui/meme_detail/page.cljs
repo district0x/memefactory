@@ -1,37 +1,40 @@
 (ns memefactory.ui.meme-detail.page
-  (:require [cljs-time.core :as t]
-            [cljs-time.format :as time-format]
-            [cljs-web3.core :as web3]
-            [cljs.core.match :refer-macros [match]]
-            [district.format :as format]
-            [district.graphql-utils :as graphql-utils]
-            [district.time :as time]
-            [district.ui.component.form.input :as inputs]
-            [district.ui.component.page :refer [page]]
-            [district.ui.component.tx-button :as tx-button]
-            [district.ui.graphql.events :as gql-events]
-            [district.ui.graphql.subs :as gql]
-            [district.ui.now.subs :as now-subs]
-            [district.ui.router.events :as router-events]
-            [district.ui.router.subs :as router-subs]
-            [district.ui.web3-account-balances.subs :as account-balances-subs]
-            [district.ui.web3-accounts.subs :as accounts-subs]
-            [district.ui.web3-tx-id.subs :as tx-id-subs]
-            [memefactory.shared.utils :as shared-utils :refer [not-nil?]]
-            [memefactory.ui.components.app-layout :as app-layout]
-            [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-            [memefactory.ui.components.panels :refer [panel]]
-            [memefactory.ui.components.tiles :as tiles]
-            [memefactory.ui.contract.meme-factory :as meme-factory]
-            [memefactory.ui.contract.registry-entry :as registry-entry]
-            [memefactory.ui.events :as memefactory-events]
-            [memefactory.ui.spec :as spec]
-            [memefactory.ui.utils :as ui-utils]
-            [print.foo :refer [look] :include-macros true]
-            [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [reagent.core :as r]
-            [reagent.ratom :as ratom]
-            [memefactory.ui.components.charts :as charts]))
+  (:require
+   [cljs-time.core :as t]
+   [cljs-time.format :as time-format]
+   [cljs-web3.core :as web3]
+   [cljs.core.match :refer-macros [match]]
+   [district.format :as format]
+   [district.graphql-utils :as graphql-utils]
+   [district.time :as time]
+   [district.ui.component.form.input :as inputs]
+   [district.ui.component.page :refer [page]]
+   [district.ui.component.tx-button :as tx-button]
+   [district.ui.graphql.events :as gql-events]
+   [district.ui.graphql.subs :as gql]
+   [district.ui.now.subs :as now-subs]
+   [district.ui.router.events :as router-events]
+   [district.ui.router.subs :as router-subs]
+   [district.ui.web3-account-balances.subs :as account-balances-subs]
+   [district.ui.web3-accounts.subs :as accounts-subs]
+   [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [memefactory.shared.utils :as shared-utils :refer [not-nil?]]
+   [memefactory.ui.components.app-layout :as app-layout]
+   [memefactory.ui.components.charts :as charts]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.panels :refer [panel]]
+   [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.contract.meme-factory :as meme-factory]
+   [memefactory.ui.contract.registry-entry :as registry-entry]
+   [memefactory.ui.events :as memefactory-events]
+   [memefactory.ui.spec :as spec]
+   [memefactory.ui.utils :as ui-utils]
+   [print.foo :refer [look] :include-macros true]
+   [re-frame.core :as re-frame :refer [subscribe dispatch]]
+   [reagent.core :as r]
+   [reagent.ratom :as ratom]
+   [taoensso.timbre :as log]
+   ))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
@@ -141,7 +144,7 @@
                              {:id address}])
         state (safe-mapcat (fn [q] (get-in q [:search-meme-auctions :items])) @response)]
 
-    ;; (prn address tags @response)
+    (log/debug "Related memes" {:address address :tags tags :resp @response})
 
     [:div.scroll-area
      [related-memes-component state]
@@ -447,7 +450,7 @@
                          count)
         tags (mapv :tag/name tags)]
 
-    #_(prn @response)
+    (log/debug "Response" @response)
 
     [app-layout/app-layout
      {:meta {:title "MemeFactory"

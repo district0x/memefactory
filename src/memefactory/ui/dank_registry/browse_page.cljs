@@ -2,15 +2,17 @@
   (:require
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
-   [memefactory.ui.dank-registry.events :as mk-events]
+   [district.ui.router.subs :as router-subs]
+   [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.search :refer [search-tools]]
+   [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.dank-registry.events :as mk-events]
+   [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [memefactory.shared.utils :as shared-utils]
-   [district.ui.router.subs :as router-subs]
-   [memefactory.ui.components.tiles :as tiles]
-   [print.foo :refer [look] :include-macros true]
-   [memefactory.ui.components.search :refer [search-tools]]))
+   [taoensso.timbre :as log]
+   ))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -38,7 +40,9 @@
                                  :disable-fetch? true}])
         all-memes (->> @meme-search
                        (mapcat (fn [r] (-> r :search-memes :items))))]
-    (.log js/console "All memes " (map :reg-entry/address all-memes))
+
+    (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::dank-registry-tiles)
+
     [react-infinite {:element-height 280
                      :container-height 300
                      :infinite-load-begin-edge-offset 100
@@ -46,7 +50,9 @@
                      :on-infinite-load (fn []
                                          (when-not (:graphql/loading? @meme-search)
                                            (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
-                                             (.log js/console "Scrolled to load more" has-next-page end-cursor)
+
+                                             (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} ::dank-registry-tiles)
+
                                              (when (or has-next-page (empty? all-memes))
                                                (dispatch [:district.ui.graphql.events/query
                                                           {:query {:queries [(build-tiles-query @form-data end-cursor)]}

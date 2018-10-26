@@ -26,9 +26,11 @@
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme/mint id}
-                                      :on-tx-success-n [[::logging/success [::mint]]
+                                      :on-tx-success-n [[::logging/info "mint tx success" ::mint]
                                                         [::notification-events/show (gstring/format " %s successfully minted" title)]
                                                         [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}
                                                                                                 [:meme/total-minted]]]}}]]
-                                      :on-tx-hash-error [::logging/error [::mint]]
-                                      :on-tx-error [::logging/error [::mint]]}]})))
+                                      :on-tx-error [::logging/error "mint tx error"
+                                                    {:user {:id active-account}
+                                                     :args args}
+                                                    ::mint]}]})))

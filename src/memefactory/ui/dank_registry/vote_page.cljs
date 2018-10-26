@@ -1,30 +1,31 @@
 (ns memefactory.ui.dank-registry.vote-page
   (:require
-   [district.ui.component.page :refer [page]]
-   [memefactory.ui.components.app-layout :refer [app-layout]]
-   [reagent.core :as r]
-   [print.foo :refer [look] :include-macros true]
+   [cljs-time.core :as t]
+   [cljs-time.extend]
+   [cljs-web3.core :as web3]
+   [district.format :as format]
+   [district.graphql-utils :as graphql-utils]
+   [district.time :as time]
    [district.ui.component.form.input :refer [select-input with-label text-input amount-input pending-button]]
-   [react-infinite]
+   [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
+   [district.ui.web3-account-balances.subs :as balance-subs]
+   [district.ui.web3-accounts.subs :as accounts-subs]
+   [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [goog.string :as gstring]
+   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.challenge-list :refer [challenge-list]]
+   [memefactory.ui.components.charts :as charts]
+   [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.dank-registry.events :as dr-events]
-   [memefactory.ui.contract.registry-entry :as re-events]
+   [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
-   [district.ui.graphql.subs :as gql]
-   [goog.string :as gstring]
-   [district.time :as time]
-   [cljs-time.extend]
-   [district.format :as format]
-   [cljs-time.core :as t]
-   [district.ui.web3-tx-id.subs :as tx-id-subs]
-   [memefactory.ui.components.panes :refer [tabbed-pane]]
-   [memefactory.ui.components.challenge-list :refer [challenge-list]]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   [district.ui.web3-account-balances.subs :as balance-subs]
-   [district.graphql-utils :as graphql-utils]
+   [react-infinite]
+   [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [memefactory.ui.components.charts :as charts]
-   [cljs-web3.core :as web3]))
+   [taoensso.timbre :as log]
+   ))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -56,7 +57,7 @@
                   claim-challenge-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/claim-challenge-rewards ch-reward-tx-id}])
                   claim-challenge-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/claim-challenge-rewards ch-reward-tx-id}])]
               [:div.collect-reward
-               (println "meme voting " meme-voting)
+               (log/debug "meme voting" meme-voting ::collect-reward-action)
                [charts/donut-chart meme-voting]
                [:ul.vote-info
                 [:li
@@ -72,7 +73,7 @@
                                               @claim-vote-reward-tx-pending? @claim-vote-reward-tx-success?)
                                 :pending-text "Collecting ..."
                                 :on-click (fn []
-                                            (dispatch [::re-events/claim-vote-reward {:send-tx/id vote-reward-tx-id
+                                            (dispatch [::registry-entry/claim-vote-reward {:send-tx/id vote-reward-tx-id
                                                                                       :active-account @active-account
                                                                                       :reg-entry/address address}]))}
                 "Collect Vote Reward"]
@@ -81,7 +82,7 @@
                                               @claim-challenge-reward-tx-pending? @claim-challenge-reward-tx-success?)
                                 :pending-text "Collecting ..."
                                 :on-click (fn []
-                                            (dispatch [::re-events/claim-challenge-reward {:send-tx/id ch-reward-tx-id
+                                            (dispatch [::registry-entry/claim-challenge-reward {:send-tx/id ch-reward-tx-id
                                                                                            :active-account @active-account
                                                                                            :reg-entry/address address}]))}
                 "Collect Challenge Reward"]])))))))
@@ -172,7 +173,7 @@
         "Reveal My Vote"]])))
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
-  (println "REVEAL VOTE ACTION " meme)
+  (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)
   (case  (graphql-utils/gql-name->kw status)
     :reg-entry.status/commit-period [vote-action meme]
     :reg-entry.status/reveal-period [reveal-action meme]
