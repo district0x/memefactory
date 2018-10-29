@@ -13,7 +13,7 @@
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [district0x/bignumber "1.0.3"]
-                 [district0x/error-handling "1.0.0-1"]
+                 [district0x/error-handling "1.0.1-SNAPSHOT"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.3"]
                  [district0x/district-encryption "1.0.0"]
