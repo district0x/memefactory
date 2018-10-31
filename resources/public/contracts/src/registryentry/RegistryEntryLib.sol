@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "Registry.sol";
-import "math/SafeMath.sol";
+import "../Registry.sol";
+import "../math/SafeMath.sol";
 
 library RegistryEntryLib {
 
