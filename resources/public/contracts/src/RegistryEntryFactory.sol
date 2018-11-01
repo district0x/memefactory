@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "Registry.sol";
-import "proxy/Forwarder.sol";
-import "token/minime/MiniMeToken.sol";
+import "./Registry.sol";
+import "./proxy/Forwarder.sol";
+import "./token/minime/MiniMeToken.sol";
 
 /**
  * @title Base Factory contract for creating RegistryEntry contracts

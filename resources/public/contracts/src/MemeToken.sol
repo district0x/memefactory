@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "token/ERC721Token.sol";
-import "Registry.sol";
-import "auth/DSAuth.sol";
+import "./token/ERC721Token.sol";
+import "./Registry.sol";
+import "./auth/DSAuth.sol";
 
 /**
  * @title Token of a Meme. Contract is deployed with each Meme submission.

@@ -4,7 +4,7 @@ import "./token/ERC721Receiver.sol";
 import "./MemeToken.sol";
 import "./Registry.sol";
 import "./Meme.sol";
-import "math/SafeMath.sol";
+import "./math/SafeMath.sol";
 import "./MemeAuctionFactory.sol";
 import "./DistrictConfig.sol";
 

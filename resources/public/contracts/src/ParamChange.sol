@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "RegistryEntry.sol";
-import "db/EternalDb.sol";
+import "./RegistryEntry.sol";
+import "./db/EternalDb.sol";
 
 /**
  * @title Contract created for each submitted TCR parameter change.

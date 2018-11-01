@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "auth/DSAuth.sol";
+import "./auth/DSAuth.sol";
 
 contract DistrictConfig is DSAuth {
   address public depositCollector;

@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "RegistryEntryFactory.sol";
-import "Meme.sol";
-import "MemeToken.sol";
+import "./RegistryEntryFactory.sol";
+import "./Meme.sol";
+import "./MemeToken.sol";
 
 /**
  * @title Factory contract for creating Meme contracts

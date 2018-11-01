@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "auth/DSAuth.sol";
-import "db/EternalDb.sol";
-import "proxy/MutableForwarder.sol"; // Keep it included despite not being used (for compiler)
+import "./auth/DSAuth.sol";
+import "./db/EternalDb.sol";
+import "./proxy/MutableForwarder.sol"; // Keep it included despite not being used (for compiler)
 
 /**
  * @title Central contract for TCR registry

@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "Registry.sol";
-import "ParamChange.sol";
-import "auth/DSGuard.sol";
+import "./Registry.sol";
+import "./ParamChange.sol";
+import "./auth/DSGuard.sol";
 
 /**
  * @title Central contract for TCR parameter change registry

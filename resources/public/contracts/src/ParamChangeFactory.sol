@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "RegistryEntryFactory.sol";
-import "ParamChange.sol";
+import "./RegistryEntryFactory.sol";
+import "./ParamChange.sol";
 
 /**
  * @title Factory contract for creating ParamChange contracts

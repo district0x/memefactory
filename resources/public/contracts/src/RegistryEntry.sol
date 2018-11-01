@@ -1,9 +1,9 @@
 pragma solidity ^0.4.24;
 
-import "Registry.sol";
-import "token/minime/MiniMeToken.sol";
-import "math/SafeMath.sol";
-import "registryentry/RegistryEntryLib.sol";
+import "./Registry.sol";
+import "./token/minime/MiniMeToken.sol";
+import "./math/SafeMath.sol";
+import "./registryentry/RegistryEntryLib.sol";
 
 /**
  * @title Contract created with each submission to a TCR
