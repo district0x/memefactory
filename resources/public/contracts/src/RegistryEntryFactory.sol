@@ -13,7 +13,6 @@ import "./token/minime/MiniMeToken.sol";
 contract RegistryEntryFactory is ApproveAndCallFallBack {
   Registry public registry;
   MiniMeToken public registryToken;
-  bytes32 public constant depositKey = sha3("deposit");
 
   function RegistryEntryFactory(Registry _registry, MiniMeToken _registryToken) {
     registry = _registry;
@@ -30,7 +29,7 @@ contract RegistryEntryFactory is ApproveAndCallFallBack {
    * @return Address of a new registry entry forwarder contract
    */
   function createRegistryEntry(address _creator) internal returns (address) {
-    uint deposit = registry.db().getUIntValue(depositKey);
+    uint deposit = registry.db().getUIntValue(registry.depositKey());
     address regEntry = new Forwarder();
     require(registryToken.transferFrom(_creator, this, deposit), "RegistryEntryFactory: couldn't transfer deposit");
     require(registryToken.approve(regEntry, deposit), "RegistryEntryFactory: Deposit not approved");
