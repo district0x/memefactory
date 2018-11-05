@@ -321,7 +321,7 @@
                    (web3/from-wei :ether)
                    format/format-eth)
                " (#" number " " title ")")
-          [:div.loading])]])))
+          "None")]])))
 
 (defmethod total :created [_ active-account]
   (let [query (subscribe [::gql/query
