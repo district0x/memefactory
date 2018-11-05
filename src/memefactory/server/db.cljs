@@ -241,6 +241,7 @@
 (def insert-param-change! (create-insert-fn :param-changes param-change-column-names))
 (def update-param-change! (create-update-fn :param-changes param-change-column-names :reg-entry/address))
 
+(def get-vote (create-get-fn :votes [:reg-entry/address :vote/voter]))
 (def insert-vote! (create-insert-fn :votes votes-column-names))
 (def update-vote! (create-update-fn :votes votes-column-names [:reg-entry/address :vote/voter]))
 

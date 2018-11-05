@@ -16,6 +16,7 @@
             [memefactory.server.contract.meme-token :as meme-token]
             [memefactory.server.contract.param-change :as param-change]
             [memefactory.server.contract.registry :as registry]
+            [memefactory.shared.contract.registry-entry :refer [vote-options]]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db :as db]
             [memefactory.server.deployer]
@@ -166,12 +167,18 @@
 (defmethod process-event [:contract/registry-entry :vote-revealed]
   [_ {:keys [:registry-entry :timestamp :version :voter :option] :as ev}]
   (try-catch
-   (let [vote {:reg-entry/address registry-entry
-               :vote/voter voter
-               :vote/option (bn/number option)
-               :vote/revealed-on timestamp}]
-     (db/update-registry-entry! {:reg-entry/address registry-entry
-                                 :reg-entry/version version})
+   (let [vote (merge (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/amount])
+                     {:vote/option (bn/number option)
+                      :vote/revealed-on timestamp})
+         re (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/votes-against :challenge/votes-for])]
+     (db/update-registry-entry! (cond-> {:reg-entry/address registry-entry
+                                         :reg-entry/version version}
+                                  (= (vote-options (:vote/option vote))
+                                     :vote.option/vote-against) (assoc :challenge/votes-against (+ (or (:challenge/votes-against re) 0)
+                                                                                                   (:vote/amount vote)))
+                                  (= (vote-options (:vote/option vote))
+                                     :vote.option/vote-for) (assoc :challenge/votes-for (+ (or (:challenge/votes-for re) 0)
+                                                                                           (:vote/amount vote)))))
      (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :vote-reward-claimed]
