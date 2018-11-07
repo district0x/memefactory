@@ -167,8 +167,8 @@
         :color (color :ticker-token-color)
         :position :absolute
         :display :block
-        :left 0;
-        :right 0;
+        :left 0
+        :right 0
         :width (em 2)
         :margin-right "auto"
         :margin-left "auto"

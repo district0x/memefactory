@@ -97,12 +97,13 @@
      (font :filson)
      {:padding-left (em 3)
       :color (color :menu-text)
-      :font-weight :bold
-      :line-height (em 1.4)
+      ;; :font-weight :bold
+      :line-height (em 1.8)
+      :font-size (pt 8)
       :position :absolute
       :overflow :visible
       :display :block
-      :height (em 10)
+      :height (em 8)
       :right 0
       :left 0
       :padding-bottom (em 20)
@@ -111,6 +112,7 @@
       :background-position "right bottom";
       :background-repeat :no-repeat
       :background-image "url('/assets/icons/conveyer.png')"}
+     [:a {:text-decoration :underline}]
      [:.logo {:content "url('/assets/icons/district0x.svg')"
               :height (em 2)
               ;; :background-position "left bottom";
