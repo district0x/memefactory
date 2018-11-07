@@ -55,9 +55,9 @@
      [:ul.node {:padding-left (em 0)}]
 
      [:ul.node
-      [:.item {:font-size (pt 13)}]
+      [:.item {:font-size (pt 12)}]
       [:ul.node {:padding-left (em 0)}
-       [:.item {:font-size (pt 11)}]]]
+       [:.item {:font-size (pt 10)}]]]
 
      [:ul.node
       {:list-style :none}
@@ -73,13 +73,13 @@
          {:color (color :menu-text-hover)}]
         [:&:before
          {:display :block
-          :background-size [(rem 2) (rem 2)]
+          :background-size [(rem 1.8) (rem 1.8)]
           :background-repeat :no-repeat
           :margin-left (rem -3)
           :margin-top (rem -0.2)
           :position :absolute
-          :height (rem 2)
-          :width (rem 2)}]]
+          :height (rem 1.8)
+          :width (rem 1.8)}]]
        (let [icons [[:dankregistry "dankregistry"]
                     [:about "about"]
                     [:marketplace "marketplace"]
