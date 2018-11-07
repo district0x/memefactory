@@ -29,9 +29,12 @@
                     [:&
                      {:display :none}])]
     {:position "relative"}
-
+    [(sel/> :.menu-content :.node :.node-content :.item)
+     (border-top {:color (color :border-line)})
+     {:padding-top (em 1)
+      :padding-bottom (em 1)}]
     [:.menu-content
-     [:.mf-logo 
+     [:.mf-logo
       {:cursor :pointer
        :padding-top (em 3)
        :padding-bottom (em 1)
@@ -47,10 +50,7 @@
         :line-height (em 1.4)
         :color (color :menu-logo)}]]
 
-     [(sel/> :.menu-content :.node :.node-content :.item)
-      (border-top {:color (color :border-line)})
-      {:padding-top (em 1)
-       :padding-bottom (em 1)}]
+     
 
      [:ul.node {:padding-left (em 0)}]
 
