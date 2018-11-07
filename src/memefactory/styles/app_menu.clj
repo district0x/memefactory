@@ -83,9 +83,9 @@
        (let [icons [[:dankregistry "dankregistry"]
                     [:about "about"]
                     [:marketplace "marketplace"]
-                    [:how-it-works "howitworks"]
+                    [:how-it-works "how-it-works"]
                     [:leaderboard "leaderboard"]
-                    [:my-meme-folio "mymemefolio"]
+                    [:memefolio "mymemefolio"]
                     [:my-settings "mysettings"]]]
          (mapv (fn [[cls img]]
                  [(keyword (str "&." (name cls)))
