@@ -153,10 +153,10 @@
        {:white-space :nowrap
         :color (color :ticker-color)
         :position :absolute
-        :display :block
+        :display :inline-block
+        :text-align :center
         :left 0;
         :right 0;
-        :width (em 4)
         :margin-right "auto"
         :margin-left "auto"
         :top (em 0.3)
