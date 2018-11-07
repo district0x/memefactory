@@ -125,7 +125,6 @@
       :height "100%"
       :align-items :center
       :justify-content :center}
-
      [:.active-account-balance
       {:display :block
        :height "100%"
@@ -134,6 +133,10 @@
        :position :relative
        ;; :font-size (px 18)
        }
+      ["&:not(:last-child)"
+       {:border-right (px 1)
+        :border-right-color (color :black)
+        :border-right-style :solid}]
       [:&:before
        {:display :block
         :background-size [(em 1) (em 2)]
@@ -144,8 +147,7 @@
         :height (em 2)
         :width (em 1)
         :content "''"
-        :background-image (str "url('/assets/icons/ethereum.svg')")}
-       ]
+        :background-image (str "url('/assets/icons/ethereum.svg')")}]
       [:.balance
        (font :bungee)
        {:white-space :nowrap
@@ -170,6 +172,4 @@
         :width (em 2)
         :margin-right "auto"
         :margin-left "auto"
-        :bottom (em 0.3)}]
-      ]]]
-   ])
+        :bottom (em 0.3)}]]]]])
