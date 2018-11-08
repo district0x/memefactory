@@ -64,29 +64,31 @@
                     {:border-radius "1em 1em 1em 1em"
                      :margin-bottom (em 2)}])
     [:&.new-on-marketplace
-     {:border-radius "1em 1em 1em 1em"}]]
+     {:border-radius "1em 1em 0em 0em"}]]
    [:h2.title
     (font :bungee)
     (for-media-max :tablet
                    [:&
                     {:margin-top (em 4)
-                     :font-size (px 19)}])
+                     :font-size (em 19)}])
     {:white-space :nowrap
      :position :relative
      ;; :color (color :section-caption)
-     :font-size (px 25)
-     :margin-top (em 0.5)
+     :font-size (px 20)
+     :margin-top (em 0.8)
      :margin-bottom (em 0.1)
      :text-align :center}]
    [:h3.title
     {:white-space :nowrap
      :margin-top (em 0.1)
+     :margin-bottom (em 1)
      :position :relative
      :color (color :section-subcaption)
-     :font-size (px 15)
+     :font-size (px 12)
      :text-align :center}]
    [:a.more {:position :absolute
              :top (em 2)
+             :font-size (px 12)
              :color (color :section-subcaption)
              :text-decoration :underline
              :right (em 6)}
