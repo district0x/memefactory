@@ -150,7 +150,10 @@
     {:position :relative
      :bottom 0
      :cursor :pointer
-     }
+     :line-height (em 1.2)
+     :font-size (em 0.9)}
+    [:.token-id :.title {:display :inline-block}]
+    [:.token-id {:padding-right (em 0.3)}]
     [:.title :.number-minted :.price :.token-id
      {:text-align :center
       :color (color :meme-tile-footer)}]
