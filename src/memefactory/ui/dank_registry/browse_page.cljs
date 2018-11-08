@@ -88,7 +88,8 @@
                         :sub-title "Sub title"
                         :on-selected-tags-change re-search
                         :select-options [{:key "number" :value "Number"}
-                                         {:key "total-trade-volume" :value "Total trade volume"}]
+                                         {:key "total-trade-volume" :value "Total trade volume"}
+                                         {:key "created-on" :value "Newest"}]
                         :on-search-change re-search
                         :on-check-filter-change re-search
                         :on-select-change re-search}]
