@@ -151,7 +151,7 @@
      :bottom 0
      :cursor :pointer
      }
-    [:.title :.number-minted :.price
+    [:.title :.number-minted :.price :.token-id
      {:text-align :center
       :color (color :meme-tile-footer)}]
     [:.title {:margin-top (em 1)

@@ -40,6 +40,7 @@
              [:meme-auction/seller [:user/address]]
              [:meme-auction/meme-token
               [:meme-token/number
+               :meme-token/token-id
                [:meme-token/meme
                 [:meme/title
                  :reg-entry/address

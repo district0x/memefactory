@@ -43,6 +43,10 @@
       :animation-duration "2s"
       :animation-iteration-count :infinite
       :animation-timing-function :linear}]
+    [:.footer
+     [:.token-id {:display :inline-block}]
+     [:.number-minted {:display :inline-block
+                       :margin-left (em 0.4)}]]
     #_[:.container
        [:.meme-card.front
         {:backface-visibility :visible}]]

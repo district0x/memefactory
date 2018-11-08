@@ -17,7 +17,7 @@
             [district.ui.router.events :as router-events]))
 
 (defn- format-price [price]
-  (format/format-eth (/ price 1e18) {:max-fraction-digits 7
+  (format/format-eth (/ price 1e18) {:max-fraction-digits 2
                                      :min-fraction-digits 2}))
 
 (defn meme-image [image-hash]
@@ -89,6 +89,7 @@
                                              nil
                                              {:reg-entry/address (-> meme-token :meme-token/meme :reg-entry/address)}])}
           [:div.title (-> meme-token :meme-token/meme :meme/title)]
+          [:div.token-id (str "#"(-> meme-token :meme-token/token-id))]
           [:div.number-minted (str (:meme-token/number meme-token)
                                    "/"
                                    (-> meme-token :meme-token/meme :meme/total-minted))]
