@@ -28,23 +28,18 @@
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.spec :as spec]
-   [memefactory.ui.utils :as ui-utils]
+   [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [taoensso.timbre :as log]
-   ))
+   [taoensso.timbre :as log]))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
 (def scroll-interval 5)
 
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
-
-(defn- format-price [price]
-  (format/format-eth (/ price 1e18) {:max-fraction-digits 2
-                                     :min-fraction-digits 2}))
 
 (defn build-meme-query [address active-account]
   {:queries [[:meme {:reg-entry/address address}
@@ -253,9 +248,9 @@
      (when (< 0 votes-total)
        [charts/donut-chart meme])
      [:div
-      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
-      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]
-      [:div.text (str "Total voted: " votes-total)]
+      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (format-dank votes-for))]
+      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (format-dank votes-against))]
+      [:div.text (str "Total voted: " (format-dank votes-total))]
       (cond
         (= :vote-option/not-revealed option)
         [tx-button/tx-button {:primary true

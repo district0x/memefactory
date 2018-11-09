@@ -14,11 +14,8 @@
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [memefactory.ui.contract.meme-auction :as meme-auction]
-            [district.ui.router.events :as router-events]))
-
-(defn- format-price [price]
-  (format/format-eth (/ price 1e18) {:max-fraction-digits 2
-                                     :min-fraction-digits 2}))
+            [district.ui.router.events :as router-events]
+            [memefactory.ui.utils :as ui-utils :refer [format-price]]))
 
 (defn meme-image [image-hash]
   (let [url (-> @(subscribe [::gql/query

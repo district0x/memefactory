@@ -10,7 +10,7 @@
    [react-infinite]
    [reagent.core :as r]
    [taoensso.timbre :as log]
-   ))
+   [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
@@ -46,7 +46,7 @@
      [:div.number (str "#" num)]
      [:span.user-address address]
      [:ul
-      [:li "Earned: " [:span.earned (str creator-total-earned)]]
+      [:li "Earned: " [:span.earned (format-dank creator-total-earned)]]
       [:li "Success Rate: " [:span.success-rate (gstring/format "%d/%d (%d%%)"
                                                                 total-created-memes-whitelisted
                                                                 total-created-memes
