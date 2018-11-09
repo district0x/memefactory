@@ -42,6 +42,10 @@
 
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
+(defn- format-price [price]
+  (format/format-eth (/ price 1e18) {:max-fraction-digits 2
+                                     :min-fraction-digits 2}))
+
 (defn build-meme-query [address active-account]
   {:queries [[:meme {:reg-entry/address address}
               [:reg-entry/address
@@ -199,8 +203,8 @@
                      [:td.meme-token (:meme-token/token-id meme-token)]
                      [:td.seller-address (:user/address seller)]
                      [:td.buyer-address (:user/address buyer)]
-                     [:td.end-price end-price]
-                     [:td.time (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))]])]))))
+                     [:td.end-price (format-price end-price)]
+                     [:td.time  (when bought-on (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now)))]])))]])]))))
 
 (defn challenge-header [created-on]
   [:div.header
