@@ -105,12 +105,12 @@
                                                                      :placeholder-replacements
                                                                      {forwarder-target-placeholder :meme-auction}})))
 
-
+;; we use setter instead of placeholder to avoid cyclic dependency
 (defn deploy-meme-auction-factory-fwd! [default-opts]
   (deploy-smart-contract! :meme-auction-factory-fwd (merge default-opts
                                                            {:gas 500000
-                                                            :placeholder-replacements
-                                                            {forwarder-target-placeholder :meme-auction-factory}})))
+                                                            #_:placeholder-replacements
+                                                            #_{forwarder-target-placeholder :meme-auction-factory}})))
 
 (defn deploy-meme-auction! [{:keys [:cut-collector] :as default-opts}]
   (deploy-smart-contract! :meme-auction (merge default-opts {:gas 4000000
