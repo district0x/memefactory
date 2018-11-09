@@ -144,7 +144,7 @@
     regEntry_version: Int
     regEntry_status: RegEntryStatus
     regEntry_creator: User
-    regEntry_deposit: Int
+    regEntry_deposit: Float
     regEntry_createdOn: Date
     regEntry_challengePeriodEnd: Date
     challenge_challenger: User
@@ -190,7 +190,7 @@
     regEntry_version: Int
     regEntry_status: RegEntryStatus
     regEntry_creator: User
-    regEntry_deposit: Int
+    regEntry_deposit: Float
     regEntry_createdOn: Date
     regEntry_challengePeriodEnd: Date
     challenge_challenger: User
@@ -294,7 +294,7 @@
     regEntry_version: Int
     regEntry_status: RegEntryStatus
     regEntry_creator: User
-    regEntry_deposit: Int
+    regEntry_deposit: Float
     regEntry_createdOn: Date
     regEntry_challengePeriodEnd: Date
     challenge_challenger: User
