@@ -34,11 +34,8 @@
              :meme/title
              [:reg-entry/creator [:user/address]]]]]])
 
-(defn dank-registry-tiles [form-data]
-  (let [meme-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
-                                {:id @form-data
-                                 :disable-fetch? true}])
-        all-memes (->> @meme-search
+(defn dank-registry-tiles [form-data meme-search]
+  (let [all-memes (->> @meme-search
                        (mapcat (fn [r] (-> r :search-memes :items))))]
 
     (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::dank-registry-tiles)
@@ -75,7 +72,11 @@
     (fn []
       (let [re-search (fn [& _]
                         (dispatch [:district.ui.graphql.events/query
-                                   {:query {:queries [(build-tiles-query @form-data nil)]}}]))]
+                                   {:query {:queries [(build-tiles-query @form-data nil)]}}]))
+            meme-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
+                                    {:id @form-data
+                                     :disable-fetch? true}])
+            search-total-count (-> @meme-search first :search-memes :total-count)]
        [app-layout
         {:meta {:title "MemeFactory"
                 :description "Description"}}
@@ -87,10 +88,11 @@
                         :title "Dank registry"
                         :sub-title "Sub title"
                         :on-selected-tags-change re-search
-                        :select-options [{:key "number" :value "Number"}
-                                         {:key "total-trade-volume" :value "Total trade volume"}
-                                         {:key "created-on" :value "Newest"}]
+                        :select-options (->> [{:key "number" :value "Number"}
+                                              {:key "total-trade-volume" :value "Total trade volume"}
+                                              {:key "created-on" :value "Newest"}]
+                                             (map (fn [opt] (update opt :value str " - Total : " search-total-count))))
                         :on-search-change re-search
                         :on-check-filter-change re-search
                         :on-select-change re-search}]
-         [dank-registry-tiles form-data]]]))))
+         [dank-registry-tiles form-data meme-search]]]))))

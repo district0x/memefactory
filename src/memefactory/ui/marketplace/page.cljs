@@ -47,11 +47,8 @@
                  :meme/image-hash
                  :meme/total-minted]]]]]]]])
 
-(defn marketplace-tiles [form-data]
-  (let [auctions-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
-                                    {:id @form-data
-                                     :disable-fetch? true}])
-        all-auctions (->> @auctions-search
+(defn marketplace-tiles [form-data auctions-search]
+  (let [all-auctions (->> @auctions-search
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
 
     (log/debug "All auctions" {:auctions (map :meme-auction/address all-auctions)})
@@ -89,7 +86,11 @@
     (fn []
       (let [re-search (fn [& _]
                         (dispatch [:district.ui.graphql.events/query
-                                   {:query {:queries [(build-tiles-query @form-data nil)]}}]))]
+                                   {:query {:queries [(build-tiles-query @form-data nil)]}}]))
+            auctions-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
+                                    {:id @form-data
+                                     :disable-fetch? true}])
+            search-total-count (-> @auctions-search first :search-meme-auctions :total-count)]
         [app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
@@ -104,15 +105,16 @@
                           :title "Marketplace"
                           :sub-title "Sub title"
                           :on-selected-tags-change re-search
-                          :select-options [{:key "started-on" :value "Newest"}
-                                           {:key "meme-total-minted" :value "Rarest"}
-                                           {:key "price" :value "Cheapest"}
-                                           {:key "random" :value "Random"}]
+                          :select-options (->> [{:key "started-on" :value "Newest"}
+                                                {:key "meme-total-minted" :value "Rarest"}
+                                                {:key "price" :value "Cheapest"}
+                                                {:key "random" :value "Random"}]
+                                               (map (fn [opt] (update opt :value str " - Total : " search-total-count))))
                           :on-search-change re-search
                           :on-check-filter-change re-search
                           :on-select-change re-search}]
            [:div.search-results
-            [marketplace-tiles form-data]]]]]))))
+            [marketplace-tiles form-data auctions-search]]]]]))))
 
 (defmethod page :route.marketplace/index []
   [index-page])
