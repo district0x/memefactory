@@ -15,8 +15,8 @@
 (defstyles core
   [:.dank-registry-index-page
    (search-panel {:background-panel-image "/assets/icons/mf-search2.svg"
-                  :color :mymemefolio-green
-                  :icon "/assets/icons/portfolio2.svg"})
+                  :color :blue
+                  :icon "/assets/icons/memesubmiticon.svg"})
    [:.tiles
     {:margin-top (em 2)
      :padding-top (em 2)

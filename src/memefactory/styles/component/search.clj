@@ -40,7 +40,7 @@
      {:white-space :nowrap
       :position :relative
       ;; :color (color :section-caption)
-      :font-size (px 25)
+      :font-size (px 22)
       :margin-top (em 0.3)
       :padding-top (em 0.2)
       :margin-bottom (em 0.1)
@@ -50,7 +50,7 @@
       :margin-top (em 0.1)
       :position :relative
       :color (c/color :section-subcaption)
-      :font-size (px 15)
+      :font-size (px 13)
       :text-align :center}]
     [:.icon
      (for-media-max :tablet
