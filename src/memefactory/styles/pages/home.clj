@@ -19,11 +19,11 @@
     :position :relative
     :margin-right :auto
     :margin-left :auto
-    :padding-top (em 7)
+    :padding-top (em 5)
     :text-align :center
     :font-weight :lighter
     :font-size (pt 14)
-    :width "41%"}
+    :width "51%"}
    [:&:before
     (font :bungee)
     {:content "'MF'"
@@ -34,7 +34,7 @@
      :background-repeat :no-repeat
      :background-position-y (em 2)
      :background-position-x :center
-     :top (em 2)
+     :top (em 0.5)
      ;; :center (rem 0)
      :position :absolute
      :margin-right :auto
