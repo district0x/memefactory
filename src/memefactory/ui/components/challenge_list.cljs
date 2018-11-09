@@ -142,9 +142,12 @@
 
            (if (:graphql/loading? @meme-search)
              [:div.loading]
-             (doall
-              (for [{:keys [:reg-entry/address] :as meme} all-memes]
-                ^{:key address}
-                [challenge {:entry meme
-                            :include-challenger-info? include-challenger-info?
-                            :action-child action-child}])))]]]))))
+             (if (empty? all-memes)
+               [:div.challenge "No items found."]
+
+               (doall
+               (for [{:keys [:reg-entry/address] :as meme} all-memes]
+                 ^{:key address}
+                 [challenge {:entry meme
+                             :include-challenger-info? include-challenger-info?
+                             :action-child action-child}]))))]]]))))
