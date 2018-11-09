@@ -7,7 +7,8 @@
    [district.ui.router.events]
    [re-frame.core :refer [subscribe dispatch]]
    [memefactory.ui.subs :as mf-subs]
-   [memefactory.ui.utils :as mf-utils]))
+   [memefactory.ui.utils :as mf-utils]
+   [district.ui.component.notification :as notification]))
 
 (def nav-menu-items [{:text "Marketplace"
                       :route :route.marketplace/index
@@ -17,7 +18,7 @@
                       :class :dankregistry
                       :children [{:text "Submit"
                                   :route :route.dank-registry/submit}
-                                 {:text "Vote" 
+                                 {:text "Vote"
                                   :route :route.dank-registry/vote}
                                  {:text "Challenge"
                                   :route :route.dank-registry/challenge}
@@ -140,4 +141,5 @@
         [app-bar {:search-atom search-atom}]
         [app-bar-mobile drawer-open?]
         (into [:div.main-content]
-              children)]])))
+              children)]
+       [notification/notification]])))

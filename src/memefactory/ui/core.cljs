@@ -91,5 +91,6 @@
                                  :component-var #'router}
                 :router {:routes routes
                          :default-route :route/home}
-                :router-google-analytics {:enabled? (not debug?)}}))
+                :router-google-analytics {:enabled? (not debug?)}
+                :district-ui-notification {:default-show-duration 1000}}))
       (mount/start)))

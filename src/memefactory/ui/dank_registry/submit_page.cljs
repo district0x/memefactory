@@ -72,7 +72,7 @@
                                                  (log/warn "Rejected file" props ::file-rejected))}]]
           [:div.form-panel
            ;; [:div (str (:local @errors))]
-           ;; [:div (str @critical-errors)]
+           ;; [:div (str (select-keys @form-data [:title :issuance]))]
 
            [with-label "Title"
             [text-input {:form-data form-data
