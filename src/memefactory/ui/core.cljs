@@ -92,5 +92,6 @@
                 :router {:routes routes
                          :default-route :route/home}
                 :router-google-analytics {:enabled? (not debug?)}
-                :district-ui-notification {:default-show-duration 1000}}))
+                :district-ui-notification {:default-show-duration 2000
+                                           :default-hide-duration 1000}}))
       (mount/start)))

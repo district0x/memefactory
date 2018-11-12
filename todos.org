@@ -70,12 +70,15 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] When opening page at memefolio/index doesn show Collected until you switch to other tab and back        (Juan)
 - [ ] Sell functionality, duration should be less than is not showing                                         (Juan)
 - [X] Add logging (with Sentry)                                                                               (Filip)
-- [ ] dankregistry/submit issuance is always 1
-- [ ] dankregistry/submit no user feedback when non .png file is rejected
-- [ ] dankregistry/submit always shows 0 DANK next to submit button
+- [ ] dankregistry/submit issuance is always 1                                                                ()
+- [ ] dankregistry/submit no user feedback when non .png file is rejected                                     ()
+- [ ] dankregistry/submit always shows 0 DANK next to submit button                                           ()
 - [X] Collect challenge and collect vote rewords separately                                                   (Juan)
 - [X] Add UI logging (on error send requests to production logging facilities)                                (Filip)
-- [ ] marketplace/index clicking on buy button flips the tile 
+- [ ] marketplace/index clicking on buy button flips the tile                                                 ()
+- [ ] remove top search (serves no function)                                                                  ()
+- [X] add tx notifications                                                                                    (Filip)
+- [ ] add tx log                                                                                              (Filip)
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
