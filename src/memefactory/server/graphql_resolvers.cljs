@@ -866,28 +866,28 @@
     (->> (all-users)
          (map #(assoc % :white-listed-memes (get users-whitelisted-memes (:user/address %) 0)))
          (sort-by :white-listed-memes >)
-         (map-indexed (fn [idx u] [(:user/address u) idx]))
+         (map-indexed (fn [idx u] [(:user/address u) (inc idx)]))
          (into {}))))
 
 (defn challenger-rank []
   (->> (db/all {:select [:u.user/address :u.user/challenger-total-earned]
                 :from [[:users :u]]
                 :order-by [[:u.user/challenger-total-earned :desc]]})
-       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (map-indexed (fn [idx {:keys [:user/address]}] [address (inc idx)]))
        (into {})))
 
 (defn voter-rank []
   (->> (db/all {:select [:u.user/address :u.user/voter-total-earned]
                 :from [[:users :u]]
                 :order-by [[:u.user/voter-total-earned :desc]]})
-       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (map-indexed (fn [idx {:keys [:user/address]}] [address (inc idx)]))
        (into {})))
 
 (defn curator-rank []
   (->> (db/all {:select [:u.user/address [(sql/call :+ :u.user/challenger-total-earned :u.user/voter-total-earned) :curator-total-earned]]
                 :from [[:users :u]]
                 :order-by [[:curator-total-earned :desc]]})
-       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (map-indexed (fn [idx {:keys [:user/address]}] [address (inc idx)]))
        (into {})))
 
 (defn collector-rank []
@@ -897,7 +897,7 @@
                             [:= :u.user/address :mto.meme-token/owner]]
                 :group-by [:u.user/address]
                 :order-by [[:uniq-memes :desc]]})
-       (map-indexed (fn [idx {:keys [:user/address]}] [address idx]))
+       (map-indexed (fn [idx {:keys [:user/address]}] [address (inc idx)]))
        (into {})))
 
 (defn user->creator-rank-resolver [{:keys [:user/address]}]
