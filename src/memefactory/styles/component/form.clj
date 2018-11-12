@@ -33,6 +33,7 @@
   [:.dropzone
    {:width (px 200)
     :height (px 200)
+    :border-radius (em 1)
     :background-color (color :light-light-grey)}
    [:.help-block
     {:border :none
