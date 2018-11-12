@@ -63,13 +63,15 @@
        [:.file-name {:display :none}]
        [:.help-block
         {:border-top :none
-         :margin-bottom (em 2)}]]
+         :line-height (em 1)
+         :margin-top (em -0.5)
+         :margin-bottom (em 3)}]]
       [:label.file-input-label
        {:margin-right :auto
         :margin-left :auto
         :padding-top (em 1)
         :padding-left (em 1.9)
-        :margin-top (em 3)
+        :margin-top (em 2)
         :font-size (px 12)}
        (button {:background-color :purple
                 :color :white
