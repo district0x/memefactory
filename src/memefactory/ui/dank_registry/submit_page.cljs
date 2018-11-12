@@ -40,7 +40,7 @@
                                        max-issuance (get-in @max-issuance-s [:search-param-changes :items 0 :param-change/value] 1)]
                                    (cond-> {:issuance {:hint (str "Max " max-issuance)}}
                                      (empty? title)
-                                     (assoc-in [:title :error] "Meme title is mandatory")
+                                     (assoc-in [:title :error] "Title cannot be empty")
 
                                      (not file-info)
                                      (assoc-in [:file-info :error] "No file selected")

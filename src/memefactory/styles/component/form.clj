@@ -122,6 +122,9 @@
    [:.help-block
     {:border :none
      :display :block
+     :line-height (em 0.5)
+     :padding-bottom (em 0.5)
+     :padding-top (em 0)
      :border-top "1px solid #CCC"}
     [:&:before
      {:content "''"
@@ -131,7 +134,7 @@
       :left (em 0)
       ;; :margin-top: -4px;
       :position :relative
-      :top (em -0.95);
+      :top (px -7);
       :transform "scale(0, 1)"
       :transition "all 0.2s linear"
       :width "100%";;(px 202)
