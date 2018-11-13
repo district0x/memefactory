@@ -4,7 +4,11 @@
    [district.ui.component.active-account :refer [active-account]]
    [district.ui.component.active-account-balance :refer [active-account-balance] :as account-balances]
    [district.ui.component.form.input :as inputs :refer [text-input*]]
+   [district.ui.component.tx-log :refer [tx-log]]
    [district.ui.router.events]
+   [district.ui.web3-tx-log.events :as tx-log-events]
+   [district.ui.web3-tx-log.subs :as tx-log-subs]
+   ;; [district.ui.web3-tx-log-core]
    [re-frame.core :refer [subscribe dispatch]]
    [memefactory.ui.subs :as mf-subs]
    [memefactory.ui.utils :as mf-utils]
@@ -71,7 +75,8 @@
 (defn app-bar [{:keys [search-atom]}]
   (let [open? (r/atom nil)
         my-addresses (r/atom nil);;(subscribe [:district0x/my-addresses])
-        search-term (r/atom {})]
+        search-term (r/atom {})
+        tx-log-open? (subscribe [::tx-log-subs/open?])]
     (fn []
       [:div.app-bar
        [:div.account-section
@@ -89,11 +94,15 @@
            [active-account-balance
             {:token-code :DANK
              :contract :DANK
-             :class :dank
+             :class "dank"
              :locale "en-US"}]
            [active-account-balance
             {:token-code :ETH
-             :locale "en-US"}]])]])))
+             :locale "en-US"
+             :class "eth"}]
+           [tx-log
+            {:header-props {:text "My Transactions"
+                            :on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}}]])]])))
 
 (defn current-page? [a b]
   (= a b))

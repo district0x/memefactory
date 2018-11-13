@@ -79,6 +79,8 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] remove top search (serves no function)                                                                  ()
 - [X] add tx notifications                                                                                    (Filip)
 - [ ] add tx log                                                                                              (Filip)
+- [ ] DANK balance always displays 0                                                                          ()
+- [ ] can't switchbetween accounts                                                                            ()
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()

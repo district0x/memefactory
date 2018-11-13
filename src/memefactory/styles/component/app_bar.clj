@@ -5,7 +5,9 @@
    [clojure.string :as s]
    [memefactory.styles.base.colors :refer [color]]
    [memefactory.styles.base.fonts :refer [font]]
+   [memefactory.styles.base.icons :refer [icons]]
    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
+   [memefactory.styles.component.overflow :refer [of-ellipsis]]
    [garden.units :refer [rem px em]]))
 
 (def bar-height (px 50))
@@ -22,8 +24,7 @@
      :background-position "5px 5px"
      :background-repeat :no-repeat
      ;; :margin-left (rem -3)
-     :background-image (str "url('/assets/icons/mf-logo.svg')")
-     }
+     :background-image (str "url('/assets/icons/mf-logo.svg')")}
     [:&:before
      (font :bungee)
      {:content "'MEME FACTORY'"
@@ -35,9 +36,7 @@
       ;; :padding-top (rem 2.8)
       :padding-left (rem 4)
       :display :block
-      :min-height (rem 8)
-      }]
-    ]
+      :min-height (rem 8)}]]
    [:.menu-selection
     {:position :absolute
      :width (px 33)
@@ -53,7 +52,6 @@
       :color (color :pink)}]]
    (for-media-min :tablet [:&
                            {:display :none}])]
-
   [:.app-bar
    {:height bar-height
     :background-color (color "white")
@@ -73,11 +71,10 @@
       {:content "url('/assets/icons/dropdown.png')" ;;No, we can't just bg scale, thanks upstream !important
        :display :inline-flex
        :transform "scale(.5)"}]
-
      [:span.text
       {:overflow "hidden"
        :white-space "nowrap"
-       :text-overflow "ellipsis"
+       :text-overflow :ellipsis
        :width "100%"
        :display "inline-block"}]]]
 
@@ -109,9 +106,7 @@
       [:&.hover
        {
         ;; :background-color (color :yellow)
-        }]
-      ]
-     ]]
+        }]]]]
    [:.tracker-section
     {:cursor :pointer
      :transition "width 100ms cubic-bezier(0.23, 1, 0.32, 1) 0ms"
@@ -121,10 +116,132 @@
      :align-items :center
      :justify-content :center}
     [:.accounts
-     {:display :flex
+     {:display :grid
+      :grid-template-areas
+      (str
+       "'dank eth'\n"
+       "'tx-log tx-log'\n")
       :height "100%"
       :align-items :center
       :justify-content :center}
+
+     [:.tx-log
+      {:grid-area :tx-log
+       :z-index 99}
+
+      [:.header
+       {:background (color :pink)
+        :color (color :meme-info-text)
+        :text-transform :uppercase
+        :font-size "10px"
+        :text-align :center
+        :padding "10px 0"
+        :cursor :pointer}]
+
+      [:.tx-content
+       {:background (color :white)
+        :color (color :menu-text)
+        :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
+        :will-change :transform
+        :transition "transform 300ms cubic-bezier(0.23, 1, 0.32, 1) 0ms"
+        :transform "scaleY(0)"
+        :transform-origin :top}
+
+       [:&.open
+        {:transform "scaleY(1)"}]
+
+       [:.settings
+        {:padding "10px 25px"
+         :border-bottom (str "1px solid " (color "black"))}
+        [:.ui.checkbox
+         [:label
+          {:font-size "10px"}]]]
+
+       [:.transactions
+        {:overflow-y :scroll
+         :flex-grow 1}
+
+        [:.transaction
+         {:display :grid
+          :grid-template-areas (str "'tx-name tx-status'\n"
+                                    "'tx-created-on tx-status'\n"
+                                    "'tx-gas tx-status'\n"
+                                    "'tx-sender tx-value'\n"
+                                    "'tx-id tx-value'\n")
+          :cursor :pointer
+          :position :relative}
+
+         ["&:not(:last-child)"
+          {:border-bottom (str "1px solid " (color "black"))}]
+
+         [:.tx-name {:grid-area :tx-name
+                     :line-height "1.6"
+                     :width "100%"
+                     :text-overflow :ellipsis
+                     :white-space :nowrap
+                     :overflow :hidden
+                     :padding-right "7px"}]
+
+         [:.tx-created-on
+          {:grid-area :tx-created-on}]
+
+         [:.tx-gas
+          {:grid-area :tx-gas}]
+
+         [:.tx-sender
+          (merge {:grid-area :tx-sender}
+                 (of-ellipsis))]
+
+         [:.tx-id
+          (merge {:grid-area :tx-id}
+                 (of-ellipsis))]
+
+         [:.tx-value
+          {:grid-area :tx-value
+           :margin-bottom (em 0.5)}]
+
+         [:.tx-status
+          {:grid-area :tx-status
+           :margin-top (em 1)
+           :text-transform :uppercase
+           :font-size "10px"
+           :font-weight :bold
+           :display :flex
+           :flex-direction :column
+           :align-items :center
+           :justify-content :space-between
+           :height "45px"}
+          [:i.icon {:width "20px"
+                    :height "20px"
+                    :line-height "20px"
+                    :border-radius "100%"
+                    :color (color :white)}]
+          [:&.success
+           {:color (color :green)}
+           [:i.icon
+            {:background-color (color :green)
+             :font-size "8px"}
+            [:&:before
+             {:content (icons :check)}]]]
+          [:&.failure
+           {:color (color :red)}
+           [:i.icon
+            {:background-color (color :red)
+             :font-size "7px"}
+            [:&:before {:content (icons :times)}]]]
+          ["&.pending, &.not-loaded"
+           {:color (color :blue)}
+           [:i.icon {:background-color (color :blue)
+                     :font-size "10px"}
+            [:&:before
+             {:content (icons :clock2)}]]]]]]]]
+
+     [:&.dank
+      {:grid-area :dank}]
+
+     [:&.eth
+      {:grid-area :eth}]
+
      [:.active-account-balance
       {:display :block
        :height "100%"
