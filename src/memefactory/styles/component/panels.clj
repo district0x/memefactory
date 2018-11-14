@@ -84,7 +84,8 @@
                      :padding-left (em 0.2)}])
     {:padding-right (em 3)}
     [:a
-     {:color (c/color :section-subcaption)}]
+     {:color (c/color :section-subcaption)
+      :padding-bottom (em 0.2)}]
     [:&.selected
      [:a
       (border-bottom {:color (c/color :pink)

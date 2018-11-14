@@ -137,6 +137,9 @@
         {:line-height (em 2.3)
          :font-weight :bold
          :color (color :menu-text)}]]
+      [:.creator
+       [">*"
+        {:font-size (em 0.9)}]]
       [:.description, :.text
        {:color (color :menu-text)}]
       [:.tags

@@ -160,5 +160,6 @@
     :background-position "right 0.5em center";
     :background-repeat :no-repeat
     :background-image "url('/assets/icons/dropdown.png')"
+    :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
     }]
   )

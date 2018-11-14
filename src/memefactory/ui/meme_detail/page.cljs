@@ -367,7 +367,6 @@
         [:div.vote-dank
          [inputs/amount-input {:form-data form-data
                                :id :vote/amount-for
-                               :placeholder "DANK"
                                :errors errors}]
          [inputs/pending-button
           {:pending? @tx-pending?
@@ -378,7 +377,9 @@
                                                                            :reg-entry/address (:reg-entry/address meme)
                                                                            :vote/option :vote.option/vote-for
                                                                            :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
-          "Vote Dank"]]]
+          "Vote Dank"]]
+        {:form-data form-data
+         :id :vote/amount-for}]
        [inputs/with-label "Amount "
         [:div.vote-stank
          [inputs/amount-input {:form-data form-data
@@ -393,7 +394,9 @@
                                                                            :reg-entry/address (:reg-entry/address meme)
                                                                            :vote/option :vote.option/vote-against
                                                                            :vote/amount (-> @form-data :vote/amount-against js/parseInt)}])}
-          "Vote Stank"]]]
+          "Vote Stank"]]
+        {:form-data form-data
+         :id :vote/amount-against}]
        [:div "You can vote with up to " (format/format-token @balance-dank {:token "DANK"})]
        [:div "Token will be returned to you after revealing your vote."]])))
 
