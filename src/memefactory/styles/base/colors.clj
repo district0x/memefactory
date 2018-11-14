@@ -37,6 +37,7 @@
                     :leaderboard-curator-bg "#9cc717"
                     :table-header-bg "#ffd200"
                     :table-border "#e1b4ef"
+                    :table-border-1 "#e2dee4"
                     :busy-grey "#5c5c5c"
                     :rank-yellow "#ffd800"
                     :cancel-button "#d0e5e8"

@@ -194,7 +194,6 @@
       {:margin :auto
        :color (color :table-header-bg)}]
      [:table
-      {:border-spacing "0px"}
       (for-media-max :tablet
                      [:&
                       {:max-height (em 30)
@@ -233,6 +232,8 @@
          {:text-align :left
           :cursor :pointer
           :padding-left (em 0.5)
+          :padding-top (em 0.4)
+          :padding-bottom (em 0.4)
           :background-color (color :table-header-bg)}]]]
       [:tbody
        [:tr
@@ -241,11 +242,15 @@
         (for-media-max :tablet
                        [:&
                         ["&:not(:last-child)"
-                         (border-bottom {:color (color :table-border)})]
+                         (border-bottom {:color (color :table-border-1)})]
                         {:display :flex
                          :flex-direction :column}])
         [:td
-         (border-bottom {:color (color :table-border)})
+         (border-bottom {:color (color :table-border-1)})
+         [:&.seller-address
+          (of-ellipsis)]
+         [:&.buyer-address
+          (of-ellipsis)]
          (for-media-max :tablet
                         [:&
                          {:border-bottom :none}])
@@ -274,8 +279,14 @@
                         [:&.time:before
                          {:content "'Time Ago:'"}])
          ]]]
-      {:width "100%"
-       :padding (em 1)}]]]
+      {:border-spacing "0px"
+       :table-layout :fixed
+       :width "100%"
+       :padding-right (em 3)
+       :padding-left (em 3)
+       :padding-top (em 1)
+       :padding-bottom (em 1)
+       }]]]
    [:section.challenge
     {:padding (em 3)}
     (for-media-max :tablet
