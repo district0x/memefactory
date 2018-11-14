@@ -32,7 +32,7 @@
    [:.challenge-controls
     {:text-align :center}
     [:div.vs {:display :grid
-              :grid-template-columns "1fr 1fr 1fr"
+              :grid-template-columns "1fr 0.5fr 1fr"
               :align-items :center
               :text-align :center
               :width (em 17)}
