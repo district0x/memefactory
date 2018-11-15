@@ -41,6 +41,7 @@
                     :table-border-1 "#e2dee4"
                     :busy-grey "#5c5c5c"
                     :rank-yellow "#ffd800"
+                    :yellow "#ffea00"
                     :cancel-button "#d0e5e8"
                     })
 

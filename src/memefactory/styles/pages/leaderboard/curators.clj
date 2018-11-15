@@ -68,6 +68,8 @@
         {:font-weight :bold
          :overflow "hidden"
          :text-overflow "ellipsis"
+         :font-size (em 0.8)
+         :color (color :deep-purple)
          :width "100%"}]
        [:h4
         (font :bungee)

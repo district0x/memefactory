@@ -133,7 +133,7 @@
        :height (em 1)}]]
     [:.stats
      {:display :flex
-      :line-height (em 3)}
+      :line-height (em 2.3)}
      (for-media-max :tablet
                     [:&
                      {:flex-direction :column}])
