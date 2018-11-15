@@ -112,6 +112,10 @@
                                                             #_:placeholder-replacements
                                                             #_{forwarder-target-placeholder :meme-auction-factory}})))
 
+(defn deploy-district0x-emails! [default-opts]
+  (deploy-smart-contract! :district0x-emails (merge default-opts
+                                                    {:gas 500000})))
+
 (defn deploy-meme-auction! [{:keys [:cut-collector] :as default-opts}]
   (deploy-smart-contract! :meme-auction (merge default-opts {:gas 4000000
                                                              :placeholder-replacements
@@ -217,6 +221,7 @@
      (mutable-forwarder/target :meme-auction-factory-fwd)
      (meme-auction-factory/construct {:meme-token (contract-address :meme-token)} deploy-opts)
 
+     (deploy-district0x-emails! deploy-opts)
      (when (pos? transfer-dank-token-to-accounts)
        (doseq [account (take transfer-dank-token-to-accounts accounts)]
          (dank-token/transfer {:to account :amount (web3/to-wei 15000 :ether)}

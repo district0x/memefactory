@@ -31,6 +31,7 @@
     [memefactory.ui.dank-registry.submit-page]
     [memefactory.ui.dank-registry.vote-page]
     [memefactory.ui.home.page]
+    [memefactory.ui.my-settings.page]
     [memefactory.ui.ipfs]
     [memefactory.ui.leaderboard.collectors-page]
     [memefactory.ui.leaderboard.creators-page]

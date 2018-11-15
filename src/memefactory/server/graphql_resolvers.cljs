@@ -25,7 +25,7 @@
 
 (def graphql-fields (nodejs/require "graphql-fields"))
 
-(def whitelisted-config-keys [:ipfs])
+(def whitelisted-config-keys [:ipfs :ui])
 
 (defn- query-fields
   "Returns the first order fields"

@@ -1,6 +1,6 @@
-(ns memefactory.shared.smart-contracts) 
+(ns memefactory.shared.smart-contracts)
 
-(def smart-contracts 
+(def smart-contracts
 {:district-config
  {:name "DistrictConfig",
   :address "0xddf5a2745ee964d1ed9330cacaf9ea2ea7e33933"},
@@ -53,4 +53,7 @@
   :address "0xafdb130331899f526f84fdf34a97703e8819c2c4"},
  :meme-auction-factory-fwd
  {:name "MutableForwarder",
-  :address "0x773e8bfc01322645cc9c26db0297f7c8aa4cb4fa"}})
+  :address "0x773e8bfc01322645cc9c26db0297f7c8aa4cb4fa"}
+ :district0x-emails
+ {:name "District0xEmails"
+  :address "0xe6305ce0348f9646ad4601725b383a3fb4f3f2f0"}})

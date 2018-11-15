@@ -414,6 +414,11 @@
 
   type Config {
    ipfs: Ipfs
+   ui: UIConfig
+  }
+
+  type UIConfig{
+    publicKey: String
   }
 
   type Ipfs {

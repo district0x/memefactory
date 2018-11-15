@@ -135,7 +135,8 @@
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
                                               :print-gas-usage? true
                                               :auto-mining? false}
-                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}}}})
+                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
+                            :ui {:public-key "2564e15aaf9593acfdc633bd08f1fc5c089aa43972dd7e8a36d67825cd0154602da47d02f30e1f74e7e72c81ba5f0b3dd20d4d4f0cc6652a2e719a0e9d4c7f10943"}}}})
       (mount/start)
       pprint/pprint))
 
