@@ -227,9 +227,9 @@
       (let [max-amount (- total-supply total-minted)]
         [:div.issue-form
          [:div.field
-          [inputs/text-input {:form-data form-data
-                              :errors errors
-                              :id :meme/amount}]
+          [inputs/int-input {:form-data form-data
+                             :errors errors
+                             :id :meme/amount}]
           [tx-button/tx-button {:primary true
                                 :disabled (not (pos? max-amount))
                                 :pending? @tx-pending?
@@ -240,7 +240,7 @@
                                                                            :reg-entry/address address
                                                                            :send-tx/id tx-id})]))}
            "Issue"]]
-         [:label "Max " max-amount]]))))
+         [:div.label "Max " max-amount]]))))
 
 (defmethod panel :created [_ state]
   [:div.tiles
@@ -256,13 +256,13 @@
                                       [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                                         nil
                                                                         {:reg-entry/address address}])}
-                                       [:div [:b (str "#" number " " title)]]
-                                       [:div [:span (str total-minted "/" total-supply" Issued")]]
-                                       [:div
+                                       [:div.title (str "#" number " " title)]
+                                       [:div.issued (str total-minted "/" total-supply" Issued")]
+                                       [:div.status
                                         (case status
-                                          :reg-entry.status/whitelisted [:label [:b "In Registry"]]
-                                          :reg-entry.status/blacklisted [:label [:b "Rejected"]]
-                                          [:label [:b "Challenged"]])]]
+                                          :reg-entry.status/whitelisted "In Registry"
+                                          :reg-entry.status/blacklisted "Rejected"
+                                          "Challenged")]]
                                       (when (= status :reg-entry.status/whitelisted)
                                         [issue-form {:meme/title title
                                                      :reg-entry/address address

@@ -101,6 +101,8 @@
                     {:display :block
                      :margin-right (em 1)
                      :margin-left (em 1)}])
+    [">.rank"
+     {:width "100%"}]
     [".stats>*"
      {:padding-right (em 1)
       :padding-left (em 1)}
@@ -112,10 +114,13 @@
       :background-color (color :rank-yellow)
       :padding-right (em 1)
       :padding-left (em 1)
+      :width (em 10)
       ;; :display :table-cell
       :font-size (em 1)
-      :display :flex
-      :margin :auto}
+      ;; :display :flex
+      :text-align :center
+      ;; :margin :auto
+      }
      (for-media-max :tablet
                     [:&
                      {:width "100%"
@@ -142,6 +147,7 @@
        :margin-right (em 1)
        :margin-left (em 1)
        :display :flex
+       :white-space :nowrap
        :margin :auto
        }
       [">b"
@@ -156,6 +162,8 @@
         :height (em 1)}]]
      [:.curator
       {:display :grid
+       :padding-top (em 1.2)
+       :padding-bottom (em 0.9)
        :flex-grow 1}
       [:.loading
        {:width (em 1)
@@ -166,7 +174,8 @@
         :border-width (em 0.3)
         :border-top-width (em 0.3)}]
       [">div"
-       {:display :flex}
+       {:display :flex
+        :font-size (em 0.8)}
        (for-media-max :tablet
                       [:&
                        {:flex-direction :column}])
@@ -176,7 +185,7 @@
        [">*"
         {:color (color :section-subcaption)
          :margin-right (em 1)
-         :line-height (em 2)
+         :line-height (em 1)
          :margin-left (em 1)}
         [:b {:margin-right (em 0.2)}]]]]]]
    [:.tiles
@@ -204,7 +213,9 @@
      ;;  :justify-content :space-evenly}
      [:.footer {:text-align :center
                 :color (color :meme-tile-footer)
-                :cursor :pointer}]
+                :cursor :pointer}
+      [:.status {:font-weight :bold
+                 :font-style :italic}]]
      [:.issue-form {:text-align :center
                     :margin-top (em 1)}
       [:.field {:display :grid
@@ -230,7 +241,10 @@
          {:opacity 0.3}]]
        [:input {:background-color (color :search-input-bg)
                 :text-align :center
-                :height (em 3)}]]]]
+                :padding-bottom (em 0.4)
+                :height (em 3)}]]
+      [:.label {:padding-top (em 0.5)
+                :font-size (em 0.8)}]]]
     [:.collected-tile-back {:height "100%"
                             :background-color (color :violet)}
      (button-tile-back)
