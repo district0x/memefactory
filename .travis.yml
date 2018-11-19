@@ -19,7 +19,8 @@ before_install:
 - wget --no-check-certificate https://github.com/ethereum/solidity/releases/download/v0.4.24/solc-static-linux
 - chmod a+x solc-static-linux
 - sudo ln -s solc-static-linux /usr/bin/solc
-- source ~/.bashrc
+#- source ~/.bashrc
+- source ~/.profile 
 - solc --version
 before_script:
 # - sudo apt-get --yes install solc
