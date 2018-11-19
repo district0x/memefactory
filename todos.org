@@ -69,10 +69,10 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] Created best single card sale spinnig forever in memefolio                                              (Juan)
 - [ ] When opening page at memefolio/index doesn show Collected until you switch to other tab and back        (Juan)
 - [ ] Sell functionality, duration should be less than is not showing                                         (Juan)
-- [X] Add logging (with Sentry)                                                                               (Filip)
-- [X] dankregistry/submit issuance is always 1                                                                (?)
+- [X] Add UI logging (with Sentry)                                                                            (Filip)
 - [X] dankregistry/submit no user feedback when non .png file is rejected                                     (Filip)
-- [X] dankregistry/submit always shows 1 DANK next to submit button                                           (Filip)
+- [X] dankregistry/submit issuance is always 1                                                                ()
+- [X] dankregistry/submit always shows 0 DANK next to submit button                                           ()
 - [X] Collect challenge and collect vote rewords separately                                                   (Juan)
 - [X] Add UI logging (on error send requests to production logging facilities)                                (Filip)
 - [ ] marketplace/index clicking on buy button flips the tile, it's confusing                                 ()
@@ -82,13 +82,14 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] DANK balance always displays 0                                                                          (?)
 - [X] can't switch between accounts                                                                           (?)
 - [ ] tx names are not displayed in the transaction log                                                       (Filip)
+- [ ] notifications are hidden (CSS problem)                                                                  ()
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
 
 ** Server todos
 - [ ] cors OPTIONS for preflight requests non accepted                                                        ()
-- [X] add logging (with sentry)                                                                               (Filip)
+- [X] add server logging (with sentry)                                                                        (Filip)
 - [ ] make memefactory.server.utils/time_source a config module variable like the rest of them                (Filip)
 
 ** Smart contracts todos
