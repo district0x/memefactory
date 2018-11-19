@@ -72,22 +72,25 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Add logging (with Sentry)                                                                               (Filip)
 - [ ] dankregistry/submit issuance is always 1                                                                ()
 - [X] dankregistry/submit no user feedback when non .png file is rejected                                     (Filip)
-- [ ] dankregistry/submit always shows 1 DANK next to submit button                                           (Filip)
+- [X] dankregistry/submit always shows 1 DANK next to submit button                                           (Filip)
 - [X] Collect challenge and collect vote rewords separately                                                   (Juan)
 - [X] Add UI logging (on error send requests to production logging facilities)                                (Filip)
 - [ ] marketplace/index clicking on buy button flips the tile, it's confusing                                 ()
 - [X] disable top search (serves no function)                                                                 (Filip)
 - [X] add tx notifications                                                                                    (Filip)
 - [X] add tx log                                                                                              (Filip)
-- [ ] DANK balance always displays 0                                                                          ()
-- [X] can't switch between accounts                                                                            (?)
+- [X] DANK balance always displays 0                                                                          (?)
+- [X] can't switch between accounts                                                                           (?)
+- [ ] tx names are not displayed in the transaction log                                                       ()
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
 
 ** Server todos
-- [ ] cors OPTIONS for preflight requests non accepted
+- [ ] cors OPTIONS for preflight requests non accepted                                                        ()
 - [X] add logging (with sentry)                                                                               (Filip)
 - [ ] make memefactory.server.utils/time_source a config module variable like the rest of them                (Filip)
 
 ** Smart contracts todos
+- [X] limit contract size to fit in the bytecode size limit                                                   (Filip)
+- [ ] write truffle deployment script                                                                         (Filip) 

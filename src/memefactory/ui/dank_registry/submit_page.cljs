@@ -46,7 +46,8 @@
                                      (assoc-in [:file-info :error] "No file selected")
 
                                      (not (try
-                                            (< 0 (js/parseInt issuance) max-issuance)
+                                            (let [issuance (js/parseInt issuance)]
+                                              (and (< 0 issuance) (<= issuance max-issuance)))
                                             (catch js/Error e nil)))
                                      (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-issuance))))
                           :remote (let [{:keys [file-info]} @form-data]
@@ -71,6 +72,8 @@
                              :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                  (= type "image/png"))
                              :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
+                                                 ;; (swap! form-data dissoc :file-info :error)
+                                                 (swap! form-data update-in [:file-info] dissoc :error)
                                                  (log/info "Accepted file" props ::file-accepted))
                              :on-file-rejected (fn [{:keys [name type size] :as props}]
                                                  (swap! form-data assoc :file-info {:error "Non .png file selected"})
