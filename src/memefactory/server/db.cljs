@@ -345,3 +345,14 @@
   (update-user! {:user/address user-address
                  user-field (+ (get-user {:user/address user-address} user-field)
                                (or amount 1))}))
+
+(defn get-meme [address]
+  (db/get {:select [:*]
+           :from [[:reg-entries :re]]
+           :join [[:memes :m] [:= :re.reg-entry/address :m.reg-entry/address]]
+           :where [:= :m.reg-entry/address address]}))
+
+(defn get-meme-auction [auction-address]
+  (db/get {:select [:*]
+           :from [[:meme-auctions :ma]]
+           :where [:= :ma.meme-auction/address auction-address]}))
