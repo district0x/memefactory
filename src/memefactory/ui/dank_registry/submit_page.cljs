@@ -72,7 +72,6 @@
                              :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                  (= type "image/png"))
                              :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
-                                                 ;; (swap! form-data dissoc :file-info :error)
                                                  (swap! form-data update-in [:file-info] dissoc :error)
                                                  (log/info "Accepted file" props ::file-accepted))
                              :on-file-rejected (fn [{:keys [name type size] :as props}]
