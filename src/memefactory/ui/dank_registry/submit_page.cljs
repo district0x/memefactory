@@ -46,9 +46,13 @@
                                      (assoc-in [:file-info :error] "No file selected")
 
                                      (not (try
-                                            (<= 0 (js/parseInt issuance) max-issuance)
+                                            (< 0 (js/parseInt issuance) max-issuance)
                                             (catch js/Error e nil)))
-                                     (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-issuance))))})
+                                     (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-issuance))))
+                          :remote (let [{:keys [file-info]} @form-data]
+                                    (cond-> {}
+                                      (:error file-info)
+                                      (assoc-in [:file-info] (:error file-info))))})
         critical-errors (reaction (index-by-type @errors :error))]
     (fn []
       (let [dank-deposit (get-in @dank-deposit-s [:search-param-changes :items 0 :param-change/value])]
@@ -69,11 +73,9 @@
                              :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
                                                  (log/info "Accepted file" props ::file-accepted))
                              :on-file-rejected (fn [{:keys [name type size] :as props}]
+                                                 (swap! form-data assoc :file-info {:error "Non .png file selected"})
                                                  (log/warn "Rejected file" props ::file-rejected))}]]
           [:div.form-panel
-           ;; [:div (str (:local @errors))]
-           ;; [:div (str (select-keys @form-data [:title :issuance]))]
-
            [with-label "Title"
             [text-input {:form-data form-data
                          :errors errors
