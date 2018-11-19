@@ -13,7 +13,7 @@ import "./proxy/MutableForwarder.sol"; // Keep it included despite not being use
  */
 
 contract Registry is DSAuth {
-  address public target; // Keep it here, because this contract is deployed as MutableForwarder
+  address private dummtTarget; // Keep it here, because this contract is deployed as MutableForwarder
 
   event MemeConstructedEvent(address registryEntry, uint version, address creator, bytes metaHash, uint totalSupply, uint deposit, uint challengePeriodEnd);
   event MemeMintedEvent(address registryEntry, uint version, address creator, uint tokenStartId, uint tokenEndId, uint totalMinted);

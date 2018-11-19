@@ -6,7 +6,7 @@ import "./proxy/Forwarder.sol";
 import "./MemeAuction.sol";
 
 contract MemeAuctionFactory is ERC721Receiver {
-  address public target; // Keep it here, because this contract is deployed as MutableForwarder
+  address private dummyTarget; // Keep it here, because this contract is deployed as MutableForwarder
 
   event MemeAuctionStartedEvent(address indexed memeAuction,
                                 uint tokenId,
