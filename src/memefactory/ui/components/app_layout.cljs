@@ -81,7 +81,7 @@
       [:div.app-bar
        [:div.account-section
         [active-account]]
-       [:div.search-section
+       #_[:div.search-section
         [search-form search-term]]
        [:div.tracker-section
         {:on-click (fn []
