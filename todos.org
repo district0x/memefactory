@@ -70,7 +70,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] When opening page at memefolio/index doesn show Collected until you switch to other tab and back        (Juan)
 - [ ] Sell functionality, duration should be less than is not showing                                         (Juan)
 - [X] Add logging (with Sentry)                                                                               (Filip)
-- [ ] dankregistry/submit issuance is always 1                                                                ()
+- [X] dankregistry/submit issuance is always 1                                                                (?)
 - [X] dankregistry/submit no user feedback when non .png file is rejected                                     (Filip)
 - [X] dankregistry/submit always shows 1 DANK next to submit button                                           (Filip)
 - [X] Collect challenge and collect vote rewords separately                                                   (Juan)
@@ -81,7 +81,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] add tx log                                                                                              (Filip)
 - [X] DANK balance always displays 0                                                                          (?)
 - [X] can't switch between accounts                                                                           (?)
-- [ ] tx names are not displayed in the transaction log                                                       ()
+- [ ] tx names are not displayed in the transaction log                                                       (Filip)
 
 ** code quality
 - [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          ()
