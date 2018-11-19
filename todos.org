@@ -76,9 +76,9 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] Collect challenge and collect vote rewords separately                                                   (Juan)
 - [X] Add UI logging (on error send requests to production logging facilities)                                (Filip)
 - [ ] marketplace/index clicking on buy button flips the tile                                                 ()
-- [ ] remove top search (serves no function)                                                                  ()
+- [ ] disable top search (serves no function)                                                                 (Filip)
 - [X] add tx notifications                                                                                    (Filip)
-- [ ] add tx log                                                                                              (Filip)
+- [X] add tx log                                                                                              (Filip)
 - [ ] DANK balance always displays 0                                                                          ()
 - [ ] can't switchbetween accounts                                                                            ()
 

@@ -43,7 +43,7 @@
           {})
         "Save"]])))
 
-(defmethod page :route/home []
+(defmethod page :route.my-settings/index []
   [app-layout
    {:meta {:title "MemeFactory"
            :description "Description"}}

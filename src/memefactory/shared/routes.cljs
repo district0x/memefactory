@@ -12,4 +12,5 @@
              ["/leaderboard/creators" :route.leaderboard/creators]
              ["/leaderboard/collectors" :route.leaderboard/collectors]
              ["/memefolio/index" :route.memefolio/index]
-             ["/meme-detail/index" :route.meme-detail/index]])
+             ["/meme-detail/index" :route.meme-detail/index]
+             ["/my-settings/index" :route.my-settings/index]])
