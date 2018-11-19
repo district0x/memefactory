@@ -193,6 +193,7 @@
      :padding-top (em 2)
      :padding-bottom (em 2)
      :background-color (color :meme-panel-bg)
+     :border-radius (em 1)
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      }
     (for-media-max :tablet

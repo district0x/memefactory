@@ -343,24 +343,25 @@
                 [:div.container
                  [:div.meme-card-front
                   [tiles/meme-image image-hash]
-                  [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                             nil
-                                             {:reg-entry/address address}])}
-                   [:div [:b (str "#" number " " title)]]
-                   [:div
-                    (cond
-                      (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
-                      [:label
-                       [:b "Voted Unrevealed"]]
+                  ]]
+                [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                    nil
+                                                    {:reg-entry/address address}])}
+                 [:div.title [:b (str "#" number " " title)]]
+                 [:div
+                  (cond
+                    (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
+                    [:label
+                     [:b "Voted Unrevealed"]]
 
-                      (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
-                      [:label "Voted Dank"
-                       [:i.icon.thumbs.up.outline]]
+                    (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
+                    [:label "Voted Dank"
+                     [:i.icon.thumbs.up.outline]]
 
-                      (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
-                      [:label
-                       [:b "Voted Stank"]
-                       [:i.icon.thumbs.down.outline]])]]]]])))
+                    (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
+                    [:label
+                     [:b "Voted Stank"]
+                     [:i.icon.thumbs.down.outline]])]]])))
          state))])
 
 ;; TODO : style spinners
@@ -457,13 +458,13 @@
                [:div.compact-tile
                 [:div.container
                  [:div.meme-card-front
-                  [tiles/meme-image image-hash]
-                  [:a {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                             nil
-                                             {:reg-entry/address (:reg-entry/address meme)}])}
-                   [:div.title [:b (str "#" number " " title)]]
-                   [:div.number-minted (str number "/" total-minted)]
-                   [:div.price (format/format-eth (web3/from-wei price :ether))]]]]])))
+                  [tiles/meme-image image-hash]]
+                 [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                            nil
+                                            {:reg-entry/address (:reg-entry/address meme)}])}
+                  [:div.title [:b (str "#" number " " title)]]
+                  [:div.number-minted (str number "/" total-minted)]
+                  [:div.price (format/format-eth (web3/from-wei price :ether))]]]])))
          state))])
 
 (defn- build-order-by [prefix order-by]

@@ -30,6 +30,7 @@
      :background-position "right -3em bottom -1.2em"
      :background-image (str "url('" background-panel-image "')")
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+     :padding-bottom (em 1)
      :margin-left (em 6)}
     [:.header :h2
      (font :bungee)
