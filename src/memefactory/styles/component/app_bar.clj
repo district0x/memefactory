@@ -126,8 +126,7 @@
       :justify-content :center}
 
      [:.tx-log
-      {:grid-area :tx-log
-       :z-index 99}
+      {:grid-area :tx-log}
 
       [:.header
        {:background (color :pink)
@@ -145,10 +144,13 @@
         :will-change :transform
         :transition "transform 300ms cubic-bezier(0.23, 1, 0.32, 1) 0ms"
         :transform "scaleY(0)"
-        :transform-origin :top}
+        :transform-origin :top
+        :position :relative
+        :z-index -1}
 
        [:&.open
-        {:transform "scaleY(1)"}]
+        {:z-index 99
+         :transform "scaleY(1)"}]
 
        [:.settings
         {:padding "10px 25px"
