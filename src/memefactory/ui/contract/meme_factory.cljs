@@ -18,6 +18,7 @@
  (fn [{:keys [db]} [_ data deposit {:keys [Name Hash Size] :as meme-meta}]]
    (log/info "Meme meta uploaded with hash" {:hash Hash} ::approve-and-create-meme)
    (let [tx-id (str (random-uuid))
+         tx-name "Approve and create meme"
          active-account (account-queries/active-account db)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme-factory)
                                                 :create-meme
@@ -32,10 +33,10 @@
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme/create-meme tx-id}
-                                      :tx-log {:name "FUBAR"}
-                                      :on-tx-success-n [[::logging/info "approve-and-create-meme tx success" ::create-meme]
+                                      :tx-log {:name tx-name}
+                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::create-meme]
                                                         [::notification-events/show (gstring/format "Meme created with meta hash %s" Hash)]]
-                                      :on-tx-error [::logging/error "approve-and-create-meme tx error" {:user {:id active-account}
-                                                                                                        :deposit deposit
-                                                                                                        :data data
-                                                                                                        :meme-meta meme-meta} ::create-meme]}]})))
+                                      :on-tx-error [::logging/error (str tx-name " tx error") {:user {:id active-account}
+                                                                                               :deposit deposit
+                                                                                               :data data
+                                                                                               :meme-meta meme-meta} ::create-meme]}]})))

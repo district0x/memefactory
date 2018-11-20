@@ -4,7 +4,7 @@
             [reagent.core :as r]
             [district.ui.component.form.input :refer [with-label text-input]]
             [re-frame.core :as re-frame]
-            [memefactory.ui.my-settings.events :as ms-events]
+            [memefactory.ui.contracts.district0x-emails :as ms-events]
             [goog.format.EmailAddress :as email-address]
             [reagent.ratom :refer [reaction]]
             [district.ui.graphql.subs :as gql]))

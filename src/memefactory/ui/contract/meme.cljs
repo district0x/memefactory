@@ -19,18 +19,20 @@
  ::mint
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme/title :reg-entry/address :meme/amount] :as args}]]
-   (let [active-account (account-queries/active-account db)]
+   (let [tx-name "Mint"
+         active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :mint
                                       :args [amount]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme/mint id}
-                                      :on-tx-success-n [[::logging/info "mint tx success" ::mint]
+                                      :tx-log {:name tx-name}
+                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::mint]
                                                         [::notification-events/show (gstring/format " %s successfully minted" title)]
                                                         [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}
                                                                                                 [:meme/total-minted]]]}}]]
-                                      :on-tx-error [::logging/error "mint tx error"
+                                      :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}
                                                     ::mint]}]})))

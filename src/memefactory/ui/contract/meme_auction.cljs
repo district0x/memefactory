@@ -18,7 +18,8 @@
  ::buy
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :value] :as args}]]
-   (let [active-account (account-queries/active-account db)]
+   (let [tx-name "Buy"
+         active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-auction address)
                                       :fn :buy
                                       :args []
@@ -26,9 +27,10 @@
                                                 :value value
                                                 :gas 6000000}
                                       :tx-id {:meme-auction/buy id}
-                                      :on-tx-success-n [[::logging/info "buy tx success" ::buy]
+                                      :tx-log {:name tx-name}
+                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::buy]
                                                         [::notification-events/show (gstring/format "Auction %s is now yours" address)]]
-                                      :on-tx-error [::logging/error "buy tx error"
+                                      :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :value value}
                                                     ::buy]}]})))
@@ -37,16 +39,18 @@
  ::cancel
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address] :as args}]]
-   (let [active-account (account-queries/active-account db)]
+   (let [tx-name "Cancel"
+         active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme-auction address))
                                       :fn :cancel
                                       :args []
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme-auction/cancel id}
-                                      :on-tx-success-n [[::logging/info "cancel tx success" ::cancel]
+                                      :tx-log {:name tx-name}
+                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::cancel]
                                                         [::notification-events/show (gstring/format "Auction %s canceled" address)]]
-                                      :on-tx-error [::logging/error "cancel tx error"
+                                      :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}
                                                     ::cancel]}]})))
