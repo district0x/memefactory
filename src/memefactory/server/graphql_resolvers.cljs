@@ -430,9 +430,10 @@
                                         :from [:meme-tokens]}))})
 
 (defn config-query-resolver []
-  (log/debug "config-query-resolver")
   (try-catch-throw
-   (select-keys @config whitelisted-config-keys)))
+   (let [config-query (select-keys @config whitelisted-config-keys)]
+     (log/debug "config-query-resolver" config-query ::config-query-resolver)
+     config-query)))
 
 (defn vote->option-resolver [{:keys [:vote/option :vote/amount] :as vote}]
    (log/debug "vote->option-resolver args" vote)
