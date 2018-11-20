@@ -20,38 +20,40 @@
    ;; TODO: don;t know where this is coming from, but need to override flex that breaks loading div
    #_[".tiles>*"
       {:flex :none}]
-   [:.tiles
-    {:display :flex
-     :margin-top (em 2)
-     :padding-top (em 2)
-     :padding-bottom (em 2)
-     :background-color (color :meme-panel-bg)
-     :border-radius "1em 1em 1em 1em"}
-    [:.loading
-     {:flex :none
-      :color (color :busy-grey)
-      :border-top-color (color :white)
-      :margin :auto
-      :border-width (em 1)
-      :border-top-width (em 1)
-      :width (em 7)
-      :height (em 7)
-      :border-style :solid
-      :border-top-style :solid
-      :border-radius "50%"
-      :animation-name :spin
-      :animation-duration "2s"
-      :animation-iteration-count :infinite
-      :animation-timing-function :linear}]
-    [:.footer
-     [:.token-id {:display :inline-block}]
-     [:.number-minted {:display :inline-block
-                       :margin-left (em 0.4)}]]
-    #_[:.container
-       [:.meme-card.front
-        {:backface-visibility :visible}]]
-    #_[">div>div"
-       {:display :flex
-        :flex-wrap :wrap
-        :justify-content :space-evenly}]]
+   [:.scroll-area
+    {:width "100%"}
+    [:.tiles
+     {:display :flex
+      :margin-top (em 2)
+      :padding-top (em 2)
+      :padding-bottom (em 2)
+      :background-color (color :meme-panel-bg)
+      :border-radius "1em 1em 1em 1em"}
+     [:.loading
+      {:flex :none
+       :color (color :busy-grey)
+       :border-top-color (color :white)
+       :margin :auto
+       :border-width (em 1)
+       :border-top-width (em 1)
+       :width (em 7)
+       :height (em 7)
+       :border-style :solid
+       :border-top-style :solid
+       :border-radius "50%"
+       :animation-name :spin
+       :animation-duration "2s"
+       :animation-iteration-count :infinite
+       :animation-timing-function :linear}]
+     [:.footer
+      [:.token-id {:display :inline-block}]
+      [:.number-minted {:display :inline-block
+                        :margin-left (em 0.4)}]]
+     #_[:.container
+        [:.meme-card.front
+         {:backface-visibility :visible}]]
+     #_[">div>div"
+        {:display :flex
+         :flex-wrap :wrap
+         :justify-content :space-evenly}]]]
    ])

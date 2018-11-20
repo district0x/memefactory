@@ -6,13 +6,11 @@
    [district.ui.graphql.subs :as gql]
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [re-frame.core :refer [subscribe dispatch]]
-   [react-infinite]
    [reagent.core :as r]
    [taoensso.timbre :as log]
    ))
-
-(def react-infinite (r/adapt-react-class js/Infinite))
 
 (def page-size 12)
 
@@ -100,19 +98,8 @@
                      :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
                                {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
                                {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}])]
-                [:div.collectors
-                 [react-infinite {:element-height 280
-                                  :container-height 300
-                                  :infinite-load-begin-edge-offset 100
-                                  :use-window-as-scroll-container true
-                                  :on-infinite-load (fn []
-                                                      (when-not (:graphql/loading? @users-search)
-                                                        (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]
-
-                                                          (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/collectors)
-
-                                                          (when (or has-next-page (empty? all-collectors))
-                                                            (re-search-users end-cursor)))))}
+                [:div.scroll-area
+                 [:div.collectors
                   (if (:graphql/loading? @users-search)
                     [:div.loading]
                     (doall
@@ -121,4 +108,12 @@
                         ^{:key (:user/address collector)}
                         [collectors-tile collector (:overall-stats @totals) num])
                       all-collectors
-                      (iterate inc 1))))]]]]]]))))))
+                      (iterate inc 1))))]
+                 [infinite-scroll {:load-fn (fn []
+                                              (when-not (:graphql/loading? @users-search)
+                                                (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]
+
+                                                  (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/collectors)
+
+                                                  (when (or has-next-page (empty? all-collectors))
+                                                    (re-search-users end-cursor)))))}]]]]]]))))))

@@ -6,17 +6,15 @@
    [district.ui.router.subs :as router-subs]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.search :refer [search-tools]]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.marketplace.events :as mk-events]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
-   [react-infinite]
    [reagent.core :as r]
    [taoensso.timbre :as log]
    ))
-
-(def react-infinite (r/adapt-react-class js/Infinite))
 
 (def page-size 12)
 
@@ -53,27 +51,24 @@
 
     (log/debug "All auctions" {:auctions (map :meme-auction/address all-auctions)})
 
-    [react-infinite {:element-height 280
-                     :container-height 300
-                     :infinite-load-begin-edge-offset 100
-                     :use-window-as-scroll-container true
-                     :on-infinite-load (fn []
-                                         (when-not (:graphql/loading? @auctions-search)
-                                           (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
-
-                                             (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
-
-                                             (when (or has-next-page (empty? all-auctions))
-                                               (dispatch [:district.ui.graphql.events/query
-                                                          {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                           :id @form-data}])))))}
+    [:div.scroll-area
      [:div.tiles
       (if (:graphql/loading? @auctions-search)
         [:div.loading]
         (doall
          (for [{:keys [:meme-auction/address] :as auc} all-auctions]
            ^{:key address}
-           [tiles/auction-tile {} auc])))]]))
+           [tiles/auction-tile {} auc])))]
+     [infinite-scroll {:load-fn (fn []
+                                  (when-not (:graphql/loading? @auctions-search)
+                                    (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
+
+                                      (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
+
+                                      (when (or has-next-page (empty? all-auctions))
+                                        (dispatch [:district.ui.graphql.events/query
+                                                   {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                    :id @form-data}])))))}]]))
 
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])

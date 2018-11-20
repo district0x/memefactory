@@ -43,9 +43,9 @@
      (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
                        :color :leaderboard-curator-bg})]
     [:h2.title {:white-space :normal}]
-    ["div.creators > div"
+    [:.scroll-area
      {:width "100%"}
-     ["> div"
+     [:.creators
       {:display :flex
        :margin-right (em 2)
        :margin-left (em 2)

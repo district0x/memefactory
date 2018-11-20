@@ -5,6 +5,7 @@
    [district.ui.router.subs :as router-subs]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.search :refer [search-tools]]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.dank-registry.events :as mk-events]
@@ -13,8 +14,6 @@
    [reagent.core :as r]
    [taoensso.timbre :as log]
    ))
-
-(def react-infinite (r/adapt-react-class js/Infinite))
 
 (def page-size 12)
 
@@ -43,27 +42,24 @@
 
     (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::dankest-memes-tiles)
 
-    [react-infinite {:element-height 280
-                     :container-height 300
-                     :infinite-load-begin-edge-offset 100
-                     :use-window-as-scroll-container true
-                     :on-infinite-load (fn []
-                                         (when-not (:graphql/loading? @meme-search)
-                                           (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
-
-                                             (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
-
-                                             (when (or has-next-page (empty? all-memes))
-                                               (dispatch [:district.ui.graphql.events/query
-                                                          {:query {:queries [(build-tiles-query end-cursor)]}
-                                                           :id :dankest}])))))}
+    [:div.scroll-area
      [:div.tiles
       (if (:graphql/loading? @meme-search)
         [:div.loading]
         (doall
          (for [{:keys [:reg-entry/address] :as meme} all-memes]
            ^{:key address}
-           [tiles/meme-tile meme])))]]))
+           [tiles/meme-tile meme])))]
+     [infinite-scroll {:load-fn (fn []
+                                  (when-not (:graphql/loading? @meme-search)
+                                    (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
+
+                                      (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
+
+                                      (when (or has-next-page (empty? all-memes))
+                                        (dispatch [:district.ui.graphql.events/query
+                                                   {:query {:queries [(build-tiles-query end-cursor)]}
+                                                    :id :dankest}])))))}]]))
 
 (defmethod page :route.leaderboard/dankest []
   (let [active-page (subscribe [::router-subs/active-page])]

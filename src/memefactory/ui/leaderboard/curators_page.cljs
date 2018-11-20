@@ -6,13 +6,11 @@
    [district.ui.graphql.subs :as gql]
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [re-frame.core :refer [subscribe dispatch]]
-   [react-infinite]
    [reagent.core :as r]
    [taoensso.timbre :as log]
    ))
-
-(def react-infinite (r/adapt-react-class js/Infinite))
 
 (def page-size 12)
 
@@ -67,40 +65,37 @@
                  :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
                            {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
                            {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}])]
-            [:div.curators
-             [react-infinite {:element-height 280
-                              :container-height 300
-                              :infinite-load-begin-edge-offset 100
-                              :use-window-as-scroll-container true
-                              :on-infinite-load (fn []
-                                                  (when-not (:graphql/loading? @search-users)
-                                                    (let [{:keys [has-next-page end-cursor]} (:search-users (last @search-users))]
+            [:div.scroll-area
+             [:div.curators
 
-                                                      (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/curators)
+                               (doall
+                                (for [curator lazy-curators]
+                                  ^{:key (:user/address curator)}
+                                  [:div.curator
+                                   [:p.number "#" (case order-by
+                                                    :users.order-by/curator-total-earned (:user/curator-rank curator)
+                                                    :users.order-by/challenger-total-earned (:user/challenger-rank curator)
+                                                    :users.order-by/voter-total-earned (:user/voter-rank curator))]
+                                   [:h3.address (:user/address curator)]
 
-                                                      (when (or has-next-page (empty? lazy-curators))
-                                                        (lazy-search-users end-cursor)))))}
-              (doall
-               (for [curator lazy-curators]
-                 ^{:key (:user/address curator)}
-                 [:div.curator
-                  [:p.number "#" (case order-by
-                                   :users.order-by/curator-total-earned (:user/curator-rank curator)
-                                   :users.order-by/challenger-total-earned (:user/challenger-rank curator)
-                                   :users.order-by/voter-total-earned (:user/voter-rank curator))]
-                  [:h3.address (:user/address curator)]
+                                   [:h4.challenges "CHALLENGES"]
+                                   [:p "Success rate: "
+                                    (let [total-challenges (:user/total-created-challenges curator)
+                                          success-challenges (:user/total-created-challenges curator)]
+                                      [:span total-challenges "/" success-challenges " " (format/format-percentage total-challenges success-challenges)])]
+                                   [:p "Earned: " (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]
 
-                  [:h4.challenges "CHALLENGES"]
-                  [:p "Success rate: "
-                   (let [total-challenges (:user/total-created-challenges curator)
-                         success-challenges (:user/total-created-challenges curator)]
-                     [:span total-challenges "/" success-challenges " " (format/format-percentage total-challenges success-challenges)])]
-                  [:p "Earned: " (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]
+                                   [:h4.votes "VOTES"]
+                                   [:p "Success rate: "
+                                    (let [total-votes (:user/total-participated-votes curator)
+                                          success-votes (:user/total-participated-votes-success curator)]
+                                      [:span total-votes "/" success-votes " " (format/format-percentage total-votes success-votes)])]
+                                   [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
+                                   [:p "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))]
+             [infinite-scroll {:load-fn (fn [] (when-not (:graphql/loading? @search-users)
+                                                 (let [{:keys [has-next-page end-cursor]} (:search-users (last @search-users))]
 
-                  [:h4.votes "VOTES"]
-                  [:p "Success rate: "
-                   (let [total-votes (:user/total-participated-votes curator)
-                         success-votes (:user/total-participated-votes-success curator)]
-                     [:span total-votes "/" success-votes " " (format/format-percentage total-votes success-votes)])]
-                  [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
-                  [:p "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))]]]]]]))))
+                                                   (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/curators)
+
+                                                   (when (or has-next-page (empty? lazy-curators))
+                                                     (lazy-search-users end-cursor)))))}]]]]]]))))

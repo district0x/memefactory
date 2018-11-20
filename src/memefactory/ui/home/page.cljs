@@ -6,12 +6,10 @@
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [react-infinite]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.tiles :as tiles]
    [print.foo :refer [look] :include-macros true]
    [memefactory.ui.utils :as utils]))
-
 
 (defn take-max-multiple-of [n xs]
   (if (< (count xs) n)

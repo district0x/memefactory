@@ -8,18 +8,16 @@
    [district.ui.component.form.input :refer [select-input with-label]]
    [district.ui.graphql.subs :as gql]
    [goog.string :as gstring]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.components.tiles :refer [meme-image]]
    [memefactory.ui.utils :as mf-utils]
    [memefactory.ui.utils :as utils]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
-   [react-infinite]
    [reagent.core :as r]
    [taoensso.timbre :as log]
    ))
-
-(def react-infinite (r/adapt-react-class js/Infinite))
 
 (def page-size 12)
 
@@ -127,27 +125,23 @@
                          :id :order-by
                          :options sort-options
                          :on-change #(re-search nil)}]]
-         [:div.memes
-          [react-infinite {:element-height 400
-                           :infinite-load-begin-edge-offset 100
-                           :use-window-as-scroll-container true
-                           :on-infinite-load (fn []
-                                               (when-not (:graphql/loading? @meme-search)
-                                                 (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
-
-                                                   (log/debug "Scrolled to load more" {:has-next-page has-next-page :end-cursor end-cursor} ::challenge-list)
-
-                                                   (when has-next-page
-                                                     (re-search end-cursor)))))}
-
+         [:div.scroll-area
+          [:div.memes
            (if (:graphql/loading? @meme-search)
              [:div.loading]
              (if (empty? all-memes)
                [:div.challenge "No items found."]
-
                (doall
-               (for [{:keys [:reg-entry/address] :as meme} all-memes]
-                 ^{:key address}
-                 [challenge {:entry meme
-                             :include-challenger-info? include-challenger-info?
-                             :action-child action-child}]))))]]]))))
+                (for [{:keys [:reg-entry/address] :as meme} all-memes]
+                  ^{:key address}
+                  [challenge {:entry meme
+                              :include-challenger-info? include-challenger-info?
+                              :action-child action-child}]))))]
+          [infinite-scroll {:load-fn (fn []
+                                       (when-not (:graphql/loading? @meme-search)
+                                         (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
+
+                                           (log/debug "Scrolled to load more" {:has-next-page has-next-page :end-cursor end-cursor} ::challenge-list)
+
+                                           (when has-next-page
+                                             (re-search end-cursor)))))}]]]))))

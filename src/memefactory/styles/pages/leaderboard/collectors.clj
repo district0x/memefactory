@@ -43,9 +43,9 @@
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})
      [:h2.title {:white-space :normal}]]
-    ["div.collectors > div"
+    [:.scroll-area
      {:width "100%"}
-     ["> div"
+     [:.collectors
       {:display :flex
        :margin-right (em 2)
        :margin-left (em 2)
@@ -94,7 +94,10 @@
         :padding (em 1)
         :vertical-align :middle
         :text-align :center
-        :background-color (color :curator-card-bg)}]]]
+        :background-color (color :curator-card-bg)}]]
+
+
+     ]
 
     [:div.order
      {:position :absolute

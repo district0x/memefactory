@@ -18,7 +18,6 @@
    [memefactory.ui.dank-registry.events :as dr-events]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
-   [react-infinite]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
    [district.graphql-utils :as graphql-utils]))

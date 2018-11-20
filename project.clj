@@ -6,7 +6,6 @@
 
   :dependencies [[camel-snake-kebab "0.4.0"]
                  [cljs-web3 "0.19.0-0-10"]
-                 [cljsjs/react-infinite "0.13.0-0"]
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "4.12.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.2"]

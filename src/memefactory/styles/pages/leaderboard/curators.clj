@@ -43,9 +43,9 @@
                       :margin-left (em 3)
                       :margin-right (em 3)
                       :top (em -1)}])]
-    ["div.curators > div"
+    [:.scroll-area
      {:width "100%"}
-     ["> div"
+     [:.curators
       {:display :flex
        :margin-right (em 2)
        :margin-left (em 2)

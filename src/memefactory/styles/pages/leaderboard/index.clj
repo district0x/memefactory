@@ -43,11 +43,13 @@
     [:.dankest-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})]
-    [:.tiles
-     {:margin-top (em 2)
-      :padding-top (em 2)
-      :padding-bottom (em 2)
-      :margin-right (em 6)
-      :margin-left (em 6)
-      :background-color (color :meme-panel-bg)
-      :border-radius "1em 1em 1em 1em"}]]])
+    [:.scroll-area
+     {:width "100%"}
+     [:.tiles
+       {:margin-top (em 2)
+        :padding-top (em 2)
+        :padding-bottom (em 2)
+        :margin-right (em 6)
+        :margin-left (em 6)
+        :background-color (color :meme-panel-bg)
+        :border-radius "1em 1em 1em 1em"}]]]])
