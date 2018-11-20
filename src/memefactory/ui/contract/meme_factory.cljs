@@ -32,6 +32,7 @@
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme/create-meme tx-id}
+                                      :tx-log {:name "FUBAR"}
                                       :on-tx-success-n [[::logging/info "approve-and-create-meme tx success" ::create-meme]
                                                         [::notification-events/show (gstring/format "Meme created with meta hash %s" Hash)]]
                                       :on-tx-error [::logging/error "approve-and-create-meme tx error" {:user {:id active-account}
