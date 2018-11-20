@@ -82,10 +82,10 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [X] DANK balance always displays 0                                                                          (?)
 - [X] can't switch between accounts                                                                           (?)
 - [X] tx names are not displayed in the transaction log                                                       (Filip)
-- [ ] auctions don't disappear from the marketplace after buying them                                         ()
+- [ ] auctions don't disappear from the marketplace after buying them!                                        ()
 
 ** code quality
-- [ ] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          (Filip)
+- [X] js/react-infinite and cljs (memefactory.ui.components.infinite-scroll) duplicate functionality          (Filip)
 
 ** Server todos
 - [ ] cors OPTIONS for preflight requests non accepted                                                        ()
