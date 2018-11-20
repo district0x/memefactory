@@ -90,7 +90,7 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 ** Server todos
 - [ ] cors OPTIONS for preflight requests non accepted                                                        ()
 - [X] add server logging (with sentry)                                                                        (Filip)
-- [ ] make memefactory.server.utils/time_source a config module variable like the rest of them                (Filip)
+- [X] make memefactory.server.utils/time_source a config module variable like the rest of them                (Filip)
 
 ** Smart contracts todos
 - [X] limit contract size to fit in the bytecode size limit                                                   (Filip)

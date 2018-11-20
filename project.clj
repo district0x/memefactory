@@ -150,8 +150,7 @@
                                    :output-dir "dev-server"
                                    :target :nodejs
                                    :optimizations :none
-                                   :closure-defines {"goog.DEBUG" true
-                                                     "memefactory.server.utils/time_source" "blockchain"}
+                                   :closure-defines {"goog.DEBUG" true}
                                    :source-map true}}
                        {:id "dev-ui"
                         :source-paths ["src/memefactory/ui" "src/memefactory/shared"]
@@ -174,8 +173,7 @@
                                    :target :nodejs
                                    :optimizations :simple
                                    :source-map "server/memefactory.js.map"
-                                   :closure-defines {"goog.DEBUG" false
-                                                     "memefactory.server.utils/time_source" "js-date"}
+                                   :closure-defines {"goog.DEBUG" false}
                                    :pretty-print false}}
                        {:id "ui"
                         :source-paths ["src"]
