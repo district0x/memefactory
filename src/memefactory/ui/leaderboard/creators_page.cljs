@@ -97,13 +97,15 @@
                [:div.creators
                 (if (:graphql/loading? @users-search)
                   [:div.loading]
-                  (doall
-                   (map
-                    (fn [creator num]
-                      ^{:key (:user/address creator)}
-                      [creator-tile creator num])
-                    all-creators
-                    (iterate inc 1))))]
+                  (if (empty? all-creators)
+                    [:div.no-items-found "No items found."]
+                    (doall
+                     (map
+                      (fn [creator num]
+                        ^{:key (:user/address creator)}
+                        [creator-tile creator num])
+                      all-creators
+                      (iterate inc 1)))))]
                [infinite-scroll {:load-fn (fn []
                                             (when-not (:graphql/loading? @users-search)
                                               (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]

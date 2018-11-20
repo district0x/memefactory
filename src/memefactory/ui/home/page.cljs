@@ -19,22 +19,27 @@
 
 (defn auctions-list [auctions]
   (let [auctions (take-max-multiple-of 3 auctions)]
-   [:div.tiles
-    (doall
-     (for [{:keys [:meme-auction/address] :as auc} auctions]
-       (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
-         ^{:key address}
-         [tiles/auction-tile {:on-buy-click #()} auc])))]))
+    [:div.tiles
+     (if (empty? auctions)
+       [:div.no-items-found "No items found."]
+       (doall
+        (for [{:keys [:meme-auction/address] :as auc} auctions]
+          (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
+            ^{:key address}
+            [tiles/auction-tile {:on-buy-click #()} auc]))))]))
 
 (defn memes-list [memes]
   (let [memes (take-max-multiple-of 3 memes)]
     [:div.tiles
-     (doall
-      (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
-        ^{:key address}
-        ;;:div.tile-wrapper
-        [tiles/meme-tile {:on-buy-click #()} m]
-        #_[:div.votes-total (str "Vote amount "(or votes-total 0))]))]))
+
+     (if (empty? memes)
+       [:div.no-items-found "No items found."]
+       (doall
+        (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
+          ^{:key address}
+          ;;:div.tile-wrapper
+          [tiles/meme-tile {:on-buy-click #()} m]
+          #_[:div.votes-total (str "Vote amount "(or votes-total 0))])))]))
 
 (def auction-node-graph [:meme-auction/address
                          :meme-auction/start-price

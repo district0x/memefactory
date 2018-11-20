@@ -14,7 +14,7 @@
    (for-media-max :tablet
                   [:&
                    (grid-columns "100%")])
-
+   [:div.no-items-found {:margin (em 1)}]
    [:div.notification
     {:color (color :meme-info-text)
      :background-color (color :pink)
