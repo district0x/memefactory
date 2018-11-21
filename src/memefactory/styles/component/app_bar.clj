@@ -183,7 +183,7 @@
 
          [:.tx-name {:grid-area :tx-name
                      :font-size (px 14)
-                     :color (color "rgba(0, 0, 0, 0.6)")
+                     :color (color :black)
                      :font-weight :bold
                      :line-height "1.6"}]
 
@@ -200,7 +200,8 @@
                :overflow :hidden
                :text-overflow :ellipsis
                :white-space :nowrap
-               :vertical-align :top}]]
+               :vertical-align :top
+               :text-decoration :underline}]]
 
          [:.tx-id
           {:grid-area :tx-id}
@@ -209,7 +210,8 @@
                :overflow :hidden
                :text-overflow :ellipsis
                :white-space :nowrap
-               :vertical-align :top}]]
+               :vertical-align :top
+               :text-decoration :underline}]]
 
          [:.tx-value
           {:grid-area :tx-value
