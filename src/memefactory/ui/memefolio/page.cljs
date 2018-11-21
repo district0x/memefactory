@@ -345,12 +345,10 @@
              (when address
                (let [{:keys [:vote/option]} vote]
                  ^{:key address}
-
                  [:div.compact-tile
                   [:div.container
                    [:div.meme-card-front
-                    [tiles/meme-image image-hash]
-                    ]]
+                    [tiles/meme-image image-hash]]]
                   [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                       nil
                                                       {:reg-entry/address address}])}
@@ -371,7 +369,6 @@
                        [:i.icon.thumbs.down.outline]])]]])))
            state)))])
 
-;; TODO : style spinners
 (defmethod rank :curated [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:user {:user/address active-account}
@@ -467,13 +464,13 @@
                  [:div.compact-tile
                   [:div.container
                    [:div.meme-card-front
-                    [tiles/meme-image image-hash]]
-                   [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                       nil
-                                                       {:reg-entry/address (:reg-entry/address meme)}])}
-                    [:div.title [:b (str "#" number " " title)]]
-                    [:div.number-minted (str number "/" total-minted)]
-                    [:div.price (format/format-eth (web3/from-wei price :ether))]]]])))
+                    [tiles/meme-image image-hash]]]
+                  [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                      nil
+                                                      {:reg-entry/address (:reg-entry/address meme)}])}
+                   [:div.title [:b (str "#" number " " title)]]
+                   [:div.number-minted (str number "/" total-minted)]
+                   [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
            state)))])
 
 (defn- build-order-by [prefix order-by]
@@ -649,16 +646,16 @@
        [:div.loading]
        [panel tab state])
      [infinite-scroll {:load-fn (fn []
-                                  ;;when-not (:graphql/loading? @query-subs)
-                                  (let [{:keys [:has-next-page :end-cursor]} (k (last @query-subs))]
-                                    (when (or has-next-page (empty? state))
-                                      (dispatch [::gql-events/query
-                                                 {:query {:queries (build-query tab {:active-account active-account
-                                                                                     :prefix prefix
-                                                                                     :form-data form-data
-                                                                                     :first scroll-interval
-                                                                                     :after end-cursor})}
-                                                  :id query-id}]))))}]]))
+                                  (when-not (:graphql/loading? @query-subs)
+                                    (let [{:keys [:has-next-page :end-cursor]} (k (last @query-subs))]
+                                      (when (or has-next-page (empty? state))
+                                        (dispatch [::gql-events/query
+                                                   {:query {:queries (build-query tab {:active-account active-account
+                                                                                       :prefix prefix
+                                                                                       :form-data form-data
+                                                                                       :first scroll-interval
+                                                                                       :after end-cursor})}
+                                                    :id query-id}])))))}]]))
 
 (defn tabbed-pane [tab prefix form-data]
   (let [active-account (subscribe [::accounts-subs/active-account])
