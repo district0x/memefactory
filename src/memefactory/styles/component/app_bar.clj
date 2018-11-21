@@ -134,7 +134,7 @@
         :text-transform :uppercase
         :font-size "10px"
         :text-align :center
-        :padding "10px 0"
+        :padding-top (em 0.3)
         :cursor :pointer}]
 
       [:.tx-content
@@ -171,18 +171,21 @@
                                     "'tx-sender tx-value'\n"
                                     "'tx-id tx-value'\n")
           :cursor :pointer
-          :position :relative}
+          :position :relative
+          :line-height 1.5
+          :font-size (px 12)
+          :text-overflow :ellipsis
+          :color (color :meme-tile-footer)
+          :margin (em 0.5)}
 
          ["&:not(:last-child)"
-          {:border-bottom (str "1px solid " (color "black"))}]
+          {:border-bottom (str "1px solid " (color :black))}]
 
          [:.tx-name {:grid-area :tx-name
-                     :line-height "1.6"
-                     :width "100%"
-                     :text-overflow :ellipsis
-                     :white-space :nowrap
-                     :overflow :hidden
-                     :padding-right "7px"}]
+                     :font-size (px 14)
+                     :color (color "rgba(0, 0, 0, 0.6)")
+                     :font-weight :bold
+                     :line-height "1.6"}]
 
          [:.tx-created-on
           {:grid-area :tx-created-on}]
@@ -191,16 +194,26 @@
           {:grid-area :tx-gas}]
 
          [:.tx-sender
-          (merge {:grid-area :tx-sender}
-                 (of-ellipsis))]
+          {:grid-area :tx-sender}
+          [:a {:display :inline-block
+               :max-width "125px"
+               :overflow :hidden
+               :text-overflow :ellipsis
+               :white-space :nowrap
+               :vertical-align :top}]]
 
          [:.tx-id
-          (merge {:grid-area :tx-id}
-                 (of-ellipsis))]
+          {:grid-area :tx-id}
+          [:a {:display :inline-block
+               :max-width "125px"
+               :overflow :hidden
+               :text-overflow :ellipsis
+               :white-space :nowrap
+               :vertical-align :top}]]
 
          [:.tx-value
           {:grid-area :tx-value
-           :margin-bottom (em 0.5)}]
+           :margin-left (em 1)}]
 
          [:.tx-status
           {:grid-area :tx-status
@@ -288,6 +301,7 @@
         :display :block
         :left 0
         :right 0
+        :top (em 1.5)
         :width (em 2)
         :margin-right "auto"
         :margin-left "auto"
