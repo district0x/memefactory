@@ -48,7 +48,7 @@
 (goog-define environment "prod")
 
 (def development-config
-  {:logging {:level :info
+  {:logging {:level :debug
              :console? true}
    :time-source "blockchain"
    :web3 {:url "http://localhost:8549"}

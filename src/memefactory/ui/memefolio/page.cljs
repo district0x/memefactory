@@ -192,17 +192,17 @@
           total-meme-tokens-count (-> @query :search-meme-tokens :total-count)]
       [:div.stats
        [:div.rank
-        (str "RANK: ") (or collector-rank [:div.loading])]
+        (str "RANK: ") (or collector-rank [:div.spinner.spinner--rank])]
        [:div.var
         [:b "Unique Memes: "]
         (if (and total-collected-memes total-memes-count)
           (str total-collected-memes "/" total-memes-count)
-          [:div.loading])]
+          [:div.spinner.spinner--var])]
        [:div.var
         [:b "Total Cards: "]
         (if (and total-collected-token-ids total-meme-tokens-count)
           [:span (str total-collected-token-ids "/" total-meme-tokens-count)]
-          [:div.loading])]
+          [:div.spinner.spinner--var])]
        [:div.var
         [:b "Largest buy: "]
         (if (and bought-for number title)
@@ -301,24 +301,26 @@
           {:keys [:meme-auction/meme-token]} largest-sale
           {:keys [:meme-token/number :meme-token/meme]} meme-token
           {:keys [:meme/title]} meme
-          creator-total-earned (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
-                                         (+ total-earned end-price))
-                                       0
-                                       (-> @query :search-meme-auctions :items))]
+          meme-auctions (-> @query :search-meme-auctions :items)
+          creator-total-earned (when meme-auctions
+                                 (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
+                                           (+ total-earned end-price))
+                                         0
+                                         meme-auctions))]
       [:div.stats
        [:div.rank
-        (str "RANK: ") (or creator-rank [:div.loading])]
+        (str "RANK: ") (or creator-rank [:div.spinner.spinner--rank])]
        [:div.var
         [:b "Earned: "]
-        (if-not (:graphql/loading? @query) #_creator-total-earned
+        (if creator-total-earned
           (format/format-eth (web3/from-wei creator-total-earned :ether))
-          [:div.loading])]
+          [:div.spinner.spinner--var])]
        [:div.var
         [:b "Success Rate: "]
         (if (and total-created-memes-whitelisted total-created-memes)
           (str total-created-memes-whitelisted "/" total-created-memes " ("
                (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")
-          [:div.loading])]
+          [:div.spinner.spinner--var])]
        [:div.var
         [:b "Best Single Card Sale: "]
         (if (and largest-sale number title)
@@ -383,8 +385,8 @@
                   :user/challenger-total-earned :user/total-participated-votes :user/total-participated-votes-success
                   :user/voter-total-earned]} (:user @query)]
       [:div.stats
-       [:div.rank.big
-        (str "RANK: ") (or curator-rank [:div.loading])]
+       [:div.rank.rank--big
+        (str "RANK: ") (or curator-rank [:div.spinner.spinner--rank])]
        [:div.curator
         [:div
          [:div.label "CHALLENGES:"]
@@ -392,62 +394,61 @@
           (if (and total-created-challenges-success total-created-challenges)
               (str total-created-challenges-success "/" total-created-challenges
                     " (" (format/format-percentage total-created-challenges-success total-created-challenges)  ")")
-              [:div.loading])]
+              [:div.spinner.spinner--var])]
          [:div [:b "Earned:"]
           (if challenger-total-earned
               (str (web3/from-wei challenger-total-earned :ether) " DANK")
-              [:div.loading])]]
+              [:div.spinner.spinner--var])]]
         [:div
          [:div.label "VOTES:"]
          [:div [:b "Success Rate:"]
           (if (and total-participated-votes total-participated-votes-success)
               (str total-participated-votes "/" total-participated-votes-success
                    " (" (format/format-percentage total-participated-votes-success total-participated-votes)  ")")
-              [:div.loading])]
+              [:div.spinner.spinner--var])]
          [:div [:b "Earned:"]
           (if voter-total-earned
             (str (web3/from-wei voter-total-earned :ether) " DANK")
-            [:div.loading])]]
+            [:div.spinner.spinner--var])]]
         [:div
          [:div.label "TOTAL-EARNINGS:"]
-         [:div
-          (if (and challenger-total-earned voter-total-earned)
-              (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")
-              [:div.loading])]]]])))
+         (if (and challenger-total-earned voter-total-earned)
+           (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")
+           [:div.spinner.spinner--var])]]])))
 
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
                                                   [:total-count]]]}])]
     (let [total (get-in @query [:search-memes :total-count])]
-      [:div "Total " (or total [:div.loading])])))
+      [:div "Total " (or total [:div.spinner.spinner--total])])))
 
 (defmethod total :created [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:creator active-account}
                                       [:total-count]]]}])]
     (let [total (get-in @query [:search-memes :total-count])]
-      [:div "Total " (or total [:div.loading])])))
+      [:div "Total " (or total [:div.spinner.spinner--total])])))
 
 (defmethod total :curated [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:curator active-account}
                                       [:total-count]]]}])]
     (let [total (get-in @query [:search-memes :total-count])] ;;when-not (:graphql/loading? @query)
-      [:div "Total " (or total [:div.loading])])))
+      [:div "Total " (or total [:div.spinner.spinner--total])])))
 
 (defmethod total :selling [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/active]}
                                       [:total-count]]]}])]
     (let [total (get-in @query [:search-meme-auctions :total-count])]
-      [:div "Total " (or total [:div.loading])])))
+      [:div "Total " (or total [:div.spinner.spinner--total])])))
 
 (defmethod total :sold [_ active-account form-data]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
                                       [:total-count]]]}])]
     (let [total (get-in @query [:search-meme-auctions :total-count])]
-      [:div "Total " (or total [:div.loading])])))
+      [:div "Total " (or total [:div.spinner.spinner--total])])))
 
 (defmethod panel :sold [_ state]
   [:div.tiles
@@ -643,7 +644,7 @@
                                         state)})
     [:div.scroll-area
      (if (:graphql/loading? @query-subs)
-       [:div.loading]
+       [:div.spinner]
        [panel tab state])
      [infinite-scroll {:load-fn (fn []
                                   (when-not (:graphql/loading? @query-subs)

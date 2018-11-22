@@ -15,6 +15,10 @@
             [garden.units :refer [pt px em rem]]
             [clojure.string :as str]))
 
+(def radius 170)
+(def outer-radius radius)
+(def inner-radius (/ outer-radius 4))
+
 (defn button-tile-back []
   [:.sell {:display :grid
            :grid-template-rows "75% 25%"
@@ -42,12 +46,11 @@
 
 (defstyles core
   [:.meme-detail-page
-   [:.loading
+   [:.spinner
     {;; ovverride attr
-     :color "black"
-     :border-top-color "white"
+     :border-color (color :black)
+     :border-top-color (color :white)
      :border-width (em 0.4)
-     :border-top-width (em 0.4)
      :width (em 2)
      :height (em 2)
      ;; common attr
@@ -58,6 +61,24 @@
      :animation-duration "2s"
      :animation-iteration-count :infinite
      :animation-timing-function :linear}]
+   [:.spinner--number
+    {:border-color (color :purple)
+     :border-top-color (color :yellow)
+     :border-width (em 0.3)
+     :width (em 0.9)
+     :height (em 0.9)}]
+   [:.spinner--info
+    {:border-color (color :busy-grey)
+     :border-top-color (color :white)
+     :border-width (em 1)
+     :width (em 7)
+     :height (em 7)}]
+   [:.spinner--challenge
+    {:border-color (color "#04ffcc")
+     :border-top-color (color :white)
+     :width (px outer-radius)
+     :height (px outer-radius)
+     :border-width (px inner-radius)}]
    [:.address (of-ellipsis)]
    [:section.meme-detail
     {:padding (em 3)}
@@ -77,15 +98,8 @@
                     [:&
                      {:grid-template-columns "100%"
                       :margin-bottom (em 2)}])
-     [:.loading
-      {:align-self :center
-       :justify-self :center
-       :color (color :busy-grey)
-       :border-top-color (color :white)
-       :border-width (em 1)
-       :border-top-width (em 1)
-       :width (em 7)
-       :height (em 7)}]
+     [">.spinner--info"
+      {:margin :auto}]
      [:.meme-number
       (font :bungee)
       {:position :absolute
@@ -96,31 +110,12 @@
        :padding (em 1)
        :font-size (em 1.1)
        :border-radius "0em 0em 1em 1em"
-       :background-color (color :yellow)
-       }
-      [:.loading
-       {:border-color (color :purple)
-        :border-top-color (color :yellow)
-        ;; :margin :auto
-        ;; :margin-left (em 0.5)
-        :border-width (em 0.3)
-        :border-top-width (em 0.3)
-        :width (em 0.9)
-        :height (em 0.9)}]]
+       :background-color (color :yellow)}]
      [:.registry
       {:padding (em 1)}
       [:h1
        (font :bungee)
-       {:color (color :purple)}
-       [:.loading
-        {:border-color (color :purple)
-         :border-top-color (color :white)
-         :margin :auto
-         :margin-left (em 0.5)
-         :border-width (em 0.3)
-         :border-top-width (em 0.3)
-         :width (em 1)
-         :height (em 1)}]]
+       {:color (color :purple)}]
       [:.status
        {:display :flex
         :line-height (em 1)}
@@ -170,14 +165,12 @@
     [:.history-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-      :border-radius "1em 1em 1em 1em"
-      ;; :position :relative
-      }
+      :border-radius "1em 1em 1em 1em"}
      #_(for-media-max :tablet
-                    [:&
-                     {:max-height (em 30)
-                      :overflow-y :auto
-                      :overflow-x :hidden}])
+                      [:&
+                       {:max-height (em 30)
+                        :overflow-y :auto
+                        :overflow-x :hidden}])
      [:h1.title
       (font :bungee)
       (for-media-max :tablet
@@ -190,9 +183,6 @@
        :padding-top (em 1)
        :margin-bottom (em 0.1)
        :text-align :center}]
-     [:.loading
-      {:margin :auto
-       :color (color :table-header-bg)}]
      [:table
       (for-media-max :tablet
                      [:&
@@ -277,16 +267,14 @@
                          {:content "'Price:'"}])
          (for-media-max :tablet
                         [:&.time:before
-                         {:content "'Time Ago:'"}])
-         ]]]
+                         {:content "'Time Ago:'"}])]]]
       {:border-spacing "0px"
        :table-layout :fixed
        :width "100%"
        :padding-right (em 3)
        :padding-left (em 3)
        :padding-top (em 1)
-       :padding-bottom (em 1)
-       }]]]
+       :padding-bottom (em 1)}]]]
    [:section.challenge
     {:padding (em 3)}
     (for-media-max :tablet
@@ -301,13 +289,12 @@
      {:white-space :nowrap
       :position :relative
       :color (color :purple)
-      ;; :font-size (em 1.2)
       :padding-top (em 1)
       :margin-bottom (em 0.1)
       :text-align :center}]
-    [:.loading
-     {:color (color :menu-text)
-      :margin :auto}]
+    [">.spinner--challenge"
+     {:margin :auto
+      :margin-top (em 3)}]
     [:.challenge-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"

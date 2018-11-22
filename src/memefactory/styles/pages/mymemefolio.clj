@@ -46,12 +46,12 @@
    (search-panel {:background-panel-image "/assets/icons/mf-search.svg"
                   :color :mymemefolio-green
                   :icon "/assets/icons/portfolio2.svg"})
-   [:.loading
+
+   [:.spinner
     {;; ovverride attr
-     :color "black"
-     :border-top-color "white"
+     :color (color :black)
+     :border-top-color (color :white)
      :border-width (em 0.4)
-     :border-top-width (em 0.4)
      :width (em 2)
      :height (em 2)
      ;; common attr
@@ -62,6 +62,30 @@
      :animation-duration "2s"
      :animation-iteration-count :infinite
      :animation-timing-function :linear}]
+   [:.spinner--total
+    {:border-color (color :section-subcaption)
+     :border-top-color (color :white)
+     :margin :auto
+     :border-width (em 0.1)
+     :width (em 0.7)
+     :height (em 0.7)}]
+   [:.spinner--rank
+    {:border-color (color :purple)
+     :border-top-color (color :rank-yellow)
+     :margin :auto
+     ;; :margin-left (em 0.5)
+     :border-width (em 0.3)
+     ;; :border-top-width (em 0.3)
+     :width (em 1)
+     :height (em 1)}]
+   [:.spinner--var
+    {:border-color (color :section-subcaption)
+     :border-top-color (color :yellow)
+     :margin :auto
+     :border-width (em 0.3)
+     :border-top-width (em 0.3)
+     :width (em 1)
+     :height (em 1)}]
    [:.total
     {:position :absolute
      :right (em 4)
@@ -72,19 +96,11 @@
                     {:margin-right (em 2)
                      :margin-top (em 2)
                      :margin-left (em 6)}])
-
     [">div"
      {:display :flex
       :margin :auto}
-     [:.loading
-      {:border-color (color :section-subcaption)
-       :border-top-color (color :white)
-       :margin :auto
-       :margin-left (em 0.3)
-       :border-width (em 0.1)
-       :border-top-width (em 0.1)
-       :width (em 0.7)
-       :height (em 0.7)}]]]
+     [">.spinner--total"
+      {:margin-left (em 0.5)}]]]
    [:section.stats
     {:display :flex
      :margin-top 0
@@ -112,30 +128,17 @@
      {:color (color :purple)
       :border-radius "1em 0em 0em 0em"
       :background-color (color :rank-yellow)
-      :padding-right (em 1)
-      :padding-left (em 1)
+      :display :flex
       :width (em 10)
-      ;; :display :table-cell
-      :font-size (em 1)
-      ;; :display :flex
-      :text-align :center
-      ;; :margin :auto
-      }
+      :font-size (em 1)}
      (for-media-max :tablet
                     [:&
                      {:width "100%"
                       :border-radius "1em 1em 0em 0em"}])
-     [:&.big
-      {:line-height (em 6)}]
-     [:.loading
-      {:border-color (color :purple)
-       :border-top-color (color :rank-yellow)
+     [:&.rank--big
+      {:line-height (em 9)
        :margin :auto
-       :margin-left (em 0.5)
-       :border-width (em 0.3)
-       :border-top-width (em 0.3)
-       :width (em 1)
-       :height (em 1)}]]
+       :align-self :center}]]
     [:.stats
      {:display :flex
       :line-height (em 2.3)}
@@ -151,28 +154,12 @@
        :margin :auto
        }
       [">b"
-       {:padding-right (em 1)}]
-      [:.loading
-       {:border-color (color :section-subcaption)
-        :border-top-color (color :yellow)
-        :margin :auto
-        :border-width (em 0.3)
-        :border-top-width (em 0.3)
-        :width (em 1)
-        :height (em 1)}]]
+       {:padding-right (em 1)}]]
      [:.curator
       {:display :grid
        :padding-top (em 1.2)
        :padding-bottom (em 0.9)
        :flex-grow 1}
-      [:.loading
-       {:width (em 1)
-        :display :inline-block
-        :vertical-align "-10%"
-        :height (em 1)
-        :border-top-color (color :yellow)
-        :border-width (em 0.3)
-        :border-top-width (em 0.3)}]
       [">div"
        {:display :flex
         :font-size (em 0.8)}
@@ -184,18 +171,17 @@
         (font :bungee)]
        [">*"
         {:color (color :section-subcaption)
+         :display :flex
          :margin-right (em 1)
-         :line-height (em 1)
          :margin-left (em 1)}
-        [:b {:margin-right (em 0.2)}]]]]]]
+        [:b {:margin-right (em 0.5)}]]]]]]
    [:.tiles
     {:margin-top 0
      :padding-top (em 2)
      :padding-bottom (em 2)
      :background-color (color :meme-panel-bg)
      :border-radius "0 0 1em 1em"
-     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-     }
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
     (for-media-max :tablet
                    [:&
                     {:margin-right (em 1)
