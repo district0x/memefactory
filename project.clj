@@ -35,7 +35,7 @@
                  [district0x/district-ui-component-tx-button "1.0.0"]
                  #_[district0x/district-ui-component-input "1.0.0"]
                  [district0x/district-ui-graphql "1.0.6"]
-                 [district0x/district-ui-logging "1.0.3-SNAPSHOT"]
+                 [district0x/district-ui-logging "1.0.3-1-SNAPSHOT"]
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
                  [district0x/district-ui-web3-sync-now "1.0.3-2"]

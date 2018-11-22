@@ -148,13 +148,13 @@
     [:div.scroll-area
      [related-memes-component state]
      [infinite-scroll {:load-fn (fn []
-                                  ;;when-not (:graphql/loading? @response)
-                                  (let [{:keys [:has-next-page :end-cursor]} (:search-meme-auctions (last @response))]
-                                    (when (or has-next-page (empty? state))
-                                      (dispatch [::gql-events/query
-                                                 {:query {:queries (build-query {:first scroll-interval
-                                                                                 :after (or end-cursor 0)})}
-                                                  :id address}]))))}]]))
+                                  (when-not (:graphql/loading? @response)
+                                    (let [{:keys [:has-next-page :end-cursor]} (:search-meme-auctions (last @response))]
+                                      (when (or has-next-page (empty? state))
+                                        (dispatch [::gql-events/query
+                                                   {:query {:queries (build-query {:first scroll-interval
+                                                                                   :after (or end-cursor 0)})}
+                                                    :id address}])))))}]]))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
@@ -174,32 +174,31 @@
                                                           [:meme-token/token-id]]]]]]]}])]
         [:div.history-component
          [:h1.title "Marketplace history"]
-         (if (:graphql/loading? @query)
-             [:div.loading]
-             [:table
-              [:thead [:tr
-                       [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
-                             :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
-                       [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
-                             :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
-                       [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
-                             :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
-                       [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
-                             :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
-                       [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
-                             :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
-              [:tbody
-               (doall
-                (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
-                              :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
-                  (when address
-                    ^{:key address}
-                    [:tr
-                     [:td.meme-token (:meme-token/token-id meme-token)]
-                     [:td.seller-address (:user/address seller)]
-                     [:td.buyer-address (:user/address buyer)]
-                     [:td.end-price (format-price end-price)]
-                     [:td.time  (when bought-on (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now)))]])))]])]))))
+         [:table
+          [:thead [:tr
+                   [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
+                         :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
+                   [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
+                         :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
+                   [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
+                         :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
+                   [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
+                         :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
+                   [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
+                         :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
+          (if-not (:graphql/loading? @query)
+            [:tbody
+             (doall
+              (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
+                            :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
+                (when address
+                  ^{:key address}
+                  [:tr
+                   [:td.meme-token (:meme-token/token-id meme-token)]
+                   [:td.seller-address (:user/address seller)]
+                   [:td.buyer-address (:user/address buyer)]
+                   [:td.end-price (format-price end-price)]
+                   [:td.time  (when bought-on (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now)))]])))])]]))))
 
 (defn challenge-header [created-on]
   [:div.header
@@ -460,11 +459,11 @@
      [:div.meme-detail-page
       [:section.meme-detail
        [:div.meme-info
-        [:div.meme-number (or number [:div.loading])]
+        [:div.meme-number (or number [:div.spinner.spinner--number])]
         [:div.container
          [tiles/meme-image image-hash]]
         (if-not status
-          [:div.loading]
+          [:div.spinner.spinner--info]
           [:div.registry
            [:h1 title]
            [:div.status (case (graphql-utils/gql-name->kw status)
@@ -496,6 +495,6 @@
        [:h1.title "Challenge"]
        (if status
          [challenge-component meme]
-         [:div.loading])]
+         [:div.spinner.spinner--challenge])]
       [:section.related
        [related-memes-container address tags]]]]))
