@@ -195,5 +195,4 @@
                                    :target :nodejs,
                                    :optimizations :none,
                                    :verbose false
-                                   :closure-defines {"memefactory.server.utils/time_source" "blockchain"}
                                    :source-map true}}]})

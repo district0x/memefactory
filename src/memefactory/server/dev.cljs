@@ -122,7 +122,7 @@
   (-> (mount/with-args
         {:config {:default {:logging {:level "info"
                                       :console? true}
-                            :time-source :js-date
+                            :time-source :blockchain
                             :graphql {:port 6300
                                       :middlewares [logging-middlewares]
                                       :schema (utils/build-schema graphql-schema
