@@ -60,10 +60,10 @@
   {:logging {:level :warn
              :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"}}
    :time-source "js-date"
-   :web3 {:url "http://localhost:8545"}
+   :web3 {:url "http://qa.district0x.io:8545"}
    :graphql {:schema graphql-schema
-             :url "http://localhost:6300/graphql"}
-   :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}})
+             :url "http://qa.district0x.io:6300/graphql"}
+   :ipfs {:host "http://qa.district0x.io:5001" :endpoint "/api/v0"}})
 
 (defn get-config [env-name]
   (get {"dev" development-config
