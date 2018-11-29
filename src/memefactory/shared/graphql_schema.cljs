@@ -66,6 +66,29 @@
     config: Config
   }
 
+  type PhoneVerificationResponse {
+    id: String
+    status: Int
+    success: Boolean
+    msg: String!
+  }
+
+  type EncryptedVerificationPayload {
+    success: Boolean
+    payload: String
+  }
+
+  type Mutation {
+    sendVerificationCode(countryCode: String!,
+                         phoneNumber: String!
+  ): PhoneVerificationResponse
+
+    encryptVerificationPayload(countryCode: String,
+                               phoneNumber: String,
+                               verificationCode: String
+    ): EncryptedVerificationPayload
+  }
+
   enum OrderDir {
     asc
     desc
@@ -426,5 +449,5 @@
     endpoint: String
     gateway: String
   }
-"
+  "
   )

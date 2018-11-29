@@ -8,7 +8,8 @@
    [memefactory.ui.get-dank.events :as dank-events]
    [district.format :as format]
    [district.ui.component.form.input :refer [index-by-type
-                                             text-input]]))
+                                             text-input]]
+   [district.ui.graphql.subs :as gql]))
 
 (defn header []
   [:div.submit-info
@@ -19,10 +20,14 @@
 
 (defmethod page :route.get-dank/index []
   (let [form-data (r/atom {})
-        errors (reaction {:local (let [{:keys [phone-number]} @form-data]
+        stage (r/atom 1)
+        errors (reaction {:local (let [{:keys [country-code phone-number]} @form-data]
                                    (cond-> {}
+                                     (empty? country-code)
+                                     (assoc-in [:country-code :error] "Country code is mandatory")
+
                                      (empty? phone-number)
-                                     (assoc-in [:title :error] "Phone number is mandatory")))})
+                                     (assoc-in [:phone-number :error] "Phone number is mandatory")))})
         critical-errors (reaction (index-by-type @errors :error))]
     (fn []
       [app-layout
@@ -32,15 +37,37 @@
         [:section.submit-header
          [header]]
         [:div.form-panel
-         ;; [:div (str (:local @errors))]
-         ;; [:div (str @critical-errors)]
-         [text-input {:form-data form-data
-                      :placeholder "Phone Number"
-                      :errors errors
-                      :id :phone-number}]
+         [text-input (merge {:form-data form-data
+                             :placeholder "Country Code"
+                             :errors errors
+                             :id :country-code}
+                            (when (= @stage 2)
+                              {:disabled "disabled"}))]
+         [text-input (merge {:form-data form-data
+                             :placeholder "Phone Number"
+                             :errors errors
+                             :id :phone-number}
+                            (when (= @stage 2)
+                              {:disabled "disabled"}))]
+         [text-input (merge {:form-data form-data
+                             :placeholder "Verification Code"
+                             :errors errors
+                             :id :verification-code}
+                            (when (= @stage 1)
+                              {:style
+                               {:visibility "hidden"}}))]
          [:div.submit
           [:button {:on-click (fn []
-                                (dispatch [::dank-events/get-initial-dank @form-data])
-                                (reset! form-data {}))
+                                (let [verification-code (:verification-code @form-data)]
+                                  (println "verification-code blank?:"
+                                           (clojure.string/blank? verification-code))
+                                  (if (clojure.string/blank? verification-code)
+                                    (do ; Stage 1
+                                      (dispatch [::dank-events/send-verification-code @form-data])
+                                      (reset! stage 2))
+                                    (do ; Stage 2
+                                      (dispatch [::dank-events/encrypt-verification-payload @form-data])
+                                      (reset! form-data {})
+                                      (reset! stage 1)))))
                     :disabled (not (empty? @critical-errors))}
            "Submit"]]]]])))

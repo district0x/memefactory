@@ -29,6 +29,8 @@
             [memefactory.server.deployer]
             [memefactory.server.generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
+            [memefactory.server.emailer]
+            [memefactory.server.phone-verifier]
             [memefactory.server.ipfs]
             [memefactory.server.syncer]
             [memefactory.server.macros :refer [defer]]
