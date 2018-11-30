@@ -54,8 +54,9 @@
    :meme-auction-factory-fwd
    {:name "MutableForwarder",
     :address "0x773e8bfc01322645cc9c26db0297f7c8aa4cb4fa"}
-   :district0x-emails
+   :dank-faucet
    {:name "DankFaucet",
     :address "0x91facb67d424113a6584da2d42460014f9db9159"}
+   :district0x-emails
    {:name "District0xEmails"
     :address "0xe6305ce0348f9646ad4601725b383a3fb4f3f2f0"}})
