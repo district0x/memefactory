@@ -18,7 +18,6 @@
             [memefactory.server.contract.registry :as registry]
             [memefactory.shared.contract.registry-entry :refer [vote-options]]
             [memefactory.server.contract.registry-entry :as registry-entry]
-            [memefactory.server.contract.dank-faucet :as dank-faucet]
             [memefactory.server.db :as db]
             [memefactory.server.deployer]
             [memefactory.server.generator]
@@ -246,7 +245,7 @@
   (try-catch
    (let [reg-entry-address nil] ;; TODO Fix retrieve from db
      #_(db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
-                                       :amount price})
+                                         :amount price})
      (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
                                          :meme-auction/bought-for (bn/number price)
                                          :meme-auction/bought-on timestamp
@@ -279,18 +278,6 @@
                                     :initial-param/db contract-address
                                     :initial-param/value (bn/number v)
                                     :initial-param/set-on timestamp}))))))
-
-(defmethod process-event [:contract/dank-faucet :not-enough-eth]
-  [_ ev]
-  (log/info ev))
-
-(defmethod process-event [:contract/dank-faucet :dank-event]
-  [_ ev]
-  (log/info ev))
-
-(defmethod process-event [:contract/dank-faucet :oraclize-call]
-  [_ ev]
-  (log/info ev))
 
 (defmethod process-event :default
   [contract-type {:keys [:event-type] :as evt}]
