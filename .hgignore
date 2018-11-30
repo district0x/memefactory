@@ -13,3 +13,7 @@ package-lock.json
 .gitignore
 .git/**
 resources/public/js/compiled/**
+dev-server/**
+server/**
+memefactory-tests/**
+node-modules/**
