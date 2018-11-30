@@ -48,7 +48,7 @@ contract DankFaucet is usingOraclize {
     // Uncomment this line when deploying to production
     // OAR = OraclizeAddrResolverI(oraclizeAddress);
 
-    // Remove this line when deploying to production
+    // Comment out this line when deploying to production
     OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
   }
 
