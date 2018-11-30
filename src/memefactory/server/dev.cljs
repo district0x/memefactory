@@ -2,7 +2,7 @@
   (:require [bignumber.core :as bn]
             [camel-snake-kebab.core :as cs :include-macros true]
             [cljs-time.core :as t]
-            [cljs-web3.core :as web3]
+            [cljs-web3.core :as web3-core]
             [cljs-web3.eth :as web3-eth]
             [cljs-web3.evm :as web3-evm]
             [cljs.nodejs :as nodejs]
@@ -60,7 +60,7 @@
                            (mount/args)
                            {:web3 {:port 8545}
                             :deployer {:write? true
-                                       :gas-price (web3/to-wei 4 :gwei)}})
+                                       :gas-price (web3-core/to-wei 4 :gwei)}})
                          #'district.server.web3/web3
                          #'district.server.smart-contracts/smart-contracts))
 
@@ -76,7 +76,7 @@
           {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
                            :commit-period-duration (t/in-seconds (t/minutes 20))
                            :reveal-period-duration (t/in-seconds (t/minutes 10))
-                           :deposit (web3/to-wei 1 :ether)
+                           :deposit (web3-core/to-wei 1 :ether)
                            :challenge-dispensation 50
                            :vote-quorum 50
                            :max-total-supply 10
@@ -84,7 +84,7 @@
            :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
                                    :commit-period-duration (t/in-seconds (t/minutes 20))
                                    :reveal-period-duration (t/in-seconds (t/minutes 10))
-                                   :deposit (web3/to-wei 10 :ether)
+                                   :deposit (web3-core/to-wei 10 :ether)
                                    :challenge-dispensation 50
                                    :vote-quorum 50}}
           :write? true}))
