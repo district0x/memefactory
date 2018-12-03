@@ -45,9 +45,6 @@ contract DankFaucet is usingOraclize {
   constructor(uint initialDank) public {
     allotment = initialDank;
 
-    // Uncomment this line when deploying to production
-    OAR = OraclizeAddrResolverI(oraclizeAddress);
-
     // Comment out this line when deploying to production
     // See: https://github.com/oraclize/ethereum-bridge
     //OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
