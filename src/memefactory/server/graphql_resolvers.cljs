@@ -18,7 +18,6 @@
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]
-            [promesa.async-cljs :refer-macros [async]]
             [district.shared.error-handling :refer [try-catch-throw]]
             [memefactory.server.ranks-cache :as ranks-cache]
             [memefactory.server.utils :as utils]))
