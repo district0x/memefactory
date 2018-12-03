@@ -18,7 +18,6 @@
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]
-            [promesa.core :as p :refer-macros [alet]]
             [promesa.async-cljs :refer-macros [async]]
             [district.shared.error-handling :refer [try-catch-throw]]
             [memefactory.server.ranks-cache :as ranks-cache]
@@ -29,7 +28,6 @@
 (def graphql-fields (nodejs/require "graphql-fields"))
 (def child-process (js/require "child_process"))
 (def util (js/require "util"))
-(def request (nodejs/require "request"))
 (def request-promise (nodejs/require "request-promise"))
 
 (def whitelisted-config-keys [:ipfs :ui])
@@ -958,18 +956,16 @@
                           "phone_number" phone-number
                           "country_code" country-code}})]
      (log/info (str "Sending verification code to " country-code phone-number))
-     (async
-      (-> (p/promise
-           (request-promise options))
-          (p/then
-           (fn [response]
-             (let [twilio-response (js->clj response)
-                   graphql-response {:id (get twilio-response "uuid")
-                                     :success (get twilio-response "success")
-                                     :status (get twilio-response "status")
-                                     :msg (get twilio-response "message")}]
-               (log/info "Twilio resp:" twilio-response)
-               graphql-response))))))))
+     (-> (request-promise options)
+         (.then
+          (fn [response]
+            (let [twilio-response (js->clj response)
+                  graphql-response {:id (get twilio-response "uuid")
+                                    :success (get twilio-response "success")
+                                    :status (get twilio-response "status")
+                                    :msg (get twilio-response "message")}]
+              (log/info "Twilio resp:" twilio-response)
+              graphql-response)))))))
 
 (def exec-promise (.promisify util (aget child-process "exec")))
 
@@ -995,25 +991,23 @@
      (log/debug full-encryption-command)
 
      ;; Shell out
-     (async
-      (-> (p/promise
-           ;; Run the Python script to encrypt the payload
-           (exec-promise full-encryption-command))
-          (p/then (fn [result]
-                    (let [python-result (js->clj result)]
-                      (log/debug "python encryption result:" python-result)
-                      (let [stdout (get python-result "stdout")
-                            stderr (get python-result "stderr")]
+     ;; Run the Python script to encrypt the payload
+     (-> (exec-promise full-encryption-command)
+         (.then (fn [result]
+                  (let [python-result (js->clj result)]
+                    (log/debug "python encryption result:" python-result)
+                    (let [stdout (get python-result "stdout")
+                          stderr (get python-result "stderr")]
 
-                        ;; Return the encrypted payload
-                        (if (clojure.string/blank? stderr)
-                          (do
-                            {:success true
-                             :payload (clojure.string/trim-newline stdout)})
+                      ;; Return the encrypted payload
+                      (if (clojure.string/blank? stderr)
+                        (do
+                          {:success true
+                           :payload (clojure.string/trim-newline stdout)})
 
-                          (do
-                            {:success false
-                             :payload stderr})))))))))))
+                        (do
+                          {:success false
+                           :payload stderr}))))))))))
 
 (def resolvers-map
   {:Query {:meme meme-query-resolver

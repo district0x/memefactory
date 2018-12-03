@@ -67,8 +67,7 @@
                  [akiroz.re-frame/storage "0.1.2"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
                  [cljs-ajax "0.7.4"]
-                 [day8.re-frame/http-fx "0.1.6"]
-                 [funcool/promesa "1.9.0"]]
+                 [day8.re-frame/http-fx "0.1.6"]]
 
   :exclusions [express-graphql
                cljsjs/react-with-addons]
@@ -98,7 +97,6 @@
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]
                        [deasync "0.1.11"]
-                       [request "2.88.0"]
                        [request-promise "4.2.2"]
                        ;; this isn't required directly by memefactory but  0.6.1 is broken and
                        ;; district0x/district-server-web3 needs [ganache-core "2.0.2"]   who also needs "ethereumjs-wallet": "~0.6.0"
