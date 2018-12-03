@@ -1,4 +1,4 @@
-(ns memefactory.ui.contracts.district0x-emails
+(ns memefactory.ui.contract.district0x-emails
   (:require
    [district.encryption :as encryption]
    [district.ui.logging.events :as logging]
