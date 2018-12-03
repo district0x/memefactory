@@ -124,6 +124,13 @@
                                                               district-config-placeholder :district-config
                                                               meme-token-placeholder :meme-token}})))
 
+(defn deploy-dank-faucet! [default-opts]
+  (deploy-smart-contract! :dank-faucet (merge default-opts
+                                              {:gas 4000000
+                                               :arguments [420]
+                                               :placeholder-replacements
+                                               {dank-token-placeholder :DANK}})))
+
 (defn deploy [{:keys [:write? :initial-registry-params :transfer-dank-token-to-accounts
                       :use-n-account-as-deposit-collector :use-n-account-as-cut-collector]
                :as deploy-opts}]
@@ -213,6 +220,8 @@
                            {:factory (contract-address :param-change-factory) :factory? true}
                            deploy-opts)
 
+     (deploy-dank-faucet! deploy-opts)
+
      (deploy-meme-auction-factory-fwd! deploy-opts)
      (ds-auth/set-authority :meme-auction-factory-fwd (contract-address :ds-guard) deploy-opts)
      (deploy-meme-auction! deploy-opts)
@@ -227,6 +236,12 @@
          (dank-token/transfer {:to account :amount (web3/to-wei 15000 :ether)}
                               ;; this is the deployer of dank-token so it owns the initial amount
                               {:from (last accounts)})))
+
+     ;; Seed the dank-faucet with initial dank so it can transfer that to verified phone numbers
+     (let [faucet-address (contract-address :dank-faucet)]
+       (dank-token/transfer {:to faucet-address :amount (web3/to-wei 100000 :ether)}
+                            ;; this is the deployer of dank-token so it owns the initial amount
+                            {:from (last accounts)}))
 
      (when write?
        (write-smart-contracts!)))))

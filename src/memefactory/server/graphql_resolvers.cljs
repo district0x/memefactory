@@ -1,5 +1,6 @@
 (ns memefactory.server.graphql-resolvers
-  (:require [bignumber.core :as bn]
+  (:require [ajax.core :refer [GET POST]]
+            [bignumber.core :as bn]
             [cljs-time.core :as t]
             [cljs-web3.core :as web3-core]
             [cljs-web3.eth :as web3-eth]
@@ -24,6 +25,9 @@
 (def enum graphql-utils/kw->gql-name)
 
 (def graphql-fields (nodejs/require "graphql-fields"))
+(def child-process (js/require "child_process"))
+(def util (js/require "util"))
+(def request-promise (nodejs/require "request-promise"))
 
 (def whitelisted-config-keys [:ipfs :ui])
 
@@ -425,7 +429,7 @@
 
 (defn overall-stats-resolver [_ _]
   {:total-memes-count (:count (db/get {:select [[(sql/call :count :*) :count]]
-                                :from [:memes]}))
+                                       :from [:memes]}))
    :total-tokens-count (:count (db/get {:select [[(sql/call :count :*) :count]]
                                         :from [:meme-tokens]}))})
 
@@ -436,12 +440,12 @@
      config-query)))
 
 (defn vote->option-resolver [{:keys [:vote/option :vote/amount] :as vote}]
-   (log/debug "vote->option-resolver args" vote)
+  (log/debug "vote->option-resolver args" vote)
   (match [(nil? amount) (= 1 option) (= 2 option)]
-         [true _ _] (enum :vote-option/no-vote)
-         [false true false] (enum :vote-option/vote-for)
-         [false false true] (enum :vote-option/vote-against)
-         [false _ _] (enum :vote-option/not-revealed)))
+    [true _ _] (enum :vote-option/no-vote)
+    [false true false] (enum :vote-option/vote-for)
+    [false false true] (enum :vote-option/vote-against)
+    [false _ _] (enum :vote-option/not-revealed)))
 
 (defn reg-entry->status-resolver [reg-entry]
   (enum (reg-entry-status (utils/now-in-seconds) reg-entry)))
@@ -862,8 +866,8 @@
                                               :from [[:reg-entries :re]]
                                               :group-by [:status]
                                               :having [:= :status (graphql-utils/kw->gql-name :reg-entry.status/whitelisted)]})
-                                    (map (fn [{:keys [:reg-entry/creator :count]}] [creator count]))
-                                    (into {}))]
+                                     (map (fn [{:keys [:reg-entry/creator :count]}] [creator count]))
+                                     (into {}))]
     (->> (all-users)
          (map #(assoc % :white-listed-memes (get users-whitelisted-memes (:user/address %) 0)))
          (sort-by :white-listed-memes >)
@@ -931,6 +935,79 @@
                                         :order-by [[:param-changes.param-change/applied-on :asc]]
                                         :limit 2}))))
 
+(defn graphqlize
+  "Given a map it will transform all the keys into graphql friendly
+  names."
+  [coll]
+  (reduce-kv
+   (fn [m k v]
+     (assoc m k (graphql-utils/kw->gql-name v))) (empty coll) coll))
+
+(defn send-verification-code-resolver
+  [_ {:keys [country-code phone-number] :as args}]
+  (try-catch-throw
+   (let [options (clj->js
+                  {:url "https://api.authy.com/protected/json/phones/verification/start"
+                   :method "POST"
+                   :headers {"X-Authy-API-Key" (:twilio-api-key @config)}
+                   :json true
+                   :body {"via" "sms"
+                          "phone_number" phone-number
+                          "country_code" country-code}})]
+     (log/info (str "Sending verification code to " country-code phone-number))
+     (-> (request-promise options)
+         (.then
+          (fn [response]
+            (let [twilio-response (js->clj response)
+                  graphql-response {:id (get twilio-response "uuid")
+                                    :success (get twilio-response "success")
+                                    :status (get twilio-response "status")
+                                    :msg (get twilio-response "message")}]
+              (log/info "Twilio resp:" twilio-response)
+              graphql-response)))))))
+
+(def exec-promise (.promisify util (aget child-process "exec")))
+
+(defn encrypt-verification-payload-resolver
+  [_ {:keys [country-code phone-number verification-code] :as args}]
+  (try-catch-throw
+   ;; Build Oraclize call
+   (let [encryption-script "./scripts/encrypted_queries_tools.py"
+         oraclize-public-key "044992e9473b7d90ca54d2886c7addd14a61109af202f1c95e218b0c99eb060c7134c4ae46345d0383ac996185762f04997d6fd6c393c86e4325c469741e64eca9"
+         json-payload (->> (clj->js {:json {:via "sms"
+                                            :phone_number phone-number
+                                            :country_code country-code
+                                            :verification_code verification-code}
+                                     :headers {:content-type "application/json"
+                                               "X-Authy-API-Key" (:twilio-api-key @config)}})
+                           (.stringify js/JSON))
+         full-encryption-command (str "python "
+                                      encryption-script
+                                      " -p "
+                                      oraclize-public-key
+                                      " -e "
+                                      \' json-payload \')]
+     (log/debug full-encryption-command)
+
+     ;; Shell out
+     ;; Run the Python script to encrypt the payload
+     (-> (exec-promise full-encryption-command)
+         (.then (fn [result]
+                  (let [python-result (js->clj result)]
+                    (log/debug "python encryption result:" python-result)
+                    (let [stdout (get python-result "stdout")
+                          stderr (get python-result "stderr")]
+
+                      ;; Return the encrypted payload
+                      (if (clojure.string/blank? stderr)
+                        (do
+                          {:success true
+                           :payload (clojure.string/trim-newline stdout)})
+
+                        (do
+                          {:success false
+                           :payload stderr}))))))))))
+
 (def resolvers-map
   {:Query {:meme meme-query-resolver
            :search-memes search-memes-query-resolver
@@ -946,6 +1023,8 @@
            :params params-query-resolver
            :overall-stats overall-stats-resolver
            :config config-query-resolver}
+   :Mutation {:send-verification-code send-verification-code-resolver
+              :encrypt-verification-payload encrypt-verification-payload-resolver}
    :Vote {:vote/option vote->option-resolver
           :vote/reward vote->reward-resolver}
    :Meme {:reg-entry/status reg-entry->status-resolver

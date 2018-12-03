@@ -245,7 +245,7 @@
   (try-catch
    (let [reg-entry-address nil] ;; TODO Fix retrieve from db
      #_(db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
-                                       :amount price})
+                                         :amount price})
      (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
                                          :meme-auction/bought-for (bn/number price)
                                          :meme-auction/bought-on timestamp
@@ -274,10 +274,10 @@
                            (into {}))]
      (doseq [[k v] keys->values]
        (when-not (db/initial-param-exists? k contract-address)
-           (db/insert-initial-param! {:initial-param/key k
-                                      :initial-param/db contract-address
-                                      :initial-param/value (bn/number v)
-                                      :initial-param/set-on timestamp}))))))
+         (db/insert-initial-param! {:initial-param/key k
+                                    :initial-param/db contract-address
+                                    :initial-param/value (bn/number v)
+                                    :initial-param/set-on timestamp}))))))
 
 (defmethod process-event :default
   [contract-type {:keys [:event-type] :as evt}]

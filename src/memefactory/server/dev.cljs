@@ -29,6 +29,7 @@
             [memefactory.server.deployer]
             [memefactory.server.generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
+            [memefactory.server.emailer]
             [memefactory.server.ipfs]
             [memefactory.server.syncer]
             [memefactory.server.macros :refer [defer]]
@@ -57,10 +58,10 @@
   (mount/stop #'district.server.web3/web3
               #'district.server.smart-contracts/smart-contracts)
   (mount/start-with-args (merge
-                           (mount/args)
-                           {:web3 {:port 8545}
-                            :deployer {:write? true
-                                       :gas-price (web3-core/to-wei 4 :gwei)}})
+                          (mount/args)
+                          {:web3 {:port 8545}
+                           :deployer {:write? true
+                                      :gas-price (web3-core/to-wei 4 :gwei)}})
                          #'district.server.web3/web3
                          #'district.server.smart-contracts/smart-contracts))
 
@@ -138,7 +139,8 @@
                                               :print-gas-usage? true
                                               :auto-mining? false}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
-                            :ui {:public-key "2564e15aaf9593acfdc633bd08f1fc5c089aa43972dd7e8a36d67825cd0154602da47d02f30e1f74e7e72c81ba5f0b3dd20d4d4f0cc6652a2e719a0e9d4c7f10943"}}}})
+                            :ui {:public-key "2564e15aaf9593acfdc633bd08f1fc5c089aa43972dd7e8a36d67825cd0154602da47d02f30e1f74e7e72c81ba5f0b3dd20d4d4f0cc6652a2e719a0e9d4c7f10943"}
+                            :twilio-api-key "PUT_THE_REAL_KEY_HERE"}}})
       (mount/except [#'memefactory.server.emailer/emailer])
       (mount/start)
       pprint/pprint))
@@ -234,9 +236,9 @@
 
 (defn transfer-dank [account dank-amount]
   (let [accounts (web3-eth/accounts @web3)]
-   (dank-token/transfer {:to account :amount (web3-core/to-wei dank-amount :ether)}
-                        ;; this is the deployer of dank-token so it owns the initial amount
-                        {:from (last accounts)})))
+    (dank-token/transfer {:to account :amount (web3-core/to-wei dank-amount :ether)}
+                         ;; this is the deployer of dank-token so it owns the initial amount
+                         {:from (last accounts)})))
 
 (comment
   ;; Contract call log instrument snippet p
