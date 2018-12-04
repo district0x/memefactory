@@ -27,4 +27,4 @@ memefactory-tests/
 /src/name_bazaar/server/repl.cljs
 /smart-contracts-tests/
 resources/public/js/
-*.json
+package-lock.json
