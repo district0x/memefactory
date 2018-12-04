@@ -1,0 +1,24 @@
+{
+  "name": "memefactory-contracts",
+  "version": "1.0.0",
+  "description": "MemeFactory smart contracts truffle deploymment",
+  "author": "fbielejec",
+  "license": "Eclipse Public License",
+  "homepage": "https://github.com/district0x/memefactory",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/district0x/memefactory.git"
+  },
+  "bugs": {
+    "url": "https://github.com/district0x/memefactory/issues"
+  },
+  "scripts": {
+    "ganache": "ganache-cli -p 8549 -l 8000000 -d -m district0x",
+    "compile": "lein solc",
+    "migrate": "truffle migrate --network ganache --reset"
+  },
+  "dependencies": {
+    "ganache-cli": "^6.1.8",
+    "truffle": "^4.1.14"
+  }
+}

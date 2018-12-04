@@ -1,13 +1,7 @@
 language: clojure
 script: lein doo node "server-tests" once
 notifications:
-  email:
-    on_success: change
-    on_failure: change
-    recipients:
-    - filip@district0x.io
-    - juan@district0x.io
-    - mike@district0x.io
+  email: false
   slack:
     on_success: always
     on_failure: always
@@ -26,7 +20,7 @@ before_script:
 - npm run ganache > /dev/null &
 - wget https://dist.ipfs.io/ipfs-update/v1.5.2/ipfs-update_v1.5.2_linux-amd64.tar.gz
   -O ipfs-update.tar.gz
-- npm run migrate  
+- npm run migrate
 - tar -xzf ipfs-update.tar.gz
 - ipfs-update/ipfs-update install latest
 - ipfs init
