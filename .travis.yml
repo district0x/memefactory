@@ -19,12 +19,16 @@ before_install:
 - sudo ln -s /bin/solc-static-linux /usr/bin/solc
 - solc --version
 before_script:
-- lein solc
-- npm install -g ganache-cli
-- ganache-cli -p 8549 > /dev/null &
+#- lein solc
+# - npm install -g truffle
+# - npm install -g ganache-cli
+- npm i
+- npm run ganache > /dev/null &
 - wget https://dist.ipfs.io/ipfs-update/v1.5.2/ipfs-update_v1.5.2_linux-amd64.tar.gz
   -O ipfs-update.tar.gz
+- npm run migrate  
 - tar -xzf ipfs-update.tar.gz
 - ipfs-update/ipfs-update install latest
 - ipfs init
 - ipfs daemon > /dev/null &
+- lein solc
