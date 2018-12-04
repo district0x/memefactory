@@ -85,6 +85,7 @@
   :npm {:dependencies [#_[semantic-ui "2.2.14"]
                        ;; needed until v0.6.13 is officially released
                        ["@sentry/node" "4.2.1"]
+                       ["which" "1.3.0"]
                        [chalk "2.3.0"]
                        [cors "2.8.4"]
                        [deasync "0.1.11"]
