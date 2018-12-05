@@ -19,7 +19,6 @@
             [memefactory.shared.contract.registry-entry :refer [vote-options]]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db :as db]
-            [memefactory.server.deployer]
             [memefactory.server.generator]
             [district.shared.error-handling :refer [try-catch]]
             [mount.core :as mount :refer [defstate]]

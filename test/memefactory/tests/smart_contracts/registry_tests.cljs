@@ -2,15 +2,12 @@
   (:require [bignumber.core :as bn]
             [cljs-web3.eth :as web3-eth]
             [cljs.test :refer-macros [deftest is testing use-fixtures]]
-            [district.server.smart-contracts
-             :refer
-             [contract-address contract-call contract]]
+            [district.server.smart-contracts :refer [contract-address contract-call contract]]
             [district.server.web3 :refer [web3]]
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.mutable-forwarder :as mutable-forwarder]
             [memefactory.server.contract.registry :as registry]
             [memefactory.server.contract.registry-entry :as registry-entry]
-            [memefactory.server.deployer :as deployer]
             [memefactory.tests.smart-contracts.meme-tests :as meme-tests]
             [memefactory.tests.smart-contracts.utils :as test-utils]
             [print.foo :refer [look] :include-macros true]))
@@ -90,7 +87,7 @@
 (deftest mutable-forwarder-test
   (testing "setTarget can replace target with new address and contract should still work"
     ;; TODO: should we deploy a diffrent contract, like create another RegistryTest.sol?
-   (let [{:keys [:address]} (deployer/deploy-meme-registry! {})]
+   (let [{:keys [:address]} (contract-address :meme-registry) #_(deployer/deploy-meme-registry! {})]
      (mutable-forwarder/set-target :meme-registry-fwd address {:from (last (web3-eth/accounts @web3))})
      (let [[creator-addr] (web3-eth/accounts @web3)
            [max-total-supply deposit] (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :deposit])

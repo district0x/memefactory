@@ -28,12 +28,10 @@
 
 ;; Lets prepare everything for the tests!!!
 
-((test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
-                                    :use-n-account-as-deposit-collector 3
-                                    :meme-auction-cut 10}))
+((test-utils/create-before-fixture))
 
 (doo-tests
- #_'memefactory.tests.smart-contracts.deployment-tests
+ 'memefactory.tests.smart-contracts.deployment-tests
  #_'memefactory.tests.smart-contracts.meme-auction-tests
  #_'memefactory.tests.smart-contracts.param-change-tests
  #_'memefactory.tests.smart-contracts.registry-entry-tests
