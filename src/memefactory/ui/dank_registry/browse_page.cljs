@@ -74,7 +74,7 @@
                                    {:query {:queries [(build-tiles-query @form-data nil)]}}]))
             meme-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
                                     {:id @form-data
-                                     :disable-fetch? true}])
+                                     :disable-fetch? false}])
             search-total-count (-> @meme-search first :search-memes :total-count)]
        [app-layout
         {:meta {:title "MemeFactory"

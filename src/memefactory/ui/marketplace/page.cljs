@@ -84,7 +84,7 @@
                                    {:query {:queries [(build-tiles-query @form-data nil)]}}]))
             auctions-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
                                     {:id @form-data
-                                     :disable-fetch? true}])
+                                     :disable-fetch? false}])
             search-total-count (-> @auctions-search first :search-meme-auctions :total-count)]
         [app-layout
          {:meta {:title "MemeFactory"
