@@ -1,5 +1,6 @@
 const {last, copy, linkBytecode} = require ("./utils.js");
 const fs = require('fs');
+const edn = require("jsedn");
 const {contracts_build_directory} = require ('../truffle.js');
 
 copy ("DSGuard", "DSGuardCp", contracts_build_directory);
@@ -502,51 +503,75 @@ module.exports = function(deployer, network, accounts) {
      memeAuctionFactory,
      memeAuction,
      district0xEmails]) => {
-       var smartContracts = JSON.stringify ({
-         "district-config" : {"name" : "DistrictConfig",
-                              "address" : districtConfig.address},
-         "ds-guard" : {"name" : "DSGuard",
-                       "address": dSGuard.address},
-         "param-change-registry" : {"name" : "ParamChangeRegistry",
-                                    "address": paramChangeRegistry.address},
-         "param-change-registry-db" : {"name" : "EternalDb",
-                                       "address": paramChangeRegistryDb.address},
-         "meme-registry-db" : {"name" : "EternalDb",
-                               "address" : memeRegistryDb.address},
-         "param-change" : {"name" : "ParamChange",
-                           "address" : paramChange.address},
-         "minime-token-factory" : {"name" : "MiniMeTokenFactory",
-                                   "address" : miniMeTokenFactory.address},
-         "meme-auction-factory" : {"name" : "MemeAuctionFactory",
-                                   "address" : memeAuctionFactory.address},
-         "meme-auction" : {"name" : "MemeAuction",
-                           "address" : memeAuction.address},
-         "param-change-factory" : {"name" : "ParamChangeFactory",
-                                   "address": paramChangeFactory.address},
-         "param-change-registry-fwd" : {"name" : "MutableForwarder",
-                                        "address" : paramChangeRegistryForwarder.address},
-         "meme-factory" : {"name": "MemeFactory",
-                           "address" : MemeFactory.address},
-         "meme-token" : {"name" : "MemeToken",
-                         "address" : memeToken.address},
-         "DANK" : {"name" : "DankToken",
-                   "address" : dankToken.address},
-         "meme-registry" : {"name" : "Registry",
-                            "address" : memeRegistry.address},
-         "meme" : {"name" : "Meme",
-                   "address": meme.address},
-         "meme-registry-fwd" : {"name" : "MutableForwarder",
-                                "address" : memeRegistryForwarder.address},
-         "meme-auction-factory-fwd" : {"name" : "MutableForwarder",
-                                       "address" : memeAuctionFactoryForwarder.address},
-         "district0x-emails" : {"name" : "District0xEmails",
-                                "address" : district0xEmails.address}
 
-       });
+       var smartContracts = edn.encode(
+         new edn.Map([
+
+           edn.kw(":district-config"), new edn.Map([edn.kw(":name"), "DistrictConfig",
+                                                    edn.kw(":address"), districtConfig.address]),
+
+           edn.kw(":ds-guard"), new edn.Map([edn.kw(":name"), "DSGuard",
+                                             edn.kw(":address"), dSGuard.address]),
+
+           edn.kw(":param-change-registry"), new edn.Map([edn.kw(":name"), "ParamChangeRegistry",
+                                                          edn.kw(":address"), paramChangeRegistry.address]),
+
+           edn.kw(":param-change-registry-db"), new edn.Map([edn.kw(":name"), "EternalDb",
+                                                             edn.kw(":address"), paramChangeRegistryDb.address]),
+
+           edn.kw(":meme-registry-db"), new edn.Map([edn.kw(":name"), "EternalDb",
+                                                     edn.kw(":address"), memeRegistryDb.address]),
+
+           edn.kw(":param-change"), new edn.Map([edn.kw(":name"), "ParamChange",
+                                                 edn.kw(":address"), paramChange.address]),
+
+           edn.kw(":minime-token-factory"), new edn.Map([edn.kw(":name"), "MiniMeTokenFactory",
+                                                         edn.kw(":address"), miniMeTokenFactory.address]),
+
+           edn.kw(":meme-auction-factory"), new edn.Map([edn.kw(":name"), "MemeAuctionFactory",
+                                                         edn.kw(":address"), memeAuctionFactory.address]),
+
+           edn.kw(":meme-auction"), new edn.Map([edn.kw(":name"), "MemeAuction",
+                                                 edn.kw(":address"), memeAuction.address]),
+
+           edn.kw(":param-change-factory"), new edn.Map([edn.kw(":name"), "ParamChangeFactory",
+                                                         edn.kw(":address"), paramChangeFactory.address]),
+
+           edn.kw(":param-change-registry-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
+                                                              edn.kw(":address"), paramChangeRegistryForwarder.address]),
+
+           edn.kw(":meme-factory"), new edn.Map([edn.kw(":name"), "MemeFactory",
+                                                 edn.kw(":address"), memeFactory.address]),
+
+           edn.kw(":meme-token"), new edn.Map([edn.kw(":name"), "MemeToken",
+                                               edn.kw(":address"), memeToken.address]),           
+
+           edn.kw(":DANK"), new edn.Map([edn.kw(":name"), "DankToken",
+                                         edn.kw(":address"), dankToken.address]),           
+
+           edn.kw(":meme-registry"), new edn.Map([edn.kw(":name"), "Registry",
+                                                  edn.kw(":address"), memeRegistry.address]),           
+
+           edn.kw(":meme"), new edn.Map([edn.kw(":name"), "Meme",
+                                         edn.kw(":address"), meme.address]),           
+
+           edn.kw(":meme-registry-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
+                                                      edn.kw(":address"), memeRegistryForwarder.address]),           
+
+           edn.kw(":meme-auction-factory-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
+                                                             edn.kw(":address"), memeAuctionFactoryForwarder.address]),           
+
+           edn.kw(":district0x-emails"), new edn.Map([edn.kw(":name"), "District0xEmails",
+                                                      edn.kw(":address"), district0xEmails.address]),           
+           
+         ]))
+
+       // TODO: write to cljs
        console.log (smartContracts);
-       fs.writeFile('smartContracts.json', smartContracts);
-     });
 
+       // fs.writeFile('smartContracts.json', smartContracts);
+     });
+  
   deployer.then (function () {
     console.log ("Done");
   });
