@@ -1,7 +1,7 @@
-const {last, copy, linkBytecode} = require ("./utils.js");
+const {last, copy, linkBytecode, smartContractsTemplate} = require ("./utils.js");
 const fs = require('fs');
 const edn = require("jsedn");
-const {contracts_build_directory} = require ('../truffle.js');
+const {contracts_build_directory, smart_contracts_path} = require ('../truffle.js');
 
 copy ("DSGuard", "DSGuardCp", contracts_build_directory);
 const DSGuard = artifacts.require("DSGuardCp");
@@ -564,12 +564,10 @@ module.exports = function(deployer, network, accounts) {
            edn.kw(":district0x-emails"), new edn.Map([edn.kw(":name"), "District0xEmails",
                                                       edn.kw(":address"), district0xEmails.address]),           
            
-         ]))
+         ]));
 
-       // TODO: write to cljs
        console.log (smartContracts);
-
-       // fs.writeFile('smartContracts.json', smartContracts);
+       fs.writeFile(smart_contracts_path, smartContractsTemplate (smartContracts));
      });
   
   deployer.then (function () {

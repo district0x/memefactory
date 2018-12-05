@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = {
+  smart_contracts_path: __dirname + '/src/memefactory/shared/smart_contracts.cljs',
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
   networks: {
     ganache: {

@@ -38,6 +38,14 @@ const utils = {
     var replacement = replacement.replace('0x', '');
     var bytecode = contract.bytecode.split(placeholder).join(replacement);
     contract.bytecode = bytecode;
+  },
+
+  smartContractsTemplate: (map) => {
+    return `(ns memefactory.shared.smart-contracts)
+
+  (def smart-contracts
+    ${map})
+`;
   }
 
 };
