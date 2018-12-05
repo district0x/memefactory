@@ -26,6 +26,7 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
+            [memefactory.server.deployer :as deployer]
             [memefactory.server.generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.emailer]
@@ -53,13 +54,31 @@
                                                  :gql-name->kw graphql-utils/gql-name->kw})
                     :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
 
-(defn deploy-to-mainnet []
-  )
-
 (defn redeploy
   "Redeploy smart contracts"
   []
-  )
+  (log/warn "Redeploying contracts, please be patient..." ::redeploy)
+  (defer
+    (deployer/deploy
+     (or (:deployer @config)
+         {:transfer-dank-token-to-accounts 2
+          :initial-registry-params
+          {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                           :commit-period-duration (t/in-seconds (t/minutes 20))
+                           :reveal-period-duration (t/in-seconds (t/minutes 10))
+                           :deposit (web3-core/to-wei 1 :ether)
+                           :challenge-dispensation 50
+                           :vote-quorum 50
+                           :max-total-supply 10
+                           :max-auction-duration (t/in-seconds (t/weeks 20))}
+           :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
+                                   :commit-period-duration (t/in-seconds (t/minutes 20))
+                                   :reveal-period-duration (t/in-seconds (t/minutes 10))
+                                   :deposit (web3-core/to-wei 10 :ether)
+                                   :challenge-dispensation 50
+                                   :vote-quorum 50}}
+          :write? true}))
+    (log/info "Finished redploying contracts" ::redeploy)))
 
 (defn generate-data
   "Generate dev data"
