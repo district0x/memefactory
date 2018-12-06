@@ -43,6 +43,10 @@
 
 (nodejs/enable-util-print!)
 
+;; (def process js/process)
+(def child-process (nodejs/require "child_process"))
+(def spawn (aget child-process "spawn"))
+
 (def graphql-module (nodejs/require "graphql"))
 (def parse-graphql (aget graphql-module "parse"))
 (def visit (aget graphql-module "visit"))
@@ -54,10 +58,8 @@
                                                  :gql-name->kw graphql-utils/gql-name->kw})
                     :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
 
-(defn redeploy
-  "Redeploy smart contracts"
-  []
-  (log/warn "Redeploying contracts, please be patient..." ::redeploy)
+(defn redeploy-with-deployer []
+  (log/warn "Deprecated function. Please use `redeploy` instead" ::redeploy)
   (defer
     (deployer/deploy
      (or (:deployer @config)
@@ -79,6 +81,23 @@
                                    :vote-quorum 50}}
           :write? true}))
     (log/info "Finished redploying contracts" ::redeploy)))
+
+(defn redeploy
+  "Redeploy smart contracts"
+  []
+  (log/warn "Redeploying contracts, please be patient..." ::redeploy)
+  (let [child (spawn "truffle migrate --network ganache --reset" (clj->js {:stdio "inherit" :shell true}))]
+    (-> child
+        (.on "disconnect" (fn []
+                            (log/warn "Parent process has disconnected" ::redeploy)))
+        (.on "exit" (fn [code signal]
+                      (log/info "Truffle migrate process exited" {:code code
+                                                                  :signal signal} ::redeploy)))
+        (.on "error" (fn [err]
+                       (log/error "Truffle migrate process error" {:error err} ::redeploy)))
+
+        (.on "close" (fn []
+                       (log/info "Finished redploying contracts" ::redeploy))))))
 
 (defn generate-data
   "Generate dev data"

@@ -568,7 +568,8 @@ module.exports = function(deployer, network, accounts) {
 
        console.log (smartContracts);
        fs.writeFile(smart_contracts_path, smartContractsTemplate (smartContracts));
-     });
+     })
+    .catch(console.error);
   
   deployer.then (function () {
     console.log ("Done");
