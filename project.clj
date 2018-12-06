@@ -105,8 +105,10 @@
                        ;; truffle script deps
                        [jsedn "0.4.1"]]}
 
-  :solc {:src-path "contracts/"
-         :build-path "resources/public/contracts/build/"
+  :solc {:src-path "contracts"
+         :build-path "resources/public/contracts/build"
+         :solc-err-only true
+         :verbose false
          :wc true
          :contracts :all
          :optimize-runs {"ParamChange.sol" 1}}
