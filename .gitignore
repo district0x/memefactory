@@ -1,11 +1,12 @@
 /target
-build/
+/build
 /classes
 /checkouts
 pom.xml
 pom.xml.asc
 *.jar
 *.class
+*.json
 /.lein-*
 /.nrepl-port
 .hgignosxAQZre
@@ -17,7 +18,6 @@ pom.xml.asc
 /.node-xmlhttprequest-sync-*
 /resources/public/css/
 /resources/semantic/dist/
-resources/public/contracts/build/
 /npm-debug.log
 /config.edn
 /dev-server/
@@ -28,4 +28,4 @@ memefactory-tests/
 /src/name_bazaar/server/repl.cljs
 /smart-contracts-tests/
 resources/public/js/
-package-lock.json
+resources/public/contracts/build/
