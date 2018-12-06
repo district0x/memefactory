@@ -18,6 +18,9 @@ const DistrictConfig = artifacts.require("DistrictConfigCp");
 copy ("District0xEmails", "District0xEmailsCp", contracts_build_directory);
 const District0xEmails = artifacts.require ("District0xEmailsCp");
 
+copy ("DankFaucet", "DankFaucet", contracts_build_directory);
+const DankFaucet = artifacts.require ("DankFaucet");
+
 copy ("ParamChangeRegistry", "ParamChangeRegistryCp", contracts_build_directory);
 const ParamChangeRegistry = artifacts.require("ParamChangeRegistryCp");
 
@@ -425,6 +428,13 @@ module.exports = function(deployer, network, accounts) {
          return target.construct (memeToken.address, Object.assign(opts, {gas: 200000}));
        })
     .then (() => {
+      return DankToken.deployed();
+    })
+    .then ((instance) => {
+      linkBytecode(DankFaucet, dankTokenPlaceholder, instance.address);
+      return deployer.deploy(DankFaucet, 420, Object.assign(opts, {gas: 4000000}));
+    })
+    .then (() => {
       return DankToken.deployed ();
     })
     .then ((instance) => {
@@ -480,8 +490,9 @@ module.exports = function(deployer, network, accounts) {
       MemeAuctionFactoryForwarder.deployed (),
       MemeAuctionFactory.deployed (),
       MemeAuction.deployed (),
-      District0xEmails.deployed ()];
-  }).then ( (promises) => {
+      District0xEmails.deployed (),
+      DankFaucet.deployed ()];
+  }).then ((promises) => {
     return Promise.all(promises);
   }).then ((
     [dSGuard,
@@ -502,7 +513,8 @@ module.exports = function(deployer, network, accounts) {
      memeAuctionFactoryForwarder,
      memeAuctionFactory,
      memeAuction,
-     district0xEmails]) => {
+     district0xEmails,
+     dankFaucet]) => {
 
        var smartContracts = edn.encode(
          new edn.Map([
@@ -544,33 +556,36 @@ module.exports = function(deployer, network, accounts) {
                                                  edn.kw(":address"), memeFactory.address]),
 
            edn.kw(":meme-token"), new edn.Map([edn.kw(":name"), "MemeToken",
-                                               edn.kw(":address"), memeToken.address]),           
+                                               edn.kw(":address"), memeToken.address]),
 
            edn.kw(":DANK"), new edn.Map([edn.kw(":name"), "DankToken",
-                                         edn.kw(":address"), dankToken.address]),           
+                                         edn.kw(":address"), dankToken.address]),
 
            edn.kw(":meme-registry"), new edn.Map([edn.kw(":name"), "Registry",
-                                                  edn.kw(":address"), memeRegistry.address]),           
+                                                  edn.kw(":address"), memeRegistry.address]),
 
            edn.kw(":meme"), new edn.Map([edn.kw(":name"), "Meme",
-                                         edn.kw(":address"), meme.address]),           
+                                         edn.kw(":address"), meme.address]),
 
            edn.kw(":meme-registry-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
-                                                      edn.kw(":address"), memeRegistryForwarder.address]),           
+                                                      edn.kw(":address"), memeRegistryForwarder.address]),
 
            edn.kw(":meme-auction-factory-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
-                                                             edn.kw(":address"), memeAuctionFactoryForwarder.address]),           
+                                                             edn.kw(":address"), memeAuctionFactoryForwarder.address]),
 
            edn.kw(":district0x-emails"), new edn.Map([edn.kw(":name"), "District0xEmails",
-                                                      edn.kw(":address"), district0xEmails.address]),           
-           
+                                                      edn.kw(":address"), district0xEmails.address]),
+
+           edn.kw(":dank-faucet"), new edn.Map([edn.kw(":name"), "DankFaucet",
+                                                edn.kw(":address"), dankFaucet.address]),
+
          ]));
 
        console.log (smartContracts);
        fs.writeFile(smart_contracts_path, smartContractsTemplate (smartContracts));
      })
     .catch(console.error);
-  
+
   deployer.then (function () {
     console.log ("Done");
   });
