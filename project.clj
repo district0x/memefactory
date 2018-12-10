@@ -107,8 +107,13 @@
 
   :solc {:src-path "contracts/"
          :build-path "resources/public/contracts/build/"
-         :truffle-artifacts? false
          :byte-count true
+         :solc-err-only true
+         :verbose false
+         :abi? false
+         :bin? false
+         :truffle-artifacts? true
+         :wc true
          :contracts :all
          :optimize-runs {"ParamChange.sol" 1}}
 

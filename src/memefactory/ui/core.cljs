@@ -84,7 +84,8 @@
   (dev-setup)
   (-> (mount/with-args
         (merge (get-config environment)
-               {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)}
+               {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)
+                                  :format :truffle-json}
                 :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
                 :web3-account-balances {:for-contracts [:ETH :DANK]}
                 :web3-tx-log {:open-on-tx-hash? true
