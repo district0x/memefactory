@@ -108,10 +108,15 @@ ipfs daemon
 
 Start server:
 ```bash
-ganache-cli -p 8549
+ganache-cli -p 8549 -l 8000000 -d -m district0x
 lein repl
 (start-server!)
 node dev-server/memefactory.js
+```
+
+Deploy smart contracts:
+```bash
+truffle migrate --network ganache --reset
 ```
 
 Start UI:

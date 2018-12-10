@@ -18,8 +18,8 @@ const DistrictConfig = artifacts.require("DistrictConfigCp");
 copy ("District0xEmails", "District0xEmailsCp", contracts_build_directory);
 const District0xEmails = artifacts.require ("District0xEmailsCp");
 
-copy ("DankFaucet", "DankFaucet", contracts_build_directory);
-const DankFaucet = artifacts.require ("DankFaucet");
+copy ("DankFaucet", "DankFaucetCp", contracts_build_directory);
+const DankFaucet = artifacts.require ("DankFaucetCp");
 
 copy ("ParamChangeRegistry", "ParamChangeRegistryCp", contracts_build_directory);
 const ParamChangeRegistry = artifacts.require("ParamChangeRegistryCp");
@@ -469,7 +469,6 @@ module.exports = function(deployer, network, accounts) {
        })
     .then (tx => console.log ("@@@ DankToken/approveAndCall tx:", tx.receipt.transactionHash, "successful"));
 
-  // TODO: json -> edn
   deployer.then (function () {
     return [
       DSGuard.deployed (),
