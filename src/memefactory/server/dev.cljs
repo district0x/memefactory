@@ -26,7 +26,7 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
-            [memefactory.server.deployer]
+            [memefactory.server.deployer :as deployer]
             [memefactory.server.generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.emailer]
@@ -43,6 +43,10 @@
 
 (nodejs/enable-util-print!)
 
+;; (def process js/process)
+(def child-process (nodejs/require "child_process"))
+(def spawn (aget child-process "spawn"))
+
 (def graphql-module (nodejs/require "graphql"))
 (def parse-graphql (aget graphql-module "parse"))
 (def visit (aget graphql-module "visit"))
@@ -54,23 +58,10 @@
                                                  :gql-name->kw graphql-utils/gql-name->kw})
                     :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
 
-(defn deploy-to-mainnet []
-  (mount/stop #'district.server.web3/web3
-              #'district.server.smart-contracts/smart-contracts)
-  (mount/start-with-args (merge
-                          (mount/args)
-                          {:web3 {:port 8545}
-                           :deployer {:write? true
-                                      :gas-price (web3-core/to-wei 4 :gwei)}})
-                         #'district.server.web3/web3
-                         #'district.server.smart-contracts/smart-contracts))
-
-(defn redeploy
-  "Redeploy smart contracts"
-  []
-  (log/warn "Redeploying contracts, please be patient..." ::redeploy)
+(defn redeploy-with-deployer []
+  (log/warn "Deprecated function. Please use `redeploy` instead" ::redeploy)
   (defer
-    (memefactory.server.deployer/deploy
+    (deployer/deploy
      (or (:deployer @config)
          {:transfer-dank-token-to-accounts 2
           :initial-registry-params
@@ -90,6 +81,23 @@
                                    :vote-quorum 50}}
           :write? true}))
     (log/info "Finished redploying contracts" ::redeploy)))
+
+(defn redeploy
+  "Redeploy smart contracts"
+  []
+  (log/warn "Redeploying contracts, please be patient..." ::redeploy)
+  (let [child (spawn "truffle migrate --network ganache --reset" (clj->js {:stdio "inherit" :shell true}))]
+    (-> child
+        (.on "disconnect" (fn []
+                            (log/warn "Parent process has disconnected" ::redeploy)))
+        (.on "exit" (fn [code signal]
+                      (log/info "Truffle migrate process exited" {:code code
+                                                                  :signal signal} ::redeploy)))
+        (.on "error" (fn [err]
+                       (log/error "Truffle migrate process error" {:error err} ::redeploy)))
+
+        (.on "close" (fn []
+                       (log/info "Finished redploying contracts" ::redeploy))))))
 
 (defn generate-data
   "Generate dev data"

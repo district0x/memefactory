@@ -76,7 +76,7 @@
             [lein-cljsbuild "1.1.7"]
             [lein-figwheel "0.5.16"]
             [lein-shell "0.5.0"]
-            [lein-solc "1.0.2"]
+            [lein-solc "1.0.11"]
             [lein-doo "0.1.8"]
             [lein-npm "0.6.2"]
             [lein-pdo "0.1.1"]
@@ -101,13 +101,14 @@
                        ;; this isn't required directly by memefactory but  0.6.1 is broken and
                        ;; district0x/district-server-web3 needs [ganache-core "2.0.2"]   who also needs "ethereumjs-wallet": "~0.6.0"
                        ;; https://github.com/ethereumjs/ethereumjs-wallet/issues/64
-                       [ethereumjs-wallet "0.6.0"]]}
+                       [ethereumjs-wallet "0.6.0"]
+                       ;; truffle script deps
+                       [jsedn "0.4.1"]]}
 
-  :solc {:src-path "resources/public/contracts/src"
-         :build-path "resources/public/contracts/build"
-         :solc-err-only true
-         :verbose false
-         :wc true
+  :solc {:src-path "contracts/"
+         :build-path "resources/public/contracts/build/"
+         :truffle-artifacts? false
+         :byte-count true
          :contracts :all
          :optimize-runs {"ParamChange.sol" 1}}
 
@@ -117,7 +118,7 @@
              :css-dirs ["resources/public/css"]
              :repl-eval-timeout 120000}
 
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "server" "dev-server" "resources/public/js/compiled" "memefactory-tests"]
+  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "server" "dev-server" "resources/public/js/compiled" "memefactory-tests" "build/"]
 
   :aliases {"clean-prod-server" ["shell" "rm" "-rf" "server"]
             "watch-semantic" ["shell" "./semantic.sh" "watch"]

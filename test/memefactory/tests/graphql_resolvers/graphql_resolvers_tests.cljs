@@ -14,7 +14,6 @@
             [district.server.web3 :refer [web3]]
             [honeysql.core :as sql]
             [memefactory.server.db :as meme-db]
-            [memefactory.server.deployer]
             [memefactory.server.generator]
             [memefactory.server.graphql-resolvers :as resolvers :refer [resolvers-map]]
             [memefactory.server.syncer]

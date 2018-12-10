@@ -16,7 +16,6 @@
     [memefactory.server.contract.param-change-factory :as param-change-factory]
     [memefactory.server.contract.registry :as registry]
     [memefactory.server.contract.registry-entry :as registry-entry]
-    [memefactory.server.deployer]
     [memefactory.shared.smart-contracts :refer [smart-contracts]]
     [memefactory.tests.smart-contracts.utils :refer [now create-before-fixture after-fixture]]
     [print.foo :include-macros true]

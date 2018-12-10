@@ -24,7 +24,6 @@
             [memefactory.server.contract.param-change-registry :as param-change-registry]
             [memefactory.server.contract.registry :as registry]
             [memefactory.server.contract.registry-entry :as registry-entry]
-            [memefactory.server.deployer]
             [taoensso.timbre :as log]
             [mount.core :as mount :refer [defstate]]
             [print.foo :refer [look] :include-macros true]

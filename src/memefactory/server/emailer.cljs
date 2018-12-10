@@ -6,7 +6,6 @@
     [district.server.config :refer [config]]
     [goog.format.EmailAddress :as email-address]
     [mount.core :as mount :refer [defstate]]
-    [memefactory.server.deployer]
     [memefactory.server.generator]
     [taoensso.timbre :refer [info warn error]]
     [memefactory.server.contract.district0x-emails :refer [get-email]]

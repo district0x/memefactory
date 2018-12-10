@@ -10,7 +10,6 @@
    [district.server.middleware.logging :refer [logging-middlewares]]
    [district.server.web3-watcher]
    [memefactory.server.db]
-   [memefactory.server.deployer]
    [memefactory.server.emailer]
    [memefactory.server.generator]
    [memefactory.server.graphql-resolvers :refer [resolvers-map]]
