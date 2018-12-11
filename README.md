@@ -134,6 +134,7 @@ lein test-dev
 
 Start UI advanced build:
 ```bash
+lein cljsbuild once "ui"
 docker-compose up --build
 # go to http://localhost:3001/
 ```
