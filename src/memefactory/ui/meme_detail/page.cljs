@@ -256,10 +256,10 @@
                               :disabled  (or (not-nil? reclaimed-amount-on)
                                              @reclaim-tx-success?)
                               :pending? @reclaim-tx-pending?
-                              :pending-text "Reclaiming vote amount..."
+                              :pending-text "Collect reward..."
                               :on-click #(dispatch [::registry-entry/reclaim-vote-amount {:send-tx/id tx-id
                                                                                           :reg-entry/address (:reg-entry/address meme)}])}
-         "Reclaim vote amount"]
+         "Collect reward"]
 
         (contains? #{:vote-option/vote-for :vote-option/vote-against} option)
         [:div
@@ -431,10 +431,12 @@
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
   [:div.challenge-component
-   [challenge-header created-on]
-   [status-component status]
-   [challenger-component meme]
-   [votes-component meme]])
+   [:h1.title "Challenge"]
+   [:div.challenge-component-inner
+    [challenge-header created-on]
+    [status-component status]
+    [challenger-component meme]
+    [votes-component meme]]])
 
 (defmethod page :route.meme-detail/index []
   (let [active-account @(subscribe [::accounts-subs/active-account])
@@ -459,7 +461,9 @@
      [:div.meme-detail-page
       [:section.meme-detail
        [:div.meme-info
-        [:div.meme-number (or number [:div.spinner.spinner--number])]
+        [:div.meme-number (if number
+                            (str "#" number)
+                            [:div.spinner.spinner--number])]
         [:div.container
          [tiles/meme-image image-hash]]
         (if-not status
@@ -492,7 +496,6 @@
       [:section.history
        [history-component address]]
       [:section.challenge
-       [:h1.title "Challenge"]
        (if status
          [challenge-component meme]
          [:div.spinner.spinner--challenge])]

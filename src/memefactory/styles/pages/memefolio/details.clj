@@ -93,7 +93,8 @@
       :display :grid
       :grid-template-columns "34% 66%"
       :grid-template-rows "100%"
-      :position :relative}
+      :position :relative
+      :padding (em 1.4)}
      (for-media-max :tablet
                     [:&
                      {:grid-template-columns "100%"
@@ -133,24 +134,29 @@
          :font-weight :bold
          :color (color :menu-text)}]]
       [:.creator
+       {:margin-top (em 1)}
        [">*"
-        {:font-size (em 0.9)}]]
+        {:font-size (em 0.9)
+         :color (color :menu-text)}]]
       [:.description, :.text
        {:color (color :menu-text)}]
       [:.tags
-       [:button (tag)]]
+       [:button (tag)
+        {:color (color :menu-text)}]]
       [:.buttons
        {:display :flex}
        (for-media-max :large
                       [:&
                        {:flex-direction :column}])
        [:button.search
-        (button {:color :meme-buy-button})
+        (button {:color :meme-buy-button
+                 :height (em 3)})
         (for-media-max :tablet
                        [:&
                         {:min-width (em 15)}])
         {:min-width (em 18)
-         :margin (em 1)}
+         :margin-right (em 1)
+         :margin-top (em 1)}
         [:&.marketplace {:background-color (color :purple)
                          :color (color :white)}]
         [:&.memefolio {:background-color (color :pink)
@@ -296,49 +302,55 @@
      {:margin :auto
       :margin-top (em 3)}]
     [:.challenge-component
-     {:background (color :meme-panel-bg)
-      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-      :border-radius "1em 1em 1em 1em"
-      :position :relative
-      :display :grid
-      :grid-template-columns "30% 30% 40%"
-      :grid-template-rows "40% 60%"}
-     (for-media-max :tablet
-                    [:&
-                     {:grid-template-columns "100%"
-                      :grid-template-rows "100%"
-                      :margin-bottom (em 2)}])
-     [">*" {:padding (em 1)
-            :color (color :menu-text)
-            :margin-bottom (em 1)}]
-     [:.status
-      {:border-right "1px solid #AAA"}
+     {:background (color :meme-panel-bg)}
+     [:.challenge-component-inner
+      {
+       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+       :border-radius "1em 1em 1em 1em"
+       :position :relative
+       :display :grid
+       :grid-template-columns "30% 30% 40%"
+       :grid-template-rows "40% 60%"}
       (for-media-max :tablet
                      [:&
-                      {:border-right "0px"}])]
-     [:.challenger
-      {:border-right "1px solid #AAA"}
-      (for-media-max :tablet
-                     [:&
-                      {:border-right "0px"}])]
-     [:.votes
-      {:display :grid
-       :grid-template-columns "50% 50%"
-       :grid-template-rows "100%"}]
-     [:.header {:grid-column "1 / span 3"}
-      (for-media-max :tablet
-                     [:&
-                      {:grid-column "1"}])
-      [:h2.title
+                      {:grid-template-columns "100%"
+                       :grid-template-rows "100%"
+                       :margin-bottom (em 2)}])
+      [">*" {:padding (em 1)
+             :color (color :menu-text)
+             :margin-bottom (em 1)}]
+      [:.status
+       {:border-right "1px solid #AAA"}
        (for-media-max :tablet
                       [:&
-                       {:white-space :normal}])
-       {:white-space :nowrap
-        :margin-top (em 0.1)
-        :position :relative
-        :color (color :section-subcaption)
-        :font-size (px 15)
-        :text-align :center}]]]]
+                       {:border-right "0px"}])]
+      [:.challenger
+       {:border-right "1px solid #AAA"}
+       (for-media-max :tablet
+                      [:&
+                       {:border-right "0px"}])]
+      [:.votes
+       {:display :grid
+        :grid-template-columns "50% 50%"
+        :grid-template-rows "100%"}
+       [:button (button {:color :white
+                         :background-color :purple
+                         :width (em 14)
+                         :height (em 3)})]]
+      [:.header {:grid-column "1 / span 3"}
+       (for-media-max :tablet
+                      [:&
+                       {:grid-column "1"}])
+       [:h2.title
+        (for-media-max :tablet
+                       [:&
+                        {:white-space :normal}])
+        {:white-space :nowrap
+         :margin-top (em 0.1)
+         :position :relative
+         :color (color :section-subcaption)
+         :font-size (px 15)
+         :text-align :center}]]]]]
    [:.vote {:display :grid
             :margin-left (em 6)
             :margin-right (em 6)}

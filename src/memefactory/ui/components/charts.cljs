@@ -7,8 +7,8 @@
    {:reagent-render (fn [{:keys [:reg-entry/address :challenge/votes-for :challenge/votes-against :challenge/votes-total]}]
                       [:div {:id (str "donutchart-" address)}])
     :component-did-mount (fn []
-                           (let [width 170
-                                 height 170
+                           (let [width 150
+                                 height 150
                                  icon-width 42
                                  icon-height 32
                                  data [{:challenge/votes :for :value votes-for}
@@ -60,4 +60,3 @@
                                  (#(doall (for [i (range 1 9)]
                                             (-> (.append % "span")
                                                 (.attr "class" (str "path" i)))))))))}))
-
