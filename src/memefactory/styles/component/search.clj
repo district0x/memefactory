@@ -23,7 +23,7 @@
     {:position :relative
      :border-radius "1em 1em 1em 1em"
      :background-color (c/color :meme-panel-bg)
-     :background-size [(em 13) (em 13)]
+     :background-size [(em 16) (em 16)]
      :background-repeat :no-repeat
      :background-position "right -3em bottom -1.2em"
      :background-image (str "url('" background-panel-image "')")
@@ -78,7 +78,7 @@
      {:display :grid
       :margin-left (em 2)
       :padding-top (em 2)
-      :grid-template-columns "60% 20% 20%"
+      :grid-template-columns "60% 17% 23%"
       :grid-template-rows "2.5em 3em 2em"
       :grid-template-areas
       (str

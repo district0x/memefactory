@@ -35,30 +35,34 @@
      {:padding-left (px 0)
       :padding-right (px 0)}]]
    [:.tabs-titles
-    (tabs)]
+    (tabs)
+    [:& {:margin-top (em 3)}]]
    [:.selected-tab-body
-    [:.controls {:display :block
-                 :right (em 0)
-                 :height 0
-                 :top (em -3)
-                 :position :relative}
-     [:select {:background-color :white}]
-     [:.help-block {:display :none}]
-     (for-media-max :tablet
-                    [:&
-                     {:display :inline-block
-                      :height (em 1)
-                      :padding-top (em 1)
-                      :width "100% !important"
-                      :top (em -1)}])]]
+    [:.challenges.panel
+     [:.controls {:display :block
+                  :margin-top (em 0)
+                  :right (em 0)
+                  :height 0
+                  :top (em -3)
+                  :position :relative}
+      [:select {:background-color :white}]
+      [:.help-block {:display :none}]
+      (for-media-max :tablet
+                     [:&
+                      {:display :inline-block
+                       :height (em 1)
+                       :padding-top (em 1)
+                       :width "100% !important"
+                       :top (em -1)}])]]]
    [:.vote {:display :grid
-            :margin-left (em 6)
-            :margin-right (em 6)}
+            :margin-left (em 4)
+            :margin-right (em 4)}
     (for-media-max :large
                    [:&
                     {:margin-right (em 2)
                      :margin-left (em 2)}])
     [:.vote-input {:display :grid
+                   :height (px 30)
                    :grid-template-columns "80% 20%"
                    :border-bottom "1px solid"
                    :margin-bottom (em 1)}
@@ -86,7 +90,14 @@
        :padding-right (em 1)
        :padding-bottom (em 0.4)
        :padding-left (em 1)}
-      [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
+      [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]
+    [:p.max-vote-tokens {:text-align :center
+                         :margin-top (em 1)
+                         :margin-left (em 0.5)
+                         :margin-right (em 0.5)}]
+    [:p.token-return {:text-align :center
+                      :margin-left (em 0.5)
+         :margin-right (em 0.5)}]]
    [:.reveal
     {:text-align :center}
     [:img {:width (em 7)}]

@@ -16,6 +16,7 @@
 (defstyles core
   [:.dank-registry-challenge
    [:.challenge-header
+    {:margin-bottom (em 6)}
     (for-media-max :large
                    [:&
                     {:margin-right (em 2)
@@ -32,7 +33,7 @@
               :grid-template-columns "1fr 0.5fr 1fr"
               :align-items :center
               :text-align :center
-              :width (em 17)}
+              :width (em 13)}
      [:img {:object-fit :cover
             :max-width "100%"}]
      [:span (font :bungee)
@@ -49,5 +50,5 @@
       :margin-right :auto}
      (button {:color :white
               :background-color :purple
-              :width (em 15)
+              :width (em 13)
               :height (em 3)})]]])

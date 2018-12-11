@@ -30,13 +30,15 @@
     {:display :grid
      :grid-template-columns "50% 50%"
      ;; :grid-column-gap (em 2)
-     :padding-top (em 2)
+     :padding-top (em 4)
      }
     (for-media-max :tablet
                    [:&
                     {:grid-template-columns "100%"
                      :margin-right (em 2)
                      :margin-left (em 2)}])
+    [:.image-panel {:display :flex
+                    :justify-content :center}]
     [">div"
      {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :background-color (color :white)
@@ -49,10 +51,7 @@
                       {:margin-right 0}])
       [:img {:width (px compact-tile/card-width)
              :height (px compact-tile/card-height)}]
-      [:.input-group {:width (px 200)
-                      :right 0
-                      :left 0
-                      :margin-left :auto
+      [:.input-group #_{ :margin-left :auto
                       :margin-right :auto}
        [:.dropzone {:width (px compact-tile/card-width)
                     :height (px compact-tile/card-height)}]
@@ -72,7 +71,7 @@
        (button {:background-color :purple
                 :color :white
                 :width (em 12)
-                :height (em 3.1)})]
+                :height (em 3.3)})]
       ["input[type=file]"
        {:display :none}
        #_{:right 0
@@ -85,8 +84,8 @@
      [:&.form-panel
       {:margin-left (em 1)
        :padding-top (em 9)
-       :padding-left (em 7)
-       :padding-right (em 7)}
+       :padding-left (em 3)
+       :padding-right (em 3)}
       (for-media-max :tablet
                      [:&
                       {:margin-left 0
@@ -111,7 +110,7 @@
          :font-size (px 12)}
         (button {:background-color :purple
                  :color :white
-                 :height (em 3)
+                 :height (em 3.3)
                  :width (em 10)})]
        [:.dank {:flex 1
                 :margin-left (em 1)}]]]]]])

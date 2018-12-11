@@ -100,7 +100,9 @@
        :margin-left :auto
        :position "absolute"}
       (button {:background-color :meme-buy-button
-               :color :light-light-grey})
+               :color :light-light-grey
+               :width (em 9)
+               :height (em 3)})
       [:&:after {:content "' '";;"&#8594;" "' →'"
                  :height (em 1)
                  :width (em 1)
@@ -111,8 +113,10 @@
                  :background-repeat "no-repeat"
                  :background-image "url(/assets/icons/arrow-white-right.svg)"}]]
      [:.meme-data {:text-align :center
-                   :padding-left 0
-                   :font-size (pt 10)
+                   :padding-left (em 1.2)
+                   :padding-right (em 1.2)
+                   :font-size (pt 13)
+                   :line-height (em 1.8)
                    :list-style :none}
       [:&:before {:content "''"
                   :margin-top (em 2)

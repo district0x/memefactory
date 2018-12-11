@@ -24,14 +24,15 @@
      :text-align :center
      :font-weight :lighter
      :font-size (pt 14)
-     :width "65%"}
+     :width "65%"
+     :line-height (em 1.9)}
     [:&:before
      (font :bungee)
      {:content "'MF'"
       :color "black"
-      :font-size (em 1.3)
+      :font-size (em 1.1)
       :line-height (em 3)
-      :background-size [(em 3) (em 3)]
+      :background-size [(em 2.8) (em 2.8)]
       :background-repeat :no-repeat
       :background-position-y (em 2)
       :background-position-x :center
