@@ -48,6 +48,10 @@
 
 (goog-define environment "prod")
 
+(def debug? ^boolean js/goog.DEBUG)
+
+(def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
+
 (def development-config
   {:logging {:level :debug
              :console? true}
@@ -70,14 +74,10 @@
   (get {"dev" development-config
         "prod" production-config} env-name production-config))
 
-(def debug? ^boolean js/goog.DEBUG)
-
 (defn dev-setup []
   (when debug?
     (enable-console-print!)
     (enable-re-frisk!)))
-
-(def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
 
 (defn ^:export init []
   (s/check-asserts debug?)

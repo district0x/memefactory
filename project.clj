@@ -123,7 +123,7 @@
              :css-dirs ["resources/public/css"]
              :repl-eval-timeout 120000}
 
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" "server" "dev-server" "resources/public/js/compiled" "memefactory-tests" "build/"]
+  :clean-targets ^{:protect false} ["resources/public/js/compiled" "resources/public/contracts/build" "resources/public/css/main.css" "target" "server" "dev-server" "memefactory-tests"]
 
   :aliases {"clean-prod-server" ["shell" "rm" "-rf" "server"]
             "watch-semantic" ["shell" "./semantic.sh" "watch"]

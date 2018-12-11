@@ -132,6 +132,12 @@ ganache-cli -p 8549
 lein test-dev
 ```
 
+Start UI advanced build:
+```bash
+docker-compose up --build
+# go to http://localhost:3001/
+```
+
 ### Dank Faucet
 Naviagting to `/#/get-dank/index` allows you to verify your phone
 number and receive an initial allotment of DANK. Using the feature is

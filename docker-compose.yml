@@ -1,0 +1,10 @@
+version: "3"
+services:
+
+  memefactory-ui:
+    build: docker-builds/ui
+    container_name: memefactory-ui
+    ports:
+      - 3001:80
+    volumes:
+      - ./resources/public:/usr/share/nginx/html/build/memefactory
