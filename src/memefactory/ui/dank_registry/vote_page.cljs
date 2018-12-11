@@ -57,11 +57,14 @@
                (log/debug "meme voting" meme-voting ::collect-reward-action)
                [charts/donut-chart meme-voting]
                [:ul.vote-info
-                [:li
-                 (str "Voted dank: " (format/format-percentage votes-for votes-total) " - " votes-for)]
-                [:li
-                 (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " votes-against)]
-                [:li "Total voted: " (gstring/format "%d" votes-total)]
+                (when (pos? votes-for)
+                  [:li
+                  (str "Voted dank: " (format/format-percentage votes-for votes-total) " - " (/ votes-for 1e18))])
+                (when (pos? votes-against)
+                  [:li
+                   (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " (/ votes-against 1e18))])
+                (when (pos? votes-total)
+                  [:li "Total voted: " (gstring/format "%d" (/ votes-total 1e18))])
                 [:li "Your reward: " (format/format-token (+ (:challenge/reward-amount all-rewards)
                                                              (:vote/reward-amount all-rewards))
                                                           {:token "DANK"})]]
@@ -73,7 +76,7 @@
                                             (dispatch [::registry-entry/claim-vote-reward {:send-tx/id vote-reward-tx-id
                                                                                       :active-account @active-account
                                                                                       :reg-entry/address address}]))}
-                "Collect Vote Reward"]
+                "Vote Reward"]
                [pending-button {:pending? @claim-challenge-reward-tx-pending?
                                 :disabled (or (not (pos? (:challenge/reward-amount all-rewards)))
                                               @claim-challenge-reward-tx-pending? @claim-challenge-reward-tx-success?)
@@ -82,7 +85,7 @@
                                             (dispatch [::registry-entry/claim-challenge-reward {:send-tx/id ch-reward-tx-id
                                                                                            :active-account @active-account
                                                                                            :reg-entry/address address}]))}
-                "Collect Challenge Reward"]])))))))
+                "Challenge Reward"]])))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote] :as meme}]
   (let [tx-id (str address "vote")

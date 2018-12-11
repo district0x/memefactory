@@ -103,7 +103,7 @@
         :justify-content :center
         :align-items :center
         :padding-left (em 0.4)}
-       [:label {:font-size "8px"
+       [:label {:font-size "10px"
                 :flex 1
                 :margin-left (em 0.3)
                 :white-space :nowrap

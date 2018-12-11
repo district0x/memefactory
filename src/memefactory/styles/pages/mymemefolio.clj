@@ -122,6 +122,8 @@
      {:width "100%"}]
     [".stats>*"
      {:padding-right (em 1)
+      :align-items :center
+      :min-height (em 4)
       :padding-left (em 1)}
      [:& [:b {:white-space :nowrap}]]]
     [".rank>.stats>.rank"
@@ -131,7 +133,10 @@
       :background-color (color :rank-yellow)
       :display :flex
       :width (em 10)
-      :font-size (em 1)}
+      :font-size (em 1)
+      :min-height (em 4)
+      :height "100%"
+      :padding-left (em 3)}
      (for-media-max :tablet
                     [:&
                      {:width "100%"
@@ -238,6 +243,7 @@
      (button-tile-back)
      [:.sell-form {:background-color :white
                    :width "100%"
+                   :height "100%"
                    :padding (em 1)
                    :text-align :left}
       [:h1 (font :bungee)
@@ -246,16 +252,18 @@
         :text-align :center
         :margin-bottom (em 1)}]
       [:.form-panel {}
-       [:.input-group {}
+       [:.input-group {:margin-bottom (em 1.2)}
         [:.help-block {:height (em 1)}
          [:&:before {:width 0}]]]
-       [:textarea {:background (color :tags-grey)
-                   :border :none
-                   :border-radius (em 0.4)}]
+       [:textarea {:background (color :white)
+                   :border "1px solid lightgrey"
+                   :width "100%"
+                   :height (em 5)
+                   :border-radius (em 0.4)}
+        ]
        [:.buttons {:display :inline-flex
                    :justify-content :space-evenly
-                   :font-size (px 12)
-                   :margin-top (em 1)
+                   :font-size (px 15)
                    :width "100%"}
         [:button.cancel (button {:color :white
                                  :background-color (color :cancel-button)

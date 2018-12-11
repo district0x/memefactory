@@ -111,9 +111,11 @@
     {:display :grid
      :justify-items :center}
     [:.vote-info {:list-style :none
+                  :text-align :center
+                  :padding-left (px 0)
                   :color (color :menu-text)}]
     [:button
-     {:margin-top (em 2)}
+     {:margin-top (em 1)}
      (button {:background-color :purple
               :color :white
               :height (em 3)
