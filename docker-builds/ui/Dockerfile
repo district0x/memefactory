@@ -1,4 +1,4 @@
-FROM district0x/base:latest
+FROM ubuntu:latest
 MAINTAINER "Filip Bielejec" <filip@district0x.io>
 
 # install nginx
