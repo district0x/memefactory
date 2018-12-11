@@ -50,8 +50,9 @@
                          (t/seconds (:meme-auction/duration meme-auction)))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])]
     (fn [{:keys [:on-buy-click] :as opts} meme-auction]
-      (let [remaining (time/time-remaining (t/date-time @now)
-                                           end-time)
+      (let [remaining (-> (time/time-remaining (t/date-time @now)
+                                               end-time)
+                          (dissoc :seconds))
             price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
         [:div.meme-card.back
          [meme-image (get-in meme-auction [:meme-auction/meme-token

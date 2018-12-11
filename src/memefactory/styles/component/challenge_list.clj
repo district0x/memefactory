@@ -29,8 +29,7 @@
       :animation-duration "2s"
       :animation-iteration-count :infinite
       :animation-timing-function :linear}]
-   {:padding-left (em 6)
-    :padding-right (em 6)}
+
    (for-media-max :tablet
                   [:&
                    {:padding-right (em 2)

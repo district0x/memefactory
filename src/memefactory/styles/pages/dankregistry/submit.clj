@@ -17,9 +17,6 @@
 (defstyles core
   [:.dank-registry-submit-page
    [:.submit-header
-    {:padding-top (em 2)
-     :margin-right (em 6)
-     :margin-left (em 6)}
     (for-media-max :tablet
                    [:&
                     {:margin-right (em 2)
@@ -34,8 +31,7 @@
      :grid-template-columns "50% 50%"
      ;; :grid-column-gap (em 2)
      :padding-top (em 2)
-     :margin-right (em 6)
-     :margin-left (em 6)}
+     }
     (for-media-max :tablet
                    [:&
                     {:grid-template-columns "100%"
@@ -51,15 +47,15 @@
       (for-media-max :tablet
                      [:&
                       {:margin-right 0}])
-      [:img {:width (em compact-tile/card-width)
-             :height (em compact-tile/card-height)}]
+      [:img {:width (px compact-tile/card-width)
+             :height (px compact-tile/card-height)}]
       [:.input-group {:width (px 200)
                       :right 0
                       :left 0
                       :margin-left :auto
                       :margin-right :auto}
-       [:.dropzone {:width (em compact-tile/card-width)
-                    :height (em compact-tile/card-height)}]
+       [:.dropzone {:width (px compact-tile/card-width)
+                    :height (px compact-tile/card-height)}]
        [:.file-name {:display :none}]
        [:.help-block
         {:border-top :none

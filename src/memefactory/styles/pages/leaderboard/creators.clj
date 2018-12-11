@@ -32,9 +32,6 @@
      :animation-iteration-count :infinite
      :animation-timing-function :linear}]
    [:section.creators
-    {:padding-top (em 2)
-     :margin-right (em 6)
-     :margin-left (em 6)}
     (for-media-max :tablet
                    [:& {
                         :margin-right (em 1)

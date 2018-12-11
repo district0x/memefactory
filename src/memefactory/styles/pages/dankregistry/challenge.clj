@@ -16,9 +16,6 @@
 (defstyles core
   [:.dank-registry-challenge
    [:.challenge-header
-    {:padding-top (em 2)
-     :margin-right (em 6)
-     :margin-left (em 6)}
     (for-media-max :large
                    [:&
                     {:margin-right (em 2)

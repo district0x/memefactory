@@ -15,14 +15,12 @@
                             color
                             icon]}]
   [:&
-   {:padding-top (em 4)}
    [:div.search-form
     (for-media-max :tablet
                    [:&
                     {:margin-right (em 1)
                      :margin-left (em 1)}])
-    {:margin-right (em 6)
-     :position :relative
+    {:position :relative
      :border-radius "1em 1em 1em 1em"
      :background-color (c/color :meme-panel-bg)
      :background-size [(em 13) (em 13)]
@@ -31,7 +29,7 @@
      :background-image (str "url('" background-panel-image "')")
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :padding-bottom (em 1)
-     :margin-left (em 6)}
+     }
     [:.header :h2
      (font :bungee)
      (for-media-max :tablet
@@ -40,7 +38,7 @@
                       :font-size (px 19)}])
      {:white-space :nowrap
       :position :relative
-      ;; :color (color :section-caption)
+      :color (c/color color)
       :font-size (px 22)
       :margin-top (em 0.3)
       :padding-top (em 0.2)
@@ -48,7 +46,7 @@
       :text-align :center}]
     [:.header :h3
      {:white-space :nowrap
-      :margin-top (em 0.1)
+      :margin-top (em 1)
       :position :relative
       :color (c/color :section-subcaption)
       :font-size (px 13)

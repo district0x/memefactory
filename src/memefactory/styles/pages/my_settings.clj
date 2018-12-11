@@ -9,10 +9,7 @@
 
 (defstyles core
   [:.my-settings-page
-    {:padding-top (em 2)
-     :margin-right (em 6)
-     :margin-left (em 6)}
-    (for-media-max :tablet
+   (for-media-max :tablet
                    [:&
                     {:margin-right (em 2)
                      :margin-left (em 2)}])

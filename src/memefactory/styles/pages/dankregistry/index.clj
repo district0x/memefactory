@@ -14,6 +14,9 @@
 
 (defstyles core
   [:.dank-registry-index-page
+   {:max-width (px 985)
+    :margin-left :auto
+    :margin-right :auto}
    (search-panel {:background-panel-image "/assets/icons/mf-search2.svg"
                   :color :blue
                   :icon "/assets/icons/memesubmiticon.svg"})

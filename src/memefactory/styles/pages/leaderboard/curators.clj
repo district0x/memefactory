@@ -16,9 +16,6 @@
 (defstyles core
   [:.leaderboard-curators-page
    [:section.curators
-    {:padding-top (em 2)
-     :margin-right (em 6)
-     :margin-left (em 6)}
     (for-media-max :tablet
                    [:& {
                         :margin-right (em 1)

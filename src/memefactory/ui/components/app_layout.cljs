@@ -152,6 +152,7 @@
        [:div.app-content
         [app-bar {:search-atom search-atom}]
         [app-bar-mobile drawer-open?]
-        (into [:div.main-content]
-              children)]
+        [:div.main-content
+         (into [:div.main-content-inner]
+              children)]]
        [notification/notification]])))

@@ -13,7 +13,7 @@
 
 (def bar-height (px 50))
 (def card-aspect-ratio 1.5)
-(def card-width 16)
+(def card-width 290)
 (def card-height (int (* card-aspect-ratio card-width)))
 
 (defstyles core
@@ -23,8 +23,8 @@
     :margin-left :auto
     :left 0
     :right 0
-    :width (em card-width)
-    :height (em card-height)
+    :width (px card-width)
+    :height (px card-height)
     :perspective (px 10000)}
    [:.meme-card
     [:&.front :&.back
@@ -51,8 +51,8 @@
   [:.meme-card
    {:position :absolute
     :background-color (color "gray")
-    :width (em card-width)
-    :height (em card-height)
+    :width (px card-width)
+    :height (px card-height)
     :border-radius "1em"
     :border "1px solid"
     :border-color (color :light-pink)
@@ -66,8 +66,8 @@
       :right 0
       :bottom 0}]]
    [:.meme-image
-    {:width (em card-width)
-     :height (em card-height)}]
+    {:width (px card-width)
+     :height (px card-height)}]
    [:.overlay {:position :absolute
                ;; :background-color (color :meme-bg)
                :background (str "linear-gradient(to bottom, " (color :meme-bg) " 0%," (color :meme-bg) " 75%," (color :meme-bg-bottom) " 75%," (color :meme-bg-bottom) " 100%)")
@@ -140,8 +140,9 @@
               :white-space :nowrap}]]]]]
   [:.compact-tile
    {:background (color :meme-panel-bg)
-    :width (em card-width)
-    :margin (em 1)
+    :width (px card-width)
+    :margin-top (em 1)
+    :margin-bottom (em 1)
     ;; :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
     :display :block
     :position :relative

@@ -15,13 +15,16 @@
 (defstyles core
   [:.marketplace-page
    (search-panel {:background-panel-image "/assets/icons/mf-search.svg"
-                  :color :new-meme-icon-bg
+                  :color :dark-blue
                   :icon "/assets/icons/cart-green-blue.svg"})
    ;; TODO: don;t know where this is coming from, but need to override flex that breaks loading div
    #_[".tiles>*"
       {:flex :none}]
    [:.scroll-area
-    {:width "100%"}
+    {:width "100%"
+     :margin-left :auto
+     :margin-right :auto
+     }
     [:.tiles
      {:display :flex
       :margin-top (em 2)

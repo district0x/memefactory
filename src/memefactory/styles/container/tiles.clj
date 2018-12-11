@@ -11,9 +11,10 @@
   [:.tiles
    {:display :flex
     :flex-wrap :wrap
-    :margin-right (em 6)
-    :margin-left (em 6)
-    :justify-content :space-around}
+    :justify-content :space-around
+    :padding-left (em 2.5)
+    :padding-right (em 2.5)
+    }
    (for-media-max :tablet
                   [:& {
                        :margin-right (em 1)

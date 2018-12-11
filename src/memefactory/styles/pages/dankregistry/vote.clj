@@ -18,9 +18,6 @@
 (defstyles core
   [:.dank-registry-vote-page
    [:section.vote-header
-    {:padding-top (em 2)
-     :margin-right (em 6)
-     :margin-left (em 6)}
     (for-media-max :large
                    [:&
                     {:margin-right (em 2)
@@ -30,6 +27,13 @@
                        :color :purple})
      [:.get-dank-button
       (get-dank-button)]]]
+   [:section.challenges
+    {:max-width (px 985)
+     :margin-left :auto
+     :margin-right :auto}
+    [:.challenges
+     {:padding-left (px 0)
+      :padding-right (px 0)}]]
    [:.tabs-titles
     (tabs)]
    [:.selected-tab-body

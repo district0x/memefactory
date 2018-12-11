@@ -13,4 +13,8 @@
   [:.main-content
    {:min-height (em 90)
     :box-shadow "inset 20px 20px 30px rgba(0,0,0,0.05)"
-    :background (color :main-content-bg)}])
+    :background (color :main-content-bg)}
+   [:.main-content-inner {:max-width (px 985)
+                          :margin-left :auto
+                          :margin-right :auto
+                          :padding-top (em 4)}]])

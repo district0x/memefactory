@@ -46,7 +46,10 @@
    (search-panel {:background-panel-image "/assets/icons/mf-search.svg"
                   :color :mymemefolio-green
                   :icon "/assets/icons/portfolio2.svg"})
-
+   [:.tabbed-pane
+    {:max-width (px 985)
+     :margin-right :auto
+     :margin-left :auto}]
    [:.spinner
     {;; ovverride attr
      :color (color :black)
@@ -87,8 +90,8 @@
      :width (em 1)
      :height (em 1)}]
    [:.total
-    {:position :absolute
-     :right (em 4)
+    {:position :relative
+     :left (em 41)
      :font-size (em 0.9)
      :color (color :section-subcaption)}
     (for-media-max :tablet
@@ -106,8 +109,6 @@
      :margin-top 0
      :padding-top (em 0)
      :padding-bottom (em 0)
-     :margin-right (em 6)
-     :margin-left (em 6)
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :background-color (color :yellow)
      :border-radius "1em 1em 0em 0em"
