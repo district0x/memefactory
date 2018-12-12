@@ -220,9 +220,9 @@
         :background-position "center bottom";
         :transform "scale(0.5, 0.5) rotate(180deg);"
         :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
-      [:tr {:height (em 3)}
+      [:tr {:height (em 9)}
        [:td {:padding-left (em 0.5)
-                :line-height (em 2)}]]
+             :line-height (em 2)}]]
       [:thead
        (for-media-max :tablet
                       [:&
@@ -340,6 +340,12 @@
        {:display :grid
         :grid-template-columns "50% 50%"
         :grid-template-rows "100%"}
+       (for-media-max :tablet
+                   [:&
+                    {:grid-template-rows "50% 50%"
+                     :grid-template-columns "100%"
+                     :text-align :center}
+                    [:button {:margin :auto}]])
        [">div>*"
         {:margin-bottom  (em 0.5)}]
 

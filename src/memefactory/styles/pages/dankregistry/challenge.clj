@@ -19,8 +19,11 @@
     {:margin-bottom (em 6)}
     (for-media-max :large
                    [:&
-                    {:margin-right (em 2)
-                     :margin-left (em 2)}])
+                    {:margin-right (em 1)
+                     :margin-left (em 1)}])
+    (for-media-max :tablet
+                   [:&
+                    {:margin-bottom (em 0)}])
     [:.challenge-info
      (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
                        :color :sky-blue})

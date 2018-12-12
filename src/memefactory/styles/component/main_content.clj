@@ -6,7 +6,8 @@
             [memefactory.styles.base.borders :refer [border-top]]
             [memefactory.styles.base.colors :refer [color]]
             [garden.selectors :as sel]
-            [garden.units :refer [pt px em rem]]))
+            [garden.units :refer [pt px em rem]]
+            [memefactory.styles.base.media :refer [for-media-min for-media-max]]))
 
 
 (defstyles core
@@ -14,7 +15,12 @@
    {:min-height (em 90)
     :box-shadow "inset 20px 20px 30px rgba(0,0,0,0.05)"
     :background (color :main-content-bg)}
-   [:.main-content-inner {:max-width (px 985)
-                          :margin-left :auto
-                          :margin-right :auto
-                          :padding-top (em 4)}]])
+   [:.main-content-inner
+    {:max-width (px 985)
+     :margin-left :auto
+     :margin-right :auto
+     :padding-top (em 4)}
+    (for-media-max :tablet
+                   [:&
+                    {:padding-top (em 1)}])
+    ]])

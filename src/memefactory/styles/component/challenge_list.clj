@@ -32,8 +32,8 @@
 
    (for-media-max :tablet
                   [:&
-                   {:padding-right (em 2)
-                    :padding-left (em 2)}])
+                   {:padding-right (em 1)
+                    :padding-left (em 1)}])
    #_[:.controls {:width (em 11)
                 :margin-left :auto
                 :margin-right 0}]
@@ -46,6 +46,9 @@
                 :height 0
                 :top (em -3)
                 :position :relative}
+    (for-media-max :tablet
+                   [:&
+                    {:margin-top (em 1)}])
     [:select {:background-color :white}]
     [:.help-block {:display :none}]
     (for-media-max :tablet

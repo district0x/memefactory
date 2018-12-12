@@ -66,7 +66,7 @@
       :right 0
       :bottom 0}]]
    [:.meme-image
-    {:width (px card-width)
+    {:max-width (px card-width)
      :height (px card-height)}]
    [:.overlay {:position :absolute
                ;; :background-color (color :meme-bg)

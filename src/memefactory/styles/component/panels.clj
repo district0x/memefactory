@@ -40,7 +40,7 @@
     (for-media-max :tablet
                    [:&
                     {:font-size (px 19)}])
-    {:white-space :nowrap
+    {:width "100%"
      :position :relative
      :font-size (px 25)
      :margin-top (em 0.3)
