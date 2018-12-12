@@ -2,4 +2,4 @@
   (:require [district.server.smart-contracts :refer [contract-call]]))
 
 (defn get-email [{:keys [:district0x-emails/address]}]
-  (contract-call :district0x-emails :get-email address))
+  #_(contract-call :district0x-emails :get-email address))

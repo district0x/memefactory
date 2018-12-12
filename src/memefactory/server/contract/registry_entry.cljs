@@ -12,14 +12,14 @@
                                                         parse-load-vote vote-option->num]]))
 
 (defn registry [contract-addr]
-  (contract-call [:meme contract-addr] :registry))
+  #_(contract-call [:meme contract-addr] :registry))
 
 (defn status
   [contract-addr]
-  (parse-status (contract-call [:meme contract-addr] :status)))
+  #_(parse-status (contract-call [:meme contract-addr] :status)))
 
 (defn create-challenge [contract-addr {:keys [:challenger :meta-hash]} & [opts]]
-  (contract-call (instance :meme contract-addr) :create-challenge challenger meta-hash (merge {:gas 1200000} opts)))
+  #_(contract-call (instance :meme contract-addr) :create-challenge challenger meta-hash (merge {:gas 1200000} opts)))
 
 (defn create-challenge-data [{:keys [:challenger :meta-hash]}]
   (web3-eth/contract-get-data (instance :meme) :create-challenge challenger meta-hash))
@@ -31,7 +31,7 @@
                                (merge {:gas 6000000} opts)))
 
 (defn commit-vote [contract-addr {:keys [:voter :amount :vote-option :salt]} & [opts]]
-  (contract-call (instance :meme contract-addr)
+  #_(contract-call (instance :meme contract-addr)
                  :commit-vote
                  voter
                  (bn/number amount)
@@ -48,16 +48,16 @@
                                (merge opts {:gas 1200000})))
 
 (defn reveal-vote [contract-addr {:keys [:address :vote-option :salt]} & [opts]]
-  (contract-call (instance :meme contract-addr) :reveal-vote (vote-option->num vote-option) salt (merge {:gas 500000} opts)))
+  #_(contract-call (instance :meme contract-addr) :reveal-vote (vote-option->num vote-option) salt (merge {:gas 500000} opts)))
 
 (defn claim-vote-reward [contract-addr & [opts]]
-  (contract-call (instance :meme contract-addr) :claim-vote-reward (:from opts) (merge {:gas 500000} opts)))
+  #_(contract-call (instance :meme contract-addr) :claim-vote-reward (:from opts) (merge {:gas 500000} opts)))
 
 (defn reclaim-vote-amount [contract-addr & [opts]]
-  (contract-call (instance :meme contract-addr) :reclaim-vote-amount (:from opts) (merge {:gas 500000} opts)))
+  #_(contract-call (instance :meme contract-addr) :reclaim-vote-amount (:from opts) (merge {:gas 500000} opts)))
 
 (defn vote-reward [contract-addr voter-address]
-  (contract-call (instance :meme contract-addr) :vote-reward voter-address))
+  #_(contract-call (instance :meme contract-addr) :vote-reward voter-address))
 
 (defn claim-challenge-reward [contract-addr & [opts]]
-  (contract-call (instance :meme contract-addr) :claim-challenge-reward (merge {:gas 500000} opts)))
+  #_(contract-call (instance :meme contract-addr) :claim-challenge-reward (merge {:gas 500000} opts)))

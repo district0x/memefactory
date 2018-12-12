@@ -4,19 +4,19 @@
     [memefactory.server.contract.meme-auction :as meme-auction]))
 
 (defn total-supply []
-  (contract-call :meme-token :total-supply))
+  #_(contract-call :meme-token :total-supply))
 
 (defn token-uri [token-id]
-  (contract-call :meme-token token-id :token-uri))
+  #_(contract-call :meme-token token-id :token-uri))
 
 (defn owner-of [token-id]
-  (contract-call :meme-token :owner-of token-id))
+  #_(contract-call :meme-token :owner-of token-id))
 
 (defn safe-transfer-from-multi [{:keys [:from :to :token-ids :data]} & [opts]]
-  (contract-call :meme-token :safe-transfer-from-multi from to token-ids data (merge {:gas 6000000} opts)))
+  #_(contract-call :meme-token :safe-transfer-from-multi from to token-ids data (merge {:gas 6000000} opts)))
 
 (defn safe-transfer-from [{:keys [:from :to :token-id]} & [opts]]
-  (contract-call :meme-token :safe-transfer-from from to token-id (merge {:gas 3000000} opts)))
+  #_(contract-call :meme-token :safe-transfer-from from to token-id (merge {:gas 3000000} opts)))
 
 (defn transfer-multi-and-start-auction [{:keys [:from :token-ids :start-price :end-price :duration :description] :as params} & [opts]]
   (safe-transfer-from-multi {:from from
@@ -26,4 +26,4 @@
                             opts))
 
 (defn meme-token-transfer-event [& args]
-  (apply contract-call :meme-token :Transfer args))
+  #_(apply contract-call :meme-token :Transfer args))

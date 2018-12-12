@@ -23,6 +23,7 @@
             [memefactory.server.contract.param-change-factory :as param-change-factory]
             [memefactory.server.contract.param-change-registry :as param-change-registry]
             [memefactory.server.contract.registry :as registry]
+            [memefactory.server.macros :refer [promise->]]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [taoensso.timbre :as log]
             [mount.core :as mount :refer [defstate]]
@@ -30,8 +31,6 @@
             [district.shared.error-handling :refer [try-catch]]))
 
 (def fs (js/require "fs"))
-
-(declare start)
 
 (defn get-scenarios [{:keys [:accounts :use-accounts :items-per-account :scenarios]}]
   (when (and (pos? use-accounts)
@@ -43,7 +42,7 @@
           scenarios-repeated (take (* use-accounts items-per-account) (cycle scenarios))]
       (partition 2 (interleave accounts-repeated scenarios-repeated)))))
 
-(defn upload-meme []
+(defn upload-meme [previous]
   (let [file "resources/dev/pepe.png"]
     (log/info "Uploading" file ::upload-meme)
     (js/Promise.
@@ -57,13 +56,16 @@
                        data
                        (fn [err {image-hash :Hash}]
                          (if err
-                           (reject err)
+                           (do
+                             (log/error "ifps error" {:error err} ::upload-meme-meta)
+                             (reject err))
                            (do
                              (log/info (str "Uploaded " file " received") {:image-hash image-hash} ::upload-meme)
-                             (resolve image-hash))))))))))))
+                             (resolve (swap! previous assoc :image-hash image-hash)))))))))))))
 
-(defn upload-meme-meta [image-hash]
-  (let [meta-info (format/clj->json {:title "PepeSmile"
+(defn upload-meme-meta [previous]
+  (let [{:keys [image-hash]} @previous
+        meta-info (format/clj->json {:title "PepeSmile"
                                      :image-hash image-hash
                                      :search-tags ["pepe" "frog" "dank"]
                                      :comment "did not like it"})]
@@ -74,13 +76,39 @@
         (js/Buffer.from meta-info)
         (fn [err {meta-hash :Hash}]
           (if err
-            (log/error "ifps error" {:error err} ::upload-meme-meta)
+            (do
+              (log/error "ifps error" {:error err} ::upload-meme-meta)
+              (reject err))
             (do
               (log/info "Uploaded meta received " {:meta-hash meta-hash} ::upload-meme-meta)
-              (resolve meta-hash)))))))))
+              (resolve (swap! previous assoc :meta-hash meta-hash))))))))))
 
+;; TODO .catch
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
-  (let [[max-total-supply max-auction-duration deposit commit-period-duration reveal-period-duration]
+  (let [previous (atom {})]
+    (.catch
+     (promise->
+
+       (upload-meme previous)
+       ;; #(.foo %)
+       #(upload-meme-meta previous)
+
+       #(prn "@end-chain result" %)
+
+
+       ;; (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-auction-duration :deposit
+       ;;                                                :commit-period-duration :reveal-period-duration])
+       ;; #(map bn/number %)
+       ;; #(prn %)
+
+       )
+     (fn [err]
+       (log/error "Promise rejected" {:error err} ::generate-memes)))
+
+    )
+
+
+  #_(let [[max-total-supply max-auction-duration deposit commit-period-duration reveal-period-duration]
         (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-auction-duration :deposit :commit-period-duration
                                                             :reveal-period-duration])
              (map bn/number))

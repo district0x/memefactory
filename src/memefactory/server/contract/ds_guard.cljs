@@ -5,7 +5,7 @@
 (def ANY "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
 
 (defn permit [{:keys [:src :dst :sig]} & [opts]]
-  (contract-call :ds-guard :permit src dst sig (merge opts {:gas 100000})))
+  #_(contract-call :ds-guard :permit src dst sig (merge opts {:gas 100000})))
 
 (defn can-call? [{:keys [:src :dst :sig]}]
-  (contract-call :ds-guard :can-call src dst sig))
+  #_(contract-call :ds-guard :can-call src dst sig))

@@ -17,7 +17,8 @@
             [memefactory.server.utils :as server-utils]
             [district.server.logging :refer [logging]]
             [district.server.middleware.logging :refer [logging-middlewares]]
-            [district.server.smart-contracts]
+            ;; TODO
+            ;; [district.server.smart-contracts]
             [district.server.web3 :refer [web3]]
             [district.server.web3-watcher]
             [goog.date.Date]
@@ -26,7 +27,7 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
-            [memefactory.server.deployer :as deployer]
+            ;; [memefactory.server.deployer :as deployer]
             [memefactory.server.generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.emailer]
@@ -39,7 +40,14 @@
             [mount.core :as mount]
             [taoensso.timbre :as log]
             [print.foo :refer [look] :include-macros true]
-            [memefactory.server.emailer]))
+            [memefactory.server.emailer]
+
+            ;; DEBUG
+            [district.server.smart-contracts :refer [contract-call]]
+            [camel-snake-kebab.core :as cs :include-macros true]
+            [cljs-solidity-sha3.core :refer [solidity-sha3]]
+
+            ))
 
 (nodejs/enable-util-print!)
 
@@ -58,7 +66,7 @@
                                                  :gql-name->kw graphql-utils/gql-name->kw})
                     :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
 
-(defn redeploy-with-deployer []
+#_(defn redeploy-with-deployer []
   (log/warn "Deprecated function. Please use `redeploy` instead" ::redeploy)
   (defer
     (deployer/deploy
@@ -103,19 +111,36 @@
   "Generate dev data"
   []
   (log/warn "Generating data, please be patient..." ::generate-date)
-  (defer
-    (let [opts (merge
-                (or (:generator @config)
-                    {:memes/use-accounts 1
-                     :memes/items-per-account 10
-                     :memes/scenarios [:scenario/buy]
-                     :param-changes/use-accounts 1
-                     :param-changes/items-per-account 1
-                     :param-changes/scenarios []})
-                {:accounts (web3-eth/accounts @web3)})]
-      (memefactory.server.generator/generate-memes opts)
-      (memefactory.server.generator/generate-param-changes opts))
-    (log/info "Finished generating data" ::generate-data)))
+  (let [opts (merge
+              (or (:generator @config)
+                  {:memes/use-accounts 1
+                   :memes/items-per-account 10
+                   :memes/scenarios [:scenario/buy]
+                   :param-changes/use-accounts 1
+                   :param-changes/items-per-account 1
+                   :param-changes/scenarios []})
+              {:accounts (web3-eth/accounts @web3)})]
+
+    (memefactory.server.generator/generate-memes opts)
+    ;; TODO: param changes
+
+    )
+
+  ;; (defer
+  ;;   (let [opts (merge
+  ;;               (or (:generator @config)
+  ;;                   {:memes/use-accounts 1
+  ;;                    :memes/items-per-account 10
+  ;;                    :memes/scenarios [:scenario/buy]
+  ;;                    :param-changes/use-accounts 1
+  ;;                    :param-changes/items-per-account 1
+  ;;                    :param-changes/scenarios []})
+  ;;               {:accounts (web3-eth/accounts @web3)})]
+  ;;     (memefactory.server.generator/generate-memes opts)
+  ;;     (memefactory.server.generator/generate-param-changes opts))
+  ;;   (log/info "Finished generating data" ::generate-data))
+
+  )
 
 (defn resync []
   (log/warn "Syncing internal database, please be patient..." ::resync)
@@ -144,12 +169,18 @@
                             :web3 {:port 8549}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
-                                              :print-gas-usage? true
-                                              :auto-mining? false}
+                                              ;;:print-gas-usage? true
+                                              }
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
                             :ui {:public-key "2564e15aaf9593acfdc633bd08f1fc5c089aa43972dd7e8a36d67825cd0154602da47d02f30e1f74e7e72c81ba5f0b3dd20d4d4f0cc6652a2e719a0e9d4c7f10943"}
                             :twilio-api-key "PUT_THE_REAL_KEY_HERE"}}})
-      (mount/except [#'memefactory.server.emailer/emailer])
+      (mount/except [#'memefactory.server.emailer/emailer
+
+                     ;; TODO
+                     ;; #'district.server.smart-contracts/smart-contracts
+                     #'memefactory.server.syncer/syncer
+
+                     ])
       (mount/start)
       pprint/pprint))
 
