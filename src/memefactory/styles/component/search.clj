@@ -19,7 +19,9 @@
     (for-media-max :tablet
                    [:&
                     {:margin-right (em 1)
-                     :margin-left (em 1)}])
+                     :margin-left (em 1)
+                     :background-image :none
+                     :background-color (color :meme-panel-bg)}])
     {:position :relative
      :border-radius "1em 1em 1em 1em"
      :background-color (c/color :meme-panel-bg)
@@ -87,6 +89,8 @@
        "'. checkbox .'\n")
       :grid-column-gap (em 2)
       :color (c/color :section-subcaption)}
+     (for-media-max :tablet
+                   [:& {:display :none}])
      [:.name {:grid-area :name}
       [:.help-block {:height :2px}]]
      [:.options {:grid-area :dropdown}
