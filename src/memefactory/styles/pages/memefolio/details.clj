@@ -10,7 +10,7 @@
             [memefactory.styles.base.fonts :refer [font]]
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [memefactory.styles.component.search :refer [search-panel]]
-            [memefactory.styles.component.panels :refer [tabs]]
+            [memefactory.styles.component.panels :refer [panel-with-icon tabs]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
             [clojure.string :as str]))
@@ -81,7 +81,6 @@
      :border-width (px inner-radius)}]
    [:.address (of-ellipsis)]
    [:section.meme-detail
-    {:padding (em 3)}
     (for-media-max :tablet
                    [:&
                     {:padding-right (em 1)
@@ -111,7 +110,8 @@
        :padding (em 1)
        :font-size (em 1.1)
        :border-radius "0em 0em 1em 1em"
-       :background-color (color :yellow)}]
+       :background-color (color :yellow)
+       :box-shadow ".3em .3em .3em 0px lightgrey"}]
      [:.registry
       {:padding (em 1)}
       [:h1
@@ -119,7 +119,8 @@
        {:color (color :purple)}]
       [:.status
        {:display :flex
-        :line-height (em 1)}
+        :line-height (em 1)
+        :margin-left (px -8)}
        [:&:before
         {:content "''"
          :height (em 2.2)
@@ -138,6 +139,8 @@
        [">*"
         {:font-size (em 0.9)
          :color (color :menu-text)}]]
+      [:.description
+       {:margin-bottom (em 1)}]
       [:.description, :.text
        {:color (color :menu-text)}]
       [:.tags
@@ -162,8 +165,8 @@
         [:&.memefolio {:background-color (color :pink)
                        :color (color :white)}]]]]]]
    [:section.history
-    {:padding (em 3)
-     :color (color :menu-text)}
+    {:color (color :menu-text)
+     :margin-top (em 3)}
     (for-media-max :tablet
                    [:&
                     {:padding-right (em 1)
@@ -217,8 +220,9 @@
         :background-position "center bottom";
         :transform "scale(0.5, 0.5) rotate(180deg);"
         :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
-      [:td {:padding-left (em 0.5)
-            :line-height (em 2)}]
+      [:tr {:height (em 3)}
+       [:td {:padding-left (em 0.5)
+                :line-height (em 2)}]]
       [:thead
        (for-media-max :tablet
                       [:&
@@ -282,7 +286,7 @@
        :padding-top (em 1)
        :padding-bottom (em 1)}]]]
    [:section.challenge
-    {:padding (em 3)}
+    {:margin-top (em 3)}
     (for-media-max :tablet
                    [:&
                     {:padding-right (em 1)
@@ -302,11 +306,12 @@
      {:margin :auto
       :margin-top (em 3)}]
     [:.challenge-component
-     {:background (color :meme-panel-bg)}
+     {:background (color :meme-panel-bg)
+      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+      :border-radius "1em 1em 1em 1em"}
      [:.challenge-component-inner
       {
-       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-       :border-radius "1em 1em 1em 1em"
+
        :position :relative
        :display :grid
        :grid-template-columns "30% 30% 40%"
@@ -328,15 +333,21 @@
        {:border-right "1px solid #AAA"}
        (for-media-max :tablet
                       [:&
-                       {:border-right "0px"}])]
+                       {:border-right "0px"}])
+       [">*"
+        {:margin-bottom  (em 0.5)}]]
       [:.votes
        {:display :grid
         :grid-template-columns "50% 50%"
         :grid-template-rows "100%"}
+       [">div>*"
+        {:margin-bottom  (em 0.5)}]
+
        [:button (button {:color :white
                          :background-color :purple
                          :width (em 14)
-                         :height (em 3)})]]
+                         :height (em 3)})
+        {:margin-top (em 1)}]]
       [:.header {:grid-column "1 / span 3"}
        (for-media-max :tablet
                       [:&
@@ -384,16 +395,19 @@
       (vote-button-icon)
       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
    [:section.related
-    {:padding (em 3)}
+    {:margin-top (em 3)}
     (for-media-max :tablet
                    [:&
                     {:padding-right (em 1)
                      :padding-left (em 1)}])
-    [:.selling-tile-back {:height "100%"
-                          :background-color (color :violet)}
-     (button-tile-back)]
-    [:.scroll-area
-     {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-      :background-color :white
-      :color (color :menu-text)
-      :border-radius (em 1)}]]])
+    [:.relateds-panel
+     (panel-with-icon {:url "/assets/icons/network.svg"
+                       :color (color :redish)})
+     [:.selling-tile-back {:height "100%"
+                           :background-color (color :violet)}
+      (button-tile-back)]
+     [:.scroll-area
+      {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+       :background-color :white
+       :color (color :menu-text)
+       :border-radius (em 1)}]]]])

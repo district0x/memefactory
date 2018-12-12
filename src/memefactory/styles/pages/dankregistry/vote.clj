@@ -24,7 +24,7 @@
                      :margin-left (em 2)}])
     [:.registry-vote-header
      (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                       :color :purple})
+                       :color :blue})
      [:.get-dank-button
       (get-dank-button)]]]
    [:section.challenges
@@ -39,6 +39,7 @@
     [:& {:margin-top (em 3)}]]
    [:.selected-tab-body
     [:.challenges.panel
+     {:color (color :menu-text)}
      [:.controls {:display :block
                   :margin-top (em 0)
                   :right (em 0)
@@ -66,6 +67,7 @@
                    :grid-template-columns "80% 20%"
                    :border-bottom "1px solid"
                    :margin-bottom (em 1)}
+     [:span {:margin-top (px 8)}]
      [:.help-block {:display :none}]]
     [:.vote-dank
      [:button
@@ -112,8 +114,7 @@
      :justify-items :center}
     [:.vote-info {:list-style :none
                   :text-align :center
-                  :padding-left (px 0)
-                  :color (color :menu-text)}]
+                  :padding-left (px 0)}]
     [:button
      {:margin-top (em 1)}
      (button {:background-color :purple

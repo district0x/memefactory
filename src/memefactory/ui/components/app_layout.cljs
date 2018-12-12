@@ -11,6 +11,7 @@
    ;; [district.ui.web3-tx-log-core]
    [re-frame.core :refer [subscribe dispatch]]
    [memefactory.ui.subs :as mf-subs]
+   [district.ui.router.subs :as router-subs]
    [memefactory.ui.utils :as mf-utils]
    [district.ui.component.notification :as notification]))
 
@@ -130,14 +131,14 @@
                       ^{:key (str depth "-" idx)}
                       [:li.node-content
                        [:div.item
-                        {:class (concat [(when class (name class))] (when (current-page? active-page href)))}
+                        {:class (str (when class (name class)) (when (= active-page route) " active"))}
                         [:a {:href href} text]]
                        (when children
                          [app-menu children active-page (inc depth)])]))
                   items))]))
 
 (defn app-layout []
-  (let [active-page (subscribe [::mf-subs/active-page])
+  (let [active-page (subscribe [::router-subs/active-page])
         drawer-open? (r/atom false)]
     (fn [{:keys [:meta :search-atom]} & children]
       [:div.app-container
@@ -147,7 +148,7 @@
          [:div.mf-logo {:on-click #(dispatch [:district.ui.router.events/navigate :route/home {}])}
           [:img {:src "/assets/icons/mememouth.png"}]
           [:span "MEME FACTORY"]]
-         [app-menu nav-menu-items @active-page]]
+         [app-menu nav-menu-items (:name @active-page)]]
         [district0x-banner]]
        [:div.app-content
         [app-bar {:search-atom search-atom}]

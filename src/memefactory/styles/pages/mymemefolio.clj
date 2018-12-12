@@ -156,11 +156,9 @@
        :margin-right (em 1)
        :margin-left (em 1)
        :display :flex
-       :white-space :nowrap
-       :margin :auto
-       }
+       :white-space :nowrap}
       [">b"
-       {:padding-right (em 1)}]]
+       {:padding-right (em 0.3)}]]
      [:.curator
       {:display :grid
        :padding-top (em 1.2)

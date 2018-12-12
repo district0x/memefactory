@@ -219,7 +219,7 @@
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
      [:div.address (str "Address: " (:user/address challenger))]
-     [:i comment]]))
+     [:i (str "\"" comment "\"")]]))
 
 (defn status-component [status]
   [:div.status
@@ -247,9 +247,9 @@
      (when (< 0 votes-total)
        [charts/donut-chart meme])
      [:div
-      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (format-dank votes-for))]
-      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (format-dank votes-against))]
-      [:div.text (str "Total voted: " (format-dank votes-total))]
+      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (or votes-for 0))]
+      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (or votes-against 0))]
+      [:div.text (str "Total voted: " (if votes-total (/ votes-total 1e18) 0))]
       (cond
         (= :vote-option/not-revealed option)
         [tx-button/tx-button {:primary true
@@ -500,4 +500,8 @@
          [challenge-component meme]
          [:div.spinner.spinner--challenge])]
       [:section.related
-       [related-memes-container address tags]]]]))
+       [:div.relateds-panel
+        [:div.icon]
+        [:h2.title "REPLATED MEMES ON MARKETPLACE"]
+        [:h3.title "lorem ipsum"]
+        [related-memes-container address tags]]]]]))

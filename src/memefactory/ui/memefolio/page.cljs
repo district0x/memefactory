@@ -192,7 +192,7 @@
           total-meme-tokens-count (-> @query :search-meme-tokens :total-count)]
       [:div.stats
        [:div.rank
-        (str "RANK: ") (or collector-rank [:div.spinner.spinner--rank])]
+        (str "RANK: #") (or collector-rank [:div.spinner.spinner--rank])]
        [:div.var
         [:b "Unique Memes: "]
         (if (and total-collected-memes total-memes-count)

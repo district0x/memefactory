@@ -50,9 +50,11 @@
         :line-height (em 1.4)
         :color (color :menu-logo)}]]
 
-     
 
-     [:ul.node {:padding-left (em 0)}]
+
+     [:ul.node {:padding-left (em 0)}
+      [:.item.active
+       [:a {:color (color :pink)}]]]
 
      [:ul.node
       [:.item {:font-size (pt 12)}]

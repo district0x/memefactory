@@ -44,7 +44,7 @@
      :position :relative
      :font-size (px 25)
      :margin-top (em 0.3)
-     :margin-bottom (em 0.1)
+     :margin-bottom (em 0.3)
      :padding-top (em 0.5)
      :text-align :center}]
    [:h3.title
@@ -52,7 +52,7 @@
      :margin-top (em 0.1)
      :position :relative
      :color (c/color :section-subcaption)
-     :font-size (px 15)
+     :font-size (px 13)
      :text-align :center}]
    [:.icon {:background-color (c/color color)
             :background-position-x (em 1)

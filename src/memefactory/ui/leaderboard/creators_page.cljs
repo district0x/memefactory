@@ -83,6 +83,7 @@
            [:div.leaderboard-creators-page
             [:section.creators
              [:div.creators-panel
+              [:div.icon]
               [:h2.title "LEADERBOARDS - CREATORS"]
               [:h3.title "lorem ipsum"]
               [:div.order

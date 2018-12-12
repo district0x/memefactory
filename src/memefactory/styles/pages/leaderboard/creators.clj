@@ -38,7 +38,8 @@
                         :margin-left (em 1)}])
     [:.creators-panel
      (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
-                       :color :leaderboard-curator-bg})]
+                       :color :leaderboard-curator-bg})
+     [:.icon {:background-position-x (em 0)}]]
     [:h2.title {:white-space :normal}]
     [:.scroll-area
      {:width "100%"}

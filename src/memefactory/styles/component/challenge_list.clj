@@ -76,7 +76,7 @@
                      [:& {:text-align :center}])]
      [:h3 {:color (color :menu-text)
            :font-weight :bold
-           :font-size (em 1)
+           :font-size (em 0.8)
            :margin 0}]
      [:ol
       {:list-style-type :none

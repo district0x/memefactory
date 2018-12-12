@@ -59,10 +59,10 @@
                [:ul.vote-info
                 (when (pos? votes-for)
                   [:li
-                  (str "Voted dank: " (format/format-percentage votes-for votes-total) " - " (/ votes-for 1e18))])
+                  (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (/ votes-for 1e18))])
                 (when (pos? votes-against)
                   [:li
-                   (str "Voted stank: " (format/format-percentage votes-against votes-total) " - " (/ votes-against 1e18))])
+                   (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (/ votes-against 1e18))])
                 (when (pos? votes-total)
                   [:li "Total voted: " (gstring/format "%d" (/ votes-total 1e18))])
                 [:li "Your reward: " (format/format-token (+ (:challenge/reward-amount all-rewards)

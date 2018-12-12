@@ -100,11 +100,11 @@
                           :title "Marketplace"
                           :sub-title "Sub title"
                           :on-selected-tags-change re-search
-                          :select-options (->> [{:key "started-on" :value "Newest"}
-                                                {:key "meme-total-minted" :value "Rarest"}
-                                                {:key "price" :value "Cheapest"}
-                                                {:key "random" :value "Random"}]
-                                               (map (fn [opt] (update opt :value str " - Total : " search-total-count))))
+                          :select-options [{:key "started-on" :value "Newest"}
+                                           {:key "meme-total-minted" :value "Rarest"}
+                                           {:key "price" :value "Cheapest"}
+                                           {:key "random" :value "Random"}]
+                          :search-result-count search-total-count
                           :on-search-change re-search
                           :on-check-filter-change re-search
                           :on-select-change re-search}]
