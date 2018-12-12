@@ -123,43 +123,49 @@
        "'tx-log tx-log'\n")
       :height "100%"
       :align-items :center
-      :justify-content :center}
+      :justify-content :center
+      :grid-template-rows (em 3.6)}
+
+     [:.tx-log.open
+      {:transform "scaleY(1)"}]
 
      [:.tx-log
-      {:grid-area :tx-log}
+      {:grid-area :tx-log
+       :z-index 99
+       :transform "scaleY(0)"
+       :will-change :transform
+       :transition-property "transform, -webkit-transform"
+       :transition-duration ".3s, .3s"
+       :transition-timing-function "cubic-bezier(0.23, 1, 0.32, 1), cubic-bezier(0.23, 1, 0.32, 1)"
+       :transform-origin :top}
 
       [:.header
        {:background (color :pink)
-        :color :transparent
         :text-transform :uppercase
-        :font-size "10px"
+        :color :white
+        :font-size "12px"
         :text-align :center
         :padding-top (em 0.3)
         :cursor :pointer}]
 
+
+
       [:.tx-content
        {:background (color :white)
-        :display :none
+        :z-index 99
+        :overflow :hidden
         :color (color :menu-text)
         :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
-        :will-change :transform
-        :transition "transform 300ms cubic-bezier(0.23, 1, 0.32, 1) 0ms"
-        :transform "scaleY(0)"
-        :transform-origin :top
         :position :relative
-        :z-index -1}
 
-       [:&.open
-        {:z-index 99
-         :display :block
-         :transform "scaleY(1)"}]
+        }
 
        [:.settings
         {:padding "10px 25px"
          :border-bottom (str "1px solid " (color "black"))}
         [:.ui.checkbox
          [:label
-          {:font-size "10px"}]]]
+          {:font-size "12px"}]]]
 
        [:.transactions
         {:overflow-y :scroll
@@ -172,6 +178,7 @@
                                     "'tx-gas tx-status'\n"
                                     "'tx-sender tx-value'\n"
                                     "'tx-id tx-value'\n")
+          :border-bottom "1px solid lightgrey"
           :cursor :pointer
           :position :relative
           :line-height 1.5
@@ -186,7 +193,6 @@
          [:.tx-name {:grid-area :tx-name
                      :font-size (px 14)
                      :color (color :black)
-                     :font-weight :bold
                      :line-height "1.6"}]
 
          [:.tx-created-on
@@ -236,9 +242,9 @@
                     :border-radius "100%"
                     :color (color :white)}]
           [:&.success
-           {:color (color :green)}
+           {:color (color :leaderboard-curator-bg)}
            [:i.icon
-            {:background-color (color :green)
+            {:background-color (color :leaderboard-curator-bg)
              :font-size "8px"}
             [:&:before
              {:content (icons :check)}]]]

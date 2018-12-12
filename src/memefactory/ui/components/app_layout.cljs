@@ -94,7 +94,7 @@
                        (dispatch [:district0x.transaction-log/set-open (not @open?)])))}
         (if false;;(empty? @my-addresses)
           [:div "No Accounts"]
-          [:div.accounts
+          [:div.accounts {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
            [active-account-balance
             {:token-code :DANK
              :contract :DANK
@@ -105,8 +105,7 @@
              :locale "en-US"
              :class "eth"}]
            [tx-log
-            {:header-props {:text "My Transactions"
-                            :on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}}]])]])))
+            {:header-props {:text "My Transactions"}}]])]])))
 
 (defn current-page? [a b]
   (= a b))
