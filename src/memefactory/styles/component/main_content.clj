@@ -20,6 +20,10 @@
      :margin-left :auto
      :margin-right :auto
      :padding-top (em 4)}
+    (for-media-max :large
+                   [:&
+                    {:margin-left (em 1)
+                     :margin-right (em 1)}])
     (for-media-max :tablet
                    [:&
                     {:padding-top (em 1)}])
