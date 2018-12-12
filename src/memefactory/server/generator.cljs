@@ -83,25 +83,40 @@
               (log/info "Uploaded meta received " {:meta-hash meta-hash} ::upload-meme-meta)
               (resolve (swap! previous assoc :meta-hash meta-hash))))))))))
 
+#_(defn promisify [v]
+  (js/Promise.resolve v))
+
 ;; TODO .catch
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
-  (let [previous (atom {})]
+  (let [#_scenarios #_(get-scenarios {:accounts accounts
+                                      :use-accounts use-accounts
+                                      :items-per-account items-per-account
+                                      :scenarios scenarios})
+        account (first accounts)
+        previous (atom {})
+        meme-registry-db-keys [:max-total-supply :max-auction-duration :deposit :commit-period-duration :reveal-period-duration]]
     (.catch
-     (promise->
+     (promise-> (upload-meme previous)
+                ;; #(.foo %)
+                #(upload-meme-meta previous)
+                (promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
+                           #(let [meme-registry-db-values (zipmap meme-registry-db-keys
+                                                                  (map bn/number %))]
+                              (swap! previous merge {:meme-registry-db-values meme-registry-db-values
+                                                     :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values )))
+                                                     ;; :amount (:deposit meme-registry-db-values)
+                                                     })))
 
-       (upload-meme previous)
-       ;; #(.foo %)
-       #(upload-meme-meta previous)
+                #_#(meme-factory/approve-and-create-meme {:meta-hash (:meta-hash %)
+                                                        :total-supply (:total-supply %)
+                                                        :amount (get-in % [:meme-registry-db-values :deposit])}
+                                                       {:from account})
 
-       #(prn "@end-chain result" %)
+                #_(.then #(prn "@resp" %))
 
 
-       ;; (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-auction-duration :deposit
-       ;;                                                :commit-period-duration :reveal-period-duration])
-       ;; #(map bn/number %)
-       ;; #(prn %)
-
-       )
+      #(prn "@end-chain result" %)
+      )
      (fn [err]
        (log/error "Promise rejected" {:error err} ::generate-memes)))
 
