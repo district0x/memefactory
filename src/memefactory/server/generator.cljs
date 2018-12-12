@@ -96,10 +96,9 @@
         previous (atom {})
         meme-registry-db-keys [:max-total-supply :max-auction-duration :deposit :commit-period-duration :reveal-period-duration]]
     (.catch
-     (promise-> (upload-meme previous)
-                ;; #(.foo %)
-                #(upload-meme-meta previous)
-                (promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
+     (promise-> #_(upload-meme previous)
+                #_#(upload-meme-meta previous)
+                #_(promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
                            #(let [meme-registry-db-values (zipmap meme-registry-db-keys
                                                                   (map bn/number %))]
                               (swap! previous merge {:meme-registry-db-values meme-registry-db-values
@@ -107,9 +106,9 @@
                                                      ;; :amount (:deposit meme-registry-db-values)
                                                      })))
 
-                #_#(meme-factory/approve-and-create-meme {:meta-hash (:meta-hash %)
-                                                        :total-supply (:total-supply %)
-                                                        :amount (get-in % [:meme-registry-db-values :deposit])}
+                (meme-factory/approve-and-create-meme {:meta-hash "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F" #_(:meta-hash %)
+                                                        :total-supply 8 #_(:total-supply %)
+                                                        :amount 1000000000000000000, #_(get-in % [:meme-registry-db-values :deposit])}
                                                        {:from account})
 
                 #_(.then #(prn "@resp" %))
