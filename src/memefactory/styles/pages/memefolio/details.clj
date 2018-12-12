@@ -90,7 +90,7 @@
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"
       :display :grid
-      :grid-template-columns "34% 66%"
+      :grid-template-columns "40% 60%"
       :grid-template-rows "100%"
       :position :relative
       :padding (em 1.4)}
@@ -220,7 +220,11 @@
         :background-position "center bottom";
         :transform "scale(0.5, 0.5) rotate(180deg);"
         :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
-      [:tr {:height (em 9)}
+      [:tr
+       {:height (em 3)}
+       (for-media-max :tablet
+                      [:&
+                       {:height (em 9)}])
        [:td {:padding-left (em 0.5)
              :line-height (em 2)}]]
       [:thead
@@ -310,9 +314,7 @@
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"}
      [:.challenge-component-inner
-      {
-
-       :position :relative
+      {:position :relative
        :display :grid
        :grid-template-columns "30% 30% 40%"
        :grid-template-rows "40% 60%"}
@@ -345,7 +347,12 @@
                     {:grid-template-rows "50% 50%"
                      :grid-template-columns "100%"
                      :text-align :center}
-                    [:button {:margin :auto}]])
+                    [:button {:margin :auto}]
+                    ])
+       (for-media-max :large
+                   [:&
+                    [:.votes-inner {:padding-left (em 1)}]])
+
        [">div>*"
         {:margin-bottom  (em 0.5)}]
 
@@ -353,6 +360,10 @@
                          :background-color :purple
                          :width (em 14)
                          :height (em 3)})
+        (for-media-max :large
+                       [:&
+                        {:width (em 10)}])
+
         {:margin-top (em 1)}]]
       [:.header {:grid-column "1 / span 3"}
        (for-media-max :tablet

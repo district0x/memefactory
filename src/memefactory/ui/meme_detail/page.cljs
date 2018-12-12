@@ -246,7 +246,7 @@
     [:div.votes
      (when (< 0 votes-total)
        [charts/donut-chart meme])
-     [:div
+     [:div.votes-inner
       [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (or votes-for 0))]
       [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (or votes-against 0))]
       [:div.text (str "Total voted: " (if votes-total (/ votes-total 1e18) 0))]
