@@ -45,8 +45,7 @@
                                                                                      :after after})]}
                                             :id @form-data}]))
             search-users (subscribe [::gql/query {:queries [(build-curators-query {:order-by order-by})]}
-                                     {:id @form-data
-                                      :disable-fetch? true}])
+                                     {:id @form-data}])
             lazy-curators (mapcat #(get-in % [:search-users :items]) @search-users)]
         [app-layout
          {:meta {:title "MemeFactory"

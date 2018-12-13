@@ -69,8 +69,7 @@
                                                                                    :after after})]}
                                           :id @form-data}]))
             users-search (subscribe [::gql/query {:queries [(build-creators-query {:order-by order-by})]}
-                                     {:id @form-data
-                                      :disable-fetch? true}])]
+                                     {:id @form-data}])]
         ;;if (:graphql/loading? @users-search)
         #_[:div "Loading ...."]
         (let [all-creators (mapcat #(get-in % [:search-users :items]) @users-search)]

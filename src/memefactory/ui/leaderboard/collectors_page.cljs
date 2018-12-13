@@ -70,8 +70,7 @@
                                                                                      :after after})]}
                                           :id @form-data}]))
             users-search (subscribe [::gql/query {:queries [(build-collectors-query {:order-by order-by})]}
-                                     {:id @form-data
-                                      :disable-fetch? true}])
+                                     {:id @form-data}])
             totals (subscribe [::gql/query {:queries [[:overall-stats
                                                        [:total-memes-count
                                                         :total-tokens-count]]]}])]

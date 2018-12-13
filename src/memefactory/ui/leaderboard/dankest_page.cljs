@@ -35,8 +35,7 @@
 
 (defn dankest-memes-tiles []
   (let [meme-search (subscribe [::gql/query {:queries [(build-tiles-query nil)]}
-                                {:id :dankest
-                                 :disable-fetch? true}])
+                                {:id :dankest}])
         all-memes (->> @meme-search
                        (mapcat (fn [r] (-> r :search-memes :items))))]
 

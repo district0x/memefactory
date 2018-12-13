@@ -99,7 +99,8 @@
             {:token-code :DANK
              :contract :DANK
              :class "dank"
-             :locale "en-US"}]
+             :locale "en-US"
+             :max-fraction-digits 0}]
            [active-account-balance
             {:token-code :ETH
              :locale "en-US"
