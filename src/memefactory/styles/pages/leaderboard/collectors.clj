@@ -39,6 +39,7 @@
     [:.collectors-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})
+     [:.icon {:margin-left (em 3)}]
      [:h2.title {:white-space :normal}]]
     [:.scroll-area
      {:width "100%"}
@@ -100,7 +101,7 @@
      {:position :absolute
       :display :block
       :right (em 2)
-      :top (em 3.5)}
+      :top (em 2)}
      [:.input-group
       [:.help-block {:display :none}]]
      (for-media-max :tablet

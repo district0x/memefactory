@@ -90,9 +90,9 @@
                  [select-input
                   {:form-data form-data
                    :id :order-by;; TODO Do this !!!!!!!!!!
-                   :options [{:key "curator-total-earned" :value (str "by total earnings: " total " total")}
-                             {:key "challenger-total-earned" :value (str "by total challenges earnings: " total " total")}
-                             {:key "voter-total-earned" :value (str "by total votes earnings: " total " total")}]}])]
+                   :options [{:key "curator-total-earned" :value "by total earnings"}
+                             {:key "challenger-total-earned" :value "by total challenges earnings"}
+                             {:key "voter-total-earned" :value "by total votes earnings"}]}])]
               [:div.scroll-area
                [:div.creators
                 (if (:graphql/loading? @users-search)

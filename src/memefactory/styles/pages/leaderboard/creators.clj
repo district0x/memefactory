@@ -39,7 +39,8 @@
     [:.creators-panel
      (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
                        :color :leaderboard-curator-bg})
-     [:.icon {:background-position-x (em 0)}]]
+     [:.icon {:background-position-x (em 0)
+              :margin-left (em 3)}]]
     [:h2.title {:white-space :normal}]
     [:.scroll-area
      {:width "100%"}
@@ -103,7 +104,7 @@
      {:position :absolute
       :display :block
       :right (em 2)
-      :top (em 3.5)}
+      :top (em 2)}
      [:.input-group
       [:.help-block {:display :none}]]
      (for-media-max :tablet

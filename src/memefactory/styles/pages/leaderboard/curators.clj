@@ -22,12 +22,13 @@
                         :margin-left (em 1)}])
     [:.curators-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
-                       :color :leaderboard-curator-bg})]
+                       :color :leaderboard-curator-bg})
+     [:.icon {:margin-left (em 3)}]]
     [:div.order
      {:position :absolute
       :display :block
       :right (em 2)
-      :top (em 3.5)}
+      :top (em 2)}
      [:.input-group
       [:.help-block {:display :none}]]
      (for-media-max :tablet
