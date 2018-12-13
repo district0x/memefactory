@@ -90,15 +90,15 @@
            (swap! previous merge {:meme-registry-db-values meme-registry-db-values
                                   :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))))
 
-#_(defn create-meme [previous account]
-  (-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash previous)
-                                                    :total-supply (:total-supply previous)
-                                                    :amount (get-in previous [:meme-registry-db-values :deposit])}
-                                                   {:from account})
-
-      (.then #(swap! previous merge {:tx-hash %}))
-             )
-  )
+(defn create-meme [previous account]
+  (js/Promise.
+   (fn [res rej]
+     (promise-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash previous)
+                                                       :total-supply (:total-supply previous)
+                                                       :amount (get-in previous [:meme-registry-db-values :deposit])}
+                                                      {:from account})
+                (-> #(swap! previous assoc :tx-hash %))
+                #(res %)))))
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [#_scenarios #_(get-scenarios {:accounts accounts
@@ -107,21 +107,15 @@
                                       :scenarios scenarios})
         account (first accounts)
         previous (atom {})]
-    #_.catch
     (promise-> (upload-meme previous)
-               #(.foo %)
+               ;; #(.foo %)
                (upload-meme-meta previous)
                (get-meme-registry-db-values previous)
-               ;; (create-meme previous account)
+               (create-meme previous account)
 
 
-               #(prn "@end-chain result" %)
-               )
-    #_(fn [err]
-      (log/error "Promise rejected" {:error err} ::generate-memes))
-
-    )
-
+               #(log/info "End-chain result" % ::generate-memes)
+               ))
 
   #_(let [[max-total-supply max-auction-duration deposit commit-period-duration reveal-period-duration]
         (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-auction-duration :deposit :commit-period-duration
