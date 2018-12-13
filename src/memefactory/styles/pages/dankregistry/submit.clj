@@ -106,7 +106,7 @@
        [:button
         {:margin-right :auto
          :margin-left 0
-         :padding-top (em 0.5)
+         :padding-top (em 0.2)
          :font-size (px 12)}
         (button {:background-color :purple
                  :color :white

@@ -44,7 +44,17 @@
                      (c/color :purple))
     :border-radius "0 0 1em 1em"
     :text-align :center
-    :left (px 0)}])
+    :left (px 0)}
+   [:&:after
+    {:width (em 1)
+     :background-position "0 .3em"
+     :background-repeat "no-repeat"
+     :height (em 1)
+     :content "' '"
+     :background-size "1em,1em"
+     :margin-left (em 1)
+     :display "inline-block"
+     :background-image "url(/assets/icons/arrow-white-right.svg)"}]])
 
 (defn tag []
   [:&

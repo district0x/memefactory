@@ -15,14 +15,15 @@
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
    [taoensso.timbre :as log]
-   ))
+   [memefactory.ui.utils :as mf-utils]))
 
 (defn header []
   [:div.submit-info
    [:div.icon]
    [:h2.title "Dank registry - Submit"]
    [:h3.title "Lorem ipsum dolor sit ..."]
-   [:div.get-dank-button "Get Dank"]])
+   [:a {:href (mf-utils/path :route.get-dank/index)}
+    [:div.get-dank-button "Get Dank"]]])
 
 (defn param-search-query [param]
   [:search-param-changes {:key (graphql-utils/kw->gql-name param)
