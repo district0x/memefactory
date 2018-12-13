@@ -61,12 +61,9 @@
                              (reject err))
                            (do
                              (log/info (str "Uploaded " file " received") {:image-hash image-hash} ::upload-meme)
-                             (resolve (#_swap! #_previous assoc previous :image-hash image-hash)))))))))))))
+                             (resolve (assoc previous :image-hash image-hash)))))))))))))
 
 (defn upload-meme-meta [previous]
-
-  ;; (prn previous)
-
   (let [{:keys [image-hash]} previous
         meta-info (format/clj->json {:title "PepeSmile"
                                      :image-hash image-hash
@@ -84,16 +81,15 @@
               (reject err))
             (do
               (log/info "Uploaded meta received " {:meta-hash meta-hash} ::upload-meme-meta)
-              (resolve (#_swap! #_previous assoc previous :meta-hash meta-hash))))))))))
+              (resolve (assoc previous :meta-hash meta-hash))))))))))
 
 (defn get-meme-registry-db-values [previous]
   (let [meme-registry-db-keys [:max-total-supply :max-auction-duration :deposit :commit-period-duration :reveal-period-duration]]
     (promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
                #(let [meme-registry-db-values (zipmap meme-registry-db-keys (map bn/number %))]
-                  (#_swap! #_previous merge previous {:meme-registry-db-values meme-registry-db-values
+                  (merge previous {:meme-registry-db-values meme-registry-db-values
                                                       :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))))
 
-;; TODO : get registry-entry address
 (defn create-meme [previous account]
   (promise-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash previous)
                                                     :total-supply (:total-supply previous)
@@ -101,23 +97,26 @@
                                                    {:from account})
              #(wait-for-tx-receipt %)
              #(let [{{:keys [registry-entry creator]} :args} (registry/meme-constructed-event-in-tx [:meme-registry :meme-registry-fwd]
-                                                                                                      (:transaction-hash %))]
-
+                                                                                                    (:transaction-hash %))]
                 (assoc previous :meme {:registry-entry registry-entry
-                                       :creator creator})
-                )
+                                       :creator creator}))))
 
+(defn challenge-meme [previous account]
+  (promise-> (registry-entry/approve-and-create-challenge (get-in previous [:meme :registry-entry])
+                                                          {:meta-hash (:meta-hash previous)
+                                                           :amount (get-in previous [:meme-registry-db-values :deposit])}
+                                                          {:from account})
+             #(wait-for-tx-receipt %)
+             #(assoc previous :challenge-meme-tx (:transaction-hash %))))
 
-             #_#(assoc previous :create-meme-tx-receipt %)))
-
-
-#_(defn challenge-meme [previous]
-  (registry-entry/approve-and-create-challenge registry-entry
-                                               {:meta-hash meta-hash
-                                                :amount deposit}
-                                               {:from account})
-
-  )
+(defn commit-vote [previous account]
+  (promise-> (registry-entry/approve-and-commit-vote (get-in previous [:meme :registry-entry])
+                                                     {:amount 2
+                                                      :salt "abc"
+                                                      :vote-option :vote.option/vote-for}
+                                                     {:from account})
+             #(wait-for-tx-receipt %)
+             #(assoc previous :commit-vote-tx (:transaction-hash %))))
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [#_scenarios #_(get-scenarios {:accounts accounts
@@ -131,11 +130,13 @@
                #(upload-meme-meta %)
                #(get-meme-registry-db-values %)
                #(create-meme % account)
-               ;; (challenge-meme previous)
+               #(challenge-meme % account)
+               #(commit-vote % account)
+
+               #_(web3-evm/increase-time! @web3 [(inc commit-period-duration)])
+
 
                #(log/info "End-chain result" % ::generate-memes)
-
-
                ))
 
   #_(let [[max-total-supply max-auction-duration deposit commit-period-duration reveal-period-duration]
