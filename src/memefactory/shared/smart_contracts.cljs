@@ -1,4 +1,82 @@
 (ns memefactory.shared.smart-contracts)
 
 (def smart-contracts
-  {:district-config {:name "DistrictConfig" :address "0xe70e05502e3d410d1febce3b30943a0b271f5c04"} :ds-guard {:name "DSGuard" :address "0x93e502d9e1399523615cb52ba7d8eb3ecd885fca"} :param-change-registry {:name "ParamChangeRegistry" :address "0x5ee9e1a61cd9f18a627ae347535408ba766548be"} :param-change-registry-db {:name "EternalDb" :address "0xa52764345637369e82727d840abbf09ce163dd12"} :meme-registry-db {:name "EternalDb" :address "0xf4f0f4bf6492b456e5a400399f0196bd20b4d9d8"} :param-change {:name "ParamChange" :address "0x9aa3a6f9d343d31c37218cd8b32ae6d1b0fa6d96"} :minime-token-factory {:name "MiniMeTokenFactory" :address "0x78009f5ea37757abc5f1b54f57341faef381b255"} :meme-auction-factory {:name "MemeAuctionFactory" :address "0x3be7326106a0b0b66c1da129b84ab19cdf39802d"} :meme-auction {:name "MemeAuction" :address "0x5a63e8a636fb07d90a00c140970281089b401db4"} :param-change-factory {:name "ParamChangeFactory" :address "0xef4f6d37f3c678f5c3c7b93a543eacd69e6ae8be"} :param-change-registry-fwd {:name "MutableForwarder" :address "0x110df298adbbba0283db184c221e1573ac2e0e9c"} :meme-factory {:name "MemeFactory" :address "0x84a0259c3c87df92d5af85c2d743b70b8fadb9bb"} :meme-token {:name "MemeToken" :address "0x89e5a0fb169dbb1f6370481c1091fef34aa0bfa4"} :DANK {:name "DankToken" :address "0x53de2dc24a27918d6aa1f2eb7a3784ba6dd78e95"} :meme-registry {:name "Registry" :address "0xf18b47db266a06b878a2fad42190afb688447fe2"} :meme {:name "Meme" :address "0xe6305ce0348f9646ad4601725b383a3fb4f3f2f0"} :meme-registry-fwd {:name "MutableForwarder" :address "0xec75e590731c3bdb43f4fd76ff11f14e134f711b"} :meme-auction-factory-fwd {:name "MutableForwarder" :address "0x50cba6c1bcb59210f99c612c70bf4bc41176a5ef"} :district0x-emails {:name "District0xEmails" :address "0xbb123fed696a108f1586c21e67b2ef75f210b329"} :dank-faucet {:name "DankFaucet" :address "0x52f0ccca403414b2295ffa8eb52413c4d28fc381"}})
+  {:district-config
+   {:name "DistrictConfig",
+    :address
+    "0x6d17e855bcf02f6375170826e75de339eb5d1710"},
+   :ds-guard
+   {:name "DSGuard",
+    :address
+    "0x310e3bd824d1ff9f8d5f3fccea424e5887f857e0"},
+   :param-change-registry
+   {:name "ParamChangeRegistry",
+    :address
+    "0x352ff83aa7ce35897dd0e26d46e2eaaff47aac41"},
+   :param-change-registry-db
+   {:name "EternalDb",
+    :address
+    "0xa8ddce84ddbf4306e9feedca35b2dde6e7793796"},
+   :meme-registry-db
+   {:name "EternalDb",
+    :address
+    "0x06ff0e4651e72341377cfbbc469e7f41502b29ab"},
+   :param-change
+   {:name "ParamChange",
+    :address
+    "0x6bcc7b4468223ecafc8f61bd8a0cfee6b56aa190"},
+   :minime-token-factory
+   {:name "MiniMeTokenFactory",
+    :address
+    "0x74bf1a929108427ae218fdda45b1eaabaeebe377"},
+   :meme-auction-factory
+   {:name "MemeAuctionFactory",
+    :address
+    "0x28aefc7cb05f54e7e53db08ffe1a95ac3af275ae"},
+   :meme-auction
+   {:name "MemeAuction",
+    :address
+    "0xa2e3761ecd114ff3284a7053816f8b68de0ba64f"},
+   :param-change-factory
+   {:name "ParamChangeFactory",
+    :address
+    "0xf0f726a39cecae438d4aa29be8dcbbc1501e68f5"},
+   :param-change-registry-fwd
+   {:name "MutableForwarder",
+    :address
+    "0xafdacb6c0e36fe9a77cc51ff938d824dfccbfb09"},
+   :meme-factory
+   {:name "MemeFactory",
+    :address
+    "0xb861eb6ab861dc84a59215957857617ceb934bfc"},
+   :meme-token
+   {:name "MemeToken",
+    :address
+    "0xad42dca97dfd67ec64e2d411aa7aab647ec25610"},
+   :DANK
+   {:name "DankToken",
+    :address
+    "0x9274b3c3cdd5818d842a9e27a440ce04b2e1fc50"},
+   :meme-registry
+   {:name "Registry",
+    :address
+    "0xe7a5c1d0a0a164ee74232393131d8fc8ac9e1d36"},
+   :meme
+   {:name "Meme",
+    :address
+    "0x19a9c695b22265532e36b10596702f1627807bae"},
+   :meme-registry-fwd
+   {:name "MutableForwarder",
+    :address
+    "0x33a3035f15e61ebbf230b54e7fea2e4b908fe330"},
+   :district0x-emails
+   {:name "District0xEmails",
+    :address
+    "0x4d293db4ac1db2ae2c18854756ff0047fc05b1af"},
+   :meme-auction-factory-fwd
+   {:name "MutableForwarder",
+    :address
+    "0x7712f2814de26eb719c2818c3f8c9cf0254d95d1"}
+   :dank-faucet
+   {:name "DankFaucet"
+    :address "0x56f0768DA6A7BE002A06B59Aea24f702C1055d9B"}})

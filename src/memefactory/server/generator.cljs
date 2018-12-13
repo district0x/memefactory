@@ -93,21 +93,25 @@
                   (#_swap! #_previous merge previous {:meme-registry-db-values meme-registry-db-values
                                                       :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))))
 
-;; TODO : get registry-entry
+;; TODO : get registry-entry address
 (defn create-meme [previous account]
-  (promise-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash (look previous))
+  (promise-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash previous)
                                                     :total-supply (:total-supply previous)
                                                     :amount (get-in previous [:meme-registry-db-values :deposit])}
                                                    {:from account})
-
              #(wait-for-tx-receipt %)
+             #(let [{{:keys [registry-entry creator]} :args} (registry/meme-constructed-event-in-tx [:meme-registry :meme-registry-fwd]
+                                                                                                      (:transaction-hash %))]
 
-             #(prn "@THENABLE" %)
+                (assoc previous :meme {:registry-entry registry-entry
+                                       :creator creator})
+                )
 
-               ))
+
+             #_#(assoc previous :create-meme-tx-receipt %)))
+
 
 #_(defn challenge-meme [previous]
-
   (registry-entry/approve-and-create-challenge registry-entry
                                                {:meta-hash meta-hash
                                                 :amount deposit}
