@@ -192,60 +192,46 @@
          (println method (.toLocaleString gas-used) (if (zero? status) "failed" "")))
        gas-used))))
 
+(defn flatten-1
+  "Flattens only the first level of a given sequence, e.g. [[1 2][3]] becomes
+   [1 2 3], but [[1 [2]] [3]] becomes [1 [2] 3]."
+  [seq]
+  (if (or (not (seqable? seq)) (nil? seq))
+    seq ; if seq is nil or not a sequence, don't do anything
+    (loop [acc [] [elt & others] seq]
+      (if (nil? elt) acc
+        (recur
+          (if (seqable? elt)
+            (apply conj acc elt) ; if elt is a sequence, add each element of elt
+            (conj acc elt))      ; if elt is not a sequence, add elt itself directly
+          others)))))
 
-  ;; "
-  ;; # arguments:
-  ;; ## `contract` parameter can be one of:
-  ;; * keyword :some-contract
-  ;; * tuple of keyword and address [:some-contract 0x1234...]
-  ;; * instance SomeContract
-  ;; ## `method` is a :camel_case keyword corresponding to the smart-contract function
-  ;; ## `args` is a vector of arguments for the `method`
-  ;; ## `opts` is a map of options
+(defn contract-call
+  "# arguments:
+   ## `contract` parameter can be one of:
+   * keyword :some-contract
+   * tuple of keyword and address [:some-contract 0x1234...]
+   * instance SomeContract
+   ## `method` is a :camel_case keyword corresponding to the smart-contract function
+   ## `args` is a vector of arguments for the `method`
+   ## `opts` is a map of options
+   # returns:
+   function returns a Promise"
+  ([contract method args {:keys [:from :gas] :as opts}]
+   (let [contract-instance (instance-from-arg contract)]
+     (js/Promise. (fn [resolve reject]
 
-  ;; # returns:
-  ;; function returns a Promise
-  ;; "
+                    (prn {:args args})
 
-(defn contract-call [contract method & args
-                     ;; & [{:keys [:from :gas] :as opts}]
-                     ]
-
-  (let [contract-instance (instance-from-arg contract)
-        ;; last-arg (last args)
-        ;; args (if (and (map? last-arg)
-        ;;               (not (:from last-arg)))
-        ;;        (concat (butlast args) [(merge last-arg {:from (first (web3-eth/accounts @web3))})])
-        ;;        args)
-        ]
-
-    (prn {:ins contract-instance :m method :a args :o nil #_opts })
-
-    ;; (js-keys contract)
-
-    (js/Promise. (fn [resolve reject]
-
-
-                   #_(resolve (apply web3-eth/contract-call contract-instance method args))
-
-                   (apply web3-eth/contract-call contract-instance method
-
-                    ["0xb861eb6ab861dc84a59215957857617ceb934bfc" 1000000000000000000 "0x1eb4ba7b000000000000000000000000c4e0b92df2de77c077d060e49ec63dc19698071600000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000002e516d57697036626431685a5871584d69777a674e6b53386476594d68375a443956636a634c536f6f794571783146000000000000000000000000000000000000"
-
-                     {:gas 1200000, :from "0xc4e0b92df2de77c077d060e49ec63dc196980716"}
-
-                     (fn [err data]
-                       (if err
-                         (reject err)
-                         (resolve data)))]
-
-                    )
-
-))
-
-    ))
-
-
+                    (apply web3-eth/contract-call contract-instance method
+                           (merge args
+                                  opts
+                                  (fn [err data]
+                                    (if err
+                                      (reject err)
+                                      (resolve data)))))))))
+  ([contract method args]
+   (contract-call contract method args {:from (first (web3-eth/accounts @web3))}) ))
 
 #_(defn contract-call* [contract-key method & args]
   "contract-key parameter can be one of:

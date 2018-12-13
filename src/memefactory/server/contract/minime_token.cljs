@@ -4,10 +4,7 @@
     [district.server.smart-contracts :refer [contract-call]]))
 
 (defn approve-and-call [contract-key {:keys [:spender :amount :extra-data]} & [opts]]
-
-
-
-  (contract-call contract-key :approve-and-call spender (bn/number amount) extra-data (merge {:gas 4000000} opts)))
+  (contract-call contract-key :approve-and-call [spender (bn/number amount) extra-data] (merge {:gas 4000000} opts)))
 
 (defn approve [contract-key {:keys [:spender :amount]} & [opts]]
   #_(contract-call contract-key :approve spender (bn/number amount) (merge {:gas 1000000} opts)))

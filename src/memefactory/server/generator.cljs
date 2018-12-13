@@ -96,22 +96,21 @@
         previous (atom {})
         meme-registry-db-keys [:max-total-supply :max-auction-duration :deposit :commit-period-duration :reveal-period-duration]]
     (.catch
-     (promise-> #_(upload-meme previous)
-                #_#(upload-meme-meta previous)
-                #_(promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
+     (promise-> (upload-meme previous)
+                #(upload-meme-meta previous)
+                (promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
                            #(let [meme-registry-db-values (zipmap meme-registry-db-keys
                                                                   (map bn/number %))]
-                              (swap! previous merge {:meme-registry-db-values meme-registry-db-values
-                                                     :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values )))
-                                                     ;; :amount (:deposit meme-registry-db-values)
-                                                     })))
 
-                (meme-factory/approve-and-create-meme {:meta-hash "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F" #_(:meta-hash %)
-                                                        :total-supply 8 #_(:total-supply %)
-                                                        :amount 1000000000000000000, #_(get-in % [:meme-registry-db-values :deposit])}
+                              (swap! previous merge {:meme-registry-db-values meme-registry-db-values
+                                                     :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))
+
+                (promise-> (meme-factory/approve-and-create-meme {:meta-hash "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F" #_(:meta-hash %)
+                                                         :total-supply 8 #_(:total-supply %)
+                                                         :amount 1000000000000000000, #_(get-in % [:meme-registry-db-values :deposit])}
                                                        {:from account})
 
-                #_(.then #(prn "@resp" %))
+                 #(swap! previous merge {:tx-hash %}))
 
 
       #(prn "@end-chain result" %)
