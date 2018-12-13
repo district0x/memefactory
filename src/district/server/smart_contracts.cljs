@@ -11,33 +11,22 @@
             [district.server.config :refer [config]]
             [district.server.web3 :refer [web3]]
             [mount.core :as mount :refer [defstate]])
-  (:require-macros [cljs.core.async.macros :refer [go-loop]]))
-
-(declare start)
-
-(defstate smart-contracts :start (start (merge (:smart-contracts @config)
-                                               (:smart-contracts (mount/args)))))
+  (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
 (def fs (nodejs/require "fs"))
 (def process (nodejs/require "process"))
-#_(def deasync (nodejs/require "deasync"))
-
 
 (defn contract [contract-key]
   (get @(:contracts @smart-contracts) contract-key))
 
-
 (defn contract-address [contract-key]
   (:address (contract contract-key)))
-
 
 (defn contract-name [contract-key]
   (:name (contract contract-key)))
 
-
 (defn contract-abi [contract-key]
   (:abi (contract contract-key)))
-
 
 (defn contract-bin [contract-key]
   (:bin (contract contract-key)))
@@ -51,7 +40,6 @@
    (web3-eth/contract-at @web3 (contract-abi contract-key) (if (keyword? contract-key-or-addr)
                                                              (contract-address contract-key-or-addr)
                                                              contract-key-or-addr))))
-
 
 (defn update-contract! [contract-key contract]
   (swap! (:contracts @smart-contracts) update contract-key merge contract))
@@ -182,17 +170,7 @@
     (sequential? contract) (instance (first contract) (second contract))
     :else contract))
 
-#_(defn- handle-contract-call
-  ([method tx-hash]
-   (handle-contract-call method tx-hash false))
-  ([method tx-hash print-gas-usage?]
-   (let [{:keys [:gas-used :block-number :status]} (web3-eth/get-transaction-receipt @web3 tx-hash)]
-     (when (and gas-used block-number)
-       (when print-gas-usage?
-         (println method (.toLocaleString gas-used) (if (zero? status) "failed" "")))
-       gas-used))))
-
-(defn flatten-1
+#_(defn flatten-1
   "Flattens only the first level of a given sequence, e.g. [[1 2][3]] becomes
    [1 2 3], but [[1 [2]] [3]] becomes [1 [2] 3]."
   [seq]
@@ -205,6 +183,42 @@
             (apply conj acc elt) ; if elt is a sequence, add each element of elt
             (conj acc elt))      ; if elt is not a sequence, add elt itself directly
           others)))))
+
+#_(defn- handle-contract-call
+  ([method tx-hash]
+   (handle-contract-call method tx-hash false))
+  ([method tx-hash print-gas-usage?]
+   (let [{:keys [:gas-used :block-number :status]} (web3-eth/get-transaction-receipt @web3 tx-hash)]
+     (when (and gas-used block-number)
+       (when print-gas-usage?
+         (println method (.toLocaleString gas-used) (if (zero? status) "failed" "")))
+       gas-used))))
+
+;; TODO : add alts for definite timeout (or # of retries)
+(defn wait-for-tx-receipt
+  "callback is a nodejs style callback i.e. (fn [error data] ...)"
+  [tx-hash callback]
+  (web3-eth/get-transaction-receipt @web3 tx-hash (fn [error receipt]
+                                                    (if error
+                                                      (callback error nil)
+
+                                                      (go
+                                                        (if receipt
+                                                          (callback nil receipt)
+
+                                                          (do
+                                                            ;; try again in 1K millis
+                                                            (<! (timeout 1000))
+                                                            (wait-for-tx-receipt tx-hash callback))
+
+
+                                                           ))
+
+
+                                                      )))
+
+
+  )
 
 (defn contract-call
   "# arguments:
@@ -329,3 +343,6 @@
 
     (aset event-filter "stopWatching" #(reset! stopped? true)) ;; So we can detect stopWatching was called
     event-filter))
+
+(defstate smart-contracts :start (start (merge (:smart-contracts @config)
+                                               (:smart-contracts (mount/args)))))
