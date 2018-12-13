@@ -61,10 +61,13 @@
                              (reject err))
                            (do
                              (log/info (str "Uploaded " file " received") {:image-hash image-hash} ::upload-meme)
-                             (resolve (swap! previous assoc :image-hash image-hash)))))))))))))
+                             (resolve (#_swap! #_previous assoc previous :image-hash image-hash)))))))))))))
 
 (defn upload-meme-meta [previous]
-  (let [{:keys [image-hash]} @previous
+
+  ;; (prn previous)
+
+  (let [{:keys [image-hash]} previous
         meta-info (format/clj->json {:title "PepeSmile"
                                      :image-hash image-hash
                                      :search-tags ["pepe" "frog" "dank"]
@@ -81,37 +84,27 @@
               (reject err))
             (do
               (log/info "Uploaded meta received " {:meta-hash meta-hash} ::upload-meme-meta)
-              (resolve (swap! previous assoc :meta-hash meta-hash))))))))))
+              (resolve (#_swap! #_previous assoc previous :meta-hash meta-hash))))))))))
 
 (defn get-meme-registry-db-values [previous]
   (let [meme-registry-db-keys [:max-total-supply :max-auction-duration :deposit :commit-period-duration :reveal-period-duration]]
     (promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
-        #(let [meme-registry-db-values (zipmap meme-registry-db-keys (map bn/number %))]
-           (swap! previous merge {:meme-registry-db-values meme-registry-db-values
-                                  :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))))
+               #(let [meme-registry-db-values (zipmap meme-registry-db-keys (map bn/number %))]
+                  (#_swap! #_previous merge previous {:meme-registry-db-values meme-registry-db-values
+                                                      :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))))
 
-;; TODO :get registry-entry
+;; TODO : get registry-entry
 (defn create-meme [previous account]
-  (js/Promise.
-   (fn [resolve reject]
-     (promise-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash previous)
-                                                       :total-supply (:total-supply previous)
-                                                       :amount (get-in previous [:meme-registry-db-values :deposit])}
-                                                      {:from account})
+  (promise-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash (look previous))
+                                                    :total-supply (:total-supply previous)
+                                                    :amount (get-in previous [:meme-registry-db-values :deposit])}
+                                                   {:from account})
 
-                #(wait-for-tx-receipt % (fn [error receipt]
+             #(wait-for-tx-receipt %)
 
-                                          (if error
-                                            (log/error "Error" {:error error} ::create-meme)
-                                            (log/info "Receipt" {:tx receipt}))
+             #(prn "@THENABLE" %)
 
-                                          ))
-
-               #_ (-> #(swap! previous assoc :create-meme-tx-hash %))
-                #_#(resolve %)
-
-
-                ))))
+               ))
 
 #_(defn challenge-meme [previous]
 
@@ -128,12 +121,12 @@
                                       :items-per-account items-per-account
                                       :scenarios scenarios})
         account (first accounts)
-        previous (atom {})]
+        previous {}]
     (promise-> (upload-meme previous)
                ;; #(.foo %)
-               (upload-meme-meta previous)
-               (get-meme-registry-db-values previous)
-               (create-meme previous account)
+               #(upload-meme-meta %)
+               #(get-meme-registry-db-values %)
+               #(create-meme % account)
                ;; (challenge-meme previous)
 
                #(log/info "End-chain result" % ::generate-memes)

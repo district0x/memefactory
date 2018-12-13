@@ -16,6 +16,11 @@
 (def fs (nodejs/require "fs"))
 (def process (nodejs/require "process"))
 
+(declare start)
+
+(defstate smart-contracts :start (start (merge (:smart-contracts @config)
+                                               (:smart-contracts (mount/args)))))
+
 (defn contract [contract-key]
   (get @(:contracts @smart-contracts) contract-key))
 
@@ -195,30 +200,26 @@
        gas-used))))
 
 ;; TODO : add alts for definite timeout (or # of retries)
-(defn wait-for-tx-receipt
+(defn- wait-for-tx-receipt*
   "callback is a nodejs style callback i.e. (fn [error data] ...)"
   [tx-hash callback]
   (web3-eth/get-transaction-receipt @web3 tx-hash (fn [error receipt]
                                                     (if error
                                                       (callback error nil)
-
                                                       (go
                                                         (if receipt
                                                           (callback nil receipt)
-
                                                           (do
                                                             ;; try again in 1K millis
                                                             (<! (timeout 1000))
-                                                            (wait-for-tx-receipt tx-hash callback))
+                                                            (wait-for-tx-receipt* tx-hash callback))))))))
 
-
-                                                           ))
-
-
-                                                      )))
-
-
-  )
+(defn wait-for-tx-receipt [tx-hash]
+  (js/Promise. (fn [resolve reject]
+                 (wait-for-tx-receipt* tx-hash (fn [err data]
+                                                 (if err
+                                                   (reject err)
+                                                   (resolve data)))))))
 
 (defn contract-call
   "# arguments:
@@ -343,6 +344,3 @@
 
     (aset event-filter "stopWatching" #(reset! stopped? true)) ;; So we can detect stopWatching was called
     event-filter))
-
-(defstate smart-contracts :start (start (merge (:smart-contracts @config)
-                                               (:smart-contracts (mount/args)))))
