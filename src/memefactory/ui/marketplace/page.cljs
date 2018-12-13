@@ -43,6 +43,7 @@
                 [:meme/title
                  :reg-entry/address
                  :meme/image-hash
+                 :meme/number
                  :meme/total-minted]]]]]]]])
 
 (defn marketplace-tiles [form-data auctions-search]

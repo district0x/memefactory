@@ -86,7 +86,7 @@
          [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                              nil
                                              {:reg-entry/address (-> meme-token :meme-token/meme :reg-entry/address)}])}
-          [:div.token-id (str "#"(-> meme-token :meme-token/token-id))]
+          [:div.token-id (str "#"(-> meme-token :meme-token/meme :meme/number))]
           [:div.title (-> meme-token :meme-token/meme :meme/title)]
           [:div.number-minted (str (:meme-token/number meme-token)
                                    "/"

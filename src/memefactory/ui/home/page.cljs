@@ -53,7 +53,8 @@
                             [:reg-entry/address
                              :meme/title
                              :meme/image-hash
-                             :meme/total-minted]]]]])
+                             :meme/total-minted
+                             :meme/number]]]]])
 
 (def new-on-marketplace-query
   [:search-meme-auctions
