@@ -83,40 +83,42 @@
               (log/info "Uploaded meta received " {:meta-hash meta-hash} ::upload-meme-meta)
               (resolve (swap! previous assoc :meta-hash meta-hash))))))))))
 
-#_(defn promisify [v]
-  (js/Promise.resolve v))
+(defn get-meme-registry-db-values [previous]
+  (let [meme-registry-db-keys [:max-total-supply :max-auction-duration :deposit :commit-period-duration :reveal-period-duration]]
+    (promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
+        #(let [meme-registry-db-values (zipmap meme-registry-db-keys (map bn/number %))]
+           (swap! previous merge {:meme-registry-db-values meme-registry-db-values
+                                  :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))))
 
-;; TODO .catch
+#_(defn create-meme [previous account]
+  (-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash previous)
+                                                    :total-supply (:total-supply previous)
+                                                    :amount (get-in previous [:meme-registry-db-values :deposit])}
+                                                   {:from account})
+
+      (.then #(swap! previous merge {:tx-hash %}))
+             )
+  )
+
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [#_scenarios #_(get-scenarios {:accounts accounts
                                       :use-accounts use-accounts
                                       :items-per-account items-per-account
                                       :scenarios scenarios})
         account (first accounts)
-        previous (atom {})
-        meme-registry-db-keys [:max-total-supply :max-auction-duration :deposit :commit-period-duration :reveal-period-duration]]
-    (.catch
-     (promise-> (upload-meme previous)
-                #(upload-meme-meta previous)
-                (promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
-                           #(let [meme-registry-db-values (zipmap meme-registry-db-keys
-                                                                  (map bn/number %))]
-
-                              (swap! previous merge {:meme-registry-db-values meme-registry-db-values
-                                                     :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))
-
-                (promise-> (meme-factory/approve-and-create-meme {:meta-hash "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F" #_(:meta-hash %)
-                                                         :total-supply 8 #_(:total-supply %)
-                                                         :amount 1000000000000000000, #_(get-in % [:meme-registry-db-values :deposit])}
-                                                       {:from account})
-
-                 #(swap! previous merge {:tx-hash %}))
+        previous (atom {})]
+    #_.catch
+    (promise-> (upload-meme previous)
+               #(.foo %)
+               (upload-meme-meta previous)
+               (get-meme-registry-db-values previous)
+               ;; (create-meme previous account)
 
 
-      #(prn "@end-chain result" %)
-      )
-     (fn [err]
-       (log/error "Promise rejected" {:error err} ::generate-memes)))
+               #(prn "@end-chain result" %)
+               )
+    #_(fn [err]
+      (log/error "Promise rejected" {:error err} ::generate-memes))
 
     )
 
