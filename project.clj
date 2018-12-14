@@ -18,7 +18,6 @@
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.3"]
                  [district0x/district-encryption "1.0.0"]
-                 [district0x/district-format "1.0.0"]
                  [district0x/district-graphql-utils "1.0.5"]
                  [district0x/district-sendgrid "1.0.0"]
                  [district0x/district-server-config "1.0.1"]
@@ -52,7 +51,7 @@
                  [district0x/district-ui-web3-tx-log "1.0.3-SNAPSHOT"]
                  [district0x/district-ui-window-size "1.0.1"]
                  [district0x/district-web3-utils "1.0.2"]
-                 [district0x/district-format "1.0.1"]
+                 [district0x/district-format "1.0.3"]
                  [district0x/district-time "1.0.0"]
                  [district0x/re-frame-ipfs-fx "0.0.2"]
                  [district0x/cljs-ipfs-native "0.0.5-SNAPSHOT"]
@@ -192,9 +191,9 @@
                         :compiler {:main "memefactory.ui.core"
                                    :output-to "resources/public/js/compiled/app.js"
                                    :optimizations :advanced
-                                   :pretty-print false
-                                   :pseudo-names false
-                                   :closure-defines {"goog.DEBUG" false
+                                   :pretty-print true
+                                   :pseudo-names true
+                                   :closure-defines {"goog.DEBUG" true
                                                      memefactory.ui.core.environment "prod"}}}
                        {:id "server-tests"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
