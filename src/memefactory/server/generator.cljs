@@ -44,7 +44,7 @@
 
 (defn upload-meme [previous]
   (let [file "resources/dev/pepe.png"]
-    (log/info "Uploading" file ::upload-meme)
+    (log/info "Uploading file" {:path file} ::upload-meme)
     (js/Promise.
      (fn [resolve reject]
        (.readFile fs
@@ -63,7 +63,7 @@
                              (log/info (str "Uploaded " file " received") {:image-hash image-hash} ::upload-meme)
                              (resolve (assoc previous :image-hash image-hash)))))))))))))
 
-(defn upload-meme-meta [{:keys [image-hash] :as previous}]
+(defn upload-meme-meta [{:keys [:image-hash] :as previous}]
   (let [meta-info (format/clj->json {:title "PepeSmile"
                                      :image-hash image-hash
                                      :search-tags ["pepe" "frog" "dank"]
@@ -169,7 +169,7 @@
              #(wait-for-tx-receipt %)
              #(assoc previous :buy-tx (:transaction-hash %))))
 
-(defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
+(defn generate-memes [{:keys [:accounts]}]
   (let [account (first accounts)
         previous {}]
     (promise-> (upload-meme previous)
@@ -186,13 +186,44 @@
                #(mint-meme-tokens % account)
                #(start-auction % account)
                #(buy-auction % account)
-               #(log/info "Generate memes result" % ::generate-memes))))
+               #(log/info "Generate meme result" % ::generate-memes))))
+
+(defn get-param-change-registry-db-values [previous]
+  (let [param-change-registry-db-keys [:deposit :challenge-period-duration]]
+      (promise-> (eternal-db/get-uint-values :param-change-registry-db param-change-registry-db-keys)
+                 #(let [param-change-registry-db-values (zipmap param-change-registry-db-keys (map bn/number %))]
+                    (merge previous {:param-change-registry-db-values param-change-registry-db-values})))))
+
+;; {:param-change-registry-db-values
+;;  {:deposit 1000000000000000000, :challenge-period-duration 600}}
+
+;; TODO : reverts
+(defn create-param-change [{{:keys [:deposit]} :param-change-registry-db-values :as previous} db db-key account]
+  (promise-> (param-change-factory/approve-and-create-param-change
+              {:db (contract-address :meme-registry-db #_db)
+               :key :deposit #_db-key
+               :value (web3/to-wei 800 :ether)
+               :amount 1000000000000000000 #_deposit}
+              {:from account})
+
+             #(wait-for-tx-receipt %)
+             #(assoc previous :tx (:transaction-hash %))
+
+             ))
 
 ;; TODO : refactor to promises
-(defn generate-param-changes [{:keys [:accounts
-                                      :param-changes/use-accounts
-                                      :param-changes/items-per-account
-                                      :param-changes/scenarios]}]
+(defn generate-param-changes [{:keys [:accounts]}]
+  (let [account (first accounts)
+        previous {}
+        db (rand-nth [:param-change-registry-db :meme-registry-db])
+        db-key :deposit]
+    (promise-> (get-param-change-registry-db-values previous)
+               #(create-param-change % db db-key account)
+
+
+               #(log/info "End chain result" % ::generate-param-changes)
+               ))
+
 #_  (let [[deposit challenge-period-duration] (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
                                                  (map bn/number))]
     (doseq [[account {:keys [:scenario-type :param-change-db]}] (get-scenarios {:accounts accounts

@@ -14,7 +14,6 @@
             [district.server.db :as db]
             [district.server.graphql :as graphql]
             [district.server.graphql.utils :as utils]
-            [memefactory.server.utils :as server-utils]
             [district.server.logging :refer [logging]]
             [district.server.middleware.logging :refer [logging-middlewares]]
             [district.server.smart-contracts]
@@ -26,26 +25,21 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
+            [memefactory.server.emailer]
+            [memefactory.server.emailer]
             [memefactory.server.generator :as generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
-            [memefactory.server.emailer]
             [memefactory.server.ipfs]
-            [memefactory.server.syncer]
             [memefactory.server.macros :refer [defer]]
+            [memefactory.server.macros :refer [promise->]]
             [memefactory.server.ranks-cache]
+            [memefactory.server.syncer]
+            [memefactory.server.utils :as server-utils]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.smart-contracts]
             [mount.core :as mount]
-            [taoensso.timbre :as log]
             [print.foo :refer [look] :include-macros true]
-            [memefactory.server.emailer]
-
-            ;; DEBUG
-            ;; [district.server.smart-contracts :refer [contract-call]]
-            ;; [camel-snake-kebab.core :as cs :include-macros true]
-            ;; [cljs-solidity-sha3.core :refer [solidity-sha3]]
-
-            ))
+            [taoensso.timbre :as log]))
 
 (nodejs/enable-util-print!)
 
@@ -93,27 +87,10 @@
                    :param-changes/items-per-account 1
                    :param-changes/scenarios []})
               {:accounts (web3-eth/accounts @web3)})]
-
-    (prn "@@TYPE?" (memefactory.server.generator/generate-memes opts))
-    ;; TODO: param changes
-
-    )
-
-  ;; (defer
-  ;;   (let [opts (merge
-  ;;               (or (:generator @config)
-  ;;                   {:memes/use-accounts 1
-  ;;                    :memes/items-per-account 10
-  ;;                    :memes/scenarios [:scenario/buy]
-  ;;                    :param-changes/use-accounts 1
-  ;;                    :param-changes/items-per-account 1
-  ;;                    :param-changes/scenarios []})
-  ;;               {:accounts (web3-eth/accounts @web3)})]
-  ;;     (memefactory.server.generator/generate-memes opts)
-  ;;     (memefactory.server.generator/generate-param-changes opts))
-  ;;   (log/info "Finished generating data" ::generate-data))
-
-  )
+    ;; TODO : doseq ?
+    (promise-> (memefactory.server.generator/generate-memes opts)
+               #(memefactory.server.generator/generate-param-changes opts)
+               #(log/info "Finished generating data" ::generate-data))))
 
 (defn resync []
   (log/warn "Syncing internal database, please be patient..." ::resync)

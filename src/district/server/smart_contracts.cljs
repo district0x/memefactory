@@ -205,13 +205,13 @@
    * instance SomeContract
    ## `method` is a :camel_case keyword corresponding to the smart-contract function
    ## `args` is a vector of arguments for the `method`
-   ## `opts` is a map of options
+   ## `opts` is a map of options passed as message data
    # returns:
    function returns a Promise"
   ([contract method args {:keys [:from :gas] :as opts}]
    (let [contract-instance (instance-from-arg contract)]
 
-     (prn {:f from :g gas :a args})
+     (prn {:f from :g gas :a args :o opts :c contract :m method})
 
      (js/Promise. (fn [resolve reject]
                     (apply web3-eth/contract-call contract-instance method
