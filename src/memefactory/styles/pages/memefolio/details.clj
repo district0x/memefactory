@@ -81,16 +81,13 @@
      :border-width (px inner-radius)}]
    [:.address (of-ellipsis)]
    [:section.meme-detail
-    (for-media-max :tablet
-                   [:&
-                    {:padding-right (em 1)
-                     :padding-left (em 1)}])
+
     [:.meme-info
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"
       :display :grid
-      :grid-template-columns "40% 60%"
+      :grid-template-columns "30% 70%"
       :grid-template-rows "100%"
       :position :relative
       :padding (em 1.4)}
@@ -111,7 +108,7 @@
        :font-size (em 1.1)
        :border-radius "0em 0em 1em 1em"
        :background-color (color :yellow)
-       :box-shadow ".3em .3em .3em 0px lightgrey"}]
+       :box-shadow ".3em .3em .3em 0px #eff5ff"}]
      [:.registry
       {:padding (em 1)}
       [:h1
@@ -144,6 +141,8 @@
       [:.description, :.text
        {:color (color :menu-text)}]
       [:.tags
+       {:margin-top (em 1)
+        :margin-bottom (em 0.5)}
        [:button (tag)
         {:color (color :menu-text)}]]
       [:.buttons
@@ -153,7 +152,7 @@
                        {:flex-direction :column}])
        [:button.search
         (button {:color :meme-buy-button
-                 :height (em 3)})
+                 :height (em 2.7)})
         (for-media-max :tablet
                        [:&
                         {:min-width (em 15)}])
@@ -167,10 +166,6 @@
    [:section.history
     {:color (color :menu-text)
      :margin-top (em 3)}
-    (for-media-max :tablet
-                   [:&
-                    {:padding-right (em 1)
-                     :padding-left (em 1)}])
     [:.history-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -193,6 +188,7 @@
        :margin-bottom (em 0.1)
        :text-align :center}]
      [:table
+      {:overflow-y :scroll}
       (for-media-max :tablet
                      [:&
                       {:max-height (em 30)
@@ -232,12 +228,12 @@
                       [:&
                        {:display :none}])
        [:tr
+        {:height (em 2.2)}
         [:th
          {:text-align :left
+          :padding-top 0
           :cursor :pointer
           :padding-left (em 0.5)
-          :padding-top (em 0.4)
-          :padding-bottom (em 0.4)
           :background-color (color :table-header-bg)}]]]
       [:tbody
        [:tr
@@ -291,10 +287,6 @@
        :padding-bottom (em 1)}]]]
    [:section.challenge
     {:margin-top (em 3)}
-    (for-media-max :tablet
-                   [:&
-                    {:padding-right (em 1)
-                     :padding-left (em 1)}])
     [:h1.title
      (font :bungee)
      (for-media-max :tablet
@@ -413,10 +405,6 @@
       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
    [:section.related
     {:margin-top (em 3)}
-    (for-media-max :tablet
-                   [:&
-                    {:padding-right (em 1)
-                     :padding-left (em 1)}])
     [:.relateds-panel
      (panel-with-icon {:url "/assets/icons/network.svg"
                        :color (color :redish)})

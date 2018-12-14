@@ -51,6 +51,7 @@
        :flex-wrap :wrap}
       [:.user-tile
        {:min-width (em 18)}
+       [:ul {:line-height (em 2)}]
        ["> *"
         {:display :block
          :margin-bottom (em 0.5)

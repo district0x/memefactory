@@ -34,6 +34,7 @@
                                                 :gas 6000000}
                                       :tx-id {:meme/create-meme tx-id}
                                       :tx-log {:name tx-name}
+                                      :on-tx-hash-n [[::notification-events/show (gstring/format "Your meme was successfully submitted")]]
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::create-meme]
                                                         [::notification-events/show (gstring/format "Meme created with meta hash %s" Hash)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error") {:user {:id active-account}

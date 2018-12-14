@@ -17,7 +17,7 @@
 (reg-event-fx
  ::buy
  [interceptors]
- (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :value] :as args}]]
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :meme/title :value] :as args}]]
    (let [tx-name "Buy"
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-auction address)
@@ -29,7 +29,7 @@
                                       :tx-id {:meme-auction/buy id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::buy]
-                                                        [::notification-events/show (gstring/format "Auction %s is now yours" address)]]
+                                                        [::notification-events/show (gstring/format "Auction %s is now yours" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :value value}

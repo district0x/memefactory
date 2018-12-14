@@ -17,7 +17,7 @@
      (panel-with-icon {:url "/assets/icons/mysettings.svg"
                        :color :sky-blue})
     [:.icon {:background-size [(em 2) (em 2)]}]
-    [:.form {:font-size (px 17)
+    [:.form {:font-size (px 14)
              :margin (em 2)}]
     [:.footer
       (get-dank-button)]]])

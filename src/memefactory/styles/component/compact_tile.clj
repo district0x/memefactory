@@ -27,6 +27,7 @@
     :height (px card-height)
     :perspective (px 10000)}
    [:.meme-card
+    {:cursor :pointer}
     [:&.front :&.back
      {:transition "transform .7s cubic-bezier(0.4, 0.2, 0.2, 1)"}]
     [:&.front
@@ -70,7 +71,7 @@
      :height (px card-height)}]
    [:.overlay {:position :absolute
                ;; :background-color (color :meme-bg)
-               :background (str "linear-gradient(to bottom, " (color :meme-bg) " 0%," (color :meme-bg) " 75%," (color :meme-bg-bottom) " 75%," (color :meme-bg-bottom) " 100%)")
+               :background (str "linear-gradient(to bottom, " (color :meme-bg) " 0%," (color :meme-bg) " 80%," (color :meme-bg-bottom) " 80%," (color :meme-bg-bottom) " 100%)")
                :border-radius "1em"
                :top (px 0)
                :bottom (px 0)
@@ -98,7 +99,8 @@
        :left 0
        :margin-right :auto
        :margin-left :auto
-       :position "absolute"}
+       :position "absolute"
+       :bottom (em 1.8)}
       (button {:background-color :meme-buy-button
                :color :light-light-grey
                :width (em 9)

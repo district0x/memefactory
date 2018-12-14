@@ -38,7 +38,7 @@
                       :width "75%"})
      {:margin-left :auto
       :margin-right :auto
-      :margin-top (em 1.5)}]]])
+      :margin-top (em 2)}]]])
 
 (defstyles core
   details/core
@@ -204,7 +204,8 @@
      ;;  :justify-content :space-evenly}
      [:.footer {:text-align :center
                 :color (color :meme-tile-footer)
-                :cursor :pointer}
+                :cursor :pointer
+                :line-height (em 1.5)}
       [:.status {:font-weight :bold
                  :font-style :italic}]]
      [:.issue-form {:text-align :center
@@ -235,7 +236,8 @@
                 :padding-bottom (em 0.4)
                 :height (em 3)}]]
       [:.label {:padding-top (em 0.5)
-                :font-size (em 0.8)}]]]
+                :font-size (em 0.8)
+                :color (color :meme-tile-footer)}]]]
     [:.collected-tile-back {:height "100%"
                             :background-color (color :violet)}
      (button-tile-back)

@@ -62,6 +62,7 @@
         :text-align :center
         :background-color (color :curator-card-bg)
         }
+       [:ul {:line-height (em 2)}]
        ["> *"
         {:display :block
          :margin-bottom (em 0.5)
@@ -78,7 +79,9 @@
         {:font-weight :bold
          :overflow "hidden"
          :text-overflow "ellipsis"
-         :width "100%"}]
+         :width "100%"
+         :margin-top (em 2.3)
+         :margin-bottom (em 1.7)}]
        [:h4
         (font :bungee)
         {:color (color :purple)

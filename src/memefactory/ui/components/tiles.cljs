@@ -73,6 +73,7 @@
                                    :on-click (fn []
                                                (dispatch [::meme-auction/buy {:send-tx/id tx-id
                                                                               :meme-auction/address (:meme-auction/address meme-auction)
+                                                                              :meme/title (-> meme-auction :meme-token/meme :meme/title)
                                                                               :value price}]))}
             "Buy"]]]]))))
 

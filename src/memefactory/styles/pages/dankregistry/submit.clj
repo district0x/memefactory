@@ -100,6 +100,7 @@
          ]]]
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:display :flex
+                 :margin-top (em 1)
                  :position :relative
                  :justify-content :center
                  :align-items :center}

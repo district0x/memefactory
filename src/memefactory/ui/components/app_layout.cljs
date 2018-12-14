@@ -13,7 +13,8 @@
    [memefactory.ui.subs :as mf-subs]
    [district.ui.router.subs :as router-subs]
    [memefactory.ui.utils :as mf-utils]
-   [district.ui.component.notification :as notification]))
+   [district.ui.component.notification :as notification]
+   [district.format :as format]))
 
 (def nav-menu-items [{:text "Marketplace"
                       :route :route.marketplace/index
@@ -106,7 +107,12 @@
              :locale "en-US"
              :class "eth"}]
            [tx-log
-            {:header-props {:text "My Transactions"}}]])]])))
+            {:header-props {:text "Transaction Log"}
+             :transactions-props {:transaction-props {:tx-value-el (fn [{:keys [tx]}]
+                                                                     [:span.tx-value (format/format-eth (if-let [v (:value tx)]
+                                                                                                (/ v 1e18)
+                                                                                                0)
+                                                                                              {:max-fraction-digits 3})])}}}]])]])))
 
 (defn current-page? [a b]
   (= a b))

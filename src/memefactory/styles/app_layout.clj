@@ -19,7 +19,7 @@
    [:div.no-items-found {:margin (em 1)}]
    [:div.notification
     {:color (color :meme-info-text)
-     :background-color (color :pink)
+     :background-color (color :deep-purple)
      :position :fixed
      :bottom 0
      :right "30px"

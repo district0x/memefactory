@@ -137,7 +137,10 @@
        :transition-property "transform, -webkit-transform"
        :transition-duration ".3s, .3s"
        :transition-timing-function "cubic-bezier(0.23, 1, 0.32, 1), cubic-bezier(0.23, 1, 0.32, 1)"
-       :transform-origin :top}
+       :transform-origin :top
+       :height (px 424)
+       :width (px 300)
+       :overflow :hidden}
 
       [:.header
        {:background (color :pink)
@@ -162,14 +165,22 @@
 
        [:.settings
         {:padding "10px 25px"
-         :border-bottom (str "1px solid " (color "black"))}
+         :border-bottom (str "1px solid #b2bacb")}
         [:.ui.checkbox
          [:label
-          {:font-size "12px"}]]]
+          {:font-size "10px"}]]]
+
+       [:.no-transactions
+        {:width "100%"
+         :height (px 347)
+         :display :flex
+         :justify-content :center
+         :align-items :center
+         :font-size (px 12)
+         :color "#b2bacb"}]
 
        [:.transactions
-        {:overflow-y :scroll
-         :flex-grow 1}
+        {:flex-grow 1}
 
         [:.transaction
          {:display :grid
@@ -185,7 +196,7 @@
           :font-size (px 12)
           :text-overflow :ellipsis
           :color (color :meme-tile-footer)
-          :margin (em 0.5)}
+          :margin (em 1)}
 
          ["&:not(:last-child)"
           {:border-bottom (str "1px solid " (color :black))}]
@@ -223,7 +234,7 @@
 
          [:.tx-value
           {:grid-area :tx-value
-           :margin-left (em 1)}]
+           :text-align :center}]
 
          [:.tx-status
           {:grid-area :tx-status

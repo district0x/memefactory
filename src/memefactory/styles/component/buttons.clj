@@ -16,7 +16,6 @@
    (font :bungee)
    {:border-radius (em 2)
     :display "block"
-    :bottom (em 2)
     :height (or height (em 2))
     :width (or width (em 8))
     :border-style "none"
@@ -37,6 +36,7 @@
     :line-height (em 4)
     :right (px 0)
     :display :block
+    :cursor :pointer
     :color (c/color :white)
     :background (str "url('/assets/icons/gears-button-bg-l.png') left 1em center / 40% 60% no-repeat,"
                      "url('/assets/icons/gears-button-bg-r.png') right 1em center / 40% 60% no-repeat "

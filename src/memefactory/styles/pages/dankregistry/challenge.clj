@@ -32,11 +32,14 @@
 
    [:.challenge-controls
     {:text-align :center}
+    [:.help-block {:border-top :none}]
     [:div.vs {:display :grid
               :grid-template-columns "1fr 0.5fr 1fr"
               :align-items :center
               :text-align :center
-              :width (em 13)}
+              :width (em 10)
+              :margin-left :auto
+              :margin-right :auto}
      [:img {:object-fit :cover
             :max-width "100%"}]
      [:span (font :bungee)
@@ -45,7 +48,8 @@
                 :border-radius (em 1)
                 :margin-top (em 2)
                 :height (em 8)
-                :border :none}]
+                :border :none
+                :resize :none}]
     [:button.open-challenge {:margin-top (em 2)}]
     [:button
      {:margin-left :auto

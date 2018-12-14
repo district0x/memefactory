@@ -22,7 +22,8 @@
      :display :block}]
    [:&:focus-within :&.filled
     [">label"
-     {:margin-top (em -0.9)
+     {:margin-top (em -1.2)
+      :margin-left (em 0.4)
       :font-size (em 0.6)}]]]
   [:.labeled-input-group.tall-version
    [">label"
