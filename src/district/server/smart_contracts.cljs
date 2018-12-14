@@ -234,10 +234,10 @@
    function returns a Promise"
   ([contract method args {:keys [:from :gas] :as opts}]
    (let [contract-instance (instance-from-arg contract)]
+
+     (prn {:f from :g gas :a args})
+
      (js/Promise. (fn [resolve reject]
-
-                    (prn {:args args})
-
                     (apply web3-eth/contract-call contract-instance method
                            (merge args
                                   opts

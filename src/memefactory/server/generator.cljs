@@ -150,48 +150,54 @@
                 (assoc-in previous [:meme :token-ids] (range (bn/number token-start-id)
                                                              (inc (bn/number token-end-id)))))))
 
-#_[tx-hash (meme-token/transfer-multi-and-start-auction {:from creator
-                                                         :token-ids token-ids
-                                                         :start-price (web3/to-wei 0.1 :ether)
-                                                         :end-price (web3/to-wei 0.01 :ether)
-                                                         :duration auction-duration
-                                                         :description "some auction"})
-   {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-started-event-in-tx tx-hash)]
-
-#_{:claim-vote-reward-tx
- "0x0414eeb80d87ec2604d366ae35b6a8cadcc06c33d3d3c27af7d13a5dd58e1eb7",
- :meta-hash "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F",
- :commit-vote-tx
- "0xd26aa1cd26f29bf44b83a46ee48b84eb07f6e23985d57011dddfd98d74998ad2",
- :image-hash "QmVXuQzg8yxN31fzwrWZ67dQBoThgM2sVWUybRyg1UZHQ1",
- :challenge-meme-tx
- "0xedd828d5d2ffdb373f5efe2856bcdc468faf5b792405f90f169a1a814c8d3764",
- :reveal-vote-tx
- "0x889194201c2e2abc3b89663ccc3114c4aa3dff54168b9e0f7aab24cc64af0cab",
- :total-supply 5,
- :meme
- {:registry-entry "0x969356fc5584f47b33c490e81b6f3e8d480c510f",
-  :creator "0x4c3f13898913f15f12f902d6480178484063a6fb",
-  :token-ids (8 9 10 11)},
- :meme-registry-db-values
- {:max-total-supply 10,
-  :max-auction-duration 12096000,
-  :deposit 1000000000000000000,
-  :commit-period-duration 600,
-  :reveal-period-duration 600}}
-
 (defn start-auction [{{:keys [:token-ids]} :meme {:keys [:max-auction-duration]} :meme-registry-db-values :as previous} account]
-
-  (promise-> (meme-token/transfer-multi-and-start-auction (look {:from account
-                                                                 :token-ids token-ids
-                                                                 :start-price (web3/to-wei 0.1 :ether)
-                                                                 :end-price (web3/to-wei 0.01 :ether)
-                                                                 :duration (+ 60 (rand-int (- max-auction-duration 60)))
-                                                                 :description "some auction"}))
+  (promise-> (meme-token/transfer-multi-and-start-auction {:from account
+                                                           :token-ids token-ids
+                                                           :start-price (web3/to-wei 0.1 :ether)
+                                                           :end-price (web3/to-wei 0.01 :ether)
+                                                           :duration (+ 60 (rand-int (- max-auction-duration 60)))
+                                                           :description "some auction"}
+                                                          {:from account})
              #(wait-for-tx-receipt %)
-             )
+             #(let [{{:keys [:meme-auction :token-id]} :args} (meme-auction-factory/meme-auction-started-event-in-tx (:transaction-hash %))]
+                (assoc previous :meme-auction {:meme-auction meme-auction
+                                               :token-id token-id}))))
 
-  )
+;; TODO
+
+
+;; {:claim-vote-reward-tx
+;;  "0x7cb644c9820b6e0e7c80e79fead83591bb16bc6813e2d805f3565423f2387e8f",
+;;  :meta-hash "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F",
+;;  :commit-vote-tx
+;;  "0x909799b1e171d18bbc122ea3643061a9c8f23066f1db78ab7f3caffafe6130b4",
+;;  :meme-auction
+;;  {:address "0xb6813bafeab350e3e07e98a7795729d1da2d980a",
+;;   :token-id #object[BigNumber 187]},
+;;  :image-hash "QmVXuQzg8yxN31fzwrWZ67dQBoThgM2sVWUybRyg1UZHQ1",
+;;  :challenge-meme-tx
+;;  "0x8e5f805d64c11a3c60c42abd4aac9a071a7a6c898fc8478390194bb5af9eb8d0",
+;;  :reveal-vote-tx
+;;  "0x04feb717bb960c738213b28204beb02a5184d3c0d072fd87cd10e5c45be86709",
+;;  :total-supply 7,
+;;  :meme
+;;  {:registry-entry "0x2f9108eb1a6d327f7c5393ca761e6c5a7c67a4e1",
+;;   :creator "0x4c3f13898913f15f12f902d6480178484063a6fb",
+;;   :token-ids (187 188 189 190 191 192)},
+;;  :meme-registry-db-values
+;;  {:max-total-supply 10,
+;;   :max-auction-duration 12096000,
+;;   :deposit 1000000000000000000,
+;;   :commit-period-duration 600,
+;;   :reveal-period-duration 600}}
+
+(defn buy-auction [{{:keys [:meme-auction]} :meme-auction :as previous} account]
+  (promise-> (meme-auction/buy meme-auction {:from account
+                                             :value (web3/to-wei 0.1 :ether)})
+             #(wait-for-tx-receipt %)
+             #(assoc previous :buy-tx (:transaction-hash %))
+
+             ))
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [account (first accounts)
@@ -209,7 +215,7 @@
                #(claim-vote-reward % account)
                #(mint-meme-tokens % account)
                #(start-auction % account)
-
+               #(buy-auction % account)
 
                #(log/info "End-chain result" % ::generate-memes)
                ))

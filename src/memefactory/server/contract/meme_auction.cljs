@@ -4,8 +4,8 @@
     [memefactory.shared.contract.meme-auction :refer [parse-load-meme-auction]]
     [cljs-web3.eth :as web3-eth]))
 
-(defn buy [contract-addr & [opts]]
-  #_(contract-call [:meme-auction contract-addr] :buy (merge {:gas 500000} opts)))
+(defn buy [contract-addr & [{:keys [:from :value :gas] :as opts}]]
+  (contract-call [:meme-auction contract-addr] :buy [] (merge {:gas 500000} opts)))
 
 (defn cancel [contract-addr & [opts]]
   #_(contract-call [:meme-auction contract-addr] :cancel (merge {:gas 500000} opts)))

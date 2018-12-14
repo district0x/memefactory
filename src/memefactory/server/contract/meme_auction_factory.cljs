@@ -14,7 +14,7 @@
   #_(apply contract-call [:meme-auction-factory :meme-auction-factory-fwd] :MemeAuctionCanceledEvent args))
 
 (defn meme-auction-started-event-in-tx [tx-hash & args]
-  #_(apply contract-event-in-tx tx-hash [:meme-auction-factory :meme-auction-factory-fwd] :MemeAuctionStartedEvent args))
+  (apply contract-event-in-tx tx-hash [:meme-auction-factory :meme-auction-factory-fwd] :MemeAuctionStartedEvent args))
 
 (defn meme-auction-buy-event-in-tx [tx-hash & args]
   #_(apply contract-event-in-tx tx-hash [:meme-auction-factory :meme-auction-factory-fwd] :MemeAuctionBuyEvent args))
