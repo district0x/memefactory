@@ -98,7 +98,7 @@
               (link-library bin placeholder address)))
           bin library-placeholders))
 
-(defn- handle-deployed-contract! [contract-key contract abi tx-hash]
+#_(defn- handle-deployed-contract! [contract-key contract abi tx-hash]
   (let [{:keys [:gas-used :block-number :contract-address]} (web3-eth/get-transaction-receipt @web3 tx-hash)
         contract (merge contract {:instance (web3-eth/contract-at @web3 abi contract-address)
                                   :address contract-address})]
@@ -175,30 +175,6 @@
     (sequential? contract) (instance (first contract) (second contract))
     :else contract))
 
-#_(defn flatten-1
-  "Flattens only the first level of a given sequence, e.g. [[1 2][3]] becomes
-   [1 2 3], but [[1 [2]] [3]] becomes [1 [2] 3]."
-  [seq]
-  (if (or (not (seqable? seq)) (nil? seq))
-    seq ; if seq is nil or not a sequence, don't do anything
-    (loop [acc [] [elt & others] seq]
-      (if (nil? elt) acc
-        (recur
-          (if (seqable? elt)
-            (apply conj acc elt) ; if elt is a sequence, add each element of elt
-            (conj acc elt))      ; if elt is not a sequence, add elt itself directly
-          others)))))
-
-#_(defn- handle-contract-call
-  ([method tx-hash]
-   (handle-contract-call method tx-hash false))
-  ([method tx-hash print-gas-usage?]
-   (let [{:keys [:gas-used :block-number :status]} (web3-eth/get-transaction-receipt @web3 tx-hash)]
-     (when (and gas-used block-number)
-       (when print-gas-usage?
-         (println method (.toLocaleString gas-used) (if (zero? status) "failed" "")))
-       gas-used))))
-
 ;; TODO : add alts for definite timeout (or # of retries)
 (defn- wait-for-tx-receipt*
   "callback is a nodejs style callback i.e. (fn [error data] ...)"
@@ -247,55 +223,6 @@
                                       (resolve data)))))))))
   ([contract method args]
    (contract-call contract method args {:from (first (web3-eth/accounts @web3))}) ))
-
-#_(defn contract-call* [contract-key method & args]
-  "contract-key parameter can be one of:
-   - keyword :some-contract
-   - tuple of keyword and address [:some-contract 0x1234...]
-   - instance SomeContract"
-  (let [deasync? (fn? (last args))
-        callback (when deasync? (last args))
-        args (if deasync? (drop-last args) args)
-        contract (instance-from-arg contract-key)
-        last-arg (last args)
-        args (if (and (map? last-arg)
-                      (not (:from last-arg)))
-               (concat (butlast args) [(merge last-arg {:from (first (web3-eth/accounts @web3))})])
-               args)
-        result (apply web3-eth/contract-call contract method args)
-        filter-id (atom nil)]
-    (if-not (fn? callback)
-      (do
-        (when (and (:print-gas-usage? @smart-contracts)
-                   (map? (last args))
-                   (string? result))
-          (handle-contract-call method result))
-        result)
-      (reset! filter-id
-              (web3-eth/filter
-               @web3
-               "latest"
-               (fn [err]
-                 (when err
-                   (callback err))
-                 (try
-                   (when (and (string? result)
-                              (map? (last args)))
-                     (loop [gas-used (handle-contract-call method result)]
-                       (when-not gas-used
-                         (recur (handle-contract-call method result (:print-gas-usage? @smart-contracts))))))
-                   (web3-eth/stop-watching! @filter-id)
-                   (callback nil result)
-                   (catch js/Error err
-                     (callback err)))))))))
-
-#_(def contract-call-deasynced (deasync contract-call*))
-
-#_(defn contract-call [& args]
-  (if (:auto-mining? @smart-contracts)
-    (apply contract-call* args)
-    (apply contract-call-deasynced args)))
-
 
 (defn contract-event-in-tx [tx-hash contract event-name & args]
   (let [instance (instance-from-arg contract)

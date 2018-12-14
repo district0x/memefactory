@@ -17,8 +17,7 @@
             [memefactory.server.utils :as server-utils]
             [district.server.logging :refer [logging]]
             [district.server.middleware.logging :refer [logging-middlewares]]
-            ;; TODO
-            ;; [district.server.smart-contracts]
+            [district.server.smart-contracts]
             [district.server.web3 :refer [web3]]
             [district.server.web3-watcher]
             [goog.date.Date]
@@ -27,8 +26,7 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
-            ;; [memefactory.server.deployer :as deployer]
-            [memefactory.server.generator]
+            [memefactory.server.generator :as generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.emailer]
             [memefactory.server.ipfs]
@@ -43,15 +41,14 @@
             [memefactory.server.emailer]
 
             ;; DEBUG
-            [district.server.smart-contracts :refer [contract-call]]
-            [camel-snake-kebab.core :as cs :include-macros true]
-            [cljs-solidity-sha3.core :refer [solidity-sha3]]
+            ;; [district.server.smart-contracts :refer [contract-call]]
+            ;; [camel-snake-kebab.core :as cs :include-macros true]
+            ;; [cljs-solidity-sha3.core :refer [solidity-sha3]]
 
             ))
 
 (nodejs/enable-util-print!)
 
-;; (def process js/process)
 (def child-process (nodejs/require "child_process"))
 (def spawn (aget child-process "spawn"))
 
@@ -66,32 +63,8 @@
                                                  :gql-name->kw graphql-utils/gql-name->kw})
                     :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
 
-#_(defn redeploy-with-deployer []
-  (log/warn "Deprecated function. Please use `redeploy` instead" ::redeploy)
-  (defer
-    (deployer/deploy
-     (or (:deployer @config)
-         {:transfer-dank-token-to-accounts 2
-          :initial-registry-params
-          {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                           :commit-period-duration (t/in-seconds (t/minutes 20))
-                           :reveal-period-duration (t/in-seconds (t/minutes 10))
-                           :deposit (web3-core/to-wei 1 :ether)
-                           :challenge-dispensation 50
-                           :vote-quorum 50
-                           :max-total-supply 10
-                           :max-auction-duration (t/in-seconds (t/weeks 20))}
-           :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                                   :commit-period-duration (t/in-seconds (t/minutes 20))
-                                   :reveal-period-duration (t/in-seconds (t/minutes 10))
-                                   :deposit (web3-core/to-wei 10 :ether)
-                                   :challenge-dispensation 50
-                                   :vote-quorum 50}}
-          :write? true}))
-    (log/info "Finished redploying contracts" ::redeploy)))
-
 (defn redeploy
-  "Redeploy smart contracts"
+  "Redeploy smart contracts with truffle"
   []
   (log/warn "Redeploying contracts, please be patient..." ::redeploy)
   (let [child (spawn "truffle migrate --network ganache --reset" (clj->js {:stdio "inherit" :shell true}))]
@@ -121,7 +94,7 @@
                    :param-changes/scenarios []})
               {:accounts (web3-eth/accounts @web3)})]
 
-    (memefactory.server.generator/generate-memes opts)
+    (prn "@@TYPE?" (memefactory.server.generator/generate-memes opts))
     ;; TODO: param changes
 
     )
@@ -176,8 +149,7 @@
                             :twilio-api-key "PUT_THE_REAL_KEY_HERE"}}})
       (mount/except [#'memefactory.server.emailer/emailer
 
-                     ;; TODO
-                     ;; #'district.server.smart-contracts/smart-contracts
+                     ;; TODO : turn on syncer
                      #'memefactory.server.syncer/syncer
 
                      ])

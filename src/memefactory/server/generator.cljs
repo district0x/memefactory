@@ -63,9 +63,8 @@
                              (log/info (str "Uploaded " file " received") {:image-hash image-hash} ::upload-meme)
                              (resolve (assoc previous :image-hash image-hash)))))))))))))
 
-(defn upload-meme-meta [previous]
-  (let [{:keys [image-hash]} previous
-        meta-info (format/clj->json {:title "PepeSmile"
+(defn upload-meme-meta [{:keys [image-hash] :as previous}]
+  (let [meta-info (format/clj->json {:title "PepeSmile"
                                      :image-hash image-hash
                                      :search-tags ["pepe" "frog" "dank"]
                                      :comment "did not like it"})]
@@ -163,41 +162,12 @@
                 (assoc previous :meme-auction {:meme-auction meme-auction
                                                :token-id token-id}))))
 
-;; TODO
-
-
-;; {:claim-vote-reward-tx
-;;  "0x7cb644c9820b6e0e7c80e79fead83591bb16bc6813e2d805f3565423f2387e8f",
-;;  :meta-hash "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F",
-;;  :commit-vote-tx
-;;  "0x909799b1e171d18bbc122ea3643061a9c8f23066f1db78ab7f3caffafe6130b4",
-;;  :meme-auction
-;;  {:address "0xb6813bafeab350e3e07e98a7795729d1da2d980a",
-;;   :token-id #object[BigNumber 187]},
-;;  :image-hash "QmVXuQzg8yxN31fzwrWZ67dQBoThgM2sVWUybRyg1UZHQ1",
-;;  :challenge-meme-tx
-;;  "0x8e5f805d64c11a3c60c42abd4aac9a071a7a6c898fc8478390194bb5af9eb8d0",
-;;  :reveal-vote-tx
-;;  "0x04feb717bb960c738213b28204beb02a5184d3c0d072fd87cd10e5c45be86709",
-;;  :total-supply 7,
-;;  :meme
-;;  {:registry-entry "0x2f9108eb1a6d327f7c5393ca761e6c5a7c67a4e1",
-;;   :creator "0x4c3f13898913f15f12f902d6480178484063a6fb",
-;;   :token-ids (187 188 189 190 191 192)},
-;;  :meme-registry-db-values
-;;  {:max-total-supply 10,
-;;   :max-auction-duration 12096000,
-;;   :deposit 1000000000000000000,
-;;   :commit-period-duration 600,
-;;   :reveal-period-duration 600}}
 
 (defn buy-auction [{{:keys [:meme-auction]} :meme-auction :as previous} account]
   (promise-> (meme-auction/buy meme-auction {:from account
                                              :value (web3/to-wei 0.1 :ether)})
              #(wait-for-tx-receipt %)
-             #(assoc previous :buy-tx (:transaction-hash %))
-
-             ))
+             #(assoc previous :buy-tx (:transaction-hash %))))
 
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
   (let [account (first accounts)
@@ -216,94 +186,9 @@
                #(mint-meme-tokens % account)
                #(start-auction % account)
                #(buy-auction % account)
+               #(log/info "Generate memes result" % ::generate-memes))))
 
-               #(log/info "End-chain result" % ::generate-memes)
-               ))
-
-  #_(let [[max-total-supply max-auction-duration deposit commit-period-duration reveal-period-duration]
-        (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :max-auction-duration :deposit :commit-period-duration
-                                                            :reveal-period-duration])
-             (map bn/number))
-        scenarios (get-scenarios {:accounts accounts
-                                  :use-accounts use-accounts
-                                  :items-per-account items-per-account
-                                  :scenarios scenarios})]
-    (log/info "Going to generate" {:scenarios scenarios :deposit deposit} ::generate-memes)
-    (doseq [[account {:keys [:scenario-type]}] scenarios]
-      (-> (upload-meme)
-          (.then upload-meme-meta)
-          (.then (fn [meta-hash]
-                   (try-catch
-                    (let [total-supply (inc (rand-int max-total-supply))
-                          auction-duration (+ 60 (rand-int (- max-auction-duration 60)))]
-
-                      (let [tx-hash (meme-factory/approve-and-create-meme (look {:meta-hash meta-hash
-                                                                            :total-supply total-supply
-                                                                            :amount deposit})
-                                                                          {:from account})]
-                        (log/info "Meme Created in TX " tx-hash)
-                        (when-not (= :scenario/create scenario-type)
-                          (log/info "Generating some challenges")
-                          (let [r (registry/meme-constructed-event-in-tx [:meme-registry :meme-registry-fwd] tx-hash)
-                                {{:keys [:registry-entry :creator]} :args} r]
-                            (when-not registry-entry
-                              (throw (js/Error. "Meme registry entry wasn't found")))
-
-                            (registry-entry/approve-and-create-challenge (look registry-entry)
-                                                                         (look {:meta-hash meta-hash
-                                                                           :amount deposit})
-                                                                         {:from account})
-
-                            (when-not (= :scenario/challenge scenario-type)
-                              (log/info "Commiting some votes")
-
-                              (registry-entry/approve-and-commit-vote registry-entry
-                                                                      {:amount 2
-                                                                       :salt "abc"
-                                                                       :vote-option :vote.option/vote-for}
-                                                                      {:from creator})
-
-                              (when-not (= :scenario/commit-vote scenario-type)
-                                (log/info "Revealing some votes")
-                                (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
-
-                                (registry-entry/reveal-vote registry-entry
-                                                            {:vote-option :vote.option/vote-for
-                                                             :salt "abc"}
-                                                            {:from creator})
-
-                                (when-not (= :scenario/reveal-vote scenario-type)
-                                  (log/info "Claiming some votes rewards")
-                                  (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
-
-                                  (registry-entry/claim-vote-reward registry-entry {:from creator})
-
-                                  (when-not (= :scenario/claim-vote-reward scenario-type)
-                                    (log/info "Minting memes")
-                                    (let [tx-hash (meme/mint registry-entry (dec total-supply) {:from creator})
-                                          mm-ev (registry/meme-minted-event-in-tx [:meme-registry :meme-registry-fwd] tx-hash)
-
-                                          {:keys [token-start-id token-end-id]} (-> mm-ev
-                                                                                    :args)
-                                          token-ids (range (bn/number token-start-id) (inc (bn/number token-end-id)))]
-
-                                      (when (empty? token-ids)
-                                        (throw (js/Error. "Token IDs weren't found")))
-
-                                      (let [tx-hash (meme-token/transfer-multi-and-start-auction {:from creator
-                                                                                                  :token-ids token-ids
-                                                                                                  :start-price (web3/to-wei 0.1 :ether)
-                                                                                                  :end-price (web3/to-wei 0.01 :ether)
-                                                                                                  :duration auction-duration
-                                                                                                  :description "some auction"})
-                                            {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-started-event-in-tx tx-hash)]
-
-                                        (when-not meme-auction
-                                          (throw (js/Error. "Meme Auction wasn't found")))
-
-                                        #_(meme-auction/buy meme-auction {:from creator :value (web3/to-wei 0.1 :ether)}))))))))))))))))))
-
-
+;; TODO : refactor to promises
 (defn generate-param-changes [{:keys [:accounts
                                       :param-changes/use-accounts
                                       :param-changes/items-per-account
