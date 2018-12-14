@@ -32,6 +32,10 @@
       :padding-bottom (em 2)
       :background-color (color :meme-panel-bg)
       :border-radius "1em 1em 1em 1em"}
+     (for-media-max :tablet
+                   [:&
+                    {:margin-right (em 0)
+                     :margin-left (em 0)}])
      [:.loading
       {:flex :none
        :color (color :busy-grey)

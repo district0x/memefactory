@@ -26,6 +26,9 @@
      :font-size (pt 14)
      :width "65%"
      :line-height (em 1.9)}
+    (for-media-max :tablet
+                   [:&
+                    {:width "100%"}])
     [:&:before
      (font :bungee)
      {:content "'MF'"
@@ -45,14 +48,12 @@
       :left 0
       :height (em 4)
       :width (em 4)
-      :background-image (str "url('/assets/icons/mouth.svg')")}]]
+      :background-image (str "url('/assets/icons/mouth.svg')")}
+     (for-media-max :tablet
+                   [:&
+                    {:top (em 1.5)}])]]
 
    [:.meme-highlights
-    (for-media-max :tablet
-                   [:&
-                    {:margin-right (em 1)
-                     :margin-left (em 1)
-                     }])
     {:margin-top (em 2)}
     [:>div
      {:background (color :meme-panel-bg)

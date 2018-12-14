@@ -73,6 +73,7 @@
              :grid-area :info}
      [:h2
       {:color (color :purple)
+       :cursor :pointer
        :text-transform :uppercase}
       (font :bungee)
       (for-media-max :tablet

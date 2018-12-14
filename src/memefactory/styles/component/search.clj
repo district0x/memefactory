@@ -18,9 +18,7 @@
    [:div.search-form
     (for-media-max :tablet
                    [:&
-                    {:margin-right (em 1)
-                     :margin-left (em 1)
-                     :background-image :none
+                    {:background-image :none
                      :background-color (color :meme-panel-bg)}])
     {:position :relative
      :border-radius "1em 1em 1em 1em"

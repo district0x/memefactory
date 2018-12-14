@@ -14,8 +14,8 @@
 (defn header []
   [:div.submit-info
    [:div.icon]
-   [:h2.title "Receive initial DANK tokens."]
-   [:h3.title "Enter your phone number and we'll send you a one-time allotment of DANK tokens."]
+   [:h2.title "Receive initial DANK tokens"]
+   [:h3.title "Enter your phone number and we'll send you a one-time allotment of DANK tokens"]
    [:div.get-dank-button "Get Dank"]])
 
 (defmethod page :route.get-dank/index []

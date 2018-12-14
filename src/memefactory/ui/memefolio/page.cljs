@@ -206,7 +206,9 @@
        [:div.var
         [:b "Largest buy: "]
         (if (and bought-for number title)
-          [:span (str (format/format-eth (web3/from-wei bought-for :ether))
+
+          [:span (str (format/format-eth (/ bought-for 1e18)
+                                         {:max-fraction-digits 2})
                       " (#" number " " title ")")]
           [:span "None"])]])))
 

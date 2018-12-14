@@ -15,19 +15,20 @@
 (defstyles core
   [:.app-container
    [:.app-menu
+    {:transition "left 0.3s"}
     (for-media-max :tablet
                    [:&
-                    {:z-index 2
+                    {:z-index 10
                      :display :block
-                     :right (px 50)
                      :left 0
+                     :width (px 270)
                      :background-color (color :white)
                      :min-height (px 1800)
                      :position :absolute}])
     [:&.closed
      (for-media-max :tablet
                     [:&
-                     {:display :none}])]
+                     {:left (px -270)}])]
     {:position "relative"}
     [(sel/> :.menu-content :.node :.node-content :.item)
      (border-top {:color (color :border-line)})
@@ -42,6 +43,9 @@
        :padding-right (em 1.7)
        :display :grid
        :grid-template-columns "50% 50%"}
+      (for-media-max :tablet
+                   [:&
+                    {:grid-template-columns "30% 50%"}])
       [:img
        {:width (em 4)}]
       [:span

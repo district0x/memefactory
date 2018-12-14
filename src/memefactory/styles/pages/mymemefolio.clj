@@ -123,7 +123,7 @@
     [".stats>*"
      {:padding-right (em 1)
       :align-items :center
-      :min-height (em 4)
+      ;; :min-height (em 4)
       :padding-left (em 1)}
      [:& [:b {:white-space :nowrap}]]]
     [".rank>.stats>.rank"
@@ -134,20 +134,20 @@
       :display :flex
       :width (em 10)
       :font-size (em 1)
-      :min-height (em 4)
-      :height "100%"
+      ;; :min-height (em 4)
+      :height (em 2.3)
       :padding-left (em 3)}
      (for-media-max :tablet
                     [:&
                      {:width "100%"
                       :border-radius "1em 1em 0em 0em"}])
      [:&.rank--big
-      {:line-height (em 9)
+      {:line-height (em 6)
        :margin :auto
+       :height "100%"
        :align-self :center}]]
     [:.stats
-     {:display :flex
-      :line-height (em 2.3)}
+     {:display :flex}
      (for-media-max :tablet
                     [:&
                      {:flex-direction :column}])

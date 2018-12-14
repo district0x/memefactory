@@ -49,7 +49,8 @@
       :font-size (px 29)
       ;; :padding (px 8)
       :line-height "100%"
-      :color (color :pink)}]]
+      :color (color :pink)
+      :z-index 100}]]
    (for-media-min :tablet [:&
                            {:display :none}])]
   [:.app-bar

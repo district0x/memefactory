@@ -17,6 +17,7 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
+   [district.ui.router.events :as router-events]
    ))
 
 (def page-size 12)
@@ -75,7 +76,10 @@
     [:div.challenge
      #_[:div (str "ENTRY " address)] ;; TODO remove (only for debugging)
      (cond-> [:div.info
-              [:h2 title]
+              [:h2 {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                              nil
+                                          {:reg-entry/address address}])}
+               title]
               [:ol.meme
                [:li "Created: " [:span (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
                                            format/format-time-units
