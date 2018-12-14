@@ -13,7 +13,7 @@
   #_(contract-call :meme-token :owner-of token-id))
 
 (defn safe-transfer-from-multi [{:keys [:from :to :token-ids :data]} & [opts]]
-  #_(contract-call :meme-token :safe-transfer-from-multi from to token-ids data (merge {:gas 6000000} opts)))
+  (contract-call :meme-token :safe-transfer-from-multi [from to token-ids data] (merge {:gas 6000000} opts)))
 
 (defn safe-transfer-from [{:keys [:from :to :token-id]} & [opts]]
   #_(contract-call :meme-token :safe-transfer-from from to token-id (merge {:gas 3000000} opts)))

@@ -296,6 +296,7 @@
     (apply contract-call* args)
     (apply contract-call-deasynced args)))
 
+
 (defn contract-event-in-tx [tx-hash contract event-name & args]
   (let [instance (instance-from-arg contract)
         event-filter (apply web3-eth/contract-call instance event-name args)

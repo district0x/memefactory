@@ -4,7 +4,7 @@
     [memefactory.shared.contract.meme :refer [parse-load-meme]]))
 
 (defn mint [contract-addr & [amount opts]]
-  #_(contract-call [:meme contract-addr] :mint (or amount 0) (merge {:gas 6000000} opts)))
+  (contract-call [:meme contract-addr] :mint [(or amount 0)] (merge {:gas 6000000} opts)))
 
 (defn load-meme [contract-addr]
   #_(parse-load-meme contract-addr (contract-call (instance :meme contract-addr) :load-meme)))

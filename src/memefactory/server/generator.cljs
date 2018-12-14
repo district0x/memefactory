@@ -90,6 +90,7 @@
                   (merge previous {:meme-registry-db-values meme-registry-db-values
                                                       :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))))
 
+;; TODO: destructure previous
 (defn create-meme [previous account]
   (promise-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash previous)
                                                     :total-supply (:total-supply previous)
@@ -118,12 +119,82 @@
              #(wait-for-tx-receipt %)
              #(assoc previous :commit-vote-tx (:transaction-hash %))))
 
+(defn increase-time [previous millis]
+  (js/Promise.
+   (fn [resolve reject]
+     (web3-evm/increase-time! @web3 [millis]
+                              (fn [error success]
+                                (if error
+                                  (reject error)
+                                  (resolve previous)))))))
+
+(defn reveal-vote [{{:keys [:registry-entry]} :meme :as previous} account]
+  (promise-> (registry-entry/reveal-vote registry-entry
+                                         {:vote-option :vote.option/vote-for
+                                          :salt "abc"}
+                                         {:from account})
+             #(wait-for-tx-receipt %)
+             #(assoc previous :reveal-vote-tx (:transaction-hash %))))
+
+(defn claim-vote-reward [{{:keys [:registry-entry]} :meme :as previous} account]
+  (promise-> (registry-entry/claim-vote-reward registry-entry {:from account})
+             #(wait-for-tx-receipt %)
+             #(assoc previous :claim-vote-reward-tx (:transaction-hash %))))
+
+
+(defn mint-meme-tokens [{:keys [:total-supply] {:keys [:registry-entry]} :meme :as previous} account]
+  (promise-> (meme/mint registry-entry (dec total-supply) {:from account})
+             #(wait-for-tx-receipt %)
+             #(let [{{:keys [:token-start-id :token-end-id]} :args} (registry/meme-minted-event-in-tx [:meme-registry :meme-registry-fwd]
+                                                                                                      (:transaction-hash %))]
+                (assoc-in previous [:meme :token-ids] (range (bn/number token-start-id)
+                                                             (inc (bn/number token-end-id)))))))
+
+#_[tx-hash (meme-token/transfer-multi-and-start-auction {:from creator
+                                                         :token-ids token-ids
+                                                         :start-price (web3/to-wei 0.1 :ether)
+                                                         :end-price (web3/to-wei 0.01 :ether)
+                                                         :duration auction-duration
+                                                         :description "some auction"})
+   {{:keys [:meme-auction]} :args} (meme-auction-factory/meme-auction-started-event-in-tx tx-hash)]
+
+#_{:claim-vote-reward-tx
+ "0x0414eeb80d87ec2604d366ae35b6a8cadcc06c33d3d3c27af7d13a5dd58e1eb7",
+ :meta-hash "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F",
+ :commit-vote-tx
+ "0xd26aa1cd26f29bf44b83a46ee48b84eb07f6e23985d57011dddfd98d74998ad2",
+ :image-hash "QmVXuQzg8yxN31fzwrWZ67dQBoThgM2sVWUybRyg1UZHQ1",
+ :challenge-meme-tx
+ "0xedd828d5d2ffdb373f5efe2856bcdc468faf5b792405f90f169a1a814c8d3764",
+ :reveal-vote-tx
+ "0x889194201c2e2abc3b89663ccc3114c4aa3dff54168b9e0f7aab24cc64af0cab",
+ :total-supply 5,
+ :meme
+ {:registry-entry "0x969356fc5584f47b33c490e81b6f3e8d480c510f",
+  :creator "0x4c3f13898913f15f12f902d6480178484063a6fb",
+  :token-ids (8 9 10 11)},
+ :meme-registry-db-values
+ {:max-total-supply 10,
+  :max-auction-duration 12096000,
+  :deposit 1000000000000000000,
+  :commit-period-duration 600,
+  :reveal-period-duration 600}}
+
+(defn start-auction [{{:keys [:token-ids]} :meme {:keys [:max-auction-duration]} :meme-registry-db-values :as previous} account]
+
+  (promise-> (meme-token/transfer-multi-and-start-auction (look {:from account
+                                                                 :token-ids token-ids
+                                                                 :start-price (web3/to-wei 0.1 :ether)
+                                                                 :end-price (web3/to-wei 0.01 :ether)
+                                                                 :duration (+ 60 (rand-int (- max-auction-duration 60)))
+                                                                 :description "some auction"}))
+             #(wait-for-tx-receipt %)
+             )
+
+  )
+
 (defn generate-memes [{:keys [:accounts :memes/use-accounts :memes/items-per-account :memes/scenarios]}]
-  (let [#_scenarios #_(get-scenarios {:accounts accounts
-                                      :use-accounts use-accounts
-                                      :items-per-account items-per-account
-                                      :scenarios scenarios})
-        account (first accounts)
+  (let [account (first accounts)
         previous {}]
     (promise-> (upload-meme previous)
                ;; #(.foo %)
@@ -132,8 +203,12 @@
                #(create-meme % account)
                #(challenge-meme % account)
                #(commit-vote % account)
-
-               #_(web3-evm/increase-time! @web3 [(inc commit-period-duration)])
+               #(increase-time % (inc (get-in % [:meme-registry-db-values :commit-period-duration])))
+               #(reveal-vote % account)
+               #(increase-time % (inc (get-in % [:meme-registry-db-values :reveal-period-duration])))
+               #(claim-vote-reward % account)
+               #(mint-meme-tokens % account)
+               #(start-auction % account)
 
 
                #(log/info "End-chain result" % ::generate-memes)

@@ -11,7 +11,7 @@
   #_(contract-call [:meme-auction contract-addr] :cancel (merge {:gas 500000} opts)))
 
 (defn start-auction-data [{:keys [:start-price :end-price :duration :description]}]
-  #_(web3-eth/contract-get-data (instance :meme-auction) :start-auction start-price end-price duration description))
+  (web3-eth/contract-get-data (instance :meme-auction) :start-auction start-price end-price duration description))
 
 (defn current-price [contract-address]
   #_(contract-call [:meme-auction contract-address] :current-price))

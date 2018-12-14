@@ -38,7 +38,7 @@
   (apply contract-event-in-tx tx-hash contract-key :MemeConstructedEvent args))
 
 (defn meme-minted-event-in-tx [contract-key tx-hash & args]
-  #_(apply contract-event-in-tx tx-hash contract-key :MemeMintedEvent args))
+  (apply contract-event-in-tx tx-hash contract-key :MemeMintedEvent args))
 
 (defn challenge-created-event-in-tx [contract-key tx-hash & args]
   #_(apply contract-event-in-tx tx-hash contract-key :ChallengeCreatedEvent args))
