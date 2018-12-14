@@ -16,10 +16,6 @@
 (defstyles core
   [:.leaderboard-curators-page
    [:section.curators
-    (for-media-max :tablet
-                   [:& {
-                        :margin-right (em 1)
-                        :margin-left (em 1)}])
     [:.curators-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})

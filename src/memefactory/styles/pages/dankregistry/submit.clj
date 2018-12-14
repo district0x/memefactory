@@ -17,10 +17,6 @@
 (defstyles core
   [:.dank-registry-submit-page
    [:.submit-header
-    (for-media-max :tablet
-                   [:&
-                    {:margin-right (em 2)
-                     :margin-left (em 2)}])
     [:.submit-info
      (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
                        :color :sky-blue})
@@ -32,11 +28,9 @@
      ;; :grid-column-gap (em 2)
      :padding-top (em 4)
      }
-    (for-media-max :tablet
+    (for-media-max :computer
                    [:&
-                    {:grid-template-columns "100%"
-                     :margin-right (em 2)
-                     :margin-left (em 2)}])
+                    {:grid-template-columns "100%"}])
     [:.image-panel {:display :flex
                     :justify-content :center}]
     [">div"
@@ -46,7 +40,7 @@
       :position :relative
       :padding (em 2)}
      [:&.image-panel {:margin-right (em 1)}
-      (for-media-max :tablet
+      (for-media-max :computer
                      [:&
                       {:margin-right 0}])
       [:img {:width (px compact-tile/card-width)
@@ -86,7 +80,7 @@
        :padding-top (em 9)
        :padding-left (em 3)
        :padding-right (em 3)}
-      (for-media-max :tablet
+      (for-media-max :computer
                      [:&
                       {:margin-left 0
                        :margin-top (em 2)

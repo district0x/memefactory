@@ -30,10 +30,7 @@
       :animation-iteration-count :infinite
       :animation-timing-function :linear}]
 
-   (for-media-max :tablet
-                  [:&
-                   {:padding-right (em 1)
-                    :padding-left (em 1)}])
+
    #_[:.controls {:width (em 11)
                 :margin-left :auto
                 :margin-right 0}]

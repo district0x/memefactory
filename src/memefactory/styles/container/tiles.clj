@@ -15,10 +15,5 @@
     :padding-left (em 2.5)
     :padding-right (em 2.5)
     }
-   (for-media-max :large
-                  [:& {
-                       :margin-right (em 1)
-                       :margin-left (em 1)
-                       }])
    [">*"
     {:flex "1 0 calc(26% - 1em)"}]])

@@ -18,10 +18,6 @@
 (defstyles core
   [:.dank-registry-vote-page
    [:section.vote-header
-    (for-media-max :large
-                   [:&
-                    {:margin-right (em 1)
-                     :margin-left (em 1)}])
     [:.registry-vote-header
      (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
                        :color :blue})
@@ -31,10 +27,7 @@
     {:max-width (px 985)
      :margin-left :auto
      :margin-right :auto}
-    (for-media-max :tablet
-                   [:&
-                    {:margin-right (em 1)
-                     :margin-left (em 1)}])
+
     [:.challenges
      {:padding-left (px 0)
       :padding-right (px 0)}]]

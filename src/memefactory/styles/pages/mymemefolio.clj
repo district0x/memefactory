@@ -94,7 +94,7 @@
      :left (em 41)
      :font-size (em 0.9)
      :color (color :section-subcaption)}
-    (for-media-max :tablet
+    (for-media-max :computer
                    [:&
                     {:margin-right (em 2)
                      :margin-top (em 2)
@@ -113,11 +113,9 @@
      :background-color (color :yellow)
      :border-radius "1em 1em 0em 0em"
      :letter-spacing (em 0.01)}
-    (for-media-max :tablet
+    (for-media-max :computer
                    [:&
-                    {:display :block
-                     :margin-right (em 1)
-                     :margin-left (em 1)}])
+                    {:display :block}])
     [">.rank"
      {:width "100%"}]
     [".stats>*"
@@ -137,7 +135,7 @@
       ;; :min-height (em 4)
       :height (em 2.3)
       :padding-left (em 3)}
-     (for-media-max :tablet
+     (for-media-max :computer
                     [:&
                      {:width "100%"
                       :border-radius "1em 1em 0em 0em"}])
@@ -148,7 +146,7 @@
        :align-self :center}]]
     [:.stats
      {:display :flex}
-     (for-media-max :tablet
+     (for-media-max :computer
                     [:&
                      {:flex-direction :column}])
      [:.var
@@ -167,7 +165,7 @@
       [">div"
        {:display :flex
         :font-size (em 0.8)}
-       (for-media-max :tablet
+       (for-media-max :computer
                       [:&
                        {:flex-direction :column}])
        [:.label
@@ -186,10 +184,7 @@
      :background-color (color :meme-panel-bg)
      :border-radius "0 0 1em 1em"
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
-    (for-media-max :tablet
-                   [:&
-                    {:margin-right (em 1)
-                     :margin-left (em 1)}])
+
     [:.loading
      {:color (color :busy-grey)
       :border-top-color (color :white)

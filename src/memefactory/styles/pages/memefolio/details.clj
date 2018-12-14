@@ -91,7 +91,10 @@
       :grid-template-rows "100%"
       :position :relative
       :padding (em 1.4)}
-     (for-media-max :tablet
+     (for-media-max :large
+                    [:&
+                     {:grid-template-columns "40% 60%"}])
+     (for-media-max :computer
                     [:&
                      {:grid-template-columns "100%"
                       :margin-bottom (em 2)}])
@@ -153,7 +156,7 @@
        [:button.search
         (button {:color :meme-buy-button
                  :height (em 2.7)})
-        (for-media-max :tablet
+        (for-media-max :computer
                        [:&
                         {:min-width (em 15)}])
         {:min-width (em 18)
@@ -170,14 +173,14 @@
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"}
-     #_(for-media-max :tablet
+     #_(for-media-max :computer
                       [:&
                        {:max-height (em 30)
                         :overflow-y :auto
                         :overflow-x :hidden}])
      [:h1.title
       (font :bungee)
-      (for-media-max :tablet
+      (for-media-max :computer
                      [:&
                       {:font-size (px 19)}])
       {:white-space :nowrap
@@ -189,7 +192,7 @@
        :text-align :center}]
      [:table
       {:overflow-y :scroll}
-      (for-media-max :tablet
+      (for-media-max :computer
                      [:&
                       {:max-height (em 30)
                        :overflow-y :auto
@@ -218,13 +221,13 @@
         :background-image (str "url('/assets/icons/sort-triangle-icon.png')")}]
       [:tr
        {:height (em 3)}
-       (for-media-max :tablet
+       (for-media-max :computer
                       [:&
                        {:height (em 9)}])
        [:td {:padding-left (em 0.5)
              :line-height (em 2)}]]
       [:thead
-       (for-media-max :tablet
+       (for-media-max :computer
                       [:&
                        {:display :none}])
        [:tr
@@ -239,7 +242,7 @@
        [:tr
         ["&:nth-child(even)"
          {:background-color (color :tags-grey)}]
-        (for-media-max :tablet
+        (for-media-max :computer
                        [:&
                         ["&:not(:last-child)"
                          (border-bottom {:color (color :table-border-1)})]
@@ -251,31 +254,31 @@
           (of-ellipsis)]
          [:&.buyer-address
           (of-ellipsis)]
-         (for-media-max :tablet
+         (for-media-max :computer
                         [:&
                          {:border-bottom :none}])
-         (for-media-max :tablet
+         (for-media-max :computer
                         [:&:before
                          {:font-weight "bold"
                           :margin-right (em 0.2)
                           :display :inline-block}])
-         (for-media-max :tablet
+         (for-media-max :computer
                         [:&.meme-token:before
                          {:content "'Token ID:'"}])
-         (for-media-max :tablet
+         (for-media-max :computer
                         [:&.seller-address
                          (of-ellipsis)
                          [:&.before
                           {:content "'Seller:'"}]])
-         (for-media-max :tablet
+         (for-media-max :computer
                         [:&.buyer-address
                          (of-ellipsis)
                          [:&.before
                           {:content "'Buyer:'"}]])
-         (for-media-max :tablet
+         (for-media-max :computer
                         [:&.end-price:before
                          {:content "'Price:'"}])
-         (for-media-max :tablet
+         (for-media-max :computer
                         [:&.time:before
                          {:content "'Time Ago:'"}])]]]
       {:border-spacing "0px"
@@ -289,7 +292,7 @@
     {:margin-top (em 3)}
     [:h1.title
      (font :bungee)
-     (for-media-max :tablet
+     (for-media-max :computer
                     [:&
                      {:font-size (px 19)}])
      {:white-space :nowrap
@@ -310,7 +313,7 @@
        :display :grid
        :grid-template-columns "30% 30% 40%"
        :grid-template-rows "40% 60%"}
-      (for-media-max :tablet
+      (for-media-max :computer
                      [:&
                       {:grid-template-columns "100%"
                        :grid-template-rows "100%"
@@ -320,12 +323,12 @@
              :margin-bottom (em 1)}]
       [:.status
        {:border-right "1px solid #AAA"}
-       (for-media-max :tablet
+       (for-media-max :computer
                       [:&
                        {:border-right "0px"}])]
       [:.challenger
        {:border-right "1px solid #AAA"}
-       (for-media-max :tablet
+       (for-media-max :computer
                       [:&
                        {:border-right "0px"}])
        [">*"
@@ -334,7 +337,7 @@
        {:display :grid
         :grid-template-columns "50% 50%"
         :grid-template-rows "100%"}
-       (for-media-max :tablet
+       (for-media-max :computer
                    [:&
                     {:grid-template-rows "50% 50%"
                      :grid-template-columns "100%"
@@ -358,11 +361,11 @@
 
         {:margin-top (em 1)}]]
       [:.header {:grid-column "1 / span 3"}
-       (for-media-max :tablet
+       (for-media-max :computer
                       [:&
                        {:grid-column "1"}])
        [:h2.title
-        (for-media-max :tablet
+        (for-media-max :computer
                        [:&
                         {:white-space :normal}])
         {:white-space :nowrap
@@ -378,7 +381,7 @@
                    [:&
                     {:margin-right (em 2)
                      :margin-left (em 2)}])
-    (for-media-max :tablet
+    (for-media-max :computer
                    [:&
                     {:margin-right (em 0)
                      :margin-left (em 0)}])

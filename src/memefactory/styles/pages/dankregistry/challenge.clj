@@ -17,10 +17,7 @@
   [:.dank-registry-challenge
    [:.challenge-header
     {:margin-bottom (em 6)}
-    (for-media-max :large
-                   [:&
-                    {:margin-right (em 1)
-                     :margin-left (em 1)}])
+
     (for-media-max :tablet
                    [:&
                     {:margin-bottom (em 0)}])

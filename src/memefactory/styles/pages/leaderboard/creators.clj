@@ -32,10 +32,6 @@
      :animation-iteration-count :infinite
      :animation-timing-function :linear}]
    [:section.creators
-    (for-media-max :tablet
-                   [:& {
-                        :margin-right (em 1)
-                        :margin-left (em 1)}])
     [:.creators-panel
      (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
                        :color :leaderboard-curator-bg})

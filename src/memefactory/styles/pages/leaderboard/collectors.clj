@@ -32,10 +32,6 @@
      :animation-iteration-count :infinite
      :animation-timing-function :linear}]
    [:section.collectors
-    (for-media-max :tablet
-                   [:& {
-                        :margin-right (em 1)
-                        :margin-left (em 1)}])
     [:.collectors-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})
