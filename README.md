@@ -134,10 +134,22 @@ lein test-dev
 
 Start UI advanced build:
 ```bash
-lein cljsbuild once "ui"
+MEMEFACTORY_ENV=dev lein cljsbuild once "ui"
 docker-compose up --build
 # go to http://localhost:3001/
 ```
+
+### QA and Production
+For qa and production builds all you need to do is set
+`MEMEFACTORY_ENV` appropriately. For example:
+```bash
+MEMEFACTORY_ENV=qa lein cljsbuild once "ui"
+```
+or
+```bash
+MEMEFACTORY_ENV=prod lein cljsbuild once "ui"
+```
+will build for the appropriate environment.
 
 ### Dank Faucet
 Naviagting to `/#/get-dank/index` allows you to verify your phone

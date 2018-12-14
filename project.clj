@@ -173,8 +173,7 @@
                                    :source-map-timestamp true
                                    :preloads [print.foo.preloads.devtools
                                               re-frisk.preload]
-                                   :closure-defines {"goog.DEBUG" true
-                                                     memefactory.ui.core.environment "dev"}
+                                   :closure-defines {"goog.DEBUG" true}
                                    :external-config {:devtools/config {:features-to-install :all}}}}
                        {:id "server"
                         :source-paths ["src"]
@@ -193,8 +192,7 @@
                                    :optimizations :advanced
                                    :pretty-print true
                                    :pseudo-names true
-                                   :closure-defines {"goog.DEBUG" true
-                                                     memefactory.ui.core.environment "prod"}}}
+                                   :closure-defines {"goog.DEBUG" true}}}
                        {:id "server-tests"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
                         :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}

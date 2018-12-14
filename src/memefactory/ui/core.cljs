@@ -20,6 +20,7 @@
    [district.ui.web3-tx]
    [district.ui.web3]
    [district.ui.window-size]
+   [memefactory.ui.config :refer [config]]
    [memefactory.shared.contract.registry-entry]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.routes :refer [routes]]
@@ -46,33 +47,9 @@
    [print.foo :include-macros true]
    [re-frisk.core :refer [enable-re-frisk!]]))
 
-(goog-define environment "prod")
-
 (def debug? ^boolean js/goog.DEBUG)
 
 (def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
-
-(def development-config
-  {:logging {:level :debug
-             :console? true}
-   :time-source "blockchain"
-   :web3 {:url "http://localhost:8549"}
-   :graphql {:schema graphql-schema
-             :url "http://localhost:6300/graphql"}
-   :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0"}})
-
-(def production-config
-  {:logging {:level :warn
-             :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"}}
-   :time-source "js-date"
-   :web3 {:url "http://qa.district0x.io:8545"}
-   :graphql {:schema graphql-schema
-             :url "http://qa.district0x.io:6300/graphql"}
-   :ipfs {:host "http://qa.district0x.io:5001" :endpoint "/api/v0"}})
-
-(defn get-config [env-name]
-  (get {"dev" development-config
-        "prod" production-config} env-name production-config))
 
 (defn dev-setup []
   (when debug?
@@ -82,19 +59,20 @@
 (defn ^:export init []
   (s/check-asserts debug?)
   (dev-setup)
-  (-> (mount/with-args
-        (merge (get-config environment)
-               {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)
-                                  :format :truffle-json}
-                :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
-                :web3-account-balances {:for-contracts [:ETH :DANK]}
-                :web3-tx-log {:open-on-tx-hash? true
-                              :tx-costs-currencies [:USD]}
-                :reagent-render {:id "app"
-                                 :component-var #'router}
-                :router {:routes routes
-                         :default-route :route/home}
-                :router-google-analytics {:enabled? (not debug?)}
-                :district-ui-notification {:default-show-duration 2000
-                                           :default-hide-duration 1000}}))
-      (mount/start)))
+  (let [full-config (merge config
+                           {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)
+                                              :format :truffle-json}
+                            :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
+                            :web3-account-balances {:for-contracts [:ETH :DANK]}
+                            :web3-tx-log {:open-on-tx-hash? true
+                                          :tx-costs-currencies [:USD]}
+                            :reagent-render {:id "app"
+                                             :component-var #'router}
+                            :router {:routes routes
+                                     :default-route :route/home}
+                            :router-google-analytics {:enabled? (not debug?)}
+                            :district-ui-notification {:default-show-duration 2000
+                                                       :default-hide-duration 1000}})]
+    (js/console.log "Entire config:" (clj->js full-config))
+    (-> (mount/with-args full-config)
+        (mount/start))))
