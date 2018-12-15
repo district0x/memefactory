@@ -6,6 +6,7 @@
             [district.ui.smart-contracts.queries :as contract-queries]
             [district.ui.web3-accounts.queries :as account-queries]
             [district.ui.web3-tx.events :as tx-events]
+            [memefactory.ui.config :refer [config]]
             [memefactory.ui.contract.meme-factory :as meme-factory]
             [print.foo :refer [look] :include-macros true]
             [re-frame.core :as re-frame]
@@ -21,7 +22,7 @@
                    "mutation {sendVerificationCode(countryCode:\"%s\", phoneNumber:\"%s\") {id, status, msg, success}}"
                    country-code phone-number)]
      (look {:http-xhrio {:method          :post
-                         :uri             "http://localhost:6300/graphql"
+                         :uri             (get-in config [:graphql :url])
                          :params          {:query mutation}
                          :timeout         8000
                          :response-format (ajax/json-response-format {:keywords? true})
@@ -45,7 +46,7 @@
                    country-code phone-number verification-code)]
      (look
       {:http-xhrio {:method          :post
-                    :uri             "http://localhost:6300/graphql"
+                    :uri             (get-in config [:graphql :url])
                     :params          {:query mutation}
                     :timeout         8000
                     :response-format (ajax/json-response-format {:keywords? true})
