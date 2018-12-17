@@ -33,5 +33,4 @@
   (condp = (get-environment)
     "prod" production-config
     "qa"   qa-config
-    "dev"  development-config
-    production-config))
+    "dev"  development-config))
