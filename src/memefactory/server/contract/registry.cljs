@@ -1,5 +1,5 @@
 (ns memefactory.server.contract.registry
-  (:require [district.server.smart-contracts :refer [contract-call contract-event-in-tx]]))
+  (:require [district.server.smart-contracts :refer [#_contract-call create-event-filter contract-event-in-tx]]))
 
 (defn db [contract-key]
   #_(contract-call contract-key :db))
@@ -10,8 +10,8 @@
 (defn set-factory [contract-key {:keys [:factory :factory?]} & [opts]]
   #_(contract-call contract-key :set-factory factory factory? (merge opts {:gas 100000})))
 
-(defn meme-constructed-event [contract-key & args]
-  #_(apply contract-call contract-key :MemeConstructedEvent args))
+(defn meme-constructed-event [contract-key opts on-event]
+  (create-event-filter contract-key :MemeConstructedEvent {} opts on-event))
 
 (defn meme-minted-event [contract-key & args]
   #_(apply contract-call contract-key :MemeMintedEvent args))

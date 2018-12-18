@@ -16,7 +16,7 @@
             [district.server.graphql.utils :as utils]
             [district.server.logging :refer [logging]]
             [district.server.middleware.logging :refer [logging-middlewares]]
-            [district.server.smart-contracts]
+            [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [web3]]
             [district.server.web3-watcher]
             [goog.date.Date]
@@ -33,7 +33,7 @@
             [memefactory.server.macros :refer [defer]]
             [memefactory.server.macros :refer [promise->]]
             [memefactory.server.ranks-cache]
-            [memefactory.server.syncer]
+            [memefactory.server.syncer :as syncer]
             [memefactory.server.utils :as server-utils]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.smart-contracts]
@@ -87,9 +87,7 @@
                    :param-changes/items-per-account 1
                    :param-changes/scenarios []})
               {:accounts (web3-eth/accounts @web3)})]
-    ;; TODO : doseq ?
     (promise-> (memefactory.server.generator/generate-memes opts)
-               #(memefactory.server.generator/generate-param-changes opts)
                #(log/info "Finished generating data" ::generate-data))))
 
 (defn resync []
@@ -127,7 +125,7 @@
       (mount/except [#'memefactory.server.emailer/emailer
 
                      ;; TODO : turn on syncer
-                     #'memefactory.server.syncer/syncer
+                     ;; #'memefactory.server.syncer/syncer
 
                      ])
       (mount/start)
@@ -229,7 +227,7 @@
                          {:from (last accounts)})))
 
 (comment
-  ;; Contract call log instrument snippet p
+  ;; Contract call log instrument snippet
   ;; paste in UI repl or SERVER repl
   (let [cc cljs-web3.eth/contract-call]
     (set! cljs-web3.eth/contract-call
@@ -246,3 +244,18 @@
                                  (map (fn [p] (str (:type p) " " (:name p) " = " (:value p))))
                                  (clojure.string/join ",\n"))")")
               (apply cc (into [contract-instance method] args)))))))
+
+(defn ev-filter []
+  (apply web3-eth/contract-call (smart-contracts/instance-from-arg [:meme-registry :meme-registry-fwd]) :MemeConstructedEvent
+         (merge []
+                {}
+                {:from-block 0 :to-block (dec (syncer/last-block-number))}
+                #_(fn [err data]
+
+                  (prn "@@@@@@@@@@@@@@@ FILTER ON EVENT from" err data)
+
+
+                  ))))
+
+(defn ev-replay []
+  (smart-contracts/replay-past-events (ev-filter) #(prn "REPLAYING")))

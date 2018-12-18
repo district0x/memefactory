@@ -61,7 +61,7 @@
                         (when goog.DEBUG
                           (resolve default)))))))))
 
-(defn- last-block-number []
+(defn last-block-number []
   (web3-eth/block-number @web3))
 
 (derive :contract/meme :contract/registry-entry)
@@ -307,46 +307,46 @@
     (throw (js/Error. "Database module has not started")))
 
   (let [last-block-number (last-block-number)
-        watchers [{:watcher (partial eternal-db/change-applied-event :param-change-registry-db)
+        watchers [#_{:watcher (partial eternal-db/change-applied-event :param-change-registry-db)
                    :on-event #(dispatch-event :contract/eternal-db :eternal-db-event %1 %2)}
-                  {:watcher (partial eternal-db/change-applied-event :meme-registry-db)
+                  #_{:watcher (partial eternal-db/change-applied-event :meme-registry-db)
                    :on-event #(dispatch-event :contract/eternal-db :eternal-db-event %1 %2)}
                   {:watcher (partial registry/meme-constructed-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme :constructed %1 %2)}
-                  {:watcher (partial registry/meme-minted-event [:meme-registry :meme-registry-fwd])
+                   :on-event #(prn "ON EVENT FIRED!!! " %) #_#(dispatch-event :contract/meme :constructed %1 %2)}
+                  #_{:watcher (partial registry/meme-minted-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :minted %1 %2)}
-                  {:watcher (partial registry/challenge-created-event [:meme-registry :meme-registry-fwd])
+                  #_{:watcher (partial registry/challenge-created-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :challenge-created %1 %2)}
-                  {:watcher (partial registry/vote-committed-event [:meme-registry :meme-registry-fwd])
+                  #_{:watcher (partial registry/vote-committed-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :vote-committed %1 %2)}
-                  {:watcher (partial registry/vote-revealed-event [:meme-registry :meme-registry-fwd])
+                  #_{:watcher (partial registry/vote-revealed-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :vote-revealed %1 %2)}
-                  {:watcher (partial registry/vote-amount-claimed-event [:meme-registry :meme-registry-fwd])
+                  #_{:watcher (partial registry/vote-amount-claimed-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :vote-amount-claimed %1 %2)}
-                  {:watcher (partial registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd])
+                  #_{:watcher (partial registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :vote-reward-claimed %1 %2)}
-                  {:watcher (partial registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd])
+                  #_{:watcher (partial registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :challenge-reward-claimed %1 %2)}
-                  {:watcher meme-auction-factory/meme-auction-started-event
+                  #_{:watcher meme-auction-factory/meme-auction-started-event
                    :on-event #(dispatch-event :contract/meme-auction :auction-started %1 %2)}
-                  {:watcher meme-auction-factory/meme-auction-buy-event
+                  #_{:watcher meme-auction-factory/meme-auction-buy-event
                    :on-event #(dispatch-event :contract/meme-auction :buy %1 %2)}
-                  {:watcher meme-auction-factory/meme-auction-canceled-event
+                  #_{:watcher meme-auction-factory/meme-auction-canceled-event
                    :on-event #(dispatch-event :contract/meme-auction :auction-canceled %1 %2)}
-                  {:watcher meme-token/meme-token-transfer-event
+                  #_{:watcher meme-token/meme-token-transfer-event
                    :on-event #(dispatch-event :contract/meme-token :transfer %1 %2)}]]
     (concat
      ;; Replay every past events (from block 0 to (dec last-block-number))
      (when (pos? last-block-number)
        (->> watchers
             (map (fn [{:keys [watcher on-event]}]
-                   (-> (apply watcher [{} {:from-block 0 :to-block (dec last-block-number)}])
+                   (-> (apply watcher [{:from-block 0 :to-block (dec last-block-number)}])
                        (replay-past-events on-event))))
             doall))
      ;; Filters that will watch for last event and dispatch
      (->> watchers
           (map (fn [{:keys [watcher on-event]}]
-                 (apply watcher [{} "latest" on-event])))
+                 (apply watcher ["latest" on-event])))
           doall))))
 
 (defn stop [syncer]

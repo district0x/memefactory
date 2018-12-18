@@ -18,5 +18,11 @@
                                                        (map cs/->camelCaseString)
                                                        (map solidity-sha3))]))
 
-(defn change-applied-event [contract-key & args]
-  #_(apply contract-call contract-key :EternalDbEvent args))
+#_(defn change-applied-event [contract-key & args]
+  (apply contract-call contract-key :EternalDbEvent args))
+
+(defn change-applied-event [contract-key opts]
+
+  (prn "@change applied event" opts)
+  
+  (contract-call contract-key :EternalDbEvent [] opts))
