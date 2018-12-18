@@ -2,7 +2,7 @@
   (:require
     [camel-snake-kebab.core :as cs :include-macros true]
     [cljs-solidity-sha3.core :refer [solidity-sha3]]
-    [district.server.smart-contracts :refer [contract-call]]))
+    [district.server.smart-contracts :refer [contract-call create-event-filter]]))
 
 (defn set-uint-values [contract-key m & [opts]]
   (let [records (->> (keys m)
@@ -18,11 +18,5 @@
                                                        (map cs/->camelCaseString)
                                                        (map solidity-sha3))]))
 
-#_(defn change-applied-event [contract-key & args]
-  (apply contract-call contract-key :EternalDbEvent args))
-
-(defn change-applied-event [contract-key opts]
-
-  (prn "@change applied event" opts)
-  
-  (contract-call contract-key :EternalDbEvent [] opts))
+(defn change-applied-event [contract-key opts on-event]
+  (create-event-filter contract-key :EternalDbEvent {} opts on-event))

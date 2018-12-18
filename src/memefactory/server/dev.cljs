@@ -125,7 +125,7 @@
       (mount/except [#'memefactory.server.emailer/emailer
 
                      ;; TODO : turn on syncer
-                     ;; #'memefactory.server.syncer/syncer
+                     #'memefactory.server.syncer/syncer
 
                      ])
       (mount/start)

@@ -221,20 +221,17 @@
   ([contract method]
    (contract-call contract method [] {:from (first (web3-eth/accounts @web3))})))
 
-;; TODO
+;; TODO : docstring
 ;; https://github.com/ethereum/wiki/wiki/JavaScript-API#contract-events
 (defn create-event-filter
   [contract event filter-opts opts on-event]
 
-  (prn "@@@ create-filter" {:f-o filter-opts :o opts :oe on-event})
+  ;; (prn "@@@ create-filter" {:f-o filter-opts :o opts :oe on-event})
   
   (apply web3-eth/contract-call (instance-from-arg contract) event
-         (remove nil? [filter-opts
-                       opts
-                       on-event]))
-
-  #_([contract event on-event]
-   (create-event-filter contract event "latest" on-event)))
+         [filter-opts
+          opts
+          on-event]))
 
 (defn contract-event-in-tx [tx-hash contract event-name & args]
   (let [instance (instance-from-arg contract)

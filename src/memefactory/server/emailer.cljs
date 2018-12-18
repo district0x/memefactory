@@ -112,10 +112,10 @@
     (throw (js/Error. ":private-key is required to start emailer")))
   (merge opts
          {:listeners
-          [(registry/challenge-created-event [:meme-registry :meme-registry-fwd] {} "latest" (event-callback send-challenge-created-email))
-           (meme-auction-factory/meme-auction-buy-event {} "latest" (event-callback send-auction-bought-email))
-           (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] {} "latest" (event-callback send-challenge-reward-claimed-email))
-           (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] {} "latest" (event-callback send-vote-reward-claimed-email))]}))
+          [(registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" (event-callback send-challenge-created-email))
+           (meme-auction-factory/meme-auction-buy-event "latest" (event-callback send-auction-bought-email))
+           (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" (event-callback send-challenge-reward-claimed-email))
+           (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" (event-callback send-vote-reward-claimed-email))]}))
 
 
 (defn stop [emailer]

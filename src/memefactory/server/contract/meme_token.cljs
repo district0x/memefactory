@@ -1,6 +1,6 @@
 (ns memefactory.server.contract.meme-token
   (:require
-    [district.server.smart-contracts :refer [contract-call contract-address]]
+    [district.server.smart-contracts :refer [contract-call create-event-filter contract-address]]
     [memefactory.server.contract.meme-auction :as meme-auction]
     [print.foo :refer [look] :include-macros true]))
 
@@ -26,5 +26,5 @@
                              :data (meme-auction/start-auction-data (select-keys params [:start-price :end-price :duration :description]))}
                             opts))
 
-(defn meme-token-transfer-event [& args]
-  #_(apply contract-call :meme-token :Transfer args))
+(defn meme-token-transfer-event [opts on-event]
+  (create-event-filter :meme-token :Transfer {} opts on-event))
