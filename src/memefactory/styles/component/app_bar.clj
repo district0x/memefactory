@@ -126,7 +126,7 @@
       :align-items :center
       :justify-content :center
       :grid-template-rows (em 3.6)}
-
+     [">div" {:height "100%"}]
      [:.tx-log.open
       {:transform "scaleY(1)"}]
 
@@ -139,9 +139,7 @@
        :transition-duration ".3s, .3s"
        :transition-timing-function "cubic-bezier(0.23, 1, 0.32, 1), cubic-bezier(0.23, 1, 0.32, 1)"
        :transform-origin :top
-       :height (px 424)
-       :width (px 300)
-       :overflow :hidden}
+       :width (px 300)}
 
       [:.header
        {:background (color :pink)
@@ -181,7 +179,9 @@
          :color "#b2bacb"}]
 
        [:.transactions
-        {:flex-grow 1}
+        {:flex-grow 1
+         :height (px 424)
+         :overflow :scroll}
 
         [:.transaction
          {:display :grid

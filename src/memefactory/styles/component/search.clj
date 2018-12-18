@@ -108,8 +108,7 @@
        [:label {:font-size "10px"
                 :flex 1
                 :margin-left (em 0.3)
-                :white-space :nowrap
-                :margin-bottom (em 0.5)}]]
+                :white-space :nowrap}]]
       [:.help-block {:display :none}]]]]
    [:.search-form
     (for-media-max :tablet

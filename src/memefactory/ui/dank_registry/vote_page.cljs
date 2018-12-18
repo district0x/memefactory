@@ -55,7 +55,10 @@
                   claim-challenge-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/claim-challenge-rewards ch-reward-tx-id}])]
               [:div.collect-reward
                (log/debug "meme voting" meme-voting ::collect-reward-action)
-               [charts/donut-chart meme-voting]
+
+               (if (pos? votes-total)
+                 [charts/donut-chart meme-voting]
+                 [:div "No votes"])
                [:ul.vote-info
                 (when (pos? votes-for)
                   [:li

@@ -41,26 +41,26 @@
 
     (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::dankest-memes-tiles)
 
-    [:div.scroll-area
-     [:div.tiles
-      (if (:graphql/loading? @meme-search)
-        [:div.loading]
-        (if (empty? all-memes)
-          [:div.no-items-found "No items found."]
+    (if (:graphql/loading? @meme-search)
+      [:div.loading]
+      (if (empty? all-memes)
+        [:div.no-items-found "No items found."]
+        [:div.scroll-area
+         [:div.tiles
           (doall
            (for [{:keys [:reg-entry/address] :as meme} all-memes]
              ^{:key address}
-             [tiles/meme-tile meme]))))]
-     [infinite-scroll {:load-fn (fn []
-                                  (when-not (:graphql/loading? @meme-search)
-                                    (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
+             [tiles/meme-tile meme]))]
+         [infinite-scroll {:load-fn (fn []
+                                      (when-not (:graphql/loading? @meme-search)
+                                        (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
 
-                                      (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
+                                          (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
 
-                                      (when (or has-next-page (empty? all-memes))
-                                        (dispatch [:district.ui.graphql.events/query
-                                                   {:query {:queries [(build-tiles-query end-cursor)]}
-                                                    :id :dankest}])))))}]]))
+                                          (when (or has-next-page (empty? all-memes))
+                                            (dispatch [:district.ui.graphql.events/query
+                                                       {:query {:queries [(build-tiles-query end-cursor)]}
+                                                        :id :dankest}])))))}]]))))
 
 (defmethod page :route.leaderboard/dankest []
   (let [active-page (subscribe [::router-subs/active-page])]

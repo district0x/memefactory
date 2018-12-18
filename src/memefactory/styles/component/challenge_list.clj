@@ -63,9 +63,11 @@
      :background-color :white
      :margin-bottom (em 1.5)
      :border-radius (em 0.6)
-     :padding (em 1.4)}
+     :padding (em 2.4)}
     (for-media-max :tablet
                    [:& {:grid-template "'image' 'info' 'action'"}])
+    (for-media-max :large
+                   [:& {:padding (em 1.4)}])
     [:.info {:overflow :hidden
              :grid-area :info}
      [:h2

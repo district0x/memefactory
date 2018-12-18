@@ -17,31 +17,33 @@
       valid?)))
 
 (defn my-settings []
-  (let [public-key (-> @(re-frame/subscribe [::gql/query
-                                          {:queries [[:config
-                                                      [[:ui [:public-key]]]]]}])
-                       :config :ui :public-key)
+  (let [public-key-sub (re-frame/subscribe [::gql/query
+                                            {:queries [[:config
+                                                        [[:ui [:public-key]]]]]}])
         form-data (r/atom {})
         errors (reaction {:local (cond-> {}
                                    (not (valid-email? (or (:email @form-data) "")))
                                    (assoc-in [:email :error] "Invalid email format"))})]
     (fn []
-      [:div.my-settings-box
-       [:div.icon]
-       [:h2.title "My Settings"]
-       [:div.body
-        [:div.form
-         [with-label
-          "Email"
-          [text-input {:form-data form-data
-                       :id :email
-                       :errors errors}]]
-         [:p "Email associated with your address will be encrypted and stored on a public blockchain. Only our email server will be able to decrypt it. We'll use it to send you notifications about your purchases, sells and offering requests."]]]
-       [:div.footer
-        (if (empty? (:local @errors))
-          {:on-click #(re-frame/dispatch [::ms-events/save-settings public-key @form-data])}
-          {})
-        "Save"]])))
+
+      (let [public-key (-> @public-key-sub :config :ui :public-key)]
+          [:div.my-settings-box
+        [:div.icon]
+        [:h2.title "My Settings"]
+        [:div.body
+         [:div.form
+          [with-label
+           "Email"
+           [text-input {:form-data form-data
+                        :id :email
+                        :errors errors}]]
+          [:p "Email associated with your address will be encrypted and stored on a public blockchain. Only our email server will be able to decrypt it. We'll use it to send you notifications about your purchases, sells and offering requests."]]]
+           [:div.footer
+
+         (if (empty? (:local @errors))
+           {:on-click #(re-frame/dispatch [::ms-events/save-settings public-key @form-data])}
+           {})
+         "Save"]]))))
 
 (defmethod page :route.my-settings/index []
   [app-layout

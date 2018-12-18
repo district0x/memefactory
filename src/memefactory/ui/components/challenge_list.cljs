@@ -62,11 +62,12 @@
 (defn user-info [user class]
   [:ol {:class class}
    [:li "Rank: " [:span (gstring/format "#%d" (or (:user/creator-rank user) 0))]]
-   [:li "Success Rate: " [:span (gstring/format "%d/%d (%d%%)"
-                                                (:user/total-created-memes-whitelisted user)
-                                                (:user/total-created-memes user)
-                                                (/ (* 100 (:user/total-created-memes-whitelisted user))
-                                                   (:user/total-created-memes user)))]]
+   [:li "Success Rate: " [:span (let [tcmw (or (:user/total-created-memes-whitelisted user) 0)
+                                      tcm (or (:user/total-created-memes user) 0)]
+                                  (gstring/format "%d/%d (%d%%)"
+                                                 tcmw
+                                                 tcm
+                                                 (if (pos? tcm) (/ (* 100 tcmw) tcm) 0)))]]
    [:li "Address: " [:span.address (-> user :user/address)]]])
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child] }]
@@ -89,13 +90,13 @@
                [:li "Issued: " [:span total-supply]]]
               [:h3 "Creator"]
               [user-info creator :creator]
-              [:span.challenge-comment comment]
-              [:ol.tags
-               (for [{:keys [:tag/name]} tags]
-                 [:li.tag {:key name}
-                  name])]]
+              [:span.challenge-comment comment]]
        include-challenger-info? (into [[:h3 "Challenger"]
-                                       [user-info challenger :challenger]]))
+                                       [user-info challenger :challenger]])
+       true                     (into [[:ol.tags
+                                        (for [{:keys [:tag/name]} tags]
+                                          [:li.tag {:key name}
+                                           name])]]))
 
      [:div.meme-tile
       [tiles/meme-image image-hash]]

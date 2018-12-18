@@ -18,7 +18,9 @@
  ::buy
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :meme/title :value] :as args}]]
-   (let [tx-name "Buy"
+   (let [tx-name (str (gstring/format "Buy %s for %.2f ETH"
+                                      title
+                                      (/ value 1e18)))
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-auction address)
                                       :fn :buy

@@ -133,7 +133,7 @@
       :width (em 10)
       :font-size (em 1)
       ;; :min-height (em 4)
-      :height (em 2.3)
+      :height (em 3.3)
       :padding-left (em 3)}
      (for-media-max :computer
                     [:&
@@ -153,6 +153,7 @@
       {:color (color :section-subcaption)
        :margin-right (em 1)
        :margin-left (em 1)
+       :font-size (px 12)
        :display :flex
        :white-space :nowrap}
       [">b"

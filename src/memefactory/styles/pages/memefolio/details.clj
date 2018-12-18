@@ -87,7 +87,7 @@
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"
       :display :grid
-      :grid-template-columns "30% 70%"
+      :grid-template-columns "32% 68%"
       :grid-template-rows "100%"
       :position :relative
       :padding (em 1.4)}
@@ -116,7 +116,8 @@
       {:padding (em 1)}
       [:h1
        (font :bungee)
-       {:color (color :purple)}]
+       {:color (color :purple)
+        :margin-bottom (em 0.2)}]
       [:.status
        {:display :flex
         :line-height (em 1)

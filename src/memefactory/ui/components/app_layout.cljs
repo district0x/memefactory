@@ -95,17 +95,19 @@
                        (dispatch [:district0x.transaction-log/set-open (not @open?)])))}
         (if false;;(empty? @my-addresses)
           [:div "No Accounts"]
-          [:div.accounts {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
-           [active-account-balance
-            {:token-code :DANK
-             :contract :DANK
-             :class "dank"
-             :locale "en-US"
-             :max-fraction-digits 0}]
-           [active-account-balance
-            {:token-code :ETH
-             :locale "en-US"
-             :class "eth"}]
+          [:div.accounts
+           [:div {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
+            [active-account-balance
+             {:token-code :DANK
+              :contract :DANK
+              :class "dank"
+              :locale "en-US"
+              :max-fraction-digits 0}]]
+           [:div {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
+            [active-account-balance
+             {:token-code :ETH
+              :locale "en-US"
+              :class "eth"}]]
            [tx-log
             {:header-props {:text "Transaction Log"}
              :transactions-props {:transaction-props {:tx-value-el (fn [{:keys [tx]}]
@@ -138,7 +140,9 @@
                       [:li.node-content
                        [:div.item
                         {:class (str (when class (name class)) (when (= active-page route) " active"))}
-                        [:a {:href href} text]]
+                        [:a {:href href
+                             :on-click #(js/window.scrollTo 0 0)}
+                         text]]
                        (when children
                          [app-menu children active-page (inc depth)])]))
                   items))]))

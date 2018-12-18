@@ -105,7 +105,7 @@
                :color :light-light-grey
                :width (em 9)
                :height (em 3)})
-      [:&:after {:content "' '";;"&#8594;" "' →'"
+      [:&.buy:after {:content "' '";;"&#8594;" "' →'"
                  :height (em 1)
                  :width (em 1)
                  :display :inline-block

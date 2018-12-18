@@ -62,7 +62,6 @@
         ]
        [:.user-address
         {:font-weight :bold
-         :font-size (em 0.8)
          :margin-top (em 2.5)
          :margin-bottom (em 2.5)
          :color (color :deep-purple)

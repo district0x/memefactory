@@ -52,8 +52,8 @@
                                                                 (/ (* 100 total-created-memes-whitelisted)
                                                                    total-created-memes))]]
       (when (:meme/title meme)
-        [:li "Best single card sale: " [:span.best-sale (gstring/format "%f ETH (#%d %s)"
-                                                                        (-> largest-sale :meme-auction/bought-for)
+        [:li "Best single card sale: " [:span.best-sale (gstring/format "%.2f ETH (#%d %s)"
+                                                                        (-> largest-sale :meme-auction/bought-for (/ 1e18))
                                                                         (-> largest-sale
                                                                             :meme-auction/meme-token
                                                                             :meme-token/number)

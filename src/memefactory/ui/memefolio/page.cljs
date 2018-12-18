@@ -421,29 +421,33 @@
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
                                                   [:total-count]]]}])]
-    (let [total (get-in @query [:search-memes :total-count])]
-      [:div "Total " (or total [:div.spinner.spinner--total])])))
+    (when-not (:graphql/loading? @query)
+      (let [total (get-in @query [:search-memes :total-count])]
+        [:div "Total " total]))))
 
 (defmethod total :created [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:creator active-account}
                                       [:total-count]]]}])]
-    (let [total (get-in @query [:search-memes :total-count])]
-      [:div "Total " (or total [:div.spinner.spinner--total])])))
+    (when-not (:graphql/loading? @query)
+      (let [total (get-in @query [:search-memes :total-count])]
+        [:div "Total " total]))))
 
 (defmethod total :curated [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:curator active-account}
                                       [:total-count]]]}])]
-    (let [total (get-in @query [:search-memes :total-count])] ;;when-not (:graphql/loading? @query)
-      [:div "Total " (or total [:div.spinner.spinner--total])])))
+    (when-not (:graphql/loading? @query)
+      (let [total (get-in @query [:search-memes :total-count])]
+        [:div "Total " total]))))
 
 (defmethod total :selling [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/active]}
                                       [:total-count]]]}])]
-    (let [total (get-in @query [:search-meme-auctions :total-count])]
-      [:div "Total " (or total [:div.spinner.spinner--total])])))
+    (when-not (:graphql/loading? @query)
+      (let [total (get-in @query [:search-memes :total-count])]
+        [:div "Total " total]))))
 
 (defmethod total :sold [_ active-account form-data]
   (let [query (subscribe [::gql/query
