@@ -104,10 +104,22 @@
        {:display :flex
         :justify-content :center
         :align-items :center
-        :padding-left (em 0.4)}
+        :padding-left (em 0.4)
+        :margin-top (em 0.3)}
+       [:.input-group
+        [:input {:-webkit-appearance :none
+                 :-moz-appearance :none
+                 :background-color :white
+                 :border "1px solid #cacece"
+                 :padding (px 6)
+                 :border-radius (px 3)
+                 :display :inline-block
+                 :position :relative}
+         [:&:checked {:background-color :black}]]]
        [:label {:font-size "10px"
                 :flex 1
                 :margin-left (em 0.3)
+                :margin-bottom (em 0.2)
                 :white-space :nowrap}]]
       [:.help-block {:display :none}]]]]
    [:.search-form
