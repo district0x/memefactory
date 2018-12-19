@@ -1,25 +1,26 @@
 (ns memefactory.server.contract.registry-entry
-  (:require
-    [bignumber.core :as bn]
-    [camel-snake-kebab.core :as cs :include-macros true]
-    [cljs-solidity-sha3.core :refer [solidity-sha3]]
-    [cljs-web3.eth :as web3-eth]
-    [district.server.smart-contracts :refer [contract-call instance contract-address]]
-    [memefactory.server.contract.dank-token :as dank-token]
-    [memefactory.server.contract.minime-token :as minime-token]
-    [memefactory.shared.contract.registry-entry :refer [parse-status parse-load-registry-entry
-                                                        parse-load-registry-entry-challenge
-                                                        parse-load-vote vote-option->num]]))
+  (:require [bignumber.core :as bn]
+            [camel-snake-kebab.core :as cs :include-macros true]
+            [cljs-solidity-sha3.core :refer [solidity-sha3]]
+            [cljs-web3.eth :as web3-eth]
+            [district.server.smart-contracts :refer [contract-call instance contract-address]]
+            [memefactory.server.contract.dank-token :as dank-token]
+            [memefactory.server.contract.minime-token :as minime-token]
+            [memefactory.server.macros :refer [promise->]]
+            [memefactory.shared.contract.registry-entry :refer [parse-status parse-load-registry-entry
+                                                                parse-load-registry-entry-challenge
+                                                                parse-load-vote vote-option->num]]))
 
 (defn registry [contract-addr]
-  #_(contract-call [:meme contract-addr] :registry))
+  (contract-call [:meme contract-addr] :registry))
 
 (defn status
   [contract-addr]
-  #_(parse-status (contract-call [:meme contract-addr] :status)))
+  (promise-> (contract-call [:meme contract-addr] :status)
+             #(parse-status %)))
 
 (defn create-challenge [contract-addr {:keys [:challenger :meta-hash]} & [opts]]
-  #_(contract-call (instance :meme contract-addr) :create-challenge challenger meta-hash (merge {:gas 1200000} opts)))
+  (contract-call (instance :meme contract-addr) :create-challenge [challenger meta-hash] (merge {:gas 1200000} opts)))
 
 (defn create-challenge-data [{:keys [:challenger :meta-hash]}]
   (web3-eth/contract-get-data (instance :meme) :create-challenge challenger meta-hash))
@@ -31,11 +32,11 @@
                                (merge {:gas 6000000} opts)))
 
 (defn commit-vote [contract-addr {:keys [:voter :amount :vote-option :salt]} & [opts]]
-  #_(contract-call (instance :meme contract-addr)
+  (contract-call (instance :meme contract-addr)
                  :commit-vote
-                 voter
-                 (bn/number amount)
-                 (solidity-sha3 (vote-option->num vote-option) salt)
+                 [voter
+                  (bn/number amount)
+                  (solidity-sha3 (vote-option->num vote-option) salt)]
                  (merge {:gas 1200000} opts)))
 
 (defn commit-vote-data [{:keys [:voter :amount :vote-option :salt]}]
@@ -54,10 +55,10 @@
   (contract-call (instance :meme contract-addr) :claim-vote-reward [(:from opts)] (merge {:gas 500000} opts)))
 
 (defn reclaim-vote-amount [contract-addr & [opts]]
-  #_(contract-call (instance :meme contract-addr) :reclaim-vote-amount (:from opts) (merge {:gas 500000} opts)))
+  (contract-call (instance :meme contract-addr) :reclaim-vote-amount [(:from opts)] (merge {:gas 500000} opts)))
 
 (defn vote-reward [contract-addr voter-address]
-  #_(contract-call (instance :meme contract-addr) :vote-reward voter-address))
+  (contract-call (instance :meme contract-addr) :vote-reward [voter-address]))
 
 (defn claim-challenge-reward [contract-addr & [opts]]
-  #_(contract-call (instance :meme contract-addr) :claim-challenge-reward (merge {:gas 500000} opts)))
+  (contract-call (instance :meme contract-addr) :claim-challenge-reward [] (merge {:gas 500000} opts)))

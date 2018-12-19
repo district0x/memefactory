@@ -1,14 +1,14 @@
 (ns memefactory.server.contract.registry
-  (:require [district.server.smart-contracts :refer [#_contract-call create-event-filter contract-event-in-tx]]))
+  (:require [district.server.smart-contracts :refer [contract-call create-event-filter contract-event-in-tx]]))
 
 (defn db [contract-key]
-  #_(contract-call contract-key :db))
+  (contract-call contract-key :db))
 
 (defn construct [contract-key {:keys [:db]} & [opts]]
-  #_(contract-call contract-key :construct db (merge {:gas 100000} opts)))
+  (contract-call contract-key :construct [db] (merge {:gas 100000} opts)))
 
 (defn set-factory [contract-key {:keys [:factory :factory?]} & [opts]]
-  #_(contract-call contract-key :set-factory factory factory? (merge opts {:gas 100000})))
+  (contract-call contract-key :set-factory [factory factory?] (merge opts {:gas 100000})))
 
 (defn meme-constructed-event [contract-key opts on-event]
   (create-event-filter contract-key :MemeConstructedEvent {} opts on-event))
@@ -41,22 +41,22 @@
   (apply contract-event-in-tx tx-hash contract-key :MemeMintedEvent args))
 
 (defn challenge-created-event-in-tx [contract-key tx-hash & args]
-  #_(apply contract-event-in-tx tx-hash contract-key :ChallengeCreatedEvent args))
+  (apply contract-event-in-tx tx-hash contract-key :ChallengeCreatedEvent args))
 
 (defn vote-committed-event-in-tx [contract-key tx-hash & args]
-  #_(apply contract-event-in-tx tx-hash contract-key :VoteCommittedEvent args))
+  (apply contract-event-in-tx tx-hash contract-key :VoteCommittedEvent args))
 
 (defn vote-revealed-event-in-tx [contract-key tx-hash & args]
-  #_(apply contract-event-in-tx tx-hash contract-key :VoteRevealedEvent args))
+  (apply contract-event-in-tx tx-hash contract-key :VoteRevealedEvent args))
 
 (defn vote-amount-claimed-event-in-tx [contract-key tx-hash & args]
-  #_(apply contract-event-in-tx tx-hash contract-key :VoteAmountClaimedEvent args))
+  (apply contract-event-in-tx tx-hash contract-key :VoteAmountClaimedEvent args))
 
 (defn vote-reward-claimed-event-in-tx [contract-key tx-hash & args]
-  #_(apply contract-event-in-tx tx-hash contract-key :VoteRewardClaimedEvent args))
+  (apply contract-event-in-tx tx-hash contract-key :VoteRewardClaimedEvent args))
 
 (defn challenge-reward-claimed-event-in-tx [contract-key tx-hash & args]
-  #_(apply contract-event-in-tx tx-hash contract-key :ChallengeRewardClaimedEvent args))
+  (apply contract-event-in-tx tx-hash contract-key :ChallengeRewardClaimedEvent args))
 
-(defn factory? [contract-key factory]
-  #_(contract-call contract-key :is-factory factory))
+(defn is-factory? [contract-key factory]
+  (contract-call contract-key :is-factory [factory]))

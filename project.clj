@@ -26,8 +26,7 @@
                  [district0x/district-server-graphql "1.0.15"]
                  [district0x/district-server-logging "1.0.4-SNAPSHOT"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 ;; TODO : use release version
-                 [district0x/district-server-smart-contracts "1.0.11-SNAPSHOT"]
+                 [district0x/district-server-smart-contracts "1.0.11"]
                  [district0x/district-server-web3 "1.0.1"]
                  [district0x/district-server-web3-watcher "1.0.2"]
                  [district0x/district-ui-component-active-account "1.0.0"]
@@ -71,10 +70,7 @@
                  [day8.re-frame/http-fx "0.1.6"]]
 
   :exclusions [express-graphql
-               cljsjs/react-with-addons
-               ;;TODO
-               ;; district0x/district-server-smart-contracts
-               ]
+               cljsjs/react-with-addons]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
@@ -158,10 +154,7 @@
                                 :pretty-print? false}}]}
 
   :cljsbuild {:builds [{:id "dev-server"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared"
-                                       ;; TODO
-                                       ;; "src/district/server"
-                                       ]
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
                         :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
                         :compiler {:main "memefactory.server.dev"
                                    :output-to "dev-server/memefactory.js"

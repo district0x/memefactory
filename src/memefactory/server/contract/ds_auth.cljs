@@ -1,15 +1,14 @@
 (ns memefactory.server.contract.ds-auth
-  (:require
-    [district.server.smart-contracts :refer [contract-call instance contract-address]]))
+  (:require [district.server.smart-contracts :refer [contract-call instance contract-address]]))
 
 (defn owner [contract-key]
-  #_(contract-call contract-key :owner))
+  (contract-call contract-key :owner))
 
 (defn set-owner [contract-key new-owner & [opts]]
-  #_(contract-call contract-key :set-owner new-owner (merge {:gas 100000} opts)))
+  (contract-call contract-key :set-owner [new-owner] (merge {:gas 100000} opts)))
 
 (defn set-authority [contract-key new-authority & [opts]]
-  #_(contract-call contract-key :set-authority new-authority (merge {:gas 100000} opts)))
+  (contract-call contract-key :set-authority [new-authority] (merge {:gas 100000} opts)))
 
 (defn authority [contract-key]
-  #_(contract-call contract-key :authority))
+  (contract-call contract-key :authority))
