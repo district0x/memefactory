@@ -229,22 +229,25 @@
      (db/update-meme-total-minted! registry-entry total-minted))))
 
 (defmethod process-event [:contract/meme-auction :auction-started]
-  [_ {:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price :duration] :as ev}]
+  [_ {:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price :duration :description :started-on] :as ev}]
   (try-catch
    (let [meme-auction {:meme-auction/address meme-auction
                        :meme-auction/token-id (bn/number token-id)
                        :meme-auction/seller seller
                        :meme-auction/start-price (bn/number start-price)
                        :meme-auction/end-price (bn/number end-price)
-                       :meme-auction/duration (bn/number duration)}]
+                       :meme-auction/duration (bn/number duration)
+                       :meme-auction/description description
+                       :meme-auction/started-on started-on}]
      (db/insert-or-update-meme-auction! meme-auction))))
 
 (defmethod process-event [:contract/meme-auction :buy]
   [_ {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (try-catch
-   (let [reg-entry-address nil] ;; TODO Fix retrieve from db
-     #_(db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
-                                         :amount price})
+   (let [reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
+                               :reg-entry/address)]
+     (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
+                                       :amount price})
      (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
                                          :meme-auction/bought-for (bn/number price)
                                          :meme-auction/bought-on timestamp

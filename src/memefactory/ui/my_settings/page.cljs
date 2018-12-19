@@ -27,23 +27,23 @@
     (fn []
 
       (let [public-key (-> @public-key-sub :config :ui :public-key)]
-          [:div.my-settings-box
-        [:div.icon]
-        [:h2.title "My Settings"]
-        [:div.body
-         [:div.form
-          [with-label
-           "Email"
-           [text-input {:form-data form-data
-                        :id :email
-                        :errors errors}]]
-          [:p "Email associated with your address will be encrypted and stored on a public blockchain. Only our email server will be able to decrypt it. We'll use it to send you notifications about your purchases, sells and offering requests."]]]
-           [:div.footer
+        [:div.my-settings-box
+         [:div.icon]
+         [:h2.title "My Settings"]
+         [:div.body
+          [:div.form
+           [with-label
+            "Email"
+            [text-input {:form-data form-data
+                         :id :email
+                         :errors errors}]]
+           [:p "Email associated with your address will be encrypted and stored on a public blockchain. Only our email server will be able to decrypt it. We'll use it to send you notifications about your purchases, sells and offering requests."]]]
+         [:div.footer
 
-         (if (empty? (:local @errors))
-           {:on-click #(re-frame/dispatch [::ms-events/save-settings public-key @form-data])}
-           {})
-         "Save"]]))))
+          (if (empty? (:local @errors))
+            {:on-click #(re-frame/dispatch [::ms-events/save-settings public-key @form-data])}
+            {})
+          "Save"]]))))
 
 (defmethod page :route.my-settings/index []
   [app-layout

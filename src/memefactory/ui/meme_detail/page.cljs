@@ -206,8 +206,7 @@
      [:h2.title
       (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]
      [:div
-      [:h2.title "This meme hasn't been challenged."]
-      [:p description]])])
+      [:h4.title "This meme hasn't been challenged."]])])
 
 (defn challenger-component [{:keys [:challenge/comment :challenge/challenger] :as meme}]
   (let [{:keys [:user/challenger-rank :user/challenger-total-earned
@@ -409,24 +408,27 @@
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
   [:div.challenge-component
    [challenge-header created-on]
-   [status-component status]
-   [challenger-component meme]
-   [reveal-vote-component meme]])
+   (when (pos? created-on)
+     [status-component status]
+     [challenger-component meme]
+     [reveal-vote-component meme])])
 
 (defmethod challenge-component :reg-entry.status/commit-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
   [:div.challenge-component
    [challenge-header created-on]
-   [status-component status]
-   [challenger-component meme]
-   [vote-component meme]])
+   (when (pos? created-on)
+     [status-component status]
+     [challenger-component meme]
+     [vote-component meme])])
 
 (defmethod challenge-component :reg-entry.status/challenge-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
   [:div.challenge-component
    [challenge-header created-on]
-   [status-component status]
-   [challenge-meme-component meme]])
+   (when (pos? created-on)
+     [status-component status]
+     [challenge-meme-component meme])])
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
@@ -434,9 +436,10 @@
    [:h1.title "Challenge"]
    [:div.challenge-component-inner
     [challenge-header created-on]
-    [status-component status]
-    [challenger-component meme]
-    [votes-component meme]]])
+    (when (pos? created-on)
+      [status-component status]
+      [challenger-component meme]
+      [votes-component meme])]])
 
 (defmethod page :route.meme-detail/index []
   (let [active-account @(subscribe [::accounts-subs/active-account])

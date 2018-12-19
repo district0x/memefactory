@@ -13,7 +13,9 @@ contract MemeAuctionFactory is ERC721Receiver {
                                 address seller,
                                 uint startPrice,
                                 uint endPrice,
-                                uint duration);
+                                uint duration,
+                                string description,
+                                uint startedOn);
 
   event MemeAuctionBuyEvent(address indexed memeAuction,
                             address buyer,
@@ -49,10 +51,17 @@ contract MemeAuctionFactory is ERC721Receiver {
     return ERC721_RECEIVED;
   }
 
-  function fireMemeAuctionStartedEvent(uint tokenId, address seller, uint startPrice, uint endPrice, uint duration)
+  function fireMemeAuctionStartedEvent(uint tokenId, address seller, uint startPrice, uint endPrice, uint duration, string description, uint startedOn)
     onlyMemeAuction
   {
-    emit MemeAuctionStartedEvent(msg.sender,  tokenId,  seller,  startPrice, endPrice, duration);
+    emit MemeAuctionStartedEvent(msg.sender,
+                                 tokenId,
+                                 seller,
+                                 startPrice,
+                                 endPrice,
+                                 duration,
+                                 description,
+                                 startedOn);
   }
 
   function fireMemeAuctionBuyEvent(address buyer, uint price, uint auctioneerCut, uint sellerProceeds)

@@ -356,3 +356,10 @@
   (db/get {:select [:*]
            :from [[:meme-auctions :ma]]
            :where [:= :ma.meme-auction/address auction-address]}))
+
+(defn get-meme-by-auction-address [auction-address]
+  (db/get {:select [:m.*]
+           :from [[:meme-auctions :ma]]
+           :join [[:meme-tokens :mt] [:= :mt.meme-token/token-id :ma.meme-auction/token-id]
+                  [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]]
+           :where [:= :ma.meme-auction/address auction-address]}))

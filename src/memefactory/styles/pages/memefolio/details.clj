@@ -302,6 +302,7 @@
       :padding-top (em 1)
       :margin-bottom (em 0.1)
       :text-align :center}]
+    [:h4.title {:padding (em 1)}]
     [">.spinner--challenge"
      {:margin :auto
       :margin-top (em 3)}]

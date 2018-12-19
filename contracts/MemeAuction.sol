@@ -58,7 +58,9 @@ contract MemeAuction is ERC721Receiver {
                                                    seller,
                                                    startPrice,
                                                    endPrice,
-                                                   duration);
+                                                   duration,
+                                                   description,
+                                                   startedOn);
   }
 
   /**

@@ -94,9 +94,9 @@
             {:form-data form-data
              :id :search-tags}]
            [with-label "Issuance"
-            [int-input {:form-data form-data
-                        :errors errors
-                        :id :issuance}]
+            [text-input {:form-data form-data
+                         :errors errors
+                         :id :issuance}]
             {:form-data form-data
              :id :issuance}]
            #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus

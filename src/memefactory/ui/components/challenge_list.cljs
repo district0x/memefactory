@@ -75,7 +75,6 @@
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
                 :meme/tags :challenge/challenger :challenge/comment]} entry]
     [:div.challenge
-     #_[:div (str "ENTRY " address)] ;; TODO remove (only for debugging)
      (cond-> [:div.info
               [:h2 {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                               nil
@@ -118,7 +117,6 @@
                                     {:id {:params params :key key}}])
             all-memes (->> @meme-search
                            (mapcat (fn [r] (-> r :search-memes :items)))
-                           ;; TODO remove this, don't know why subscription is returning nil item
                            (remove #(nil? (:reg-entry/address %))))]
 
         (log/debug "All Rendering here" all-memes ::challenge-list)

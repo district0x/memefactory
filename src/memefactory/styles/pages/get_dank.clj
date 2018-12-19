@@ -19,11 +19,10 @@
     [:.icon {:background-size [(em 2) (em 2)]}]
     [:.form {:font-size (px 14)
              :margin (em 2)
-             :height (em 5)
+             :height (em 4)
              :display :flex
              :justify-content :space-around
              :padding-left (em 15)
-             :padding-right (em 15)
-             }]
+             :padding-right (em 15)}]
     [:.footer
       (get-dank-button)]]])

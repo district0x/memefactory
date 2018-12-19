@@ -51,15 +51,18 @@
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
 
     (log/debug "All auctions" {:auctions (map :meme-auction/address all-auctions)})
-
     [:div.scroll-area
-     [:div.tiles
-      (if (:graphql/loading? @auctions-search)
-        [:div.loading]
-        (doall
-         (for [{:keys [:meme-auction/address] :as auc} all-auctions]
-           ^{:key address}
-           [tiles/auction-tile {} auc])))]
+
+
+     (if (:graphql/loading? @auctions-search)
+       [:div.loading]
+       [:div.tiles
+        (if (empty? all-auctions)
+          [:div.no-items-found "No items found."]
+          (doall
+           (for [{:keys [:meme-auction/address] :as auc} all-auctions]
+             ^{:key address}
+             [tiles/auction-tile {} auc])))])
      [infinite-scroll {:load-fn (fn []
                                   (when-not (:graphql/loading? @auctions-search)
                                     (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
