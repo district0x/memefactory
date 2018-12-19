@@ -40,12 +40,14 @@
                 "Country Code"
                 [text-input (merge {:form-data form-data
                                     :errors errors
-                                    :id :country-code})]]
+                                    :id :country-code
+                                    :class "country-code"})]]
                [with-label
                 "Phone Number"
                 [text-input (merge {:form-data form-data
                                     :errors errors
-                                    :id :phone-number})]]]
+                                    :id :phone-number
+                                    :class "phone"})]]]
             2 [:div.form
                [with-label
                 "Verification Code"

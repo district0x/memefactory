@@ -14,15 +14,23 @@
                     {:margin-right (em 2)
                      :margin-left (em 2)}])
    [:.get-dank-box
-     (panel-with-icon {:url "/assets/icons/mysettings.svg"
-                       :color :redish})
-    [:.icon {:background-size [(em 2) (em 2)]}]
+    (panel-with-icon {:url "/assets/icons/get-dank-icon-bg.svg"
+                      :color :redish})
+    [:h3.title {:white-space :normal}]
+    [:.icon {:background-size [(em 3) (em 3)]}]
+
     [:.form {:font-size (px 14)
              :margin (em 2)
              :height (em 4)
              :display :flex
              :justify-content :space-around
-             :padding-left (em 15)
-             :padding-right (em 15)}]
+             :padding-left (em 20)
+             :padding-right (em 20)}
+     [:.country-code {:width (em 6.1)}]
+     (for-media-max :tablet
+                   [:&
+                    {:padding (px 0)
+                     :display :block}])]
+
     [:.footer
       (get-dank-button)]]])

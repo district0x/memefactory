@@ -92,7 +92,8 @@
                     [:how-it-works "how-it-works"]
                     [:leaderboard "leaderboard"]
                     [:memefolio "mymemefolio"]
-                    [:my-settings "mysettings"]]]
+                    [:my-settings "mysettings"]
+                    [:faucet "get-dank-icon-pink"]]]
          (mapv (fn [[cls img]]
                  [(keyword (str "&." (name cls)))
                   [:a:before
