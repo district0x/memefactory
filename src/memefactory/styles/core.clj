@@ -17,6 +17,7 @@
             [memefactory.styles.pages.dankregistry.vote :as page.dankregistry.vote]
             [memefactory.styles.pages.leaderboard :as page.leaderboard]
             [memefactory.styles.pages.my-settings :as page.my-settings]
+            [memefactory.styles.pages.get-dank :as page.get-dank]
             [memefactory.styles.component.challenge-list :as challenge-list]))
 
 (defstyles main
@@ -36,4 +37,5 @@
   page.dankregistry.vote/core
   page.leaderboard/core
   page.my-settings/core
+  page.get-dank/core
   challenge-list/core)

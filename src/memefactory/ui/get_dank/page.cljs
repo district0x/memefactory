@@ -8,15 +8,9 @@
    [memefactory.ui.get-dank.events :as dank-events]
    [district.format :as format]
    [district.ui.component.form.input :refer [index-by-type
-                                             text-input]]
+                                             text-input
+                                             with-label]]
    [district.ui.graphql.subs :as gql]))
-
-(defn header []
-  [:div.submit-info
-   [:div.icon]
-   [:h2.title "Receive initial DANK tokens"]
-   [:h3.title "Enter your phone number and we'll send you a one-time allotment of DANK tokens"]
-   [:div.get-dank-button "Get Dank"]])
 
 (defmethod page :route.get-dank/index []
   (let [form-data (r/atom {})
@@ -33,41 +27,43 @@
       [app-layout
        {:meta {:title "MemeFactory"
                :description "Faucet for initial DANK"}}
-       [:div.dank-registry-submit-page
-        [:section.submit-header
-         [header]]
-        [:div.form-panel
-         [text-input (merge {:form-data form-data
-                             :placeholder "Country Code"
-                             :errors errors
-                             :id :country-code}
-                            (when (= @stage 2)
-                              {:disabled "disabled"}))]
-         [text-input (merge {:form-data form-data
-                             :placeholder "Phone Number"
-                             :errors errors
-                             :id :phone-number}
-                            (when (= @stage 2)
-                              {:disabled "disabled"}))]
-         [text-input (merge {:form-data form-data
-                             :placeholder "Verification Code"
-                             :errors errors
-                             :id :verification-code}
-                            (when (= @stage 1)
-                              {:style
-                               {:visibility "hidden"}}))]
-         [:div.submit
-          [:button {:on-click (fn []
-                                (let [verification-code (:verification-code @form-data)]
-                                  (println "verification-code blank?:"
-                                           (clojure.string/blank? verification-code))
-                                  (if (clojure.string/blank? verification-code)
-                                    (do ; Stage 1
-                                      (dispatch [::dank-events/send-verification-code @form-data])
-                                      (reset! stage 2))
-                                    (do ; Stage 2
-                                      (dispatch [::dank-events/encrypt-verification-payload @form-data])
-                                      (reset! form-data {})
-                                      (reset! stage 1)))))
-                    :disabled (not (empty? @critical-errors))}
-           "Submit"]]]]])))
+       [:div.get-dank-page
+        [:div.get-dank-box
+         [:div.icon]
+         [:h2.title "Receive initial DANK tokens"]
+         [:h3.title "Enter your phone number and we'll send you a one-time allotment of DANK tokens"]
+         [:div.body
+          (case @stage
+            1 [:div.form
+
+               [with-label
+                "Country Code"
+                [text-input (merge {:form-data form-data
+                                    :errors errors
+                                    :id :country-code})]]
+               [with-label
+                "Phone Number"
+                [text-input (merge {:form-data form-data
+                                    :errors errors
+                                    :id :phone-number})]]]
+            2 [:div.form
+               [with-label
+                "Verification Code"
+                [text-input (merge {:form-data form-data
+                                    :errors errors
+                                    :id :verification-code})]]])]
+         [:div.footer
+          {:on-click (fn []
+                       (let [verification-code (:verification-code @form-data)]
+                         (println "verification-code blank?:"
+                                  (clojure.string/blank? verification-code))
+                         (if (clojure.string/blank? verification-code)
+                           (do ; Stage 1
+                             (dispatch [::dank-events/send-verification-code @form-data])
+                             (reset! stage 2))
+                           (do ; Stage 2
+                             (dispatch [::dank-events/encrypt-verification-payload @form-data])
+                             (reset! form-data {})
+                             (reset! stage 1)))))
+           :disabled (not (empty? @critical-errors))}
+          "Submit"]]]])))
