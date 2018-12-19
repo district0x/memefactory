@@ -297,7 +297,8 @@
                                     (if ts
                                       (bn/number ts)
                                       1 #_(server-utils/now-in-seconds))))
-               (update :version bn/number))]
+               (update :version bn/number)
+               (assoc :block-number (:block-number a)))]
     (log/info (str "Dispatching" " " info-text " " contract-type " " event-type) {:ev ev} ::dispatch-event)
     (process-event contract-type ev)))
 
@@ -314,7 +315,6 @@
                    :on-event #(dispatch-event :contract/eternal-db :eternal-db-event %1 %2)}
                   {:watcher (partial eternal-db/change-applied-event :meme-registry-db)
                    :on-event #(dispatch-event :contract/eternal-db :eternal-db-event %1 %2)}
-
                   {:watcher (partial registry/meme-constructed-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :constructed %1 %2)}
                   {:watcher (partial registry/meme-minted-event [:meme-registry :meme-registry-fwd])
@@ -331,54 +331,28 @@
                    :on-event #(dispatch-event :contract/meme :vote-reward-claimed %1 %2)}
                   {:watcher (partial registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd])
                    :on-event #(dispatch-event :contract/meme :challenge-reward-claimed %1 %2)}
-
                   {:watcher meme-auction-factory/meme-auction-started-event
                    :on-event #(dispatch-event :contract/meme-auction :auction-started %1 %2)}
                   {:watcher meme-auction-factory/meme-auction-buy-event
                    :on-event #(dispatch-event :contract/meme-auction :buy %1 %2)}
                   {:watcher meme-auction-factory/meme-auction-canceled-event
                    :on-event #(dispatch-event :contract/meme-auction :auction-canceled %1 %2)}
-
                   {:watcher meme-token/meme-token-transfer-event
-                   :on-event #(dispatch-event :contract/meme-token :transfer %1 %2)}
-                  ]]
+                   :on-event #(dispatch-event :contract/meme-token :transfer %1 %2)}]]
     (concat
-
      ;; Replay every past events (from block 0 to (dec last-block-number))
      (when (pos? last-block-number)
        (->> watchers
             (map (fn [{:keys [watcher on-event]}]
-                   (-> (apply watcher [{} {:from-block 0 :to-block (dec last-block-number)}])
+                   (-> (apply watcher [{:from-block 0 :to-block (dec last-block-number)}])
                        (replay-past-events on-event))))
             doall))
-
      ;; Filters that will watch for last event and dispatch
      (->> watchers
           (map (fn [{:keys [watcher on-event]}]
-                 (apply watcher [{} "latest" on-event])))
+                 (apply watcher ["latest" on-event])))
           doall))))
 
 (defn stop [syncer]
   (doseq [filter (remove nil? @syncer)]
     (web3-eth/stop-watching! filter (fn [err]))))
-
-;; for (uint i = 0; i < 32; i++) {
-;;             b[i] = byte(uint8(x / (2**(8*(31 - i)))));
-;;         }
-
-
-;; (defn uint->bytes [uint-bn]
-;;   (->> (map (fn [i]
-;;               (let [hex (-> (bn/div-to-int uint-bn
-;;                                            (bn/pow (web3/to-big-number 2) (* 8 (- 31 i))))
-;;                             (.toString 16))]
-;;                 (-> (subs hex (- (count hex) 2))
-;;                     (js/parseInt 16))))
-;;             (range 0 32))
-;;        (apply js/String.fromCharCode)))
-
-;; (uint->bytes (web3/to-big-number "5.4493935368480931894975801525381113978709950010311913582966553752998353590377e+76"))
-
-
-;; "0x                            787a7972707776665843715567706b38655052437a716663674e553854445869"
-;; "0x516d655778787936464463333371787a7972707776665843715567706b38655052437a716663674e553854445869" <- (web3/from-ascii "QmeWxxy6FDc33qxzyrpwvfXCqUgpk8ePRCzqfcgNU8TDXi")

@@ -14,7 +14,6 @@
             [district.server.db :as db]
             [district.server.graphql :as graphql]
             [district.server.graphql.utils :as utils]
-            [memefactory.server.utils :as server-utils]
             [district.server.logging :refer [logging]]
             [district.server.middleware.logging :refer [logging-middlewares]]
             [district.server.smart-contracts]
@@ -26,24 +25,24 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
-            [memefactory.server.deployer :as deployer]
-            [memefactory.server.generator]
-            [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.emailer]
+            [memefactory.server.emailer]
+            [memefactory.server.generator :as generator]
+            [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.ipfs]
-            [memefactory.server.syncer]
             [memefactory.server.macros :refer [defer]]
+            [memefactory.server.macros :refer [promise->]]
             [memefactory.server.ranks-cache]
+            [memefactory.server.syncer :as syncer]
+            [memefactory.server.utils :as server-utils]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.smart-contracts]
             [mount.core :as mount]
-            [taoensso.timbre :as log]
             [print.foo :refer [look] :include-macros true]
-            [memefactory.server.emailer]))
+            [taoensso.timbre :as log]))
 
 (nodejs/enable-util-print!)
 
-;; (def process js/process)
 (def child-process (nodejs/require "child_process"))
 (def spawn (aget child-process "spawn"))
 
@@ -58,32 +57,8 @@
                                                  :gql-name->kw graphql-utils/gql-name->kw})
                     :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
 
-(defn redeploy-with-deployer []
-  (log/warn "Deprecated function. Please use `redeploy` instead" ::redeploy)
-  (defer
-    (deployer/deploy
-     (or (:deployer @config)
-         {:transfer-dank-token-to-accounts 2
-          :initial-registry-params
-          {:meme-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                           :commit-period-duration (t/in-seconds (t/minutes 20))
-                           :reveal-period-duration (t/in-seconds (t/minutes 10))
-                           :deposit (web3-core/to-wei 1 :ether)
-                           :challenge-dispensation 50
-                           :vote-quorum 50
-                           :max-total-supply 10
-                           :max-auction-duration (t/in-seconds (t/weeks 20))}
-           :param-change-registry {:challenge-period-duration (t/in-seconds (t/minutes 10))
-                                   :commit-period-duration (t/in-seconds (t/minutes 20))
-                                   :reveal-period-duration (t/in-seconds (t/minutes 10))
-                                   :deposit (web3-core/to-wei 10 :ether)
-                                   :challenge-dispensation 50
-                                   :vote-quorum 50}}
-          :write? true}))
-    (log/info "Finished redploying contracts" ::redeploy)))
-
 (defn redeploy
-  "Redeploy smart contracts"
+  "Redeploy smart contracts with truffle"
   []
   (log/warn "Redeploying contracts, please be patient..." ::redeploy)
   (let [child (spawn "truffle migrate --network ganache --reset" (clj->js {:stdio "inherit" :shell true}))]
@@ -103,27 +78,27 @@
   "Generate dev data"
   []
   (log/warn "Generating data, please be patient..." ::generate-date)
-  (defer
-    (let [opts (merge
-                (or (:generator @config)
-                    {:memes/use-accounts 1
-                     :memes/items-per-account 10
-                     :memes/scenarios [:scenario/buy]
-                     :param-changes/use-accounts 1
-                     :param-changes/items-per-account 1
-                     :param-changes/scenarios []})
-                {:accounts (web3-eth/accounts @web3)})]
-      (memefactory.server.generator/generate-memes opts)
-      (memefactory.server.generator/generate-param-changes opts))
-    (log/info "Finished generating data" ::generate-data)))
+  (let [opts (merge
+              (or (:generator @config)
+                  {:memes/use-accounts 1
+                   :memes/items-per-account 10
+                   :memes/scenarios [:scenario/buy]
+                   :param-changes/use-accounts 1
+                   :param-changes/items-per-account 1
+                   :param-changes/scenarios []})
+              {:accounts (web3-eth/accounts @web3)})]
+    (promise-> (memefactory.server.generator/generate-memes opts)
+               #(log/info "Finished generating data" ::generate-data))))
 
 (defn resync []
   (log/warn "Syncing internal database, please be patient..." ::resync)
   (defer
     (mount/stop #'memefactory.server.db/memefactory-db
-                #'memefactory.server.syncer/syncer)
+                #'memefactory.server.syncer/syncer
+                #'district.server.smart-contracts/smart-contracts)
     (-> (mount/start #'memefactory.server.db/memefactory-db
-                     #'memefactory.server.syncer/syncer)
+                     #'memefactory.server.syncer/syncer
+                     #'district.server.smart-contracts/smart-contracts)
         pprint/pprint)
     (log/info "Finished syncing database" ::resync)))
 
@@ -144,8 +119,7 @@
                             :web3 {:port 8549}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
-                                              :print-gas-usage? true
-                                              :auto-mining? false}
+                                              :print-gas-usage? true}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
                             :ui {:public-key "2564e15aaf9593acfdc633bd08f1fc5c089aa43972dd7e8a36d67825cd0154602da47d02f30e1f74e7e72c81ba5f0b3dd20d4d4f0cc6652a2e719a0e9d4c7f10943"}
                             :twilio-api-key "PUT_THE_REAL_KEY_HERE"}}})
@@ -249,7 +223,7 @@
                          {:from (last accounts)})))
 
 (comment
-  ;; Contract call log instrument snippet p
+  ;; Contract call log instrument snippet
   ;; paste in UI repl or SERVER repl
   (let [cc cljs-web3.eth/contract-call]
     (set! cljs-web3.eth/contract-call
