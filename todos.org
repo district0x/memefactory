@@ -91,7 +91,8 @@ For more detail search this texts inside https://github.com/district0x/memefacto
 - [ ] cors OPTIONS for preflight requests non accepted                                                        ()
 - [X] add server logging (with sentry)                                                                        (Filip)
 - [X] make memefactory.server.utils/time_source a config module variable like the rest of them                (Filip)
+- [ ] past events arrive unordered by block number, which casues errors when resyncing                        ()
 
 ** Smart contracts todos
 - [X] limit contract size to fit in the bytecode size limit                                                   (Filip)
-- [ ] write truffle deployment script                                                                         (Filip) 
+- [ ] write truffle deployment script                                                                         (Filip)

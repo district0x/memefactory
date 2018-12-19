@@ -16,7 +16,7 @@
             [district.server.graphql.utils :as utils]
             [district.server.logging :refer [logging]]
             [district.server.middleware.logging :refer [logging-middlewares]]
-            [district.server.smart-contracts :as smart-contracts]
+            [district.server.smart-contracts]
             [district.server.web3 :refer [web3]]
             [district.server.web3-watcher]
             [goog.date.Date]
@@ -94,9 +94,11 @@
   (log/warn "Syncing internal database, please be patient..." ::resync)
   (defer
     (mount/stop #'memefactory.server.db/memefactory-db
-                #'memefactory.server.syncer/syncer)
+                #'memefactory.server.syncer/syncer
+                #'district.server.smart-contracts/smart-contracts)
     (-> (mount/start #'memefactory.server.db/memefactory-db
-                     #'memefactory.server.syncer/syncer)
+                     #'memefactory.server.syncer/syncer
+                     #'district.server.smart-contracts/smart-contracts)
         pprint/pprint)
     (log/info "Finished syncing database" ::resync)))
 
@@ -117,17 +119,11 @@
                             :web3 {:port 8549}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
-                                              ;;:print-gas-usage? true
-                                              }
+                                              :print-gas-usage? true}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
                             :ui {:public-key "2564e15aaf9593acfdc633bd08f1fc5c089aa43972dd7e8a36d67825cd0154602da47d02f30e1f74e7e72c81ba5f0b3dd20d4d4f0cc6652a2e719a0e9d4c7f10943"}
                             :twilio-api-key "PUT_THE_REAL_KEY_HERE"}}})
-      (mount/except [#'memefactory.server.emailer/emailer
-
-                     ;; TODO : turn on syncer
-                     #'memefactory.server.syncer/syncer
-
-                     ])
+      (mount/except [#'memefactory.server.emailer/emailer])
       (mount/start)
       pprint/pprint))
 
@@ -244,18 +240,3 @@
                                  (map (fn [p] (str (:type p) " " (:name p) " = " (:value p))))
                                  (clojure.string/join ",\n"))")")
               (apply cc (into [contract-instance method] args)))))))
-
-(defn ev-filter []
-  (apply web3-eth/contract-call (smart-contracts/instance-from-arg [:meme-registry :meme-registry-fwd]) :MemeConstructedEvent
-         (merge []
-                {}
-                {:from-block 0 :to-block (dec (syncer/last-block-number))}
-                #_(fn [err data]
-
-                  (prn "@@@@@@@@@@@@@@@ FILTER ON EVENT from" err data)
-
-
-                  ))))
-
-(defn ev-replay []
-  (smart-contracts/replay-past-events (ev-filter) #(prn "REPLAYING")))
