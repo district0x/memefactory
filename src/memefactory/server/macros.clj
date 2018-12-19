@@ -3,7 +3,7 @@
             [cljs.core]))
 
 (defmacro promise->
-  "Takes `thenable` functions as arguments (i.e. functions returning a Promis) and chains them,
+  "Takes `thenable` functions as arguments (i.e. functions returning a JS/Promise) and chains them,
    taking care of error handling
    Example:
    (promise-> (thenable-1)

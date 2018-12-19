@@ -61,7 +61,7 @@
                         (when goog.DEBUG
                           (resolve default)))))))))
 
-(defn last-block-number []
+(defn- last-block-number []
   (web3-eth/block-number @web3))
 
 (derive :contract/meme :contract/registry-entry)
@@ -287,9 +287,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn dispatch-event [contract-type event-type err {:keys [args event] :as a}]
-
-;; (prn "@@@ a" a)
-  
   (let [ev (-> args
                (assoc :contract-address (:address a))
                (assoc :event-type event-type)
