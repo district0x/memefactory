@@ -32,7 +32,7 @@
 
 (def fs (js/require "fs"))
 
-(defn get-scenarios [{:keys [:accounts :use-accounts :items-per-account :scenarios]}]
+#_(defn get-scenarios [{:keys [:accounts :use-accounts :items-per-account :scenarios]}]
   (when (and (pos? use-accounts)
              (pos? items-per-account)
              (seq scenarios))
@@ -67,7 +67,8 @@
   (let [meta-info (format/clj->json {:title "PepeSmile"
                                      :image-hash image-hash
                                      :search-tags ["pepe" "frog" "dank"]
-                                     :comment "did not like it"})]
+                                     ;; :comment "did not like it"
+                                     })]
     (log/info "Uploading meta" {:meta-info meta-info} ::upload-meme-meta)
     (js/Promise.
      (fn [resolve reject]
@@ -101,9 +102,25 @@
                 (assoc previous :meme {:registry-entry registry-entry
                                        :creator creator}))))
 
+(defn upload-challenge-meta [previous]
+  (let [challenge-meta-info (format/clj->json {:comment "did not like it"})]
+    (log/info "Uploading meta" {:challenge-meta-info challenge-meta-info} ::upload-challenge-meta)
+    (js/Promise.
+     (fn [resolve reject]
+       (ipfs-files/add
+        (js/Buffer.from challenge-meta-info)
+        (fn [err {challenge-meta-hash :Hash}]
+          (if err
+            (do
+              (log/error "ifps error" {:error err} ::upload-challenge-meta)
+              (reject err))
+            (do
+              (log/info "Uploaded meta received " {:challenge-meta-hash challenge-meta-hash} ::upload-challenge-meta)
+              (resolve (assoc previous :challenge-meta-hash challenge-meta-hash))))))))))
+
 (defn challenge-meme [previous account]
   (promise-> (registry-entry/approve-and-create-challenge (get-in previous [:meme :registry-entry])
-                                                          {:meta-hash (:meta-hash previous)
+                                                          {:meta-hash (:challenge-meta-hash previous)
                                                            :amount (get-in previous [:meme-registry-db-values :deposit])}
                                                           {:from account})
              #(wait-for-tx-receipt %)
@@ -169,21 +186,31 @@
              #(wait-for-tx-receipt %)
              #(assoc previous :buy-tx (:transaction-hash %))))
 
-(defn generate-memes [{:keys [:accounts]}]
-  (let [account (first accounts)
+(defn generate-memes []
+  (let [account (first (web3-eth/accounts @web3))
         previous {}]
     (promise-> (upload-meme previous)
-               ;; #(.foo %)
                #(upload-meme-meta %)
                #(get-meme-registry-db-values %)
                #(create-meme % account)
+
+               #(upload-challenge-meta %)
                #(challenge-meme % account)
+
                #(commit-vote % account)
+
                #(increase-time % (inc (get-in % [:meme-registry-db-values :commit-period-duration])))
                #(reveal-vote % account)
+
                #(increase-time % (inc (get-in % [:meme-registry-db-values :reveal-period-duration])))
                #(claim-vote-reward % account)
+
                #(mint-meme-tokens % account)
+
                #(start-auction % account)
+
                #(buy-auction % account)
-               #(log/info "Generate meme result" % ::generate-memes))))
+
+               #(log/info "Generate meme result" % ::generate-memes)
+
+               )))

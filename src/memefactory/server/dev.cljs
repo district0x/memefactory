@@ -74,21 +74,21 @@
         (.on "close" (fn []
                        (log/info "Finished redploying contracts" ::redeploy))))))
 
+;; TODO : add semantic opts
+
+
+[{:create-meme {:image-file "resources/dev/pepe.png"
+                 :from-account "0x..."}}
+ ]
+
+
+
 (defn generate-data
   "Generate dev data"
   []
   (log/warn "Generating data, please be patient..." ::generate-date)
-  (let [opts (merge
-              (or (:generator @config)
-                  {:memes/use-accounts 1
-                   :memes/items-per-account 10
-                   :memes/scenarios [:scenario/buy]
-                   :param-changes/use-accounts 1
-                   :param-changes/items-per-account 1
-                   :param-changes/scenarios []})
-              {:accounts (web3-eth/accounts @web3)})]
-    (promise-> (memefactory.server.generator/generate-memes opts)
-               #(log/info "Finished generating data" ::generate-data))))
+  (promise-> (memefactory.server.generator/generate-memes)
+             #(log/info "Finished generating data" ::generate-data)))
 
 (defn resync []
   (log/warn "Syncing internal database, please be patient..." ::resync)
