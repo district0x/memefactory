@@ -87,13 +87,12 @@
   (let [meme-registry-db-keys [:max-total-supply :max-auction-duration :deposit :commit-period-duration :reveal-period-duration]]
     (promise-> (eternal-db/get-uint-values :meme-registry-db meme-registry-db-keys)
                #(let [meme-registry-db-values (zipmap meme-registry-db-keys (map bn/number %))]
-                  (merge previous {:meme-registry-db-values meme-registry-db-values
-                                                      :total-supply (inc (rand-int (:max-total-supply meme-registry-db-values)))})))))
+                  (merge previous {:meme-registry-db-values meme-registry-db-values})))))
 
 ;; TODO: destructure previous
 (defn create-meme [previous account]
   (promise-> (meme-factory/approve-and-create-meme {:meta-hash (:meta-hash previous)
-                                                    :total-supply (:total-supply previous)
+                                                    :total-supply (inc (rand-int (get-in previous [:meme-registry-db-values :max-total-supply]))) 
                                                     :amount (get-in previous [:meme-registry-db-values :deposit])}
                                                    {:from account})
              #(wait-for-tx-receipt %)
@@ -201,8 +200,8 @@
 
                #(increase-time % (inc (get-in % [:meme-registry-db-values :commit-period-duration])))
                #(reveal-vote % account)
-
                #(increase-time % (inc (get-in % [:meme-registry-db-values :reveal-period-duration])))
+
                #(claim-vote-reward % account)
 
                #(mint-meme-tokens % account)
