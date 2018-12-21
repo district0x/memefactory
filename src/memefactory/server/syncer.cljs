@@ -6,7 +6,8 @@
             [cljs-web3.core :as web3]
             [cljs-web3.eth :as web3-eth]
             [district.server.config :refer [config]]
-            [district.server.smart-contracts :as smart-contracts :refer [replay-past-events]]
+            [district.server.smart-contracts :as smart-contracts :refer [replay-past-events replay-past-events-in-order]]
+            [memefactory.shared.smart-contracts :as sc]
             [district.server.web3 :refer [web3]]
             [district.web3-utils :as web3-utils]
             [memefactory.server.contract.eternal-db :as eternal-db]
@@ -26,7 +27,9 @@
             [taoensso.timbre :as log]
             [memefactory.server.ipfs]
             [clojure.string :as str]
-            [memefactory.server.utils :as server-utils]))
+            [memefactory.server.utils :as server-utils]
+            [cljs.core.async :as async])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (declare start)
 (declare stop)
@@ -34,6 +37,10 @@
   :start (start (merge (:syncer @config)
                        (:syncer (mount/args))))
   :stop (stop syncer))
+
+;; this HACK is because mount doesn't support async, so mount start will return
+;; a chan. We then store created filters in an atom so we can stop them at component stop.
+(def all-filters (atom []))
 
 (def info-text "smart-contract event")
 (def error-text "smart-contract event error")
@@ -80,9 +87,9 @@
     (db/insert-or-replace-param-change! (assoc param-change :param-change/initial-value value))))
 
 
-(defmulti process-event (fn [contract-type ev] [contract-type (:event-type ev)]))
+(defmulti process-event (fn [contract-type ev] [contract-type (:event ev)]))
 
-(defmethod process-event [:contract/meme :constructed]
+(defmethod process-event [:contract/meme :MemeConstructedEvent]
   [contract-type {:keys [:registry-entry :timestamp :creator :meta-hash
                          :total-supply :version :deposit :challenge-period-end] :as ev}]
   (try-catch
@@ -111,7 +118,7 @@
                       (db/tag-meme! (:reg-entry/address meme) t))))))))))
 
 
-(defmethod process-event [:contract/param-change :constructed]
+(defmethod process-event [:contract/param-change :ParamChangeConstructedEvent]
   [contract-type {:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp] :as ev}]
   (try-catch
    (add-registry-entry {:reg-entry/address registry-entry
@@ -134,7 +141,7 @@
    ;; TODO: could also just change applied date to timestamp
    (add-param-change registry-entry)))
 
-(defmethod process-event [:contract/registry-entry :challenge-created]
+(defmethod process-event [:contract/registry-entry :ChallengeCreatedEvent]
   [_ {:keys [:registry-entry :challenger :commit-period-end
              :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (try-catch
@@ -154,7 +161,7 @@
                                                  :challenge/comment (:comment challenge-meta)}))
               (db/update-user! {:user/address challenger}))))))
 
-(defmethod process-event [:contract/registry-entry :vote-committed]
+(defmethod process-event [:contract/registry-entry :VoteCommittedEvent]
   [_ {:keys [:registry-entry :timestamp :voter :amount] :as ev}]
   (try-catch
    (let [vote {:reg-entry/address registry-entry
@@ -163,7 +170,7 @@
                :vote/option 0}] ;; No vote
      (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
-(defmethod process-event [:contract/registry-entry :vote-revealed]
+(defmethod process-event [:contract/registry-entry :VoteRevealedEvent]
   [_ {:keys [:registry-entry :timestamp :version :voter :option] :as ev}]
   (try-catch
    (let [vote (merge (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/amount])
@@ -180,7 +187,7 @@
                                                                                            (:vote/amount vote)))))
      (db/update-vote! vote))))
 
-(defmethod process-event [:contract/registry-entry :vote-reward-claimed]
+(defmethod process-event [:contract/registry-entry :VoteRewardClaimedEvent]
   [_ {:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (try-catch
    (let [vote {:reg-entry/address registry-entry
@@ -189,14 +196,14 @@
      (db/update-vote! vote)
      (db/inc-user-field! voter :user/voter-total-earned (bn/number amount)))))
 
-(defmethod process-event [:contract/registry-entry :vote-amount-reclaimed]
+(defmethod process-event [:contract/registry-entry :VoteAmountClaimedEvent]
   [_ {:keys [:registry-entry :timestamp :version :voter] :as ev}]
   (try-catch
    (let [vote {:reg-entry/address registry-entry
                :vote/voter voter}]
      (db/update-vote! vote))))
 
-(defmethod process-event [:contract/registry-entry :challenge-reward-claimed]
+(defmethod process-event [:contract/registry-entry :ChallengeRewardClaimedEvent]
   [_ {:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
   (try-catch
    (let [reg-entry nil
@@ -207,7 +214,7 @@
                                  :challenge/reward-amount (bn/number amount)})
      (db/inc-user-field! challenger :user/challenger-total-earned (bn/number amount)))))
 
-(defmethod process-event [:contract/meme :minted]
+(defmethod process-event [:contract/meme :MemeMintedEvent]
   [_ {:keys [:registry-entry :timestamp :version :creator :token-start-id :token-end-id :total-minted] :as ev}]
   (try-catch
    (let [timestamp timestamp
@@ -228,7 +235,7 @@
      (db/update-meme-token-id-start! registry-entry token-start-id)
      (db/update-meme-total-minted! registry-entry total-minted))))
 
-(defmethod process-event [:contract/meme-auction :auction-started]
+(defmethod process-event [:contract/meme-auction :MemeAuctionStartedEvent]
   [_ {:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price :duration :description :started-on] :as ev}]
   (try-catch
    (let [meme-auction {:meme-auction/address meme-auction
@@ -241,7 +248,7 @@
                        :meme-auction/started-on started-on}]
      (db/insert-or-update-meme-auction! meme-auction))))
 
-(defmethod process-event [:contract/meme-auction :buy]
+(defmethod process-event [:contract/meme-auction :MemeAuctionBuyEvent]
   [_ {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (try-catch
    (let [reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
@@ -253,11 +260,11 @@
                                          :meme-auction/bought-on timestamp
                                          :meme-auction/buyer buyer}))))
 
-(defmethod process-event [:contract/meme-auction :auction-canceled]
+(defmethod process-event [:contract/meme-auction :MemeAuctionCanceledEvent]
   [_ {:keys [] :as ev}]
   (log/warn "Meme auction canceled event not implemented"))
 
-(defmethod process-event [:contract/meme-token :transfer]
+(defmethod process-event [:contract/meme-token :Transfer]
   [_ ev]
   (try-catch
    (let [{:keys [:_to :_token-id :_timestamp]} ev]
@@ -265,7 +272,7 @@
                                              :meme-token/owner _to
                                              :meme-token/transferred-on (bn/number _timestamp)}))))
 
-(defmethod process-event [:contract/eternal-db :eternal-db-event]
+(defmethod process-event [:contract/eternal-db :EternalDbEvent]
   [_ ev]
   (try-catch
    (let [{:keys [:contract-address :records :values :timestamp]} ev
@@ -289,18 +296,34 @@
 ;; End of events processors ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn dispatch-event [contract-type event-type err {:keys [args event] :as a}]
-  (let [ev (-> args
-               (assoc :contract-address (:address a))
-               (assoc :event-type event-type)
-               (update :timestamp (fn [ts]
-                                    (if ts
-                                      (bn/number ts)
-                                      1 #_(server-utils/now-in-seconds))))
-               (update :version bn/number)
-               (assoc :block-number (:block-number a)))]
-    (log/info (str "Dispatching" " " info-text " " contract-type " " event-type) {:ev ev} ::dispatch-event)
-    (process-event contract-type ev)))
+;; sc/smart-contracts goes for contract-keys -> addresss,
+;; this created a map the otherway around
+(def contract-key-from-address (reduce
+                                (fn [r [contract-key {:keys [name address]}]]
+                                  (assoc r address contract-key))
+                                {}
+                                sc/smart-contracts))
+
+(defn dispatch-event
+  ([ev] (dispatch-event nil ev))
+  ([err {:keys [args event address block-number]}]
+   (let [contract-key (contract-key-from-address address)
+         contract-type ({:meme-registry-db         :contract/eternal-db
+                         :param-change-registry-db :contract/eternal-db
+                         :meme-registry-fwd        :contract/meme
+                         :meme-token               :contract/meme-token
+                         :meme-auction-factory     :contract/meme-auction} contract-key)
+         ev (-> args
+                (assoc :contract-address address)
+                (assoc :event (keyword event))
+                (update :timestamp (fn [ts]
+                                     (if ts
+                                       (bn/number ts)
+                                       1 #_(server-utils/now-in-seconds))))
+                (update :version bn/number)
+                (assoc :block-number block-number))]
+     (log/info (str "Dispatching" " " info-text " " contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
+     (process-event contract-type ev))))
 
 (defn start [{:keys [:initial-param-query] :as opts}]
 
@@ -311,48 +334,41 @@
     (throw (js/Error. "Database module has not started")))
 
   (let [last-block-number (last-block-number)
-        watchers [{:watcher (partial eternal-db/change-applied-event :param-change-registry-db)
-                   :on-event #(dispatch-event :contract/eternal-db :eternal-db-event %1 %2)}
-                  {:watcher (partial eternal-db/change-applied-event :meme-registry-db)
-                   :on-event #(dispatch-event :contract/eternal-db :eternal-db-event %1 %2)}
-                  {:watcher (partial registry/meme-constructed-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme :constructed %1 %2)}
-                  {:watcher (partial registry/meme-minted-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme :minted %1 %2)}
-                  {:watcher (partial registry/challenge-created-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme :challenge-created %1 %2)}
-                  {:watcher (partial registry/vote-committed-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme :vote-committed %1 %2)}
-                  {:watcher (partial registry/vote-revealed-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme :vote-revealed %1 %2)}
-                  {:watcher (partial registry/vote-amount-claimed-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme :vote-amount-claimed %1 %2)}
-                  {:watcher (partial registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme :vote-reward-claimed %1 %2)}
-                  {:watcher (partial registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd])
-                   :on-event #(dispatch-event :contract/meme :challenge-reward-claimed %1 %2)}
-                  {:watcher meme-auction-factory/meme-auction-started-event
-                   :on-event #(dispatch-event :contract/meme-auction :auction-started %1 %2)}
-                  {:watcher meme-auction-factory/meme-auction-buy-event
-                   :on-event #(dispatch-event :contract/meme-auction :buy %1 %2)}
-                  {:watcher meme-auction-factory/meme-auction-canceled-event
-                   :on-event #(dispatch-event :contract/meme-auction :auction-canceled %1 %2)}
-                  {:watcher meme-token/meme-token-transfer-event
-                   :on-event #(dispatch-event :contract/meme-token :transfer %1 %2)}]]
-    (concat
-     ;; Replay every past events (from block 0 to (dec last-block-number))
-     (when (pos? last-block-number)
-       (->> watchers
-            (map (fn [{:keys [watcher on-event]}]
-                   (-> (apply watcher [{:from-block 0 :to-block (dec last-block-number)}])
-                       (replay-past-events on-event))))
-            doall))
-     ;; Filters that will watch for last event and dispatch
-     (->> watchers
-          (map (fn [{:keys [watcher on-event]}]
-                 (apply watcher ["latest" on-event])))
-          doall))))
+        filters-builders [(partial eternal-db/change-applied-event :param-change-registry-db)
+                          (partial eternal-db/change-applied-event :meme-registry-db)
+
+                          (partial registry/meme-constructed-event [:meme-registry :meme-registry-fwd])
+                          (partial registry/meme-minted-event [:meme-registry :meme-registry-fwd])
+                          (partial registry/challenge-created-event [:meme-registry :meme-registry-fwd])
+                          (partial registry/vote-committed-event [:meme-registry :meme-registry-fwd])
+                          (partial registry/vote-revealed-event [:meme-registry :meme-registry-fwd])
+                          (partial registry/vote-amount-claimed-event [:meme-registry :meme-registry-fwd])
+                          (partial registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd])
+                          (partial registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd])
+
+                          meme-auction-factory/meme-auction-started-event
+                          meme-auction-factory/meme-auction-buy-event
+                          meme-auction-factory/meme-auction-canceled-event
+
+                          meme-token/meme-token-transfer-event]
+
+        ;; just creates the past event filters but doesn't retrieves anything
+        past-events-filters (->> filters-builders
+                                 (map #(apply % [{:from-block 0 :to-block (dec last-block-number)}])))]
+
+    (go
+      (when (pos? last-block-number)
+        ;; use past-events-filters to retrieve past events in order
+        ;; block until all replayed before installing new events filters
+        (async/<! (replay-past-events-in-order past-events-filters dispatch-event)))
+
+      ;; install the watch filters and start listening
+      (let [watch-filters (->> filters-builders
+                               (map #(apply % ["latest" dispatch-event]))
+                           doall)]
+
+        (reset! all-filters (into past-events-filters watch-filters))))))
 
 (defn stop [syncer]
-  (doseq [filter (remove nil? @syncer)]
+  (doseq [filter (remove nil? @all-filters)]
     (web3-eth/stop-watching! filter (fn [err]))))
