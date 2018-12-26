@@ -245,7 +245,7 @@
                        :meme-auction/end-price (bn/number end-price)
                        :meme-auction/duration (bn/number duration)
                        :meme-auction/description description
-                       :meme-auction/started-on started-on}]
+                       :meme-auction/started-on (bn/number started-on)}]
      (db/insert-or-update-meme-auction! meme-auction))))
 
 (defmethod process-event [:contract/meme-auction :MemeAuctionBuyEvent]
@@ -312,7 +312,8 @@
                          :param-change-registry-db :contract/eternal-db
                          :meme-registry-fwd        :contract/meme
                          :meme-token               :contract/meme-token
-                         :meme-auction-factory     :contract/meme-auction} contract-key)
+                         :meme-auction-factory     :contract/meme-auction
+                         :meme-auction-factory-fwd :contract/meme-auction} contract-key)
          ev (-> args
                 (assoc :contract-address address)
                 (assoc :event (keyword event))
