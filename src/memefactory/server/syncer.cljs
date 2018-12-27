@@ -261,8 +261,9 @@
                                          :meme-auction/buyer buyer}))))
 
 (defmethod process-event [:contract/meme-auction :MemeAuctionCanceledEvent]
-  [_ {:keys [] :as ev}]
-  (log/warn "Meme auction canceled event not implemented"))
+  [_ {:keys [meme-auction timestamp] :as ev}]
+  (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
+                                      :meme-auction/canceled-on timestamp}))
 
 (defmethod process-event [:contract/meme-token :Transfer]
   [_ ev]
@@ -320,6 +321,7 @@
                 (update :timestamp (fn [ts]
                                      (if ts
                                        (bn/number ts)
+                                       ;; TODO Remove this, added so it is faster for dev
                                        1 #_(server-utils/now-in-seconds))))
                 (update :version bn/number)
                 (assoc :block-number block-number))]
