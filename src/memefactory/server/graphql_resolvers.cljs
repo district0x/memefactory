@@ -416,16 +416,19 @@
 
 (defn params-query-resolver [_ {:keys [:db :keys] :as args}]
   (log/debug "params-query-resolver" args)
-  (try-catch-throw
-   (let [sql-query (db/all {:select [[:param-change/db :param/db]
-                                     [:param-change/key :param/key]
-                                     [:param-change/value :param/value] ]
-                            :from [:param-changes]
-                            :where [:and [:= db :param-changes.param-change/db]
-                                    [:in :param-changes.param-change/key keys]]
-                            :order-by [:param-changes.param-change/applied-on]})]
-     (log/debug "params-query-resolver" sql-query)
-     sql-query)))
+  (let [db (if (contains? #{"memeRegistryDb" "paramChangeRegistryDb"} db)
+             (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
+             db)]
+    ;; TODO Fix this for param changes when that is ready, for now we will only
+    ;; load from INITIAL_PARAMS table
+    (try-catch-throw
+     (let [sql-query (db/all {:select [[:initial-param/key :param/key]
+                                       [:initial-param/value :param/value] ]
+                              :from [[:initial-params :ips]]
+                              :where [:and [:= db :ips.initial-param/db]
+                                      [:in :ips.initial-param/key keys]]})]
+       (log/debug "params-query-resolver" sql-query)
+       sql-query))))
 
 (defn overall-stats-resolver [_ _]
   {:total-memes-count (:count (db/get {:select [[(sql/call :count :*) :count]]

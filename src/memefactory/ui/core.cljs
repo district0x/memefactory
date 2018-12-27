@@ -20,7 +20,7 @@
    [district.ui.web3-tx]
    [district.ui.web3]
    [district.ui.window-size]
-   [memefactory.ui.config :refer [config]]
+   [memefactory.ui.config :refer [config-map]]
    [memefactory.shared.contract.registry-entry]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.routes :refer [routes]]
@@ -59,7 +59,7 @@
 (defn ^:export init []
   (s/check-asserts debug?)
   (dev-setup)
-  (let [full-config (merge config
+  (let [full-config (merge config-map
                            {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)
                                               :format :truffle-json}
                             :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
