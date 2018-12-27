@@ -280,39 +280,29 @@
                                                                                                    :vote-option/vote-against (:user/address creator))}])}
             "Collect Reward"])])]]))
 
-(defn challenge-meme-component [{:keys [:reg-entry/deposit] :as meme}]
+(defn challenge-meme-component [{:keys [:reg-entry/deposit] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})
         errors (ratom/reaction {:local (when-not (spec/check ::spec/challenge-comment (:challenge/comment @form-data))
                                          {:challenge/comment "Comment shouldn't be empty."})})
         tx-id (:reg-entry/address meme)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
-        response (subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :deposit)
-                                                                            :db (graphql-utils/kw->gql-name :meme-registry-db)
-                                                                            :group-by :param-changes.group-by/key
-                                                                            :order-by :param-changes.order-by/applied-on}
-                                                     [[:items [:param-change/value]]]]]}])]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])]
     (fn []
-      (when-not (:graphql/loading? @response)
-        (if-let [dank-deposit (-> @response
-                                  (get-in [:search-param-changes :items])
-                                  first
-                                  :param-change/value)]
-          [:div
-           [:b "Challenge explanation"]
-           [inputs/textarea-input {:form-data form-data
-                                   :id :challenge/comment
-                                   :errors errors}]
-           [:div (format/format-token deposit {:token "DANK"})]
-           [tx-button/tx-button {:primary true
-                                 :disabled (or @tx-success? (not (empty? (:local @errors))))
-                                 :pending? @tx-pending?
-                                 :pending-text "Challenging..."
-                                 :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
-                                                                                           :reg-entry/address (:reg-entry/address meme)
-                                                                                           :comment (:challenge/comment @form-data)
-                                                                                           :deposit dank-deposit}])}
-            "Challenge"]])))))
+      [:div
+       [:b "Challenge explanation"]
+       [inputs/textarea-input {:form-data form-data
+                               :id :challenge/comment
+                               :errors errors}]
+       [:div (format/format-token deposit {:token "DANK"})]
+       [tx-button/tx-button {:primary true
+                             :disabled (or @tx-success? (not (empty? (:local @errors))))
+                             :pending? @tx-pending?
+                             :pending-text "Challenging..."
+                             :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
+                                                                                       :reg-entry/address (:reg-entry/address meme)
+                                                                                       :comment (:challenge/comment @form-data)
+                                                                                       :deposit dank-deposit}])}
+        "Challenge"]])))
 
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])
@@ -424,11 +414,13 @@
 
 (defmethod challenge-component :reg-entry.status/challenge-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  [:div.challenge-component
-   [challenge-header created-on]
-   (when (pos? created-on)
-     [status-component status]
-     [challenge-meme-component meme])])
+
+  (when-let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]
+    [:div.challenge-component
+     [challenge-header created-on]
+     (when (pos? created-on)
+       [status-component status]
+       [challenge-meme-component meme (:deposit params)])]))
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]

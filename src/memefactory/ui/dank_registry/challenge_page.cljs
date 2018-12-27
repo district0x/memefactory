@@ -40,12 +40,7 @@
                                      (empty? comment)
                                      (assoc :comment "Comment shouldn't be empty.")))})]
     (fn [{:keys [:reg-entry/address]}]
-      (let [dank-deposit (get-in @(subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :deposit)
-                                                                                             :db (graphql-utils/kw->gql-name :meme-registry-db)
-                                                                                             :group-by :param-changes.group-by/key
-                                                                                             :order-by :param-changes.order-by/applied-on}
-                                                                      [[:items [:param-change/value]]]]]}])
-                                 [:search-param-changes :items 0 :param-change/value])]
+      (let [dank-deposit (:deposit @(subscribe [:memefactory.ui.config/memefactory-db-params]))]
         [:div.challenge-controls
          [:div.vs
           [:img.vs-left {:src "/assets/icons/mememouth.png"}]

@@ -56,6 +56,12 @@
    (js/console.log "Loading initial params from " graphql-url)
    (let [query (graphql-query {:queries [[:params {:db (graphql-utils/kw->gql-name :meme-registry-db)
                                                    :keys [(graphql-utils/kw->gql-name :max-auction-duration)
+                                                          (graphql-utils/kw->gql-name :vote-quorum)
+                                                          (graphql-utils/kw->gql-name :max-total-supply)
+                                                          (graphql-utils/kw->gql-name :reveal-period-duration)
+                                                          (graphql-utils/kw->gql-name :commit-period-duration)
+                                                          (graphql-utils/kw->gql-name :challenge-dispensation)
+                                                          (graphql-utils/kw->gql-name :challenge-period-duration)
                                                           (graphql-utils/kw->gql-name :deposit)]}
                                           [:param/key :param/value]]]}
                               {:kw->gql-name graphql-utils/kw->gql-name})]

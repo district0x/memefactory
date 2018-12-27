@@ -44,78 +44,69 @@
                          :meme-auction/token-count
                          :meme-auction/token-ids
                          :reg-entry/address
-                         :show?]}]
-  (let [response (subscribe [::gql/query {:queries [[:search-param-changes {:key (graphql-utils/kw->gql-name :max-auction-duration)
-                                                                            :db (graphql-utils/kw->gql-name :meme-registry-db)
-                                                                            :group-by :param-changes.group-by/key
-                                                                            :order-by :param-changes.order-by/applied-on}
-                                                     [[:items [:param-change/value]]]]]}])]
-
-    (when-not (:graphql/loading? @response)
-      (let [max-duration (-> @response
-                             (get-in [:search-param-changes :items])
-                             first
-                             :param-change/value)
-            tx-id (str (random-uuid))
-            form-data (r/atom {:meme-auction/amount token-count
-                               :meme-auction/start-price 0.1
-                               :meme-auction/end-price 0.01
-                               :meme-auction/duration max-duration
-                               :meme-auction/description ""})
-            errors (ratom/reaction {:local {:meme-auction/amount {:hint (str "Max " token-count)
-                                                                  :error (when-not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count))
-                                                                           (str "Should be between 0 and " token-count))}
-                                            :meme-auction/duration {:hint (str "Max " max-duration)
-                                                                    :error (when-not (< 0 (js/parseInt (:meme-auction/duration @form-data)) max-duration)
-                                                                             (str "Should be less than " max-duration))}}})
-            tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
-        (fn []
-          [:div.form-panel
-           [inputs/text-input {:form-data form-data
-                               :placeholder "Amount"
+                         :show?]}
+                 {:keys [max-auction-duration] :as params}]
+  (let [tx-id (str (random-uuid))
+        form-data (r/atom {:meme-auction/amount token-count
+                           :meme-auction/start-price 0.1
+                           :meme-auction/end-price 0.01
+                           :meme-auction/duration max-auction-duration
+                           :meme-auction/description ""})
+        errors (ratom/reaction {:local {:meme-auction/amount {:hint (str "Max " token-count)
+                                                              :error (when-not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count))
+                                                                       (str "Should be between 0 and " token-count))}
+                                        :meme-auction/duration {:hint (str "Max " max-auction-duration)
+                                                                :error (when-not (< 0 (js/parseInt (:meme-auction/duration @form-data)) max-auction-duration)
+                                                                         (str "Should be less than " max-auction-duration))}}})
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
+    (fn []
+      [:div.form-panel
+       [inputs/text-input {:form-data form-data
+                           :placeholder "Amount"
+                           :errors errors
+                           :id :meme-auction/amount
+                           :on-click #(.stopPropagation %)}]
+       [inputs/amount-input {:form-data form-data
+                             :placeholder "Start Price"
+                             :errors errors
+                             :id :meme-auction/start-price
+                             :on-click #(.stopPropagation %)}]
+       [inputs/amount-input {:form-data form-data
+                             :placeholder "End Price"
+                             :errors errors
+                             :id :meme-auction/end-price
+                             :on-click #(.stopPropagation %)}]
+       [inputs/int-input {:form-data form-data
+                          :placeholder "Duration"
+                          :errors errors
+                          :id :meme-auction/duration
+                          :on-click #(.stopPropagation %)}]
+       [inputs/textarea-input {:form-data form-data
+                               :class "sales-pitch"
+                               :placeholder "Short sales pitch"
                                :errors errors
-                               :id :meme-auction/amount
+                               :id :meme-auction/description
                                :on-click #(.stopPropagation %)}]
-           [inputs/amount-input {:form-data form-data
-                                 :placeholder "Start Price"
-                                 :errors errors
-                                 :id :meme-auction/start-price
-                                 :on-click #(.stopPropagation %)}]
-           [inputs/amount-input {:form-data form-data
-                                 :placeholder "End Price"
-                                 :errors errors
-                                 :id :meme-auction/end-price
-                                 :on-click #(.stopPropagation %)}]
-           [inputs/int-input {:form-data form-data
-                              :placeholder "Duration"
-                              :errors errors
-                              :id :meme-auction/duration
-                              :on-click #(.stopPropagation %)}]
-           [inputs/textarea-input {:form-data form-data
-                                   :class "sales-pitch"
-                                   :placeholder "Short sales pitch"
-                                   :errors errors
-                                   :id :meme-auction/description
-                                   :on-click #(.stopPropagation %)}]
-           [:div.buttons
-            [:button.cancel {:on-click #(swap! show? not)} "Cancel"]
-            [tx-button/tx-button {:primary true
-                                  :disabled false
-                                  :class "create-offering"
-                                  :pending? @tx-pending?
-                                  :pending-text "Creating offering..."
-                                  :on-click (fn []
-                                              (dispatch [::meme-token/transfer-multi-and-start-auction (merge @form-data
-                                                                                                             {:send-tx/id tx-id
-                                                                                                              :meme/title title
-                                                                                                              :reg-entry/address address
-                                                                                                              :meme-auction/token-ids (->> token-ids
-                                                                                                                                           (take (int (:meme-auction/amount @form-data)))
-                                                                                                                                           (map int))})]))}
-             "Create Offering"]]])))))
+       [:div.buttons
+        [:button.cancel {:on-click #(swap! show? not)} "Cancel"]
+        [tx-button/tx-button {:primary true
+                              :disabled false
+                              :class "create-offering"
+                              :pending? @tx-pending?
+                              :pending-text "Creating offering..."
+                              :on-click (fn []
+                                          (dispatch [::meme-token/transfer-multi-and-start-auction (merge @form-data
+                                                                                                          {:send-tx/id tx-id
+                                                                                                           :meme/title title
+                                                                                                           :reg-entry/address address
+                                                                                                           :meme-auction/token-ids (->> token-ids
+                                                                                                                                        (take (int (:meme-auction/amount @form-data)))
+                                                                                                                                        (map int))})]))}
+         "Create Offering"]]])))
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids :reg-entry/address]}]
-  (let [sell? (r/atom false)]
+  (let [sell? (r/atom false)
+        params (subscribe [:memefactory.ui.config/memefactory-db-params])]
     (fn []
       [:div.collected-tile-back.meme-card.back
        (if-not @sell?
@@ -130,11 +121,14 @@
             "Sell"]]]
          [:div.sell-form
           [:h1 (str "Sell" "#" number " " title)]
-          [sell-form {:meme/title title
-                      :meme-auction/token-ids token-ids
-                      :meme-auction/token-count token-count
-                      :reg-entry/address address
-                      :show? sell?}]])])))
+
+          (when @params
+            [sell-form {:meme/title title
+                        :meme-auction/token-ids token-ids
+                        :meme-auction/token-count token-count
+                        :reg-entry/address address
+                        :show? sell?}
+             @params])])])))
 
 (defmethod panel :collected [_ state]
   [:div.tiles
