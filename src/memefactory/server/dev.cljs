@@ -74,21 +74,39 @@
         (.on "close" (fn []
                        (log/info "Finished redploying contracts" ::redeploy))))))
 
-;; TODO : add semantic opts
-
-
-[{:create-meme {:image-file "resources/dev/pepe.png"
-                 :from-account "0x..."}}
- ]
-
-
-
+;; TODO
 (defn generate-data
   "Generate dev data"
   []
-  (log/warn "Generating data, please be patient..." ::generate-date)
-  (promise-> (memefactory.server.generator/generate-memes)
-             #(log/info "Finished generating data" ::generate-data)))
+  (let [scenarios (or (:generator @config)
+                      [{:create-meme {:image-file "resources/dev/pepe.png"
+                                      :from-account 1
+                                      :supply 5}
+                        :challenge-meme {:comment "its too baroque"
+                                         :from-account 2}
+                        :commit-votes [{:option :vote-option/vote-for
+                                        :amount 2
+                                        :from-account 1}
+                                       {:option :vote-option/vote-against
+                                        :amount 1
+                                        :from-account 2}
+                                       {:option :vote-option/vote-against
+                                        :amount 1
+                                        :from-account 3}]
+                        :reveal-votes [{:option :vote-option/vote-for
+                                        :amount 2
+                                        :from-account 1}
+                                       {:option :vote-option/vote-against
+                                        :amount 1
+                                        :from-account 2}]
+                        :mint-meme-tokens {:amount 3
+                                           :from-account 1}
+                        :start-auction true
+                        :buy-meme {:from-account 3}}])]
+    (log/warn "Generating data, please be patient..." ::generate-date)
+    (doseq [scenario scenarios]
+      (promise-> (memefactory.server.generator/generate-memes scenario)
+                 #(log/info "Finished generating data" ::generate-data)))))
 
 (defn resync []
   (log/warn "Syncing internal database, please be patient..." ::resync)
