@@ -104,13 +104,19 @@
                :meme/total-supply (bn/number total-supply)
                :meme/total-minted 0}]
      (add-registry-entry registry-entry-data timestamp)
+     ;; This HACK is added so we can insert the meme before waiting for ipfs to return
+     ;; To fix the whole thing we need to make process-event async and replay-past-events-ordered
+     ;; "async aware"
+     (db/insert-meme! (assoc meme
+                             :meme/title ""
+                             :meme/image-hash ""))
      (let [{:keys [:meme/meta-hash]} meme]
        (.then (get-ipfs-meta meta-hash {:title "Dummy meme title"
                                         :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
                                         :search-tags nil})
               (fn [meme-meta]
                 (let [{:keys [title image-hash search-tags]} meme-meta]
-                  (db/insert-meme! (merge meme
+                  (db/update-meme! (merge meme
                                           {:meme/image-hash image-hash
                                            :meme/title title}))
                   (when search-tags
@@ -254,7 +260,7 @@
    (let [reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
                                :reg-entry/address)]
      (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
-                                       :amount price})
+                                       :amount (bn/number price)})
      (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
                                          :meme-auction/bought-for (bn/number price)
                                          :meme-auction/bought-on timestamp

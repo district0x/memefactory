@@ -242,7 +242,7 @@
     meme_totalMinted: Int
     meme_tokenIdStart: Int
 
-    meme_totalTradeVolume: Int
+    meme_totalTradeVolume: Float
     meme_totalTradeVolumeRank: Int
 
     meme_ownedMemeTokens(owner: String): [MemeToken]
