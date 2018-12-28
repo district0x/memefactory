@@ -249,7 +249,8 @@
         :margin-bottom (em 1)}]
       [:.form-panel {}
        [:.input-group {:margin-bottom (em 1.2)}
-        [:.help-block {:height (em 1)}
+        [:.help-block {:height (em 1)
+                       :line-height (em 1.5)}
          [:&:before {:width 0}]]]
        [:textarea {:background (color :white)
                    :border "1px solid lightgrey"

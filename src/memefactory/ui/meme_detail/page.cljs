@@ -10,6 +10,7 @@
    [district.ui.component.form.input :as inputs]
    [district.ui.component.page :refer [page]]
    [district.ui.component.tx-button :as tx-button]
+   [bignumber.core :as bn]
    [district.ui.graphql.events :as gql-events]
    [district.ui.graphql.subs :as gql]
    [district.ui.now.subs :as now-subs]
@@ -246,8 +247,8 @@
      (when (< 0 votes-total)
        [charts/donut-chart meme])
      [:div.votes-inner
-      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (or votes-for 0))]
-      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (or votes-against 0))]
+      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (if votes-for (/ votes-for 1e18) 0))]
+      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (if votes-against (/ votes-against 1e18) 0))]
       [:div.text (str "Total voted: " (if votes-total (/ votes-total 1e18) 0))]
       (cond
         (= :vote-option/not-revealed option)
@@ -396,42 +397,39 @@
 
 (defmethod challenge-component :reg-entry.status/reveal-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  [:div.challenge-component
-   [challenge-header created-on]
-   (when (pos? created-on)
-     [status-component status]
-     [challenger-component meme]
-     [reveal-vote-component meme])])
+
+  (cond-> [:div.challenge-component
+           [challenge-header created-on]]
+    created-on (into [[status-component status]
+                      [challenger-component meme]
+                      [reveal-vote-component meme]])))
 
 (defmethod challenge-component :reg-entry.status/commit-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  [:div.challenge-component
-   [challenge-header created-on]
-   (when (pos? created-on)
-     [status-component status]
-     [challenger-component meme]
-     [vote-component meme])])
+  (cond-> [:div.challenge-component
+           [challenge-header created-on]]
+    created-on (into [[status-component status]
+                      [challenger-component meme]
+                      [vote-component meme]])))
 
 (defmethod challenge-component :reg-entry.status/challenge-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
 
   (when-let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]
-    [:div.challenge-component
-     [challenge-header created-on]
-     (when (pos? created-on)
-       [status-component status]
-       [challenge-meme-component meme (:deposit params)])]))
+    (cond-> [:div.challenge-component
+             [challenge-header created-on]]
+      created-on (into [[status-component status]
+                        [challenge-meme-component meme (:deposit params)]]))))
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
   [:div.challenge-component
    [:h1.title "Challenge"]
-   [:div.challenge-component-inner
-    [challenge-header created-on]
-    (when (pos? created-on)
-      [status-component status]
-      [challenger-component meme]
-      [votes-component meme])]])
+   (cond-> [:div.challenge-component-inner
+            [challenge-header created-on]]
+     created-on (into [[status-component status]
+                       [challenger-component meme]
+                       [votes-component meme]]))])
 
 (defmethod page :route.meme-detail/index []
   (let [active-account @(subscribe [::accounts-subs/active-account])

@@ -56,8 +56,8 @@
                                                               :error (when-not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count))
                                                                        (str "Should be between 0 and " token-count))}
                                         :meme-auction/duration {:hint (str "Max " max-auction-duration)
-                                                                :error (when-not (< 0 (js/parseInt (:meme-auction/duration @form-data)) max-auction-duration)
-                                                                         (str "Should be less than " max-auction-duration))}}})
+                                                                :error (when-not (< 0 (js/parseInt (:meme-auction/duration @form-data)) (inc max-auction-duration))
+                                                                         (str "Should be less than " (inc max-auction-duration)))}}})
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
     (fn []
       [:div.form-panel

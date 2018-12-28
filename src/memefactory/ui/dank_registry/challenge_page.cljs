@@ -29,7 +29,7 @@
    [:h3.title "Lorem ipsum dolor sit ..."]
    [:div.get-dank-button "Get Dank"]])
 
-(defn open-challenge-action [{:keys [:reg-entry/address]}]
+(defn open-challenge-action [{:keys [:reg-entry/address :meme/title]}]
   (let [form-data (r/atom {})
         open? (r/atom false)
         tx-id (str address "challenges")
@@ -59,6 +59,7 @@
                              :on-click (fn []
                                          (dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
                                                                                         :reg-entry/address address
+                                                                                        :meme/title title
                                                                                         :comment (:comment @form-data)
                                                                                         :deposit dank-deposit}]))}
              "Challenge"]

@@ -84,8 +84,12 @@
                [:li "Created: " [:span (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
                                            format/format-time-units
                                            (str " ago"))]]
-               [:li "Challenge period ends in: " [:span (-> (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))
-                                                            format/format-time-units)]]
+
+               (let [{:keys [seconds minutes hours days]:as tr} (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))]
+                 (if-not (= seconds minutes hours days 0)
+                   [:li "Challenge period ends in: " [:span (-> (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))
+                                                                format/format-time-units)]]
+                   [:li "Challenge period ended"]))
                [:li "Issued: " [:span total-supply]]]
               [:h3 "Creator"]
               [user-info creator :creator]

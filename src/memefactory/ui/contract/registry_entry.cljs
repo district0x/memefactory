@@ -27,7 +27,7 @@
 
 (re-frame/reg-event-fx
  ::approve-and-create-challenge
- (fn [{:keys [db]} [_ {:keys [:reg-entry/address :send-tx/id :deposit] :as args} {:keys [Hash] :as challenge-meta}]]
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :meme/title :send-tx/id :deposit] :as args} {:keys [Hash] :as challenge-meta}]]
    (log/info "Challenge meta created with hash" {:hash Hash} ::approve-and-create-challenge)
    (let [tx-name "Approve and create challenge"
          active-account (account-queries/active-account db)
@@ -46,7 +46,8 @@
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::approve-and-create-challenge]
                                                         [::notification-events/show (gstring/format "Challenge created for %s with metahash %s"
-                                                                                                    address Hash)]]
+                                                                                                    title
+                                                                                                    Hash)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args
