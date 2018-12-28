@@ -104,6 +104,8 @@
                :meme/total-supply (bn/number total-supply)
                :meme/total-minted 0}]
      (add-registry-entry registry-entry-data timestamp)
+     (db/update-user! {:user/address creator})
+
      ;; This HACK is added so we can insert the meme before waiting for ipfs to return
      ;; To fix the whole thing we need to make process-event async and replay-past-events-ordered
      ;; "async aware"
@@ -159,13 +161,13 @@
                     :challenge/meta-hash (web3/to-ascii metahash)}
          registry-entry {:reg-entry/address registry-entry
                          :reg-entry/version version}]
+     (db/update-user! {:user/address challenger})
      (.then (get-ipfs-meta (:challenge/meta-hash challenge) {:comment "Dummy comment"})
             (fn [challenge-meta]
               (db/update-registry-entry! (merge registry-entry
                                                 challenge
                                                 {:challenge/created-on timestamp
-                                                 :challenge/comment (:comment challenge-meta)}))
-              (db/update-user! {:user/address challenger}))))))
+                                                 :challenge/comment (:comment challenge-meta)})))))))
 
 (defmethod process-event [:contract/registry-entry :VoteCommittedEvent]
   [_ {:keys [:registry-entry :timestamp :voter :amount] :as ev}]
@@ -174,6 +176,7 @@
                :vote/voter voter
                :vote/amount (bn/number amount)
                :vote/option 0}] ;; No vote
+     (db/update-user! {:user/address voter})
      (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
 (defmethod process-event [:contract/registry-entry :VoteRevealedEvent]
@@ -191,6 +194,7 @@
                                   (= (vote-options (:vote/option vote))
                                      :vote.option/vote-for) (assoc :challenge/votes-for (+ (or (:challenge/votes-for re) 0)
                                                                                            (:vote/amount vote)))))
+     (db/update-user! {:user/address voter})
      (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :VoteRewardClaimedEvent]
@@ -259,6 +263,7 @@
   (try-catch
    (let [reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
                                :reg-entry/address)]
+     (db/update-user! {:user/address buyer})
      (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
                                        :amount (bn/number price)})
      (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
@@ -313,7 +318,7 @@
 
 (defn dispatch-event
   ([ev] (dispatch-event nil ev))
-  ([err {:keys [args event address block-number]}]
+  ([err {:keys [args event address block-number] :as raw-ev}]
    (let [contract-key (contract-key-from-address address)
          contract-type ({:meme-registry-db         :contract/eternal-db
                          :param-change-registry-db :contract/eternal-db
@@ -331,6 +336,7 @@
                                        1 #_(server-utils/now-in-seconds))))
                 (update :version bn/number)
                 (assoc :block-number block-number))]
+
      (log/info (str "Dispatching" " " info-text " " contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
      (process-event contract-type ev))))
 
