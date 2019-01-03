@@ -118,9 +118,9 @@
                                         :search-tags nil})
               (fn [meme-meta]
                 (let [{:keys [title image-hash search-tags]} meme-meta]
-                  (db/update-meme! (merge meme
-                                          {:meme/image-hash image-hash
-                                           :meme/title title}))
+                  (db/update-meme! {:reg-entry/address registry-entry
+                                    :meme/image-hash image-hash
+                                    :meme/title title})
                   (when search-tags
                     (doseq [t search-tags]
                       (db/tag-meme! (:reg-entry/address meme) t))))))))))
