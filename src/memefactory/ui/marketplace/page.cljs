@@ -85,7 +85,8 @@
     (fn []
       (let [re-search (fn [& _]
                         (dispatch [:district.ui.graphql.events/query
-                                   {:query {:queries [(build-tiles-query @form-data nil)]}}]))
+                                   {:query {:queries [(build-tiles-query @form-data nil)]}
+                                    :id @form-data}]))
             auctions-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
                                     {:id @form-data
                                      :disable-fetch? false}])
@@ -109,7 +110,6 @@
                                            {:key "price" :value "Cheapest"}
                                            {:key "random" :value "Random"}]
                           :search-result-count search-total-count
-                          :on-search-change re-search
                           :on-check-filter-change re-search
                           :on-select-change re-search}]
            [:div.search-results
