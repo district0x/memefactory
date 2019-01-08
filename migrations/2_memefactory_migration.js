@@ -467,7 +467,27 @@ module.exports = function(deployer, network, accounts) {
                                           payload,
                                           {from: last(accounts), gas: 4000000});
        })
-    .then (tx => console.log ("@@@ DankToken/approveAndCall tx:", tx.receipt.transactionHash, "successful"));
+    .then (tx => console.log ("@@@ DankToken/approveAndCall tx:", tx.receipt.transactionHash, "successful"))
+    .then (() => {
+        return Promise.all ([DankToken.deployed(), DankFaucet.deployed()]);
+    })
+    .then (([dankToken, dankFaucet]) => {
+        return Promise.all ([dankToken.transfer (dankFaucet.address, 1e23, Object.assign(opts, {gas: 200000})),
+                             dankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: web3.toWei(0.5, "ether")}))]);
+    })
+    .then (() => {
+        return Promise.all ([DankToken.deployed(), DankFaucet.deployed()]);
+    })
+    .then (([dankToken, dankFaucet]) => {
+        return Promise.all ([dankToken.balanceOf (dankFaucet.address),
+                             dankFaucet.getBalance ()]);
+    })
+    .then ((
+      [dankBalance,
+       ethBalance]) => {
+         console.log ("@@@ DANK balance of DankFaucet:", dankBalance);
+         console.log ("@@@ ETH balance of DankFaucet:", ethBalance);
+       })
 
   deployer.then (function () {
     return [

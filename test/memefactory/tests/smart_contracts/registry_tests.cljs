@@ -87,10 +87,10 @@
 (deftest mutable-forwarder-test
   (testing "setTarget can replace target with new address and contract should still work"
     ;; TODO: should we deploy a diffrent contract, like create another RegistryTest.sol?
-   (let [{:keys [:address]} (contract-address :meme-registry) #_(deployer/deploy-meme-registry! {})]
-     (mutable-forwarder/set-target :meme-registry-fwd address {:from (last (web3-eth/accounts @web3))})
-     (let [[creator-addr] (web3-eth/accounts @web3)
-           [max-total-supply deposit] (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :deposit])
-                                           (map bn/number))
-           registry-entry (meme-tests/create-meme creator-addr deposit max-total-supply sample-meta-hash-1)]
-       (is registry-entry)))))
+    (let [{:keys [:address]} (contract-address :meme-registry)]
+      (mutable-forwarder/set-target :meme-registry-fwd address {:from (last (web3-eth/accounts @web3))})
+      (let [[creator-addr] (web3-eth/accounts @web3)
+            [max-total-supply deposit] (->> (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :deposit])
+                                            (map bn/number))
+            registry-entry (meme-tests/create-meme creator-addr deposit max-total-supply sample-meta-hash-1)]
+        (is registry-entry)))))
