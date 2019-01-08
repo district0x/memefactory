@@ -8,6 +8,7 @@
    [district.server.graphql.utils :as utils]
    [district.server.logging]
    [district.server.middleware.logging :refer [logging-middlewares]]
+   [district.server.web3 :refer [web3]]
    [district.server.web3-watcher]
    [memefactory.server.db]
    [memefactory.server.emailer]
@@ -37,7 +38,7 @@
                                       :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
                                       :graphiql true}
-                            :web3 {:port 8545}
+                            :web3 {:url "localhost:8545"}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
