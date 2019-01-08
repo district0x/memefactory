@@ -11,6 +11,7 @@
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
+            [memefactory.server.db :as mf-db]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :as web3]
             [honeysql.core :as sql]
@@ -1015,6 +1016,22 @@
                           {:success false
                            :payload stderr}))))))))))
 
+(defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
+
+  (let [{:keys [blacklist-token blacklist-file]} @config]
+    (if (= token blacklist-token)
+
+      (do
+        ;; update the blacklist file
+        (-> (utils/load-edn-file blacklist-file)
+            (update :blacklisted-image-addresses conj address)
+            (utils/save-to-edn-file blacklist-file))
+        ;;  patch on db
+        (mf-db/patch-forbidden-reg-entry-image! address)
+        (log/info (str "Blacklisted " address " image.") ::blacklist-reg-entry-resolver))
+
+      (log/warn (str "Tried to blacklist reg entry " address " with wrong token " token) ::blacklist-reg-entry-resolver))))
+
 (def resolvers-map
   {:Query {:meme meme-query-resolver
            :search-memes search-memes-query-resolver
@@ -1031,7 +1048,8 @@
            :overall-stats overall-stats-resolver
            :config config-query-resolver}
    :Mutation {:send-verification-code send-verification-code-resolver
-              :encrypt-verification-payload encrypt-verification-payload-resolver}
+              :encrypt-verification-payload encrypt-verification-payload-resolver
+              :blacklist-reg-entry blacklist-reg-entry-resolver}
    :Vote {:vote/option vote->option-resolver
           :vote/reward vote->reward-resolver}
    :Meme {:reg-entry/status reg-entry->status-resolver
