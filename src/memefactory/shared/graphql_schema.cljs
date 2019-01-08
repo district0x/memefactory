@@ -81,12 +81,14 @@
   type Mutation {
     sendVerificationCode(countryCode: String!,
                          phoneNumber: String!
-  ): PhoneVerificationResponse
+    ): PhoneVerificationResponse
 
     encryptVerificationPayload(countryCode: String,
                                phoneNumber: String,
                                verificationCode: String
     ): EncryptedVerificationPayload
+
+    blacklistRegEntry(address: ID!, token: String!): Boolean
   }
 
   enum OrderDir {

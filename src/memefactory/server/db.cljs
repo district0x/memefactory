@@ -363,3 +363,8 @@
            :join [[:meme-tokens :mt] [:= :mt.meme-token/token-id :ma.meme-auction/token-id]
                   [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]]
            :where [:= :ma.meme-auction/address auction-address]}))
+
+(defn patch-forbidden-reg-entry-image! [address]
+  (db/run! {:update :memes
+            :set {:meme/image-hash "forbidden-image-hash"}
+            :where [:= :reg-entry/address address]}))

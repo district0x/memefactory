@@ -340,6 +340,14 @@
      (log/info (str "Dispatching" " " info-text " " contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
      (process-event contract-type ev))))
 
+(defn apply-blacklist-patches! []
+  (let [{:keys [blacklist-file]} @config
+        blacklisted-addresses (:blacklisted-image-addresses (server-utils/load-edn-file blacklist-file))]
+
+    (doseq [address blacklisted-addresses]
+      (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
+      (db/patch-forbidden-reg-entry-image! address))))
+
 (defn start [{:keys [:initial-param-query] :as opts}]
 
   (when-not (web3/connected? @web3)
@@ -376,6 +384,8 @@
         ;; use past-events-filters to retrieve past events in order
         ;; block until all replayed before installing new events filters
         (async/<! (replay-past-events-in-order past-events-filters dispatch-event)))
+
+      (apply-blacklist-patches!)
 
       ;; install the watch filters and start listening
       (let [watch-filters (->> filters-builders
