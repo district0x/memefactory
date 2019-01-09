@@ -77,7 +77,7 @@
     [:div.challenge
      (cond-> [:div.info
               [:h2 {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                              nil
+                                          nil
                                           {:reg-entry/address address}])}
                title]
               [:ol.meme
@@ -93,11 +93,11 @@
                    [:li "Challenge period ended"]))
                [:li "Issued: " [:span total-supply]]]
               [:h3 "Creator"]
-              [user-info creator :creator]
-              [:span.challenge-comment comment]]
+              [user-info creator :creator]]
        include-challenger-info? (into [[:h3.challenger "Challenger"]
                                        [user-info challenger :challenger]])
-       true                     (into [[:ol.tags
+       true                     (into [[:span.challenge-comment (str "\""comment "\"")]
+                                       [:ol.tags
                                         (for [{:keys [:tag/name]} tags]
                                           [:li.tag {:key name}
                                            name])]]))

@@ -110,6 +110,8 @@
    ["input[type=text]"
     ;; (font :filson)
     {:box-sizing :border-box
+     :z-index 10
+     :opacity 0
      :padding-left (em 0.3)
      :border :none
      :color (color :menu-text)

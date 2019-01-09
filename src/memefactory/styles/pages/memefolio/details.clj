@@ -240,13 +240,12 @@
           :background-color (color :table-header-bg)}]]]
       [:tbody
        [:tr
-        ["&:nth-child(even)"
-         {:background-color (color :tags-grey)}]
         (for-media-max :computer
                        [:&
                         ["&:not(:last-child)"
                          (border-bottom {:color (color :table-border-1)})]
                         {:display :flex
+                         :min-height (em 11)
                          :flex-direction :column}])
         [:td
          (border-bottom {:color (color :table-border-1)})
@@ -268,11 +267,13 @@
          (for-media-max :computer
                         [:&.seller-address
                          (of-ellipsis)
+                         {:min-height (em 2)}
                          [:&:before
                           {:content "'Seller:'"}]])
          (for-media-max :computer
                         [:&.buyer-address
                          (of-ellipsis)
+                         {:min-height (em 2)}
                          [:&:before
                           {:content "'Buyer:'"}]])
          (for-media-max :computer

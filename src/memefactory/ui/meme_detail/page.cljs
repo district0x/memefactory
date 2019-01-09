@@ -199,7 +199,8 @@
                    [:td.seller-address (:user/address seller)]
                    [:td.buyer-address (:user/address buyer)]
                    [:td.end-price (format-price end-price)]
-                   [:td.time  (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now))]])))])]]))))
+                   [:td.time  (when-not (empty? (str bought-on))
+                                (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now)))]])))])]]))))
 
 (defn challenge-header [created-on]
   [:div.header

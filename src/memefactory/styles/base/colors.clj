@@ -3,6 +3,7 @@
 (def names->colors {:pink "#ff0094"
                     :sky-blue "#04b7e0"
                     :dark-blue "#362edb"
+                    :darker-blue "#34588B"
                     :light-pink "#e1b4ef"
                     :purple "#9d0adb"
                     :deep-purple "#2e0248"

@@ -247,31 +247,40 @@
         :font-size (em 1)
         :text-align :center
         :margin-bottom (em 1)}]
-      [:.form-panel {}
-       [:.input-group {:margin-bottom (em 1.2)}
-        [:.help-block {:height (em 1)
-                       :line-height (em 1.5)}
-         [:&:before {:width 0}]]]
+
+      [:.form-panel
+       [:.area
+        [:.help-block {:display :none}]]]
+
+      [:.form-panel {:color (color :darker-blue)}
+       [:.outer {:display :inline-flex
+                 :width "100%"}
+        [:.unit {:margin-left (px -40)
+                 :margin-top (px 8)}]
+        [:.labeled-input-group {:width "100%"}]
+        [:.input-group {:margin-bottom (em 1)}
+         [:.help-block {:height (em 1)
+                        :line-height (em 1.5)}
+          [:&:before {:width 0}]]]]
        [:textarea {:background (color :white)
-                   :border "1px solid lightgrey"
+                   :border "1px solid black"
                    :width "100%"
-                   :height (em 5)
-                   :border-radius (em 0.4)}
-        ]
+                   :resize :none
+                   :height (em 5)}]
        [:.buttons {:display :inline-flex
                    :justify-content :space-evenly
                    :font-size (px 15)
                    :width "100%"}
         [:button.cancel (button {:color :white
                                  :background-color (color :cancel-button)
-                                 :height (em 4)
+                                 :height (em 3.5)
                                  :width "40%"})
-         {:font-size (em 0.6)}]
+         {:font-size (px 11)}]
         [:button.create-offering (button {:color :white
-                                          :height (em 4)
+                                          :height (em 3.5)
                                           :background-color (color :purple)
                                           :width "50%"})
-         {:font-size (em 0.6)
+         {:font-size (px 11)
           :padding (em 0.4)}]]]]]
     [:.selling-tile-back {:height "100%"
                           :background-color (color :violet)}
