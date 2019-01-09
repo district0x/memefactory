@@ -20,6 +20,7 @@
     :width (or width (em 8))
     :border-style "none"
     :color (c/color color)
+    :cursor :pointer
     :background-color (c/color background-color)}
    [:&:disabled
     {:opacity 0.3}]])
@@ -60,14 +61,15 @@
   [:&
    {:text-transform :capitalize
     :background-color (c/color :tags-grey)
+    :color :black
     :margin (em 0.3)
-    :padding-left (em 1.5)
-    :padding-right (em 1.5)
-    :padding-top (em 0.5)
-    :padding-bottom (em 0.5)
+    :padding-left (em 2.5)
+    :padding-right (em 2.5)
+    :padding-top (em 0.7)
+    :padding-bottom (em 0.7)
     :border "0.5px solid #e1b4ef"
     :border-radius (em 2)
-    :font-size (em 0.8)
+    :font-size (em 1)
     :display :inline}])
 
 (defn vote-button-icon []

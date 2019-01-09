@@ -46,7 +46,6 @@
     (for-media-max :tablet
                    [:&
                     {:margin-top (em 1)}])
-    [:select {:background-color :white}]
     [:.help-block {:display :none}]
     (for-media-max :tablet
                    [:&
@@ -80,7 +79,8 @@
      [:h3 {:color (color :menu-text)
            :font-weight :bold
            :font-size (em 0.8)
-           :margin 0}]
+           :margin 0}
+      [:&.challenger {:margin-top (em 1)}]]
      [:ol
       {:list-style-type :none
        :font-size (em 0.8)
@@ -89,14 +89,15 @@
        :color (color :menu-text)}
       [:&.tags ;; TODO refactor out tags from here
        {:margin-top (em 2)}
-       [:li (tag)]]
-      [:li {:margin-bottom (em 0.2)}
-       [:div {:display :flex}
-        [:label {:margin-right (em 0.2)
-                 :white-space :nowrap}]
-        [:span {:overflow :hidden
-                :white-space :nowrap
-                :text-overflow :ellipsis}]]]]]
+       [:li
+        (tag)]]
+      [:li {:display :flex}
+       [:span {:overflow :hidden
+               :white-space :nowrap
+               :text-overflow :ellipsis
+               :display :inline-block
+               :max-width (em 18)
+               :margin-left (em 0.2)}]]]]
     [:div.meme-tile {:display :grid
                      :grid-area :image
                      :justify-items :center}

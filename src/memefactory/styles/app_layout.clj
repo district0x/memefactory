@@ -17,7 +17,7 @@
                   [:&
                    (grid-columns "100%")])
    [:div.no-items-found {:padding (em 1)
-                         :text-align :center}]
+                         :text-align :left}]
    [:div.notification
     {:color (color :meme-info-text)
      :background-color (color :deep-purple)

@@ -45,9 +45,7 @@
                                       :tx-id {::approve-and-create-challenge id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::approve-and-create-challenge]
-                                                        [::notification-events/show (gstring/format "Challenge created for %s with metahash %s"
-                                                                                                    title
-                                                                                                    Hash)]]
+                                                        [::notification-events/show (gstring/format "Challenge created for %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args
@@ -120,7 +118,7 @@
                                                 :gas 6000000}
                                       :tx-id {::claim-challenge-reward id}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::claim-challenge-reward]
-                                                        [::notification-events/show (gstring/format "Succesfully claimed reward from %s" from)]]
+                                                        [::notification-events/show (gstring/format "Succesfully claimed reward")]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}
@@ -140,7 +138,7 @@
                                       :tx-id {::claim-vote-reward id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " reward tx success") ::claim-vote-reward]
-                                                        [::notification-events/show (gstring/format "Succesfully claimed reward from %s" from)]]
+                                                        [::notification-events/show (gstring/format "Succesfully claimed reward")]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}

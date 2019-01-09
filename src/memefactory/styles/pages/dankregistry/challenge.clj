@@ -26,12 +26,11 @@
                        :color :sky-blue})
      [:.get-dank-button
       (get-dank-button)]]]
-
    [:.challenge-controls
     {:text-align :center}
     [:.help-block {:border-top :none}]
     [:div.vs {:display :grid
-              :grid-template-columns "1fr 0.5fr 1fr"
+              :grid-template-columns "1fr 1fr 1fr"
               :align-items :center
               :text-align :center
               :width (em 10)
@@ -46,7 +45,12 @@
                 :margin-top (em 2)
                 :height (em 8)
                 :border :none
-                :resize :none}]
+                :resize :none
+                :width (em 16)
+                }
+
+     ]
+
     [:button.open-challenge {:margin-top (em 2)}]
     [:button
      {:margin-left :auto

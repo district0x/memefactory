@@ -83,14 +83,14 @@
                     [:p "Success rate: "
                      (let [total-challenges (:user/total-created-challenges curator)
                            success-challenges (:user/total-created-challenges curator)]
-                       [:span total-challenges "/" success-challenges " " (format/format-percentage total-challenges success-challenges)])]
-                    [:p "Earned: " (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]
+                       [:span total-challenges "/" success-challenges " (" (format/format-percentage total-challenges success-challenges) ")"])]
+                    [:p "Earned: " [:span (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]]
 
                     [:h4.votes "VOTES"]
                     [:p "Success rate: "
                      (let [total-votes (:user/total-participated-votes curator)
                            success-votes (:user/total-participated-votes-success curator)]
-                       [:span total-votes "/" success-votes " " (format/format-percentage total-votes success-votes)])]
+                       [:span total-votes "/" success-votes " (" (format/format-percentage total-votes success-votes) ")"])]
                     [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
                     [:p "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]])))]
              [infinite-scroll {:load-fn (fn [] (when-not (:graphql/loading? @search-users)

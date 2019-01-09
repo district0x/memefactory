@@ -15,7 +15,8 @@
 (defstyles core
   [:.app-bar-mobile
    {:position :relative
-    :height (px 43)}
+    :height (px 65)
+    :padding (em 1)}
    [:.logo
     {:display :block
      :position :absolute
@@ -181,7 +182,7 @@
        [:.transactions
         {:flex-grow 1
          :height (px 424)
-         :overflow :scroll}
+         :overflow-y :scroll}
 
         [:.transaction
          {:display :grid

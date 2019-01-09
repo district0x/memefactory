@@ -43,7 +43,7 @@
                   :height 0
                   :top (em -3)
                   :position :relative}
-      [:select {:background-color :white}]
+
       [:.help-block {:display :none}]
       (for-media-max :tablet
                      [:&
@@ -116,5 +116,5 @@
      {:margin-top (em 1)}
      (button {:background-color :purple
               :color :white
-              :height (em 3)
-              :width (em 14)})]]])
+              :height (em 2.5)
+              :width (em 13)})]]])

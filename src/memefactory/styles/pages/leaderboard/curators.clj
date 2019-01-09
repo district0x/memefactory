@@ -23,6 +23,7 @@
     [:div.order
      {:position :absolute
       :display :block
+      :width (em 16)
       :right (em 2)
       :top (em 2)}
      [:.input-group
@@ -48,7 +49,14 @@
        ;; :align-content :flex-start
        }
       [:.curator
-       {:min-width (em 18)}
+       {:min-width (em 18)
+        :padding-top (em 3)
+        :padding-left (em 1)
+        :padding-right (em 1)}
+       (for-media-max :tablet
+                    [:&
+                     {:margin-left (em 0)
+                      :margin-right (em 0)}])
        ["> *"
         {:display :block
          :margin-bottom (em 0.5)
@@ -60,9 +68,9 @@
         ]
        [:h3.address
         {:font-weight :bold
+         :font-size (px 13)
          :overflow "hidden"
          :text-overflow "ellipsis"
-         :font-size (px 14)
          :color (color :deep-purple)
          :width "100%"}]
        [:h4
@@ -71,7 +79,8 @@
          :margin-top (em 2)
          :font-size (em 1)}]
        [:p
-        {:font-weight :bold}
+        {:font-weight :bold
+         :color (color :section-subcaption)}
         [:span
          {:font-weight :normal}
          ]]
@@ -81,7 +90,6 @@
         :height (em 30)
         :margin (em 1)
         :border-radius "1em"
-        :padding (em 1)
         :vertical-align :middle
         :text-align :center
         :background-color (color :curator-card-bg)}

@@ -82,6 +82,7 @@
                title]
               [:ol.meme
                [:li "Created: " [:span (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
+                                           (dissoc :seconds)
                                            format/format-time-units
                                            (str " ago"))]]
 
@@ -94,7 +95,7 @@
               [:h3 "Creator"]
               [user-info creator :creator]
               [:span.challenge-comment comment]]
-       include-challenger-info? (into [[:h3 "Challenger"]
+       include-challenger-info? (into [[:h3.challenger "Challenger"]
                                        [user-info challenger :challenger]])
        true                     (into [[:ol.tags
                                         (for [{:keys [:tag/name]} tags]
@@ -129,6 +130,7 @@
         [:div.challenges.panel
          [:div.controls
           [select-input {:form-data form-data
+                         :class :white-select
                          :id :order-by
                          :options sort-options
                          :on-change #(re-search nil)}]]

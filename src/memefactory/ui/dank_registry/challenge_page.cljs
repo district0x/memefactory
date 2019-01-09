@@ -52,6 +52,7 @@
                          :id :comment
                          :errors errors
                          :placeholder "Challenge Reason..."
+                         :class "challenge-reason"
                          :input-type :textarea}]
             [pending-button {:pending? @tx-pending?
                              :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))

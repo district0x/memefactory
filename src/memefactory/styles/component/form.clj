@@ -145,6 +145,7 @@
 
   [:select
    {:overflow :hidden
+    :text-transform :capitalize
     :width "100%"
     :border-radius "0.5em"
     :outline "0px"
@@ -162,5 +163,14 @@
     :background-repeat :no-repeat
     :background-image "url('/assets/icons/dropdown.png')"
     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-    }]
+    }
+   [:&.white-select
+    {:background-color :white
+     :border-radius "2em"
+     :padding-top "1em"
+     :padding-left "1.8em"
+     :padding-bottom "0.75em"
+     :font-size (px 12)
+     :color (color :menu-text)
+     :background-position "right 1.5em center"}]]
   )

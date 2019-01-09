@@ -332,8 +332,7 @@
                 (update :timestamp (fn [ts]
                                      (if ts
                                        (bn/number ts)
-                                       ;; TODO Remove this, added so it is faster for dev
-                                       1 #_(server-utils/now-in-seconds))))
+                                       (server-utils/now-in-seconds))))
                 (update :version bn/number)
                 (assoc :block-number block-number))]
 

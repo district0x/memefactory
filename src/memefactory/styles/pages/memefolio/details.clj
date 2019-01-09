@@ -88,7 +88,6 @@
       :border-radius "1em 1em 1em 1em"
       :display :grid
       :grid-template-columns "32% 68%"
-      :grid-template-rows "100%"
       :position :relative
       :padding (em 1.4)}
      (for-media-max :large
@@ -269,12 +268,12 @@
          (for-media-max :computer
                         [:&.seller-address
                          (of-ellipsis)
-                         [:&.before
+                         [:&:before
                           {:content "'Seller:'"}]])
          (for-media-max :computer
                         [:&.buyer-address
                          (of-ellipsis)
-                         [:&.before
+                         [:&:before
                           {:content "'Buyer:'"}]])
          (for-media-max :computer
                         [:&.end-price:before

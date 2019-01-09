@@ -40,7 +40,7 @@
 (reg-event-fx
  ::cancel
  [interceptors]
- (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address] :as args}]]
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :meme/title] :as args}]]
    (let [tx-name "Cancel"
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme-auction address))
@@ -51,7 +51,7 @@
                                       :tx-id {:meme-auction/cancel id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::cancel]
-                                                        [::notification-events/show (gstring/format "Auction %s canceled" address)]]
+                                                        [::notification-events/show (gstring/format "Auction %s canceled" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}

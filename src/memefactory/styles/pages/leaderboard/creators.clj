@@ -73,6 +73,7 @@
         ]
        [:.user-address
         {:font-weight :bold
+         :font-size (px 13)
          :overflow "hidden"
          :text-overflow "ellipsis"
          :width "100%"
