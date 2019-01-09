@@ -101,7 +101,7 @@
                                                          :else (enum :reg-entry.status/blacklisted))
    :else (enum :reg-entry.status/whitelisted)))
 
-(defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :order-by :order-dir :owner :creator :curator :first :after] :as args}]
+(defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :challenged :order-by :order-dir :owner :creator :curator :first :after] :as args}]
   (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
@@ -128,6 +128,7 @@
                                     [:= :m.reg-entry/address :votes.reg-entry/address]]}
 
                  title        (sqlh/merge-where [:like :m.meme/title (str "%" title "%")])
+                 challenged   (sqlh/merge-where [:not= :re.challenge/challenger nil])
                  tags          (sqlh/merge-where [:=
                                                   (count tags)
                                                   {:select [(sql/call :count :*)]

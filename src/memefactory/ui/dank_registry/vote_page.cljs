@@ -209,7 +209,8 @@
              {:title "Resolved Challenges"
               :content [challenge-list {:include-challenger-info? true
                                         :query-params {:statuses [:reg-entry.status/blacklisted
-                                                                  :reg-entry.status/whitelisted]}
+                                                                  :reg-entry.status/whitelisted]
+                                                       :challenged true}
                                         :active-account @account
                                         :action-child collect-reward-action
                                         :key :vote-page/resolved

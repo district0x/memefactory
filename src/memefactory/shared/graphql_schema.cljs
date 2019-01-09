@@ -16,6 +16,7 @@
                 owner: String,
                 creator: String,
                 curator: String,
+                challenged: Boolean,
                 first: Int,
                 after: String
     ): MemeList
