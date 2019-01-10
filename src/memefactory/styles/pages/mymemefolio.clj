@@ -256,26 +256,32 @@
        [:.outer {:display :inline-flex
                  :width "100%"}
         [:.unit {:margin-left (px -40)
-                 :margin-top (px 8)}]
+                 :margin-top (px 8)
+                 :z-index 1}]
         [:.labeled-input-group {:width "100%"}]
         [:.input-group {:margin-bottom (em 1)}
          [:.help-block {:height (em 1)
                         :line-height (em 1.5)}
           [:&:before {:width 0}]]]]
+       [:.short-sales-pitch {:margin-bottom (em 0.4)
+                             :display :block}]
        [:textarea {:background (color :white)
-                   :border "1px solid black"
+                   :border "1px solid #CCC"
                    :width "100%"
                    :resize :none
-                   :height (em 5)}]
+                   :height (em 5)
+                   :padding (em 0.5)}]
        [:.buttons {:display :inline-flex
-                   :justify-content :space-evenly
+                   :justify-content :space-between
                    :font-size (px 15)
+                   :margin-top (em 0.7)
                    :width "100%"}
         [:button.cancel (button {:color :white
                                  :background-color (color :cancel-button)
                                  :height (em 3.5)
                                  :width "40%"})
-         {:font-size (px 11)}]
+         {:font-size (px 11)
+          :padding-top (px 3)}]
         [:button.create-offering (button {:color :white
                                           :height (em 3.5)
                                           :background-color (color :purple)

@@ -56,7 +56,6 @@
     :height (px card-height)
     :border-radius "1em"
     :border "1px solid"
-    :border-color (color :light-pink)
     :overflow :hidden}
    [:.meme-placehodler
     [">*"

@@ -72,7 +72,7 @@
       :margin-top (em 0)
       :position :absolute
       :height (em 4)
-      :width (em 4)}]
+      :width (em 4.3)}]
 
     [:.form
      {:display :grid
@@ -105,7 +105,7 @@
         :justify-content :center
         :align-items :center
         :padding-left (em 0.4)
-        :margin-top (em 0.3)}
+        :margin-top (em 1)}
        [:.input-group
         [:input {:-webkit-appearance :none
                  :-moz-appearance :none
@@ -118,7 +118,7 @@
          [:&:checked {:background-color :black}]]]
        [:label {:font-size "10px"
                 :flex 1
-                :margin-left (em 0.3)
+                :margin-left (em 0.6)
                 :margin-bottom (em 0.2)
                 :white-space :nowrap}]]
       [:.help-block {:display :none}]]]]

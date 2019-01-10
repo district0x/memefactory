@@ -41,7 +41,7 @@
                 :width (em 11)
                 :right (em 0)
                 :height 0
-                :top (em -3)
+                :top (em -4)
                 :position :relative}
     (for-media-max :tablet
                    [:&
@@ -62,6 +62,7 @@
      :background-color :white
      :margin-bottom (em 1.5)
      :border-radius (em 0.6)
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :padding (em 2.4)}
     (for-media-max :tablet
                    [:& {:grid-template "'image' 'info' 'action'"}])

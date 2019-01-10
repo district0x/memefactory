@@ -71,4 +71,5 @@
                                            [checkbox-input {:form-data form-data
                                                             :id id
                                                             :on-change on-check-filter-change}]
-                                           [:label label]]))])]]])))
+                                           [:label {:on-click #(swap! form-data update id not)}
+                                            label]]))])]]])))

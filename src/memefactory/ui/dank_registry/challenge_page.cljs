@@ -38,7 +38,7 @@
         errors (reaction {:local (let [{:keys [comment]} @form-data]
                                    (cond-> {}
                                      (empty? comment)
-                                     (assoc :comment "Comment shouldn't be empty.")))})]
+                                     (assoc :comment "Challenge reason can't be empty")))})]
     (fn [{:keys [:reg-entry/address]}]
       (let [dank-deposit (:deposit @(subscribe [:memefactory.ui.config/memefactory-db-params]))]
         [:div.challenge-controls

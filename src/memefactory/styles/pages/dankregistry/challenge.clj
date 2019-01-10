@@ -47,6 +47,8 @@
                 :border :none
                 :resize :none
                 :width (em 16)
+                :padding (em 1)
+                :color :grey
                 }
 
      ]

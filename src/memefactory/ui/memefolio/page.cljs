@@ -47,11 +47,7 @@
                          :show?]}
                  {:keys [max-auction-duration] :as params}]
   (let [tx-id (str (random-uuid))
-        form-data (r/atom {:meme-auction/amount token-count
-                           :meme-auction/start-price 0.1
-                           :meme-auction/end-price 0.01
-                           :meme-auction/duration max-auction-duration
-                           :meme-auction/description ""})
+        form-data (r/atom {})
         errors (ratom/reaction {:local {:meme-auction/amount {:hint (str "Max " token-count)
                                                               :error (when-not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count))
                                                                        (str "Should be between 0 and " token-count))}
@@ -66,11 +62,12 @@
         [inputs/text-input {:form-data form-data
                             :errors errors
                             :id :meme-auction/amount
-                            :on-click #(.stopPropagation %)}]]
+                            :on-click #(.stopPropagation %)
+                            }]]
        [:div.outer
         [inputs/with-label
          "Start Price"
-         [inputs/amount-input {:form-data form-data
+         [inputs/text-input {:form-data form-data
                                :errors errors
                                :id :meme-auction/start-price
                                :on-click #(.stopPropagation %)}]]
@@ -78,7 +75,7 @@
        [:div.outer
         [inputs/with-label
          "End Price"
-         [inputs/amount-input {:form-data form-data
+         [inputs/text-input {:form-data form-data
                                :errors errors
                                :id :meme-auction/end-price
                                :on-click #(.stopPropagation %)}]]

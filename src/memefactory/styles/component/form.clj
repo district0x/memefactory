@@ -9,7 +9,7 @@
    [garden.units :refer [px em pt]]))
 
 (defstyles core
-
+  [:textarea {:outline :none}]
   [".labeled-input-group"
    [">label"
     {:position :absolute
@@ -110,8 +110,6 @@
    ["input[type=text]"
     ;; (font :filson)
     {:box-sizing :border-box
-     :z-index 10
-     :opacity 0
      :padding-left (em 0.3)
      :border :none
      :color (color :menu-text)
@@ -164,7 +162,7 @@
     :background-position "right 0.5em center";
     :background-repeat :no-repeat
     :background-image "url('/assets/icons/dropdown.png')"
-    :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+
     }
    [:&.white-select
     {:background-color :white
@@ -174,5 +172,6 @@
      :padding-bottom "0.75em"
      :font-size (px 12)
      :color (color :menu-text)
-     :background-position "right 1.5em center"}]]
+     :background-position "right 1.5em center"
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}]]
   )

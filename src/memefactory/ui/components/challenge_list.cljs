@@ -81,10 +81,13 @@
                                           {:reg-entry/address address}])}
                title]
               [:ol.meme
-               [:li "Created: " [:span (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
-                                           (dissoc :seconds)
-                                           format/format-time-units
-                                           (str " ago"))]]
+               [:li "Created: " [:span (let [formated-time (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
+
+                                                               (dissoc :seconds)
+                                                               format/format-time-units)]
+                                         (if-not (empty? formated-time)
+                                           (str formated-time " ago")
+                                           "less than a minute ago"))]]
 
                (let [{:keys [seconds minutes hours days]:as tr} (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))]
                  (if-not (= seconds minutes hours days 0)
@@ -96,7 +99,8 @@
               [user-info creator :creator]]
        include-challenger-info? (into [[:h3.challenger "Challenger"]
                                        [user-info challenger :challenger]])
-       true                     (into [[:span.challenge-comment (str "\""comment "\"")]
+       true                     (into [[:span.challenge-comment (when-not (empty? comment)
+                                                                  (str "\""comment "\""))]
                                        [:ol.tags
                                         (for [{:keys [:tag/name]} tags]
                                           [:li.tag {:key name}

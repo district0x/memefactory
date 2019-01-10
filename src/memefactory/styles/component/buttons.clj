@@ -67,7 +67,7 @@
     :padding-right (em 2.5)
     :padding-top (em 0.7)
     :padding-bottom (em 0.7)
-    :border "0.5px solid #e1b4ef"
+    :border "0.5px solid rgba(224, 180, 240, 0.4)"
     :border-radius (em 2)
     :font-size (em 1)
     :display :inline}])

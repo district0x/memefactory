@@ -105,12 +105,16 @@
        :z-index 2
        :display :block
        :color (color :purple)
-       :left (em 3.1)
+       :left (em 4.1)
        :padding (em 1)
        :font-size (em 1.1)
        :border-radius "0em 0em 1em 1em"
        :background-color (color :yellow)
-       :box-shadow ".3em .3em .3em 0px #eff5ff"}]
+       :box-shadow ".3em .3em .3em 0px grey"}
+      (for-media-max :tablet
+                    [:&
+                     {:left (em 2.5)}])
+      ]
      [:.registry
       {:padding (em 1)}
       [:h1

@@ -19,7 +19,7 @@
  ::mint
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme/title :reg-entry/address :meme/amount] :as args}]]
-   (let [tx-name "Mint"
+   (let [tx-name (gstring/format "Mint %d cards of %s" amount title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :mint
