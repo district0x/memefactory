@@ -182,7 +182,7 @@
 (defmethod process-event [:contract/registry-entry :VoteRevealedEvent]
   [_ {:keys [:registry-entry :timestamp :version :voter :option] :as ev}]
   (try-catch
-   (let [vote (merge (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/amount])
+   (let [vote (merge (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :reg-entry/address :vote/amount])
                      {:vote/option (bn/number option)
                       :vote/revealed-on timestamp})
          re (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/votes-against :challenge/votes-for])]
@@ -216,13 +216,14 @@
 (defmethod process-event [:contract/registry-entry :ChallengeRewardClaimedEvent]
   [_ {:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
   (try-catch
-   (let [reg-entry nil
+   (let [reg-entry (db/get-registry-entry {:reg-entry/address registry-entry}
+                                          [:challenge/challenger :reg-entry/deposit])
          {:keys [:challenge/challenger :reg-entry/deposit]} reg-entry]
 
      (db/update-registry-entry! {:reg-entry/address registry-entry
                                  :challenge/claimed-reward-on timestamp
                                  :challenge/reward-amount (bn/number amount)})
-     (db/inc-user-field! challenger :user/challenger-total-earned (bn/number amount)))))
+     (db/inc-user-field! (:challenger ev) :user/challenger-total-earned (bn/number amount)))))
 
 (defmethod process-event [:contract/meme :MemeMintedEvent]
   [_ {:keys [:registry-entry :timestamp :version :creator :token-start-id :token-end-id :total-minted] :as ev}]

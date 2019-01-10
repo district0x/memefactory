@@ -188,8 +188,8 @@
   }
 
   type Rewards{
-    challenge_rewardAmount: Int
-    vote_rewardAmount: Int
+    challenge_rewardAmount: Float
+    vote_rewardAmount: Float
   }
 
   enum VoteOption {

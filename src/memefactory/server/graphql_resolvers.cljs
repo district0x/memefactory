@@ -486,7 +486,7 @@
   (let [challenger-amount (if (and (or (zero? claimed-reward-on)
                                        (not claimed-reward-on))
                                    (= challenger (:user/address args))
-                                   (= :vote-option/vote-against (reg-entry-winning-vote-option reg-entry)))
+                                   (= :vote.option/vote-against (reg-entry-winning-vote-option reg-entry)))
                             (- deposit reward-pool)
                             0)
         voter-amount (let [{:keys [:vote/option :vote/amount] :as v}

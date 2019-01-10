@@ -49,10 +49,10 @@
                   vote-reward-tx-id (str address "vote-reward")
                   {:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
                   {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]} meme-voting
-                  claim-vote-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/claim-vote-rewards vote-reward-tx-id}])
-                  claim-vote-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/claim-vote-rewards vote-reward-tx-id}])
-                  claim-challenge-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/claim-challenge-rewards ch-reward-tx-id}])
-                  claim-challenge-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme/claim-challenge-rewards ch-reward-tx-id}])]
+                  claim-vote-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:registry-entry/claim-vote-reward vote-reward-tx-id}])
+                  claim-vote-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:registry-entry/claim-vote-reward vote-reward-tx-id}])
+                  claim-challenge-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:registry-entry/claim-challenge-reward ch-reward-tx-id}])
+                  claim-challenge-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:registry-entry/claim-challenge-reward ch-reward-tx-id}])]
               [:div.collect-reward
                (log/debug "meme voting" meme-voting ::collect-reward-action)
 
@@ -68,17 +68,19 @@
                    (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (/ votes-against 1e18))])
                 (when (pos? votes-total)
                   [:li "Total voted: " (gstring/format "%d" (/ votes-total 1e18))])
-                [:li "Your reward: " (format/format-token (+ (:challenge/reward-amount all-rewards)
-                                                             (:vote/reward-amount all-rewards))
-                                                          {:token "DANK"})]]
+                [:li "Your reward: " (let [reward (+ (:challenge/reward-amount all-rewards)
+                                                     (:vote/reward-amount all-rewards))]
+                                       (if (zero? reward)
+                                         0
+                                         (format/format-token (/ reward 1e18) {:token "DANK"})))]]
                [pending-button {:pending? @claim-vote-reward-tx-pending?
                                 :disabled (or (not (pos? (:vote/reward-amount all-rewards)))
                                               @claim-vote-reward-tx-pending? @claim-vote-reward-tx-success?)
                                 :pending-text "Collecting ..."
                                 :on-click (fn []
                                             (dispatch [::registry-entry/claim-vote-reward {:send-tx/id vote-reward-tx-id
-                                                                                      :active-account @active-account
-                                                                                      :reg-entry/address address}]))}
+                                                                                           :active-account @active-account
+                                                                                           :reg-entry/address address}]))}
                 "Vote Reward"]
                [pending-button {:pending? @claim-challenge-reward-tx-pending?
                                 :disabled (or (not (pos? (:challenge/reward-amount all-rewards)))
@@ -90,7 +92,7 @@
                                                                                            :reg-entry/address address}]))}
                 "Challenge Reward"]])))))))
 
-(defn vote-action [{:keys [:reg-entry/address :challenge/vote] :as meme}]
+(defn vote-action [{:keys [:reg-entry/address :challenge/vote :meme/title] :as meme}]
   (let [tx-id (str address "vote")
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])
@@ -128,7 +130,8 @@
                                                                                             :vote/amount (-> @form-data
                                                                                                              :amount-vote-for
                                                                                                              js/parseInt
-                                                                                                             (web3/to-wei :ether))}]))}
+                                                                                                             (web3/to-wei :ether))
+                                                                                            :meme/title title}]))}
            [:i.vote-dank]
            "Vote Dank"]]
          [:div.vote-stank
@@ -148,6 +151,7 @@
                                        (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                             :reg-entry/address address
                                                                                             :vote/option :vote.option/vote-against
+                                                                                            :meme/title title
                                                                                             :vote/amount (-> @form-data
                                                                                                              :amount-vote-against
                                                                                                              js/parseInt
@@ -157,8 +161,8 @@
                                              (format/format-token (/ account-balance 1e18) {:token "DANK"}))]
          [:p.token-return  "Tokens will be returned to you after revealing your vote."]]))))
 
-(defn reveal-action [{:keys [:challenge/vote :reg-entry/address] :as meme}]
-  (let [tx-id (str (random-uuid))
+(defn reveal-action [{:keys [:challenge/vote :reg-entry/address :meme/title] :as meme}]
+  (let [tx-id (str "reveal" address)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])]
     (fn [{:keys [] :as meme}]
@@ -166,12 +170,12 @@
        [:img {:src "/assets/icons/mememouth.png"}]
        [pending-button {:pending? @tx-pending?
                         :pending-text "Revealing ..."
-                        :disabled (or (not (pos? (:vote/amount vote)))
-                                      @tx-pending? @tx-success?)
+                        :disabled (or @tx-pending? @tx-success?)
                         :on-click (fn []
                                     (dispatch [::registry-entry/reveal-vote
                                                {:send-tx/id tx-id
-                                                :reg-entry/address address}
+                                                :reg-entry/address address
+                                                :meme/title title}
                                                vote]))}
         "Reveal My Vote"]])))
 

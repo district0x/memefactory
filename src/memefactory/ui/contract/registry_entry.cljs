@@ -29,7 +29,7 @@
  ::approve-and-create-challenge
  (fn [{:keys [db]} [_ {:keys [:reg-entry/address :meme/title :send-tx/id :deposit] :as args} {:keys [Hash] :as challenge-meta}]]
    (log/info "Challenge meta created with hash" {:hash Hash} ::approve-and-create-challenge)
-   (let [tx-name "Approve and create challenge"
+   (let [tx-name (gstring/format "Challenge %s" title)
          active-account (account-queries/active-account db)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
                                                 :create-challenge
@@ -55,8 +55,12 @@
 (re-frame/reg-event-fx
  ::approve-and-commit-vote
  [(re-frame/inject-cofx :store)]
- (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option] :as args} {:keys [Hash] :as challenge-meta}]]
-   (let [tx-name "Approve and commit vote"
+ (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option :meme/title] :as args} {:keys [Hash] :as challenge-meta}]]
+   (let [tx-name (gstring/format "Vote %s for %s"
+                                 (if (= option :vote.option/vote-against)
+                                   "stank"
+                                   "dank")
+                                 title)
          active-account (account-queries/active-account db)
          salt (cljs-utils/rand-str 5)
          secret-hash (solidity-sha3 (reg-entry/vote-option->num option) salt)
@@ -86,8 +90,8 @@
 (re-frame/reg-event-fx
  ::reveal-vote
  [(re-frame/inject-cofx :store)]
- (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id] :as args} {:keys [Hash] :as challenge-meta}]]
-   (let [tx-name "Reveal vote"
+ (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :meme/title] :as args} {:keys [Hash] :as challenge-meta}]]
+   (let [tx-name (gstring/format "Reveal vote for %s" title)
          active-account (account-queries/active-account db)
          {:keys [option salt]} (get-in store [:votes active-account address])]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
@@ -127,12 +131,12 @@
 (re-frame/reg-event-fx
  ::claim-vote-reward
  [interceptors]
- (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :from] :as args}]]
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :active-account] :as args}]]
    (let [tx-name "Claim vote"
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :claim-vote-reward
-                                      :args [from]
+                                      :args [active-account]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {::claim-vote-reward id}

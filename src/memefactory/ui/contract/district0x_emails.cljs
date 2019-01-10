@@ -16,7 +16,7 @@
  (fn [{:keys [db]} [_ public-key {:keys [email] :as args}]]
    (log/debug  (str "About to encrypt " email " with " public-key) ::save-settings)
    (let [tx-id (str (random-uuid))
-         tx-name "Set email"
+         tx-name (str "Set email to " email)
          active-account (account-queries/active-account db)
          encrypted-email (encryption/encrypt-encode public-key email)]
      (log/debug (str "Encrypted " email " into " encrypted-email) ::save-settings)

@@ -73,7 +73,7 @@
                :color :violet
                :height (em 3)
                :width "100%"})
-      (vote-button-icon)
+      (vote-button-icon 2)
       {:white-space :nowrap
        :padding-right (em 1)
        :padding-bottom (em 0.4)
@@ -84,7 +84,7 @@
                :color :violet
                :height (em 3)
                :width "100%"})
-      (vote-button-icon)
+      (vote-button-icon 6)
       {:white-space :nowrap
        :padding-right (em 1)
        :padding-bottom (em 0.4)
@@ -93,8 +93,10 @@
     [:p.max-vote-tokens {:text-align :center
                          :margin-top (em 1)
                          :margin-left (em 0.5)
-                         :margin-right (em 0.5)}]
+                         :margin-right (em 0.5)
+                         :font-size (px 12)}]
     [:p.token-return {:text-align :center
+                      :font-size (px 12)
                       :margin-left (em 0.5)
          :margin-right (em 0.5)}]]
    [:.reveal

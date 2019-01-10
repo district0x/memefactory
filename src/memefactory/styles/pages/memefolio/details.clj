@@ -403,14 +403,14 @@
                :color :violet
                :height (em 3)
                :width "100%"})
-      (vote-button-icon)]]
+      (vote-button-icon 2)]]
     [:.vote-stank
      [:button
       (button {:background-color :random-meme-icon-bg
                :color :violet
                :height (em 3)
                :width "100%"})
-      (vote-button-icon)
+      (vote-button-icon 6)
       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
    [:section.related
     {:margin-top (em 3)}

@@ -72,7 +72,7 @@
     :font-size (em 1)
     :display :inline}])
 
-(defn vote-button-icon []
+(defn vote-button-icon [top]
   [:&:before {:content "''"
               :background-image "url('/assets/icons/thumb-up.svg')"
               :background-size "20px 20px"
@@ -81,4 +81,5 @@
               :width (px 20)
               :position :relative
               :margin-right (px 10)
-              :height (px 20)}])
+              :height (px 20)
+              :top (px top)}])

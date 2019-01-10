@@ -51,7 +51,7 @@
         :width (em 20)
         :display :block
         :height (em 30)
-        :margin (em 1)
+        :margin (em 2.5)
         :border-radius "1em"
         :padding (em 1)
         :vertical-align :middle
