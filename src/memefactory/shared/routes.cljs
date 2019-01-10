@@ -11,7 +11,8 @@
              ["/leaderboard/curators" :route.leaderboard/curators]
              ["/leaderboard/creators" :route.leaderboard/creators]
              ["/leaderboard/collectors" :route.leaderboard/collectors]
-             ["/memefolio/index" :route.memefolio/index]
-             ["/meme-detail/index" :route.meme-detail/index]
+             ["/memefolio/:address" :route.memefolio/index]
+             ["/memefolio/" :route.memefolio/index]
+             ["/meme-detail/:address" :route.meme-detail/index]
              ["/get-dank/index" :route.get-dank/index]
              ["/my-settings/index" :route.my-settings/index]])

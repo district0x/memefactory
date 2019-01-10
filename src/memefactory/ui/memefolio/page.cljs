@@ -667,10 +667,11 @@
                                                     :id query-id}])))))}]]))
 
 (defn tabbed-pane [tab prefix form-data]
-  (let [active-account (subscribe [::accounts-subs/active-account])
+  (let [provided-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
+        user-account (or provided-address @(subscribe [::accounts-subs/active-account]))
         tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         re-search (fn [] (dispatch [::gql-events/query
-                                    {:query {:queries (build-query @tab {:active-account @active-account
+                                    {:query {:queries (build-query @tab {:active-account user-account
                                                                          :prefix prefix
                                                                          :form-data @form-data
                                                                          :first scroll-interval
@@ -726,13 +727,13 @@
                                      (str/capitalize))]])
               [:collected :created :curated :selling :sold]))
         [:div.total
-         [total @tab @active-account]]]
+         [total @tab user-account]]]
        [:section.stats
         (when (not (contains? #{:selling :sold} @tab))
           [:div.rank
-           [rank @tab @active-account]])]
+           [rank @tab user-account]])]
        [:div.panel
-        [scrolling-container @tab {:active-account @active-account :form-data @form-data :prefix prefix}]]])))
+        [scrolling-container @tab {:active-account user-account :form-data @form-data :prefix prefix}]]])))
 
 (defmethod page :route.memefolio/index []
   (let [active-tab (r/atom default-tab)]

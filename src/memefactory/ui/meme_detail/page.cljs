@@ -434,7 +434,7 @@
 
 (defmethod page :route.meme-detail/index []
   (let [active-account @(subscribe [::accounts-subs/active-account])
-        address (-> @(re-frame/subscribe [::router-subs/active-page]) :query :address)
+        address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         response (if active-account
                    (subscribe [::gql/query (build-meme-query address active-account)])
                    (ratom/reaction {:graphql/loading? true}))

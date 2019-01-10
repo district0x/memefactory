@@ -79,7 +79,8 @@
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
                     (r/atom {:search-term (:term query)
-                             :search-tags (str/split (:search-tags query) #",")
+                             :search-tags (when-let [tags (:search-tags query)]
+                                            (str/split tags #","))
                              :order-by (or (:order-by query) "started-on")
                              :order-dir (or (:order-dir query) "desc")}))
         all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]

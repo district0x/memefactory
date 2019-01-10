@@ -90,8 +90,8 @@
          [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
                           :back [auction-back-tile opts meme-auction]}]
          [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                             nil
-                                             {:reg-entry/address (-> meme-token :meme-token/meme :reg-entry/address)}])}
+                                             {:address (-> meme-token :meme-token/meme :reg-entry/address) }
+                                             nil])}
           [:div.token-id (str "#"(-> meme-token :meme-token/meme :meme/number))]
           [:div.title (-> meme-token :meme-token/meme :meme/title)]
           [:div.number-minted (str (:meme-token/number meme-token)
@@ -112,6 +112,6 @@
    [flippable-tile {:front [meme-image image-hash]
                     :back [meme-back-tile meme]}]
    [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                              nil
-                                                              {:reg-entry/address address}])}
+                                       {:address address}
+                                       nil])}
     [:div.title (-> meme :meme/title)]]])
