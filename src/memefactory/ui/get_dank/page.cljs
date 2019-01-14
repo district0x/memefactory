@@ -41,19 +41,31 @@
                 [text-input (merge {:form-data form-data
                                     :errors errors
                                     :id :country-code
-                                    :class "country-code"})]]
+                                    :dom-id :country-code
+                                    :class "country-code"})]
+                {:form-data form-data
+                 :for :country-code
+                 :id :country-code}]
                [with-label
                 "Phone Number"
                 [text-input (merge {:form-data form-data
                                     :errors errors
                                     :id :phone-number
-                                    :class "phone"})]]]
+                                    :dom-id :phone-number
+                                    :class "phone"})]
+                {:form-data form-data
+                 :for :phone-number
+                 :id :phone-number}]]
             2 [:div.form
                [with-label
                 "Verification Code"
                 [text-input (merge {:form-data form-data
                                     :errors errors
-                                    :id :verification-code})]]])]
+                                    :dom-id :verification-code
+                                    :id :verification-code})]
+                {:form-data form-data
+                 :for :verification-code
+                 :id :verification-code}]])]
          [:div.footer
           {:on-click (fn []
                        (let [verification-code (:verification-code @form-data)]

@@ -72,9 +72,11 @@
           [with-label "Title"
            [text-input {:form-data form-data
                         :errors errors
-                        :id :title}]
+                        :id :title
+                        :dom-id :ftitle}]
            {:form-data form-data
-            :id :title}]
+            :id :title
+            :for :ftitle}]
           [with-label "Tags"
            [chip-input {:form-data form-data
                         :chip-set-path [:search-tags]
@@ -86,9 +88,11 @@
           [with-label "Issuance"
            [text-input {:form-data form-data
                         :errors errors
-                        :id :issuance}]
+                        :id :issuance
+                        :dom-id :issuance}]
            {:form-data form-data
-            :id :issuance}]
+            :id :issuance
+            :for :issuance}]
           #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
           [:div.submit
            [:button {:on-click (fn []

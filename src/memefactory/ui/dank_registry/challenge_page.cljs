@@ -16,6 +16,7 @@
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.dank-registry.events :as dr-events]
+   [district.ui.router.events :as router-events]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -27,7 +28,8 @@
    [:div.icon]
    [:h2.title "Dank registry - Challenge"]
    [:h3.title "Lorem ipsum dolor sit ..."]
-   [:div.get-dank-button "Get Dank"]])
+   [:div.get-dank-button {:on-click #(dispatch [::router-events/navigate :route.get-dank/index nil nil])}
+    "Get Dank"]])
 
 (defn open-challenge-action [{:keys [:reg-entry/address :meme/title]}]
   (let [form-data (r/atom {})

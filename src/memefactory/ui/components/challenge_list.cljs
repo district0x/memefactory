@@ -13,6 +13,7 @@
    [memefactory.ui.components.tiles :refer [meme-image]]
    [memefactory.ui.utils :as mf-utils]
    [memefactory.ui.utils :as utils]
+   [district.graphql-utils :as gql-utils]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -35,6 +36,8 @@
       [:items (cond-> [:reg-entry/address
                        :reg-entry/created-on
                        :reg-entry/challenge-period-end
+                       :challenge/commit-period-end
+                       :challenge/reveal-period-end
                        :reg-entry/status
                        :challenge/comment
                        :meme/total-supply
@@ -70,16 +73,21 @@
                                                  (if (pos? tcm) (/ (* 100 tcmw) tcm) 0)))]]
    [:li "Address: " [:span.address (-> user :user/address)]]])
 
+(defn current-period-ends [label end-date]
+  [:li (str label " period ends in: ") [:span (-> (time/time-remaining (t/now) (utils/gql-date->date end-date))
+                                            format/format-time-units)]])
+
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child] }]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
-                :meme/tags :challenge/challenger :challenge/comment]} entry]
+                :meme/tags :challenge/challenger :challenge/comment :reg-entry/status :challenge/commit-period-end :challenge/reveal-period-end]} entry]
     [:div.challenge
      (cond-> [:div.info
               [:h2 {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                          nil
-                                          {:reg-entry/address address}])}
+                                                      {:address address}
+                                                      nil])}
                title]
+
               [:ol.meme
                [:li "Created: " [:span (let [formated-time (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
 
@@ -89,11 +97,12 @@
                                            (str formated-time " ago")
                                            "less than a minute ago"))]]
 
-               (let [{:keys [seconds minutes hours days]:as tr} (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))]
-                 (if-not (= seconds minutes hours days 0)
-                   [:li "Challenge period ends in: " [:span (-> (time/time-remaining (t/now) (utils/gql-date->date challenge-period-end))
-                                                                format/format-time-units)]]
-                   [:li "Challenge period ended"]))
+
+               (case (gql-utils/gql-name->kw status)
+                 :reg-entry.status/challenge-period [current-period-ends "Challenge" challenge-period-end]
+                 :reg-entry.status/commit-period [current-period-ends "Voting" commit-period-end]
+                 :reg-entry.status/revel-period [current-period-ends "Voting" reveal-period-end]
+                 [:li ""])
                [:li "Issued: " [:span total-supply]]]
               [:h3 "Creator"]
               [user-info creator :creator]]

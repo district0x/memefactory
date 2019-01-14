@@ -27,19 +27,19 @@
        [:img.meme-image {:src (str (format/ensure-trailing-slash url) image-hash)}]
        [:div.meme-placehodler [:img {:src "/assets/icons/mememouth.png"}]])]))
 
-(defn flippable-tile [{:keys [:front :back :id]}]
+(defn flippable-tile [{:keys [:front :back :flippable-classes]}]
   (let [flipped? (r/atom false)
         flip #(swap! flipped? not)]
     (fn [{:keys [:front :back]}]
-      [:div.container (merge {:class (when @flipped? "flipped")
-                              :on-click (fn [event]
-                                          (if id
-                                            (when (= id (-> event
-                                                            (aget "target")
-                                                            (aget "id")))
-                                              (flip))
-                                            (flip)))}
-                             (when id {:id id}))
+      [:div.container {:class (when @flipped? "flipped")
+                       :on-click (fn [event]
+                                   (if (not-empty flippable-classes)
+                                     (when (contains? flippable-classes
+                                                      (-> event
+                                                          (aget "target")
+                                                          (aget "className")))
+                                       (flip))
+                                     (flip)))}
        back
        front])))
 

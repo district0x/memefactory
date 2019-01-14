@@ -79,7 +79,11 @@
                                       :tx-id {::approve-and-commit-vote id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::approve-and-commit-vote]
-                                                        [::notification-events/show "Voted"]]
+                                                        [::notification-events/show (gstring/format "Successfully voted %s for %s"
+                                                                                                    (if (= option :vote.option/vote-against)
+                                                                                                                                    "stank"
+                                                                                                                                    "dank")
+                                                                                                    title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args
@@ -112,8 +116,8 @@
 (re-frame/reg-event-fx
  ::claim-challenge-reward
  [interceptors]
- (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :from] :as args}]]
-   (let [tx-name "Claim challenge"
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :from :meme/title] :as args}]]
+   (let [tx-name (gstring/format "Claim challenge reward %s" title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :claim-challenge-reward
@@ -122,7 +126,7 @@
                                                 :gas 6000000}
                                       :tx-id {::claim-challenge-reward id}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::claim-challenge-reward]
-                                                        [::notification-events/show (gstring/format "Succesfully claimed reward")]]
+                                                        [::notification-events/show (gstring/format "Succesfully claimed challenge reward %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}
@@ -131,8 +135,8 @@
 (re-frame/reg-event-fx
  ::claim-vote-reward
  [interceptors]
- (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :active-account] :as args}]]
-   (let [tx-name "Claim vote"
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :active-account :meme/title] :as args}]]
+   (let [tx-name (gstring/format "Claim vote reword %s" title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :claim-vote-reward
@@ -142,7 +146,7 @@
                                       :tx-id {::claim-vote-reward id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " reward tx success") ::claim-vote-reward]
-                                                        [::notification-events/show (gstring/format "Succesfully claimed reward")]]
+                                                        [::notification-events/show (gstring/format "Succesfully claimed vote reward %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}

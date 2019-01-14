@@ -502,6 +502,6 @@
       [:section.related
        [:div.relateds-panel
         [:div.icon]
-        [:h2.title "REPLATED MEMES ON MARKETPLACE"]
+        [:h2.title "RELATED MEMES ON MARKETPLACE"]
         [:h3.title "lorem ipsum"]
         [related-memes-container address tags]]]]]))

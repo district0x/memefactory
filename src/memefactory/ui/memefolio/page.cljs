@@ -61,18 +61,22 @@
         [inputs/text-input {:form-data form-data
                             :errors errors
                             :id :meme-auction/amount
-                            :on-click #(.stopPropagation %)}]
+                            :on-click #(.stopPropagation %)
+                            :dom-id (str address :meme-auction/amount)}]
         {:form-data form-data
-         :id :meme-auction/amount}]
+         :id :meme-auction/amount
+         :for (str address :meme-auction/amount)}]
        [:div.outer
         [inputs/with-label
          "Start Price"
          [inputs/text-input {:form-data form-data
                              :errors errors
                              :id :meme-auction/start-price
+                             :dom-id (str address :meme-auction/start-price)
                              :on-click #(.stopPropagation %)}]
          {:id :meme-auction/start-price
-          :form-data form-data}]
+          :form-data form-data
+          :for (str address :meme-auction/start-price)}]
         [:span.unit "ETH"]]
        [:div.outer
         [inputs/with-label
@@ -80,19 +84,23 @@
          [inputs/text-input {:form-data form-data
                              :errors errors
                              :id :meme-auction/end-price
+                             :dom-id (str address :meme-auction/end-price)
                              :on-click #(.stopPropagation %)}]
          {:form-data form-data
+          :for (str address :meme-auction/end-price)
           :id :meme-auction/end-price}]
-         [:span.unit "ETH"]]
+        [:span.unit "ETH"]]
        [:div.outer
         [inputs/with-label
          "Duration"
-         [inputs/int-input {:form-data form-data
+         [inputs/text-input {:form-data form-data
                             :errors errors
                             :id :meme-auction/duration
+                            :dom-id (str address :meme-auction/duration)
                             :on-click #(.stopPropagation %)}]
          {:form-data form-data
-          :id :meme-auction/duration}]
+          :id :meme-auction/duration
+          :for (str address :meme-auction/duration)}]
         [:span.unit "days"]]
        [:span.short-sales-pitch "Short sales pitch"]
        [:div.area
@@ -151,7 +159,8 @@
                                                                                            :reg-entry/address address
                                                                                            :meme/owned-meme-tokens owned-meme-tokens
                                                                                            :meme-auction/token-count token-count
-                                                                                           :meme-auction/token-ids token-ids}]}]
+                                                                                           :meme-auction/token-ids token-ids}]
+                                                               :flippable-classes #{"meme-image" "cancel"}}]
                                         [:div.footer
                                          {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                                 {:address address}

@@ -19,12 +19,12 @@
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.dank-registry.events :as dr-events]
+   [district.ui.router.events :as router-events]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [taoensso.timbre :as log]
-   ))
+   [taoensso.timbre :as log]))
 
 (def page-size 12)
 
@@ -33,7 +33,8 @@
    [:div.icon]
    [:h2.title "Dank registry - VOTE"]
    [:h3.title "Lorem ipsum dolor sit ..."]
-   [:div.get-dank-button "Get Dank"]])
+   [:div.get-dank-button {:on-click #(dispatch [::router-events/navigate :route.get-dank/index nil nil])}
+    "Get Dank"]])
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards] :as meme}]
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -80,7 +81,8 @@
                                 :on-click (fn []
                                             (dispatch [::registry-entry/claim-vote-reward {:send-tx/id vote-reward-tx-id
                                                                                            :active-account @active-account
-                                                                                           :reg-entry/address address}]))}
+                                                                                           :reg-entry/address address
+                                                                                           :meme/title (:meme/title meme)}]))}
                 "Vote Reward"]
                [pending-button {:pending? @claim-challenge-reward-tx-pending?
                                 :disabled (or (not (pos? (:challenge/reward-amount all-rewards)))
@@ -88,8 +90,9 @@
                                 :pending-text "Collecting ..."
                                 :on-click (fn []
                                             (dispatch [::registry-entry/claim-challenge-reward {:send-tx/id ch-reward-tx-id
-                                                                                           :active-account @active-account
-                                                                                           :reg-entry/address address}]))}
+                                                                                                :active-account @active-account
+                                                                                                :reg-entry/address address
+                                                                                                :meme/title (:meme/title meme)}]))}
                 "Challenge Reward"]])))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote :meme/title] :as meme}]
@@ -113,11 +116,12 @@
          [:div.vote-dank
           [:div.vote-input
            [with-label "Amount "
-            [amount-input {:form-data form-data
+            [text-input {:form-data form-data
                            :id :amount-vote-for
+                           :dom-id (str address :amount-vote-for)
                            :errors errors}]
-            {;;:group-class :name
-             :form-data form-data
+            {:form-data form-data
+             :for (str address :amount-vote-for)
              :id :amount-vote-for}]
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
@@ -137,11 +141,12 @@
          [:div.vote-stank
           [:div.vote-input
            [with-label "Amount "
-            [amount-input {:form-data form-data
+            [text-input {:form-data form-data
                            :id :amount-vote-against
+                           :dom-id (str address :amount-vote-against)
                            :errors errors}]
-            {;;:group-class :name
-             :form-data form-data
+            {:form-data form-data
+             :for (str address :amount-vote-against)
              :id :amount-vote-against}]
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
@@ -166,18 +171,21 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])]
     (fn [{:keys [] :as meme}]
-      [:div.reveal
-       [:img {:src "/assets/icons/mememouth.png"}]
-       [pending-button {:pending? @tx-pending?
-                        :pending-text "Revealing ..."
-                        :disabled (or @tx-pending? @tx-success?)
-                        :on-click (fn []
-                                    (dispatch [::registry-entry/reveal-vote
-                                               {:send-tx/id tx-id
-                                                :reg-entry/address address
-                                                :meme/title title}
-                                               vote]))}
-        "Reveal My Vote"]])))
+      (let [disabled (or @tx-pending? @tx-success?)]
+        [:div.reveal
+         [:img {:src "/assets/icons/mememouth.png"}]
+         [pending-button {:pending? @tx-pending?
+                          :pending-text "Revealing ..."
+                          :disabled disabled
+                          :on-click (fn []
+                                      (dispatch [::registry-entry/reveal-vote
+                                                 {:send-tx/id tx-id
+                                                  :reg-entry/address address
+                                                  :meme/title title}
+                                                 vote]))}
+          (if disabled
+            "Revealed"
+            "Reveal My Vote")]]))))
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
   (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)
