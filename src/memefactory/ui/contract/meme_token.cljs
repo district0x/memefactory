@@ -19,7 +19,7 @@
  ::transfer-multi-and-start-auction
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :meme/title :meme-auction/token-ids :meme-auction/start-price :meme-auction/end-price :meme-auction/duration :meme-auction/description] :as args}]]
-   (let [tx-name "Transfer multi and start auction"
+   (let [tx-name (str "Offered " title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-token)
                                       :fn :safe-transfer-from-multi
@@ -35,7 +35,7 @@
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {:meme-token/transfer-multi-and-start-auction id}
-                                      :tx-log {:anem tx-name}
+                                      :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::transfer-multi]
                                                         [::notification-events/show (gstring/format "Offering for %s was successfully created" title)]
                                                         [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}

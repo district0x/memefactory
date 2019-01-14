@@ -241,7 +241,9 @@
                    :width "100%"
                    :height "100%"
                    :padding (em 1)
-                   :text-align :left}
+                   :text-align :left
+                   :border "1px solid grey"
+                   :border-radius "1em"}
       [:h1 (font :bungee)
        {:color (color :purple)
         :font-size (em 1)

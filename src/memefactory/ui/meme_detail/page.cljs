@@ -398,29 +398,34 @@
 
 (defmethod challenge-component :reg-entry.status/reveal-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-
-  (cond-> [:div.challenge-component
-           [challenge-header created-on]]
-    created-on (into [[status-component status]
-                      [challenger-component meme]
-                      [reveal-vote-component meme]])))
+  [:div.challenge-component
+   [:h1.title "Challenge"]
+   (cond-> [:div.challenge-component-inner
+            [challenge-header created-on]]
+     created-on (into [[status-component status]
+                       [challenger-component meme]
+                       [reveal-vote-component meme]]))])
 
 (defmethod challenge-component :reg-entry.status/commit-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  (cond-> [:div.challenge-component
-           [challenge-header created-on]]
-    created-on (into [[status-component status]
-                      [challenger-component meme]
-                      [vote-component meme]])))
+  [:div.challenge-component
+   [:h1.title "Challenge"]
+   (cond-> [:div.challenge-component-inner
+            [challenge-header created-on]]
+     created-on (into [[status-component status]
+                       [challenger-component meme]
+                       [vote-component meme]]))])
 
 (defmethod challenge-component :reg-entry.status/challenge-period
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
 
   (when-let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]
-    (cond-> [:div.challenge-component
-             [challenge-header created-on]]
-      created-on (into [[status-component status]
-                        [challenge-meme-component meme (:deposit params)]]))))
+    [:div.challenge-component
+     [:h1.title "Challenge"]
+     (cond-> [:div.challenge-component-inner
+              [challenge-header created-on]]
+       created-on (into [[status-component status]
+                         [challenge-meme-component meme (:deposit params)]]))]))
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
@@ -464,10 +469,11 @@
           [:div.spinner.spinner--info]
           [:div.registry
            [:h1 title]
-           [:div.status (case (graphql-utils/gql-name->kw status)
-                          :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
-                          :reg-entry.status/blacklisted [:label.rejected "Rejected"]
-                          [:label.challenged "Challenged"])]
+           [:div.status  (case (graphql-utils/gql-name->kw status)
+                           :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
+                           :reg-entry.status/blacklisted [:label.rejected "Rejected"]
+                           :reg-entry.status/challenge-period [:label.rejected "In Challenge Period"]
+                           [:label.challenged "Challenged"])]
            [:div.description description]
            [:div.text (format/pluralize total-supply "card")]
            [:div.text (str "You own " token-count)]

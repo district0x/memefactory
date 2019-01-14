@@ -43,8 +43,7 @@
 (defn sell-form [{:keys [:meme/title
                          :meme-auction/token-count
                          :meme-auction/token-ids
-                         :reg-entry/address
-                         :show?]}
+                         :reg-entry/address]}
                  {:keys [max-auction-duration] :as params}]
   (let [tx-id (str (random-uuid))
         form-data (r/atom {})
@@ -62,23 +61,28 @@
         [inputs/text-input {:form-data form-data
                             :errors errors
                             :id :meme-auction/amount
-                            :on-click #(.stopPropagation %)
-                            }]]
+                            :on-click #(.stopPropagation %)}]
+        {:form-data form-data
+         :id :meme-auction/amount}]
        [:div.outer
         [inputs/with-label
          "Start Price"
          [inputs/text-input {:form-data form-data
-                               :errors errors
-                               :id :meme-auction/start-price
-                               :on-click #(.stopPropagation %)}]]
+                             :errors errors
+                             :id :meme-auction/start-price
+                             :on-click #(.stopPropagation %)}]
+         {:id :meme-auction/start-price
+          :form-data form-data}]
         [:span.unit "ETH"]]
        [:div.outer
         [inputs/with-label
          "End Price"
          [inputs/text-input {:form-data form-data
-                               :errors errors
-                               :id :meme-auction/end-price
-                               :on-click #(.stopPropagation %)}]]
+                             :errors errors
+                             :id :meme-auction/end-price
+                             :on-click #(.stopPropagation %)}]
+         {:form-data form-data
+          :id :meme-auction/end-price}]
          [:span.unit "ETH"]]
        [:div.outer
         [inputs/with-label
@@ -86,7 +90,9 @@
          [inputs/int-input {:form-data form-data
                             :errors errors
                             :id :meme-auction/duration
-                            :on-click #(.stopPropagation %)}]]
+                            :on-click #(.stopPropagation %)}]
+         {:form-data form-data
+          :id :meme-auction/duration}]
         [:span.unit "days"]]
        [:span.short-sales-pitch "Short sales pitch"]
        [:div.area
@@ -96,7 +102,7 @@
                                 :id :meme-auction/description
                                 :on-click #(.stopPropagation %)}]]
        [:div.buttons
-        [:button.cancel {:on-click #(swap! show? not)} "Cancel"]
+        [:button.cancel "Cancel"]
         [tx-button/tx-button {:primary true
                               :disabled false
                               :class "create-offering"
@@ -113,30 +119,18 @@
          "Create Offering"]]])))
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids :reg-entry/address]}]
-  (let [sell? (r/atom false)
-        params (subscribe [:memefactory.ui.config/memefactory-db-params])]
+  (let [params (subscribe [:memefactory.ui.config/memefactory-db-params])]
     (fn []
-      [:div.collected-tile-back.meme-card.back
-       (if-not @sell?
-         [:div.sell
-          [:div.top
-           [:b (str "#" number)]
-           [:img {:src "/assets/icons/mememouth.png"}]]
-          [:div.bottom
-           [:button {:on-click (fn [e]
-                                 (.stopPropagation e)
-                                 (swap! sell? not))}
-            "Sell"]]]
-         [:div.sell-form
-          [:h1 (str "Sell " "#" number " " title)]
+      [:div.collected-tile-back.meme-card.back {:id "collected-back"}
+       [:div.sell-form {:id "collected-back-sell"}
+        [:h1 (str "Sell " "#" number " " title)]
 
-          (when @params
-            [sell-form {:meme/title title
-                        :meme-auction/token-ids token-ids
-                        :meme-auction/token-count token-count
-                        :reg-entry/address address
-                        :show? sell?}
-             @params])])])))
+        (when @params
+          [sell-form {:meme/title title
+                      :meme-auction/token-ids token-ids
+                      :meme-auction/token-count token-count
+                      :reg-entry/address address}
+           @params])]])))
 
 (defmethod panel :collected [_ state]
   [:div.tiles
@@ -160,8 +154,8 @@
                                                                                            :meme-auction/token-ids token-ids}]}]
                                         [:div.footer
                                          {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                nil
-                                                                {:reg-entry/address address}])}
+                                                                {:address address}
+                                                                nil])}
                                          [:div.title (str "#" number " " title)]
                                          (when (and token-count total-supply)
                                            [:div.number-minted (str "Owning " token-count " out of " total-supply)])]])))
@@ -247,7 +241,9 @@
                                                                            :reg-entry/address address
                                                                            :send-tx/id tx-id})]))}
            "Issue"]]
-         [:div.label "Max " max-amount]]))))
+         [:div.label (if (pos? max-amount)
+                       (str "Max " max-amount)
+                       "All cards issued")]]))))
 
 (defmethod panel :created [_ state]
   [:div.tiles
@@ -263,8 +259,8 @@
                                          [tiles/meme-image image-hash]
                                          #_[tiles/meme-front-tile {} meme]]
                                         [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                          nil
-                                                                          {:reg-entry/address address}])}
+                                                                          {:address address}
+                                                                          nil])}
                                          [:div.title (str "#" number " " title)]
                                          [:div.issued (str total-minted "/" total-supply" Issued")]
                                          [:div.status
@@ -356,8 +352,8 @@
                    [:div.meme-card-front
                     [tiles/meme-image image-hash]]]
                   [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                      nil
-                                                      {:reg-entry/address address}])}
+                                                      {:address address}
+                                                      nil])}
                    [:div.title [:b (str "#" number " " title)]]
                    [:div
                     (cond
@@ -475,8 +471,8 @@
                    [:div.meme-card-front
                     [tiles/meme-image image-hash]]]
                   [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                      nil
-                                                      {:reg-entry/address (:reg-entry/address meme)}])}
+                                                      {:address (:reg-entry/address meme)}
+                                                      nil])}
                    [:div.title [:b (str "#" number " " title)]]
                    [:div.number-minted (str number "/" total-minted)]
                    [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
@@ -668,10 +664,10 @@
 
 (defn tabbed-pane [tab prefix form-data]
   (let [provided-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
-        user-account (or provided-address @(subscribe [::accounts-subs/active-account]))
+        user-account (ratom/reaction (or provided-address @(subscribe [::accounts-subs/active-account])))
         tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         re-search (fn [] (dispatch [::gql-events/query
-                                    {:query {:queries (build-query @tab {:active-account user-account
+                                    {:query {:queries (build-query @tab {:active-account @user-account
                                                                          :prefix prefix
                                                                          :form-data @form-data
                                                                          :first scroll-interval
@@ -727,13 +723,13 @@
                                      (str/capitalize))]])
               [:collected :created :curated :selling :sold]))
         [:div.total
-         [total @tab user-account]]]
+         [total @tab @user-account]]]
        [:section.stats
         (when (not (contains? #{:selling :sold} @tab))
           [:div.rank
-           [rank @tab user-account]])]
+           [rank @tab @user-account]])]
        [:div.panel
-        [scrolling-container @tab {:active-account user-account :form-data @form-data :prefix prefix}]]])))
+        [scrolling-container @tab {:active-account @user-account :form-data @form-data :prefix prefix}]]])))
 
 (defmethod page :route.memefolio/index []
   (let [active-tab (r/atom default-tab)]

@@ -391,7 +391,7 @@
     user_totalCreatedChallengesSuccess: Int
 
     \"Total amount of DANK token user received from challenger rewards\"
-    user_challengerTotalEarned: Int
+    user_challengerTotalEarned: Float
 
     \"Total amount of DANK token user received from challenger rewards\"
     user_challengerRank: Int
