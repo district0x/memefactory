@@ -50,10 +50,10 @@
                   vote-reward-tx-id (str address "vote-reward")
                   {:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
                   {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]} meme-voting
-                  claim-vote-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:registry-entry/claim-vote-reward vote-reward-tx-id}])
-                  claim-vote-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:registry-entry/claim-vote-reward vote-reward-tx-id}])
-                  claim-challenge-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:registry-entry/claim-challenge-reward ch-reward-tx-id}])
-                  claim-challenge-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {:registry-entry/claim-challenge-reward ch-reward-tx-id}])]
+                  claim-vote-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward vote-reward-tx-id}])
+                  claim-vote-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward vote-reward-tx-id}])
+                  claim-challenge-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-challenge-reward ch-reward-tx-id}])
+                  claim-challenge-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-challenge-reward ch-reward-tx-id}])]
               [:div.collect-reward
                (log/debug "meme voting" meme-voting ::collect-reward-action)
 

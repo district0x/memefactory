@@ -101,7 +101,7 @@
                (case (gql-utils/gql-name->kw status)
                  :reg-entry.status/challenge-period [current-period-ends "Challenge" challenge-period-end]
                  :reg-entry.status/commit-period [current-period-ends "Voting" commit-period-end]
-                 :reg-entry.status/revel-period [current-period-ends "Voting" reveal-period-end]
+                 :reg-entry.status/reveal-period [current-period-ends "Reveal" reveal-period-end]
                  [:li ""])
                [:li "Issued: " [:span total-supply]]]
               [:h3 "Creator"]

@@ -106,7 +106,11 @@
                                       :tx-id {::reveal-vote id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::reveal-vote]
-                                                        [::notification-events/show "Voted"]]
+                                                        [::notification-events/show (gstring/format "Successfully voted %s for %s"
+                                                                                                    (if (= option :vote.option/vote-against)
+                                                                                                      "stank"
+                                                                                                      "dank")
+                                                                                                    title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args
