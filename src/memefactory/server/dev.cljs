@@ -81,7 +81,7 @@
   (let [scenarios (or (:generator @config)
                       [{:create-meme {:image-file "resources/dev/pepe.png"
                                       :title "Pepe"
-                                      :supply 5
+                                      ;; :total-supply 5
                                       :from-account 0}
 
                         :challenge-meme {:comment "its too baroque"
@@ -101,7 +101,9 @@
                                         :amount 1
                                         :from-account 9}]
 
-                        #_:mint-meme-tokens #_{:amount 3
+                        :claim-vote-rewards [{:from-account 0}]
+
+                        :mint-meme-tokens {;;:amount 3
                                            :from-account 0}
 
                         #_:start-auction #_true
