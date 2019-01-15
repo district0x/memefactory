@@ -80,29 +80,33 @@
   []
   (let [scenarios (or (:generator @config)
                       [{:create-meme {:image-file "resources/dev/pepe.png"
-                                      :from-account 1
-                                      :supply 5}
+                                      :title "Pepe"
+                                      :supply 5
+                                      :from-account 0}
+
                         :challenge-meme {:comment "its too baroque"
-                                         :from-account 2}
-                        :commit-votes [{:option :vote-option/vote-for
+                                         :from-account 9}
+
+                        :commit-votes [{:option :vote.option/vote-for
                                         :amount 2
-                                        :from-account 1}
-                                       {:option :vote-option/vote-against
+                                        :from-account 0}
+                                       {:option :vote.option/vote-against
                                         :amount 1
-                                        :from-account 2}
-                                       {:option :vote-option/vote-against
-                                        :amount 1
-                                        :from-account 3}]
-                        :reveal-votes [{:option :vote-option/vote-for
+                                        :from-account 9}]
+
+                        :reveal-votes [{:option :vote.option/vote-for
                                         :amount 2
-                                        :from-account 1}
-                                       {:option :vote-option/vote-against
+                                        :from-account 0}
+                                       {:option :vote.option/vote-against
                                         :amount 1
-                                        :from-account 2}]
-                        :mint-meme-tokens {:amount 3
-                                           :from-account 1}
-                        :start-auction true
-                        :buy-meme {:from-account 3}}])]
+                                        :from-account 9}]
+
+                        #_:mint-meme-tokens #_{:amount 3
+                                           :from-account 0}
+
+                        #_:start-auction #_true
+
+                        #_:buy-meme #_{:from-account 3}}])]
     (log/warn "Generating data, please be patient..." ::generate-date)
     (doseq [scenario scenarios]
       (promise-> (memefactory.server.generator/generate-memes scenario)
