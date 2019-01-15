@@ -79,7 +79,7 @@
   "Generate dev data"
   []
   (let [scenarios (or (:generator @config)
-                      [{:create-meme {:image-file "resources/dev/pepe.png"
+                      [#_{:create-meme {:image-file "resources/dev/pepe.png"
                                       :title "Pepe"
                                       :total-supply 2
                                       :from-account 0}
@@ -112,7 +112,18 @@
                                           :from-account 0}]
 
                         :buy-auctions [{:price 0.5
-                                        :from-account 3}]}])]
+                                        :from-account 3}]}
+
+                       {:create-meme true
+                        :challenge-meme true
+                        :commit-votes true
+                        ;; :reveal-votes true
+                        ;; :claim-vote-rewards true
+                        ;; :mint-meme-tokens true
+                        ;; :start-auctions true
+                        ;; :buy-auctions true
+                        }
+                       ])]
     (log/warn "Generating data, please be patient..." ::generate-date)
     (doseq [scenario scenarios]
       (promise-> (memefactory.server.generator/generate-memes scenario)
