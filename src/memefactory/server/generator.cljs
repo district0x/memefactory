@@ -151,24 +151,23 @@
                #(assoc previous :challenge-meme-tx (:transaction-hash %)))))
 
 (defn commit-votes! [{{:keys [:registry-entry]} :meme :as previous}
-                     commit-votes]
-  (when commit-votes)
-  (promise-> (js/Promise.all
-              (for [{:keys [:option :amount :from-account] :as vote} commit-votes]
-
-                (promise-> (registry-entry/approve-and-commit-vote registry-entry
-                                                                   {:amount amount
-                                                                    :salt "abc"
-                                                                    :vote-option option}
-                                                                   {:from (get-account from-account)})
-                           #(wait-for-tx-receipt %))))
-             #(assoc previous :commit-vote-txs (map :transaction-hash %))))
+                     votes]
+  (when votes
+    (promise-> (js/Promise.all
+                (for [{:keys [:option :amount :from-account] :as vote} votes]
+                  (promise-> (registry-entry/approve-and-commit-vote registry-entry
+                                                                     {:amount amount
+                                                                      :salt "abc"
+                                                                      :vote-option option}
+                                                                     {:from (get-account from-account)})
+                             #(wait-for-tx-receipt %))))
+               #(assoc previous :commit-vote-txs (map :transaction-hash %)))))
 
 (defn reveal-votes! [{:keys [:commit-vote-txs] {:keys [:registry-entry]} :meme :as previous}
-                     reveal-votes]
-  (when reveal-votes
+                     votes]
+  (when votes
     (promise-> (js/Promise.all
-                (for [{:keys [:option :amount :from-account] :as vote} reveal-votes]
+                (for [{:keys [:option :amount :from-account] :as vote} votes]
 
                   (promise-> (registry-entry/reveal-vote registry-entry
                                                          {:vote-option option
@@ -178,11 +177,10 @@
                #(assoc previous :reveal-vote-txs (map :transaction-hash %)))))
 
 (defn claim-vote-rewards! [{{:keys [:registry-entry]} :meme :as previous}
-                           {:keys [:from-account] :as claim-vote-rewards}]
-  (when claim-vote-rewards
+                           {:keys [:from-account] :as claims}]
+  (when claims
     (promise-> (js/Promise.all
-                (for [{:keys [:from-account] :as vote} claim-vote-rewards]
-
+                (for [{:keys [:from-account] :as claim} claims]
                   (promise-> (registry-entry/claim-vote-reward registry-entry {:from (get-account from-account)})
                              #(wait-for-tx-receipt %))))
                #(assoc previous :claim-vote-reward-txs (map :transaction-hash %)))))
@@ -199,31 +197,57 @@
                                                                                                         (:transaction-hash %))]
                   (assoc-in previous [:meme :token-ids] (range (bn/number token-start-id)
                                                                (inc (bn/number token-end-id))))))))
-;; TODO : options
-(defn start-auction! [{{:keys [:token-ids]} :meme {:keys [:max-auction-duration]} :meme-registry-db-values :as previous}
-                      account]
-  (promise-> (meme-token/transfer-multi-and-start-auction {:from account
-                                                           :token-ids token-ids
-                                                           :start-price (web3/to-wei 0.1 :ether)
-                                                           :end-price (web3/to-wei 0.01 :ether)
-                                                           :duration (+ 60 (rand-int (- max-auction-duration 60)))
-                                                           :description "some auction"}
-                                                          {:from account})
-             #(wait-for-tx-receipt %)
-             #(let [{{:keys [:meme-auction :token-id]} :args} (meme-auction-factory/meme-auction-started-event-in-tx (:transaction-hash %))]
-                (assoc previous :meme-auction {:meme-auction meme-auction
-                                               :token-id token-id}))))
 
-;; TODO : options
-(defn buy-auction! [{{:keys [:meme-auction]} :meme-auction :as previous} account]
-  (promise-> (meme-auction/buy meme-auction {:from account
-                                             :value (web3/to-wei 0.1 :ether)})
-             #(wait-for-tx-receipt %)
-             #(assoc previous :buy-tx (:transaction-hash %))))
+(defn start-auctions! [{:keys [:meme] {:keys [:max-auction-duration]} :meme-registry-db-values :as previous}
+                       auctions]
+  (when auctions
+    (promise-> (js/Promise.all
+                (for [{:keys [:token-ids
+                              :start-price
+                              :end-price
+                              :duration
+                              :description
+                              :from-account]
+                       :or {token-ids (look (:token-ids meme))
+                            start-price 0.5
+                            end-price 0.1
+                            duration (+ 60 (rand-int (- max-auction-duration 60)))
+                            description "some auction"
+                            from-account 0}
+                       :as auction} auctions]
+                  (let [account (get-account from-account)]
+                    (promise-> (meme-token/transfer-multi-and-start-auction {:from account
+                                                                             :token-ids token-ids
+                                                                             :start-price (web3/to-wei start-price :ether)
+                                                                             :end-price (web3/to-wei end-price :ether)
+                                                                             :duration duration
+                                                                             :description "some auction"}
+                                                                            {:from account})
+                               #(wait-for-tx-receipt %)
+                               #(apply (fn [{{:keys [:meme-auction :token-id]} :args :as evt}]
+                                         {:meme-auction meme-auction
+                                          :token-id (bn/number token-id)})
+                                       ;; TODO : bug in smart-contracts/contract-events-in-tx, returns only last event
+                                       (meme-auction-factory/meme-auction-started-events-in-tx (:transaction-hash %)))))))
+               #(assoc previous :meme-auctions (js->clj %)))))
+
+(defn buy-auctions! [{:keys [:meme-auctions] :as previous}
+                     auctions]
+  (promise-> (js/Promise.all
+              (for [index (range (count auctions))
+                    {:keys [:meme-auction :price :from-account]
+                     :or {meme-auction (:meme-auction (nth meme-auctions index))
+                          price 0.5
+                          from-account 0}
+                     :as auction} auctions]
+                (promise-> (meme-auction/buy meme-auction {:from (get-account from-account)
+                                                           :value (web3/to-wei price :ether)})
+                           #(wait-for-tx-receipt %))))
+             #(assoc previous :buy-auction-txs (map :transaction-hash %))))
 
 (defn generate-memes [{:keys [:create-meme :challenge-meme :commit-votes
                               :reveal-votes :claim-vote-rewards :mint-meme-tokens
-                              :start-auction :buy-meme]
+                              :start-auctions :buy-auctions]
                        :as scenarios}]
   (let [account (first (web3-eth/accounts @web3))
         previous {}]
@@ -245,9 +269,9 @@
 
                #(mint-meme-tokens! % mint-meme-tokens)
 
-               ;; #(start-auction! % account)
+               #(start-auctions! % start-auctions)
 
-               ;; #(buy-auction! % account)
+               #(buy-auctions! % buy-auctions)
 
                #(log/info "Generate meme result" % ::generate-memes)
 

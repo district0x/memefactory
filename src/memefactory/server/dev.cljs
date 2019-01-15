@@ -81,7 +81,7 @@
   (let [scenarios (or (:generator @config)
                       [{:create-meme {:image-file "resources/dev/pepe.png"
                                       :title "Pepe"
-                                      ;; :total-supply 5
+                                      :total-supply 2
                                       :from-account 0}
 
                         :challenge-meme {:comment "its too baroque"
@@ -103,12 +103,16 @@
 
                         :claim-vote-rewards [{:from-account 0}]
 
-                        :mint-meme-tokens {;;:amount 3
-                                           :from-account 0}
+                        :mint-meme-tokens {:from-account 0}
 
-                        #_:start-auction #_true
+                        :start-auctions [{:start-price 0.5
+                                          :end-price 0.1
+                                          :duration 12000000
+                                          :description "buy it"
+                                          :from-account 0}]
 
-                        #_:buy-meme #_{:from-account 3}}])]
+                        :buy-auctions [{:price 0.5
+                                        :from-account 3}]}])]
     (log/warn "Generating data, please be patient..." ::generate-date)
     (doseq [scenario scenarios]
       (promise-> (memefactory.server.generator/generate-memes scenario)
