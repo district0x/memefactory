@@ -16,6 +16,7 @@
      :transition-property "font-size margin-top"
      :transition-duration "0.3s"
      :z-index 1
+     :cursor :text
      :margin-top (em 0.5)
      :margin-left (em 0.1)
      :margin-bottom 0

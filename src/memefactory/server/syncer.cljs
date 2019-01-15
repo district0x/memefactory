@@ -202,15 +202,16 @@
   (try-catch
    (let [vote {:reg-entry/address registry-entry
                :vote/voter voter
-               :vote/amount (bn/number amount)}]
+               :vote/claimed-reward-on timestamp}]
      (db/update-vote! vote)
      (db/inc-user-field! voter :user/voter-total-earned (bn/number amount)))))
 
 (defmethod process-event [:contract/registry-entry :VoteAmountClaimedEvent]
-  [_ {:keys [:registry-entry :timestamp :version :voter] :as ev}]
+  [_ {:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (try-catch
    (let [vote {:reg-entry/address registry-entry
-               :vote/voter voter}]
+               :vote/voter voter
+               :vote/reclaimed-amount-on timestamp}]
      (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :ChallengeRewardClaimedEvent]

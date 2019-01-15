@@ -489,8 +489,8 @@
                                    (= :vote.option/vote-against (reg-entry-winning-vote-option reg-entry)))
                             (- deposit reward-pool)
                             0)
-        voter-amount (let [{:keys [:vote/option :vote/amount] :as v}
-                           (db/get {:select [:vote/option :vote/amount]
+        voter-amount (let [{:keys [:vote/option :vote/amount :vote/claimed-reward-on] :as v}
+                           (db/get {:select [:vote/option :vote/amount :vote/claimed-reward-on]
                                     :from [:votes]
                                     :where [:and
                                             [:= address :reg-entry/address]
@@ -500,7 +500,9 @@
                                             :vote.option/vote-against votes-against
                                             :vote.option/vote-for votes-for
                                             0)]
-                       (if (and amount
+
+                       (if (and (not claimed-reward-on)
+                                amount
                                 (= winning-option (registry-entry/vote-options option))
                                 (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry)))
                          (/ (* amount reward-pool) winning-amount)

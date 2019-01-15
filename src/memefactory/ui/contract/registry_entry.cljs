@@ -129,6 +129,7 @@
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {::claim-challenge-reward id}
+                                      :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::claim-challenge-reward]
                                                         [::notification-events/show (gstring/format "Succesfully claimed challenge reward %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
