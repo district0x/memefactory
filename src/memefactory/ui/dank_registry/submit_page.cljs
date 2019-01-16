@@ -27,7 +27,7 @@
 
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
-        form-data (r/atom {})
+        form-data (r/atom {:issuance 1})
         errors (reaction {:local (let [{:keys [title issuance file-info]} @form-data
                                        max-issuance (or max-total-supply 1)]
                                    (cond-> {:issuance {:hint (str "Max " max-issuance)}}

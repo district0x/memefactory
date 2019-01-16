@@ -44,10 +44,11 @@
                                          )))
                       ;; :placeholder "Name"
                       :form-data search-input-form-data
-                      :id search-id}]
+                      :id search-id
+                      :dom-id :name-search}]
 
-         {:group-class :name
-          :form-data form-data
+         {:for :name-search
+          :form-data search-input-form-data
           :id search-id}]
         [select-input {:form-data form-data
                        :id :order-by

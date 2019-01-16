@@ -34,7 +34,7 @@
      :margin-top (em 0)
      :position :absolute
      :height (em 4)
-     :width (em 4)}]
+     :width (em 4.3)}]
    [:h2.title
     (font :bungee)
     (for-media-max :tablet

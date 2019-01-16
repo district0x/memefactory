@@ -206,7 +206,11 @@
          [:.tx-name {:grid-area :tx-name
                      :font-size (px 14)
                      :color (color :black)
-                     :line-height "1.6"}]
+                     :line-height "1.6"
+                     :overflow :hidden
+                     :text-overflow :ellipsis
+                     :width (em 11.3)
+                     :white-space :nowrap}]
 
          [:.tx-created-on
           {:grid-area :tx-created-on}]

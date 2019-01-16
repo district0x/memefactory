@@ -34,8 +34,7 @@
    [:section.dankest
     [:.dankest-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
-                       :color :leaderboard-curator-bg})
-     [:.icon {:margin-left (em 3)}]]
+                       :color :leaderboard-curator-bg})]
     [:.scroll-area
      {:width "100%"}
      [:.tiles

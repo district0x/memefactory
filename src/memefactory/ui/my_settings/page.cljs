@@ -36,7 +36,11 @@
             "Email"
             [text-input {:form-data form-data
                          :id :email
-                         :errors errors}]]
+                         :errors errors
+                         :dom-id :email}]
+            {:form-data form-data
+             :id :email
+             :for :email}]
            [:p "Email associated with your address will be encrypted and stored on a public blockchain. Only our email server will be able to decrypt it. We'll use it to send you notifications about your purchases, sells and offering requests."]]]
          [:div.footer
 

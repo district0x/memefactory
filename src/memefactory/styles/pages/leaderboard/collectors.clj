@@ -35,7 +35,7 @@
     [:.collectors-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})
-     [:.icon {:margin-left (em 3)}]
+
      [:h2.title {:white-space :normal}]]
     [:.scroll-area
      {:width "100%"}

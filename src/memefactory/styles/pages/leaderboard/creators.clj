@@ -33,10 +33,8 @@
      :animation-timing-function :linear}]
    [:section.creators
     [:.creators-panel
-     (panel-with-icon {:url "/assets/icons/leaderboardicon.png"
-                       :color :leaderboard-curator-bg})
-     [:.icon {:background-position-x (em 0)
-              :margin-left (em 3)}]]
+     (panel-with-icon {:url "/assets/icons/trophy2.svg"
+                       :color :leaderboard-curator-bg})]
     [:h2.title {:white-space :normal}]
     [:.scroll-area
      {:width "100%"}
