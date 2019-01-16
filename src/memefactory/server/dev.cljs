@@ -74,12 +74,28 @@
         (.on "close" (fn []
                        (log/info "Finished redploying contracts" ::redeploy))))))
 
-;; TODO : document
 (defn generate-data
-  "Generate dev data from supplied scenarios."
+  "Generate dev data from supplied scenarios.
+   Basic usage:
+   `generate-data {:create-meme true
+                   :challenge-meme true
+                   :commit-votes true
+                   :reveal-votes true
+                   :claim-vote-rewards true
+                   :mint-meme-tokens true
+                   :start-auctions true
+                   :buy-auctions true}`
+   You can also override default options, e.g.:
+   `:reveal-votes {:option :vote.option/vote-for
+                                        :amount 2
+                                        :salt \"abc\"
+                                        :from-account 0}`
+   or skip a step by passing `false`, e.g:
+   `:challenge-meme false`
+   "
   [& scenarios]
   (let [scenarios (or scenarios
-                      [#_{:create-meme {:image-file "resources/dev/pepe.png"
+                      [{:create-meme {:image-file "resources/dev/pepe.png"
                                       :title "Pepe"
                                       :total-supply 2
                                       :from-account 0}
@@ -89,45 +105,33 @@
 
                         :commit-votes [{:option :vote.option/vote-for
                                         :amount 2
+                                        :salt "abc"
                                         :from-account 0}
                                        {:option :vote.option/vote-against
                                         :amount 1
+                                        :salt "abc"
                                         :from-account 9}]
 
-                        :reveal-votes [{:option :vote.option/vote-for
-                                        :amount 2
-                                        :from-account 0}
-                                       {:option :vote.option/vote-against
-                                        :amount 1
-                                        :from-account 9}]
+                        :reveal-votes true
 
                         :claim-vote-rewards [{:from-account 0}]
 
-                        :mint-meme-tokens {:from-account 0}
+                        :mint-meme-tokens {:amount 2
+                                           :from-account 0}
 
-                        :start-auctions [{:start-price 0.5
-                                          :end-price 0.1
-                                          :duration 12000000
-                                          :description "buy it"
-                                          :from-account 0}]
+                        :start-auctions {:start-price 0.5
+                                         :end-price 0.1
+                                         :duration 12000000
+                                         :description "buy it"
+                                         :from-account 0}
 
                         :buy-auctions [{:price 0.5
-                                        :from-account 3}]}
-
-                       {:create-meme true
-                        :challenge-meme true
-                        :commit-votes true
-                        :reveal-votes true
-                        :claim-vote-rewards true
-                        :mint-meme-tokens true
-                        :start-auctions true
-                        :buy-auctions true
-                        }
-                       ])]
+                                        :from-account 3}]}])]
     (log/warn "Generating data, please be patient..." ::generate-date)
-    (doseq [scenario scenarios]
-      (promise-> (memefactory.server.generator/generate-memes scenario)
-                 #(log/info "Finished generating data" ::generate-data)))))
+    (promise-> (js/Promise.all
+                (for [scenario scenarios]
+                  (memefactory.server.generator/generate-memes scenario)))
+               #(log/info "Finished generating data" ::generate-data))))
 
 (defn resync []
   (log/warn "Syncing internal database, please be patient..." ::resync)

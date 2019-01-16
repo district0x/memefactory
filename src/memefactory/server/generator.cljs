@@ -1,34 +1,37 @@
 (ns memefactory.server.generator
-  (:require [bignumber.core :as bn]
-            [cljs-ipfs-api.files :as ipfs-files]
-            [cljs-web3.core :as web3]
-            [cljs-web3.eth :as web3-eth]
-            [cljs-web3.evm :as web3-evm]
-            [cljs-web3.utils :refer [js->cljkk camel-case]]
-            [district.cljs-utils :refer [rand-str]]
-            [district.format :as format]
-            [district.server.config :refer [config]]
-            [district.server.smart-contracts :as smart-contracts :refer [smart-contracts contract-address contract-call instance wait-for-tx-receipt]]
-            [district.server.web3 :refer [web3]]
-            [memefactory.server.contract.dank-token :as dank-token]
-            [memefactory.server.contract.eternal-db :as eternal-db]
-            [memefactory.server.contract.meme :as meme]
-            [memefactory.server.contract.meme-auction :as meme-auction]
-            [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
-            [memefactory.server.contract.meme-factory :as meme-factory]
-            [memefactory.server.contract.registry :as registry]
-            [memefactory.server.contract.meme-token :as meme-token]
-            [memefactory.server.contract.minime-token :as minime-token]
-            [memefactory.server.contract.param-change :as param-change]
-            [memefactory.server.contract.param-change-factory :as param-change-factory]
-            [memefactory.server.contract.param-change-registry :as param-change-registry]
-            [memefactory.server.contract.registry :as registry]
-            [memefactory.server.macros :refer [promise->]]
-            [memefactory.server.contract.registry-entry :as registry-entry]
-            [taoensso.timbre :as log]
-            [mount.core :as mount :refer [defstate]]
-            [print.foo :refer [look] :include-macros true]
-            [district.shared.error-handling :refer [try-catch]]))
+  (:require
+   [bignumber.core :as bn]
+   [cljs-ipfs-api.files :as ipfs-files]
+   [cljs-web3.core :as web3]
+   [cljs-web3.eth :as web3-eth]
+   [cljs-web3.evm :as web3-evm]
+   [cljs-web3.utils :refer [js->cljkk camel-case]]
+   [clojure.set :as cset]
+   [district.cljs-utils :refer [rand-str]]
+   [district.format :as format]
+   [district.server.config :refer [config]]
+   [district.server.smart-contracts :as smart-contracts :refer [smart-contracts contract-address contract-call instance wait-for-tx-receipt]]
+   [district.server.web3 :refer [web3]]
+   [district.shared.error-handling :refer [try-catch]]
+   [memefactory.server.contract.dank-token :as dank-token]
+   [memefactory.server.contract.eternal-db :as eternal-db]
+   [memefactory.server.contract.meme :as meme]
+   [memefactory.server.contract.meme-auction :as meme-auction]
+   [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
+   [memefactory.server.contract.meme-factory :as meme-factory]
+   [memefactory.server.contract.meme-token :as meme-token]
+   [memefactory.server.contract.minime-token :as minime-token]
+   [memefactory.server.contract.param-change :as param-change]
+   [memefactory.server.contract.param-change-factory :as param-change-factory]
+   [memefactory.server.contract.param-change-registry :as param-change-registry]
+   [memefactory.server.contract.registry :as registry]
+   [memefactory.server.contract.registry :as registry]
+   [memefactory.server.contract.registry-entry :as registry-entry]
+   [memefactory.server.macros :refer [promise->]]
+   [mount.core :as mount :refer [defstate]]
+   [print.foo :refer [look] :include-macros true]
+   [taoensso.timbre :as log]
+   ))
 
 (def fs (js/require "fs"))
 
@@ -45,6 +48,14 @@
   (if (string? account)
     account
     (nth (web3-eth/accounts @web3) account)))
+
+(defn has-all-keys? [m ks]
+  (js/Promise.
+   (fn [resolve reject]
+     (if (apply = (map count [ks (select-keys m ks)]))
+       (resolve true)
+       (reject (str "Argument is missing mandatory key(s) " (cset/difference (set ks)
+                                                                             (-> m keys set))))))))
 
 (defn upload-meme! [previous
                     {:keys [:image-file]
@@ -151,7 +162,7 @@
                         {:keys [:deposit]} :meme-registry-db-values
                         :as previous}
                        {:keys [:amount :from-account]
-                        ;; default values : chall;enge from account 0
+                        ;; default values : challenge from account 0
                         :or {amount deposit
                              from-account 0}
                         :as arguments}]
@@ -168,28 +179,24 @@
                       :as previous}
                      args]
   (if-let [args (cond
-                   ;; user supplied votes
-                   (sequential? args) args
-                   ;; default values for votes
-                   ;; TODO : random number of randomized votes
-                   args [{:option :vote.option/vote-for
-                           :salt (rand-str 7)
-                           :amount 1
-                           :from-account 0}]
-                   ;; skip this step
-                   :else nil)]
+                  ;; user supplied votes
+                  (sequential? args) args
+                  ;; default values for votes
+                  args [{:option :vote.option/vote-for
+                         :salt (rand-str 7)
+                         :amount 1
+                         :from-account 0}]
+                  ;; skip this step
+                  :else nil)]
     (promise-> (js/Promise.all
                 (for [{:keys [:option :amount :salt :from-account]
-                       ;; :or {option :vote.option/vote-for
-                       ;;      salt "abc"
-                       ;;      amount 1
-                       ;;      from-account 0}
                        :as vote} args]
-                  (promise-> (registry-entry/approve-and-commit-vote registry-entry
-                                                                     {:amount amount
-                                                                      :salt salt
-                                                                      :vote-option option}
-                                                                     {:from (get-account from-account)})
+                  (promise-> (has-all-keys? vote [:option :salt :amount :from-account])
+                             #(registry-entry/approve-and-commit-vote registry-entry
+                                                                      {:amount amount
+                                                                       :salt salt
+                                                                       :vote-option option}
+                                                                      {:from (get-account from-account)})
                              #(wait-for-tx-receipt %)
                              #(js/Promise.resolve {:from-account from-account
                                                    :amount amount
@@ -204,22 +211,24 @@
                       :as previous}
                      args]
   (if-let [args (cond
-                   ;; user supplied votes
-                   (sequential? args) args
-                   ;; default: reveal all commited votes
-                   args votes
-                   ;; skip this step
-                   :else nil)]
+                  ;; user supplied votes
+                  (sequential? args) args
+                  ;; default: reveal all commited votes
+                  args votes
+                  ;; skip this step
+                  :else nil)]
     (promise-> (js/Promise.all
                 (for [{:keys [:option :salt :from-account]
                        :as vote} args]
-                  (promise-> (registry-entry/reveal-vote registry-entry
-                                                         {:vote-option option
-                                                          :salt salt}
-                                                         {:from (get-account from-account)})
+                  (promise-> (has-all-keys? vote [:option :salt :from-account])
+                             #(registry-entry/reveal-vote registry-entry
+                                                          {:vote-option option
+                                                           :salt salt}
+                                                          {:from (get-account from-account)})
                              #(wait-for-tx-receipt %)
                              #(js/Promise.resolve (merge vote
                                                          {:reveal-vote-tx (:transaction-hash %)})))))
+               ;; TODO : dont overwrite, assoc in the revealed vote
                #(assoc previous :votes (js->clj %)))
     previous))
 
@@ -228,12 +237,12 @@
                             :as previous}
                            args]
   (if-let [args (cond
-                    ;; user supplied claims
-                    (sequential? args) args
-                    ;; default : claim all (revealed) votes
-                    args votes
-                    ;; skip this step
-                    :else nil)]
+                  ;; user supplied claims
+                  (sequential? args) args
+                  ;; default : claim all (revealed) votes
+                  args votes
+                  ;; skip this step
+                  :else nil)]
     (promise-> (js/Promise.all
                 (for [index (range (count args))
                       {:keys [:from-account]
@@ -242,7 +251,9 @@
                              #(wait-for-tx-receipt %)
                              ;; return with previous vote
                              #(js/Promise.resolve (merge (nth votes index)
-                                                         {:claim-vote-tx (:transaction-hash %)})))))
+                                                         {:index index
+                                                          :claim-vote-tx (:transaction-hash %)})))))
+               ;; TODO : dont overwrite, assoc in the claimed vote
                #(assoc previous :votes (js->clj %)))
     previous))
 
@@ -259,57 +270,40 @@
                #(let [{{:keys [:token-start-id :token-end-id]} :args} (registry/meme-minted-event-in-tx [:meme-registry :meme-registry-fwd]
                                                                                                         (:transaction-hash %))]
                   (assoc-in previous [:meme :minted-token-ids] (range (bn/number token-start-id)
-                                                               (inc (bn/number token-end-id))))))
+                                                                      (inc (bn/number token-end-id))))))
     previous))
 
 (defn start-auctions! [{{:keys [:minted-token-ids :creator]} :meme
                         {:keys [:max-auction-duration]} :meme-registry-db-values
                         :as previous}
-                       arguments]
-  (if-let [arguments (cond
-                      ;; user supplied args
-                      (sequential? arguments) arguments
-                      ;; default values : start auctions for all minted tokens
-                      arguments [{:token-ids minted-token-ids
-                                 :start-price 0.5
-                                 :end-price 0.1
-                                 :duration (+ 60 (rand-int (- max-auction-duration 60)))
-                                 :description "some auction"
-                                 :from-account creator}]
-                      ;; skip this step
-                      :else nil)]
-    (promise-> (js/Promise.all
-                (for [{:keys [:token-ids
-                              :start-price
-                              :end-price
-                              :duration
-                              :description
-                              :from-account]
-                       ;; :or {minted-token-ids (:minted-token-ids meme)
-                       ;;      start-price 0.5
-                       ;;      end-price 0.1
-                       ;;      duration (+ 60 (rand-int (- max-auction-duration 60)))
-                       ;;      description "some auction"
-                       ;;      from-account 0}
-                       :as auction} arguments]
-                  (let [account (get-account from-account)]
-                    (promise-> (meme-token/transfer-multi-and-start-auction {:from account
-                                                                             :token-ids token-ids
-                                                                             :start-price (web3/to-wei start-price :ether)
-                                                                             :end-price (web3/to-wei end-price :ether)
-                                                                             :duration duration
-                                                                             :description description}
-                                                                            {:from account})
-                               #(wait-for-tx-receipt %)
-                               #(apply (fn [{{:keys [:meme-auction :token-id]} :args :as evt}]
-                                         {:meme-auction meme-auction
-                                          :token-id (bn/number token-id)})
-                                       ;; TODO : bug in smart-contracts/contract-events-in-tx, returns only last event
-                                       (meme-auction-factory/meme-auction-started-events-in-tx (:transaction-hash %)))))))
-               #(assoc previous :auctions (js->clj %)))
+                       {:keys [:token-ids :start-price :end-price :duration :description :from-account]
+                        ;; default values : auction all tokens
+                        :or {token-ids minted-token-ids
+                             start-price 0.5
+                             end-price 0.1
+                             duration (+ 60 (rand-int (- max-auction-duration 60)))
+                             description "some auction"
+                             from-account 0}
+                        :as arguments}]
+  (if arguments
+    (let [account (get-account from-account)]
+      (promise-> (meme-token/transfer-multi-and-start-auction {:from account
+                                                               :token-ids token-ids
+                                                               :start-price (web3/to-wei start-price :ether)
+                                                               :end-price (web3/to-wei end-price :ether)
+                                                               :duration duration
+                                                               :description description}
+                                                              {:from account})
+                 #(wait-for-tx-receipt %)
+                 #(map (fn [{{:keys [:meme-auction :token-id]} :args :as evt}]
+                         {:meme-auction meme-auction
+                          :token-id (bn/number token-id)})
+                       ;; TODO : bug in smart-contracts/contract-events-in-tx, returns only last event
+                       (meme-auction-factory/meme-auction-started-events-in-tx (:transaction-hash %)))
+                 #(assoc previous :auctions (vec %))))
     previous))
 
-(defn buy-auctions! [{:keys [auctions]
+(defn buy-auctions! [{:keys [:auctions]
                       :as previous}
                      args]
   (if-let [args (cond
@@ -326,15 +320,17 @@
     (promise-> (js/Promise.all
                 (for [index (range (count auctions))
                       {:keys [:meme-auction :price :from-account]
-                       ;; :or {meme-auction (:meme-auction (nth meme-auctions index))
-                       ;;      price 0.5
-                       ;;      from-account 0}
+                       ;; default values for single buy tx
+                       :or {meme-auction (:meme-auction (nth auctions index))}
                        :as auction} args]
-                  (promise-> (meme-auction/buy meme-auction {:from (get-account from-account)
-                                                             :value (web3/to-wei price :ether)})
+                  (promise-> (has-all-keys? auction [#_:meme-auction :price :from-account])
+                             #(meme-auction/buy meme-auction {:from (get-account from-account)
+                                                              :value (web3/to-wei price :ether)})
                              #(wait-for-tx-receipt %)
                              #(js/Promise.resolve (merge (nth auctions index)
-                                                         {:buy-auction-tx (:transaction-hash %)})))))
+                                                         {:index index
+                                                          :buy-auction-tx (:transaction-hash %)})))))
+               ;; TODO : dont overwrite assoc by index in auctions
                #(assoc previous :auctions (js->clj %)))
     previous))
 
@@ -367,6 +363,4 @@
 
                #(buy-auctions! % buy-auctions)
 
-               #(log/info "Generate meme result" % ::generate-memes)
-
-               )))
+               #(log/info "Generate meme result" % ::generate-memes))))
