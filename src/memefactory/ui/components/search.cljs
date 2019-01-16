@@ -61,8 +61,10 @@
                       :chip-set-path [selected-tags-id]
                       :ac-options tags
                       :on-change on-selected-tags-change
-                      :chip-render-fn chip-render}]
+                      :chip-render-fn chip-render
+                      :dom-id :tags}]
          {:group-class :ac-options
+          :for :tags
           :form-data form-data
           :id [selected-tags-id]}]
         (when check-filters

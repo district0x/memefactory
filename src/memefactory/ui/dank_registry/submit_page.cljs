@@ -82,8 +82,10 @@
                         :chip-set-path [:search-tags]
                         :ac-options (->> @all-tags-subs :search-tags :items (mapv :tag/name))
                         :chip-render-fn (fn [c] [:span c])
-                        :on-change (fn [c])}]
+                        :on-change (fn [c])
+                        :dom-id :search-tags}]
            {:form-data form-data
+            :for :search-tags
             :id :search-tags}]
           [with-label "Issuance"
            [text-input {:form-data form-data
