@@ -74,11 +74,11 @@
         (.on "close" (fn []
                        (log/info "Finished redploying contracts" ::redeploy))))))
 
-;; TODO
+;; TODO : document
 (defn generate-data
-  "Generate dev data"
-  []
-  (let [scenarios (or (:generator @config)
+  "Generate dev data from supplied scenarios."
+  [& scenarios]
+  (let [scenarios (or scenarios
                       [#_{:create-meme {:image-file "resources/dev/pepe.png"
                                       :title "Pepe"
                                       :total-supply 2
@@ -117,11 +117,11 @@
                        {:create-meme true
                         :challenge-meme true
                         :commit-votes true
-                        ;; :reveal-votes true
-                        ;; :claim-vote-rewards true
-                        ;; :mint-meme-tokens true
-                        ;; :start-auctions true
-                        ;; :buy-auctions true
+                        :reveal-votes true
+                        :claim-vote-rewards true
+                        :mint-meme-tokens true
+                        :start-auctions true
+                        :buy-auctions true
                         }
                        ])]
     (log/warn "Generating data, please be patient..." ::generate-date)
