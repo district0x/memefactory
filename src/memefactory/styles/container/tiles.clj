@@ -11,10 +11,14 @@
   [:.tiles
    {:display :flex
     :flex-wrap :wrap
-    :justify-content :space-around
+    :justify-content :left
     :padding-left (em 2.5)
     :padding-right (em 2.5)
-    :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-    }
+    :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
+   (for-media-max :tablet [:& {:justify-content :center}])
    [">*"
-    {:flex "1 0 calc(26% - 1em)"}]])
+    {
+     :margin-right (em 1)
+     ;;:flex "1 0 calc(26% - 1em)"
+     }
+    (for-media-max :tablet [:& {:margin-right 0}])]])

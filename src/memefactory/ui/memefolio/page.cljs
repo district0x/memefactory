@@ -279,6 +279,7 @@
                                          [:div.issued (str total-minted "/" total-supply" Issued")]
                                          [:div.status
                                           (case status
+                                            :reg-entry.status/challenge-period "Challenge Period"
                                             :reg-entry.status/whitelisted "In Registry"
                                             :reg-entry.status/blacklisted "Rejected"
                                             "Challenged")]]
