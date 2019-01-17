@@ -10,6 +10,7 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
+   [district.ui.router.events :as router-events]
    ))
 
 (def page-size 12)
@@ -42,7 +43,10 @@
                  :meme-token/meme)]
     [:div.user-tile
      [:div.number (str "#" num)]
-     [:span.user-address address]
+     [:span.user-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                {:address address}
+                                                {:tab :collected}])}
+      address]
      [:ul ;; TODO complete these after Matus comments
       [:li "Unique Memes: " [:span.unique (gstring/format "%d/%d (%d%%)"
                                                           total-collected-memes

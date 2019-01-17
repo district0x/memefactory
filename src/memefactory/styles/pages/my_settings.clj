@@ -18,6 +18,8 @@
                        :color :sky-blue})
     [:.icon {:background-size [(em 2) (em 2)]}]
     [:.form {:font-size (px 14)
-             :margin (em 2)}]
+             :margin (em 2)}
+     [:.alert {:color :green
+               :margin-bottom (em 1)}]]
     [:.footer
       (get-dank-button)]]])

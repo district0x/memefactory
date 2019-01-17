@@ -45,7 +45,8 @@
    [memefactory.ui.subs]
    [mount.core :as mount]
    [print.foo :include-macros true]
-   [re-frisk.core :refer [enable-re-frisk!]]))
+   [re-frisk.core :refer [enable-re-frisk!]]
+   [re-frame.core :as re-frame]))
 
 (def debug? ^boolean js/goog.DEBUG)
 
@@ -55,6 +56,12 @@
   (when debug?
     (enable-console-print!)
     (enable-re-frisk!)))
+
+(re-frame/reg-event-fx
+ ::init
+ [(re-frame/inject-cofx :store)]
+ (fn [{:keys [db store]}]
+   {:db (assoc db :settings (:settings store))}))
 
 (defn ^:export init []
   (s/check-asserts debug?)
@@ -75,4 +82,7 @@
                                                        :default-hide-duration 1000}})]
     (js/console.log "Entire config:" (clj->js full-config))
     (-> (mount/with-args full-config)
-        (mount/start))))
+        (mount/start)))
+
+  (re-frame/dispatch-sync [::init])
+  )

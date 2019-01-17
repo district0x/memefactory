@@ -52,6 +52,7 @@
            [:div
             [text-input {:form-data form-data
                          :id :comment
+                         :disabled @tx-success?
                          :errors errors
                          :placeholder "Challenge Reason..."
                          :class "challenge-reason"
@@ -65,7 +66,9 @@
                                                                                         :meme/title title
                                                                                         :comment (:comment @form-data)
                                                                                         :deposit dank-deposit}]))}
-             "Challenge"]
+             (if @tx-success?
+               "Challenged"
+               "Challenge")]
             [:span.dank (format/format-token (/ dank-deposit 1e18)  {:token "DANK"})]]
            [:button.open-challenge {:on-click #(swap! open? not)} "Challenge"])]))))
 

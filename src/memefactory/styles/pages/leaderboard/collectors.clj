@@ -43,8 +43,9 @@
       {:display :flex
        :margin-right (em 2)
        :margin-left (em 2)
-       :justify-content :center
+       :justify-content :left
        :flex-wrap :wrap}
+      (for-media-max :tablet [:& {:justify-content :center}])
       [:.user-tile
        {:min-width (em 18)}
        [:ul {:line-height (em 2)}]
@@ -62,6 +63,7 @@
         ]
        [:.user-address
         {:font-weight :bold
+         :cursor :pointer
          :font-size (px 13)
          :margin-top (em 2.5)
          :margin-bottom (em 2.5)

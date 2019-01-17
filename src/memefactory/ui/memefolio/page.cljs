@@ -46,13 +46,17 @@
                          :reg-entry/address]}
                  {:keys [max-auction-duration] :as params}]
   (let [tx-id (str (random-uuid))
-        form-data (r/atom {})
+        max-auction-duration (shared-utils/seconds->days (inc max-auction-duration))
+        form-data (r/atom {:meme-auction/duration 14
+                           :meme-auction/amount 1})
         errors (ratom/reaction {:local {:meme-auction/amount {:hint (str "Max " token-count)
                                                               :error (when-not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count))
                                                                        (str "Should be between 0 and " token-count))}
+                                        :meme-auction/end-price {:error (when (< (:meme-auction/start-price @form-data) (:meme-auction/end-price @form-data))
+                                                                          "End price should be lower than start price")}
                                         :meme-auction/duration {:hint (str "Max " max-auction-duration)
                                                                 :error (when-not (< 0 (js/parseInt (:meme-auction/duration @form-data)) (inc max-auction-duration))
-                                                                         (str "Should be less than " (inc max-auction-duration)))}}})
+                                                                         (str "Should be less than " (shared-utils/seconds->days (inc max-auction-duration))))}}})
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
     (fn []
       [:div.form-panel
@@ -117,7 +121,8 @@
                               :pending? @tx-pending?
                               :pending-text "Creating offering..."
                               :on-click (fn []
-                                          (dispatch [::meme-token/transfer-multi-and-start-auction (merge @form-data
+                                          (dispatch [::meme-token/transfer-multi-and-start-auction (merge (-> @form-data
+                                                                                                              (update :meme-auction/duration shared-utils/days->seconds))
                                                                                                           {:send-tx/id tx-id
                                                                                                            :meme/title title
                                                                                                            :reg-entry/address address
@@ -464,28 +469,29 @@
       [:div "Total " (or total [:div.spinner.spinner--total])])))
 
 (defmethod panel :sold [_ state]
-  [:div.tiles
-   (if (empty? state)
-     [:div.no-items-found "No items found."]
-     (doall
-      (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
-             (when address
-               (let [{:keys [:meme-token/number :meme-token/meme]} meme-token
-                     {:keys [:meme/title :meme/image-hash :meme/total-minted]} meme
-                     now (subscribe [:district.ui.now.subs/now])
-                     price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
-                 ^{:key address}
-                 [:div.compact-tile
-                  [:div.container
-                   [:div.meme-card-front
-                    [tiles/meme-image image-hash]]]
-                  [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                      {:address (:reg-entry/address meme)}
-                                                      nil])}
-                   [:div.title [:b (str "#" number " " title)]]
-                   [:div.number-minted (str number "/" total-minted)]
-                   [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
-           state)))])
+  [:div.sold-panel
+   [:div.tiles
+    (if (empty? state)
+      [:div.no-items-found "No items found."]
+      (doall
+       (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
+              (when address
+                (let [{:keys [:meme-token/number :meme-token/meme]} meme-token
+                      {:keys [:meme/title :meme/image-hash :meme/total-minted]} meme
+                      now (subscribe [:district.ui.now.subs/now])
+                      price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
+                  ^{:key address}
+                  [:div.compact-tile
+                   [:div.container
+                    [:div.meme-card-front
+                     [tiles/meme-image image-hash]]]
+                   [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                       {:address (:reg-entry/address meme)}
+                                                       nil])}
+                    [:div.title [:b (str "#" number " " title)]]
+                    [:div.number-minted (str number "/" total-minted)]
+                    [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
+            state)))]])
 
 (defn- build-order-by [prefix order-by]
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))
@@ -741,10 +747,10 @@
         [scrolling-container @tab {:active-account @user-account :form-data @form-data :prefix prefix}]]])))
 
 (defmethod page :route.memefolio/index []
-  (let [active-tab (r/atom default-tab)]
+  (let [{:keys [:query]} @(subscribe [::router-subs/active-page])
+        active-tab (r/atom (or (keyword (:tab query)) default-tab))]
     (fn []
-      (let [{:keys [:query]} @(subscribe [::router-subs/active-page])
-            prefix (cond (contains? #{:collected :created :curated} @active-tab)
+      (let [prefix (cond (contains? #{:collected :created :curated} @active-tab)
                          :memes
                          (contains? #{:selling :sold} @active-tab)
                          :meme-auctions)

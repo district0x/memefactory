@@ -178,13 +178,18 @@
          :margin-right (em 1)
          :margin-left (em 1)}
         [:b {:margin-right (em 0.5)}]]]]]]
+   [:.selling-panel {:border-radius "1em 1em 1em 1em"
+                     :overflow :hidden
+                     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}]
+   [:.sold-panel {:border-radius "1em 1em 1em 1em"
+                  :overflow :hidden
+                  :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}]
    [:.tiles
     {:margin-top 0
      :padding-top (em 2)
      :padding-bottom (em 2)
      :background-color (color :meme-panel-bg)
-     :border-radius "0 0 1em 1em"
-     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
+     :border-radius "0 0 1em 1em"}
 
     [:.loading
      {:color (color :busy-grey)
@@ -235,7 +240,8 @@
                 :font-size (em 0.8)
                 :color (color :meme-tile-footer)}]]]
     [:.collected-tile-back {:height "100%"
-                            :background-color (color :violet)}
+                            :background-color (color :violet)
+                            :backface-visibility :hidden}
      (button-tile-back)
      [:.sell-form {:background-color :white
                    :width "100%"

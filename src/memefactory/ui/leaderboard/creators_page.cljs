@@ -11,6 +11,7 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
+   [district.ui.router.events :as router-events]
    ))
 
 (def page-size 12)
@@ -43,7 +44,10 @@
                  :meme-token/meme)]
     [:div.user-tile
      [:div.number (str "#" num)]
-     [:span.user-address address]
+     [:span.user-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                {:address address}
+                                                {:tab :created}])}
+      address]
      [:ul
       [:li "Earned: " [:span.earned (format-dank creator-total-earned)]]
       [:li "Success Rate: " [:span.success-rate (gstring/format "%d/%d (%d%%)"

@@ -8,6 +8,7 @@
    [district.ui.component.form.input :refer [select-input with-label]]
    [district.ui.graphql.subs :as gql]
    [goog.string :as gstring]
+   [district.ui.now.subs]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.components.tiles :refer [meme-image]]
@@ -74,10 +75,11 @@
    [:li "Address: " [:span.address (-> user :user/address)]]])
 
 (defn current-period-ends [label end-date]
-  [:li (str label " period ends in: ") [:span (-> (time/time-remaining (t/now) (utils/gql-date->date end-date))
+  [:li (str label " period ends in: ") [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                       (utils/gql-date->date end-date))
                                             format/format-time-units)]])
 
-(defn challenge [{:keys [:entry :include-challenger-info? :action-child] }]
+(defn challenge [{:keys [:entry :include-challenger-info? :action-child]}]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
                 :meme/tags :challenge/challenger :challenge/comment :reg-entry/status :challenge/commit-period-end :challenge/reveal-period-end]} entry]

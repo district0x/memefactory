@@ -42,8 +42,9 @@
       {:display :flex
        :margin-right (em 2)
        :margin-left (em 2)
-       :justify-content :center
+       :justify-content :left
        :flex-wrap :wrap}
+      (for-media-max :tablet [:& {:justify-content :center}])
       [:.user-tile
        {:min-width (em 18)
         :width (em 20)
@@ -71,6 +72,7 @@
         ]
        [:.user-address
         {:font-weight :bold
+         :cursor :pointer
          :font-size (px 13)
          :overflow "hidden"
          :text-overflow "ellipsis"

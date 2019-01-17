@@ -36,7 +36,6 @@
       :transform "rotateY(0deg)"}]
     [:&.back
      {:transform-style :preserve-3d
-      :backface-visibility :hidden
       :transform "rotateY(180deg)"}]]]
   [:.container.flipped
    [:.meme-card

@@ -100,12 +100,17 @@
           [:div.price (format-price price)]]]))))
 
 (defn meme-back-tile [meme]
-  [:div.meme-card.back
-   [:div.overlay
-    [:div.info
-     [:ul.meme-data
-      [:li [:label "Creator:"]
-       [:span (-> meme :reg-entry/creator :user/address)]]]]]])
+
+  (let [user-address (-> meme :reg-entry/creator :user/address)]
+    [:div.meme-card.back
+    [:div.overlay
+     [:div.info
+      [:ul.meme-data
+       [:li [:label "Creator:"]
+        [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                      {:address user-address}
+                                      nil])}
+         user-address]]]]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash] :as meme}]
   [:div.compact-tile

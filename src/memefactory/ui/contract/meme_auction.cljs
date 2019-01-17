@@ -41,7 +41,7 @@
  ::cancel
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :meme/title] :as args}]]
-   (let [tx-name "Cancel"
+   (let [tx-name (gstring/format "Cancel selling of %s" title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme-auction address))
                                       :fn :cancel

@@ -353,11 +353,19 @@
       [:div.vote
        [:div description]
        [remaining-time-component (ui-utils/gql-date->date commit-period-end)]
-       [inputs/with-label "Amount "
+       [:div.form
         [:div.vote-dank
-         [inputs/amount-input {:form-data form-data
+         [:div.outer
+          [inputs/with-label "Amount "
+           [inputs/text-input {:form-data form-data
                                :id :vote/amount-for
+                               :dom-id :vote/amount-for
                                :errors errors}]
+           {:form-data form-data
+            :for :vote/amount-for
+            :id :vote/amount-for}]
+          [:span.unit "DANK"]]
+
          [inputs/pending-button
           {:pending? @tx-pending?
            :disabled (or (-> @errors :local :vote/amount-for empty? not)
@@ -367,14 +375,21 @@
                                                                            :reg-entry/address (:reg-entry/address meme)
                                                                            :vote/option :vote.option/vote-for
                                                                            :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
-          "Vote Dank"]]
-        {:form-data form-data
-         :id :vote/amount-for}]
-       [inputs/with-label "Amount "
+          (if @tx-success?
+            "Voted"
+            "Vote Dank")]]
+
         [:div.vote-stank
-         [inputs/amount-input {:form-data form-data
+         [:div.outer
+          [inputs/with-label "Amount "
+           [inputs/text-input {:form-data form-data
                                :id :vote/amount-against
+                               :dom-id :vote/amount-against
                                :errors errors}]
+           {:form-data form-data
+            :for :vote/amount-against
+            :id :vote/amount-against}]
+          [:span.unit "DANK"]]
          [inputs/pending-button
           {:pending? @tx-pending?
            :disabled (or (-> @errors :local :vote/amount-against empty? not)
@@ -384,9 +399,9 @@
                                                                            :reg-entry/address (:reg-entry/address meme)
                                                                            :vote/option :vote.option/vote-against
                                                                            :vote/amount (-> @form-data :vote/amount-against js/parseInt)}])}
-          "Vote Stank"]]
-        {:form-data form-data
-         :id :vote/amount-against}]
+          (if @tx-success?
+            "Voted"
+            "Vote Stank")]]]
        [:div "You can vote with up to " (format/format-token @balance-dank {:token "DANK"})]
        [:div "Token will be returned to you after revealing your vote."]])))
 
@@ -437,7 +452,8 @@
                        [challenger-component meme]
                        [votes-component meme]]))])
 
-(defmethod page :route.meme-detail/index []
+(defn details []
+
   (let [active-account @(subscribe [::accounts-subs/active-account])
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         response (if active-account
@@ -505,3 +521,7 @@
         [:h2.title "RELATED MEMES ON MARKETPLACE"]
         [:h3.title "lorem ipsum"]
         [related-memes-container address tags]]]]]))
+
+(defmethod page :route.meme-detail/index []
+  (r/create-class {:component-did-mount #(js/window.scrollTo 0 0)
+                   :reagent-render (fn [] [details])}))

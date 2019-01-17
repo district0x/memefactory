@@ -10,6 +10,7 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
+   [district.ui.router.events :as router-events]
    ))
 
 (def page-size 12)
@@ -77,7 +78,10 @@
                                      :users.order-by/curator-total-earned (:user/curator-rank curator)
                                      :users.order-by/challenger-total-earned (:user/challenger-rank curator)
                                      :users.order-by/voter-total-earned (:user/voter-rank curator))]
-                    [:h3.address (:user/address curator)]
+                    [:h3.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                        {:address (:user/address curator)}
+                                                        {:tab :curated}])}
+                     (:user/address curator)]
 
                     [:h4.challenges "CHALLENGES"]
                     [:p "Success rate: "

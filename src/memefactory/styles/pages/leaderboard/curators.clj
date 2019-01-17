@@ -43,10 +43,9 @@
       {:display :flex
        :margin-right (em 2)
        :margin-left (em 2)
-       :justify-content :center
-       :flex-wrap :wrap
-       ;; :align-content :flex-start
-       }
+       :justify-content :left
+       :flex-wrap :wrap}
+      (for-media-max :tablet [:& {:justify-content :center}])
       [:.curator
        {:min-width (em 18)
         :padding-top (em 3)
@@ -67,6 +66,7 @@
         ]
        [:h3.address
         {:font-weight :bold
+         :cursor :pointer
          :font-size (px 13)
          :overflow "hidden"
          :text-overflow "ellipsis"

@@ -1,5 +1,5 @@
 (ns memefactory.ui.subs
-  (:require 
+  (:require
    [re-frame.core :as re-frame]))
 
 (re-frame/reg-sub
@@ -12,5 +12,7 @@
  (fn [db _]
    (::active-page db)))
 
-
-
+(re-frame/reg-sub
+ ::settings
+ (fn [db [_ account]]
+   (get-in db [:settings account])))

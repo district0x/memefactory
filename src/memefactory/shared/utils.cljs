@@ -29,3 +29,9 @@
            [true _] nil
            [false true] (web3-utils/web3-time->local-date-time date)
            [false (:or nil false)] date)))
+
+(defn seconds->days [seconds]
+  (js/Math.floor (/ seconds 24 60 60)))
+
+(defn days->seconds [days]
+  (* days 24 60 60))

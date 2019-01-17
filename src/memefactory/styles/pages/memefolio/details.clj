@@ -317,8 +317,7 @@
      [:.challenge-component-inner
       {:position :relative
        :display :grid
-       :grid-template-columns "30% 30% 40%"
-       :grid-template-rows "40% 60%"}
+       :grid-template-columns "30% 30% 40%"}
       (for-media-max :computer
                      [:&
                       {:grid-template-columns "100%"
@@ -380,9 +379,7 @@
          :color (color :section-subcaption)
          :font-size (px 15)
          :text-align :center}]]]]]
-   [:.vote {:display :grid
-            :margin-left (em 6)
-            :margin-right (em 6)}
+   [:.vote
     (for-media-max :large
                    [:&
                     {:margin-right (em 2)
@@ -391,27 +388,35 @@
                    [:&
                     {:margin-right (em 0)
                      :margin-left (em 0)}])
-    [:.vote-input {:display :grid
-                   :grid-template-columns "80% 20%"
-                   :border-bottom "1px solid"
-                   :margin-bottom (em 1)}
-     [:.help-block {:display :none}]]
-    [:.vote-dank
-     [:button
-      {:margin-bottom (em 2)}
-      (button {:background-color :rare-meme-icon-bg
-               :color :violet
-               :height (em 3)
-               :width "100%"})
-      (vote-button-icon 2)]]
-    [:.vote-stank
-     [:button
-      (button {:background-color :random-meme-icon-bg
-               :color :violet
-               :height (em 3)
-               :width "100%"})
-      (vote-button-icon 6)
-      [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
+    [:.outer {:display :inline-flex
+              :width "100%"}
+     [:.unit {:margin-left (px -40)
+              :margin-top (px 8)
+              :font-size (px 11)
+              :z-index 1}]
+     [:.vote-input {:display :grid
+                    :grid-template-columns "80% 20%"
+                    :border-bottom "1px solid"
+                    :margin-bottom (em 1)}
+      [:.help-block {:display :none}]]]
+    [:.form {:display :inline-flex
+             :margin-top (em 1)}
+     [:.vote-dank {:margin-right (em 1)}
+      [:button
+       {:margin-bottom (em 2)}
+       (button {:background-color :rare-meme-icon-bg
+                :color :violet
+                :height (em 3)
+                :width "100%"})
+       (vote-button-icon 2)]]
+     [:.vote-stank
+      [:button
+       (button {:background-color :random-meme-icon-bg
+                :color :violet
+                :height (em 3)
+                :width "100%"})
+       (vote-button-icon 6)
+       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]]
    [:section.related
     {:margin-top (em 3)}
     [:.relateds-panel

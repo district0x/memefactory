@@ -137,7 +137,7 @@
                                                                                                              (web3/to-wei :ether))
                                                                                             :meme/title title}]))}
            [:i.vote-dank]
-           "Vote Dank"]]
+           (if voted? "Voted ""Vote Dank")]]
          [:div.vote-stank
           [:div.vote-input
            [with-label "Amount "
@@ -161,7 +161,7 @@
                                                                                                              :amount-vote-against
                                                                                                              js/parseInt
                                                                                                              (web3/to-wei :ether))}]))}
-           "Vote Stank"]]
+           (if voted? "Voted" "Vote Stank")]]
          [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
                                              (format/format-token (/ account-balance 1e18) {:token "DANK"}))]
          [:p.token-return  "Tokens will be returned to you after revealing your vote."]]))))

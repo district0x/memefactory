@@ -28,10 +28,19 @@
                                       :tx-id {:district0x-emails/set-email tx-id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::save-settings]
-                                                        [::notification-events/show (gstring/format "Settings saved")]]
+                                                        [::notification-events/show (gstring/format "Settings saved")]
+                                                        [::settings-saved args]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args
                                                      :public-key public-key
                                                      :encrypted-email encrypted-email}
                                                     ::save-settings]}]})))
+
+(re-frame/reg-event-fx
+ ::settings-saved
+ [(re-frame/inject-cofx :store)]
+ (fn [{:keys [store db]} [_ settings]]
+   (let [active-account (account-queries/active-account db)]
+     {:store (assoc-in store [:settings active-account] settings)
+      :db (assoc-in db [:settings active-account] settings)})))
