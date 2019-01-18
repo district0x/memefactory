@@ -62,8 +62,6 @@
                      ;; default value
                      :or {image-file "resources/dev/pepe.png"}
                      :as arguments}]
-
-  ;; (log/info "Uploading file" {:path image-file} ::upload-meme)
   (js/Promise.
    (fn [resolve reject]
      (if arguments
@@ -94,7 +92,6 @@
   (let [meta-info (format/clj->json {:title title
                                      :image-hash image-hash
                                      :search-tags search-tags})]
-    ;; (log/info "Uploading meta" {:meta-info meta-info} ::upload-meme-meta)
     (js/Promise.
      (fn [resolve reject]
        (if arguments
@@ -145,7 +142,6 @@
                                :or {comment "did not like it"}
                                :as arguments}]
   (let [challenge-meta (format/clj->json {:comment comment})]
-    ;; (log/info "Uploading meta" {:challenge-meta challenge-meta} ::upload-challenge-meta)
     (js/Promise.
      (fn [resolve reject]
        (if arguments
