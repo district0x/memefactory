@@ -135,11 +135,12 @@
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0"]
                                   [binaryage/devtools "0.9.10"]
-                                  [com.cemerick/piggieback "0.2.2"]
-                                  [figwheel-sidecar "0.5.16"]
+                                  [cider/piggieback "0.3.10"]
+                                  [figwheel-sidecar "0.5.18"]
                                   [org.clojure/tools.reader "1.3.0"]
                                   [re-frisk "0.5.3"]
                                   [lein-doo "0.1.8"]]
+                   :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
                    :source-paths ["dev" "src"]
                    :resource-paths ["resources"]}}
 
