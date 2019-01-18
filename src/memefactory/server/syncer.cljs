@@ -1,34 +1,37 @@
 (ns memefactory.server.syncer
-  (:require [bignumber.core :as bn]
-            [camel-snake-kebab.core :as cs :include-macros true]
-            [cljs-ipfs-api.files :as ifiles]
-            [cljs-solidity-sha3.core :refer [solidity-sha3]]
-            [cljs-web3.core :as web3]
-            [cljs-web3.eth :as web3-eth]
-            [district.server.config :refer [config]]
-            [district.server.smart-contracts :as smart-contracts :refer [replay-past-events replay-past-events-in-order]]
-            [memefactory.shared.smart-contracts :as sc]
-            [district.server.web3 :refer [web3]]
-            [district.web3-utils :as web3-utils]
-            [memefactory.server.contract.eternal-db :as eternal-db]
-            [memefactory.server.contract.meme :as meme]
-            [memefactory.server.contract.meme-auction :as meme-auction]
-            [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
-            [memefactory.server.contract.meme-token :as meme-token]
-            [memefactory.server.contract.param-change :as param-change]
-            [memefactory.server.contract.registry :as registry]
-            [memefactory.shared.contract.registry-entry :refer [vote-options]]
-            [memefactory.server.contract.registry-entry :as registry-entry]
-            [memefactory.server.db :as db]
-            [memefactory.server.generator]
-            [district.shared.error-handling :refer [try-catch]]
-            [mount.core :as mount :refer [defstate]]
-            [print.foo :refer [look] :include-macros true]
-            [taoensso.timbre :as log]
-            [memefactory.server.ipfs]
-            [clojure.string :as str]
-            [memefactory.server.utils :as server-utils]
-            [cljs.core.async :as async])
+  (:require
+   [bignumber.core :as bn]
+   [camel-snake-kebab.core :as cs :include-macros true]
+   [cljs-ipfs-api.files :as ipfs-files]
+   [cljs-solidity-sha3.core :refer [solidity-sha3]]
+   [cljs-web3.core :as web3]
+   [cljs-web3.eth :as web3-eth]
+   [cljs.core.async :as async]
+   [clojure.string :as str]
+   [district.server.config :refer [config]]
+   [district.server.smart-contracts :as smart-contracts :refer [replay-past-events replay-past-events-in-order]]
+   [district.server.web3 :refer [web3]]
+   [district.shared.error-handling :refer [try-catch]]
+   [district.web3-utils :as web3-utils]
+   [memefactory.server.contract.eternal-db :as eternal-db]
+   [memefactory.server.contract.meme :as meme]
+   [memefactory.server.contract.meme-auction :as meme-auction]
+   [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
+   [memefactory.server.contract.meme-token :as meme-token]
+   [memefactory.server.contract.param-change :as param-change]
+   [memefactory.server.contract.registry :as registry]
+   [memefactory.server.contract.registry-entry :as registry-entry]
+   [memefactory.server.db :as db]
+   [memefactory.server.generator]
+   [memefactory.server.ipfs :refer [ipfs]]
+   [memefactory.server.macros :refer [promise->]]
+   [memefactory.server.utils :as server-utils]
+   [memefactory.shared.contract.registry-entry :refer [vote-options]]
+   [memefactory.shared.smart-contracts :as sc]
+   [mount.core :as mount :refer [defstate]]
+   [print.foo :refer [look] :include-macros true]
+   [taoensso.timbre :as log]
+   )
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (declare start)
@@ -44,29 +47,35 @@
 
 (def info-text "smart-contract event")
 (def error-text "smart-contract event error")
+(def ipfs-error-text "Error when retrieving metadata from ipfs")
 
-(defn get-ipfs-meta [meta-hash & [default]]
+(defn get-ipfs-meta [meta-hash]
   (js/Promise.
    (fn [resolve reject]
-     (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-meme-data)
-     (ifiles/fget (str "/ipfs/" meta-hash)
-                  {:req-opts {:compress false}}
-                  (fn [err content]
-                    (try
-                      (if (and (not err)
-                               (not-empty content))
-                        ;; Get returns the entire content, this include CIDv0+more meta+data
-                        ;; TODO add better way of parsing get return
-                        (-> (re-find #".+(\{.+\})" content)
-                            second
-                            js/JSON.parse
-                            (js->clj :keywordize-keys true)
-                            resolve)
-                        (throw (js/Error. (str (or err "Error") " when downloading " "/ipfs/" meta-hash ))))
-                      (catch :default e
-                        (log/error error-text {:error (ex-message e)} ::get-meme-data)
-                        (when goog.DEBUG
-                          (resolve default)))))))))
+     (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-ipfs-meta)
+     (ipfs-files/fget (str "/ipfs/" meta-hash)
+                      {:req-opts {:compress false}}
+                      (fn [err content]
+                        (cond
+                          err
+                          (do
+                            (log/error ipfs-error-text {:error err
+                                                        :meta-hash meta-hash
+                                                        :connection @ipfs} ::get-ipfs-meta)
+                            (reject ipfs-error-text))
+
+                          (empty? content)
+                          (let [reason "empty content"]
+                            (log/error ipfs-error-text {:reason reason
+                                                        :meta-hash meta-hash
+                                                        :connection @ipfs} ::get-ipfs-meta)
+                            (reject (str ipfs-error-text ": " reason)))
+
+                          :else (-> (re-find #".+(\{.+\})" content)
+                                    second
+                                    js/JSON.parse
+                                    (js->clj :keywordize-keys true)
+                                    resolve)))))))
 
 (defn- last-block-number []
   (web3-eth/block-number @web3))
@@ -113,17 +122,15 @@
                              :meme/title ""
                              :meme/image-hash ""))
      (let [{:keys [:meme/meta-hash]} meme]
-       (.then (get-ipfs-meta meta-hash {:title "Dummy meme title"
-                                        :image-hash "REPLACE WITH IPFS IMAGE HASH HERE"
-                                        :search-tags nil})
-              (fn [meme-meta]
-                (let [{:keys [title image-hash search-tags]} meme-meta]
-                  (db/update-meme! {:reg-entry/address registry-entry
-                                    :meme/image-hash image-hash
-                                    :meme/title title})
-                  (when search-tags
-                    (doseq [t search-tags]
-                      (db/tag-meme! (:reg-entry/address meme) t))))))))))
+       (promise-> (get-ipfs-meta meta-hash)
+                  (fn [meme-meta]
+                    (let [{:keys [title image-hash search-tags]} meme-meta]
+                      (db/update-meme! {:reg-entry/address registry-entry
+                                        :meme/image-hash image-hash
+                                        :meme/title title})
+                      (when search-tags
+                        (doseq [t search-tags]
+                          (db/tag-meme! (:reg-entry/address meme) t))))))))))
 
 
 (defmethod process-event [:contract/param-change :ParamChangeConstructedEvent]
@@ -162,12 +169,12 @@
          registry-entry {:reg-entry/address registry-entry
                          :reg-entry/version version}]
      (db/update-user! {:user/address challenger})
-     (.then (get-ipfs-meta (:challenge/meta-hash challenge) {:comment "Dummy comment"})
-            (fn [challenge-meta]
-              (db/update-registry-entry! (merge registry-entry
-                                                challenge
-                                                {:challenge/created-on timestamp
-                                                 :challenge/comment (:comment challenge-meta)})))))))
+     (promise-> (get-ipfs-meta (:challenge/meta-hash challenge))
+                (fn [challenge-meta]
+                  (db/update-registry-entry! (merge registry-entry
+                                                    challenge
+                                                    {:challenge/created-on timestamp
+                                                     :challenge/comment (:comment challenge-meta)})))))))
 
 (defmethod process-event [:contract/registry-entry :VoteCommittedEvent]
   [_ {:keys [:registry-entry :timestamp :voter :amount] :as ev}]
