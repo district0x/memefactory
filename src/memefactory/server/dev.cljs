@@ -96,7 +96,7 @@
    by chaining them:
    `(promise-> (memefactory.server.generator/generate-memes scenario-1)
                #(memefactory.server.generator/generate-memes scenario-2))`"
-  [& scenario]
+  [& [scenario]]
   (let [scenario (or scenario
                      {:create-meme {:image-file "resources/dev/pepe.png"
                                     :title "Pepe"
@@ -130,7 +130,7 @@
 
                       :buy-auctions [{:price 0.5
                                       :from-account 3}]})]
-    (log/warn "Generating data, please be patient..." ::generate-date)
+    (log/warn "Generating data, please be patient..." {:scenario scenario} ::generate-date)
     (promise-> (memefactory.server.generator/generate-memes scenario)
                #(log/info "Finished generating data" ::generate-data))))
 

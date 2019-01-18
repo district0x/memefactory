@@ -62,10 +62,9 @@
                      ;; default value
                      :or {image-file "resources/dev/pepe.png"}
                      :as arguments}]
-  (when arguments
-    (log/info "Uploading file" {:path image-file} ::upload-meme)
-    (js/Promise.
-     (fn [resolve reject]
+  (js/Promise.
+   (fn [resolve reject]
+     (if arguments
        (.readFile fs
                   image-file
                   (fn [err data]
@@ -80,7 +79,8 @@
                              (reject err))
                            (do
                              (log/info (str "Uploaded " image-file " received") {:image-hash image-hash} ::upload-meme)
-                             (resolve (assoc-in previous [:meme :image-hash] image-hash)))))))))))))
+                             (resolve (assoc-in previous [:meme :image-hash] image-hash)))))))))
+       (resolve previous)))))
 
 (defn upload-meme-meta! [{{:keys [:image-hash]} :meme
                           :as previous}
@@ -89,13 +89,12 @@
                           :or {title "PepeSmile"
                                search-tags ["pepe" "frog" "dank"]}
                           :as arguments}]
-  (when arguments
-    (let [meta-info (format/clj->json {:title title
-                                       :image-hash image-hash
-                                       :search-tags search-tags})]
-      (log/info "Uploading meta" {:meta-info meta-info} ::upload-meme-meta)
-      (js/Promise.
-       (fn [resolve reject]
+  (let [meta-info (format/clj->json {:title title
+                                     :image-hash image-hash
+                                     :search-tags search-tags})]
+    (js/Promise.
+     (fn [resolve reject]
+       (if arguments
          (ipfs-files/add
           (js/Buffer.from meta-info)
           (fn [err {meta-hash :Hash}]
@@ -105,7 +104,8 @@
                 (reject err))
               (do
                 (log/info "Uploaded meta received " {:meta-hash meta-hash} ::upload-meme-meta)
-                (resolve (assoc-in previous [:meme :meta-hash] meta-hash)))))))))))
+                (resolve (assoc-in previous [:meme :meta-hash] meta-hash))))))
+         (resolve previous))))))
 
 (defn get-meme-registry-db-values [previous]
   (let [meme-registry-db-keys [:max-total-supply :max-auction-duration :deposit :commit-period-duration :reveal-period-duration]]
@@ -121,7 +121,7 @@
                      :or {total-supply (inc (rand-int max-total-supply))
                           from-account 0}
                      :as arguments}]
-  (when arguments
+  (if arguments
     (let [account (get-account from-account)]
       (promise-> (meme-factory/approve-and-create-meme {:meta-hash meta-hash
                                                         :total-supply total-supply
@@ -133,18 +133,18 @@
                     (assoc-in previous [:meme] (merge (:meme previous)
                                                       {:registry-entry registry-entry
                                                        :total-supply total-supply
-                                                       :creator creator})))))))
+                                                       :creator creator})))))
+    (js/Promise.resolve previous)))
 
-(defn upload-challenge-meta! [{:keys [:meme] :as previous}
+(defn upload-challenge-meta! [previous
                               {:keys [:comment]
                                ;; defualt value
                                :or {comment "did not like it"}
                                :as arguments}]
-  (if arguments
-    (let [challenge-meta (format/clj->json {:comment comment})]
-      (log/info "Uploading meta" {:challenge-meta challenge-meta} ::upload-challenge-meta)
-      (js/Promise.
-       (fn [resolve reject]
+  (let [challenge-meta (format/clj->json {:comment comment})]
+    (js/Promise.
+     (fn [resolve reject]
+       (if arguments
          (ipfs-files/add
           (js/Buffer.from challenge-meta)
           (fn [err {challenge-meta-hash :Hash}]
@@ -154,8 +154,8 @@
                 (reject err))
               (do
                 (log/info "Uploaded meta received " {:challenge-meta-hash challenge-meta-hash} ::upload-challenge-meta)
-                (resolve (assoc-in previous [:challenge :challenge-meta-hash] challenge-meta-hash)))))))))
-    previous))
+                (resolve (assoc-in previous [:challenge :challenge-meta-hash] challenge-meta-hash))))))
+         (resolve previous))))))
 
 (defn challenge-meme! [{{:keys [:challenge-meta-hash]} :challenge
                         {:keys [:registry-entry]} :meme
@@ -167,13 +167,15 @@
                              from-account 0}
                         :as arguments}]
   (if arguments
-    (promise-> (registry-entry/approve-and-create-challenge registry-entry
+    (promise-> (registry-entry/approve-and-create-challenge (if (:registry-entry arguments)
+                                                              (:registry-entry arguments)
+                                                              registry-entry)
                                                             {:meta-hash challenge-meta-hash
                                                              :amount deposit}
                                                             {:from (get-account from-account)})
                #(wait-for-tx-receipt %)
                #(assoc-in previous [:challenge :challenge-meme-tx] (:transaction-hash %)))
-    previous))
+    (js/Promise.resolve previous)))
 
 (defn commit-votes! [{{:keys [:registry-entry]} :meme
                       :as previous}
@@ -204,7 +206,7 @@
                                                    :option option
                                                    :commit-vote-tx (:transaction-hash %)}))))
                #(assoc previous :votes (js->clj %)))
-    previous))
+    (js/Promise.resolve previous)))
 
 (defn reveal-votes! [{:keys [:votes]
                       {:keys [:registry-entry]} :meme
@@ -255,7 +257,7 @@
                                                           :claim-vote-tx (:transaction-hash %)})))))
                ;; TODO : dont overwrite, assoc-in by index in :votes
                #(assoc previous :votes (js->clj %)))
-    previous))
+    (js/Promise.resolve previous)))
 
 (defn mint-meme-tokens! [{{:keys [:registry-entry :total-supply :creator]} :meme
                           :as previous}
@@ -271,7 +273,7 @@
                                                                                                         (:transaction-hash %))]
                   (assoc-in previous [:meme :minted-token-ids] (range (bn/number token-start-id)
                                                                       (inc (bn/number token-end-id))))))
-    previous))
+    (js/Promise.resolve previous)))
 
 (defn start-auctions! [{{:keys [:minted-token-ids :creator]} :meme
                         {:keys [:max-auction-duration]} :meme-registry-db-values
@@ -301,7 +303,7 @@
                        ;; TODO : bug in smart-contracts/contract-events-in-tx, returns only last event
                        (meme-auction-factory/meme-auction-started-events-in-tx (:transaction-hash %)))
                  #(assoc previous :auctions (vec %))))
-    previous))
+    (js/Promise.resolve previous)))
 
 (defn buy-auctions! [{:keys [:auctions]
                       :as previous}
@@ -332,7 +334,7 @@
                                                           :buy-auction-tx (:transaction-hash %)})))))
                ;; TODO : dont overwrite, assoc-in by index in :auctions
                #(assoc previous :auctions (js->clj %)))
-    previous))
+    (js/Promise.resolve previous)))
 
 (defn generate-memes [{:keys [:create-meme :challenge-meme :commit-votes
                               :reveal-votes :claim-vote-rewards :mint-meme-tokens
@@ -350,10 +352,14 @@
 
                #(commit-votes! % commit-votes)
 
-               #(increase-time! % (inc (get-in % [:meme-registry-db-values :commit-period-duration])))
+               #(if reveal-votes
+                  (increase-time! % (inc (get-in % [:meme-registry-db-values :commit-period-duration])))
+                  (js/Promise.resolve %))
                #(reveal-votes! % reveal-votes)
-               #(increase-time! % (inc (get-in % [:meme-registry-db-values :reveal-period-duration])))
 
+               #(if claim-vote-rewards
+                  (increase-time! % (inc (get-in % [:meme-registry-db-values :reveal-period-duration])))
+                  (js/Promise.resolve %))
                #(claim-vote-rewards! % claim-vote-rewards)
 
                ;; TODO : assoc :meme :status after revealing votes
