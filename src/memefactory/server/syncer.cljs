@@ -123,7 +123,6 @@
                              :meme/image-hash ""))
      (let [{:keys [:meme/meta-hash]} meme]
        (promise-> (get-ipfs-meta meta-hash)
-
                   (fn [meme-meta]
                     (let [{:keys [title image-hash search-tags]} meme-meta]
                       (db/update-meme! {:reg-entry/address registry-entry
