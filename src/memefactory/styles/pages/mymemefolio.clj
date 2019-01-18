@@ -254,7 +254,10 @@
        {:color (color :purple)
         :font-size (em 1)
         :text-align :center
-        :margin-bottom (em 1)}]
+        :margin-bottom (em 1)
+        :overflow :hidden
+        :text-overflow :ellipsis
+        :white-space :nowrap}]
 
       [:.form-panel
        [:.area

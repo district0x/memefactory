@@ -44,18 +44,21 @@
        front])))
 
 (defn auction-back-tile [{:keys [:on-buy-click] :as opts} meme-auction]
-  (let [tx-id (str (random-uuid))
+  (let [tx-id (str (:meme-auction/address meme-auction) "auction")
         active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
         now (subscribe [:district.ui.now.subs/now])
         end-time (t/plus (t/date-time (:meme-auction/started-on meme-auction))
                          (t/seconds (:meme-auction/duration meme-auction)))
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:meme-auction/buy tx-id}])]
+        buy-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])
+        cancel-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/cancel tx-id}])
+        buy-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme-auction/buy tx-id}])
+        cancel-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme-auction/cancel tx-id}])]
     (fn [{:keys [:on-buy-click] :as opts} meme-auction]
       (let [remaining (-> (time/time-remaining (t/date-time @now)
                                                end-time)
                           (dissoc :seconds))
-            price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
+            price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))
+            title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)]
         [:div.meme-card.back
          [meme-image (get-in meme-auction [:meme-auction/meme-token
                                            :meme-token/meme
@@ -70,17 +73,30 @@
             [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
            [:hr]
            [:p.description (:meme-auction/description meme-auction)]
-           (when-not (= (-> meme-auction :meme-auction/seller :user/address)
-                        @active-account)
-             [inputs/pending-button {:pending? @tx-pending?
-                                     :pending-text "Buying auction ..."
-                                     :class (when-not @tx-success? "buy")
-                                     :on-click (fn []
+           (if (= (-> meme-auction :meme-auction/seller :user/address)
+                  @active-account)
+
+             [inputs/pending-button {:pending? @cancel-tx-pending?
+                                     :pending-text "Cancelling..."
+                                     :disabled (or @cancel-tx-pending? @cancel-tx-success?)
+                                     :on-click (fn [e]
+                                                 (.stopPropagation e)
+                                                 (dispatch [::meme-auction/cancel {:send-tx/id tx-id
+                                                                                   :meme-auction/address (:meme-auction/address meme-auction)
+                                                                                   :meme/title title}]))}
+              (if @cancel-tx-success? "Canceled" "Cancel Sell")]
+
+             [inputs/pending-button {:pending? @buy-tx-pending?
+                                     :pending-text "Buying..."
+                                     :disabled (or @buy-tx-pending? @buy-tx-success?)
+                                     :class (when-not @buy-tx-success? "buy")
+                                     :on-click (fn [e]
+                                                 (.stopPropagation e)
                                                  (dispatch [::meme-auction/buy {:send-tx/id tx-id
                                                                                 :meme-auction/address (:meme-auction/address meme-auction)
-                                                                                :meme/title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)
+                                                                                :meme/title title
                                                                                 :value price}]))}
-              (if @tx-success? "Bought" "Buy")])]]]))))
+              (if @buy-tx-success? "Bought" "Buy")])]]]))))
 
 (defn auction-tile [{:keys [:on-buy-click] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]
   (let [now (subscribe [:district.ui.now.subs/now])]
