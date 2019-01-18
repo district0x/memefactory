@@ -77,14 +77,14 @@
 (defn generate-data
   "Generate dev data from supplied scenarios.
    Basic usage:
-   `generate-data {:create-meme true
+   `(generate-data {:create-meme true
                    :challenge-meme true
                    :commit-votes true
                    :reveal-votes true
                    :claim-vote-rewards true
                    :mint-meme-tokens true
                    :start-auctions true
-                   :buy-auctions true}`
+                   :buy-auctions true})`
    You can also override default options, e.g.:
    `:reveal-votes {:option :vote.option/vote-for
                                         :amount 2
@@ -93,44 +93,42 @@
    or skip a step by passing `false`, e.g:
    `:challenge-meme false`
    "
-  [& scenarios]
-  (let [scenarios (or scenarios
-                      [{:create-meme {:image-file "resources/dev/pepe.png"
-                                      :title "Pepe"
-                                      :total-supply 2
+  [& scenario]
+  (let [scenario (or scenario
+                     {:create-meme {:image-file "resources/dev/pepe.png"
+                                    :title "Pepe"
+                                    :total-supply 2
+                                    :from-account 0}
+
+                      :challenge-meme {:comment "its too baroque"
+                                       :from-account 9}
+
+                      :commit-votes [{:option :vote.option/vote-for
+                                      :amount 2
+                                      :salt "abc"
                                       :from-account 0}
+                                     {:option :vote.option/vote-against
+                                      :amount 1
+                                      :salt "abc"
+                                      :from-account 9}]
 
-                        :challenge-meme {:comment "its too baroque"
-                                         :from-account 9}
+                      :reveal-votes true
 
-                        :commit-votes [{:option :vote.option/vote-for
-                                        :amount 2
-                                        :salt "abc"
-                                        :from-account 0}
-                                       {:option :vote.option/vote-against
-                                        :amount 1
-                                        :salt "abc"
-                                        :from-account 9}]
+                      :claim-vote-rewards [{:from-account 0}]
 
-                        :reveal-votes true
-
-                        :claim-vote-rewards [{:from-account 0}]
-
-                        :mint-meme-tokens {:amount 2
-                                           :from-account 0}
-
-                        :start-auctions {:start-price 0.5
-                                         :end-price 0.1
-                                         :duration 12000000
-                                         :description "buy it"
+                      :mint-meme-tokens {:amount 2
                                          :from-account 0}
 
-                        :buy-auctions [{:price 0.5
-                                        :from-account 3}]}])]
+                      :start-auctions {:start-price 0.5
+                                       :end-price 0.1
+                                       :duration 12000000
+                                       :description "buy it"
+                                       :from-account 0}
+
+                      :buy-auctions [{:price 0.5
+                                      :from-account 3}]})]
     (log/warn "Generating data, please be patient..." ::generate-date)
-    (promise-> (js/Promise.all
-                (for [scenario scenarios]
-                  (memefactory.server.generator/generate-memes scenario)))
+    (promise-> (memefactory.server.generator/generate-memes scenario)
                #(log/info "Finished generating data" ::generate-data))))
 
 (defn resync []

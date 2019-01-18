@@ -228,7 +228,7 @@
                              #(wait-for-tx-receipt %)
                              #(js/Promise.resolve (merge vote
                                                          {:reveal-vote-tx (:transaction-hash %)})))))
-               ;; TODO : dont overwrite, assoc in the revealed vote
+               ;; TODO : dont overwrite, assoc-in by index in :votes
                #(assoc previous :votes (js->clj %)))
     previous))
 
@@ -253,7 +253,7 @@
                              #(js/Promise.resolve (merge (nth votes index)
                                                          {:index index
                                                           :claim-vote-tx (:transaction-hash %)})))))
-               ;; TODO : dont overwrite, assoc in the claimed vote
+               ;; TODO : dont overwrite, assoc-in by index in :votes
                #(assoc previous :votes (js->clj %)))
     previous))
 
@@ -330,7 +330,7 @@
                              #(js/Promise.resolve (merge (nth auctions index)
                                                          {:index index
                                                           :buy-auction-tx (:transaction-hash %)})))))
-               ;; TODO : dont overwrite assoc by index in auctions
+               ;; TODO : dont overwrite, assoc-in by index in :auctions
                #(assoc previous :auctions (js->clj %)))
     previous))
 
