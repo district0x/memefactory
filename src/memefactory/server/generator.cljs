@@ -135,7 +135,8 @@
                                                        :total-supply total-supply
                                                        :creator creator})))))))
 
-(defn upload-challenge-meta! [{:keys [:meme] :as previous}
+(defn upload-challenge-meta! [previous
+                              #_{:keys [:meme] :as previous}
                               {:keys [:comment]
                                ;; defualt value
                                :or {comment "did not like it"}
@@ -352,8 +353,8 @@
 
                #(increase-time! % (inc (get-in % [:meme-registry-db-values :commit-period-duration])))
                #(reveal-votes! % reveal-votes)
-               #(increase-time! % (inc (get-in % [:meme-registry-db-values :reveal-period-duration])))
 
+               #(increase-time! % (inc (get-in % [:meme-registry-db-values :reveal-period-duration])))
                #(claim-vote-rewards! % claim-vote-rewards)
 
                ;; TODO : assoc :meme :status after revealing votes

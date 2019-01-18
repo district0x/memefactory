@@ -11,12 +11,13 @@
   (let [conn (ipfs-core/init-ipfs opts)
         err-message "Can't connect to IPFS node"]
     (ipfs-swarm/addrs (fn [err res]
-                        (if-not err
-                          conn
-                          (do (log/error "Can't connect to IPFS node" {:error err
-                                                                       :connection conn}
-                                         ::start)
-                              (throw (js/Error. err-message))))))))
+                        (when err
+                          (do
+                            (log/error err-message {:error err
+                                                    :connection conn}
+                                       ::start)
+                            (throw (js/Error. err-message))))))
+    conn))
 
 (defstate ipfs
   :start (start (merge (:ipfs @config)
