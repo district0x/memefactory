@@ -92,7 +92,10 @@
                                         :from-account 0}`
    or skip a step by passing `false`, e.g:
    `:challenge-meme false`
-   "
+   `generate-data` returns a JS/Promise. You can run multiple scenarios
+   by chaining them:
+   `(promise-> (memefactory.server.generator/generate-memes scenario-1)
+               #(memefactory.server.generator/generate-memes scenario-2))`"
   [& scenario]
   (let [scenario (or scenario
                      {:create-meme {:image-file "resources/dev/pepe.png"
