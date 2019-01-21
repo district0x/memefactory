@@ -49,16 +49,20 @@
         max-auction-duration (shared-utils/seconds->days (inc max-auction-duration))
         form-data (r/atom {:meme-auction/duration 14
                            :meme-auction/amount 1})
-        errors (ratom/reaction {:local {:meme-auction/amount {:hint (str "Max " token-count)
-                                                              :error (when-not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count))
-                                                                       (str "Should be between 0 and " token-count))}
-                                        :meme-auction/end-price {:error (when (< (:meme-auction/start-price @form-data) (:meme-auction/end-price @form-data))
-                                                                          "End price should be lower than start price")}
-                                        :meme-auction/duration {:hint (str "Max " max-auction-duration)
-                                                                :error (when-not (< 0 (js/parseInt (:meme-auction/duration @form-data)) (inc max-auction-duration))
-                                                                         (str "Should be less than " (shared-utils/seconds->days (inc max-auction-duration))))}}})
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])]
+        errors (ratom/reaction {:local {:meme-auction/amount (cond-> {:hint (str "Max " token-count)}
+                                                               (not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count)))
+                                                               (assoc :error (str "Should be between 0 and " token-count)))
+                                        :meme-auction/end-price (when (or (not (:meme-auction/start-price @form-data))
+                                                                          (not (:meme-auction/end-price @form-data))
+                                                                          (< (:meme-auction/start-price @form-data) (:meme-auction/end-price @form-data)))
+                                                                  {:error "End price should be lower than start price"})
+                                        :meme-auction/duration (cond-> {:hint (str "Max " max-auction-duration)}
+                                                                 (not (< 0 (js/parseInt (:meme-auction/duration @form-data)) (inc max-auction-duration)))
+                                                                 (assoc :error (str "Should be less than " (shared-utils/seconds->days (inc max-auction-duration)))))}})
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
+        critical-errors (ratom/reaction (inputs/index-by-type @errors :error))]
     (fn []
+
       [:div.form-panel
        [inputs/with-label
         "Amount"
@@ -98,10 +102,10 @@
         [inputs/with-label
          "Duration"
          [inputs/text-input {:form-data form-data
-                            :errors errors
-                            :id :meme-auction/duration
-                            :dom-id (str address :meme-auction/duration)
-                            :on-click #(.stopPropagation %)}]
+                             :errors errors
+                             :id :meme-auction/duration
+                             :dom-id (str address :meme-auction/duration)
+                             :on-click #(.stopPropagation %)}]
          {:form-data form-data
           :id :meme-auction/duration
           :for (str address :meme-auction/duration)}]
@@ -116,7 +120,7 @@
        [:div.buttons
         [:button.cancel "Cancel"]
         [tx-button/tx-button {:primary true
-                              :disabled false
+                              :disabled (not-empty @critical-errors)
                               :class "create-offering"
                               :pending? @tx-pending?
                               :pending-text "Creating offering..."

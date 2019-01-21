@@ -172,7 +172,8 @@
                                                          [:meme-auction/buyer
                                                           [:user/address]]
                                                          [:meme-auction/meme-token
-                                                          [:meme-token/token-id]]]]]]]}])]
+                                                          [:meme-token/token-id]]]]]]]}])
+            all-auctions (-> @query :meme :meme/meme-auctions)]
         [:div.history-component
          [:h1.title "Marketplace history"]
          [:table
@@ -187,20 +188,22 @@
                          :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
                    [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
                          :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
-          (if-not (:graphql/loading? @query)
-            [:tbody
-             (doall
-              (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
-                            :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} (-> @query :meme :meme/meme-auctions)]
-                (when address
-                  ^{:key address}
-                  [:tr
-                   [:td.meme-token (:meme-token/token-id meme-token)]
-                   [:td.seller-address (:user/address seller)]
-                   [:td.buyer-address (:user/address buyer)]
-                   [:td.end-price (format-price end-price)]
-                   [:td.time  (when-not (empty? (str bought-on))
-                                (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now)))]])))])]]))))
+          (when-not (:graphql/loading? @query)
+            (if (empty? all-auctions)
+              [:tbody [:tr [:td {:colspan 5} "This meme hasn't been traded yet."]]]
+              [:tbody
+               (doall
+                (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
+                              :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} all-auctions]
+                  (when address
+                    ^{:key address}
+                    [:tr
+                     [:td.meme-token (:meme-token/token-id meme-token)]
+                     [:td.seller-address (:user/address seller)]
+                     [:td.buyer-address (:user/address buyer)]
+                     [:td.end-price (format-price end-price)]
+                     [:td.time  (when-not (empty? (str bought-on))
+                                  (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now)))]])))]))]]))))
 
 (defn challenge-header [created-on]
   [:div.header
@@ -346,7 +349,7 @@
                                            (or (not (spec/check ::spec/pos-int amount-against))
                                                (< @balance-dank amount-against))
                                            (assoc :vote/amount-against (str "Amount should be between 0 and " @balance-dank))))})
-        tx-id (:reg-entry/address meme)
+        tx-id (str (:reg-entry/address meme) "vote")
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])]
     (fn []
@@ -402,7 +405,7 @@
           (if @tx-success?
             "Voted"
             "Vote Stank")]]]
-       [:div "You can vote with up to " (format/format-token @balance-dank {:token "DANK"})]
+       [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
        [:div "Token will be returned to you after revealing your vote."]])))
 
 (defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]

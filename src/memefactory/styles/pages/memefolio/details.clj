@@ -176,7 +176,9 @@
     [:.history-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-      :border-radius "1em 1em 1em 1em"}
+      :border-radius "1em 1em 1em 1em"
+      :padding-top (em 1)
+      :padding-bottom (em 1)}
      #_(for-media-max :computer
                       [:&
                        {:max-height (em 30)
@@ -191,7 +193,6 @@
        :position :relative
        :color (color :purple)
        ;; :font-size (em 1.2)
-       :padding-top (em 1)
        :margin-bottom (em 0.1)
        :text-align :center}]
      [:table
@@ -303,7 +304,6 @@
      {:white-space :nowrap
       :position :relative
       :color (color :purple)
-      :padding-top (em 1)
       :margin-bottom (em 0.1)
       :text-align :center}]
     [:h4.title {:padding (em 1)}]
@@ -312,6 +312,8 @@
       :margin-top (em 3)}]
     [:.challenge-component
      {:background (color :meme-panel-bg)
+      :padding-top (em 1)
+      :padding-bottom (em 1)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"}
      [:.challenge-component-inner
@@ -327,15 +329,18 @@
              :color (color :menu-text)
              :margin-bottom (em 1)}]
       [:.status
-       {:border-right "1px solid #AAA"}
-       (for-media-max :computer
-                      [:&
-                       {:border-right "0px"}])]
-      [:.challenger
-       {:border-right "1px solid #AAA"}
+       {:border-right "1px solid rgba(174, 175, 177, 0.5)"}
        (for-media-max :computer
                       [:&
                        {:border-right "0px"}])
+       [:b {:display :block
+            :margin-bottom (em 0.5)}]]
+      [:.challenger
+       {:border-right "1px solid rgba(174, 175, 177, 0.5)"}
+       (for-media-max :computer
+                      [:&
+                       {:border-right "0px"}])
+       [:b {:display :block}]
        [">*"
         {:margin-bottom  (em 0.5)}]]
       [:.votes
@@ -388,6 +393,8 @@
                    [:&
                     {:margin-right (em 0)
                      :margin-left (em 0)}])
+    [:b {:margin-top (em 0.5)
+         :display :block}]
     [:.outer {:display :inline-flex
               :width "100%"}
      [:.unit {:margin-left (px -40)
@@ -401,7 +408,8 @@
       [:.help-block {:display :none}]]]
     [:.form {:display :inline-flex
              :margin-top (em 1)}
-     [:.vote-dank {:margin-right (em 1)}
+     [:.vote-dank {:margin-right (em 3)
+                   :width "40%"}
       [:button
        {:margin-bottom (em 2)}
        (button {:background-color :rare-meme-icon-bg
@@ -410,6 +418,7 @@
                 :width "100%"})
        (vote-button-icon 2)]]
      [:.vote-stank
+      {:width "40%"}
       [:button
        (button {:background-color :random-meme-icon-bg
                 :color :violet
@@ -422,6 +431,7 @@
     [:.relateds-panel
      (panel-with-icon {:url "/assets/icons/network.svg"
                        :color (color :redish)})
+     [:h2.title {:padding-top (em 1)}]
      [:.selling-tile-back {:height "100%"
                            :background-color (color :violet)}
       (button-tile-back)]

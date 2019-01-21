@@ -296,7 +296,7 @@
         [:button.create-offering (button {:color :white
                                           :height (em 3.5)
                                           :background-color (color :purple)
-                                          :width "50%"})
+                                          :width "55%"})
          {:font-size (px 11)
           :padding (em 0.4)}]]]]]
     [:.selling-tile-back {:height "100%"
