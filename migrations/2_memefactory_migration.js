@@ -458,16 +458,16 @@ module.exports = function(deployer, network, accounts) {
       return Promise.all ([DankToken.deployed (),
                            MemeFactory.deployed ()])
     })
-    .then ((
-      [dankToken,
-       memeFactory]) => {
-         var payload = memeFactory.contract.createMeme.getData(last(accounts), "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F", 1);
-         return dankToken.approveAndCall (memeFactory.address,
-                                          1e18,
-                                          payload,
-                                          {from: last(accounts), gas: 4000000});
-       })
-    .then (tx => console.log ("@@@ DankToken/approveAndCall tx:", tx.receipt.transactionHash, "successful"))
+    // .then ((
+    //   [dankToken,
+    //    memeFactory]) => {
+    //      var payload = memeFactory.contract.createMeme.getData(last(accounts), "QmWip6bd1hZXqXMiwzgNkS8dvYMh7ZD9VcjcLSooyEqx1F", 1);
+    //      return dankToken.approveAndCall (memeFactory.address,
+    //                                       1e18,
+    //                                       payload,
+    //                                       {from: last(accounts), gas: 4000000});
+    //    })
+    // .then (tx => console.log ("@@@ DankToken/approveAndCall tx:", tx.receipt.transactionHash, "successful"))
     .then (() => {
         return Promise.all ([DankToken.deployed(), DankFaucet.deployed()]);
     })
