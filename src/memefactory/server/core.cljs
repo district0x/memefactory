@@ -26,8 +26,7 @@
 
 (defn -main [& _]
   (-> (mount/with-args
-        {:config {:default {:logging {:level :warn
-                                      :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"}}
+        {:config {:default {:logging {:console? false}
                             :time-source :js-date
                             :graphql {:port 6300
                                       :middlewares [logging-middlewares]

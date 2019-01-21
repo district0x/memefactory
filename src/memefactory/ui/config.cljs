@@ -1,19 +1,14 @@
 (ns memefactory.ui.config
-  (:require [memefactory.shared.graphql-schema :refer [graphql-schema]]
-            [mount.core :as mount :refer [defstate]]
-            [graphql-query.core :refer [graphql-query]]
-            [re-frame.core :as re-frame]
-            [district.ui.logging.events :as logging]
-            [ajax.core :as ajax]
-            [district.graphql-utils :as graphql-utils])
-
+  (:require
+   [ajax.core :as ajax]
+   [district.graphql-utils :as graphql-utils]
+   [district.ui.logging.events :as logging]
+   [graphql-query.core :refer [graphql-query]]
+   [memefactory.shared.graphql-schema :refer [graphql-schema]]
+   [mount.core :as mount :refer [defstate]]
+   [re-frame.core :as re-frame])
   (:require-macros [memefactory.ui.utils :refer [get-environment]]))
 
-(declare start)
-(declare stop)
-(defstate config
-  :start (start)
-  :stop (stop))
 (def development-config
   {:logging {:level :debug
              :console? true}
@@ -25,7 +20,9 @@
 
 (def qa-config
   {:logging {:level :warn
-             :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"}}
+             :console? true
+             :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"
+                      :environment "QA"}}
    :time-source "js-date"
    :web3 {:url "http://qa.district0x.io:8545"}
    :graphql {:schema graphql-schema
@@ -34,7 +31,9 @@
 
 (def production-config
   {:logging {:level :warn
-             :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"}}
+             :console? false
+             :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"
+                      :environment "PRODUCTION"}}
    :time-source "js-date"
    :web3 {:url "http://memefactory.io:8545"}
    :graphql {:schema graphql-schema
@@ -86,6 +85,8 @@
 (re-frame/reg-sub
  ::memefactory-db-params
  (fn [db _]
-   (::memefactory-db-params  db)))
+   (::memefactory-db-params db)))
 
-(defn stop [])
+(defstate config
+  :start (start)
+  :stop ::stopped)
