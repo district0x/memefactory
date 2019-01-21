@@ -164,6 +164,8 @@
         [app-bar {:search-atom search-atom}]
         [app-bar-mobile drawer-open?]
         [:div.main-content
-         (into [:div.main-content-inner]
-              children)]]
+         [:div.main-content-inner
+          (map-indexed (fn [index item]
+                         (with-meta item {:key (keyword "c" index)}))
+                       children)]]]
        [notification/notification]])))
