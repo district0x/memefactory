@@ -11,7 +11,7 @@
    [district.server.config :refer [config]]
    [district.server.smart-contracts :as smart-contracts :refer [replay-past-events replay-past-events-in-order]]
    [district.server.web3 :refer [web3]]
-   [district.shared.error-handling :refer [try-catch]]
+   [district.shared.error-handling :refer [#_error? try-catch]]
    [district.web3-utils :as web3-utils]
    [memefactory.server.contract.eternal-db :as eternal-db]
    [memefactory.server.contract.meme :as meme]
@@ -30,24 +30,12 @@
    [memefactory.shared.smart-contracts :as sc]
    [mount.core :as mount :refer [defstate]]
    [print.foo :refer [look] :include-macros true]
-   [taoensso.timbre :as log]
-   )
+   [taoensso.timbre :as log])
   (:require-macros [cljs.core.async.macros :refer [go]]))
-
-(declare start)
-(declare stop)
-(defstate ^{:on-reload :noop} syncer
-  :start (start (merge (:syncer @config)
-                       (:syncer (mount/args))))
-  :stop (stop syncer))
 
 ;; this HACK is because mount doesn't support async, so mount start will return
 ;; a chan. We then store created filters in an atom so we can stop them at component stop.
 (def all-filters (atom []))
-
-(def info-text "smart-contract event")
-(def error-text "smart-contract event error")
-(def ipfs-error-text "Error when retrieving metadata from ipfs")
 
 (defn get-ipfs-meta [meta-hash]
   (js/Promise.
@@ -58,18 +46,21 @@
                       (fn [err content]
                         (cond
                           err
-                          (do
-                            (log/error ipfs-error-text {:error err
-                                                        :meta-hash meta-hash
-                                                        :connection @ipfs} ::get-ipfs-meta)
-                            (reject ipfs-error-text))
+                          (let [err-txt "Error when retrieving metadata from ipfs"]
+                            (log/error err-txt (merge {:meta-hash meta-hash
+                                                       :connection @ipfs
+                                                       :error err}
+                                                      #_(if (error? err)
+                                                        {:error err}
+                                                        {:error-message err}))
+                                       ::get-ipfs-meta)
+                            (reject err #_"Error when retrieving metadata from ipfs"))
 
                           (empty? content)
-                          (let [reason "empty content"]
-                            (log/error ipfs-error-text {:reason reason
-                                                        :meta-hash meta-hash
-                                                        :connection @ipfs} ::get-ipfs-meta)
-                            (reject (str ipfs-error-text ": " reason)))
+                          (let [err-txt "Empty ipfs content"]
+                            (log/error err-txt {:meta-hash meta-hash
+                                                :connection @ipfs} ::get-ipfs-meta)
+                            (reject err-txt))
 
                           :else (-> (re-find #".+(\{.+\})" content)
                                     second
@@ -122,6 +113,8 @@
                              :meme/title ""
                              :meme/image-hash ""))
      (let [{:keys [:meme/meta-hash]} meme]
+
+       ;; TODO add meta to hash for logging
        (promise-> (get-ipfs-meta meta-hash)
                   (fn [meme-meta]
                     (let [{:keys [title image-hash search-tags]} meme-meta]
@@ -344,8 +337,7 @@
                                        (server-utils/now-in-seconds))))
                 (update :version bn/number)
                 (assoc :block-number block-number))]
-
-     (log/info (str "Dispatching" " " info-text " " contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
+     (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
      (process-event contract-type ev))))
 
 (defn apply-blacklist-patches! []
@@ -405,3 +397,8 @@
 (defn stop [syncer]
   (doseq [filter (remove nil? @all-filters)]
     (web3-eth/stop-watching! filter (fn [err]))))
+
+(defstate ^{:on-reload :noop} syncer
+  :start (start (merge (:syncer @config)
+                       (:syncer (mount/args))))
+  :stop (stop syncer))
