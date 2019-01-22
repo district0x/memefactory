@@ -48,10 +48,7 @@
                 :resize :none
                 :width (em 16)
                 :padding (em 1)
-                :color :grey
-                }
-
-     ]
+                :color :grey}]
 
     [:button.open-challenge {:margin-top (em 2)}]
     [:button

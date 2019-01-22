@@ -298,16 +298,17 @@
        [inputs/textarea-input {:form-data form-data
                                :id :challenge/comment
                                :errors errors}]
-       [:div (format/format-token deposit {:token "DANK"})]
-       [tx-button/tx-button {:primary true
-                             :disabled (or @tx-success? (not (empty? (:local @errors))))
-                             :pending? @tx-pending?
-                             :pending-text "Challenging..."
-                             :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
-                                                                                       :reg-entry/address (:reg-entry/address meme)
-                                                                                       :comment (:challenge/comment @form-data)
-                                                                                       :deposit dank-deposit}])}
-        "Challenge"]])))
+       [:div.controls
+        [:div.dank (format/format-token (quot deposit 1e18) {:token "DANK"})]
+        [tx-button/tx-button {:primary true
+                              :disabled (or @tx-success? (not (empty? (:local @errors))))
+                              :pending? @tx-pending?
+                              :pending-text "Challenging..."
+                              :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
+                                                                                        :reg-entry/address (:reg-entry/address meme)
+                                                                                        :comment (:challenge/comment @form-data)
+                                                                                        :deposit dank-deposit}])}
+         "Challenge"]]])))
 
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])
@@ -440,10 +441,10 @@
   (when-let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]
     [:div.challenge-component
      [:h1.title "Challenge"]
-     (cond-> [:div.challenge-component-inner
-              [challenge-header created-on]]
-       created-on (into [[status-component status]
-                         [challenge-meme-component meme (:deposit params)]]))]))
+     [:div.challenge-component-inner-cp
+      [challenge-header created-on]
+      [status-component status]
+      [challenge-meme-component meme (:deposit params)]]]))
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]

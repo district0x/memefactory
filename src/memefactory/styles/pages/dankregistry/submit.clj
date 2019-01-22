@@ -107,5 +107,8 @@
                  :color :white
                  :height (em 3.3)
                  :width (em 10)})]
+
        [:.dank {:flex 1
-                :margin-left (em 1)}]]]]]])
+                :margin-left (em 1)}]]
+      [:.not-enough-dank {:margin-top (em 1)
+                           :color :red}]]]]])

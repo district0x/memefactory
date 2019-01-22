@@ -15,7 +15,8 @@
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
    [taoensso.timbre :as log]
-   [memefactory.ui.utils :as mf-utils]))
+   [memefactory.ui.utils :as mf-utils]
+   [district.ui.web3-account-balances.subs :as balance-subs]))
 
 (defn header []
   [:div.submit-info
@@ -46,7 +47,8 @@
                                     (cond-> {}
                                       (:error file-info)
                                       (assoc-in [:file-info] (:error file-info))))})
-        critical-errors (reaction (index-by-type @errors :error))]
+        critical-errors (reaction (index-by-type @errors :error))
+        account-balance (subscribe [::balance-subs/active-account-balance :DANK])]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory"
@@ -100,9 +102,12 @@
            [:button {:on-click (fn []
                                  (dispatch [::dr-events/upload-meme @form-data deposit])
                                  (reset! form-data {}))
-                     :disabled (not (empty? @critical-errors))}
+                     :disabled (or (not (empty? @critical-errors))
+                                   (< @account-balance deposit))}
             "Submit"]
-           [:span.dank (format/format-token (web3/from-wei deposit :ether) {:token "DANK"})]]]]]])))
+           [:span.dank (format/format-token (web3/from-wei deposit :ether) {:token "DANK"})]]
+          (when (< @account-balance deposit)
+            [:div.not-enough-dank "You don't have enough DANK token to submit a meme"])]]]])))
 
 (defmethod page :route.dank-registry/submit []
   (let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]

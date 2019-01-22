@@ -54,8 +54,8 @@
        :animation-timing-function :linear}]
      [:.footer
       [:.token-id {:display :inline-block}]
-      [:.number-minted {:display :inline-block
-                        :margin-left (em 0.4)}]]
+      [:.number-minted {:margin-left (em 0.4)
+                        :font-size (em 0.8)}]]
      #_[:.container
         [:.meme-card.front
          {:backface-visibility :visible}]]

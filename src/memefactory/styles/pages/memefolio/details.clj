@@ -296,6 +296,7 @@
        :padding-bottom (em 1)}]]]
    [:section.challenge
     {:margin-top (em 3)}
+
     [:h1.title
      (font :bungee)
      (for-media-max :computer
@@ -306,7 +307,6 @@
       :color (color :purple)
       :margin-bottom (em 0.1)
       :text-align :center}]
-    [:h4.title {:padding (em 1)}]
     [">.spinner--challenge"
      {:margin :auto
       :margin-top (em 3)}]
@@ -316,6 +316,51 @@
       :padding-bottom (em 1)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"}
+     [:.challenge-component-inner-cp
+      {:display :grid
+       :grid-template-columns "50% 50%"
+       :padding-left (em 2)
+       :padding-right (em 2)}
+      (for-media-max :computer
+                     [:&
+                      {:grid-template-columns "100%"
+                       :grid-template-rows "100%"
+                       :padding-left (em 1)
+                       :padding-right (em 1)}])
+      [">*" {:padding (em 1)
+             :color (color :menu-text)
+             :margin-bottom (em 1)}]
+      [:.header {:grid-column "1 / span 3"
+                 :text-align :center}
+       (for-media-max :computer
+                      [:&
+                       {:grid-column "1"}])]
+      [:.input-group
+       [:textarea {:background-color (color :main-content-bg)
+                   :border-radius (em 1)
+                   :margin-top (em 2)
+                   :height (em 4)
+                   :border :none
+                   :resize :none
+                   :width "100%"
+                   :padding (em 1)
+                   :color :grey}]
+       [:.help-block {:display :none}]]
+      [:.controls {:display :flex
+                   :justify-content :flex-end
+                   :margin-top (em 1)}
+       [:.dank {:margin-right (em 1)
+                :margin-top (em 0.7)}]
+       [:button
+        (button {:color :white
+                 :background-color :purple
+                 :width (em 11)
+                 :height (em 3)})]]
+      [:.status
+       {:border-right "1px solid rgba(174, 175, 177, 0.5)"}
+       (for-media-max :computer
+                      [:&
+                       {:border-right "0px"}])]]
      [:.challenge-component-inner
       {:position :relative
        :display :grid
@@ -370,7 +415,8 @@
                         {:width (em 10)}])
 
         {:margin-top (em 1)}]]
-      [:.header {:grid-column "1 / span 3"}
+      [:.header {:grid-column "1 / span 3"
+                 :text-align :center}
        (for-media-max :computer
                       [:&
                        {:grid-column "1"}])

@@ -120,7 +120,8 @@
        [:div.buttons
         [:button.cancel "Cancel"]
         [tx-button/tx-button {:primary true
-                              :disabled (not-empty @critical-errors)
+                              :disabled (or (not-empty @critical-errors)
+                                            false)
                               :class "create-offering"
                               :pending? @tx-pending?
                               :pending-text "Creating offering..."

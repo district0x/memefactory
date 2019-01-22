@@ -31,7 +31,7 @@
                                       :tx-id {:meme-auction/buy id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::buy]
-                                                        [::notification-events/show (gstring/format "Auction %s is now yours" title)]]
+                                                        [::notification-events/show (gstring/format "You successfully bought %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :value value}
