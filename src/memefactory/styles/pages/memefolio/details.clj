@@ -245,6 +245,7 @@
           :background-color (color :table-header-bg)}]]]
       [:tbody
        [:tr
+        ["&:nth-child(even)" {:background-color (color :curator-card-bg)}]
         (for-media-max :computer
                        [:&
                         ["&:not(:last-child)"
@@ -255,8 +256,10 @@
         [:td
          (border-bottom {:color (color :table-border-1)})
          [:&.seller-address
-          (of-ellipsis)]
+          (of-ellipsis)
+          {:cursor :pointer}]
          [:&.buyer-address
+          {:cursor :pointer}
           (of-ellipsis)]
          (for-media-max :computer
                         [:&

@@ -34,7 +34,8 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [taoensso.timbre :as log]))
+   [taoensso.timbre :as log]
+   [goog.string :as gstring]))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
@@ -163,7 +164,8 @@
         flip-ordering #(reset! order-by %)]
     (fn []
       (let [query (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
-                                                      [[:meme/meme-auctions {:order-by @order-by}
+                                                      [[:meme/meme-auctions {:order-by @order-by
+                                                                             :completed :true}
                                                         [:meme-auction/address
                                                          :meme-auction/end-price
                                                          :meme-auction/bought-on
@@ -199,8 +201,14 @@
                     ^{:key address}
                     [:tr
                      [:td.meme-token (:meme-token/token-id meme-token)]
-                     [:td.seller-address (:user/address seller)]
-                     [:td.buyer-address (:user/address buyer)]
+                     [:td.seller-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                                {:address address}
+                                                                {:tab :sold}])}
+                      (:user/address seller)]
+                     [:td.buyer-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                               {:address address}
+                                                               {:tab :collected}])}
+                      (:user/address buyer)]
                      [:td.end-price (format-price end-price)]
                      [:td.time  (when-not (empty? (str bought-on))
                                   (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now)))]])))]))]]))))
@@ -241,7 +249,7 @@
   (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on :vote/reclaimed-amount-on]} vote
         active-account (subscribe [::accounts-subs/active-account])
         option (graphql-utils/gql-name->kw option)
-        reward (if (nil? reward) 0 reward)
+        reward (if (nil? reward) 0 (quot reward 1e18))
         tx-id (:reg-entry/address meme)
         claim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
         claim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])
@@ -260,16 +268,25 @@
                               :disabled  (or (not-nil? reclaimed-amount-on)
                                              @reclaim-tx-success?)
                               :pending? @reclaim-tx-pending?
-                              :pending-text "Collect reward..."
+                              :pending-text "Collecting..."
                               :on-click #(dispatch [::registry-entry/reclaim-vote-amount {:send-tx/id tx-id
                                                                                           :reg-entry/address (:reg-entry/address meme)}])}
-         "Collect reward"]
+         (if @reclaim-tx-success?
+           "Collected"
+           "Collect reward")]
 
         (contains? #{:vote-option/vote-for :vote-option/vote-against} option)
         [:div
-         [:div.text (str "You voted: " (case option
-                                         :vote-option/vote-for "DANK"
-                                         :vote-option/vote-against "STANK"))]
+         [:div.text (str "You voted: " (gstring/format "%d DANK for %s "
+
+                                                       (when (or votes-for votes-against)
+                                                         (quot (case option
+                                                                 :vote-option/vote-for votes-for
+                                                                 :vote-option/vote-against votes-against)
+                                                               1e18))
+                                                       (case option
+                                                         :vote-option/vote-for "DANK"
+                                                         :vote-option/vote-against "STANK")))]
          [:div.text (str "Your reward: " (format/format-token reward {:token "DANK"}))]
          (when-not (= 0 reward)
            [tx-button/tx-button {:primary true
@@ -277,13 +294,15 @@
                                                (not-nil? claimed-reward-on)
                                                @claim-tx-success?)
                                  :pending? @claim-tx-pending?
-                                 :pending-text "Collecting reward..."
+                                 :pending-text "Collecting..."
                                  :on-click #(dispatch [::registry-entry/claim-vote-reward {:send-tx/id tx-id
                                                                                            :reg-entry/address (:reg-entry/address meme)
                                                                                            :from (case option
                                                                                                    :vote-option/vote-for (:user/address challenger)
                                                                                                    :vote-option/vote-against (:user/address creator))}])}
-            "Collect Reward"])])]]))
+            (if @claim-tx-success?
+              "Collected"
+              "Collect Reward")])])]]))
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})

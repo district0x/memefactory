@@ -43,11 +43,11 @@
                 :height 0
                 :top (em -4)
                 :position :relative}
-    (for-media-max :tablet
+    (for-media-max :large
                    [:&
                     {:margin-top (em 1)}])
     [:.help-block {:display :none}]
-    (for-media-max :tablet
+    (for-media-max :computer
                    [:&
                     {:display :inline-block
                      :height (em 1)
@@ -64,7 +64,7 @@
      :border-radius (em 0.6)
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :padding (em 2.4)}
-    (for-media-max :tablet
+    (for-media-max :computer
                    [:& {:grid-template "'image' 'info' 'action'"}])
     (for-media-max :large
                    [:& {:padding (em 1.4)}])
@@ -75,7 +75,7 @@
        :cursor :pointer
        :text-transform :uppercase}
       (font :bungee)
-      (for-media-max :tablet
+      (for-media-max :computer
                      [:& {:text-align :center}])]
      [:h3 {:color (color :menu-text)
            :font-weight :bold

@@ -127,4 +127,6 @@
                    [:.more {:background-color (c/color :new-meme-icon-bg)}])
     [:.icon {:background-color (c/color color)
              :background-image (str "url('" icon "')")}]
-    [:h2 {:color (c/color color)}]]])
+    [:h2 {:color (c/color color)}]
+    [:.chip-input
+     [:input {:background-color :transparent}]]]])

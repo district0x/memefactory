@@ -18,7 +18,7 @@
     :border-radius "1em 1em 1em 1em"
     :position :relative}
    [:.icon
-    (for-media-max :tablet
+    (for-media-max :large
                    [:&
                     {:margin-right :auto
                      :margin-left :auto
@@ -37,7 +37,7 @@
      :width (em 4.3)}]
    [:h2.title
     (font :bungee)
-    (for-media-max :tablet
+    (for-media-max :large
                    [:&
                     {:font-size (px 19)}])
     {:width "100%"

@@ -27,7 +27,7 @@
       :top (em 2)}
      [:.input-group
       [:.help-block {:display :none}]]
-     (for-media-max :tablet
+     (for-media-max :large
                     [:&
                      {:display :inline-block
                       :position :relative
@@ -45,7 +45,7 @@
        :margin-left (em 2)
        :justify-content :left
        :flex-wrap :wrap}
-      (for-media-max :tablet [:& {:justify-content :center}])
+      (for-media-max :large [:& {:justify-content :center}])
       [:.curator
        {:min-width (em 18)
         :padding-top (em 3)
@@ -87,9 +87,10 @@
        {:width (em 20)
         :display :block
         :height (em 30)
-        :margin (em 2.5)
+        :margin (em 1)
         :border-radius "1em"
         :vertical-align :middle
         :text-align :center
         :background-color (color :curator-card-bg)}
+       (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
        ]]]]])

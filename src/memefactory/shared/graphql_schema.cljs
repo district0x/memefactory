@@ -252,7 +252,8 @@
 
     meme_tags: [Tag]
     meme_memeAuctions(orderBy: MemeAuctionsOrderBy,
-                      orderDir: OrderDir): [MemeAuction]
+                      orderDir: OrderDir,
+                      completed: Boolean): [MemeAuction]
   }
 
   type MemeList {

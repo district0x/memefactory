@@ -15,7 +15,7 @@
     :padding-left (em 2.5)
     :padding-right (em 2.5)
     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
-   (for-media-max :tablet [:& {:justify-content :center}])
+   (for-media-max :large [:& {:justify-content :center}])
    [">*"
     {
      :margin-right (em 1)

@@ -40,6 +40,17 @@
       :margin-right :auto
       :margin-top (em 2)}]]])
 
+(defn thumb-icon [dir]
+  (cond-> {:content "''"
+           :background-image "url('/assets/icons/thumb-up.svg')"
+           :background-size "15px 15px"
+           :display :inline-block
+           :background-repeat :no-repeat
+           :width (px 15)
+           :height (px 15)
+           :position :relative
+           :margin-left (px 10)}
+    (= dir :down) (assoc :transform "scaleX(-1) scaleY(-1)")))
 (defstyles core
   details/core
   [:.memefolio-page
@@ -208,7 +219,20 @@
                 :cursor :pointer
                 :line-height (em 1.5)}
       [:.status {:font-weight :bold
-                 :font-style :italic}]]
+                 :font-style :italic}]
+      [:.vote-option
+       [:label {:text-transform :uppercase
+                :font-weight :bold
+                :color :black
+                :padding-bottom (em 0.4)}]
+       [:label.vote-dank {:border-bottom "2px solid "
+                          :border-color (color :rare-meme-icon-bg)}
+        [:&:after (thumb-icon :up)]]
+       [:label.not-revealed {:border-bottom "2px solid "
+                             :border-color (color :header-sub-title)}]
+       [:label.vote-stank {:border-bottom "2px solid "
+                           :border-color (color :yellow)}
+        [:&:after (thumb-icon :down)]]]]
      [:.issue-form {:text-align :center
                     :margin-top (em 1)}
       [:.field {:display :grid

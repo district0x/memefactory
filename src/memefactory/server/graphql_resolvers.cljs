@@ -587,22 +587,22 @@
             :from [:meme-tags]
             :where [:= :reg-entry/address address]})))
 
-(defn meme->meme-auctions-resolver [{:keys [:reg-entry/address] :as meme} {:keys [:order-by :order-dir] :as opts}]
+(defn meme->meme-auctions-resolver [{:keys [:reg-entry/address] :as meme} {:keys [:order-by :order-dir :completed] :as opts}]
   (log/debug "meme->meme-auctions-resolver" {:args meme :opts opts})
   (try-catch-throw
-   (let [sql-query (db/all (merge {:select [:*]
-                                   :from [:meme-auctions]
-                                   :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-auctions.meme-auction/token-id]
-                                          :memes [:= :memes.reg-entry/address :meme-tokens.reg-entry/address]]
-                                   :where [:= :memes.reg-entry/address address]}
-                                  (when order-by
-                                    {:order-by [[(get {:meme-auctions.order-by/token-id :meme-auctions.meme-auction/token-id
-                                                       :meme-auctions.order-by/seller :meme-auctions.meme-auction/seller
-                                                       :meme-auctions.order-by/buyer :meme-auctions.meme-auction/buyer
-                                                       :meme-auctions.order-by/price :meme-auctions.meme-auction/bought-for
-                                                       :meme-auctions.order-by/bought-on :meme-auctions.meme-auction/bought-on}
-                                                      (graphql-utils/gql-name->kw order-by))
-                                                 (or (keyword order-dir) :asc)]]})))]
+   (let [sql-query (db/all (cond-> {:select [:*]
+                                    :from [:meme-auctions]
+                                    :join [:meme-tokens [:= :meme-tokens.meme-token/token-id :meme-auctions.meme-auction/token-id]
+                                           :memes [:= :memes.reg-entry/address :meme-tokens.reg-entry/address]]
+                                    :where [:= :memes.reg-entry/address address]}
+                             order-by (sqlh/merge-order-by [[(get {:meme-auctions.order-by/token-id :meme-auctions.meme-auction/token-id
+                                                                   :meme-auctions.order-by/seller :meme-auctions.meme-auction/seller
+                                                                   :meme-auctions.order-by/buyer :meme-auctions.meme-auction/buyer
+                                                                   :meme-auctions.order-by/price :meme-auctions.meme-auction/bought-for
+                                                                   :meme-auctions.order-by/bought-on :meme-auctions.meme-auction/bought-on}
+                                                                  (graphql-utils/gql-name->kw order-by))
+                                                             (or (keyword order-dir) :asc)]])
+                             completed (sqlh/merge-where [:not= :meme-auctions.meme-auction/buyer nil])))]
 
      (log/debug "meme->meme-auctions-resolver query" sql-query)
      sql-query)))

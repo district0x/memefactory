@@ -375,20 +375,16 @@
                                                       {:address address}
                                                       nil])}
                    [:div.title [:b (str "#" number " " title)]]
-                   [:div
+                   [:div.vote-option
                     (cond
-                      (= option (graphql-utils/kw->gql-name :vote-option/no-vote))
-                      [:label
-                       [:b "Voted Unrevealed"]]
+                      (= option (graphql-utils/kw->gql-name :vote-option/not-revealed))
+                      [:label.not-revealed "Vote - Unrevealed"]
 
                       (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
-                      [:label "Voted Dank"
-                       [:i.icon.thumbs.up.outline]]
+                      [:label.vote-dank "Voted Dank"]
 
                       (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
-                      [:label
-                       [:b "Voted Stank"]
-                       [:i.icon.thumbs.down.outline]])]]])))
+                      [:label.vote-stank "Voted Stank"])]]])))
            state)))])
 
 (defmethod rank :curated [_ active-account]
