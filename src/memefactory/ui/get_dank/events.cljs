@@ -21,14 +21,14 @@
    (let [mutation (gstring/format
                    "mutation {sendVerificationCode(countryCode:\"%s\", phoneNumber:\"%s\") {id, status, msg, success}}"
                    country-code phone-number)]
-     (look {:http-xhrio {:method          :post
-                         :uri             (get-in config-map [:graphql :url])
-                         :params          {:query mutation}
-                         :timeout         8000
-                         :response-format (ajax/json-response-format {:keywords? true})
-                         :format          (ajax/json-request-format)
-                         :on-success      [::verification-code-success]
-                         :on-failure      [::verification-code-error]}}))))
+     {:http-xhrio {:method          :post
+                   :uri             (get-in config-map [:graphql :url])
+                   :params          {:query mutation}
+                   :timeout         8000
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :format          (ajax/json-request-format)
+                   :on-success      [::verification-code-success]
+                   :on-failure      [::verification-code-error]}})))
 
 (re-frame/reg-event-db
  ::verification-code-success
@@ -44,15 +44,14 @@
    (let [mutation (gstring/format
                    "mutation {encryptVerificationPayload(countryCode:\"%s\", phoneNumber:\"%s\", verificationCode:\"%s\") {payload, success}}"
                    country-code phone-number verification-code)]
-     (look
-      {:http-xhrio {:method          :post
-                    :uri             (get-in config-map [:graphql :url])
-                    :params          {:query mutation}
-                    :timeout         8000
-                    :response-format (ajax/json-response-format {:keywords? true})
-                    :format          (ajax/json-request-format)
-                    :on-success      [::verify-and-acquire-dank data]
-                    :on-failure      [::verification-code-error]}}))))
+     {:http-xhrio {:method          :post
+                   :uri             (get-in config-map [:graphql :url])
+                   :params          {:query mutation}
+                   :timeout         8000
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :format          (ajax/json-request-format)
+                   :on-success      [::verify-and-acquire-dank data]
+                   :on-failure      [::verification-code-error]}})))
 
 (re-frame/reg-event-fx
  ::verify-and-acquire-dank

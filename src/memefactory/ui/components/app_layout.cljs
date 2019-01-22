@@ -14,7 +14,9 @@
    [district.ui.router.subs :as router-subs]
    [memefactory.ui.utils :as mf-utils]
    [district.ui.component.notification :as notification]
-   [district.format :as format]))
+   [district.format :as format]
+   [print.foo :refer [look] :include-macros true]
+   ))
 
 (def nav-menu-items [{:text "Marketplace"
                       :route :route.marketplace/index
