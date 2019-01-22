@@ -42,16 +42,23 @@
 
 (defn sell-form [{:keys [:meme/title
                          :meme-auction/token-count
-                         :meme-auction/token-ids
                          :reg-entry/address]}
                  {:keys [max-auction-duration] :as params}]
   (let [tx-id (str (random-uuid))
+        active-account @(subscribe [::accounts-subs/active-account])
+        meme-sub (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
+                                                     [[:meme/owned-meme-tokens {:owner active-account}
+                                                       [:meme-token/token-id]]]]]}])
+        token-ids (ratom/reaction (->> @meme-sub
+                                       :meme :meme/owned-meme-tokens
+                                       (map :meme-token/token-id)))
         max-auction-duration (shared-utils/seconds->days (inc max-auction-duration))
         form-data (r/atom {:meme-auction/duration 14
                            :meme-auction/amount 1})
-        errors (ratom/reaction {:local {:meme-auction/amount (cond-> {:hint (str "Max " token-count)}
-                                                               (not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc token-count)))
-                                                               (assoc :error (str "Should be between 0 and " token-count)))
+        errors (ratom/reaction {:local {:meme-auction/amount (cond-> {:hint (str "Max " (count @token-ids))}
+                                                               (and (not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc (count @token-ids))))
+                                                                    (pos? (count @token-ids)))
+                                                               (assoc :error (str "Should be between 0 and " (count @token-ids))))
                                         :meme-auction/end-price (when (or (not (:meme-auction/start-price @form-data))
                                                                           (not (:meme-auction/end-price @form-data))
                                                                           (< (:meme-auction/start-price @form-data) (:meme-auction/end-price @form-data)))
@@ -62,7 +69,6 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))]
     (fn []
-
       [:div.form-panel
        [inputs/with-label
         "Amount"
@@ -121,7 +127,7 @@
         [:button.cancel "Cancel"]
         [tx-button/tx-button {:primary true
                               :disabled (or (not-empty @critical-errors)
-                                            false)
+                                            (not (pos? (count @token-ids))))
                               :class "create-offering"
                               :pending? @tx-pending?
                               :pending-text "Creating offering..."
@@ -131,7 +137,7 @@
                                                                                                           {:send-tx/id tx-id
                                                                                                            :meme/title title
                                                                                                            :reg-entry/address address
-                                                                                                           :meme-auction/token-ids (->> token-ids
+                                                                                                           :meme-auction/token-ids (->> @token-ids
                                                                                                                                         (take (int (:meme-auction/amount @form-data)))
                                                                                                                                         (map int))})]))}
          "Create Offering"]]])))
