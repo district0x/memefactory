@@ -23,31 +23,19 @@
    [memefactory.server.contract.registry-entry :as registry-entry]
    [memefactory.server.db :as db]
    [memefactory.server.generator]
-   [memefactory.server.ipfs :refer [ipfs]]
+   [memefactory.server.ipfs :as ipfs]
    [memefactory.server.macros :refer [promise->]]
    [memefactory.server.utils :as server-utils]
    [memefactory.shared.contract.registry-entry :refer [vote-options]]
    [memefactory.shared.smart-contracts :as sc]
    [mount.core :as mount :refer [defstate]]
    [print.foo :refer [look] :include-macros true]
-   [taoensso.timbre :as log]
-   )
+   [taoensso.timbre :as log])
   (:require-macros [cljs.core.async.macros :refer [go]]))
-
-(declare start)
-(declare stop)
-(defstate ^{:on-reload :noop} syncer
-  :start (start (merge (:syncer @config)
-                       (:syncer (mount/args))))
-  :stop (stop syncer))
 
 ;; this HACK is because mount doesn't support async, so mount start will return
 ;; a chan. We then store created filters in an atom so we can stop them at component stop.
 (def all-filters (atom []))
-
-(def info-text "smart-contract event")
-(def error-text "smart-contract event error")
-(def ipfs-error-text "Error when retrieving metadata from ipfs")
 
 (defn get-ipfs-meta [meta-hash]
   (js/Promise.
@@ -58,18 +46,18 @@
                       (fn [err content]
                         (cond
                           err
-                          (do
-                            (log/error ipfs-error-text {:error err
-                                                        :meta-hash meta-hash
-                                                        :connection @ipfs} ::get-ipfs-meta)
-                            (reject ipfs-error-text))
+                          (let [err-txt "Error when retrieving metadata from ipfs"]
+                            (log/error err-txt (merge {:meta-hash meta-hash
+                                                       :connection @ipfs/ipfs
+                                                       :error err})
+                                       ::get-ipfs-meta)
+                            (reject (str err-txt " : " err)))
 
                           (empty? content)
-                          (let [reason "empty content"]
-                            (log/error ipfs-error-text {:reason reason
-                                                        :meta-hash meta-hash
-                                                        :connection @ipfs} ::get-ipfs-meta)
-                            (reject (str ipfs-error-text ": " reason)))
+                          (let [err-txt "Empty ipfs content"]
+                            (log/error err-txt {:meta-hash meta-hash
+                                                :connection @ipfs/ipfs} ::get-ipfs-meta)
+                            (reject err-txt))
 
                           :else (-> (re-find #".+(\{.+\})" content)
                                     second
@@ -98,6 +86,17 @@
 
 (defmulti process-event (fn [contract-type ev] [contract-type (:event ev)]))
 
+(defn meme-sanity-check [{:keys [:reg-entry/address
+                                 :meme/meta-hash
+                                 :meme/total-supply
+                                 :meme/total-minted] :as meme}]
+  (let [add-error (fn [m err-txt] (assoc m :errors (conj (:errors m) err-txt)))]
+    (cond-> {:errors []}
+      (not (ipfs/ipfs-hash? meta-hash)) (add-error "Malformed ipfs meta hash")
+      (not (web3/address? address)) (add-error "Malformed registry entry address")
+      (not (int? total-supply)) (add-error "Malformed total-suply number")
+      (not (int? total-minted)) (add-error "Malformed total minted number"))))
+
 (defmethod process-event [:contract/meme :MemeConstructedEvent]
   [contract-type {:keys [:registry-entry :timestamp :creator :meta-hash
                          :total-supply :version :deposit :challenge-period-end] :as ev}]
@@ -111,27 +110,36 @@
          meme {:reg-entry/address registry-entry
                :meme/meta-hash (web3/to-ascii meta-hash)
                :meme/total-supply (bn/number total-supply)
-               :meme/total-minted 0}]
-     (add-registry-entry registry-entry-data timestamp)
-     (db/update-user! {:user/address creator})
+               :meme/total-minted 0}
+         errors (meme-sanity-check meme)]
 
-     ;; This HACK is added so we can insert the meme before waiting for ipfs to return
-     ;; To fix the whole thing we need to make process-event async and replay-past-events-ordered
-     ;; "async aware"
-     (db/insert-meme! (assoc meme
-                             :meme/title ""
-                             :meme/image-hash ""))
-     (let [{:keys [:meme/meta-hash]} meme]
-       (promise-> (get-ipfs-meta meta-hash)
-                  (fn [meme-meta]
-                    (let [{:keys [title image-hash search-tags]} meme-meta]
-                      (db/update-meme! {:reg-entry/address registry-entry
-                                        :meme/image-hash image-hash
-                                        :meme/title title})
-                      (when search-tags
-                        (doseq [t search-tags]
-                          (db/tag-meme! (:reg-entry/address meme) t))))))))))
+     (if-not (empty? (:errors errors)) ;; sanity check
+       (log/warn (str "Dropping smart contract event "  contract-type " " (:event ev))
+                 (merge errors registry-entry-data meme)
+                 ::MemeConstructedEvent)
 
+       (do
+         (add-registry-entry registry-entry-data timestamp)
+
+         (db/update-user! {:user/address creator})
+
+         ;; This HACK is added so we can insert the meme before waiting for ipfs to return
+         ;; To fix the whole thing we need to make process-event async and replay-past-events-ordered
+         ;; "async aware"
+         (db/insert-meme! (assoc meme
+                                 :meme/title ""
+                                 :meme/image-hash ""))
+
+         (let [{:keys [:meme/meta-hash]} meme]
+           (promise-> (get-ipfs-meta meta-hash)
+                      (fn [meme-meta]
+                        (let [{:keys [title image-hash search-tags]} meme-meta]
+                          (db/update-meme! {:reg-entry/address registry-entry
+                                            :meme/image-hash image-hash
+                                            :meme/title title})
+                          (when search-tags
+                            (doseq [t search-tags]
+                              (db/tag-meme! (:reg-entry/address meme) t))))))))))))
 
 (defmethod process-event [:contract/param-change :ParamChangeConstructedEvent]
   [contract-type {:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp] :as ev}]
@@ -344,17 +352,16 @@
                                        (server-utils/now-in-seconds))))
                 (update :version bn/number)
                 (assoc :block-number block-number))]
-
-     (log/info (str "Dispatching" " " info-text " " contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
+     (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
      (process-event contract-type ev))))
 
 (defn apply-blacklist-patches! []
   (let [{:keys [blacklist-file]} @config
         blacklisted-addresses (:blacklisted-image-addresses (server-utils/load-edn-file blacklist-file))]
-
-    (doseq [address blacklisted-addresses]
-      (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
-      (db/patch-forbidden-reg-entry-image! address))))
+    (try-catch
+     (doseq [address blacklisted-addresses]
+       (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
+       (db/patch-forbidden-reg-entry-image! address)))))
 
 (defn start [{:keys [:initial-param-query] :as opts}]
 
@@ -405,3 +412,8 @@
 (defn stop [syncer]
   (doseq [filter (remove nil? @all-filters)]
     (web3-eth/stop-watching! filter (fn [err]))))
+
+(defstate ^{:on-reload :noop} syncer
+  :start (start (merge (:syncer @config)
+                       (:syncer (mount/args))))
+  :stop (stop syncer))

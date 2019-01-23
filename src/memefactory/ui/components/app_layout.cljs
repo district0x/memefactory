@@ -14,7 +14,9 @@
    [district.ui.router.subs :as router-subs]
    [memefactory.ui.utils :as mf-utils]
    [district.ui.component.notification :as notification]
-   [district.format :as format]))
+   [district.format :as format]
+   [print.foo :refer [look] :include-macros true]
+   ))
 
 (def nav-menu-items [{:text "Marketplace"
                       :route :route.marketplace/index
@@ -164,6 +166,8 @@
         [app-bar {:search-atom search-atom}]
         [app-bar-mobile drawer-open?]
         [:div.main-content
-         (into [:div.main-content-inner]
-              children)]]
+         [:div.main-content-inner
+          (map-indexed (fn [index item]
+                         (with-meta item {:key (keyword "c" index)}))
+                       children)]]]
        [notification/notification]])))
