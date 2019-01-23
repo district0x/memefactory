@@ -84,6 +84,7 @@
                [:challenge/vote {:vote/voter active-account}
                 [:vote/option
                  :vote/reward
+                 :vote/amount
                  :vote/claimed-reward-on
                  :vote/reclaimed-amount-on]]]]]})
 
@@ -94,10 +95,11 @@
                                       [[:items [:meme-auction/start-price
                                                 :meme-auction/end-price
                                                 :meme-auction/bought-for]]]]]}])
-        creator-total-earned (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
-                                       (+ total-earned end-price))
-                                     0
-                                     (-> @query :search-meme-auctions :items))]
+        creator-total-earned (quot (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
+                                        (+ total-earned end-price))
+                                      0
+                                      (-> @query :search-meme-auctions :items))
+                                   1e18)]
     [:div.creator
      [:b "Creator"]
      [:div.rank (str "Rank: #" creator-rank " ("
@@ -202,11 +204,11 @@
                     [:tr
                      [:td.meme-token (:meme-token/token-id meme-token)]
                      [:td.seller-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                                {:address address}
+                                                                {:address (:user/address seller)}
                                                                 {:tab :sold}])}
                       (:user/address seller)]
                      [:td.buyer-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                               {:address address}
+                                                               {:address (:user/address buyer)}
                                                                {:tab :collected}])}
                       (:user/address buyer)]
                      [:td.end-price (format-price end-price)]
@@ -246,7 +248,7 @@
 
 (defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
                                :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
-  (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on :vote/reclaimed-amount-on]} vote
+  (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on :vote/reclaimed-amount-on :vote/amount]} vote
         active-account (subscribe [::accounts-subs/active-account])
         option (graphql-utils/gql-name->kw option)
         reward (if (nil? reward) 0 (quot reward 1e18))
@@ -277,16 +279,16 @@
 
         (contains? #{:vote-option/vote-for :vote-option/vote-against} option)
         [:div
-         [:div.text (str "You voted: " (gstring/format "%d DANK for %s "
+         (when-not (or (= option :vote-option/not-revealed)
+                       (= option :vote-option/no-vote))
+           [:div.text (str "You voted: " (gstring/format "%d for %s "
 
-                                                       (when (or votes-for votes-against)
-                                                         (quot (case option
-                                                                 :vote-option/vote-for votes-for
-                                                                 :vote-option/vote-against votes-against)
-                                                               1e18))
-                                                       (case option
-                                                         :vote-option/vote-for "DANK"
-                                                         :vote-option/vote-against "STANK")))]
+                                                        (if (pos? amount)
+                                                          (quot amount 1e18)
+                                                          0)
+                                                        (case option
+                                                          :vote-option/vote-for "DANK"
+                                                          :vote-option/vote-against "STANK")))])
          [:div.text (str "Your reward: " (format/format-token reward {:token "DANK"}))]
          (when-not (= 0 reward)
            [tx-button/tx-button {:primary true
@@ -337,38 +339,47 @@
              minutes " Min. "
              seconds " Sec.")]))
 
-(defn reveal-vote-component [{:keys [:challenge/reveal-period-end :challenge/vote] :as meme}]
-  (let [tx-id (:reg-entry/address meme)
+(defn reveal-vote-component [{:keys [:challenge/reveal-period-end :challenge/vote :reg-entry/address] :as meme}]
+  (let [tx-id address
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])
+        active-account @(subscribe [::accounts-subs/active-account])
+        vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)]
     (fn []
       [:div.reveal
        [:div description]
        [remaining-time-component (ui-utils/gql-date->date reveal-period-end)]
-       [tx-button/tx-button {:primary true
-                             :disabled @tx-success?
-                             :pending? @tx-pending?
-                             :pending-text "Revealing..."
-                             :on-click #(dispatch [::registry-entry/reveal-vote
-                                                   {:send-tx/id tx-id
-                                                    :reg-entry/address (:reg-entry/address meme)}
-                                                   vote])}
-        "Reveal My Vote"]])))
+       [:div
+        [tx-button/tx-button {:primary true
+                              :disabled (or @tx-success? (not vote))
+                              :pending? @tx-pending?
+                              :pending-text "Revealing..."
+                              :on-click #(dispatch [::registry-entry/reveal-vote
+                                                    {:send-tx/id tx-id
+                                                     :reg-entry/address (:reg-entry/address meme)}
+                                                    vote])}
+         (if @tx-success?
+           "Revealed"
+           "Reveal My Vote")]]
+       (when (not vote) [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])])))
 
 (defn vote-component [{:keys [:challenge/commit-period-end] :as meme}]
   (let [balance-dank (subscribe [::account-balances-subs/active-account-balance :DANK])
         form-data (r/atom {:vote/amount-for nil
                            :vote/amount-against nil})
+
         errors (ratom/reaction {:local (let [amount-for (-> @form-data :vote/amount-for js/parseInt)
-                                             amount-against (-> @form-data :vote/amount-against js/parseInt)]
+                                             amount-against (-> @form-data :vote/amount-against js/parseInt)
+                                             balance (if (pos? @balance-dank) (quot @balance-dank 1e18) 0)]
                                          (cond-> {}
                                            (or (not (spec/check ::spec/pos-int amount-for))
-                                               (< @balance-dank amount-for))
-                                           (assoc :vote/amount-for (str "Amount should be between 0 and " @balance-dank))
+                                               (< balance amount-for))
+                                           (assoc :vote/amount-for (str "Amount should be between 0 and " balance))
 
                                            (or (not (spec/check ::spec/pos-int amount-against))
-                                               (< @balance-dank amount-against))
-                                           (assoc :vote/amount-against (str "Amount should be between 0 and " @balance-dank))))})
+                                               (< balance amount-against))
+                                           (assoc :vote/amount-against (str "Amount should be between 0 and " balance))))})
+
         tx-id (str (:reg-entry/address meme) "vote")
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])]
@@ -383,7 +394,8 @@
            [inputs/text-input {:form-data form-data
                                :id :vote/amount-for
                                :dom-id :vote/amount-for
-                               :errors errors}]
+                               :errors errors
+                               }]
            {:form-data form-data
             :for :vote/amount-for
             :id :vote/amount-for}]

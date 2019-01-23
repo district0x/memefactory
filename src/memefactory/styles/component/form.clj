@@ -153,7 +153,7 @@
     :border "0px"
     :padding-top "0.65em"
     :padding-left "0.7em"
-    :padding-bottom "0.35em"
+    :padding-bottom "0.55em"
     :color (color :menu-text)
 
     :background-color (color :search-input-bg)

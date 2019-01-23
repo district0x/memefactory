@@ -21,7 +21,8 @@
 
 (defn build-tiles-query [{:keys [:search-term :search-tags :order-by :order-dir :only-cheapest?]} after]
   [:search-meme-auctions
-   (cond-> {:first page-size}
+   (cond-> {:first page-size
+            :statuses [:meme-auction.status/active]}
      (not-empty search-term) (assoc :title search-term)
      (not-empty search-tags) (assoc :tags search-tags)
      after                   (assoc :after after)

@@ -20,7 +20,8 @@
   [:search-users
    (cond->
        {:first page-size
-        :order-by order-by}
+        :order-by order-by
+        :order-dir :desc}
      after (assoc :after after))
    [:total-count
     :end-cursor
@@ -49,12 +50,14 @@
                                                 {:tab :created}])}
       address]
      [:ul
-      [:li "Earned: " [:span.earned (format-dank creator-total-earned)]]
+      [:li "Earned: " [:span.earned (format-price creator-total-earned)]]
       [:li "Success Rate: " [:span.success-rate (gstring/format "%d/%d (%d%%)"
                                                                 total-created-memes-whitelisted
                                                                 total-created-memes
-                                                                (/ (* 100 total-created-memes-whitelisted)
-                                                                   total-created-memes))]]
+                                                                (if (pos? total-created-memes)
+                                                                    (/ (* 100 total-created-memes-whitelisted)
+                                                                       total-created-memes)
+                                                                    0))]]
       (when (:meme/title meme)
         [:li "Best single card sale: " [:span.best-sale (gstring/format "%.2f ETH (#%d %s)"
                                                                         (-> largest-sale :meme-auction/bought-for (/ 1e18))
@@ -93,10 +96,10 @@
                (let [total (get-in @users-search [:search-users :total-count])]
                  [select-input
                   {:form-data form-data
-                   :id :order-by;; TODO Do this !!!!!!!!!!
-                   :options [{:key "curator-total-earned" :value "by total earnings"}
-                             {:key "challenger-total-earned" :value "by total challenges earnings"}
-                             {:key "voter-total-earned" :value "by total votes earnings"}]}])]
+                   :id :order-by
+                   :options [{:key "creator-total-earned" :value "by earnings"}
+                             {:key "best-single-card-sale" :value "by single card sale"}
+                             {:key "total-created-memes-whitelisted" :value "by created memes"}]}])]
               [:div.scroll-area
                [:div.creators
                 (if (:graphql/loading? @users-search)

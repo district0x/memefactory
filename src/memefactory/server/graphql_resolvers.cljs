@@ -587,7 +587,7 @@
             :from [:meme-tags]
             :where [:= :reg-entry/address address]})))
 
-(defn meme->meme-auctions-resolver [{:keys [:reg-entry/address] :as meme} {:keys [:order-by :order-dir :completed] :as opts}]
+(defn meme->meme-auctions-resolver [{:keys [:reg-entry/address] :as meme} {:keys [:order-by :order-dir :completed :open] :as opts}]
   (log/debug "meme->meme-auctions-resolver" {:args meme :opts opts})
   (try-catch-throw
    (let [sql-query (db/all (cond-> {:select [:*]
@@ -602,7 +602,8 @@
                                                                    :meme-auctions.order-by/bought-on :meme-auctions.meme-auction/bought-on}
                                                                   (graphql-utils/gql-name->kw order-by))
                                                              (or (keyword order-dir) :asc)]])
-                             completed (sqlh/merge-where [:not= :meme-auctions.meme-auction/buyer nil])))]
+                             completed (sqlh/merge-where [:not= :meme-auctions.meme-auction/buyer nil])
+                             open (sqlh/merge-where [:= :meme-auctions.meme-auction/buyer nil])))]
 
      (log/debug "meme->meme-auctions-resolver query" sql-query)
      sql-query)))

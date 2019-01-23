@@ -56,7 +56,8 @@
                          :errors errors
                          :placeholder "Challenge Reason..."
                          :class "challenge-reason"
-                         :input-type :textarea}]
+                         :input-type :textarea
+                         :maxLength 2000}]
             [pending-button {:pending? @tx-pending?
                              :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
                              :pending-text "Challenging ..."

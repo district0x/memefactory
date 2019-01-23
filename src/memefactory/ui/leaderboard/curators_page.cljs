@@ -19,7 +19,8 @@
   [:search-users
    (cond->
      {:first page-size
-      :order-by order-by}
+      :order-by order-by
+      :order-dir :desc}
      after (assoc :after after))
    [:total-count
     :end-cursor

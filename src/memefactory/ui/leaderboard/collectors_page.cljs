@@ -19,7 +19,8 @@
   [:search-users
    (cond->
        {:first page-size
-        :order-by order-by}
+        :order-by order-by
+        :order-dir :desc}
      after (assoc :after after))
    [:total-count
     :end-cursor
@@ -98,9 +99,8 @@
                    [select-input
                     {:form-data form-data
                      :id :order-by ;; TODO Do this !!!!!!!!!!
-                     :options [{:key "curator-total-earned" :value "by total earnings"}
-                               {:key "challenger-total-earned" :value "by total challenges earnings"}
-                               {:key "voter-total-earned" :value "by total votes earnings"}]}])]
+                     :options [{:key "total-collected-memes" :value "by unique memes"}
+                               {:key "total-collected-token-ids" :value "by total cards"}]}])]
                 [:div.scroll-area
                  [:div.collectors
                   (if (:graphql/loading? @users-search)

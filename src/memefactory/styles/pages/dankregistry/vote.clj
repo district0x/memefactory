@@ -102,12 +102,14 @@
    [:.reveal
     {:text-align :center}
     [:img {:width (em 7)}]
-    [:button
-     {:margin-top (em 2)}
-     (button {:background-color :purple
-              :color :white
-              :height (em 3)
-              :width (em 14)}) ]]
+    [:.button-wrapper {:display :inline-block}
+     [:button
+      {:margin-top (em 2)}
+      (button {:background-color :purple
+               :color :white
+               :height (em 3)
+               :width (em 14)})]]
+    [:.no-reveal-info {:color :red}]]
    [:.collect-reward
     {:display :grid
      :justify-items :center}

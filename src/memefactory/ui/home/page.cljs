@@ -59,12 +59,14 @@
 (def new-on-marketplace-query
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/started-on
+    :statuses [:meme-auction.status/active]
     :first 6}
    [[:items auction-node-graph]]])
 
 (def rare-finds-query
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/meme-total-minted
+    :statuses [:meme-auction.status/active]
     :order-dir :asc
     :first 6}
    [[:items auction-node-graph]]])
@@ -72,6 +74,7 @@
 (def random-picks-query
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/random
+    :statuses [:meme-auction.status/active]
     :first 6}
    [[:items auction-node-graph]]])
 
@@ -81,6 +84,8 @@
     :order-dir :desc
     :first 6}
    [[:items [:reg-entry/address
+             [:reg-entry/creator
+              [:user/address]]
              :meme/title
              :meme/image-hash
              :challenge/votes-total]]]])

@@ -61,7 +61,9 @@
  ::init
  [(re-frame/inject-cofx :store)]
  (fn [{:keys [db store]}]
-   {:db (assoc db :settings (:settings store))}))
+   {:db (assoc db
+               :settings (:settings store)
+               :votes (:votes store))}))
 
 (defn ^:export init []
   (s/check-asserts debug?)

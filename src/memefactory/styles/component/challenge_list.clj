@@ -43,11 +43,11 @@
                 :height 0
                 :top (em -4)
                 :position :relative}
-    (for-media-max :large
+    (for-media-max :tablet
                    [:&
                     {:margin-top (em 1)}])
     [:.help-block {:display :none}]
-    (for-media-max :computer
+    (for-media-max :tablet
                    [:&
                     {:display :inline-block
                      :height (em 1)

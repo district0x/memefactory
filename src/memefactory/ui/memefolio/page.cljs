@@ -65,7 +65,7 @@
                                                                   {:error "End price should be lower than start price"})
                                         :meme-auction/duration (cond-> {:hint (str "Max " max-auction-duration)}
                                                                  (not (< 0 (js/parseInt (:meme-auction/duration @form-data)) (inc max-auction-duration)))
-                                                                 (assoc :error (str "Should be less than " (shared-utils/seconds->days (inc max-auction-duration)))))}})
+                                                                 (assoc :error (str "Should be between 1 and " max-auction-duration)))}})
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))]
     (fn []

@@ -16,3 +16,8 @@
  ::settings
  (fn [db [_ account]]
    (get-in db [:settings account])))
+
+(re-frame/reg-sub
+ ::votes
+ (fn [db [_ account]]
+   (get-in db [:votes account])))

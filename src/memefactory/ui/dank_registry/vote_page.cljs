@@ -42,6 +42,9 @@
       (let [response (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
                                                          [:reg-entry/address
                                                           :challenge/votes-for
+                                                          [:challenge/vote {:vote/voter @active-account}
+                                                           [:vote/option
+                                                            :vote/amount]]
                                                           :challenge/votes-against
                                                           :challenge/votes-total]]]}])]
         (when-not (:graphql/loading? @response)
@@ -49,7 +52,9 @@
             (let [ch-reward-tx-id (str address "challenge-reward")
                   vote-reward-tx-id (str address "vote-reward")
                   {:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
-                  {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total]} meme-voting
+                  {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total :challenge/vote]} meme-voting
+                  {:keys [:vote/option :vote/amount]} vote
+                  option (graphql-utils/gql-name->kw option)
                   claim-vote-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward vote-reward-tx-id}])
                   claim-vote-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward vote-reward-tx-id}])
                   claim-challenge-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-challenge-reward ch-reward-tx-id}])
@@ -73,7 +78,16 @@
                                                      (:vote/reward-amount all-rewards))]
                                        (if (zero? reward)
                                          0
-                                         (format/format-token (/ reward 1e18) {:token "DANK"})))]]
+                                         (format/format-token (/ reward 1e18) {:token "DANK"})))]
+                (when-not (or (= option :vote-option/not-revealed)
+                              (= option :vote-option/no-vote))
+                  [:li (str "You voted: " (gstring/format "%d for %s "
+                                                          (if (pos? amount)
+                                                            (quot amount 1e18)
+                                                            0)
+                                                          (case option
+                                                            :vote-option/vote-for "DANK"
+                                                            :vote-option/vote-against "STANK")))])]
                [pending-button {:pending? @claim-vote-reward-tx-pending?
                                 :disabled (or (not (pos? (:vote/reward-amount all-rewards)))
                                               @claim-vote-reward-tx-pending? @claim-vote-reward-tx-success?)
@@ -169,23 +183,27 @@
 (defn reveal-action [{:keys [:challenge/vote :reg-entry/address :meme/title] :as meme}]
   (let [tx-id (str "reveal" address)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])
+        active-account @(subscribe [::accounts-subs/active-account])
+        vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)]
     (fn [{:keys [] :as meme}]
-      (let [disabled (or @tx-pending? @tx-success?)]
+      (let [disabled (or @tx-pending? @tx-success? (not vote))]
         [:div.reveal
          [:img {:src "/assets/icons/mememouth.png"}]
-         [pending-button {:pending? @tx-pending?
-                          :pending-text "Revealing ..."
-                          :disabled disabled
-                          :on-click (fn []
-                                      (dispatch [::registry-entry/reveal-vote
-                                                 {:send-tx/id tx-id
-                                                  :reg-entry/address address
-                                                  :meme/title title}
-                                                 vote]))}
-          (if disabled
-            "Revealed"
-            "Reveal My Vote")]]))))
+         [:div.button-wrapper
+          [pending-button {:pending? @tx-pending?
+                           :pending-text "Revealing ..."
+                           :disabled disabled
+                           :on-click (fn []
+                                       (dispatch [::registry-entry/reveal-vote
+                                                  {:send-tx/id tx-id
+                                                   :reg-entry/address address
+                                                   :meme/title title}
+                                                  vote]))}
+           (if @tx-success?
+             "Revealed"
+             "Reveal My Vote")]]
+         (when (not vote) [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])]))))
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
   (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)

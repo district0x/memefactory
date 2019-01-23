@@ -432,7 +432,14 @@
          :position :relative
          :color (color :section-subcaption)
          :font-size (px 15)
-         :text-align :center}]]]]]
+         :text-align :center}]]
+      [:.reveal
+       [:button {:margin-top (em 1)}
+        (button {:color :white
+                 :background-color :purple
+                 :width (em 13)
+                 :height (em 3)})]
+       [:.no-reveal-info {:color :red}]]]]]
    [:.vote
     (for-media-max :large
                    [:&
@@ -445,20 +452,19 @@
     [:b {:margin-top (em 0.5)
          :display :block}]
     [:.outer {:display :inline-flex
-              :width "100%"}
+              :width "100%"
+              :border-bottom "1px solid"
+              :margin-bottom (em 1)}
      [:.unit {:margin-left (px -40)
               :margin-top (px 8)
               :font-size (px 11)
               :z-index 1}]
-     [:.vote-input {:display :grid
-                    :grid-template-columns "80% 20%"
-                    :border-bottom "1px solid"
-                    :margin-bottom (em 1)}
-      [:.help-block {:display :none}]]]
+     [:.help-block {:display :none}]]
     [:.form {:display :inline-flex
              :margin-top (em 1)}
-     [:.vote-dank {:margin-right (em 3)
-                   :width "40%"}
+     [:.vote-dank {:margin-right (em 2)
+                   :width "50%"}
+      [:.labeled-input-group {:width "100%"}]
       [:button
        {:margin-bottom (em 2)}
        (button {:background-color :rare-meme-icon-bg
@@ -467,7 +473,8 @@
                 :width "100%"})
        (vote-button-icon 2)]]
      [:.vote-stank
-      {:width "40%"}
+      {:width "50%"}
+      [:.labeled-input-group {:width "100%"}]
       [:button
        (button {:background-color :random-meme-icon-bg
                 :color :violet

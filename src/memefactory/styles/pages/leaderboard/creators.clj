@@ -103,6 +103,7 @@
     [:div.order
      {:position :absolute
       :display :block
+      :width (em 16)
       :right (em 2)
       :top (em 2)}
      [:.input-group
