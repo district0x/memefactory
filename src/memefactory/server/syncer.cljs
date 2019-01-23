@@ -114,9 +114,9 @@
          errors (meme-sanity-check meme)]
 
      (if-not (empty? (:errors errors)) ;; sanity check
-       (log/warn (str "Dropping smart contract event "  contract-type " " (:event ev)
-                      (merge errors registry-entry-data meme)
-                      ::MemeConstructedEvent))
+       (log/warn (str "Dropping smart contract event "  contract-type " " (:event ev))
+                 (merge errors registry-entry-data meme)
+                 ::MemeConstructedEvent)
 
        (do
          (add-registry-entry registry-entry-data timestamp)
