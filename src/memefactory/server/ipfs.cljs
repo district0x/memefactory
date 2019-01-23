@@ -2,10 +2,17 @@
   (:require
    [cljs-ipfs-api.core :as ipfs-core]
    [cljs-ipfs-api.swarm :as ipfs-swarm]
+   [cljs.nodejs :as nodejs]
    [district.server.config :refer [config]]
    [mount.core :as mount :refer [defstate]]
    [taoensso.timbre :as log]
    ))
+
+(def isIPFS (nodejs/require "is-ipfs"))
+
+(defn ipfs-hash? [hash]
+  (-> isIPFS
+      (.multihash hash)))
 
 (defn start [opts]
   (let [conn (ipfs-core/init-ipfs opts)

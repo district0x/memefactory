@@ -14,11 +14,8 @@
     (-> ~promise
         ~@(map (fn [expr] (list '.then expr)) body))
     (fn [error#]
-      (taoensso.timbre/error "Promise rejected" (merge ~(district.shared.error-handling/compiletime-info &env &form *ns*)
-                                                       {:error error#}
-                                                       #_(if (district.shared.error-handling/error? error#)
-                                                         {:error error#}
-                                                         {:error-message error#}))))))
+      (taoensso.timbre/error "Promise rejected" (merge {:error error#}
+                                                       ~(district.shared.error-handling/compiletime-info &env &form *ns*))))))
 
 (defmacro defer [& body]
   `(.nextTick

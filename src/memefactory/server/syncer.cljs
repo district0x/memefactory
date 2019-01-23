@@ -11,7 +11,7 @@
    [district.server.config :refer [config]]
    [district.server.smart-contracts :as smart-contracts :refer [replay-past-events replay-past-events-in-order]]
    [district.server.web3 :refer [web3]]
-   [district.shared.error-handling :refer [#_error? try-catch]]
+   [district.shared.error-handling :refer [try-catch]]
    [district.web3-utils :as web3-utils]
    [memefactory.server.contract.eternal-db :as eternal-db]
    [memefactory.server.contract.meme :as meme]
@@ -23,7 +23,7 @@
    [memefactory.server.contract.registry-entry :as registry-entry]
    [memefactory.server.db :as db]
    [memefactory.server.generator]
-   [memefactory.server.ipfs :refer [ipfs]]
+   [memefactory.server.ipfs :as ipfs]
    [memefactory.server.macros :refer [promise->]]
    [memefactory.server.utils :as server-utils]
    [memefactory.shared.contract.registry-entry :refer [vote-options]]
@@ -48,18 +48,15 @@
                           err
                           (let [err-txt "Error when retrieving metadata from ipfs"]
                             (log/error err-txt (merge {:meta-hash meta-hash
-                                                       :connection @ipfs
-                                                       :error err}
-                                                      #_(if (error? err)
-                                                        {:error err}
-                                                        {:error-message err}))
+                                                       :connection @ipfs/ipfs
+                                                       :error err})
                                        ::get-ipfs-meta)
-                            (reject err #_"Error when retrieving metadata from ipfs"))
+                            (reject (str err-txt " : " err)))
 
                           (empty? content)
                           (let [err-txt "Empty ipfs content"]
                             (log/error err-txt {:meta-hash meta-hash
-                                                :connection @ipfs} ::get-ipfs-meta)
+                                                :connection @ipfs/ipfs} ::get-ipfs-meta)
                             (reject err-txt))
 
                           :else (-> (re-find #".+(\{.+\})" content)
@@ -89,6 +86,17 @@
 
 (defmulti process-event (fn [contract-type ev] [contract-type (:event ev)]))
 
+(defn meme-sanity-check [{:keys [:reg-entry/address
+                                 :meme/meta-hash
+                                 :meme/total-supply
+                                 :meme/total-minted] :as meme}]
+  (let [add-error (fn [m err-txt] (assoc m :errors (conj (:errors m) err-txt)))]
+    (cond-> {:errors []}
+      (not (ipfs/ipfs-hash? meta-hash)) (add-error "Malformed ipfs meta hash")
+      (not (web3/address? address)) (add-error "Malformed registry entry address")
+      (not (int? total-supply)) (add-error "Malformed total-suply number")
+      (not (int? total-minted)) (add-error "Malformed total minted number"))))
+
 (defmethod process-event [:contract/meme :MemeConstructedEvent]
   [contract-type {:keys [:registry-entry :timestamp :creator :meta-hash
                          :total-supply :version :deposit :challenge-period-end] :as ev}]
@@ -102,29 +110,36 @@
          meme {:reg-entry/address registry-entry
                :meme/meta-hash (web3/to-ascii meta-hash)
                :meme/total-supply (bn/number total-supply)
-               :meme/total-minted 0}]
-     (add-registry-entry registry-entry-data timestamp)
-     (db/update-user! {:user/address creator})
+               :meme/total-minted 0}
+         errors (meme-sanity-check meme)]
 
-     ;; This HACK is added so we can insert the meme before waiting for ipfs to return
-     ;; To fix the whole thing we need to make process-event async and replay-past-events-ordered
-     ;; "async aware"
-     (db/insert-meme! (assoc meme
-                             :meme/title ""
-                             :meme/image-hash ""))
-     (let [{:keys [:meme/meta-hash]} meme]
+     (if-not (empty? (:errors errors)) ;; sanity check
+       (log/warn (str "Dropping smart contract event "  contract-type " " (:event ev)
+                      (merge errors registry-entry-data meme)
+                      ::MemeConstructedEvent))
 
-       ;; TODO add meta to hash for logging
-       (promise-> (get-ipfs-meta meta-hash)
-                  (fn [meme-meta]
-                    (let [{:keys [title image-hash search-tags]} meme-meta]
-                      (db/update-meme! {:reg-entry/address registry-entry
-                                        :meme/image-hash image-hash
-                                        :meme/title title})
-                      (when search-tags
-                        (doseq [t search-tags]
-                          (db/tag-meme! (:reg-entry/address meme) t))))))))))
+       (do
+         (add-registry-entry registry-entry-data timestamp)
 
+         (db/update-user! {:user/address creator})
+
+         ;; This HACK is added so we can insert the meme before waiting for ipfs to return
+         ;; To fix the whole thing we need to make process-event async and replay-past-events-ordered
+         ;; "async aware"
+         (db/insert-meme! (assoc meme
+                                 :meme/title ""
+                                 :meme/image-hash ""))
+
+         (let [{:keys [:meme/meta-hash]} meme]
+           (promise-> (get-ipfs-meta meta-hash)
+                      (fn [meme-meta]
+                        (let [{:keys [title image-hash search-tags]} meme-meta]
+                          (db/update-meme! {:reg-entry/address registry-entry
+                                            :meme/image-hash image-hash
+                                            :meme/title title})
+                          (when search-tags
+                            (doseq [t search-tags]
+                              (db/tag-meme! (:reg-entry/address meme) t))))))))))))
 
 (defmethod process-event [:contract/param-change :ParamChangeConstructedEvent]
   [contract-type {:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp] :as ev}]
@@ -343,10 +358,10 @@
 (defn apply-blacklist-patches! []
   (let [{:keys [blacklist-file]} @config
         blacklisted-addresses (:blacklisted-image-addresses (server-utils/load-edn-file blacklist-file))]
-
-    (doseq [address blacklisted-addresses]
-      (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
-      (db/patch-forbidden-reg-entry-image! address))))
+    (try-catch
+     (doseq [address blacklisted-addresses]
+       (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
+       (db/patch-forbidden-reg-entry-image! address)))))
 
 (defn start [{:keys [:initial-param-query] :as opts}]
 
