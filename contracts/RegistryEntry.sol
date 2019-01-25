@@ -261,6 +261,17 @@ contract RegistryEntry is ApproveAndCallFallBack {
   }
 
   /**
+   * @dev Function returns the current status of this registry entry
+   */
+  function status()
+    external
+    constant
+    returns (uint)
+  {
+    return uint(challenge.status());
+  }
+
+  /**
    * @dev Function called by MiniMeToken when somebody calls approveAndCall on it.
    * This way token can be transferred to a recipient in a single transaction together with execution
    * of additional logic
