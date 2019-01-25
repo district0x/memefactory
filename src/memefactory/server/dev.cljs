@@ -26,7 +26,6 @@
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
             [memefactory.server.emailer]
-            [memefactory.server.emailer]
             [memefactory.server.generator :as generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.ipfs]
@@ -78,18 +77,18 @@
   "Generate dev data from supplied scenarios.
    Basic usage:
    `(generate-data {:create-meme true
-                   :challenge-meme true
-                   :commit-votes true
-                   :reveal-votes true
-                   :claim-vote-rewards true
-                   :mint-meme-tokens true
-                   :start-auctions true
-                   :buy-auctions true})`
+                    :challenge-meme true
+                    :commit-votes true
+                    :reveal-votes true
+                    :claim-vote-rewards true
+                    :mint-meme-tokens true
+                    :start-auctions true
+                    :buy-auctions true})`
    You can also override default options, e.g.:
    `:reveal-votes {:option :vote.option/vote-for
-                                        :amount 2
-                                        :salt \"abc\"
-                                        :from-account 0}`
+                   :amount 2
+                   :salt \"abc\"
+                   :from-account 0}`
    or skip a step by passing `false`, e.g:
    `:challenge-meme false`
    `generate-data` returns a JS/Promise. You can run multiple scenarios
@@ -116,6 +115,9 @@
                                       :from-account 9}]
 
                       :reveal-votes true
+
+                      ;; meme is whitelisted in this scenario
+                      :claim-challenge-reward false
 
                       :claim-vote-rewards [{:from-account 0}]
 

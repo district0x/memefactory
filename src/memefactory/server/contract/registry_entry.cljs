@@ -1,15 +1,16 @@
 (ns memefactory.server.contract.registry-entry
-  (:require [bignumber.core :as bn]
-            [camel-snake-kebab.core :as cs :include-macros true]
-            [cljs-solidity-sha3.core :refer [solidity-sha3]]
-            [cljs-web3.eth :as web3-eth]
-            [district.server.smart-contracts :refer [contract-call instance contract-address]]
-            [memefactory.server.contract.dank-token :as dank-token]
-            [memefactory.server.contract.minime-token :as minime-token]
-            [memefactory.server.macros :refer [promise->]]
-            [memefactory.shared.contract.registry-entry :refer [parse-status parse-load-registry-entry
-                                                                parse-load-registry-entry-challenge
-                                                                parse-load-vote vote-option->num]]))
+  (:require
+   [bignumber.core :as bn]
+   [camel-snake-kebab.core :as cs :include-macros true]
+   [cljs-solidity-sha3.core :refer [solidity-sha3]]
+   [cljs-web3.eth :as web3-eth]
+   [district.server.smart-contracts :refer [contract-call instance contract-address]]
+   [memefactory.server.contract.dank-token :as dank-token]
+   [memefactory.server.contract.minime-token :as minime-token]
+   [memefactory.server.macros :refer [promise->]]
+   [memefactory.shared.contract.registry-entry :refer [parse-status parse-load-registry-entry parse-load-registry-entry-challenge parse-load-vote vote-option->num]]
+   [print.foo :refer [look] :include-macros true]
+   ))
 
 (defn registry [contract-addr]
   (contract-call [:meme contract-addr] :registry))

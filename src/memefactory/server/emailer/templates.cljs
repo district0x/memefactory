@@ -7,18 +7,17 @@
                     link
                     title)))
 
-
 (defn meme-auction-bought-email-body [{:keys []}]
-  (let [link (str "http://")]
+  (let [link (str "https://")]
     (gstring/format "Auction bought %s"
                     link)))
 
-(defn vote-reward-claimed-email-body [{:keys [amount registry-entry]}]
+(defn vote-reward-claimed-email-body [{:keys [:amount :title]}]
   (gstring/format "You received %d as a reward for voting on %s"
                   amount
-                  registry-entry))
+                  title))
 
-(defn challenge-reward-claimed-email-body [{:keys [amount registry-entry]}]
+(defn challenge-reward-claimed-email-body [{:keys [:amount :title]}]
   (gstring/format "You received %d as a reward for challenging %s"
                   amount
-                  registry-entry))
+                  title))
