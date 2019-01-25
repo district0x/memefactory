@@ -113,7 +113,7 @@
                                  :print-mode? print-mode?})
                     (log/warn "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email)))))))
 
-(defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as event}]
+(defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
   (try-catch
    (let [{:keys [:meme/title] :as meme} (db/get-meme registry-entry)
          {:keys [:from :template-id :api-key :print-mode?]} @emailer]
@@ -131,14 +131,14 @@
                                                                                                                  :title title}
                                                                ::send-challenge-reward-claimed-email)
                                         :on-error #(log/error "Error when sending challenge reward claimed email" {:error %
-                                                                                                                   :event event
+                                                                                                                   :event ev
                                                                                                                    :meme meme
                                                                                                                    :to to}
                                                               ::send-challenge-reward-claimed-email)
                                         :template-id template-id
                                         :api-key api-key
                                         :print-mode? print-mode?})
-                           (log/warn "No email found for challenger" event ::send-challenge-reward-claimed-email)))))))
+                           (log/warn "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email)))))))
 
 (defn event-callback [f]
   (fn [error res]
