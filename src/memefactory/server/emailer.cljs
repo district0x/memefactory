@@ -85,7 +85,6 @@
                                         :print-mode? print-mode?})
                            (log/warn "No email found for meme auction seller" {:event ev :meme-auction meme-auction} ::send-auction-bought-email)))))))
 
-;; TODO
 (defn send-vote-reward-claimed-email [{:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (try-catch
    (let [{:keys [:meme/title] :as meme} (db/get-meme registry-entry)
