@@ -29,6 +29,7 @@
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         form-data (r/atom {:issuance 1})
+        max-tags-allowed 6
         errors (reaction {:local (let [{:keys [title issuance file-info]} @form-data
                                        max-issuance (or max-total-supply 1)]
                                    (cond-> {:issuance {:hint (str "Max " max-issuance)}}
@@ -42,7 +43,10 @@
                                             (let [issuance (js/parseInt issuance)]
                                               (and (< 0 issuance) (<= issuance max-issuance)))
                                             (catch js/Error e nil)))
-                                     (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-issuance))))
+                                     (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-issuance))
+
+                                     (> (count (get @form-data :search-tags)) max-tags-allowed)
+                                     (assoc-in [:search-tags :error] (str "Max tags allowed " max-tags-allowed))))
                           :remote (let [{:keys [file-info]} @form-data]
                                     (cond-> {}
                                       (:error file-info)
@@ -75,7 +79,8 @@
            [text-input {:form-data form-data
                         :errors errors
                         :id :title
-                        :dom-id :ftitle}]
+                        :dom-id :ftitle
+                        :maxLength 60}]
            {:form-data form-data
             :id :title
             :for :ftitle}]
@@ -85,6 +90,8 @@
                         :ac-options (->> @all-tags-subs :search-tags :items (mapv :tag/name))
                         :chip-render-fn (fn [c] [:span c])
                         :on-change (fn [c])
+                        :id :search-tags
+                        :errors errors
                         :dom-id :search-tags}]
            {:form-data form-data
             :for :search-tags

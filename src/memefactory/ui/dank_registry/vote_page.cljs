@@ -185,7 +185,8 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])
         active-account @(subscribe [::accounts-subs/active-account])
-        vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)]
+        vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)
+        vote-option (-> meme :challenge/vote :vote/option graphql-utils/gql-name->kw)]
     (fn [{:keys [] :as meme}]
       (let [disabled (or @tx-pending? @tx-success? (not vote))]
         [:div.reveal
@@ -203,7 +204,9 @@
            (if @tx-success?
              "Revealed"
              "Reveal My Vote")]]
-         (when (not vote) [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])]))))
+         (when (and (= vote-option :vote-option/not-revealed)
+                    (not vote))
+           [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])]))))
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
   (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)

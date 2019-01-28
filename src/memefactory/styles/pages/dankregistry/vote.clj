@@ -109,7 +109,8 @@
                :color :white
                :height (em 3)
                :width (em 14)})]]
-    [:.no-reveal-info {:color :red}]]
+    [:.no-reveal-info {:color :red
+                       :margin-top (em 1)}]]
    [:.collect-reward
     {:display :grid
      :justify-items :center}

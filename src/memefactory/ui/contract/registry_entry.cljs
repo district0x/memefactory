@@ -106,7 +106,7 @@
                                       :tx-id {::reveal-vote id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::reveal-vote]
-                                                        [::notification-events/show (gstring/format "Successfully voted %s for %s"
+                                                        [::notification-events/show (gstring/format "Successfully revealed %s for %s"
                                                                                                     (if (= option :vote.option/vote-against)
                                                                                                       "stank"
                                                                                                       "dank")

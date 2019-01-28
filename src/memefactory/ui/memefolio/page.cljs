@@ -18,6 +18,7 @@
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.shared.utils :as shared-utils]
+   [memefactory.ui.utils :as ui-utils]
    [memefactory.ui.components.app-layout :as app-layout]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [panel]]
@@ -58,7 +59,7 @@
         errors (ratom/reaction {:local {:meme-auction/amount (cond-> {:hint (str "Max " (count @token-ids))}
                                                                (and (not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc (count @token-ids))))
                                                                     (pos? (count @token-ids)))
-                                                               (assoc :error (str "Should be between 0 and " (count @token-ids))))
+                                                               (assoc :error (str "Should be between 1 and " (count @token-ids))))
                                         :meme-auction/end-price (when (or (not (:meme-auction/start-price @form-data))
                                                                           (not (:meme-auction/end-price @form-data))
                                                                           (< (:meme-auction/start-price @form-data) (:meme-auction/end-price @form-data)))
@@ -121,6 +122,7 @@
         [inputs/textarea-input {:form-data form-data
                                 :class "sales-pitch"
                                 :errors errors
+                                :maxlength 100
                                 :id :meme-auction/description
                                 :on-click #(.stopPropagation %)}]]
        [:div.buttons
@@ -196,7 +198,7 @@
                                          :user/total-collected-token-ids
                                          [:user/largest-buy [:meme-auction/bought-for
                                                              [:meme-auction/meme-token
-                                                              [:meme-token/number
+                                                              [:meme-token/token-id
                                                                [:meme-token/meme
                                                                 [:meme/title
                                                                  :meme/image-hash
@@ -207,7 +209,7 @@
     (let [{:keys [:user/collector-rank :user/total-collected-memes :user/total-collected-token-ids
                   :user/largest-buy]} (:user @query)
           {:keys [:meme-auction/bought-for :meme-auction/meme-token]} largest-buy
-          {:keys [:meme-token/number :meme-token/meme]} meme-token
+          {:keys [:meme-token/token-id :meme-token/meme]} meme-token
           {:keys [:meme/title]} meme
           total-memes-count (-> @query :search-memes :total-count)
           total-meme-tokens-count (-> @query :search-meme-tokens :total-count)]
@@ -226,11 +228,11 @@
           [:div.spinner.spinner--var])]
        [:div.var
         [:b "Largest buy: "]
-        (if (and bought-for number title)
+        (if (and bought-for token-id title)
 
           [:span (str (format/format-eth (/ bought-for 1e18)
                                          {:max-fraction-digits 2})
-                      " (#" number " " title ")")]
+                      " (#" token-id " " title ")")]
           [:span "None"])]])))
 
 (defmethod total :collected [_ active-account]
@@ -335,7 +337,7 @@
                                          meme-auctions))]
       [:div.stats
        [:div.rank
-        (str "RANK: ") (or creator-rank [:div.spinner.spinner--rank])]
+        (str "RANK: #") (or creator-rank [:div.spinner.spinner--rank])]
        [:div.var
         [:b "Earned: "]
         (if creator-total-earned
@@ -408,7 +410,7 @@
                   :user/voter-total-earned]} (:user @query)]
       [:div.stats
        [:div.rank.rank--big
-        (str "RANK: ") (or curator-rank [:div.spinner.spinner--rank])]
+        (str "RANK: #") (or curator-rank [:div.spinner.spinner--rank])]
        [:div.curator
         [:div
          [:div.label "CHALLENGES:"]
@@ -419,23 +421,23 @@
               [:div.spinner.spinner--var])]
          [:div [:b "Earned:"]
           (if challenger-total-earned
-              (str (web3/from-wei challenger-total-earned :ether) " DANK")
-              [:div.spinner.spinner--var])]]
+            (ui-utils/format-dank challenger-total-earned)
+            [:div.spinner.spinner--var])]]
         [:div
          [:div.label "VOTES:"]
          [:div [:b "Success Rate:"]
           (if (and total-participated-votes total-participated-votes-success)
-              (str total-participated-votes "/" total-participated-votes-success
-                   " (" (format/format-percentage total-participated-votes-success total-participated-votes)  ")")
+            (str total-participated-votes-success "/" total-participated-votes
+                 " (" (format/format-percentage total-participated-votes-success total-participated-votes)  ")")
               [:div.spinner.spinner--var])]
          [:div [:b "Earned:"]
           (if voter-total-earned
-            (str (web3/from-wei voter-total-earned :ether) " DANK")
+            (ui-utils/format-dank voter-total-earned)
             [:div.spinner.spinner--var])]]
         [:div
          [:div.label "TOTAL-EARNINGS:"]
          (if (and challenger-total-earned voter-total-earned)
-           (str (web3/from-wei (+ challenger-total-earned voter-total-earned) :ether) " DANK")
+           (ui-utils/format-dank (+ challenger-total-earned voter-total-earned))
            [:div.spinner.spinner--var])]]])))
 
 (defmethod total :collected [_ active-account]
@@ -723,9 +725,6 @@
                                                                        {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
                                                                        {:key :meme-auctions.order-by/price :value "Cheapest"}
                                                                        {:key :meme-auctions.order-by/random :value "Random"}])}
-                                    (when (= :collected @tab)
-                                      {:check-filters [{:label "Group by memes"
-                                                        :id :group-by-memes?}]})
                                     (when (= :curated @tab)
                                       {:check-filters [{:label "Voted"
                                                         :id :voted?}

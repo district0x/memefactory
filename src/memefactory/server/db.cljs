@@ -34,8 +34,8 @@
    [:challenge/comment :varchar default-nil]
    [:challenge/commit-period-end :unsigned :integer default-nil]
    [:challenge/reveal-period-end :unsigned :integer default-nil]
-   [:challenge/votes-for :BIG :INT default-nil]
-   [:challenge/votes-against :BIG :INT default-nil]
+   [:challenge/votes-for :BIG :INT default-zero]
+   [:challenge/votes-against :BIG :INT default-zero]
    [:challenge/claimed-reward-on :unsigned :integer default-nil]])
 
 (def memes-columns

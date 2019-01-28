@@ -244,7 +244,9 @@
                        :reg-entry.status/challenge-period "Challenge period running"
                        :reg-entry.status/commit-period "Commit vote period running"
                        :reg-entry.status/reveal-period "Reveal vote period running"
-                       status)]])
+                       status)]
+
+   [:div.lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."]])
 
 (defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
                                :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
@@ -264,6 +266,7 @@
       [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (if votes-for (/ votes-for 1e18) 0))]
       [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (if votes-against (/ votes-against 1e18) 0))]
       [:div.text (str "Total voted: " (if votes-total (/ votes-total 1e18) 0))]
+
       (cond
         (= :vote-option/not-revealed option)
         [tx-button/tx-button {:primary true
@@ -283,12 +286,12 @@
                        (= option :vote-option/no-vote))
            [:div.text (str "You voted: " (gstring/format "%d for %s "
 
-                                                        (if (pos? amount)
-                                                          (quot amount 1e18)
-                                                          0)
-                                                        (case option
-                                                          :vote-option/vote-for "DANK"
-                                                          :vote-option/vote-against "STANK")))])
+                                                         (if (pos? amount)
+                                                           (quot amount 1e18)
+                                                           0)
+                                                         (case option
+                                                           :vote-option/vote-for "DANK"
+                                                           :vote-option/vote-against "STANK")))])
          [:div.text (str "Your reward: " (format/format-token reward {:token "DANK"}))]
          (when-not (= 0 reward)
            [tx-button/tx-button {:primary true
@@ -306,16 +309,16 @@
               "Collected"
               "Collect Reward")])])]]))
 
-(defn challenge-meme-component [{:keys [:reg-entry/deposit] :as meme} dank-deposit]
+(defn challenge-meme-component [{:keys [:reg-entry/deposit :meme/title] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})
         errors (ratom/reaction {:local (when-not (spec/check ::spec/challenge-comment (:challenge/comment @form-data))
                                          {:challenge/comment "Comment shouldn't be empty."})})
-        tx-id (:reg-entry/address meme)
+        tx-id (str (:reg-entry/address meme) "challenges")
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])]
     (fn []
       [:div
-       [:b "Challenge explanation"]
+       [:b "Challenge Explanation"]
        [inputs/textarea-input {:form-data form-data
                                :id :challenge/comment
                                :errors errors}]
@@ -328,8 +331,11 @@
                               :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
                                                                                         :reg-entry/address (:reg-entry/address meme)
                                                                                         :comment (:challenge/comment @form-data)
-                                                                                        :deposit dank-deposit}])}
-         "Challenge"]]])))
+                                                                                        :deposit dank-deposit
+                                                                                        :meme/title title}])}
+         (if @tx-success?
+           "Challenged"
+           "Challenge")]]])))
 
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])
@@ -339,12 +345,13 @@
              minutes " Min. "
              seconds " Sec.")]))
 
-(defn reveal-vote-component [{:keys [:challenge/reveal-period-end :challenge/vote :reg-entry/address] :as meme}]
-  (let [tx-id address
+(defn reveal-vote-component [{:keys [:challenge/reveal-period-end :challenge/vote :reg-entry/address :meme/title] :as meme}]
+  (let [tx-id (str "reveal" address)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])
         active-account @(subscribe [::accounts-subs/active-account])
-        vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)]
+        vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)
+        vote-option (-> meme :challenge/vote :vote/option graphql-utils/gql-name->kw)]
     (fn []
       [:div.reveal
        [:div description]
@@ -356,14 +363,17 @@
                               :pending-text "Revealing..."
                               :on-click #(dispatch [::registry-entry/reveal-vote
                                                     {:send-tx/id tx-id
-                                                     :reg-entry/address (:reg-entry/address meme)}
+                                                     :reg-entry/address (:reg-entry/address meme)
+                                                     :meme/title title}
                                                     vote])}
          (if @tx-success?
            "Revealed"
            "Reveal My Vote")]]
-       (when (not vote) [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])])))
+       (when (and (= vote-option :vote-option/not-revealed)
+                  (not vote))
+         [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])])))
 
-(defn vote-component [{:keys [:challenge/commit-period-end] :as meme}]
+(defn vote-component [{:keys [:challenge/commit-period-end :meme/title] :as meme}]
   (let [balance-dank (subscribe [::account-balances-subs/active-account-balance :DANK])
         form-data (r/atom {:vote/amount-for nil
                            :vote/amount-against nil})
@@ -409,7 +419,11 @@
            :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                            :reg-entry/address (:reg-entry/address meme)
                                                                            :vote/option :vote.option/vote-for
-                                                                           :vote/amount (-> @form-data :vote/amount-for js/parseInt)}])}
+                                                                           :vote/amount (-> @form-data
+                                                                                            :vote/amount-for
+                                                                                            js/parseInt
+                                                                                            (web3/to-wei :ether))
+                                                                           :meme/title title}])}
           (if @tx-success?
             "Voted"
             "Vote Dank")]]
@@ -433,7 +447,10 @@
            :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                            :reg-entry/address (:reg-entry/address meme)
                                                                            :vote/option :vote.option/vote-against
-                                                                           :vote/amount (-> @form-data :vote/amount-against js/parseInt)}])}
+                                                                           :vote/amount (-> @form-data
+                                                                                            :vote/amount-against
+                                                                                            js/parseInt
+                                                                                            (web3/to-wei :ether))}])}
           (if @tx-success?
             "Voted"
             "Vote Stank")]]]

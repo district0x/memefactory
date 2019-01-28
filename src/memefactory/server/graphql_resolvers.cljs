@@ -379,11 +379,10 @@
                                               (when (select? :user/total-created-memes-whitelisted)
                                                 [{:select [:%count.* ]
                                                   :from [:memes]
-                                                  :join [:reg-entries [:= :reg-entries.reg-entry/address :memes.reg-entry/address]]
-                                                  :where [:and [:= :reg-entries.reg-entry/creator :user/address]
-                                                          [:or
-                                                           [:< :reg-entries.challenge/votes-against :reg-entries.challenge/votes-for]
-                                                           [:< :reg-entries.reg-entry/challenge-period-end now]]]}
+                                                  :join [[:reg-entries :re] [:= :re.reg-entry/address :memes.reg-entry/address]]
+                                                  :where [:and
+                                                          [:= :re.reg-entry/creator :user/address]
+                                                          [:= (reg-entry-status-sql-clause now) (enum :reg-entry.status/whitelisted)]]}
                                                  :user/total-created-memes-whitelisted])
                                               (when (select? :user/total-created-memes)
                                                 [{:select [:%count.* ]

@@ -147,6 +147,7 @@
        {:margin-bottom (em 1)}]
       [:.description, :.text
        {:color (color :menu-text)}]
+
       [:.tags
        {:margin-top (em 1)
         :margin-bottom (em 0.5)}
@@ -342,7 +343,7 @@
        [:textarea {:background-color (color :main-content-bg)
                    :border-radius (em 1)
                    :margin-top (em 2)
-                   :height (em 4)
+                   :height (em 6)
                    :border :none
                    :resize :none
                    :width "100%"
@@ -363,7 +364,8 @@
        {:border-right "1px solid rgba(174, 175, 177, 0.5)"}
        (for-media-max :computer
                       [:&
-                       {:border-right "0px"}])]]
+                       {:border-right "0px"}])
+        [:.lorem {:margin-top (em 1)}]]]
      [:.challenge-component-inner
       {:position :relative
        :display :grid
@@ -439,7 +441,8 @@
                  :background-color :purple
                  :width (em 13)
                  :height (em 3)})]
-       [:.no-reveal-info {:color :red}]]]]]
+       [:.no-reveal-info {:color :red
+                          :margin-top (em 1)}]]]]]
    [:.vote
     (for-media-max :large
                    [:&

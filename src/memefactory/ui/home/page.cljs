@@ -82,6 +82,7 @@
   [:search-memes
    {:order-by :memes.order-by/daily-total-votes
     :order-dir :desc
+    :statuses [:reg-entry.status/commit-period]
     :first 6}
    [[:items [:reg-entry/address
              [:reg-entry/creator

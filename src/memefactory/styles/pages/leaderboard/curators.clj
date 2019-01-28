@@ -81,8 +81,8 @@
         {:font-weight :bold
          :color (color :section-subcaption)}
         [:span
-         {:font-weight :normal}
-         ]]
+         {:font-weight :normal}]]
+       [:p.total-earnings {:margin-top (px 25)}]
 
        {:width (em 20)
         :display :block
