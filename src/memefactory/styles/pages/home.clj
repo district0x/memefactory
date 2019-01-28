@@ -168,5 +168,6 @@
               :background-position-x (em 0.75)
               :background-position-y (em 0.70)
               :background-image (str "url('/assets/icons/memesubmiticon.svg')")}]
-     [:h2.title {:color (color :blue)}]]
+     [:h2.title {:color (color :blue)}]
+     [:p.comment {:font-style :italic}]]
     ]])

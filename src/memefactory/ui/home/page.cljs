@@ -9,7 +9,12 @@
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.tiles :as tiles]
    [print.foo :refer [look] :include-macros true]
-   [memefactory.ui.utils :as utils]))
+   [district.format :as format]
+   [district.time :as time]
+   [memefactory.ui.utils :as utils]
+   [district.ui.router.events :as router-events]
+   [memefactory.ui.components.challenge-list :refer [current-period-ends]]
+   [goog.string :as gstring]))
 
 (defn take-max-multiple-of [n xs]
   (if (< (count xs) n)
@@ -28,6 +33,43 @@
             ^{:key address}
             [tiles/auction-tile {:on-buy-click #()} auc]))))]))
 
+(defn trending-vote-tile [{:keys [:reg-entry/address :meme/image-hash :reg-entry/creator :challenge/commit-period-end
+                                  :challenge/challenger :challenge/comment] :as meme}]
+
+  (let [{:keys [:user/total-created-challenges-success :user/total-created-challenges]} challenger]
+    [:div.compact-tile
+    [tiles/flippable-tile {:front [tiles/meme-image image-hash]
+                           :back [:div.meme-card.back
+                                  [:div.overlay
+                                   [:div.info
+                                    [:ul.meme-data
+                                     [:li [:label "Creator:"]
+                                      [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                                    {:address (:user/address creator)}
+                                                                    {:tab :created}])}
+                                       (:user/address creator)]]
+                                     [:li [:label "Voting period ends in: "]
+                                      [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                      (utils/gql-date->date commit-period-end))
+                                                 format/format-time-units)]]
+                                     [:li [:label "Challenger :"]
+                                      [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                                    {:address (-> challenger :user/address)}
+                                                                    {:tab :curated}])}
+                                       (-> challenger :user/address)]]
+                                     [:li [:label "Challenger success rate:"]
+                                      [:span (gstring/format "%d/%d (%d%%)"
+                                                             total-created-challenges-success
+                                                             total-created-challenges
+                                                             (if (pos? total-created-challenges) (/ (* 100 total-created-challenges-success) total-created-challenges) 0))]]]
+                                    [:hr]
+                                    [:p.comment comment]]]]}]
+    [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                        {:address address}
+                                        nil])}
+     [:div.title (-> meme :meme/title)]]]))
+
+
 (defn memes-list [memes]
   (let [memes (take-max-multiple-of 3 memes)]
     [:div.tiles
@@ -38,7 +80,7 @@
         (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
           ^{:key address}
           ;;:div.tile-wrapper
-          [tiles/meme-tile m]
+          [trending-vote-tile m]
           #_[:div.votes-total (str "Vote amount "(or votes-total 0))])))]))
 
 (def auction-node-graph [:meme-auction/address
@@ -87,9 +129,15 @@
    [[:items [:reg-entry/address
              [:reg-entry/creator
               [:user/address]]
+             [:challenge/challenger
+              [:user/address
+               :user/total-created-challenges-success
+               :user/total-created-challenges]]
              :meme/title
              :meme/image-hash
-             :challenge/votes-total]]]])
+             :challenge/votes-total
+             :challenge/commit-period-end
+             :challenge/comment]]]])
 
 (defmethod page :route/home []
   (let [search-atom (r/atom {:term ""})

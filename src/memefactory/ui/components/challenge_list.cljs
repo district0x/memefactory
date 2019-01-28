@@ -4,7 +4,6 @@
    [cljs-time.extend]
    [district.format :as format]
    [district.time :as time]
-   [district.time :as time]
    [district.ui.component.form.input :refer [select-input with-label]]
    [district.ui.graphql.subs :as gql]
    [goog.string :as gstring]
