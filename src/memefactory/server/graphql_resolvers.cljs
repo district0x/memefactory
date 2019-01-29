@@ -471,7 +471,7 @@
        registry-entry/vote-options))
 
 (defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
-  (log/debug "reg-entry->vote-winning-vote-option-resolver args" args)
+  (log/info (str "reg-entry->vote-winning-vote-option-resolver " reg-entry args))
   (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry))
     (let [{:keys [:vote/option]} (db/get {:select [:vote/option]
                                           :from [:votes]
@@ -479,7 +479,8 @@
                                                   [:= address :reg-entry/address]
                                                   [:= voter :vote/voter]]})]
       (and option
-           (= option (reg-entry-winning-vote-option reg-entry))))))
+           (= (registry-entry/vote-options option)
+              (reg-entry-winning-vote-option reg-entry))))))
 
 (defn reg-entry->all-rewards-resolver [{:keys [:reg-entry/address :challenge/reward-pool :challenge/claimed-reward-on
                                                :reg-entry/deposit :challenge/challenger :challenge/votes-against :challenge/votes-for] :as reg-entry} args]
