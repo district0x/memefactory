@@ -35,7 +35,8 @@
    [reagent.core :as r]
    [reagent.ratom :as ratom]
    [taoensso.timbre :as log]
-   [goog.string :as gstring]))
+   [goog.string :as gstring]
+   [memefactory.ui.components.buttons :as buttons]))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
@@ -73,6 +74,10 @@
                :challenge/votes-for
                :challenge/votes-against
                :challenge/votes-total
+
+               [:challenge/all-rewards {:user/address active-account}
+                                       [:challenge/reward-amount
+                                        :vote/reward-amount]]
 
                [:challenge/challenger
                 [:user/address
@@ -267,47 +272,7 @@
       [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (if votes-against (/ votes-against 1e18) 0))]
       [:div.text (str "Total voted: " (if votes-total (/ votes-total 1e18) 0))]
 
-      (cond
-        (= :vote-option/not-revealed option)
-        [tx-button/tx-button {:primary true
-                              :disabled  (or (not-nil? reclaimed-amount-on)
-                                             @reclaim-tx-success?)
-                              :pending? @reclaim-tx-pending?
-                              :pending-text "Collecting..."
-                              :on-click #(dispatch [::registry-entry/reclaim-vote-amount {:send-tx/id tx-id
-                                                                                          :reg-entry/address (:reg-entry/address meme)}])}
-         (if @reclaim-tx-success?
-           "Collected"
-           "Collect reward")]
-
-        (contains? #{:vote-option/vote-for :vote-option/vote-against} option)
-        [:div
-         (when-not (or (= option :vote-option/not-revealed)
-                       (= option :vote-option/no-vote))
-           [:div.text (str "You voted: " (gstring/format "%d for %s "
-
-                                                         (if (pos? amount)
-                                                           (quot amount 1e18)
-                                                           0)
-                                                         (case option
-                                                           :vote-option/vote-for "DANK"
-                                                           :vote-option/vote-against "STANK")))])
-         [:div.text (str "Your reward: " (format/format-token reward {:token "DANK"}))]
-         (when-not (= 0 reward)
-           [tx-button/tx-button {:primary true
-                                 :disabled (or (= 0 reward)
-                                               (not-nil? claimed-reward-on)
-                                               @claim-tx-success?)
-                                 :pending? @claim-tx-pending?
-                                 :pending-text "Collecting..."
-                                 :on-click #(dispatch [::registry-entry/claim-vote-reward {:send-tx/id tx-id
-                                                                                           :reg-entry/address (:reg-entry/address meme)
-                                                                                           :from (case option
-                                                                                                   :vote-option/vote-for (:user/address challenger)
-                                                                                                   :vote-option/vote-against (:user/address creator))}])}
-            (if @claim-tx-success?
-              "Collected"
-              "Collect Reward")])])]]))
+      (buttons/reclaim-buttons @active-account meme)]]))
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit :meme/title] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})

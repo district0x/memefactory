@@ -395,7 +395,7 @@
         {:margin-bottom  (em 0.5)}]]
       [:.votes
        {:display :grid
-        :grid-template-columns "50% 50%"
+        :grid-template-columns "45% 55%"
         :grid-template-rows "100%"}
        (for-media-max :computer
                    [:&
@@ -413,13 +413,15 @@
 
        [:button (button {:color :white
                          :background-color :purple
-                         :width (em 14)
+                         :width (em 13)
                          :height (em 3)})
         (for-media-max :large
                        [:&
                         {:width (em 10)}])
 
         {:margin-top (em 1)}]]
+
+
       [:.header {:grid-column "1 / span 3"
                  :text-align :center}
        (for-media-max :computer

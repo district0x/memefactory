@@ -24,7 +24,8 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [taoensso.timbre :as log]))
+   [taoensso.timbre :as log]
+   [memefactory.ui.components.buttons :as buttons]))
 
 (def page-size 12)
 
@@ -54,11 +55,7 @@
                   {:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
                   {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total :challenge/vote]} meme-voting
                   {:keys [:vote/option :vote/amount]} vote
-                  option (graphql-utils/gql-name->kw option)
-                  claim-vote-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward vote-reward-tx-id}])
-                  claim-vote-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward vote-reward-tx-id}])
-                  claim-challenge-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-challenge-reward ch-reward-tx-id}])
-                  claim-challenge-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-challenge-reward ch-reward-tx-id}])]
+                  option (graphql-utils/gql-name->kw option)]
               [:div.collect-reward
                (log/debug "meme voting" meme-voting ::collect-reward-action)
 
@@ -88,26 +85,7 @@
                                                           (case option
                                                             :vote-option/vote-for "DANK"
                                                             :vote-option/vote-against "STANK")))])]
-               [pending-button {:pending? @claim-vote-reward-tx-pending?
-                                :disabled (or (not (pos? (:vote/reward-amount all-rewards)))
-                                              @claim-vote-reward-tx-pending? @claim-vote-reward-tx-success?)
-                                :pending-text "Collecting ..."
-                                :on-click (fn []
-                                            (dispatch [::registry-entry/claim-vote-reward {:send-tx/id vote-reward-tx-id
-                                                                                           :active-account @active-account
-                                                                                           :reg-entry/address address
-                                                                                           :meme/title (:meme/title meme)}]))}
-                "Vote Reward"]
-               [pending-button {:pending? @claim-challenge-reward-tx-pending?
-                                :disabled (or (not (pos? (:challenge/reward-amount all-rewards)))
-                                              @claim-challenge-reward-tx-pending? @claim-challenge-reward-tx-success?)
-                                :pending-text "Collecting ..."
-                                :on-click (fn []
-                                            (dispatch [::registry-entry/claim-challenge-reward {:send-tx/id ch-reward-tx-id
-                                                                                                :active-account @active-account
-                                                                                                :reg-entry/address address
-                                                                                                :meme/title (:meme/title meme)}]))}
-                "Challenge Reward"]])))))))
+               (buttons/reclaim-buttons @active-account meme)])))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote :meme/title] :as meme}]
   (let [tx-id (str address "vote")

@@ -177,66 +177,47 @@ contract RegistryEntry is ApproveAndCallFallBack {
   }
 
   /**
-   * @dev Refunds vote deposit after reveal period
-   * Can be called by anybody, to claim voter's reward to him
-   * Can't be called if vote was revealed
-   * Can't be called twice for the same vote
-
-   * @param _voter Address of a voter
-   */
-  function reclaimVoteAmount(address _voter)
-    public
-    notEmergency {
-
-    /* if (_voter == 0x0) { */
-    /*   _voter = msg.sender; */
-    /* } */
-
-    require(challenge.isVoteRevealPeriodOver());
-    require(!challenge.isVoteRevealed(_voter));
-    require(!challenge.isVoteAmountReclaimed(_voter));
-
-    uint amount = challenge.vote[_voter].amount;
-    require(registryToken.transfer(_voter, amount));
-
-    challenge.vote[_voter].reclaimedVoteAmountOn = now;
-
-    registry.fireVoteAmountClaimedEvent(version, _voter);
-  }
-
-  /**
-   * @dev Claims vote reward after reveal period
+   * @dev Claims vote reward and amount after reveal period
    * Voter has reward only if voted for winning option
    * Voter has reward only when revealed the vote
    * Can be called by anybody, to claim voter's reward to him
 
    * @param _voter Address of a voter
    */
-  function claimVoteReward(
+  function claimVoteAmountAndReward(
                            address _voter
                            )
     external
     notEmergency
   {
 
-    /* if (_voter == 0x0) { */
-    /*   _voter = msg.sender; */
-    /* } */
-
     require(challenge.isVoteRevealPeriodOver());
     require(!challenge.isVoteRewardClaimed(_voter));
     require(challenge.isVoteRevealed(_voter));
-    require(challenge.votedWinningVoteOption(_voter));
 
-    uint reward = challenge.voteReward(_voter);
 
-    require(reward > 0);
-    require(registryToken.transfer(_voter, reward));
-    challenge.vote[_voter].claimedRewardOn = now;
+    if(!challenge.isVoteAmountReclaimed(_voter)){
+      uint amount = challenge.vote[_voter].amount;
 
-    registry.fireVoteRewardClaimedEvent(version,
-                                        _voter,
-                                        reward);
+      require(registryToken.transfer(_voter, amount));
+      challenge.vote[_voter].reclaimedVoteAmountOn = now;
+
+      registry.fireVoteAmountClaimedEvent(version, _voter);
+    }
+
+    if(challenge.votedWinningVoteOption(_voter)){
+      uint reward = challenge.voteReward(_voter);
+
+      require(reward > 0);
+      require(registryToken.transfer(_voter, reward));
+      challenge.vote[_voter].claimedRewardOn = now;
+
+      registry.fireVoteRewardClaimedEvent(version,
+                                          _voter,
+                                          reward);
+    }
+
+
   }
 
   /**

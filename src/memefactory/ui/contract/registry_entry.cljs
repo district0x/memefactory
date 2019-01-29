@@ -16,8 +16,7 @@
    [memefactory.shared.contract.registry-entry :as reg-entry]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
-   [taoensso.timbre :as log]
-   ))
+   [taoensso.timbre :as log]))
 
 (def interceptors [re-frame/trim-v])
 
@@ -144,7 +143,7 @@
    (let [tx-name (gstring/format "Claim vote reword %s" title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
-                                      :fn :claim-vote-reward
+                                      :fn :claim-vote-amount-and-reward
                                       :args [active-account]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
