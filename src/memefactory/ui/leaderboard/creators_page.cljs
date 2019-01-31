@@ -35,7 +35,8 @@
                [:meme-auction/meme-token
                 [:meme-token/number
                  [:meme-token/meme
-                  [:meme/title]]]]]]]]]])
+                  [:meme/title
+                   :reg-entry/address]]]]]]]]]])
 
 (defn creator-tile [{:keys [:user/address :user/creator-total-earned :user/total-created-memes
                             :user/total-created-memes-whitelisted :user/largest-sale] :as creator}
@@ -59,12 +60,15 @@
                                                                        total-created-memes)
                                                                     0))]]
       (when (:meme/title meme)
-        [:li "Best single card sale: " [:span.best-sale (gstring/format "%.2f ETH (#%d %s)"
-                                                                        (-> largest-sale :meme-auction/bought-for (/ 1e18))
-                                                                        (-> largest-sale
-                                                                            :meme-auction/meme-token
-                                                                            :meme-token/number)
-                                                                        (:meme/title meme))]])]]))
+        [:li "Best single card sale: " [:span.best-sale {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                                               {:address (:reg-entry/address meme)}
+                                                                               nil])}
+                                        (gstring/format "%.2f ETH (#%d %s)"
+                                                        (-> largest-sale :meme-auction/bought-for (/ 1e18))
+                                                        (-> largest-sale
+                                                            :meme-auction/meme-token
+                                                            :meme-token/number)
+                                                        (:meme/title meme))]])]]))
 
 (defmethod page :route.leaderboard/creators []
   (let [form-data (r/atom {:order-by "curator-total-earned"})]

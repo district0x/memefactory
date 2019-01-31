@@ -57,6 +57,13 @@
    (search-panel {:background-panel-image "/assets/icons/mf-search.svg"
                   :color :mymemefolio-green
                   :icon "/assets/icons/portfolio2.svg"})
+   [:div.search-form
+    [:h2 {:max-width (em 13.5)
+          :position :unset
+          :text-overflow :ellipsis
+          :margin-left :auto
+          :margin-right :auto
+          :overflow :hidden}]]
    [:.tabbed-pane
     {:max-width (px 985)
      :margin-right :auto

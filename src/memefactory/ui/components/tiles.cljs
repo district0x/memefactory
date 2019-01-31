@@ -115,18 +115,28 @@
                                    (-> meme-token :meme-token/meme :meme/total-minted))]
           [:div.price (format-price price)]]]))))
 
-(defn meme-back-tile [meme]
-
+(defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted] :as meme}]
   (let [user-address (-> meme :reg-entry/creator :user/address)]
     [:div.meme-card.back
-    [:div.overlay
-     [:div.info
-      [:ul.meme-data
-       [:li [:label "Creator:"]
-        [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                      {:address user-address}
-                                      nil])}
-         user-address]]]]]]))
+     [:div.overlay
+      [:div.info
+       [:ul.meme-data
+        [:li [:label "Rank:"]
+         (str "#" (-> meme :reg-entry/creator :user/creator-rank))]
+        [:li [:label "Creator:"]
+         [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                       {:address user-address}
+                                       nil])}
+          user-address]]
+        [:li [:label "Created:"]
+         (let [formated-time (-> (time/time-remaining (t/date-time (ui-utils/gql-date->date created-on)) (t/now))
+                                 (dissoc :seconds)
+                                 format/format-time-units)]
+           (if-not (empty? formated-time)
+             (str formated-time " ago")
+             "less than a minute ago"))]
+        [:li [:label "Issued:"]
+         (str total-minted " cards")]]]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash] :as meme}]
   [:div.compact-tile

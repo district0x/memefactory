@@ -71,7 +71,12 @@
                                                  tcmw
                                                  tcm
                                                  (if (pos? tcm) (/ (* 100 tcmw) tcm) 0)))]]
-   [:li "Address: " [:span.address (-> user :user/address)]]])
+   [:li "Address: " [:span.address (when (= class :creator)
+                                     {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                            {:address (:user/address user)}
+                                                            {:tab :created}])
+                                      :class "creator"})
+                     (-> user :user/address)]]])
 
 (defn current-period-ends [label end-date]
   [:li (str label " period ends in: ") [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])

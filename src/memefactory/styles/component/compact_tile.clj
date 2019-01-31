@@ -140,7 +140,9 @@
                :padding-right (em 0.3)}]
       [:span {:overflow :hidden
               :text-overflow :ellipsis
-              :white-space :nowrap}]]]]]
+              :white-space :nowrap}]]
+     [:p {:padding-left (em 1.2)
+          :padding-right (em 1.2)}]]]]
   [:.compact-tile
    {:background (color :meme-panel-bg)
     :width (px card-width)

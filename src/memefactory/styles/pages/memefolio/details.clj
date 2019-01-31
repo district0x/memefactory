@@ -369,7 +369,9 @@
      [:.challenge-component-inner
       {:position :relative
        :display :grid
-       :grid-template-columns "30% 30% 40%"}
+       :grid-template-columns "30% 30% 40%"
+       :padding-left (em 2)
+       :padding-right (em 2)}
       (for-media-max :computer
                      [:&
                       {:grid-template-columns "100%"
@@ -437,6 +439,14 @@
          :color (color :section-subcaption)
          :font-size (px 15)
          :text-align :center}]]
+      [:.status {:padding-left (em 1)}
+       [:li {:font-weight :bold
+             :list-style-type :none}
+        [:div {:font-weight :normal
+               :margin-bottom (em 0.5)
+               :margin-top (em 0.5)
+               }]]
+       ]
       [:.reveal
        [:button {:margin-top (em 1)}
         (button {:color :white

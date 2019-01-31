@@ -29,9 +29,12 @@
     :end-cursor
     :has-next-page
     [:items [:reg-entry/address
+             :reg-entry/created-on
              :meme/image-hash
              :meme/title
-             [:reg-entry/creator [:user/address]]]]]])
+             :meme/total-minted
+             [:reg-entry/creator [:user/address
+                                  :user/creator-rank]]]]]])
 
 (defn dank-registry-tiles [form-data meme-search]
   (let [all-memes (->> @meme-search

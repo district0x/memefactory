@@ -56,17 +56,20 @@
         max-auction-duration (shared-utils/seconds->days (inc max-auction-duration))
         form-data (r/atom {:meme-auction/duration 14
                            :meme-auction/amount 1})
-        errors (ratom/reaction {:local {:meme-auction/amount (cond-> {:hint (str "Max " (count @token-ids))}
-                                                               (and (not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc (count @token-ids))))
-                                                                    (pos? (count @token-ids)))
-                                                               (assoc :error (str "Should be between 1 and " (count @token-ids))))
-                                        :meme-auction/end-price (when (or (not (:meme-auction/start-price @form-data))
-                                                                          (not (:meme-auction/end-price @form-data))
-                                                                          (< (:meme-auction/start-price @form-data) (:meme-auction/end-price @form-data)))
-                                                                  {:error "End price should be lower than start price"})
-                                        :meme-auction/duration (cond-> {:hint (str "Max " max-auction-duration)}
-                                                                 (not (< 0 (js/parseInt (:meme-auction/duration @form-data)) (inc max-auction-duration)))
-                                                                 (assoc :error (str "Should be between 1 and " max-auction-duration)))}})
+        errors (ratom/reaction (let [sp (-> @form-data :meme-auction/start-price js/parseFloat)
+                                     ep (-> @form-data :meme-auction/end-price js/parseFloat)]
+                                 {:local {:meme-auction/amount (cond-> {:hint (str "Max " (count @token-ids))}
+                                                                 (and (not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc (count @token-ids))))
+                                                                      (pos? (count @token-ids)))
+                                                                 (assoc :error (str "Should be between 1 and " (count @token-ids))))
+                                          :meme-auction/start-price (when (not (pos? sp))
+                                                                      "Start price should contain a positive value")
+                                          :meme-auction/end-price (when (or (not (pos? ep))
+                                                                            (< sp ep))
+                                                                    {:error "End price should be positive and lower than start price"})
+                                          :meme-auction/duration (cond-> {:hint (str "Max " max-auction-duration)}
+                                                                   (not (< 0 (js/parseInt (:meme-auction/duration @form-data)) (inc max-auction-duration)))
+                                                                   (assoc :error (str "Should be between 1 and " max-auction-duration)))}}))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))]
     (fn []
@@ -273,35 +276,39 @@
                        "All cards issued")]]))))
 
 (defmethod panel :created [_ state]
-  [:div.tiles
-   (if (empty? state)
-     [:div.no-items-found "No items found."]
-     (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
-                              :meme/title :meme/total-supply :meme/total-minted
-                              :reg-entry/status] :as meme}]
-                   (when address
-                     (let [status (graphql-utils/gql-name->kw status)]
-                       ^{:key address} [:div.compact-tile
-                                        [:div.container
-                                         [tiles/meme-image image-hash]
-                                         #_[tiles/meme-front-tile {} meme]]
-                                        [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                          {:address address}
-                                                                          nil])}
-                                         [:div.title (str "#" number " " title)]
-                                         [:div.issued (str total-minted "/" total-supply" Issued")]
-                                         [:div.status
-                                          (case status
-                                            :reg-entry.status/challenge-period "In Challenge Period"
-                                            :reg-entry.status/whitelisted "In Registry"
-                                            :reg-entry.status/blacklisted "Rejected"
-                                            "Challenged")]]
-                                        (when (= status :reg-entry.status/whitelisted)
-                                          [issue-form {:meme/title title
-                                                       :reg-entry/address address
-                                                       :meme/total-supply total-supply
-                                                       :meme/total-minted total-minted}])])))
-                 state)))])
+  (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
+        active-account @(subscribe [::accounts-subs/active-account])]
+    [:div.tiles
+     (if (empty? state)
+       [:div.no-items-found "No items found."]
+       (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
+                                :meme/title :meme/total-supply :meme/total-minted
+                                :reg-entry/status] :as meme}]
+                     (when address
+                       (let [status (graphql-utils/gql-name->kw status)]
+                         ^{:key address} [:div.compact-tile
+                                          [:div.container
+                                           [tiles/meme-image image-hash]
+                                           #_[tiles/meme-front-tile {} meme]]
+                                          [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                                            {:address address}
+                                                                            nil])}
+                                           [:div.title (str "#" number " " title)]
+                                           [:div.issued (str total-minted "/" total-supply" Issued")]
+                                           [:div.status
+                                            (case status
+                                              :reg-entry.status/challenge-period "In Challenge Period"
+                                              :reg-entry.status/whitelisted "In Registry"
+                                              :reg-entry.status/blacklisted "Rejected"
+                                              "Challenged")]]
+                                          (when (and (or (empty? url-address)
+                                                         (= url-address active-account))
+                                                     (= status :reg-entry.status/whitelisted))
+                                            [issue-form {:meme/title title
+                                                         :reg-entry/address address
+                                                         :meme/total-supply total-supply
+                                                         :meme/total-minted total-minted}])])))
+                   state)))]))
 
 (defmethod rank :created [_ active-account]
   (let [query (if active-account
@@ -609,6 +616,7 @@
                              [:meme-token/meme
                               [:reg-entry/address
                                :meme/title
+                               :meme/number
                                :meme/image-hash
                                :meme/meta-hash
                                :meme/total-minted]]]]]]]]]
@@ -655,12 +663,12 @@
                                    (into result new))))))
         query (build-query tab {:active-account active-account
                                 :prefix prefix
-                                :form-data form-data
+                                :form-data @form-data
                                 :after 0
                                 :first scroll-interval})
-        query-id (merge form-data {:tab tab})
+        query-id (ratom/reaction (merge @form-data {:tab tab}))
         query-subs (subscribe [::gql/query {:queries query}
-                               {:id query-id}])
+                               {:id @query-id}])
         k (case prefix
             :memes :search-memes
             :meme-auctions :search-meme-auctions)
@@ -702,7 +710,10 @@
     (fn [tab prefix form-data]
       [:div.tabbed-pane
        [:section.search-form
-        [search/search-tools (merge {:title "My Memefolio"
+        [search/search-tools (merge {:title (if (or (empty? provided-address)
+                                                    (= user-account provided-address))
+                                              "My Memefolio"
+                                              (str "Memefolio " provided-address))
                                      :form-data form-data
                                      :on-selected-tags-change re-search
                                      :on-search-change re-search
@@ -751,7 +762,7 @@
           [:div.rank
            [rank @tab @user-account]])]
        [:div.panel
-        [scrolling-container @tab {:active-account @user-account :form-data @form-data :prefix prefix}]]])))
+        [scrolling-container @tab {:active-account @user-account :form-data form-data :prefix prefix}]]])))
 
 (defmethod page :route.memefolio/index []
   (let [{:keys [:query]} @(subscribe [::router-subs/active-page])

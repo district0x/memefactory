@@ -57,7 +57,8 @@
         :text-align :center
         :background-color (color :curator-card-bg)}
        (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
-       [:ul {:line-height (em 2)}]
+       [:ul {:line-height (em 2)}
+        [:.best-sale {:cursor :pointer}]]
        ["> *"
         {:display :block
          :margin-bottom (em 0.5)

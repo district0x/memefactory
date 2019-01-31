@@ -174,7 +174,7 @@
                                                       [[:meme/meme-auctions {:order-by @order-by
                                                                              :completed :true}
                                                         [:meme-auction/address
-                                                         :meme-auction/end-price
+                                                         :meme-auction/bought-for
                                                          :meme-auction/bought-on
                                                          [:meme-auction/seller
                                                           [:user/address]]
@@ -202,7 +202,7 @@
               [:tbody [:tr [:td {:colspan 5} "This meme hasn't been traded yet."]]]
               [:tbody
                (doall
-                (for [{:keys [:meme-auction/address :meme-auction/end-price :meme-auction/bought-on
+                (for [{:keys [:meme-auction/address :meme-auction/bought-for :meme-auction/bought-on
                               :meme-auction/meme-token :meme-auction/seller :meme-auction/buyer] :as auction} all-auctions]
                   (when address
                     ^{:key address}
@@ -216,9 +216,12 @@
                                                                {:address (:user/address buyer)}
                                                                {:tab :collected}])}
                       (:user/address buyer)]
-                     [:td.end-price (format-price end-price)]
-                     [:td.time  (when-not (empty? (str bought-on))
-                                  (format/time-ago (ui-utils/gql-date->date bought-on) (t/date-time @now)))]])))]))]]))))
+                     [:td.end-price (format-price bought-for)]
+                     [:td.time  (let [now-date (t/date-time @now)
+                                      bought-date (ui-utils/gql-date->date bought-on)]
+                                  (when-not (or (empty? (str bought-on))
+                                                (> (.getTime bought-date) (.getTime now-date)))
+                                   (format/time-ago bought-date now-date)))]])))]))]]))))
 
 (defn challenge-header [created-on]
   [:div.header
@@ -240,18 +243,29 @@
      [:div.address (str "Address: " (:user/address challenger))]
      [:i (str "\"" comment "\"")]]))
 
-(defn status-component [status]
-  [:div.status
-   [:b "Challenge status"]
-   [:div.description (case (graphql-utils/gql-name->kw status)
-                       :reg-entry.status/whitelisted "Resolved, accepted"
-                       :reg-entry.status/blacklisted "Resolved, rejected"
-                       :reg-entry.status/challenge-period "Challenge period running"
-                       :reg-entry.status/commit-period "Commit vote period running"
-                       :reg-entry.status/reveal-period "Reveal vote period running"
-                       status)]
+(defn status-component [{:keys [:reg-entry/status] :as meme}]
+  (let [status (graphql-utils/gql-name->kw status)
+        current-period-ends (fn [label end-date]
+                              [:li (str label " period ends in ")
+                               [:div (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                              (ui-utils/gql-date->date end-date))
+                                         format/format-time-units)]])]
+    [:ul.status
+     [:li "Challenge status"
+      [:div (case status
+              :reg-entry.status/whitelisted "Resolved, accepted"
+              :reg-entry.status/blacklisted "Resolved, rejected"
+              :reg-entry.status/challenge-period "Challenge period running"
+              :reg-entry.status/commit-period "Commit vote period running"
+              :reg-entry.status/reveal-period "Reveal vote period running"
+              status)]]
+     (case status
+       :reg-entry.status/challenge-period (current-period-ends "Challenge" (:reg-entry/challenge-period-end meme))
+       :reg-entry.status/commit-period (current-period-ends "Vote" (:challenge/commit-period-end meme))
+       :reg-entry.status/reveal-period (current-period-ends "Reveal" (:challenge/reveal-period-end meme))
+       nil)
 
-   [:div.lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."]])
+     [:div.lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."]]))
 
 (defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
                                :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
@@ -268,9 +282,9 @@
      (when (< 0 votes-total)
        [charts/donut-chart meme])
      [:div.votes-inner
-      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (if votes-for (/ votes-for 1e18) 0))]
-      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (if votes-against (/ votes-against 1e18) 0))]
-      [:div.text (str "Total voted: " (if votes-total (/ votes-total 1e18) 0))]
+      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (format-dank votes-for))]
+      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (format-dank votes-against ))]
+      [:div.text (str "Total voted: " (format-dank votes-total))]
 
       (buttons/reclaim-buttons @active-account meme)]]))
 
@@ -286,6 +300,7 @@
        [:b "Challenge Explanation"]
        [inputs/textarea-input {:form-data form-data
                                :id :challenge/comment
+                               :maxLength 2000
                                :errors errors}]
        [:div.controls
         [:div.dank (format/format-token (quot deposit 1e18) {:token "DANK"})]
@@ -415,7 +430,8 @@
                                                                            :vote/amount (-> @form-data
                                                                                             :vote/amount-against
                                                                                             js/parseInt
-                                                                                            (web3/to-wei :ether))}])}
+                                                                                            (web3/to-wei :ether))
+                                                                           :meme/title title}])}
           (if @tx-success?
             "Voted"
             "Vote Stank")]]]
@@ -434,7 +450,7 @@
    [:h1.title "Challenge"]
    (cond-> [:div.challenge-component-inner
             [challenge-header created-on]]
-     created-on (into [[status-component status]
+     created-on (into [[status-component meme]
                        [challenger-component meme]
                        [reveal-vote-component meme]]))])
 
@@ -444,7 +460,7 @@
    [:h1.title "Challenge"]
    (cond-> [:div.challenge-component-inner
             [challenge-header created-on]]
-     created-on (into [[status-component status]
+     created-on (into [[status-component meme]
                        [challenger-component meme]
                        [vote-component meme]]))])
 
@@ -456,7 +472,7 @@
      [:h1.title "Challenge"]
      [:div.challenge-component-inner-cp
       [challenge-header created-on]
-      [status-component status]
+      [status-component meme]
       [challenge-meme-component meme (:deposit params)]]]))
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
@@ -465,7 +481,7 @@
    [:h1.title "Challenge"]
    (cond-> [:div.challenge-component-inner
             [challenge-header created-on]]
-     created-on (into [[status-component status]
+     created-on (into [[status-component meme]
                        [challenger-component meme]
                        [votes-component meme]]))])
 

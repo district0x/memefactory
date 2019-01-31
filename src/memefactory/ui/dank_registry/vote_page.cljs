@@ -5,6 +5,7 @@
    [cljs-web3.core :as web3]
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
+   [memefactory.ui.utils :as ui-utils]
    [district.time :as time]
    [district.ui.component.form.input :refer [select-input with-label text-input amount-input pending-button]]
    [district.ui.component.page :refer [page]]
@@ -65,17 +66,15 @@
                [:ul.vote-info
                 (when (pos? votes-for)
                   [:li
-                  (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (/ votes-for 1e18))])
+                   (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (ui-utils/format-dank votes-for))])
                 (when (pos? votes-against)
                   [:li
-                   (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (/ votes-against 1e18))])
+                   (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (ui-utils/format-dank votes-against))])
                 (when (pos? votes-total)
-                  [:li "Total voted: " (gstring/format "%d" (/ votes-total 1e18))])
+                  [:li "Total voted: " (ui-utils/format-dank votes-total)])
                 [:li "Your reward: " (let [reward (+ (:challenge/reward-amount all-rewards)
                                                      (:vote/reward-amount all-rewards))]
-                                       (if (zero? reward)
-                                         0
-                                         (format/format-token (/ reward 1e18) {:token "DANK"})))]
+                                       (ui-utils/format-dank reward))]
                 (when-not (or (= option :vote-option/not-revealed)
                               (= option :vote-option/no-vote))
                   [:li (str "You voted: " (gstring/format "%d for %s "
