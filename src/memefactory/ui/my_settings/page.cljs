@@ -21,15 +21,15 @@
   (let [public-key-sub (re-frame/subscribe [::gql/query
                                             {:queries [[:config
                                                         [[:ui [:public-key]]]]]}])
-        active-account @(re-frame/subscribe [::accounts-subs/active-account])
-        settings (re-frame/subscribe [:memefactory.ui.subs/settings active-account])
+        active-account (re-frame/subscribe [::accounts-subs/active-account])
         form-data (r/atom {})
         errors (reaction {:local (cond-> {}
                                    (not (valid-email? (or (:email @form-data) "")))
                                    (assoc-in [:email :error] "Invalid email format"))})]
     (fn []
 
-      (let [public-key (-> @public-key-sub :config :ui :public-key)]
+      (let [public-key (-> @public-key-sub :config :ui :public-key)
+            settings (re-frame/subscribe [:memefactory.ui.subs/settings @active-account])]
         [:div.my-settings-box
          [:div.icon]
          [:h2.title "My Settings"]
