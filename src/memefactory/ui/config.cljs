@@ -10,7 +10,8 @@
   (:require-macros [memefactory.ui.utils :refer [get-environment]]))
 
 (def development-config
-  {:logging {:level :debug
+  {:debug? true
+   :logging {:level :debug
              :console? true}
    :time-source "blockchain"
    :web3 {:url "http://localhost:8549"}

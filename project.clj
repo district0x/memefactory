@@ -162,7 +162,6 @@
                                    :output-dir "dev-server"
                                    :target :nodejs
                                    :optimizations :none
-                                   :closure-defines {"goog.DEBUG" true}
                                    :source-map true}}
                        {:id "dev-ui"
                         :source-paths ["src/memefactory/ui" "src/memefactory/shared"]
@@ -174,7 +173,6 @@
                                    :source-map-timestamp true
                                    :preloads [print.foo.preloads.devtools
                                               re-frisk.preload]
-                                   :closure-defines {"goog.DEBUG" true}
                                    :external-config {:devtools/config {:features-to-install :all}}}}
                        {:id "server"
                         :source-paths ["src"]
@@ -184,7 +182,6 @@
                                    :target :nodejs
                                    :optimizations :simple
                                    :source-map "server/memefactory.js.map"
-                                   :closure-defines {"goog.DEBUG" false}
                                    :pretty-print false}}
                        {:id "ui"
                         :source-paths ["src"]
@@ -192,8 +189,7 @@
                                    :output-to "resources/public/js/compiled/app.js"
                                    :optimizations :advanced
                                    :pretty-print true
-                                   :pseudo-names true
-                                   :closure-defines {"goog.DEBUG" true}}}
+                                   :pseudo-names true}}
                        {:id "server-tests"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
                         :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}

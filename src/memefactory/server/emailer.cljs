@@ -2,8 +2,9 @@
   (:require
    [cljs-web3.eth :as web3-eth]
    [district.encryption :as encryption]
+   [district.format :as format]
    [district.sendgrid :refer [send-email]]
-   [district.server.config :refer [config]]
+   [district.server.config :as config]
    [district.shared.error-handling :refer [try-catch]]
    [goog.format.EmailAddress :as email-address]
    [memefactory.server.contract.district0x-emails :as district0x-emails]
@@ -21,7 +22,7 @@
 (declare stop)
 
 (defstate emailer
-  :start (start (merge (:emailer @config)
+  :start (start (merge (:emailer @config/config)
                        (:emailer (mount/args))))
   :stop (stop emailer))
 
@@ -35,15 +36,22 @@
                                             :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (try-catch
    (let [{:keys [:reg-entry/creator :meme/title] :as meme} (db/get-meme registry-entry)
-         {:keys [:from :template-id :api-key :print-mode?]} @emailer]
+         {:keys [:from :template-id :api-key :print-mode?]} @emailer
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address creator})
                 #(validate-email %)
                 (fn [to] (if to
                            (send-email {:from from
                                         :to to
                                         :subject (str "Your meme has been challenged ")
-                                        :content (templates/challenge-created-email-body meme)
-                                        :substitutions {:header (str title " meme challenged")}
+                                        :content (templates/challenge-created-email-body {:meme/title title
+                                                                                          :meme-url (str root-url
+                                                                                                         "meme-detail/"
+                                                                                                         registry-entry)
+                                                                                          :registry-entry registry-entry})
+                                        :substitutions {:header (str title " meme challenged")
+                                                        :button-title "Cast your vote"
+                                                        :button-href (str root-url "dankregistry/vote")}
                                         :on-success #(log/info "Success sending meme challenged email" {:to to
                                                                                                         :registry-entry registry-entry
                                                                                                         :meme-title title}
@@ -62,15 +70,21 @@
   (try-catch
    (let [{:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
          {:keys [:meme/title] :as meme} (db/get-meme-by-auction-address address)
-         {:keys [:from :template-id :api-key :print-mode?]} @emailer]
+         {:keys [:from :template-id :api-key :print-mode?]} @emailer
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address seller})
                 #(validate-email %)
                 (fn [to] (if to
                            (send-email {:from from
                                         :to to
                                         :subject (str "One of your auctions has been bought")
-                                        :content (templates/meme-auction-bought-email-body meme-auction)
-                                        :substitutions {:header (str "Your auction for " title  " has been bought")}
+                                        :content (templates/meme-auction-bought-email-body {:meme/title title
+                                                                                            :meme-url (str root-url
+                                                                                                           "meme-detail/"
+                                                                                                           (:reg-entry/address meme))})
+                                        :substitutions {:header (str "Your auction for " title " has been bought")
+                                                        :button-title "Check the leaderboard"
+                                                        :button-href (str root-url "leaderboard/collectors")}
                                         :on-success #(log/info "Success sending auction bought email" {:to to
                                                                                                        :meme-auction meme-auction
                                                                                                        :meme-title title}
@@ -88,7 +102,8 @@
 (defn send-vote-reward-claimed-email [{:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (try-catch
    (let [{:keys [:meme/title] :as meme} (db/get-meme registry-entry)
-         {:keys [:from :template-id :api-key :print-mode?]} @emailer]
+         {:keys [:from :template-id :api-key :print-mode?]} @emailer
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address voter})
                 #(validate-email %)
                 (fn [to]
@@ -98,7 +113,13 @@
                                  :subject "You received a vote reward"
                                  :content (templates/vote-reward-claimed-email-body {:amount amount
                                                                                      :title title})
-                                 :substitutions {:header (str "Reward for voting on " title)}
+                                 :substitutions {:header (str "Reward for voting on " {:meme/title title
+                                                                                       :amount amount
+                                                                                       :meme-url (str root-url
+                                                                                                      "meme-detail/"
+                                                                                                      registry-entry)})
+                                                 :button-title "Check leaderboard"
+                                                 :button-href (str root-url "leaderboard/curators")}
                                  :on-success #(log/info "Success sending email" {:to to
                                                                                  :registry-entry registry-entry
                                                                                  :meme-title title}
@@ -116,7 +137,8 @@
 (defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
   (try-catch
    (let [{:keys [:meme/title] :as meme} (db/get-meme registry-entry)
-         {:keys [:from :template-id :api-key :print-mode?]} @emailer]
+         {:keys [:from :template-id :api-key :print-mode?]} @emailer
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address challenger})
                 #(validate-email %)
                 (fn [to] (if to
@@ -124,8 +146,13 @@
                                         :to to
                                         :subject "You received a challenge reward"
                                         :content (templates/challenge-reward-claimed-email-body {:amount amount
-                                                                                                 :title title})
-                                        :substitutions {:header (str "Reward for challenging " registry-entry)}
+                                                                                                 :title title
+                                                                                                 :meme-url (str root-url
+                                                                                                                "meme-detail/"
+                                                                                                                registry-entry)})
+                                        :substitutions {:header (str "Reward for challenging " registry-entry)
+                                                        :button-title "Check leaderboard"
+                                                        :button-href (str root-url "leaderboard/curators")}
                                         :on-success #(log/info "Success sending challenge reward claimed email" {:to to
                                                                                                                  :registry-entry registry-entry
                                                                                                                  :title title}
