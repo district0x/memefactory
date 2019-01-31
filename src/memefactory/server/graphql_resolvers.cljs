@@ -122,7 +122,7 @@
                                     [:meme-tags :mtags]
                                     [:= :mtags.reg-entry/address :m.reg-entry/address]
 
-                                    [{:select [:v.reg-entry/address [(sql/call :sum :v.vote/amount) :votes]]
+                                    [{:select [:v.reg-entry/address [(sql/call :total :v.vote/amount) :votes]]
                                       :from [[:votes :v]]
                                       :where [:> :v.vote/created-on (- now (* 24 60 60))] ;; past 24h
                                       :group-by [:v.reg-entry/address]} :votes]
@@ -460,7 +460,7 @@
   {:user/address creator})
 
 (defn reg-entry-winning-vote-option [{:keys [:reg-entry/address]}]
-  (->> (db/all {:select [:vote/option [(sql/call :count) :count]]
+  (->> (db/all {:select [:vote/option [(sql/call :total :vote/amount) :count]]
                 :from [:votes]
                 :where [:and
                         [:not= :vote/revealed-on nil]
@@ -524,7 +524,7 @@
 
 (defn reg-entry->votes-total-resolver [{:keys [:reg-entry/address] :as reg-entry}]
   (log/debug "challenge->votes-total-resolver args" reg-entry)
-  (-> (db/get {:select [[(sql/call :sum :v.vote/amount) :total-votes]]
+  (-> (db/get {:select [[(sql/call :total :v.vote/amount) :total-votes]]
                :from [[:votes :v]]
                :where [:= :v.reg-entry/address address]})
       :total-votes))

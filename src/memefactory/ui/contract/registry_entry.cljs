@@ -142,9 +142,9 @@
  (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :active-account :meme/title] :as args}]]
    (let [tx-name (gstring/format "Claim vote reword %s" title)
          active-account (account-queries/active-account db)]
-     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
-                                      :fn :claim-vote-amount-and-reward
-                                      :args [active-account]
+     {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme address))
+                                      :fn :claim-vote-reward
+                                      :args (look [active-account])
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
                                       :tx-id {::claim-vote-reward id}
@@ -158,20 +158,20 @@
 
 
 (re-frame/reg-event-fx
- ::reclaim-vote-amount
+ ::claim-vote-amount
  [interceptors]
- (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address] :as args}]]
-   (let [tx-name "Reclaim vote amount"
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :meme/title] :as args}]]
+   (let [tx-name (gstring/format "Claim vote amount %s" title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :reclaim-vote-amount
                                       :args [active-account]
                                       :tx-opts {:from active-account
                                                 :gas 6000000}
-                                      :tx-id {::reclaim-vote-amount id}
+                                      :tx-id {::claim-vote-amount id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::reclaim-vote-amount]
-                                                        [::notification-events/show "Succesfully reclaimed vote amount"]]
+                                                        [::notification-events/show (gstring/format "Succesfully laimed vote amount %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:is active-account}
                                                      :args args}
