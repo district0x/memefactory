@@ -20,19 +20,19 @@
    [district.ui.web3-tx]
    [district.ui.web3]
    [district.ui.window-size]
-   [memefactory.ui.config :refer [config-map]]
    [memefactory.shared.contract.registry-entry]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.routes :refer [routes]]
    [memefactory.shared.smart-contracts :refer [smart-contracts]]
+   [memefactory.ui.config :as config]
+   [memefactory.ui.config :refer [config-map]]
    [memefactory.ui.contract.registry-entry]
-   [memefactory.ui.dank-registry.browse-page]
    [memefactory.ui.dank-registry.browse-page]
    [memefactory.ui.dank-registry.challenge-page]
    [memefactory.ui.dank-registry.submit-page]
    [memefactory.ui.dank-registry.vote-page]
+   [memefactory.ui.get-dank.page]
    [memefactory.ui.home.page]
-   [memefactory.ui.my-settings.page]
    [memefactory.ui.ipfs]
    [memefactory.ui.leaderboard.collectors-page]
    [memefactory.ui.leaderboard.creators-page]
@@ -41,19 +41,18 @@
    [memefactory.ui.marketplace.page]
    [memefactory.ui.meme-detail.page]
    [memefactory.ui.memefolio.page]
-   [memefactory.ui.get-dank.page]
+   [memefactory.ui.my-settings.page]
    [memefactory.ui.subs]
    [mount.core :as mount]
    [print.foo :include-macros true]
+   [re-frame.core :as re-frame]
    [re-frisk.core :refer [enable-re-frisk!]]
-   [re-frame.core :as re-frame]))
-
-(def debug? ^boolean js/goog.DEBUG)
+   ))
 
 (def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
 
 (defn dev-setup []
-  (when debug?
+  (when (:debug? @config/config)
     (enable-console-print!)
     (enable-re-frisk!)))
 
@@ -86,5 +85,4 @@
     (-> (mount/with-args full-config)
         (mount/start)))
 
-  (re-frame/dispatch-sync [::init])
-  )
+  (re-frame/dispatch-sync [::init]))

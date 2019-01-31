@@ -471,7 +471,7 @@
        registry-entry/vote-options))
 
 (defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
-  (log/info (str "reg-entry->vote-winning-vote-option-resolver " reg-entry args))
+  (log/info "reg-entry->vote-winning-vote-option-resolver " {:reg-entry reg-entry :args args})
   (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry))
     (let [{:keys [:vote/option]} (db/get {:select [:vote/option]
                                           :from [:votes]
