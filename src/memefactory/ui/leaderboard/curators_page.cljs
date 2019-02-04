@@ -71,33 +71,32 @@
 
               (if (empty? lazy-curators)
                 [:div.no-items-found "No items found."]
-                (doall
-                 (for [curator lazy-curators]
-                   ^{:key (:user/address curator)}
-                   [:div.curator
-                    [:p.number "#" (case order-by
-                                     :users.order-by/curator-total-earned (:user/curator-rank curator)
-                                     :users.order-by/challenger-total-earned (:user/challenger-rank curator)
-                                     :users.order-by/voter-total-earned (:user/voter-rank curator))]
-                    [:h3.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                        {:address (:user/address curator)}
-                                                        {:tab :curated}])}
-                     (:user/address curator)]
+                (->> lazy-curators
+                     (map-indexed
+                      (fn [idx curator]
+                        ^{:key (:user/address curator)}
+                        [:div.curator
+                         [:p.number (str "#" (inc idx))]
+                         [:h3.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                             {:address (:user/address curator)}
+                                                             {:tab :curated}])}
+                          (:user/address curator)]
 
-                    [:h4.challenges "CHALLENGES"]
-                    [:p "Success rate: "
-                     (let [total-challenges (:user/total-created-challenges curator)
-                           success-challenges (:user/total-created-challenges-success curator)]
-                       [:span success-challenges "/" total-challenges " (" (format/format-percentage success-challenges total-challenges) ")"])]
-                    [:p "Earned: " [:span (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]]
+                         [:h4.challenges "CHALLENGES"]
+                         [:p "Success rate: "
+                          (let [total-challenges (:user/total-created-challenges curator)
+                                success-challenges (:user/total-created-challenges-success curator)]
+                            [:span success-challenges "/" total-challenges " (" (format/format-percentage success-challenges total-challenges) ")"])]
+                         [:p "Earned: " [:span (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]]
 
-                    [:h4.votes "VOTES"]
-                    [:p "Success rate: "
-                     (let [total-votes (:user/total-participated-votes curator)
-                           success-votes (:user/total-participated-votes-success curator)]
-                       [:span success-votes "/" total-votes " (" (format/format-percentage success-votes total-votes) ")"])]
-                    [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
-                    [:p.total-earnings "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]])))]
+                         [:h4.votes "VOTES"]
+                         [:p "Success rate: "
+                          (let [total-votes (:user/total-participated-votes curator)
+                                success-votes (:user/total-participated-votes-success curator)]
+                            [:span success-votes "/" total-votes " (" (format/format-percentage success-votes total-votes) ")"])]
+                         [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
+                         [:p.total-earnings "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))
+                     doall))]
              [infinite-scroll {:load-fn (fn [] (when-not (:graphql/loading? @search-users)
                                                  (let [{:keys [has-next-page end-cursor]} (:search-users (last @search-users))]
 
