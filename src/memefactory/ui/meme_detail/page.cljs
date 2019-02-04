@@ -128,7 +128,6 @@
                                                  (into result new))))))
         build-query (fn [{:keys [:first :after]}]
                       [[:search-meme-auctions {:tags-or tags
-                                               :statuses [:meme-auction.status/done]
                                                :after (str after)
                                                :first first}
                         [:total-count
@@ -144,13 +143,16 @@
                                     [:meme-token/meme
                                      [:reg-entry/address
                                       :meme/title
+                                      :meme/number
                                       :meme/image-hash
                                       :meme/meta-hash
                                       :meme/total-minted]]]]]]]]])
         response (subscribe [::gql/query {:queries (build-query {:after 0
                                                                  :first scroll-interval})}
                              {:id address}])
-        state (safe-mapcat (fn [q] (get-in q [:search-meme-auctions :items])) @response)]
+        state (->> @response
+                   (mapcat (fn [q] (get-in q [:search-meme-auctions :items])))
+                   (remove #(= (-> % :meme-auction/meme-token :meme-token/meme :reg-entry/address) address)))]
 
     (log/debug "Related memes" {:address address :tags tags :resp @response})
 
@@ -225,11 +227,8 @@
 
 (defn challenge-header [created-on]
   [:div.header
-   (if created-on
-     [:h2.title
-      (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]
-     [:div
-      [:h4.title "This meme hasn't been challenged."]])])
+   [:h2.title
+    (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]])
 
 (defn challenger-component [{:keys [:challenge/comment :challenge/challenger] :as meme}]
   (let [{:keys [:user/challenger-rank :user/challenger-total-earned
@@ -240,7 +239,10 @@
                      (format/format-token challenger-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
-     [:div.address (str "Address: " (:user/address challenger))]
+     [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                          {:address (:user/address challenger)}
+                                          {:tab :curated}])}
+      (str "Address: " (:user/address challenger))]
      [:i (str "\"" comment "\"")]]))
 
 (defn status-component [{:keys [:reg-entry/status] :as meme}]
@@ -285,7 +287,15 @@
       [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (format-dank votes-for))]
       [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (format-dank votes-against ))]
       [:div.text (str "Total voted: " (format-dank votes-total))]
-
+      (when-not (or (= option :vote-option/not-revealed)
+                    (= option :vote-option/no-vote))
+        [:div.text (str "You voted: " (gstring/format "%d for %s "
+                                                (if (pos? amount)
+                                                  (quot amount 1e18)
+                                                  0)
+                                                (case option
+                                                  :vote-option/vote-for "DANK"
+                                                  :vote-option/vote-against "STANK")))])
       (buttons/reclaim-buttons @active-account meme)]]))
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit :meme/title] :as meme} dank-deposit]
@@ -376,7 +386,7 @@
     (fn []
       [:div.vote
        [:div description]
-       [remaining-time-component (ui-utils/gql-date->date commit-period-end)]
+       #_[remaining-time-component (ui-utils/gql-date->date commit-period-end)]
        [:div.form
         [:div.vote-dank
          [:div.outer
@@ -479,11 +489,14 @@
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
   [:div.challenge-component
    [:h1.title "Challenge"]
-   (cond-> [:div.challenge-component-inner
-            [challenge-header created-on]]
-     created-on (into [[status-component meme]
-                       [challenger-component meme]
-                       [votes-component meme]]))])
+   (if-not created-on
+     [:div
+      [:h4.title "This meme hasn't been challenged."]]
+     (cond-> [:div.challenge-component-inner
+              [challenge-header created-on]]
+       created-on (into [[status-component meme]
+                         [challenger-component meme]
+                         [votes-component meme]])))])
 
 (defn details []
 

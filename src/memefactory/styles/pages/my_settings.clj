@@ -20,6 +20,7 @@
     [:.form {:font-size (px 14)
              :margin (em 2)}
      [:.alert {:color :green
-               :margin-bottom (em 1)}]]
+               :margin-bottom (em 1)}]
+     (for-media-min :large [:.labeled-input-group {:width "30%"}])]
     [:.footer
       (get-dank-button)]]])

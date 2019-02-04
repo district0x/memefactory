@@ -26,7 +26,8 @@
                                       :tx-opts {:from active-account
                                                 :gas 600000}
                                       :tx-id {:district0x-emails/set-email tx-id}
-                                      :tx-log {:name tx-name}
+                                      :tx-log {:name tx-name
+                                               :related-href "/my-settings/index"}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::save-settings]
                                                         [::notification-events/show (gstring/format "Settings saved")]
                                                         [::settings-saved args]]

@@ -31,7 +31,7 @@
      :animation-duration "2s"
      :animation-iteration-count :infinite
      :animation-timing-function :linear}]
-   [:section.dankest {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
+   [:section.dankest
     [:.dankest-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})]

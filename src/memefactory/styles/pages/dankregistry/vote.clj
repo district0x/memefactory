@@ -41,7 +41,7 @@
                   :margin-top (em 0)
                   :right (em 0)
                   :height 0
-                  :top (em -3)
+                  :top (em -4)
                   :position :relative}
 
       [:.help-block {:display :none}]
@@ -122,4 +122,5 @@
      (button {:background-color :purple
               :color :white
               :height (em 2.5)
-              :width (em 13)})]]])
+              :width (em 13)})
+     [:&.collect-reward {:background-color (color :pink)}]]]])

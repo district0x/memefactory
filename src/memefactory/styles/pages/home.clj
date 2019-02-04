@@ -54,7 +54,9 @@
                     {:top (em 1.5)}])]]
 
    [:.meme-highlights
-    {:margin-top (em 2)}
+    {:margin-top (em 2)
+     :border-radius "1em 1em 1em 1em"
+     :overflow :hidden}
     [:>div
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -64,8 +66,7 @@
                     [:&
                      {:border-radius "1em 1em 1em 1em"
                       :margin-bottom (em 2)}])
-     [:&.new-on-marketplace
-      {:border-radius "1em 1em 0em 0em"}]]
+     [:&.new-on-marketplace]]
     [:h2.title
      (font :bungee)
      (for-media-max :tablet
@@ -169,5 +170,4 @@
               :background-position-y (em 0.70)
               :background-image (str "url('/assets/icons/memesubmiticon.svg')")}]
      [:h2.title {:color (color :blue)}]
-     [:p.comment {:font-style :italic}]]
-    ]])
+     [:p.comment {:font-style :italic}]]]])

@@ -90,7 +90,7 @@
                         :title "Dank registry"
                         :sub-title "Sub title"
                         :on-selected-tags-change re-search
-                        :select-options (->> [{:key "number" :value "Number"}
+                        :select-options (->> [{:key "number" :value "Registry Number"}
                                               {:key "total-trade-volume" :value "Total trade volume"}
                                               {:key "created-on" :value "Newest"}])
                         :on-search-change re-search

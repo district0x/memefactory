@@ -34,12 +34,12 @@
             not-revealed? (= option :vote-option/not-revealed)]
 
         [:div
-
          (when vote
            (if not-revealed?
              [pending-button {:pending? @claim-vote-amount-tx-pending?
                               :disabled (or @claim-vote-amount-tx-pending? @claim-vote-amount-tx-success?)
                               :pending-text "Collecting ..."
+                              :class "collect-amount"
                               :on-click (fn []
                                           (dispatch [::registry-entry/claim-vote-amount (look {:send-tx/id vote-amount-tx-id
                                                                                                :active-account active-account
@@ -47,20 +47,21 @@
                                                                                                :meme/title (:meme/title meme)})]))}
 
               (if @claim-vote-amount-tx-success?
-                "Vote Collected"
+                "Collected"
                 "Vote Amount")]
 
              (when vote-winning-vote-option
                [pending-button {:pending? @claim-vote-reward-tx-pending?
                                 :disabled (or @claim-vote-reward-tx-pending? @claim-vote-reward-tx-success?)
                                 :pending-text "Collecting ..."
+                                :class "collect-reward"
                                 :on-click (fn []
                                             (dispatch [::registry-entry/claim-vote-reward (look {:send-tx/id vote-reward-tx-id
                                                                                                  :active-account active-account
                                                                                                  :reg-entry/address address
                                                                                                  :meme/title (:meme/title meme)})]))}
                 (if @claim-vote-reward-tx-success?
-                  "Vote Collected"
+                  "Collected"
                   "Vote reward")])))
 
          (when (and (= (:user/address challenger) active-account)

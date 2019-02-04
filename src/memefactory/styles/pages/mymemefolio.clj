@@ -135,7 +135,8 @@
                    [:&
                     {:display :block}])
     [">.rank"
-     {:width "100%"}]
+     {:width "100%"}
+     [:.best-card-sale {:cursor :pointer}]]
     [".stats>*"
      {:padding-right (em 1)
       :align-items :center

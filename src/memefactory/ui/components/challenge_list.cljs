@@ -49,9 +49,9 @@
                                             :user/total-created-memes
                                             :user/total-created-memes-whitelisted]]]
                 include-challenger-info? (conj [:challenge/challenger [:user/address
-                                                                       :user/creator-rank
-                                                                       :user/total-created-memes
-                                                                       :user/total-created-memes-whitelisted]])
+                                                                       :user/challenger-rank
+                                                                       :user/total-created-challenges
+                                                                       :user/total-created-challenges-success]])
                 active-account (into [[:challenge/vote {:vote/voter active-account}
                                        [:vote/secret-hash
                                         :vote/revealed-on
@@ -62,8 +62,8 @@
                                        [:challenge/reward-amount
                                         :vote/reward-amount]]]))]]]))
 
-(defn user-info [user class]
-  [:ol {:class class}
+(defn creator-info [user]
+  [:ol {:class :creator}
    [:li "Rank: " [:span (gstring/format "#%d" (or (:user/creator-rank user) 0))]]
    [:li "Success Rate: " [:span (let [tcmw (or (:user/total-created-memes-whitelisted user) 0)
                                       tcm (or (:user/total-created-memes user) 0)]
@@ -71,17 +71,27 @@
                                                  tcmw
                                                  tcm
                                                  (if (pos? tcm) (/ (* 100 tcmw) tcm) 0)))]]
-   [:li "Address: " [:span.address (when (= class :creator)
-                                     {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                            {:address (:user/address user)}
-                                                            {:tab :created}])
-                                      :class "creator"})
+   [:li "Address: " [:span.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                          {:address (:user/address user)}
+                                                          {:tab :created}])
+                                    :class "creator"}
                      (-> user :user/address)]]])
+
+(defn challenger-info [user]
+  [:ol {:class :challenger}
+   [:li "Rank: " [:span (gstring/format "#%d" (or (:user/challenger-rank user) 0))]]
+   [:li "Success Rate: " [:span (let [tccs (or (:user/total-created-challenges-success user) 0)
+                                      tcc (or (:user/total-created-challenges user) 0)]
+                                  (gstring/format "%d/%d (%d%%)"
+                                                 tccs
+                                                 tcc
+                                                 (if (pos? tcc) (/ (* 100 tccs) tcc) 0)))]]
+   [:li "Address: " [:span.address (-> user :user/address)]]])
 
 (defn current-period-ends [label end-date]
   [:li (str label " period ends in: ") [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
                                                                        (utils/gql-date->date end-date))
-                                            format/format-time-units)]])
+                                                  format/format-time-units)]])
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child]}]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
@@ -111,9 +121,9 @@
                  [:li ""])
                [:li "Issued: " [:span total-supply]]]
               [:h3 "Creator"]
-              [user-info creator :creator]]
+              [creator-info creator]]
        include-challenger-info? (into [[:h3.challenger "Challenger"]
-                                       [user-info challenger :challenger]])
+                                       [challenger-info challenger]])
        true                     (into [[:span.challenge-comment (when-not (empty? comment)
                                                                   (str "\""comment "\""))]
                                        [:ol.tags

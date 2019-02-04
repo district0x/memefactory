@@ -320,6 +320,11 @@
       :padding-bottom (em 1)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"}
+     [:h4.title {:margin-left :auto
+                  :margin-right :auto
+                  :width (em 17)
+                  :margin-top (em 1)
+                  :margin-bottom (em 1)}]
      [:.challenge-component-inner-cp
       {:display :grid
        :grid-template-columns "50% 50%"
@@ -397,7 +402,7 @@
         {:margin-bottom  (em 0.5)}]]
       [:.votes
        {:display :grid
-        :grid-template-columns "45% 55%"
+        :grid-template-columns "50% 50%"
         :grid-template-rows "100%"}
        (for-media-max :computer
                    [:&
@@ -415,8 +420,9 @@
 
        [:button (button {:color :white
                          :background-color :purple
-                         :width (em 13)
+                         :width (em 12)
                          :height (em 3)})
+        [:&.collect-reward {:background-color (color :pink)}]
         (for-media-max :large
                        [:&
                         {:width (em 10)}])
@@ -469,7 +475,8 @@
     [:.outer {:display :inline-flex
               :width "100%"
               :border-bottom "1px solid"
-              :margin-bottom (em 1)}
+              :margin-bottom (em 1)
+              :min-height (em 3)}
      [:.unit {:margin-left (px -40)
               :margin-top (px 8)
               :font-size (px 11)
@@ -507,7 +514,8 @@
                            :background-color (color :violet)}
       (button-tile-back)]
      [:.scroll-area
-      {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-       :background-color :white
+      {:background-color :white
        :color (color :menu-text)
-       :border-radius (em 1)}]]]])
+       :border-radius (em 1)}
+      [:.tiles {:box-shadow :unset}]
+      ]]]])

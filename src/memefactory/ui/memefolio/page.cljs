@@ -135,7 +135,7 @@
                                             (not (pos? (count @token-ids))))
                               :class "create-offering"
                               :pending? @tx-pending?
-                              :pending-text "Creating offering..."
+                              :pending-text "Creating..."
                               :on-click (fn []
                                           (dispatch [::meme-token/transfer-multi-and-start-auction (merge (-> @form-data
                                                                                                               (update :meme-auction/duration shared-utils/days->seconds))
@@ -264,7 +264,7 @@
           [tx-button/tx-button {:primary true
                                 :disabled (not (pos? max-amount))
                                 :pending? @tx-pending?
-                                :pending-text "Issuing..."
+                                :pending-text "Issuing"
                                 :on-click (fn []
                                             (dispatch [::meme/mint (merge @form-data
                                                                           {:meme/title title
@@ -327,7 +327,8 @@
                                                               [:meme-auction/meme-token
                                                                [:meme-token/number
                                                                 [:meme-token/meme
-                                                                 [:meme/title]]]]]]]]]}])
+                                                                 [:meme/title
+                                                                  :reg-entry/address]]]]]]]]]}])
                 (ratom/reaction {:graphql/loading? true}))]
 
     (log/debug "query" @query)
@@ -348,7 +349,8 @@
        [:div.var
         [:b "Earned: "]
         (if creator-total-earned
-          (format/format-eth (web3/from-wei creator-total-earned :ether))
+          (format/format-eth (web3/from-wei creator-total-earned :ether) {:max-fraction-digits 2
+                                                                          :min-fraction-digits 0})
           [:div.spinner.spinner--var])]
        [:div.var
         [:b "Success Rate: "]
@@ -356,7 +358,9 @@
           (str total-created-memes-whitelisted "/" total-created-memes " ("
                (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")
           [:div.spinner.spinner--var])]
-       [:div.var
+       [:div.var.best-card-sale {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                          {:address (:reg-entry/address meme)}
+                                                          nil])}
         [:b "Best Single Card Sale: "]
         (if (and largest-sale number title)
           (str (-> (:meme-auction/end-price largest-sale)
@@ -443,9 +447,10 @@
             [:div.spinner.spinner--var])]]
         [:div
          [:div.label "TOTAL-EARNINGS:"]
-         (if (and challenger-total-earned voter-total-earned)
-           (ui-utils/format-dank (+ challenger-total-earned voter-total-earned))
-           [:div.spinner.spinner--var])]]])))
+         [:div
+          (if (and challenger-total-earned voter-total-earned)
+            (ui-utils/format-dank (+ challenger-total-earned voter-total-earned))
+            [:div.spinner.spinner--var])]]]])))
 
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}

@@ -22,4 +22,4 @@
 (defn format-dank [dank]
   (format/format-token (/ dank 1e18) {:max-fraction-digits 2
                                       :token "DANK"
-                                      :min-fraction-digits 2}))
+                                      :min-fraction-digits 0}))
