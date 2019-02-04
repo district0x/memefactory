@@ -65,7 +65,7 @@
                :votes (:votes store))}))
 
 (defn ^:export init []
-  (s/check-asserts debug?)
+  #_(s/check-asserts debug?)
   (dev-setup)
   (let [full-config (merge config-map
                            {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)
@@ -78,7 +78,7 @@
                                              :component-var #'router}
                             :router {:routes routes
                                      :default-route :route/home}
-                            :router-google-analytics {:enabled? (not debug?)}
+                            :router-google-analytics {:enabled? nil #_(not debug?)}
                             :district-ui-notification {:default-show-duration 2000
                                                        :default-hide-duration 1000}})]
     (js/console.log "Entire config:" (clj->js full-config))

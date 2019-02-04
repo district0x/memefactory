@@ -115,7 +115,8 @@
                                            {:key "random" :value "Random"}]
                           :search-result-count search-total-count
                           :on-check-filter-change re-search
-                          :on-select-change re-search}]
+
+                          }]
            [:div.search-results
             [marketplace-tiles form-data auctions-search]]]]]))))
 
