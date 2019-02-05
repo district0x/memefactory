@@ -34,7 +34,7 @@
                                                 :gas 6000000}
                                       :tx-id {:meme/create-meme tx-id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "/meme-detail/" )}
+                                               :related-href (str "#/memefolio/?tab=created&term=" (:title data))}
                                       :on-tx-hash-n [[::notification-events/show (gstring/format "Your meme was successfully submitted")]]
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::create-meme]]
                                       :on-tx-error [::logging/error (str tx-name " tx error") {:user {:id active-account}

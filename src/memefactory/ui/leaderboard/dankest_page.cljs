@@ -31,6 +31,7 @@
              :meme/image-hash
              :reg-entry/created-on
              :meme/title
+             :meme/number
              :meme/total-minted
              :meme/total-trade-volume]]]])
 

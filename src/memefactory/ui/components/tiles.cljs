@@ -115,14 +115,14 @@
                                    (-> meme-token :meme-token/meme :meme/total-minted))]
           [:div.price (format-price price)]]]))))
 
-(defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted] :as meme}]
+(defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number] :as meme}]
   (let [user-address (-> meme :reg-entry/creator :user/address)]
     [:div.meme-card.back
      [:div.overlay
       [:div.info
        [:ul.meme-data
-        [:li [:label "Rank:"]
-         (str "#" (-> meme :reg-entry/creator :user/creator-rank))]
+        [:li [:label "Registry Number:"]
+         (str "#" number)]
         [:li [:label "Creator:"]
          [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                        {:address user-address}

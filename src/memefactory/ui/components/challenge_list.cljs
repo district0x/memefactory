@@ -89,52 +89,73 @@
    [:li "Address: " [:span.address (-> user :user/address)]]])
 
 (defn current-period-ends [label end-date]
-  [:li (str label " period ends in: ") [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                       (utils/gql-date->date end-date))
-                                                  format/format-time-units)]])
+
+  (let [{:keys [days hours minutes seconds] :as time-remaining} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                                     (utils/gql-date->date end-date))]
+    (if (= 0 days hours minutes seconds)
+      [:li (str label " period ended.")]
+
+      [:li (str label " period ends in: ")
+       [:span (-> time-remaining
+                  format/format-time-units)]])))
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child]}]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
                 :meme/tags :challenge/challenger :challenge/comment :reg-entry/status :challenge/commit-period-end :challenge/reveal-period-end]} entry]
-    [:div.challenge
-     (cond-> [:div.info
-              [:h2 {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                      {:address address}
-                                                      nil])}
-               title]
 
-              [:ol.meme
-               [:li "Created: " [:span (let [formated-time (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
+    (let [status (gql-utils/gql-name->kw status)
+          [period-label period-end] (case status
+                                      :reg-entry.status/challenge-period ["Challenge" challenge-period-end]
+                                      :reg-entry.status/commit-period    ["Voting" commit-period-end]
+                                      :reg-entry.status/reveal-period    ["Reveal" reveal-period-end]
+                                      nil)
+          {:keys [days hours minutes seconds] :as time-remaining} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                                       (utils/gql-date->date period-end))]
+      [:div.challenge
+       (cond-> [:div.info
+                [:h2 {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                            {:address address}
+                                            nil])}
+                 title]
 
-                                                               (dissoc :seconds)
-                                                               format/format-time-units)]
-                                         (if-not (empty? formated-time)
-                                           (str formated-time " ago")
-                                           "less than a minute ago"))]]
+                [:ol.meme
+                 [:li "Created: " [:span (let [formated-time (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
+
+                                                                 (dissoc :seconds)
+                                                                 format/format-time-units)]
+                                           (if-not (empty? formated-time)
+                                             (str formated-time " ago")
+                                             "less than a minute ago"))]]
 
 
-               (case (gql-utils/gql-name->kw status)
-                 :reg-entry.status/challenge-period [current-period-ends "Challenge" challenge-period-end]
-                 :reg-entry.status/commit-period [current-period-ends "Voting" commit-period-end]
-                 :reg-entry.status/reveal-period [current-period-ends "Reveal" reveal-period-end]
-                 [:li ""])
-               [:li "Issued: " [:span total-supply]]]
-              [:h3 "Creator"]
-              [creator-info creator]]
-       include-challenger-info? (into [[:h3.challenger "Challenger"]
-                                       [challenger-info challenger]])
-       true                     (into [[:span.challenge-comment (when-not (empty? comment)
-                                                                  (str "\""comment "\""))]
-                                       [:ol.tags
-                                        (for [{:keys [:tag/name]} tags]
-                                          [:li.tag {:key name}
-                                           name])]]))
+                 (if period-end
+                   (if (= 0 days hours minutes seconds)
+                     [:li (str period-label " period ended.")]
 
-     [:div.meme-tile
-      [tiles/meme-image image-hash]]
-     [:div.action
-      [action-child entry]]]))
+                     [:li (str period-label " period ends in: ")
+                      [:span (-> time-remaining
+                                 format/format-time-units)]])
+                   [:li ""])
+                 [:li "Issued: " [:span total-supply]]]
+                [:h3 "Creator"]
+                [creator-info creator]]
+         include-challenger-info? (into [[:h3.challenger "Challenger"]
+                                         [challenger-info challenger]])
+         true                     (into [[:span.challenge-comment (when-not (empty? comment)
+                                                                    (str "\""comment "\""))]
+                                         [:ol.tags
+                                          (for [{:keys [:tag/name]} tags]
+                                            [:li.tag {:key name}
+                                             name])]]))
+
+       [:div.meme-tile
+        [tiles/meme-image image-hash]]
+       [:div.action
+        (if (and (= 0 days hours minutes seconds)
+                 (not (#{:reg-entry.status/whitelisted :reg-entry.status/blacklisted} status)))
+          [:span (str period-label " period ended, please refresh the page.")]
+          [action-child entry])]])))
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
   (let [form-data (r/atom {:order-by (-> sort-options first :key)

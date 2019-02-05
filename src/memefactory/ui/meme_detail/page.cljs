@@ -49,6 +49,7 @@
               [:reg-entry/address
                :reg-entry/status
                :reg-entry/deposit
+               :reg-entry/challenge-period-end
                :meme/image-hash
                :meme/meta-hash
                :meme/number
@@ -226,9 +227,10 @@
                                    (format/time-ago bought-date now-date)))]])))]))]]))))
 
 (defn challenge-header [created-on]
-  [:div.header
-   [:h2.title
-    (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]])
+  (when created-on
+    [:div.header
+     [:h2.title
+      (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]]))
 
 (defn challenger-component [{:keys [:challenge/comment :challenge/challenger] :as meme}]
   (let [{:keys [:user/challenger-rank :user/challenger-total-earned
@@ -245,13 +247,15 @@
       (str "Address: " (:user/address challenger))]
      [:i (str "\"" comment "\"")]]))
 
-(defn status-component [{:keys [:reg-entry/status] :as meme}]
+(defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme}]
   (let [status (graphql-utils/gql-name->kw status)
-        current-period-ends (fn [label end-date]
-                              [:li (str label " period ends in ")
-                               [:div (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                              (ui-utils/gql-date->date end-date))
-                                         format/format-time-units)]])]
+        [period-label period-end] (case status
+                                    :reg-entry.status/challenge-period ["Challenge" challenge-period-end]
+                                    :reg-entry.status/commit-period    ["Voting" commit-period-end]
+                                    :reg-entry.status/reveal-period    ["Reveal" reveal-period-end]
+                                    nil)
+        {:keys [days hours minutes seconds] :as time-remaining} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                                     (ui-utils/gql-date->date period-end))]
     [:ul.status
      [:li "Challenge status"
       [:div (case status
@@ -261,11 +265,16 @@
               :reg-entry.status/commit-period "Commit vote period running"
               :reg-entry.status/reveal-period "Reveal vote period running"
               status)]]
-     (case status
-       :reg-entry.status/challenge-period (current-period-ends "Challenge" (:reg-entry/challenge-period-end meme))
-       :reg-entry.status/commit-period (current-period-ends "Vote" (:challenge/commit-period-end meme))
-       :reg-entry.status/reveal-period (current-period-ends "Reveal" (:challenge/reveal-period-end meme))
-       nil)
+
+     (if period-end
+       (if (= 0 days hours minutes seconds)
+         [:li (str period-label " period ends in ")
+          [:div (str period-label " period ended.")]]
+
+         [:li (str period-label " period ends in ")
+          [:div (-> time-remaining
+                     format/format-time-units)]])
+       [:li ""])
 
      [:div.lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."]]))
 
@@ -455,35 +464,48 @@
                                                 [:reg-entry.status/reveal-period] :reg-entry.status/reveal-period)))
 
 (defmethod challenge-component :reg-entry.status/reveal-period
-  [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  [:div.challenge-component
-   [:h1.title "Challenge"]
-   (cond-> [:div.challenge-component-inner
-            [challenge-header created-on]]
-     created-on (into [[status-component meme]
-                       [challenger-component meme]
-                       [reveal-vote-component meme]]))])
+  [{:keys [:challenge/created-on :reg-entry/status :challenge/reveal-period-end] :as meme}]
+  (let [{:keys [days hours minutes seconds]} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                  (ui-utils/gql-date->date reveal-period-end))]
+    [:div.challenge-component
+    [:h1.title "Challenge"]
+    (cond-> [:div.challenge-component-inner
+             [challenge-header created-on]]
+      created-on (into [[status-component meme]
+                        [challenger-component meme]
+                        (if-not (= 0 days hours minutes seconds)
+                          [reveal-vote-component meme]
+                          [:div "Reveal period ended. Please refresh the page."])]))]))
 
 (defmethod challenge-component :reg-entry.status/commit-period
-  [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  [:div.challenge-component
-   [:h1.title "Challenge"]
-   (cond-> [:div.challenge-component-inner
-            [challenge-header created-on]]
-     created-on (into [[status-component meme]
-                       [challenger-component meme]
-                       [vote-component meme]]))])
+  [{:keys [:challenge/created-on :reg-entry/status :challenge/commit-period-end] :as meme}]
 
-(defmethod challenge-component :reg-entry.status/challenge-period
-  [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-
-  (when-let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]
+  (let [{:keys [days hours minutes seconds]} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                  (ui-utils/gql-date->date commit-period-end))]
     [:div.challenge-component
      [:h1.title "Challenge"]
-     [:div.challenge-component-inner-cp
-      [challenge-header created-on]
-      [status-component meme]
-      [challenge-meme-component meme (:deposit params)]]]))
+     (cond-> [:div.challenge-component-inner
+              [challenge-header created-on]]
+       created-on (into [[status-component meme]
+                         [challenger-component meme]
+                         (if-not (= 0 days hours minutes seconds)
+                           [vote-component meme]
+                           [:div "Commit period ended. Please refresh the page."])]))]))
+
+(defmethod challenge-component :reg-entry.status/challenge-period
+  [{:keys [:challenge/created-on :reg-entry/status :reg-entry/challenge-period-end] :as meme}]
+
+  (let [{:keys [days hours minutes seconds] :as tr} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                  (ui-utils/gql-date->date challenge-period-end))]
+    (when-let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]
+      [:div.challenge-component
+       [:h1.title "Challenge"]
+       [:div.challenge-component-inner-cp
+        [challenge-header created-on]
+        [status-component meme]
+        (if-not (= 0 days hours minutes seconds)
+          [challenge-meme-component meme (:deposit params)]
+          [:div "Challenge period ended."])]])))
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]

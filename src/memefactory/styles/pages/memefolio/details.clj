@@ -320,6 +320,13 @@
       :padding-bottom (em 1)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"}
+     [:.status {:padding-left (em 1)}
+       [:li {:font-weight :bold
+             :list-style-type :none}
+        [:div {:font-weight :normal
+               :margin-bottom (em 0.5)
+               :margin-top (em 0.5)
+               }]]]
      [:h4.title {:margin-left :auto
                   :margin-right :auto
                   :width (em 17)
@@ -445,14 +452,7 @@
          :color (color :section-subcaption)
          :font-size (px 15)
          :text-align :center}]]
-      [:.status {:padding-left (em 1)}
-       [:li {:font-weight :bold
-             :list-style-type :none}
-        [:div {:font-weight :normal
-               :margin-bottom (em 0.5)
-               :margin-top (em 0.5)
-               }]]
-       ]
+
       [:.reveal
        [:button {:margin-top (em 1)}
         (button {:color :white
@@ -474,9 +474,7 @@
          :display :block}]
     [:.outer {:display :inline-flex
               :width "100%"
-              :border-bottom "1px solid"
-              :margin-bottom (em 1)
-              :min-height (em 3)}
+              :margin-bottom (em 1)}
      [:.unit {:margin-left (px -40)
               :margin-top (px 8)
               :font-size (px 11)
@@ -484,6 +482,10 @@
      [:.help-block {:display :none}]]
     [:.form {:display :inline-flex
              :margin-top (em 1)}
+     [:input {:border-bottom "1px solid"
+              :border-left 0
+              :border-right 0
+              :border-top 0}]
      [:.vote-dank {:margin-right (em 2)
                    :width "50%"}
       [:.labeled-input-group {:width "100%"}]

@@ -33,6 +33,7 @@
              :meme/image-hash
              :meme/title
              :meme/total-minted
+             :meme/number
              [:reg-entry/creator [:user/address
                                   :user/creator-rank]]]]]])
 
