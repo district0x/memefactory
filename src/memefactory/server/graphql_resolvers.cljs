@@ -210,7 +210,7 @@
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          now (utils/now-in-seconds)
-         page-start-idx (if after (js/parseInt after) 0)
+         page-start-idx (when after (js/parseInt after))
          page-size first
          query (cond-> {:select [:ma.* :m.reg-entry/address]
                         :modifiers [:distinct]
@@ -263,8 +263,8 @@
                       (squash-by-min :reg-entry/address #(shared-utils/calculate-meme-auction-price % now))
 
                       ;; pagination
-                      true (drop page-start-idx)
-                      true (take page-size)
+                      page-start-idx (drop page-start-idx)
+                      page-size (take page-size)
                       )
              last-idx (cond-> (count result)
                         page-start-idx (+ page-start-idx))]

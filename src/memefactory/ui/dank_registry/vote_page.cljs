@@ -44,10 +44,15 @@
       (let [response (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
                                                          [:reg-entry/address
                                                           :challenge/votes-for
+                                                          :challenge/votes-against
+                                                          [:challenge/all-rewards {:user/address @active-account}
+                                                           [:challenge/reward-amount]]
+                                                          [:challenge/challenger [:user/address]]
+                                                          [:challenge/vote-winning-vote-option {:vote/voter @active-account}]
                                                           [:challenge/vote {:vote/voter @active-account}
                                                            [:vote/option
                                                             :vote/amount]]
-                                                          :challenge/votes-against
+
                                                           :challenge/votes-total]]]}])]
         (when-not (:graphql/loading? @response)
           (if-let [meme-voting (:meme @response)]
@@ -84,7 +89,7 @@
                                                           (case option
                                                             :vote-option/vote-for "DANK"
                                                             :vote-option/vote-against "STANK")))])]
-               (buttons/reclaim-buttons @active-account meme)])))))))
+               (buttons/reclaim-buttons @active-account meme-voting)])))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote :meme/title] :as meme}]
   (let [tx-id (str address "vote")

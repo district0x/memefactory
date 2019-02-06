@@ -75,7 +75,7 @@
                :challenge/votes-for
                :challenge/votes-against
                :challenge/votes-total
-
+               [:challenge/vote-winning-vote-option {:vote/voter active-account}]
                [:challenge/all-rewards {:user/address active-account}
                                        [:challenge/reward-amount
                                         :vote/reward-amount]]
@@ -238,7 +238,7 @@
     [:div.challenger
      [:b "Challenger"]
      [:div.rank (str "Rank: #" challenger-rank " ("
-                     (format/format-token challenger-total-earned {:token "DANK"}) ")")]
+                     (format-dank challenger-total-earned) ")")]
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
      [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
@@ -536,7 +536,8 @@
         tags (mapv :tag/name tags)]
 
     (log/debug "Response" (when response @response))
-    (js/console.log "RE RENDERING " (:challenge/challenger meme))
+    (js/console.log "RE RENDERING " meme)
+
     [app-layout/app-layout
      {:meta {:title "MemeFactory"
              :description "Description"}}
