@@ -21,7 +21,8 @@
             [taoensso.timbre :as log]
             [district.shared.error-handling :refer [try-catch-throw]]
             [memefactory.server.ranks-cache :as ranks-cache]
-            [memefactory.server.utils :as utils]))
+            [memefactory.server.utils :as utils]
+            [memefactory.shared.utils :as shared-utils]))
 
 (def enum graphql-utils/kw->gql-name)
 
@@ -196,22 +197,22 @@
     [:= :ma.meme-auction/bought-on nil]]                                          (enum :meme-auction.status/active)
    :else                                                                          (enum :meme-auction.status/done)))
 
+(defn squash-by-min [k f coll]
+  (->> coll
+       (group-by k)
+       (map (fn [[_ xs]]
+              (apply min-key f xs)))))
+
 ;; If testing this by hand remember params like statuses should be string and not keywords
 ;; like (search-meme-auctions-query-resolver nil {:statuses [(enum :meme-auction.status/active)]})
 (defn search-meme-auctions-query-resolver [_ {:keys [:title :tags :tags-or :order-by :order-dir :group-by :statuses :seller :first :after] :as args}]
-  (log/debug "search-meme-auctions-query-resolver" args)
+  (log/info "search-meme-auctions-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          now (utils/now-in-seconds)
-         page-start-idx (when after (js/parseInt after))
+         page-start-idx (if after (js/parseInt after) 0)
          page-size first
-         query (cond-> {:select (cond-> [:ma.*]
-                                  (and group-by
-                                       (= (graphql-utils/gql-name->kw group-by)
-                                          :meme-auctions.group-by/cheapest))
-                                  ;; TODO we should use current price instead of start price here
-                                  ;; tricky to do in SQL
-                                  (conj (sql/call :min :ma.meme-auction/start-price)))
+         query (cond-> {:select [:ma.* :m.reg-entry/address]
                         :modifiers [:distinct]
                         :from [[:meme-auctions :ma]]
                         :join [[:meme-tokens :mt] [:= :mt.meme-token/token-id :ma.meme-auction/token-id]
@@ -229,10 +230,7 @@
                                                            [:in :mtts.tag/name tags]]}])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
-                                                                                               ;; TODO we should use current price instead of start price here
-                                                                                               ;; tricky to do in SQL
-                 order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/price      :ma.meme-auction/start-price
-                                                           :meme-auctions.order-by/started-on :ma.meme-auction/started-on
+                 order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                            :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
                                                            :meme-auctions.order-by/token-id   :ma.meme-auction/token-id
                                                            :meme-auctions.order-by/meme-total-minted :m.meme/total-minted
@@ -240,8 +238,43 @@
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]])
-                 group-by     (merge {:group-by [:m.reg-entry/address]}))]
-     (paged-query query page-size page-start-idx))))
+
+                 (and group-by
+                      (not (= (graphql-utils/gql-name->kw group-by)
+                              :meme-auctions.group-by/cheapest)))     (merge {:group-by [:m.reg-entry/address]}))]
+
+     ;; for this two is hard to do in sql since current price is calculated so for now doing it in Clojure
+     (if (or (and order-by (= (graphql-utils/gql-name->kw order-by) :meme-auctions.order-by/price))
+             (and group-by (= (graphql-utils/gql-name->kw group-by) :meme-auctions.group-by/cheapest)))
+
+       ;; group-by and order-by current price and pagination in Clojure
+       (let [total-count (count (db/all query))
+             result (cond->> (db/all query)
+                      ;; ordering by price
+                      (and order-by
+                           (= (graphql-utils/gql-name->kw order-by)
+                              :meme-auctions.order-by/price))
+                      (sort-by #(shared-utils/calculate-meme-auction-price % now) (if (= (keyword order-dir) :desc) < >))
+
+                      ;; grouping cheapest
+                      (and group-by
+                           (= (graphql-utils/gql-name->kw group-by)
+                              :meme-auctions.group-by/cheapest))
+                      (squash-by-min :reg-entry/address #(shared-utils/calculate-meme-auction-price % now))
+
+                      ;; pagination
+                      true (drop page-start-idx)
+                      true (take page-size)
+                      )
+             last-idx (cond-> (count result)
+                        page-start-idx (+ page-start-idx))]
+         {:items result
+          :total-count total-count
+          :end-cursor last-idx
+          :has-next-page (not= last-idx total-count)})
+
+       ;; everything SQL
+       (paged-query query page-size page-start-idx)))))
 
 (defn search-tags-query-resolver [_ {:keys [:first :after] :as args}]
   (log/debug "search-tags-query-resolver" args)
