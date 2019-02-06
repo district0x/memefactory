@@ -36,7 +36,8 @@
       :transform "rotateY(0deg)"}]
     [:&.back
      {:transform-style :preserve-3d
-      :transform "rotateY(180deg)"}]]]
+      :transform "rotateY(180deg)"}
+     [:.overlay {:z-index -10}]]]]
   [:.container.flipped
    [:.meme-card
     [:&.front :&.back
@@ -47,7 +48,8 @@
       :transform "rotateY(-180deg)"}]
     [:&.back
      {:transform-style :preserve-3d
-      :transform "rotateY(0deg)"}]]]
+      :transform "rotateY(0deg)"}
+     [:.overlay {:z-index 0}]]]]
   [:.meme-card
    {:position :absolute
     :background-color (color "gray")
