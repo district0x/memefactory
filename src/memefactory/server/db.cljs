@@ -127,6 +127,8 @@
    ;[:user/largest-buy address default-nil]
    [:user/voter-total-earned :BIG :INT default-zero]
    [:user/challenger-total-earned :BIG :INT default-zero]
+   [:user/total-earned :BIG :INT default-zero]
+   [:user/best-single-card-sale :BIG :INT default-zero]
    [(sql/call :primary-key :user/address)]])
 
 (def registry-entry-column-names (map first registry-entries-columns))

@@ -209,7 +209,9 @@
                                   (and group-by
                                        (= (graphql-utils/gql-name->kw group-by)
                                           :meme-auctions.group-by/cheapest))
-                                  (conj (sql/call :min :ma.meme-auction/bought-for)))
+                                  ;; TODO we should use current price instead of start price here
+                                  ;; tricky to do in SQL
+                                  (conj (sql/call :min :ma.meme-auction/start-price)))
                         :modifiers [:distinct]
                         :from [[:meme-auctions :ma]]
                         :join [[:meme-tokens :mt] [:= :mt.meme-token/token-id :ma.meme-auction/token-id]
@@ -227,7 +229,9 @@
                                                            [:in :mtts.tag/name tags]]}])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
-                 order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/price      :ma.meme-auction/bought-for
+                                                                                               ;; TODO we should use current price instead of start price here
+                                                                                               ;; tricky to do in SQL
+                 order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/price      :ma.meme-auction/start-price
                                                            :meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                            :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
                                                            :meme-auctions.order-by/token-id   :ma.meme-auction/token-id
@@ -330,7 +334,9 @@
                                               :users.order-by/total-collected-memes :user/total-collected-memes
                                               :users.order-by/total-collected-token-ids :user/total-collected-token-ids
                                               :users.order-by/total-created-memes-whitelisted :user/total-created-memes-whitelisted
-                                              :users.order-by/total-created-memes :user/total-created-memes}
+                                              :users.order-by/total-created-memes :user/total-created-memes
+                                              :users.order-by/total-earned :user/total-earned
+                                              :users.order-by/best-single-card-sale :user/best-single-card-sale}
                                              (graphql-utils/gql-name->kw order-by)))
          fields (conj (query-fields document :items) order-by-clause)
          select? #(contains? fields %)

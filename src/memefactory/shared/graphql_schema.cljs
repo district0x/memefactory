@@ -143,7 +143,7 @@
     users_orderBy_totalCollectedTokenIds
     users_orderBy_totalCreatedMemesWhitelisted
     users_orderBy_totalCreatedMemes
-    users_orderBy_creatorTotalEarned
+    users_orderBy_totalEarned
     users_orderBy_bestSingleCardSale
   }
 

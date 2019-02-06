@@ -71,7 +71,7 @@
                                                         (:meme/title meme))]])]]))
 
 (defmethod page :route.leaderboard/creators []
-  (let [form-data (r/atom {:order-by "curator-total-earned"})]
+  (let [form-data (r/atom {:order-by "total-earned"})]
     (fn []
       (let [order-by (keyword "users.order-by" (:order-by @form-data))
             re-search-users (fn [after]
@@ -101,7 +101,7 @@
                  [select-input
                   {:form-data form-data
                    :id :order-by
-                   :options [{:key "creator-total-earned" :value "by earnings"}
+                   :options [{:key "total-earned" :value "by earnings"}
                              {:key "best-single-card-sale" :value "by single card sale"}
                              {:key "total-created-memes-whitelisted" :value "by created memes"}]}])]
               [:div.scroll-area

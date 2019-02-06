@@ -278,9 +278,16 @@
 (defmethod process-event [:contract/meme-auction :MemeAuctionBuyEvent]
   [_ {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (try-catch
-   (let [reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
-                               :reg-entry/address)]
+   (let [auction (db/get-meme-auction meme-auction)
+         reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
+                               :reg-entry/address)
+         seller-address (:meme-auction/seller auction)
+         {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller-address} [:user/best-single-card-sale])]
+     (db/update-user! {:user/address seller-address
+                       :user/best-single-card-sale (max best-single-card-sale
+                                                        (bn/number seller-proceeds))})
      (db/update-user! {:user/address buyer})
+     (db/inc-user-field! (:meme-auction/seller auction) :user/total-earned (bn/number seller-proceeds))
      (db/inc-meme-total-trade-volume! {:reg-entry/address reg-entry-address
                                        :amount (bn/number price)})
      (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
