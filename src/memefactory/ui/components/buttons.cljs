@@ -76,5 +76,5 @@
                                                                                             :reg-entry/address address
                                                                                             :meme/title (:meme/title meme)}]))}
             (if @claim-challenge-reward-tx-success?
-              "Challenge Collected"
+              "Collected"
               "Challenge Reward")])]))))

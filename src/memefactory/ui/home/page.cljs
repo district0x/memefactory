@@ -70,12 +70,12 @@
      [:div.title (-> meme :meme/title)]]]))
 
 
-(defn memes-list [memes]
+(defn memes-list [memes empty-msg]
   (let [memes (take-max-multiple-of 3 memes)]
     [:div.tiles
 
      (if (empty? memes)
-       [:div.no-items-found "No items found."]
+       [:div.no-items-found empty-msg]
        (doall
         (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
           ^{:key address}
@@ -194,4 +194,4 @@
            [:div.middle
             [:h2.title "Trending Votes"]
             [:h3.title "Lorem ipsum ..."]]]
-          [memes-list (-> @trending-votes :search-memes :items)]]]]])))
+          [memes-list (-> @trending-votes :search-memes :items) "No votes are running currently"]]]]])))

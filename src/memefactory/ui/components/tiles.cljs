@@ -66,7 +66,10 @@
          [:div.overlay
           [:div.info
            [:ul.meme-data
-            [:li [:label "Seller:"] [:span (:user/address (:meme-auction/seller meme-auction))]]
+            [:li [:label "Seller:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                                  {:address (:user/address (:meme-auction/seller meme-auction))}
+                                                                  {:tab :selling}])}
+                                     (:user/address (:meme-auction/seller meme-auction))]]
             [:li [:label "Current Price:"] [:span (format-price price)]]
             [:li [:label "Start Price:"] [:span (format-price (:meme-auction/start-price meme-auction))]]
             [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]

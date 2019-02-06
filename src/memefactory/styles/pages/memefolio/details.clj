@@ -340,7 +340,6 @@
       (for-media-max :computer
                      [:&
                       {:grid-template-columns "100%"
-                       :grid-template-rows "100%"
                        :padding-left (em 1)
                        :padding-right (em 1)}])
       [">*" {:padding (em 1)
@@ -404,6 +403,7 @@
        (for-media-max :computer
                       [:&
                        {:border-right "0px"}])
+       [:.address {:cursor :pointer}]
        [:b {:display :block}]
        [">*"
         {:margin-bottom  (em 0.5)}]]
@@ -413,8 +413,7 @@
         :grid-template-rows "100%"}
        (for-media-max :computer
                    [:&
-                    {:grid-template-rows "50% 50%"
-                     :grid-template-columns "100%"
+                    {:grid-template-columns "100%"
                      :text-align :center}
                     [:button {:margin :auto}]
                     ])

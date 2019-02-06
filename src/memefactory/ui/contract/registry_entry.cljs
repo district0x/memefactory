@@ -134,7 +134,7 @@
                                       :tx-log {:name tx-name
                                                :related-href (str "#/meme-detail/" address)}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::claim-challenge-reward]
-                                                        [::notification-events/show (gstring/format "Succesfully claimed challenge reward %s" title)]]
+                                                        [::notification-events/show (gstring/format "Successfully claimed challenge reward %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}
@@ -155,7 +155,7 @@
                                       :tx-log {:name tx-name
                                                :related-href (str "#/meme-detail/" address)}
                                       :on-tx-success-n [[::logging/info (str tx-name " reward tx success") ::claim-vote-reward]
-                                                        [::notification-events/show (gstring/format "Succesfully claimed vote reward %s" title)]]
+                                                        [::notification-events/show (gstring/format "Successfully claimed vote reward %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}
@@ -177,7 +177,7 @@
                                       :tx-log {:name tx-name
                                                :related-href (str "#/meme-detail/" address)}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::reclaim-vote-amount]
-                                                        [::notification-events/show (gstring/format "Succesfully laimed vote amount %s" title)]]
+                                                        [::notification-events/show (gstring/format "Succesfully claimed vote amount %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:is active-account}
                                                      :args args}

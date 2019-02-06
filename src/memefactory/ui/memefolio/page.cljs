@@ -55,7 +55,8 @@
                                        (map :meme-token/token-id)))
         max-auction-duration (shared-utils/seconds->days (inc max-auction-duration))
         form-data (r/atom {:meme-auction/duration 14
-                           :meme-auction/amount 1})
+                           :meme-auction/amount 1
+                           :meme-auction/description ""})
         errors (ratom/reaction (let [sp (-> @form-data :meme-auction/start-price js/parseFloat)
                                      ep (-> @form-data :meme-auction/end-price js/parseFloat)]
                                  {:local {:meme-auction/amount (cond-> {:hint (str "Max " (count @token-ids))}

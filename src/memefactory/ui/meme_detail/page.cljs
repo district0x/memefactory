@@ -524,10 +524,9 @@
 
   (let [active-account @(subscribe [::accounts-subs/active-account])
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
-        response (if active-account
-                   (subscribe [::gql/query (build-meme-query address active-account)])
-                   (ratom/reaction {:graphql/loading? true}))
-        meme (-> @response :meme)
+        response (when active-account
+                   (subscribe [::gql/query (build-meme-query address active-account)]))
+        meme (when response (:meme @response))
         {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger]} meme
         token-count (->> owned-meme-tokens
@@ -536,8 +535,8 @@
                          count)
         tags (mapv :tag/name tags)]
 
-    (log/debug "Response" @response)
-
+    (log/debug "Response" (when response @response))
+    (js/console.log "RE RENDERING " (:challenge/challenger meme))
     [app-layout/app-layout
      {:meta {:title "MemeFactory"
              :description "Description"}}
