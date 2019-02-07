@@ -19,12 +19,16 @@
 
 (defn build-tiles-query [{:keys [:search-term :order-by :search-tags :order-dir :only-cheapest?]} after]
   [:search-memes
-   (cond-> {:first page-size}
+   (cond-> {:first page-size
+            :statuses [:reg-entry.status/whitelisted]}
      (not-empty search-term) (assoc :title search-term)
      (not-empty search-tags) (assoc :tags search-tags)
      after                   (assoc :after after)
      order-by                (assoc :order-by (keyword "memes.order-by" order-by))
-     order-dir               (assoc :order-dir (keyword order-dir)))
+     order-dir               (assoc :order-dir (keyword (case order-by
+                                                          "number"             :asc
+                                                          "total-trade-volume" :desc
+                                                          "created-on"         :desc))))
    [:total-count
     :end-cursor
     :has-next-page
@@ -91,9 +95,9 @@
                         :title "Dank registry"
                         :sub-title "Sub title"
                         :on-selected-tags-change re-search
-                        :select-options (->> [{:key "number" :value "Registry Number"}
+                        :select-options (->> [{:key "number"             :value "Registry Number"}
                                               {:key "total-trade-volume" :value "Total trade volume"}
-                                              {:key "created-on" :value "Newest"}])
+                                              {:key "created-on"         :value "Newest"}])
                         :on-search-change re-search
                         :on-check-filter-change re-search
                         :on-select-change re-search}]

@@ -43,6 +43,7 @@
     (when @active-account
       (let [response (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
                                                          [:reg-entry/address
+                                                          :meme/title
                                                           :challenge/votes-for
                                                           :challenge/votes-against
                                                           [:challenge/all-rewards {:user/address @active-account}
@@ -188,7 +189,9 @@
              "Reveal My Vote")]]
          (when (and (= vote-option :vote-option/not-revealed)
                     (not vote))
-           [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])]))))
+           [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])
+         (when (not vote)
+           [:div.no-reveal-info "You haven't voted"])]))))
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
   (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)

@@ -129,7 +129,7 @@
         [:li [:label "Creator:"]
          [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                        {:address user-address}
-                                       nil])}
+                                       {:tab :created}])}
           user-address]]
         [:li [:label "Created:"]
          (let [formated-time (-> (time/time-remaining (t/date-time (ui-utils/gql-date->date created-on)) (t/now))

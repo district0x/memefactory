@@ -144,7 +144,7 @@
  ::claim-vote-reward
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :active-account :meme/title] :as args}]]
-   (let [tx-name (gstring/format "Claim vote reword %s" title)
+   (let [tx-name (gstring/format "Claim vote reward %s" title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme address))
                                       :fn :claim-vote-reward

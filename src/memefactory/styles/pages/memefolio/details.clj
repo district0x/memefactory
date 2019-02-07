@@ -109,8 +109,7 @@
        :padding (em 1)
        :font-size (em 1.1)
        :border-radius "0em 0em 1em 1em"
-       :background-color (color :yellow)
-       :box-shadow ".3em .3em .3em 0px grey"}
+       :background-color (color :yellow)}
       (for-media-max :tablet
                     [:&
                      {:left (em 2.5)}])
@@ -124,7 +123,8 @@
       [:.status
        {:display :flex
         :line-height (em 1)
-        :margin-left (px -8)}
+        :margin-left (px -8)
+        }
        [:&:before
         {:content "''"
          :height (em 2.2)
@@ -142,7 +142,8 @@
        {:margin-top (em 1)}
        [">*"
         {:font-size (em 0.9)
-         :color (color :menu-text)}]]
+         :color (color :menu-text)}]
+       [:.address {:cursor :pointer}]]
       [:.description
        {:margin-bottom (em 1)}]
       [:.description, :.text
@@ -380,7 +381,7 @@
      [:.challenge-component-inner
       {:position :relative
        :display :grid
-       :grid-template-columns "30% 30% 40%"
+       :grid-template-columns "33% 33% 33%"
        :padding-left (em 2)
        :padding-right (em 2)}
       (for-media-max :computer
@@ -392,14 +393,16 @@
              :color (color :menu-text)
              :margin-bottom (em 1)}]
       [:.status
-       {:border-right "1px solid rgba(174, 175, 177, 0.5)"}
+       {:border-right "1px solid rgba(174, 175, 177, 0.5)"
+        :margin-top 0}
        (for-media-max :computer
                       [:&
                        {:border-right "0px"}])
        [:b {:display :block
             :margin-bottom (em 0.5)}]]
       [:.challenger
-       {:border-right "1px solid rgba(174, 175, 177, 0.5)"}
+       {:border-right "1px solid rgba(174, 175, 177, 0.5)"
+        :width "100%"}
        (for-media-max :computer
                       [:&
                        {:border-right "0px"}])
@@ -407,33 +410,29 @@
        [:b {:display :block}]
        [">*"
         {:margin-bottom  (em 0.5)}]]
-      [:.votes
+
+      [:.collect-reward
        {:display :grid
-        :grid-template-columns "50% 50%"
-        :grid-template-rows "100%"}
-       (for-media-max :computer
-                   [:&
-                    {:grid-template-columns "100%"
-                     :text-align :center}
-                    [:button {:margin :auto}]
-                    ])
-       (for-media-max :large
-                   [:&
-                    [:.votes-inner {:padding-left (em 1)}]])
+        :justify-items :center}
+       [:.vote-info {:list-style :none
+                     :text-align :center
+                     :padding-left (px 0)}]
+       [:button
+        {:margin-top (em 1)}
+        (button {:background-color :purple
+                 :color :white
+                 :height (em 2.5)
+                 :width (em 13)})
+        [:&.collect-reward {:background-color (color :pink)}]]]
 
-       [">div>*"
-        {:margin-bottom  (em 0.5)}]
 
-       [:button (button {:color :white
-                         :background-color :purple
-                         :width (em 12)
-                         :height (em 3)})
-        [:&.collect-reward {:background-color (color :pink)}]
-        (for-media-max :large
-                       [:&
-                        {:width (em 10)}])
 
-        {:margin-top (em 1)}]]
+       {:display :grid
+     :justify-items :center}
+    [:.vote-info {:list-style :none
+                  :text-align :center
+                  :padding-left (px 0)}]
+
 
 
       [:.header {:grid-column "1 / span 3"
@@ -459,8 +458,10 @@
                  :width (em 13)
                  :height (em 3)})]
        [:.no-reveal-info {:color :red
-                          :margin-top (em 1)}]]]]]
-   [:.vote
+                          :margin-top (em 1)}]]
+
+      [:.vote
+    {:padding-right 0}
     (for-media-max :large
                    [:&
                     {:margin-right (em 2)
@@ -496,7 +497,7 @@
                 :width "100%"})
        (vote-button-icon 2)]]
      [:.vote-stank
-      {:width "50%"}
+      {:width "51%"}
       [:.labeled-input-group {:width "100%"}]
       [:button
        (button {:background-color :random-meme-icon-bg
@@ -504,7 +505,8 @@
                 :height (em 3)
                 :width "100%"})
        (vote-button-icon 6)
-       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]]
+       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]]]]]
+
    [:section.related
     {:margin-top (em 3)}
     [:.relateds-panel

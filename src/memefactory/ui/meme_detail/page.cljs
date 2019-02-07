@@ -36,7 +36,8 @@
    [reagent.ratom :as ratom]
    [taoensso.timbre :as log]
    [goog.string :as gstring]
-   [memefactory.ui.components.buttons :as buttons]))
+   [memefactory.ui.components.buttons :as buttons]
+   [memefactory.ui.dank-registry.vote-page :as vote-page]))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
@@ -112,7 +113,10 @@
                      (format/format-token creator-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
-     [:div.address (str "Address: " address)]]))
+     [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                          {:address address}
+                                          {:tab :created}])}
+      (str "Address: " address)]]))
 
 (defn related-memes-component [state]
   (panel :selling state))
@@ -278,35 +282,6 @@
 
      [:div.lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."]]))
 
-(defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
-                               :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
-  (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on :vote/reclaimed-amount-on :vote/amount]} vote
-        active-account (subscribe [::accounts-subs/active-account])
-        option (graphql-utils/gql-name->kw option)
-        reward (if (nil? reward) 0 (quot reward 1e18))
-        tx-id (:reg-entry/address meme)
-        claim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
-        claim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])
-        reclaim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reclaim-vote-amount tx-id}])
-        reclaim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reclaim-vote-amount tx-id}])]
-    [:div.votes
-     (when (< 0 votes-total)
-       [charts/donut-chart meme])
-     [:div.votes-inner
-      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (format-dank votes-for))]
-      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (format-dank votes-against ))]
-      [:div.text (str "Total voted: " (format-dank votes-total))]
-      (when-not (or (= option :vote-option/not-revealed)
-                    (= option :vote-option/no-vote))
-        [:div.text (str "You voted: " (gstring/format "%d for %s "
-                                                (if (pos? amount)
-                                                  (quot amount 1e18)
-                                                  0)
-                                                (case option
-                                                  :vote-option/vote-for "DANK"
-                                                  :vote-option/vote-against "STANK")))])
-      (buttons/reclaim-buttons @active-account meme)]]))
-
 (defn challenge-meme-component [{:keys [:reg-entry/deposit :meme/title] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})
         errors (ratom/reaction {:local (when-not (spec/check ::spec/challenge-comment (:challenge/comment @form-data))
@@ -370,7 +345,9 @@
            "Reveal My Vote")]]
        (when (and (= vote-option :vote-option/not-revealed)
                   (not vote))
-         [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])])))
+         [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])
+       (when (not vote)
+           [:div.no-reveal-info "You haven't voted"])])))
 
 (defn vote-component [{:keys [:challenge/commit-period-end :meme/title] :as meme}]
   (let [balance-dank (subscribe [::account-balances-subs/active-account-balance :DANK])
@@ -518,7 +495,7 @@
               [challenge-header created-on]]
        created-on (into [[status-component meme]
                          [challenger-component meme]
-                         [votes-component meme]])))])
+                         [vote-page/collect-reward-action meme]])))])
 
 (defn details []
 

@@ -755,7 +755,10 @@
                                                  tab-id) "selected")}
                                 [:a {:on-click (fn [evt]
                                                  (.preventDefault evt)
-                                                 (reset! tab tab-id))
+                                                 #_(reset! tab tab-id)
+                                                 (dispatch [::router-events/navigate :route.memefolio/index
+                                                            {}
+                                                            {:tab tab-id}]))
                                      :href "#"}
                                  (-> tab-id
                                      cljs.core/name
