@@ -30,12 +30,31 @@
    [memefactory.shared.smart-contracts :as sc]
    [mount.core :as mount :refer [defstate]]
    [print.foo :refer [look] :include-macros true]
-   [taoensso.timbre :as log])
+   [taoensso.timbre :as log]
+   [memefactory.server.graphql-resolvers :refer [reg-entry-status]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 ;; this HACK is because mount doesn't support async, so mount start will return
 ;; a chan. We then store created filters in an atom so we can stop them at component stop.
 (def all-filters (atom []))
+
+(defn meme-number-assigner [{:keys [:reg-entry/address]}]
+  (let [{:keys [:challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end] :as re}
+        (db/get-registry-entry {:reg-entry/address address} [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
+                                                             :challenge/commit-period-end :challenge/commit-period-end
+                                                             :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against])
+        assign-next-number! #(let [current-meme-number (db/current-meme-number)]
+                               (db/assign-meme-number! address (inc current-meme-number)))]
+
+    (if-not challenger
+      (assign-next-number!)
+
+      (if (> (server-utils/now-in-seconds) reveal-period-end)
+        (when-not (= (reg-entry-status re (server-utils/now-in-seconds))
+                     :reg-entry.status/blacklisted)
+          (assign-next-number!))
+
+        (js/setTimeout meme-number-assigner (* 1000 (- reveal-period-end (server-utils/now-in-seconds))))))))
 
 (defn get-ipfs-meta [meta-hash]
   (js/Promise.
@@ -137,6 +156,9 @@
                           (db/update-meme! {:reg-entry/address registry-entry
                                             :meme/image-hash image-hash
                                             :meme/title title})
+                          (js/setTimeout meme-number-assigner (* 1000
+                                                                 (- (bn/number challenge-period-end)
+                                                                    (server-utils/now-in-seconds))))
                           (when search-tags
                             (doseq [t search-tags]
                               (db/tag-meme! (:reg-entry/address meme) t))))))))))))
@@ -414,6 +436,17 @@
                                (map #(apply % ["latest" dispatch-event]))
                            doall)]
 
+        ;; if there are any memes with unasigned numbers but still assignable
+        ;; start the number assigners
+        (let [assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period :reg-entry.status/commit-period :reg-entry.status/reveal-period}
+                                                         (reg-entry-status % (server-utils/now-in-seconds)))
+                                             (db/all-reg-entries))]
+          (doseq [{:keys [:reg-entry/challenge-period-end :challenge/reveal-period-end]} assignable-reg-entries]
+            (js/setTimeout meme-number-assigner (* 1000
+                                                   (- (if (> challenge-period-end (server-utils/now-in-seconds))
+                                                        challenge-period-end
+                                                        reveal-period-end)
+                                                      (server-utils/now-in-seconds))))))
         (reset! all-filters (into past-events-filters watch-filters))))))
 
 (defn stop [syncer]

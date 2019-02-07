@@ -41,7 +41,7 @@
 (def memes-columns
   [[:reg-entry/address address not-nil]
    [:meme/title :varchar not-nil]
-   [:meme/number :integer not-nil]
+   [:meme/number :integer default-nil]
    [:meme/image-hash ipfs-hash not-nil]
    [:meme/meta-hash ipfs-hash not-nil]
    [:meme/total-supply :unsigned :integer not-nil]
@@ -49,7 +49,7 @@
    [:meme/token-id-start :unsigned :integer default-nil #_not-nil]
    [:meme/total-trade-volume :BIG :INT default-nil]
    [:meme/first-mint-on :unsigned :integer default-nil]
-   [(sql/call :primary-key :meme/number)]
+   [(sql/call :primary-key :reg-entry/address)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
 
 (def meme-tokens-columns
@@ -370,3 +370,18 @@
   (db/run! {:update :memes
             :set {:meme/image-hash "forbidden-image-hash"}
             :where [:= :reg-entry/address address]}))
+
+(defn assign-meme-number! [address n]
+  (db/run! {:update :memes
+            :set {:meme/number n}
+            :where [:= :reg-entry/address address]}))
+
+(defn current-meme-number []
+  (-> (db/get {:select [[(sql/call :max :memes.meme/number) :max-number]]
+               :from [:memes]})
+      :max-number
+      (or 0)))
+
+(defn all-reg-entries []
+  (db/all {:select [:re.*]
+           :from [[:reg-entries :re]]}))
