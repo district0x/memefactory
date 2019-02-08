@@ -21,3 +21,8 @@
  ::votes
  (fn [db [_ account]]
    (get-in db [:votes account])))
+
+(re-frame/reg-sub
+ ::dank-faucet-spinner
+ (fn [db _]
+   (:memefactory.ui.get-dank.events/spinner db)))

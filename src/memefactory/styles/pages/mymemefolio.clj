@@ -198,18 +198,21 @@
          :margin-right (em 1)
          :margin-left (em 1)}
         [:b {:margin-right (em 0.5)}]]]]]]
-   [:.selling-panel {:border-radius "1em 1em 1em 1em"
-                     :overflow :hidden
-                     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}]
-   [:.sold-panel {:border-radius "1em 1em 1em 1em"
-                  :overflow :hidden
-                  :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}]
-   [:.tiles
+
+   [:.panel
     {:margin-top 0
      :padding-top (em 2)
      :padding-bottom (em 2)
      :background-color (color :meme-panel-bg)
-     :border-radius "0 0 1em 1em"}
+     :border-radius "0 0 1em 1em"
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
+
+    [:.tiles
+     {:box-shadow :unset}]
+
+    [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto
+                      :margin-top (em -1)}]
 
     [:.loading
      {:color (color :busy-grey)

@@ -30,14 +30,14 @@
    [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.spec :as spec]
    [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
+   [memefactory.ui.components.spinner :as spinner]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
    [taoensso.timbre :as log]
    [goog.string :as gstring]
-   [memefactory.ui.components.buttons :as buttons]
-   [memefactory.ui.dank-registry.vote-page :as vote-page]))
+   [memefactory.ui.components.buttons :as buttons]))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
@@ -76,7 +76,7 @@
                :challenge/votes-for
                :challenge/votes-against
                :challenge/votes-total
-               [:challenge/vote-winning-vote-option {:vote/voter active-account}]
+
                [:challenge/all-rewards {:user/address active-account}
                                        [:challenge/reward-amount
                                         :vote/reward-amount]]
@@ -113,10 +113,7 @@
                      (format/format-token creator-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
-     [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                          {:address address}
-                                          {:tab :created}])}
-      (str "Address: " address)]]))
+     [:div.address (str "Address: " address)]]))
 
 (defn related-memes-component [state]
   (panel :selling state))
@@ -143,9 +140,6 @@
                                   :meme-auction/start-price
                                   :meme-auction/end-price
                                   :meme-auction/bought-for
-                                  :meme-auction/started-on
-                                  :meme-auction/duration
-                                  [:meme-auction/seller [:user/address]]
                                   [:meme-auction/meme-token
                                    [:meme-token/number
                                     [:meme-token/meme
@@ -207,7 +201,7 @@
                          :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
                    [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
                          :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
-          (when-not (:graphql/loading? @query)
+          (if (:graphql/loading? @query)
             (if (empty? all-auctions)
               [:tbody [:tr [:td {:colSpan 5} "This meme hasn't been traded yet."]]]
               [:tbody
@@ -231,7 +225,7 @@
                                       bought-date (ui-utils/gql-date->date bought-on)]
                                   (when-not (or (empty? (str bought-on))
                                                 (> (.getTime bought-date) (.getTime now-date)))
-                                   (format/time-ago bought-date now-date)))]])))]))]]))))
+                                    (format/time-ago bought-date now-date)))]])))]))]]))))
 
 (defn challenge-header [created-on]
   (when created-on
@@ -245,7 +239,7 @@
     [:div.challenger
      [:b "Challenger"]
      [:div.rank (str "Rank: #" challenger-rank " ("
-                     (format-dank challenger-total-earned) ")")]
+                     (format/format-token challenger-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
      [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
@@ -284,6 +278,35 @@
        [:li ""])
 
      [:div.lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."]]))
+
+(defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
+                               :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
+  (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on :vote/reclaimed-amount-on :vote/amount]} vote
+        active-account (subscribe [::accounts-subs/active-account])
+        option (graphql-utils/gql-name->kw option)
+        reward (if (nil? reward) 0 (quot reward 1e18))
+        tx-id (:reg-entry/address meme)
+        claim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
+        claim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])
+        reclaim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reclaim-vote-amount tx-id}])
+        reclaim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reclaim-vote-amount tx-id}])]
+    [:div.votes
+     (when (< 0 votes-total)
+       [charts/donut-chart meme])
+     [:div.votes-inner
+      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (format-dank votes-for))]
+      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (format-dank votes-against ))]
+      [:div.text (str "Total voted: " (format-dank votes-total))]
+      (when-not (or (= option :vote-option/not-revealed)
+                    (= option :vote-option/no-vote))
+        [:div.text (str "You voted: " (gstring/format "%d for %s "
+                                                (if (pos? amount)
+                                                  (quot amount 1e18)
+                                                  0)
+                                                (case option
+                                                  :vote-option/vote-for "DANK"
+                                                  :vote-option/vote-against "STANK")))])
+      (buttons/reclaim-buttons @active-account meme)]]))
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit :meme/title] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})
@@ -348,9 +371,7 @@
            "Reveal My Vote")]]
        (when (and (= vote-option :vote-option/not-revealed)
                   (not vote))
-         [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])
-       (when (not vote)
-           [:div.no-reveal-info "You haven't voted"])])))
+         [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])])))
 
 (defn vote-component [{:keys [:challenge/commit-period-end :meme/title] :as meme}]
   (let [balance-dank (subscribe [::account-balances-subs/active-account-balance :DANK])
@@ -447,22 +468,22 @@
   [{:keys [:challenge/created-on :reg-entry/status :challenge/reveal-period-end] :as meme}]
   (let [{:keys [days hours minutes seconds]} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
                                                                   (ui-utils/gql-date->date reveal-period-end))]
-    [:div.challenge-component
-    [:h1.title "Challenge"]
-    (cond-> [:div.challenge-component-inner
-             [challenge-header created-on]]
-      created-on (into [[status-component meme]
-                        [challenger-component meme]
-                        (if-not (= 0 days hours minutes seconds)
-                          [reveal-vote-component meme]
-                          [:div "Reveal period ended. Please refresh the page."])]))]))
+    [:div
+     [:h1.title "Challenge"]
+     (cond-> [:div.challenge-component-inner
+              [challenge-header created-on]]
+       created-on (into [[status-component meme]
+                         [challenger-component meme]
+                         (if-not (= 0 days hours minutes seconds)
+                           [reveal-vote-component meme]
+                           [:div "Reveal period ended. Please refresh the page."])]))]))
 
 (defmethod challenge-component :reg-entry.status/commit-period
   [{:keys [:challenge/created-on :reg-entry/status :challenge/commit-period-end] :as meme}]
 
   (let [{:keys [days hours minutes seconds]} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
                                                                   (ui-utils/gql-date->date commit-period-end))]
-    [:div.challenge-component
+    [:div
      [:h1.title "Challenge"]
      (cond-> [:div.challenge-component-inner
               [challenge-header created-on]]
@@ -476,9 +497,9 @@
   [{:keys [:challenge/created-on :reg-entry/status :reg-entry/challenge-period-end] :as meme}]
 
   (let [{:keys [days hours minutes seconds] :as tr} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                  (ui-utils/gql-date->date challenge-period-end))]
+                                                                         (ui-utils/gql-date->date challenge-period-end))]
     (when-let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]
-      [:div.challenge-component
+      [:div
        [:h1.title "Challenge"]
        [:div.challenge-component-inner-cp
         [challenge-header created-on]
@@ -489,7 +510,7 @@
 
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
-  [:div.challenge-component
+  [:div
    [:h1.title "Challenge"]
    (if-not created-on
      [:div
@@ -498,28 +519,29 @@
               [challenge-header created-on]]
        created-on (into [[status-component meme]
                          [challenger-component meme]
-                         [vote-page/collect-reward-action meme]])))])
+                         [votes-component meme]])))])
 
 (defn details []
 
   (let [active-account @(subscribe [::accounts-subs/active-account])
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
-        response (when active-account
-                   (subscribe [::gql/query
-                               (build-meme-query address active-account)
-                               {:refetch-on #{::registry-entry/challenge-success}}]))
-
-        meme (when response (:meme @response))
+        meme-sub (when active-account
+                   (subscribe [::gql/query (build-meme-query address active-account)]))
+        meme (when meme-sub (-> @meme-sub :meme))
         {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger]} meme
         token-count (->> owned-meme-tokens
                          (map :meme-token/token-id)
                          (filter shared-utils/not-nil?)
                          count)
-        tags (mapv :tag/name tags)]
+        tags (mapv :tag/name tags)
+        ;; A bit of a hack checking the status here, should just rely upon
+        ;; :graphql/loading?. Unfortunately this subscription sometimes returns
+        ;; nil when it's really still just loading.
+        meme-not-loaded? (or (not status)
+                             (and meme-sub (:graphql/loading? @meme-sub)))]
 
-    (log/debug "Response" (when response @response))
-    (js/console.log "RE RENDERING " meme)
+    (log/debug "Query sub:" @(subscribe [::gql/query (build-meme-query address active-account)]))
 
     [app-layout/app-layout
      {:meta {:title "MemeFactory"
@@ -527,11 +549,12 @@
      [:div.meme-detail-page
       [:section.meme-detail
        [:div.meme-info
-        (when number [:div.meme-number (str "#" number)])
+        (when number
+          [:div.meme-number (str "#" number)])
         [:div.container
          [tiles/meme-image image-hash]]
-        (if-not status
-          [:div.spinner.spinner--info]
+        (if meme-not-loaded?
+          [spinner/spin]
           [:div.registry
            [:h1 title]
            [:div.status  (case (graphql-utils/gql-name->kw status)
@@ -561,9 +584,10 @@
       [:section.history
        [history-component address]]
       [:section.challenge
-       (if status
-         [challenge-component meme]
-         [:div.spinner.spinner--challenge])]
+       [:div.challenge-component
+        (if meme-not-loaded?
+          [spinner/spin]
+          [challenge-component meme])]]
       [:section.related
        [:div.relateds-panel
         [:div.icon]
@@ -572,4 +596,5 @@
         [related-memes-container address tags]]]]]))
 
 (defmethod page :route.meme-detail/index []
-  (r/create-class {:reagent-render (fn [] [details])}))
+  (r/create-class {:component-did-mount #(js/window.scrollTo 0 0)
+                   :reagent-render (fn [] [details])}))

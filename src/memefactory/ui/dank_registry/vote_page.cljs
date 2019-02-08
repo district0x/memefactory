@@ -20,6 +20,7 @@
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.dank-registry.events :as dr-events]
+   [memefactory.ui.components.spinner :as spinner]
    [district.ui.router.events :as router-events]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
@@ -55,7 +56,9 @@
                                                             :vote/amount]]
 
                                                           :challenge/votes-total]]]}])]
-        (when-not (:graphql/loading? @response)
+        (js/console.log "@response:" @response)
+        (if (:graphql/loading? @response)
+          [spinner/spin]
           (if-let [meme-voting (:meme @response)]
             (let [ch-reward-tx-id (str address "challenge-reward")
                   vote-reward-tx-id (str address "vote-reward")
@@ -139,9 +142,9 @@
           [:div.vote-input
            [with-label "Amount "
             [text-input {:form-data form-data
-                           :id :amount-vote-against
-                           :dom-id (str address :amount-vote-against)
-                           :errors errors}]
+                         :id :amount-vote-against
+                         :dom-id (str address :amount-vote-against)
+                         :errors errors}]
             {:form-data form-data
              :for (str address :amount-vote-against)
              :id :amount-vote-against}]
@@ -205,32 +208,30 @@
 (defmethod page :route.dank-registry/vote []
   (let [account (subscribe [::accounts-subs/active-account])]
     (fn []
-      (if-not @account
-        [:div "Loading..."]
-        [app-layout
-         {:meta {:title "MemeFactory"
-                 :description "Description"}}
-         [:div.dank-registry-vote-page
-          [:section.vote-header
-           [header]]
-          [:section.challenges
-           [tabbed-pane
-            [{:title "Open Challenges"
-              :content [challenge-list {:include-challenger-info? false
-                                        :query-params {:statuses [:reg-entry.status/commit-period
-                                                                  :reg-entry.status/reveal-period]}
-                                        :active-account @account
-                                        :action-child reveal-vote-action
-                                        :key :vote-page/open
-                                        :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
-                                                       {:key "commit-period-end" :value "Commit period end" :dir :asc}]}]}
-             {:title "Resolved Challenges"
-              :content [challenge-list {:include-challenger-info? true
-                                        :query-params {:statuses [:reg-entry.status/blacklisted
-                                                                  :reg-entry.status/whitelisted]
-                                                       :challenged true}
-                                        :active-account @account
-                                        :action-child collect-reward-action
-                                        :key :vote-page/resolved
-                                        :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
-                                                       {:key "reveal-period-end" :value "Reveal period end" :dir :asc}]}]}]]]]]))))
+      [app-layout
+       {:meta {:title "MemeFactory"
+               :description "Description"}}
+       [:div.dank-registry-vote-page
+        [:section.vote-header
+         [header]]
+        [:section.challenges
+         [tabbed-pane
+          [{:title "Open Challenges"
+            :content [challenge-list {:include-challenger-info? false
+                                      :query-params {:statuses [:reg-entry.status/commit-period
+                                                                :reg-entry.status/reveal-period]}
+                                      :active-account @account
+                                      :action-child reveal-vote-action
+                                      :key :vote-page/open
+                                      :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
+                                                     {:key "commit-period-end" :value "Commit period end" :dir :asc}]}]}
+           {:title "Resolved Challenges"
+            :content [challenge-list {:include-challenger-info? true
+                                      :query-params {:statuses [:reg-entry.status/blacklisted
+                                                                :reg-entry.status/whitelisted]
+                                                     :challenged true}
+                                      :active-account @account
+                                      :action-child collect-reward-action
+                                      :key :vote-page/resolved
+                                      :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
+                                                     {:key "reveal-period-end" :value "Reveal period end" :dir :asc}]}]}]]]]])))

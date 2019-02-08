@@ -15,6 +15,9 @@
 
 (defstyles core
   [:.leaderboard-dankest-page
+   [:.spinner-outer {:margin-left :auto
+                     :margin-right :auto
+                     :margin-top (em -1)}]
    [:.loading
     {:flex :none
      :color (color :busy-grey)
@@ -38,9 +41,9 @@
     [:.scroll-area
      {:width "100%"}
      [:.tiles
-       {:margin-top (em 2)
-        :padding-top (em 2)
-        :padding-bottom (em 2)
-        :background-color (color :meme-panel-bg)
-        :box-shadow :none
-        :border-radius "1em 1em 1em 1em"}]]]])
+      {:margin-top (em 2)
+       :padding-top (em 2)
+       :padding-bottom (em 2)
+       :background-color (color :meme-panel-bg)
+       :box-shadow :none
+       :border-radius "1em 1em 1em 1em"}]]]])

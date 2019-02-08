@@ -27,6 +27,19 @@
 </head>
 <body>
   <div id="app" style="height: 100%">
+    <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 10px">
+      <div class="spinner-outer">
+        <img src="/assets/icons/mememouth.png"/>
+        <svg width="174px" height="174px" viewBox="0 0 66 66" class="spinner-inner">
+          <circle fill="#FFFF" cx="33" cy="33" r="30" stroke-width="2" stroke="url(#gradient)"></circle>
+          <linearGradient id="gradient">
+            <stop offset="50%" stop-color="#808080" stop-opacity="1"></stop>
+            <stop offset="65%" stop-color="#808080" stop-opacity=".5"></stop>
+            <stop offset="100%" stop-color="#808080" stop-opacity="0"></stop>
+          </linearGradient>
+        </svg>
+      </div>
+    </div>
   </div>
   <script src="./js/compiled/app.js?v=0.1.2"></script>
   <script>memefactory.ui.core.init();</script>

@@ -13,13 +13,13 @@
    [memefactory.ui.components.tiles :refer [meme-image]]
    [memefactory.ui.utils :as mf-utils]
    [memefactory.ui.utils :as utils]
+   [memefactory.ui.components.spinner :as spinner]
    [district.graphql-utils :as gql-utils]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
-   [district.ui.router.events :as router-events]
-   ))
+   [district.ui.router.events :as router-events]))
 
 (def page-size 12)
 
@@ -68,9 +68,9 @@
    [:li "Success Rate: " [:span (let [tcmw (or (:user/total-created-memes-whitelisted user) 0)
                                       tcm (or (:user/total-created-memes user) 0)]
                                   (gstring/format "%d/%d (%d%%)"
-                                                 tcmw
-                                                 tcm
-                                                 (if (pos? tcm) (/ (* 100 tcmw) tcm) 0)))]]
+                                                  tcmw
+                                                  tcm
+                                                  (if (pos? tcm) (/ (* 100 tcmw) tcm) 0)))]]
    [:li "Address: " [:span.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                           {:address (:user/address user)}
                                                           {:tab :created}])
@@ -83,9 +83,9 @@
    [:li "Success Rate: " [:span (let [tccs (or (:user/total-created-challenges-success user) 0)
                                       tcc (or (:user/total-created-challenges user) 0)]
                                   (gstring/format "%d/%d (%d%%)"
-                                                 tccs
-                                                 tcc
-                                                 (if (pos? tcc) (/ (* 100 tccs) tcc) 0)))]]
+                                                  tccs
+                                                  tcc
+                                                  (if (pos? tcc) (/ (* 100 tccs) tcc) 0)))]]
    [:li "Address: " [:span.address (-> user :user/address)]]])
 
 (defn current-period-ends [label end-date]
@@ -188,7 +188,7 @@
          [:div.scroll-area
           [:div.memes
            (if (:graphql/loading? @meme-search)
-             [:div.loading]
+             [spinner/spin]
              (if (empty? all-memes)
                [:div.challenge "No items found."]
                (doall

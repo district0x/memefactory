@@ -7,12 +7,12 @@
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.spinner :as spinner]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   ))
+   [district.ui.web3-accounts.subs :as accounts-subs]))
 
 (def page-size 12)
 
@@ -79,48 +79,47 @@
                                      {:id @form-data}])
             totals (subscribe [::gql/query {:queries [[:overall-stats
                                                        [:total-memes-count
-                                                        :total-tokens-count]]]}])]
-        (if (:graphql/loading? @users-search)
-          [:div "Loading ...."]
-          (let [all-collectors (mapcat #(get-in % [:search-users :items]) @users-search)]
+                                                        :total-tokens-count]]]}])
+            all-collectors (mapcat #(get-in % [:search-users :items]) @users-search)
+            last-user (last @users-search)]
 
-            (log/debug "All collectors" {:colectors all-collectors} :route.leaderboard/collectors)
+        (log/debug "All collectors" {:colectors all-collectors} :route.leaderboard/collectors)
 
-            [app-layout
-             {:meta {:title "MemeFactory"
-                     :description "Description"}}
-             [:div.leaderboard-collectors-page
-              [:section.collectors
-               [:div.collectors-panel
-                [:div.icon]
-                [:h2.title "LEADERBOARDS - COLLECTORS"]
-                [:h3.title "lorem ipsum"]
-                [:div.order
-                 (let [total (get-in @users-search [:search-users :total-count])]
-                   [select-input
-                    {:form-data form-data
-                     :id :order-by ;; TODO Do this !!!!!!!!!!
-                     :options [{:key "total-collected-memes" :value "by unique memes"}
-                               {:key "total-collected-token-ids" :value "by total cards"}]}])]
-                [:div.scroll-area
-                 [:div.collectors
-                  (if (:graphql/loading? @users-search)
-                    [:div.loading]
+        [app-layout
+         {:meta {:title "MemeFactory"
+                 :description "Description"}}
+         [:div.leaderboard-collectors-page
+          [:section.collectors
+           [:div.collectors-panel
+            [:div.icon]
+            [:h2.title "LEADERBOARDS - COLLECTORS"]
+            [:h3.title "lorem ipsum"]
+            [:div.order
+             (let [total (get-in last-user [:search-users :total-count])]
+               [select-input
+                {:form-data form-data
+                 :id :order-by ;; TODO Do this !!!!!!!!!!
+                 :options [{:key "total-collected-memes" :value "by unique memes"}
+                           {:key "total-collected-token-ids" :value "by total cards"}]}])]
+            [:div.scroll-area
+             [:div.collectors
+              (if (and (empty? all-collectors)
+                       (false? (:graphql/loading? last-user)))
+                [:div.no-items-found "No items found."]
+                (doall
+                 (map
+                  (fn [collector num]
+                    ^{:key (:user/address collector)}
+                    [collectors-tile collector (:overall-stats @totals) num])
+                  all-collectors
+                  (iterate inc 1))))]
+             (when (:graphql/loading? last-user)
+               [spinner/spin])
+             [infinite-scroll {:load-fn (fn []
+                                          (when-not (:graphql/loading? last-user)
+                                            (let [{:keys [has-next-page end-cursor]} (:search-users last-user)]
 
-                    (if (empty? all-collectors)
-                      [:div.no-items-found "No items found."]
-                      (doall
-                       (map
-                        (fn [collector num]
-                          ^{:key (:user/address collector)}
-                          [collectors-tile collector (:overall-stats @totals) num])
-                        all-collectors
-                        (iterate inc 1)))))]
-                 [infinite-scroll {:load-fn (fn []
-                                              (when-not (:graphql/loading? @users-search)
-                                                (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]
+                                              (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/collectors)
 
-                                                  (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/collectors)
-
-                                                  (when (or has-next-page (empty? all-collectors))
-                                                    (re-search-users end-cursor)))))}]]]]]]))))))
+                                              (when (or has-next-page (empty? all-collectors))
+                                                (re-search-users end-cursor)))))}]]]]]]))))

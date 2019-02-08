@@ -15,6 +15,9 @@
 
 (defstyles core
   [:.leaderboard-collectors-page
+   [:.spinner-outer {:margin-left :auto
+                     :margin-right :auto
+                     :margin-top (em -1)}]
    [:.loading
     {;;:flex :none
      :color (color :busy-grey)

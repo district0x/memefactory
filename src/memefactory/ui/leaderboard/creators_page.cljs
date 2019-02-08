@@ -8,12 +8,12 @@
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
+   [memefactory.ui.components.spinner :as spinner]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   ))
+   [district.ui.web3-accounts.subs :as accounts-subs]))
 
 (def page-size 12)
 
@@ -81,48 +81,48 @@
                                                                                    :after after})]}
                                           :id @form-data}]))
             users-search (subscribe [::gql/query {:queries [(build-creators-query {:order-by order-by})]}
-                                     {:id @form-data}])]
-        ;;if (:graphql/loading? @users-search)
-        #_[:div "Loading ...."]
-        (let [all-creators (mapcat #(get-in % [:search-users :items]) @users-search)]
+                                     {:id @form-data}])
+            all-creators (mapcat #(get-in % [:search-users :items]) @users-search)
+            last-user (last @users-search)]
 
-          (log/debug "All creators" {:creators all-creators})
+        (log/debug "All creators" {:creators all-creators})
 
-          [app-layout
-           {:meta {:title "MemeFactory"
-                   :description "Description"}}
-           [:div.leaderboard-creators-page
-            [:section.creators
-             [:div.creators-panel
-              [:div.icon]
-              [:h2.title "LEADERBOARDS - CREATORS"]
-              [:h3.title "lorem ipsum"]
-              [:div.order
-               (let [total (get-in @users-search [:search-users :total-count])]
-                 [select-input
-                  {:form-data form-data
-                   :id :order-by
-                   :options [{:key "total-earned" :value "by earnings"}
-                             {:key "best-single-card-sale" :value "by single card sale"}
-                             {:key "total-created-memes-whitelisted" :value "by created memes"}]}])]
-              [:div.scroll-area
-               [:div.creators
-                (if (:graphql/loading? @users-search)
-                  [:div.loading]
-                  (if (empty? all-creators)
-                    [:div.no-items-found "No items found."]
-                    (doall
-                     (map
-                      (fn [creator num]
-                        ^{:key (:user/address creator)}
-                        [creator-tile creator num])
-                      all-creators
-                      (iterate inc 1)))))]
-               [infinite-scroll {:load-fn (fn []
-                                            (when-not (:graphql/loading? @users-search)
-                                              (let [{:keys [has-next-page end-cursor]} (:search-users (last @users-search))]
+        [app-layout
+         {:meta {:title "MemeFactory"
+                 :description "Description"}}
+         [:div.leaderboard-creators-page
+          [:section.creators
+           [:div.creators-panel
+            [:div.icon]
+            [:h2.title "LEADERBOARDS - CREATORS"]
+            [:h3.title "lorem ipsum"]
+            [:div.order
+             (let [total (get-in last-user [:search-users :total-count])]
+               [select-input
+                {:form-data form-data
+                 :id :order-by
+                 :options [{:key "total-earned" :value "by earnings"}
+                           {:key "best-single-card-sale" :value "by single card sale"}
+                           {:key "total-created-memes-whitelisted" :value "by created memes"}]}])]
+            [:div.scroll-area
+             [:div.creators
+              (if (and (empty? all-creators)
+                       (false? (:graphql/loading? last-user)))
+                [:div.no-items-found "No items found."]
+                (doall
+                 (map
+                  (fn [creator num]
+                    ^{:key (:user/address creator)}
+                    [creator-tile creator num])
+                  all-creators
+                  (iterate inc 1))))]
+             (when (:graphql/loading? last-user)
+               [spinner/spin])
+             [infinite-scroll {:load-fn (fn []
+                                          (when-not (:graphql/loading? last-user)
+                                            (let [{:keys [has-next-page end-cursor]} (:search-users last-user)]
 
-                                                (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
+                                              (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
 
-                                                (when (or has-next-page (empty? all-creators))
-                                                  (re-search-users end-cursor)))))}]]]]]])))))
+                                              (when (or has-next-page (empty? all-creators))
+                                                (re-search-users end-cursor)))))}]]]]]]))))

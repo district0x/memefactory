@@ -9,6 +9,9 @@
 
 (defstyles core
   [:.get-dank-page
+   [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto
+                      :margin-top (em -1)}]
    (for-media-max :tablet
                    [:&
                     {:margin-right (em 2)

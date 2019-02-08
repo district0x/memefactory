@@ -42,6 +42,11 @@
       :animation-duration "2s"
       :animation-iteration-count :infinite
       :animation-timing-function :linear}]
+
+    [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto
+                      :margin-top (em -1)}]
+
     #_[">div>div"
        {:display :flex
         :flex-wrap :wrap

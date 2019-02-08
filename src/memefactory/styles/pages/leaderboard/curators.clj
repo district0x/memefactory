@@ -15,6 +15,9 @@
 
 (defstyles core
   [:.leaderboard-curators-page
+   [:.spinner-outer {:margin-left :auto
+                     :margin-right :auto
+                     :margin-top (em -1)}]
    [:section.curators
     [:.curators-panel
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
@@ -52,9 +55,9 @@
         :padding-left (em 1)
         :padding-right (em 1)}
        (for-media-max :tablet
-                    [:&
-                     {:margin-left (em 0)
-                      :margin-right (em 0)}])
+                      [:&
+                       {:margin-left (em 0)
+                        :margin-right (em 0)}])
        ["> *"
         {:display :block
          :margin-bottom (em 0.5)

@@ -47,7 +47,7 @@ contract DankFaucet is usingOraclize {
 
     // Comment out this line when deploying to production
     // See: https://github.com/oraclize/ethereum-bridge
-    //OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+    OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
   }
 
   /**
@@ -83,8 +83,8 @@ contract DankFaucet is usingOraclize {
           bool dankTransfered = dankToken.transfer(phoneNumberRequest.sender, allotmentInWei);
           if (dankTransfered) {
             allocatedDank[phoneNumberRequest.hashedPhoneNumber] = allotmentInWei;
+            emit DankEvent(phoneNumberRequest.hashedPhoneNumber, dankTransfered, "DANK transfered");
           }
-          emit DankEvent(phoneNumberRequest.hashedPhoneNumber, dankTransfered, "DANK transfered?");
         }
         else {
           emit DankEvent(phoneNumberRequest.hashedPhoneNumber, false, "DANK already allocated.");

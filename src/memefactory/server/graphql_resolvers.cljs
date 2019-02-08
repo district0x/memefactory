@@ -160,7 +160,7 @@
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]]))]
-     (paged-query query page-size page-start-idx))))
+(paged-query query page-size page-start-idx))))
 
 (defn search-meme-tokens-query-resolver [_ {:keys [:statuses :order-by :order-dir :owner :first :after] :as args}]
   (log/debug "search-meme-tokens-query-resolver" args)
@@ -1000,12 +1000,17 @@
          (.then
           (fn [response]
             (let [twilio-response (js->clj response)
+                  success (get twilio-response "success")
                   graphql-response {:id (get twilio-response "uuid")
-                                    :success (get twilio-response "success")
+                                    :success success
                                     :status (get twilio-response "status")
                                     :msg (get twilio-response "message")}]
               (log/info "Twilio resp:" twilio-response)
-              graphql-response)))))))
+              (log/info "Type of success:" (type success))
+              (if (not success)
+                (throw (Exception. "Error calling phone verification API:"
+                                   graphql-response))
+                graphql-response))))))))
 
 (def exec-promise (.promisify util (aget child-process "exec")))
 

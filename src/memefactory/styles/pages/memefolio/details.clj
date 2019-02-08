@@ -81,7 +81,9 @@
      :border-width (px inner-radius)}]
    [:.address (of-ellipsis)]
    [:section.meme-detail
-
+    [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto
+                      :margin-top (em 8)}]
     [:.meme-info
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -321,6 +323,8 @@
       :padding-bottom (em 1)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"}
+     [:.spinner-outer {:margin-left :auto
+                       :margin-right :auto}]
      [:.status {:padding-left (em 1)}
        [:li {:font-weight :bold
              :list-style-type :none}

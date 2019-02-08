@@ -7,21 +7,21 @@
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.spinner :as spinner]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   ))
+   [district.ui.web3-accounts.subs :as accounts-subs]))
 
 (def page-size 12)
 
 (defn build-curators-query [{:keys [order-by after]}]
   [:search-users
    (cond->
-     {:first page-size
-      :order-by order-by
-      :order-dir :desc}
+       {:first page-size
+        :order-by order-by
+        :order-dir :desc}
      after (assoc :after after))
    [:total-count
     :end-cursor
@@ -47,9 +47,10 @@
                                            {:query {:queries [(build-curators-query {:order-by order-by
                                                                                      :after after})]}
                                             :id @form-data}]))
-            search-users (subscribe [::gql/query {:queries [(build-curators-query {:order-by order-by})]}
+            users-search (subscribe [::gql/query {:queries [(build-curators-query {:order-by order-by})]}
                                      {:id @form-data}])
-            lazy-curators (mapcat #(get-in % [:search-users :items]) @search-users)]
+            lazy-curators (mapcat #(get-in % [:search-users :items]) @users-search)
+            last-user (last @users-search)]
         [app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
@@ -60,7 +61,7 @@
             [:h2.title "LEADERBOARDS - CURATORS"]
             [:h3.title "lorem ipsum"]
             [:div.order
-             (let [total (get-in @search-users [:search-users :total-count])]
+             (let [total (get-in last-user [:search-users :total-count])]
                [select-input
                 {:form-data form-data
                  :id :order-by
@@ -70,7 +71,8 @@
             [:div.scroll-area
              [:div.curators
 
-              (if (empty? lazy-curators)
+              (if (and (empty? lazy-curators)
+                       (false? (:graphql/loading? last-user)))
                 [:div.no-items-found "No items found."]
                 (->> lazy-curators
                      (map-indexed
@@ -98,8 +100,10 @@
                          [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
                          [:p.total-earnings "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))
                      doall))]
-             [infinite-scroll {:load-fn (fn [] (when-not (:graphql/loading? @search-users)
-                                                 (let [{:keys [has-next-page end-cursor]} (:search-users (last @search-users))]
+             (when (:graphql/loading? last-user)
+               [spinner/spin])
+             [infinite-scroll {:load-fn (fn [] (when-not (:graphql/loading? last-user)
+                                                 (let [{:keys [has-next-page end-cursor]} (:search-users last-user)]
 
                                                    (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/curators)
 

@@ -10,12 +10,12 @@
    [memefactory.ui.components.search :refer [search-tools]]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.marketplace.events :as mk-events]
+   [memefactory.ui.components.spinner :as spinner]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
-   [clojure.string :as str]
-   ))
+   [clojure.string :as str]))
 
 (def page-size 12)
 
@@ -55,7 +55,7 @@
     (log/debug "All auctions" {:auctions (map :meme-auction/address all-auctions)})
     [:div.scroll-area
      (if (:graphql/loading? @auctions-search)
-       [:div.loading]
+       [spinner/spin]
        [:div.tiles
         (if (empty? all-auctions)
           [:div.no-items-found "No items found."]
