@@ -38,23 +38,39 @@
 ;; a chan. We then store created filters in an atom so we can stop them at component stop.
 (def all-filters (atom []))
 
-(defn meme-number-assigner [{:keys [:reg-entry/address]}]
+(declare schedule-meme-number-assigner)
+
+(defn assign-next-number! [address]
+  (let [current-meme-number (db/current-meme-number)]
+    (db/assign-meme-number! address (inc current-meme-number))
+    (log/info (str "Meme" address " got number " (inc current-meme-number) " assigned."))))
+
+(defn meme-number-assigner [address]
   (let [{:keys [:challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end] :as re}
         (db/get-registry-entry {:reg-entry/address address} [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
                                                              :challenge/commit-period-end :challenge/commit-period-end
                                                              :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against])
-        assign-next-number! #(let [current-meme-number (db/current-meme-number)]
-                               (db/assign-meme-number! address (inc current-meme-number)))]
+        {:keys [:meme/number]} (db/get-meme address)]
 
-    (if-not challenger
-      (assign-next-number!)
+    ;; if we have a number assigned we don't do anything
+    (when-not number
 
-      (if (> (server-utils/now-in-seconds) reveal-period-end)
-        (when-not (= (reg-entry-status re (server-utils/now-in-seconds))
-                     :reg-entry.status/blacklisted)
-          (assign-next-number!))
+      (if (not challenger)
+        (assign-next-number! address)
 
-        (js/setTimeout meme-number-assigner (* 1000 (- reveal-period-end (server-utils/now-in-seconds))))))))
+        (if (> (server-utils/now-in-seconds) reveal-period-end)
+          (when-not (= (reg-entry-status re (server-utils/now-in-seconds))
+                       :reg-entry.status/blacklisted)
+            (assign-next-number! address))
+
+          (schedule-meme-number-assigner address (inc (- reveal-period-end (server-utils/now-in-seconds)))))))))
+
+(defn schedule-meme-number-assigner [address seconds]
+  (when (pos? seconds)
+    (log/info (str "Scheduling meme-number-assigner for meme " address " in " seconds " seconds"))
+    (js/setTimeout (partial meme-number-assigner address)
+                   (* 1000 seconds))))
+
 
 (defn get-ipfs-meta [meta-hash]
   (js/Promise.
@@ -156,9 +172,8 @@
                           (db/update-meme! {:reg-entry/address registry-entry
                                             :meme/image-hash image-hash
                                             :meme/title title})
-                          (js/setTimeout meme-number-assigner (* 1000
-                                                                 (- (bn/number challenge-period-end)
-                                                                    (server-utils/now-in-seconds))))
+                          (schedule-meme-number-assigner registry-entry (inc (- (bn/number challenge-period-end)
+                                                                                (server-utils/now-in-seconds))))
                           (when search-tags
                             (doseq [t search-tags]
                               (db/tag-meme! (:reg-entry/address meme) t))))))))))))
@@ -440,13 +455,20 @@
         ;; start the number assigners
         (let [assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period :reg-entry.status/commit-period :reg-entry.status/reveal-period}
                                                          (reg-entry-status % (server-utils/now-in-seconds)))
-                                             (db/all-reg-entries))]
-          (doseq [{:keys [:reg-entry/challenge-period-end :challenge/reveal-period-end]} assignable-reg-entries]
-            (js/setTimeout meme-number-assigner (* 1000
-                                                   (- (if (> challenge-period-end (server-utils/now-in-seconds))
-                                                        challenge-period-end
-                                                        reveal-period-end)
-                                                      (server-utils/now-in-seconds))))))
+                                             (db/all-reg-entries))
+              whitelisted-reg-entries (filter #(= :reg-entry.status/whitelisted (reg-entry-status % (server-utils/now-in-seconds)))
+                                              (db/all-reg-entries))]
+
+          ;; add numbers to all whitelisteds
+          (doseq [{:keys [:reg-entry/address]} whitelisted-reg-entries]
+            (assign-next-number! address))
+
+          ;; schedule meme number assigners for all memes that need it
+          (doseq [{:keys [:reg-entry/address :reg-entry/challenge-period-end :challenge/reveal-period-end]} assignable-reg-entries]
+            (schedule-meme-number-assigner address (inc (- (if (> challenge-period-end (server-utils/now-in-seconds))
+                                                             challenge-period-end
+                                                             reveal-period-end)
+                                                           (server-utils/now-in-seconds))))))
         (reset! all-filters (into past-events-filters watch-filters))))))
 
 (defn stop [syncer]

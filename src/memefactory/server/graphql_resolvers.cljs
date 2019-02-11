@@ -821,83 +821,70 @@
        sql-query))))
 
 (defn user->total-created-challenges-resolver
-  [{:keys [:user/address
-           :user/total-created-challenges] :as user}]
+  [{:keys [:user/address] :as user}]
   (log/debug "user->total-created-challenges-resolver args" user)
   (try-catch-throw
-   (if total-created-challenges
-     total-created-challenges
-     (let [sql-query (when address
-                       (db/get {:select [[:%count.* :user/total-created-challenges]]
-                                :from [:reg-entries]
-                                :where [:= address :reg-entries.challenge/challenger]}))]
-       (log/debug "user->total-created-challenges-resolver query" sql-query)
-       (:user/total-created-challenges sql-query)))))
+   (let [sql-query (when address
+                     (db/get {:select [[:%count.* :user/total-created-challenges]]
+                              :from [:reg-entries]
+                              :where [:= address :reg-entries.challenge/challenger]}))]
+     (log/debug "user->total-created-challenges-resolver query" sql-query)
+     (:user/total-created-challenges sql-query))))
 
 (defn user->total-created-challenges-success-resolver
-  [{:keys [:user/address :user/total-created-challenges-success] :as user}]
+  [{:keys [:user/address] :as user}]
   (log/debug "user->total-created-challenges-success-resolver args" user)
   (try-catch-throw
-   (if total-created-challenges-success
-     total-created-challenges-success
-     (let [sql-query (when address
-                       (db/get {:select [[:%count.* :user/total-created-challenges-success]]
-                                :from [:reg-entries]
-                                :where [:and [:> (utils/now-in-seconds) :reg-entries.challenge/reveal-period-end]
-                                        [:< :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
-                                        [:= address :reg-entries.challenge/challenger]]}))]
-       (log/debug "user->total-created-challenges-success-resolver query" sql-query)
-       (:user/total-created-challenges-success sql-query)))))
+   (let [sql-query (when address
+                     (db/get {:select [[:%count.* :user/total-created-challenges-success]]
+                              :from [:reg-entries]
+                              :where [:and [:> (utils/now-in-seconds) :reg-entries.challenge/reveal-period-end]
+                                      [:< :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
+                                      [:= address :reg-entries.challenge/challenger]]}))]
+     (log/debug "user->total-created-challenges-success-resolver query" sql-query)
+     (:user/total-created-challenges-success sql-query))))
 
 (defn user->total-participated-votes-resolver
   "Amount of different votes user participated in"
-  [{:keys [:user/address
-           :user/total-participated-votes] :as user}]
+  [{:keys [:user/address] :as user}]
   (log/debug "user->total-participated-votes-resolver args" user)
   (try-catch-throw
-   (if total-participated-votes
-     total-participated-votes
-     (let [sql-query (when address
-                       (db/get {:select [[:%count.* :user/total-participated-votes]]
-                                :from [:votes]
-                                :where [:= address :votes.vote/voter]}))]
-       (log/debug "user->total-participated-votes-resolver query" sql-query)
-       (:user/total-participated-votes sql-query)))))
+   (let [sql-query (when address
+                     (db/get {:select [[:%count.* :user/total-participated-votes]]
+                              :from [:votes]
+                              :where [:= address :votes.vote/voter]}))]
+     (log/debug "user->total-participated-votes-resolver query" sql-query)
+     (:user/total-participated-votes sql-query))))
 
 (defn user->total-participated-votes-success-resolver
   "Amount of different votes user voted for winning option"
-  [{:keys [:user/address :user/total-participated-votes-success] :as user}]
+  [{:keys [:user/address] :as user}]
   (log/debug "user->total-participated-votes-success-resolver args" user)
   (try-catch-throw
-   (if total-participated-votes-success
-     total-participated-votes-success
-     (let [now (utils/now-in-seconds)
-           sql-query (when address
-                       (db/all {:select [:*]
-                                :from [:votes]
-                                :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
-                                :where [:= address :votes.vote/voter]}))]
-       (log/debug "user->total-participated-votes-success-resolver query" sql-query)
-       (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
-                 (let [ status (reg-entry-status (utils/now-in-seconds) reg-entry)]
-                   (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
-                           (and (= :reg-entry.status/blacklisted status) (= 2 option)))
-                     (inc total)
-                     total)
-                   ))
-               0
-               sql-query)))))
+   (let [now (utils/now-in-seconds)
+         sql-query (when address
+                     (db/all {:select [:*]
+                              :from [:votes]
+                              :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
+                              :where [:= address :votes.vote/voter]}))]
+     (log/debug "user->total-participated-votes-success-resolver query" sql-query)
+     (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
+               (let [ status (reg-entry-status (utils/now-in-seconds) reg-entry)]
+                 (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
+                         (and (= :reg-entry.status/blacklisted status) (= 2 option)))
+                   (inc total)
+                   total)
+                 ))
+             0
+             sql-query))))
 
 (defn user->curator-total-earned-resolver
   [{:keys [:user/voter-total-earned
-           :user/challenger-total-earned
-           :user/curator-total-earned] :as user} parent]
+           :user/challenger-total-earned] :as user} parent]
   (log/debug "user->curator-total-earned-resolver args" user)
   (try-catch-throw
-   (if curator-total-earned
-     curator-total-earned
-     (when (and voter-total-earned challenger-total-earned)
-       (+ voter-total-earned challenger-total-earned)))))
+   (when (and voter-total-earned challenger-total-earned)
+     (+ voter-total-earned challenger-total-earned))))
 
 (defn user->creator-total-earned-resolver [user]
   (try-catch-throw

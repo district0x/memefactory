@@ -502,7 +502,10 @@
   (let [active-account @(subscribe [::accounts-subs/active-account])
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         response (when active-account
-                   (subscribe [::gql/query (build-meme-query address active-account)]))
+                   (subscribe [::gql/query
+                               (build-meme-query address active-account)
+                               {:refetch-on #{::registry-entry/challenge-success}}]))
+
         meme (when response (:meme @response))
         {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger]} meme
@@ -521,9 +524,7 @@
      [:div.meme-detail-page
       [:section.meme-detail
        [:div.meme-info
-        [:div.meme-number (if number
-                            (str "#" number)
-                            [:div.spinner.spinner--number])]
+        (when number [:div.meme-number (str "#" number)])
         [:div.container
          [tiles/meme-image image-hash]]
         (if-not status

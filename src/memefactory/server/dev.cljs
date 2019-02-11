@@ -244,7 +244,9 @@
                        :reg-entry.status/whitelisted      (println "Not moving for whitelisted")
                        :reg-entry.status/blacklisted      (println "Not moving for blacklisted"))]
     (println "Increasing time by " time-to-next)
-    (increase-time time-to-next)))
+    (increase-time time-to-next)
+    (when (#{:reg-entry.status/challenge-period :reg-entry.status/reveal-period} current-status)
+      (syncer/meme-number-assigner re-address))))
 
 (defn print-balances []
   (->> (web3-eth/accounts @web3)

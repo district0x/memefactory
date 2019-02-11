@@ -45,12 +45,16 @@
                                       :tx-log {:name tx-name
                                                :related-href (str "#/meme-detail/" address)}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::approve-and-create-challenge]
-                                                        [::notification-events/show (gstring/format "Challenge created for %s" title)]]
+                                                        [::notification-events/show (gstring/format "Challenge created for %s" title)]
+                                                        [::challenge-success]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args
                                                      :challenge-meta challenge-meta}
                                                     ::approve-and-create-challenge]}]})))
+(re-frame/reg-event-db
+ ::challenge-success
+ (fn [db _] db))
 
 (re-frame/reg-event-fx
  ::approve-and-commit-vote
