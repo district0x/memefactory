@@ -60,9 +60,6 @@
             price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))
             title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)]
         [:div.meme-card.back
-         [:div (str  "HEREEEStarted" (:meme-auction/started-on meme-auction))]
-         [:div (str  "HEREEE" end-time)]
-         [:div (str  "HEREEE2" remaining)]
          [meme-image (get-in meme-auction [:meme-auction/meme-token
                                            :meme-token/meme
                                            :meme/image-hash])]
