@@ -43,23 +43,26 @@
        back
        front])))
 
-(defn auction-back-tile [{:keys [:on-buy-click] :as opts} meme-auction]
+(defn auction-back-tile [opts meme-auction]
   (let [tx-id (str (:meme-auction/address meme-auction) "auction")
         active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
         now (subscribe [:district.ui.now.subs/now])
-        end-time (t/plus (t/date-time (:meme-auction/started-on meme-auction))
+        end-time (t/plus (ui-utils/gql-date->date (:meme-auction/started-on meme-auction))
                          (t/seconds (:meme-auction/duration meme-auction)))
         buy-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])
         cancel-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/cancel tx-id}])
         buy-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme-auction/buy tx-id}])
         cancel-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme-auction/cancel tx-id}])]
-    (fn [{:keys [:on-buy-click] :as opts} meme-auction]
+    (fn [opts meme-auction]
       (let [remaining (-> (time/time-remaining (t/date-time @now)
                                                end-time)
                           (dissoc :seconds))
             price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))
             title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)]
         [:div.meme-card.back
+         [:div (str  "HEREEEStarted" (:meme-auction/started-on meme-auction))]
+         [:div (str  "HEREEE" end-time)]
+         [:div (str  "HEREEE2" remaining)]
          [meme-image (get-in meme-auction [:meme-auction/meme-token
                                            :meme-token/meme
                                            :meme/image-hash])]
@@ -101,9 +104,9 @@
                                                                                 :value price}]))}
               (if @buy-tx-success? "Bought" "Buy")])]]]))))
 
-(defn auction-tile [{:keys [:on-buy-click] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]
+(defn auction-tile [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
   (let [now (subscribe [:district.ui.now.subs/now])]
-    (fn []
+    (fn [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
       (let [price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
         [:div.compact-tile
          [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]

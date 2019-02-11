@@ -617,6 +617,9 @@
                            :meme-auction/start-price
                            :meme-auction/end-price
                            :meme-auction/bought-for
+                           :meme-auction/duration
+                           :meme-auction/started-on
+                           [:meme-auction/seller [:user/address]]
                            [:meme-auction/meme-token
                             [:meme-token/number
                              [:meme-token/meme
