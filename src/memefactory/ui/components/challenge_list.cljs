@@ -154,7 +154,7 @@
        [:div.action
         (if (and (= 0 days hours minutes seconds)
                  (not (#{:reg-entry.status/whitelisted :reg-entry.status/blacklisted} status)))
-          [:span (str period-label " period ended, please refresh the page.")]
+          [:span (str period-label " period ended.")]
           [action-child entry])]])))
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]

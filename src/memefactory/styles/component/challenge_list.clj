@@ -106,4 +106,5 @@
                      :justify-items :center}
      [:.meme-card {:position :relative}]]
     [:.action {:margin :auto
-               :grid-area :action}]]])
+               :grid-area :action}
+     [:span {:color (color :menu-text)}]]]])

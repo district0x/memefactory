@@ -12,4 +12,4 @@
 -/target
 -/node_modules
 -/.cljs_node_repl
--/package-lock.json
+-/\package-lock.json
