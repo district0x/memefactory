@@ -80,7 +80,7 @@
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
-                    (println "STARTING WITH " (:term query))
+                    (log/debug "Starting with " (:term query))
                     (r/atom {:search-term (:term query)
                              :search-tags (when-let [tags (:search-tags query)]
                                             (str/split tags #","))
