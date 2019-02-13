@@ -39,7 +39,7 @@
                  [district0x/district-ui-now "1.0.2"]
                  [district0x/district-ui-web3-sync-now "1.0.3-2"]
                  [district0x/district-ui-reagent-render "1.0.1"]
-                 [district0x/district-ui-router "1.0.3"]
+                 [district0x/district-ui-router "1.0.5"]
                  [district0x/district-ui-router-google-analytics "1.0.0"]
                  [district0x/district-ui-smart-contracts "1.0.6"]
                  [district0x/district-ui-web3 "1.1.0-SNAPSHOT"]

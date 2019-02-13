@@ -572,5 +572,4 @@
         [related-memes-container address tags]]]]]))
 
 (defmethod page :route.meme-detail/index []
-  (r/create-class {:component-did-mount #(js/window.scrollTo 0 0)
-                   :reagent-render (fn [] [details])}))
+  (r/create-class {:reagent-render (fn [] [details])}))

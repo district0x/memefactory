@@ -59,8 +59,8 @@
         (assign-next-number! address)
 
         (if (> (server-utils/now-in-seconds) reveal-period-end)
-          (when-not (= (reg-entry-status re (server-utils/now-in-seconds))
-                       :reg-entry.status/blacklisted)
+          (when (= (reg-entry-status (server-utils/now-in-seconds) re)
+                   :reg-entry.status/whitelisted)
             (assign-next-number! address))
 
           (schedule-meme-number-assigner address (inc (- reveal-period-end (server-utils/now-in-seconds)))))))))
@@ -214,12 +214,13 @@
          registry-entry {:reg-entry/address registry-entry
                          :reg-entry/version version}]
      (db/update-user! {:user/address challenger})
+     (db/update-registry-entry! (merge registry-entry
+                                       challenge
+                                       {:challenge/created-on timestamp}))
      (promise-> (get-ipfs-meta (:challenge/meta-hash challenge))
                 (fn [challenge-meta]
                   (db/update-registry-entry! (merge registry-entry
-                                                    challenge
-                                                    {:challenge/created-on timestamp
-                                                     :challenge/comment (:comment challenge-meta)})))))))
+                                                    {:challenge/comment (:comment challenge-meta)})))))))
 
 (defmethod process-event [:contract/registry-entry :VoteCommittedEvent]
   [_ {:keys [:registry-entry :timestamp :voter :amount] :as ev}]
@@ -454,9 +455,9 @@
         ;; if there are any memes with unasigned numbers but still assignable
         ;; start the number assigners
         (let [assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period :reg-entry.status/commit-period :reg-entry.status/reveal-period}
-                                                         (reg-entry-status % (server-utils/now-in-seconds)))
+                                                         (reg-entry-status (server-utils/now-in-seconds) %))
                                              (db/all-reg-entries))
-              whitelisted-reg-entries (filter #(= :reg-entry.status/whitelisted (reg-entry-status % (server-utils/now-in-seconds)))
+              whitelisted-reg-entries (filter #(= :reg-entry.status/whitelisted (reg-entry-status (server-utils/now-in-seconds) %))
                                               (db/all-reg-entries))]
 
           ;; add numbers to all whitelisteds

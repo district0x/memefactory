@@ -21,6 +21,7 @@
   [:search-memes
    (cond-> {:first page-size
             :order-by :memes.order-by/total-trade-volume
+            :statuses [:reg-entry.status/whitelisted]
             :order-dir :desc}
      after (assoc :after after))
    [:total-count

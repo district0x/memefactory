@@ -38,9 +38,12 @@
   (atom (cache/ttl-cache-factory {nil nil} ;; Do we want to start with cold cache?
                                            ;; fails with empty map for some reason
                                  ;; something long here maybe an hour?
-                                 :ttl (:ttl opts)))) 
+                                 :ttl (:ttl opts))))
 
 (defn stop [])
+
+(defn evict-rank [rank]
+  (swap! @ranks-cache cache/evict rank))
 
 (defn get-rank
   "Rank can be any of [:creator-rank :challenger-rank :voter-rank :curator-rank]
@@ -49,8 +52,7 @@
   [rank recalculate-fn]
   (let [entry (if (cache/has? @@ranks-cache rank)
                 (swap! @ranks-cache cache/hit rank)
-                (swap! @ranks-cache cache/miss rank (recalculate-fn)))] 
+                (swap! @ranks-cache cache/miss rank (recalculate-fn)))]
     (-> entry
         .-cache
         (get rank))))
-

@@ -23,10 +23,14 @@
             :statuses [:reg-entry.status/whitelisted]}
      (not-empty search-term) (assoc :title search-term)
      (not-empty search-tags) (assoc :tags search-tags)
-     after                   (assoc :after after)
-     order-by                (assoc :order-by (keyword "memes.order-by" order-by))
+     after                   (assoc :after after)                    ;; TODO: fix this HACK!
+     order-by                (assoc :order-by (keyword "memes.order-by" (case order-by
+                                                                          "number-asc" "number"
+                                                                          "number-desc" "number"
+                                                                          order-by)))
      order-dir               (assoc :order-dir (keyword (case order-by
-                                                          "number"             :asc
+                                                          "number-asc"         :asc
+                                                          "number-desc"        :desc
                                                           "total-trade-volume" :desc
                                                           "created-on"         :desc))))
    [:total-count
@@ -95,9 +99,10 @@
                         :title "Dank registry"
                         :sub-title "Sub title"
                         :on-selected-tags-change re-search
-                        :select-options (->> [{:key "number"             :value "Registry Number"}
+                                        ;; TODO: Fix this hack, we need a way of passing a select more info
+                        :select-options (->> [{:key "number-asc"             :value "Registry Number"}
                                               {:key "total-trade-volume" :value "Total trade volume"}
-                                              {:key "created-on"         :value "Newest"}])
+                                              {:key "number-desc"             :value "Newest"}])
                         :on-search-change re-search
                         :on-check-filter-change re-search
                         :on-select-change re-search}]

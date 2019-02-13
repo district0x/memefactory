@@ -339,11 +339,12 @@
           {:keys [:meme-token/number :meme-token/meme]} meme-token
           {:keys [:meme/title]} meme
           meme-auctions (-> @query :search-meme-auctions :items)
-          creator-total-earned (when meme-auctions
+          creator-total-earned (if meme-auctions
                                  (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
                                            (+ total-earned end-price))
                                          0
-                                         meme-auctions))]
+                                         meme-auctions)
+                                 0)]
       [:div.stats
        [:div.rank
         (str "RANK: #") (or creator-rank [:div.spinner.spinner--rank])]
@@ -394,7 +395,7 @@
                   [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                       {:address address}
                                                       nil])}
-                   [:div.title [:b (str "#" number " " title)]]
+                   [:div.title [:b (str (when number (str "#" number)) " " title)]]
                    [:div.vote-option
                     (cond
                       (= option (graphql-utils/kw->gql-name :vote-option/not-revealed))
@@ -706,7 +707,8 @@
 
 (defn tabbed-pane [tab prefix form-data]
   (let [provided-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
-        user-account (ratom/reaction (or provided-address @(subscribe [::accounts-subs/active-account])))
+        active-account @(subscribe [::accounts-subs/active-account])
+        user-account (ratom/reaction (or provided-address active-account))
         tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         re-search (fn [] (dispatch [::gql-events/query
                                     {:query {:queries (build-query @tab {:active-account @user-account
@@ -720,7 +722,7 @@
       [:div.tabbed-pane
        [:section.search-form
         [search/search-tools (merge {:title (if (or (empty? provided-address)
-                                                    (= user-account provided-address))
+                                                    (= active-account provided-address))
                                               "My Memefolio"
                                               (str "Memefolio " provided-address))
                                      :form-data form-data
@@ -751,6 +753,7 @@
                                                        {:label "Challenged"
                                                         :id :challenged?}]}))]]
        [:section.tabs
+
         (doall
          (map (fn [tab-id]
                 ^{:key tab-id} [:div
@@ -758,9 +761,11 @@
                                                  tab-id) "selected")}
                                 [:a {:on-click (fn [evt]
                                                  (.preventDefault evt)
-                                                 #_(reset! tab tab-id)
                                                  (dispatch [::router-events/navigate :route.memefolio/index
-                                                            {}
+                                                            (if (and (not (empty? provided-address))
+                                                                     (not= active-account provided-address))
+                                                              {:address provided-address}
+                                                              {})
                                                             {:tab tab-id}]))
                                      :href "#"}
                                  (-> tab-id

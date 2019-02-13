@@ -88,6 +88,7 @@
                          :meme-auction/end-price
                          :meme-auction/duration
                          :meme-auction/description
+                         :meme-auction/started-on
                          [:meme-auction/seller [:user/address]]
                          [:meme-auction/meme-token
                           [:meme-token/number

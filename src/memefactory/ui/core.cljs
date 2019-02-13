@@ -74,7 +74,8 @@
                             :reagent-render {:id "app"
                                              :component-var #'router}
                             :router {:routes routes
-                                     :default-route :route/home}
+                                     :default-route :route/home
+                                     :scroll-top? true}
                             :router-google-analytics {:enabled? nil #_(not debug?)}
                             :district-ui-notification {:default-show-duration 2000
                                                        :default-hide-duration 1000}})]

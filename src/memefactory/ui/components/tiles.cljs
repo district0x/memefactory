@@ -124,8 +124,9 @@
      [:div.overlay
       [:div.info
        [:ul.meme-data
-        [:li [:label "Registry Number:"]
-         (str "#" number)]
+        (when number
+          [:li [:label "Registry Number:"]
+           (str "#" number)])
         [:li [:label "Creator:"]
          [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                        {:address user-address}

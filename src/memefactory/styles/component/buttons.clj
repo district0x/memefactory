@@ -21,7 +21,8 @@
     :border-style "none"
     :color (c/color color)
     :cursor :pointer
-    :background-color (c/color background-color)}
+    :background-color (c/color background-color)
+    :white-space :nowrap}
    [:&:disabled
     {:opacity 0.3}]])
 
