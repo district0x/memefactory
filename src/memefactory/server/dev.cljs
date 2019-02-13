@@ -162,6 +162,11 @@
                                       :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
                                       :graphiql true}
+                            :emailer {:private-key "PLACEHOLDER"
+                                      :print-mode? true ;; true to print only not send
+                                      :from "district0x@district0x.io"
+                                      :template-id "PLACEHOLDER"
+                                      :api-key "PLACEHOLDER"}
                             :web3 {:port 8549}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
@@ -173,7 +178,6 @@
                             :blacklist-file "blacklist.edn"
                             :blacklist-token "123" ;; override in config
                             }}})
-      (mount/except [#'memefactory.server.emailer/emailer])
       (mount/start)
       pprint/pprint))
 

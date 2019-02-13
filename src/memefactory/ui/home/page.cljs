@@ -30,8 +30,8 @@
        (doall
         (for [{:keys [:meme-auction/address] :as auc} auctions]
           (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
-            ^{:key address}
-            [tiles/auction-tile {:on-buy-click #()} auc]))))]))
+            [tiles/auction-tile {:key address
+                                 :on-buy-click #()} auc]))))]))
 
 (defn trending-vote-tile [{:keys [:reg-entry/address :meme/image-hash :reg-entry/creator :challenge/commit-period-end
                                   :challenge/challenger :challenge/comment] :as meme}]

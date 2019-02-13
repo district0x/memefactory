@@ -42,5 +42,5 @@
       [:div.no-items-found "No items found."]
       (doall
        (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
-              [tiles/auction-tile {} meme-auction])
+              ^{:key address} [tiles/auction-tile {} meme-auction])
             state)))]])

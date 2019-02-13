@@ -1,7 +1,7 @@
 const {last, copy, linkBytecode, smartContractsTemplate} = require ("./utils.js");
 const fs = require('fs');
 const edn = require("jsedn");
-const {contracts_build_directory, smart_contracts_path} = require ('../truffle.js');
+const {contracts_build_directory, smart_contracts_path, parameters} = require ('../truffle.js');
 
 copy ("DSGuard", "DSGuardCp", contracts_build_directory);
 const DSGuard = artifacts.require("DSGuardCp");
@@ -247,14 +247,14 @@ module.exports = function(deployer, network, accounts) {
                                       'voteQuorum',
                                       'maxTotalSupply',
                                       'maxAuctionDuration'].map (web3.sha3),
-                                     [600,
-                                      600,
-                                      600,
-                                      1e18,
-                                      50,
-                                      50,
-                                      10,
-                                      12096000],
+                                     [parameters.memeRegistryDb.challengePeriodDuration,
+                                      parameters.memeRegistryDb.commitPeriodDuration,
+                                      parameters.memeRegistryDb.revealPeriodDuration ,
+                                      parameters.memeRegistryDb.deposit  ,
+                                      parameters.memeRegistryDb.challengeDispensation,
+                                      parameters.memeRegistryDb.voteQuorum,
+                                      parameters.memeRegistryDb.maxTotalSupply,
+                                      parameters.memeRegistryDb.maxAuctionDuration],
                                      Object.assign(opts, {gas: 500000}));
     })
     .then (() => {
@@ -272,12 +272,12 @@ module.exports = function(deployer, network, accounts) {
                                       'deposit',
                                       'challengeDispensation',
                                       'voteQuorum'].map (web3.sha3),
-                                     [600,
-                                      600,
-                                      600,
-                                      1e18,
-                                      50,
-                                      50],
+                                     [parameters.paramChangeRegistryDb.challengePeriodDuration,
+                                      parameters.paramChangeRegistryDb.commitPeriodDuration,
+                                      parameters.paramChangeRegistryDb.revealPeriodDuration ,
+                                      parameters.paramChangeRegistryDb.deposit  ,
+                                      parameters.paramChangeRegistryDb.challengeDispensation,
+                                      parameters.paramChangeRegistryDb.voteQuorum],
                                      Object.assign(opts, {gas: 500000}));
     })
     .then (() => {
@@ -472,8 +472,8 @@ module.exports = function(deployer, network, accounts) {
         return Promise.all ([DankToken.deployed(), DankFaucet.deployed()]);
     })
     .then (([dankToken, dankFaucet]) => {
-        return Promise.all ([dankToken.transfer (dankFaucet.address, 1e23, Object.assign(opts, {gas: 200000})),
-                             dankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: web3.toWei(0.5, "ether")}))]);
+        return Promise.all ([dankToken.transfer (dankFaucet.address, parameters.dankFaucet.dank, Object.assign(opts, {gas: 200000})),
+                             dankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: web3.toWei(parameters.dankFaucet.eth, "ether")}))]);
     })
     .then (() => {
         return Promise.all ([DankToken.deployed(), DankFaucet.deployed()]);

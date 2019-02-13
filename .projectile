@@ -1,5 +1,6 @@
 -/dev-server
 -/memefactory-tests
+-/resources/public/js
 -/resources/public/js/compiled
 -/resources/public/contracts/build
 -/resources/semantic
@@ -11,3 +12,4 @@
 -/target
 -/node_modules
 -/.cljs_node_repl
+-/\package-lock.json
