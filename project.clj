@@ -18,7 +18,7 @@
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.3"]
                  [district0x/district-encryption "1.0.0"]
-                 [district0x/district-graphql-utils "1.0.5"]
+                 [district0x/district-graphql-utils "1.0.6"]
                  [district0x/district-sendgrid "1.0.0"]
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.3"]

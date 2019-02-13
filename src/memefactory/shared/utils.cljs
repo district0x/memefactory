@@ -11,11 +11,11 @@
                                             :meme-auction/duration
                                             :meme-auction/started-on] :as auction} now]
   (let [seconds-passed (- now started-on)
-        total-price-change (- end-price start-price)
+        total-price-change (- start-price end-price)
         current-price-change (/ (* total-price-change seconds-passed) duration)]
     (if (<= duration seconds-passed)
       end-price
-      (+ start-price current-price-change))))
+      (- start-price current-price-change))))
 
 (defn parse-uint
   "parse uint treating 0 as nil"

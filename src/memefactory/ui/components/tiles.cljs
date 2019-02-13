@@ -57,7 +57,9 @@
       (let [remaining (-> (time/time-remaining (t/date-time @now)
                                                end-time)
                           (dissoc :seconds))
-            price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))
+            price (shared-utils/calculate-meme-auction-price (-> meme-auction
+                                                                 (update :meme-auction/started-on #(.getTime (ui-utils/gql-date->date %))))
+                                                             (.getTime @now))
             title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)]
         [:div.meme-card.back
          [meme-image (get-in meme-auction [:meme-auction/meme-token
@@ -104,7 +106,9 @@
 (defn auction-tile [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
   (let [now (subscribe [:district.ui.now.subs/now])]
     (fn [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
-      (let [price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
+      (let [price (shared-utils/calculate-meme-auction-price (-> meme-auction
+                                                                 (update :meme-auction/started-on #(.getTime (ui-utils/gql-date->date %))))
+                                                             (.getTime @now))]
         [:div.compact-tile
          [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
                           :back [auction-back-tile opts meme-auction]}]

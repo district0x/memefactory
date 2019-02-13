@@ -7,6 +7,7 @@
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
    [district.time :as time]
+   [cljs-time.core :as t]
    [district.ui.component.form.input :as inputs]
    [district.ui.component.page :refer [page]]
    [district.ui.component.tx-button :as tx-button]
@@ -18,7 +19,7 @@
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.shared.utils :as shared-utils]
-   [memefactory.ui.utils :as ui-utils]
+   [memefactory.ui.utils :as ui-utils :refer [format-price]]
    [memefactory.ui.components.app-layout :as app-layout]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [panel]]
@@ -30,8 +31,7 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [taoensso.timbre :as log]
-   ))
+   [taoensso.timbre :as log]))
 
 (def default-tab :collected)
 
@@ -163,34 +163,39 @@
            @params])]])))
 
 (defmethod panel :collected [_ state]
-  [:div.tiles
+  (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
+        active-account @(subscribe [::accounts-subs/active-account])]
+    [:div.tiles
 
-   (if (empty? state)
-     [:div.no-items-found "No items found."]
-     (doall (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/image-hash :meme/number
-                              :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
-                   (when address
-                     (let [token-ids (map :meme-token/token-id owned-meme-tokens)
-                           token-count (->> token-ids
-                                            (filter shared-utils/not-nil?)
-                                            count)]
-                       ^{:key address} [:div.compact-tile
-                                        [tiles/flippable-tile {:front (tiles/meme-image image-hash)
-                                                               :back [collected-tile-back {:meme/number number
-                                                                                           :meme/title title
-                                                                                           :reg-entry/address address
-                                                                                           :meme/owned-meme-tokens owned-meme-tokens
-                                                                                           :meme-auction/token-count token-count
-                                                                                           :meme-auction/token-ids token-ids}]
-                                                               :flippable-classes #{"meme-image" "cancel"}}]
-                                        [:div.footer
-                                         {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                {:address address}
-                                                                nil])}
-                                         [:div.title (str "#" number " " title)]
-                                         (when (and token-count total-supply)
-                                           [:div.number-minted (str "Owning " token-count " out of " total-supply)])]])))
-                 state)))])
+     (if (empty? state)
+       [:div.no-items-found "No items found."]
+       (doall (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/image-hash :meme/number
+                                :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
+                     (when address
+                       (let [token-ids (map :meme-token/token-id owned-meme-tokens)
+                             token-count (->> token-ids
+                                              (filter shared-utils/not-nil?)
+                                              count)]
+                         ^{:key address} [:div.compact-tile
+                                          [tiles/flippable-tile {:front (tiles/meme-image image-hash)
+                                                                 :back (if (or (empty? url-address)
+                                                                               (= url-address active-account))
+                                                                         [collected-tile-back {:meme/number number
+                                                                                               :meme/title title
+                                                                                               :reg-entry/address address
+                                                                                               :meme/owned-meme-tokens owned-meme-tokens
+                                                                                               :meme-auction/token-count token-count
+                                                                                               :meme-auction/token-ids token-ids}]
+                                                                         [tiles/meme-back-tile meme])
+                                                                 :flippable-classes #{"meme-image" "cancel" "info"}}]
+                                          [:div.footer
+                                           {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                                  {:address address}
+                                                                  nil])}
+                                           [:div.title (str "#" number " " title)]
+                                           (when (and token-count total-supply)
+                                             [:div.number-minted (str "Owning " token-count " out of " total-supply)])]])))
+                   state)))]))
 
 (defmethod rank :collected [_ active-account]
   (let [query (if active-account
@@ -499,22 +504,33 @@
       [:div.no-items-found "No items found."]
       (doall
        (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
-              (when address
-                (let [{:keys [:meme-token/number :meme-token/meme]} meme-token
-                      {:keys [:meme/title :meme/image-hash :meme/total-minted]} meme
-                      now (subscribe [:district.ui.now.subs/now])
-                      price (shared-utils/calculate-meme-auction-price meme-auction (:seconds (time/time-units (.getTime @now))))]
-                  ^{:key address}
-                  [:div.compact-tile
-                   [:div.container
-                    [:div.meme-card-front
-                     [tiles/meme-image image-hash]]]
-                   [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                       {:address (:reg-entry/address meme)}
-                                                       nil])}
-                    [:div.title [:b (str "#" number " " title)]]
-                    [:div.number-minted (str number "/" total-minted)]
-                    [:div.price (format/format-eth (web3/from-wei price :ether))]]])))
+              [:div.compact-tile
+               [tiles/flippable-tile {:front [tiles/meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
+                                      :back [:div.meme-card.back
+                                             [tiles/meme-image (get-in meme-auction [:meme-auction/meme-token
+                                                                                     :meme-token/meme
+                                                                                     :meme/image-hash])]
+                                             [:div.overlay
+                                              [:div.info
+                                               [:ul.meme-data
+                                                [:li [:label "Buyer:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                                                                     {:address (:user/address (:meme-auction/buyer meme-auction))}
+                                                                                                     {:tab :collected}])}
+                                                                        (:user/address (:meme-auction/buyer meme-auction))]]
+                                                [:li [:label "Price:"] [:span (format-price (:meme-auction/bought-for meme-auction))]]
+                                                [:li [:label "Bought:"] [:span (format/time-ago (t/date-time @(subscribe [::now-subs/now]))
+                                                                                                (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction)))]]]
+                                               [:hr]
+                                               [:p.description (:meme-auction/description meme-auction)]]]]}]
+               [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                   {:address (-> meme-token :meme-token/meme :reg-entry/address) }
+                                                   nil])}
+                [:div.token-id (str "#"(-> meme-token :meme-token/meme :meme/number))]
+                [:div.title (-> meme-token :meme-token/meme :meme/title)]
+                [:div.number-minted (str (:meme-token/number meme-token)
+                                         "/"
+                                         (-> meme-token :meme-token/meme :meme/total-minted))]
+                [:div.price (format-price (:meme-auction/bought-for meme-auction))]]])
             state)))]])
 
 (defn- build-order-by [prefix order-by]
@@ -545,6 +561,8 @@
                                           :meme/number
                                           :meme/title
                                           :meme/total-supply
+                                          :meme/total-minted
+                                          [:reg-entry/creator [:user/address]]
                                           [:meme/owned-meme-tokens {:owner active-account}
                                            [:meme-token/token-id]]])]]]]
       :created [[:search-memes (merge {:creator active-account
@@ -651,6 +669,9 @@
                         :meme-auction/start-price
                         :meme-auction/end-price
                         :meme-auction/bought-for
+                        :meme-auction/bought-on
+                        :meme-auction/description
+                        [:meme-auction/buyer [:user/address]]
                         [:meme-auction/meme-token
                          [:meme-token/number
                           [:meme-token/meme

@@ -31,7 +31,8 @@
    [mount.core :as mount :refer [defstate]]
    [print.foo :refer [look] :include-macros true]
    [taoensso.timbre :as log]
-   [memefactory.server.graphql-resolvers :refer [reg-entry-status]])
+   [memefactory.server.graphql-resolvers :refer [reg-entry-status]]
+   [memefactory.server.ranks-cache :as ranks-cache])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 ;; this HACK is because mount doesn't support async, so mount start will return
@@ -39,6 +40,13 @@
 (def all-filters (atom []))
 
 (declare schedule-meme-number-assigner)
+
+(defn evict-ranks-cache []
+  (ranks-cache/evict-rank :creator-rank)
+  (ranks-cache/evict-rank :collector-rank)
+  (ranks-cache/evict-rank :curator-rank)
+  (ranks-cache/evict-rank :challenger-rank)
+  (ranks-cache/evict-rank :voter-rank))
 
 (defn assign-next-number! [address]
   (let [current-meme-number (db/current-meme-number)]

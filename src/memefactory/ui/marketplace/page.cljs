@@ -52,11 +52,8 @@
 (defn marketplace-tiles [form-data auctions-search]
   (let [all-auctions (->> @auctions-search
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
-
     (log/debug "All auctions" {:auctions (map :meme-auction/address all-auctions)})
     [:div.scroll-area
-
-
      (if (:graphql/loading? @auctions-search)
        [:div.loading]
        [:div.tiles

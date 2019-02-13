@@ -8,8 +8,7 @@
             [medley.core :as medley]
             [mount.core :as mount :refer [defstate]]
             [print.foo :refer [look] :include-macros true]
-            [taoensso.timbre :as log]
-            [memefactory.server.ranks-cache :as ranks-cache]))
+            [taoensso.timbre :as log]))
 
 (declare start)
 (declare stop)
@@ -336,11 +335,6 @@
 
 (defn update-user! [{:keys [:user/address] :as params}]
   (when-not (user-exists? address)
-    (ranks-cache/evict-rank :creator-rank)
-    (ranks-cache/evict-rank :collector-rank)
-    (ranks-cache/evict-rank :curator-rank)
-    (ranks-cache/evict-rank :challenger-rank)
-    (ranks-cache/evict-rank :voter-rank)
     (db/run! {:insert-into :users
               :columns [:user/address]
               :values [[address]]}))
