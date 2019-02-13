@@ -3,6 +3,26 @@
 module.exports = {
   smart_contracts_path: __dirname + '/src/memefactory/shared/smart_contracts.cljs',
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
+  parameters : {
+    memeRegistryDb : {challengePeriodDuration : 600, // seconds
+                      commitPeriodDuration : 600, // seconds
+                      revealPeriodDuration : 600, // seconds
+                      deposit : 1e18, // 1e18 = 1 DANK
+                      challengeDispensation : 50, // percent
+                      voteQuorum : 50, // percent
+                      maxTotalSupply : 10, // int
+                      maxAuctionDuration : 12096000 // seconds
+                     },
+    paramChangeRegistryDb : {challengePeriodDuration : 600, // seconds
+                             commitPeriodDuration : 600, // seconds
+                             revealPeriodDuration : 600, // seconds
+                             deposit : 1e18, // 1e18 = 1 DANK
+                             challengeDispensation : 50, // percent
+                             voteQuorum : 50 // percent
+                            },
+    dankFaucet : {dank : 1e23, // 1e18 = 1 DANK
+                  eth : 0.5 // ETH
+                 }},
   networks: {
     ganache: {
       host: 'localhost',

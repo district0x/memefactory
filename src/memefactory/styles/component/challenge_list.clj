@@ -107,4 +107,6 @@
      [:.meme-card {:position :relative}]]
     [:.action {:margin :auto
                :grid-area :action}
-     [:span {:color (color :menu-text)}]]]])
+     [:span {:color (color :menu-text)
+             :display :inline-block
+             :margin (em 0.5)}]]]])

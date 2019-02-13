@@ -187,10 +187,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
     public
     notEmergency {
 
-    /* if (_voter == 0x0) { */
-    /*   _voter = msg.sender; */
-    /* } */
-
     require(challenge.isVoteRevealPeriodOver());
     require(!challenge.isVoteRevealed(_voter));
     require(!challenge.isVoteAmountReclaimed(_voter));
@@ -216,10 +212,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
     external
     notEmergency
   {
-
-    /* if (_voter == 0x0) { */
-    /*   _voter = msg.sender; */
-    /* } */
 
     require(challenge.isVoteRevealPeriodOver());
     require(!challenge.isVoteRewardClaimed(_voter));

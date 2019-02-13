@@ -178,7 +178,6 @@
                             :blacklist-file "blacklist.edn"
                             :blacklist-token "123" ;; override in config
                             }}})
-      ;; (mount/except [#'memefactory.server.emailer/emailer])
       (mount/start)
       pprint/pprint))
 
