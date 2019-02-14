@@ -4,23 +4,6 @@ MAINTAINER "Filip Bielejec" <filip@district0x.io>
 # ENV variables
 ENV MEMEFACTORY_ENV=qa
 
-# get source code
-COPY . /memefactory
-
-# add smart_contracts.cljs with ropsten addresses
-COPY docker-builds/shared/smart_contracts.cljs /src/memefactory/shared/smart_contracts.cljs
-
-WORKDIR memefactory
-
-# confirm contract addresses
-RUN cat /src/memefactory/shared/smart_contracts.cljs
-
-# build ui
-RUN lein deps
-RUN lein garden once
-RUN lein solc once
-RUN lein cljsbuild once "ui"
-
 # install nginx
 RUN apt-get update -y \
     && apt-get install --no-install-recommends -y \
@@ -45,9 +28,22 @@ RUN wget --no-check-certificate -O X0X.html https://raw.githubusercontent.com/di
 # setup static server
 RUN ln -s -f /etc/nginx/sites-available/memefactory.io /etc/nginx/sites-enabled/memefactory.io
 
+# get source code
+COPY . /memefactory
+
+# add smart_contracts.cljs with ropsten addresses
+COPY docker-builds/shared/smart_contracts.cljs /src/memefactory/shared/smart_contracts.cljs
+
+WORKDIR memefactory
+
+# confirm contract addresses
+# RUN cat /src/memefactory/shared/smart_contracts.cljs
+
+# build ui
+RUN lein deps
+RUN lein garden once
+RUN lein solc once
+RUN env MEMEFACTORY_ENV=qa lein cljsbuild once "ui"
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
-
-
-
-
