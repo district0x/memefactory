@@ -11,6 +11,7 @@
    [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
+   [district.ui.web3-accounts.subs :as accounts-subs]
    ))
 
 (def page-size 12)
@@ -75,7 +76,7 @@
                      (map-indexed
                       (fn [idx curator]
                         ^{:key (:user/address curator)}
-                        [:div.curator
+                        [:div.curator {:class (when (= @(subscribe [::accounts-subs/active-account]) (:user/address curator)) "account-tile")}
                          [:p.number (str "#" (inc idx))]
                          [:h3.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                              {:address (:user/address curator)}

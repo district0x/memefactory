@@ -11,6 +11,7 @@
    [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
+   [district.ui.web3-accounts.subs :as accounts-subs]
    ))
 
 (def page-size 12)
@@ -42,7 +43,7 @@
   (let [meme (-> largest-sale
                  :meme-auction/meme-token
                  :meme-token/meme)]
-    [:div.user-tile
+    [:div.user-tile {:class (when (= @(subscribe [::accounts-subs/active-account]) address) "account-tile")}
      [:div.number (str "#" num)]
      [:span.user-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                 {:address address}

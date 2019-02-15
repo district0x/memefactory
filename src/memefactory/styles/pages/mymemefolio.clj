@@ -136,7 +136,8 @@
                     {:display :block}])
     [">.rank"
      {:width "100%"}
-     [:.best-card-sale {:cursor :pointer}]]
+     [:.best-card-sale {:cursor :pointer}]
+     [:.largest-buy {:cursor :pointer}]]
     [".stats>*"
      {:padding-right (em 1)
       :align-items :center

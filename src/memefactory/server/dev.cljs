@@ -152,6 +152,7 @@
   (-> (mount/with-args
         {:config {:default {:logging {:level "info"
                                       :console? true}
+                            :web3-tx-log {:open-on-tx-hash? true}
                             :time-source :blockchain
                             :graphql {:port 6300
                                       :middlewares [logging-middlewares]

@@ -10,7 +10,7 @@
                                             :meme-auction/end-price
                                             :meme-auction/duration
                                             :meme-auction/started-on] :as auction} now]
-  (let [seconds-passed (- now started-on)
+  (let [seconds-passed (quot (- now started-on) 1000)
         total-price-change (- start-price end-price)
         current-price-change (/ (* total-price-change seconds-passed) duration)]
     (if (<= duration seconds-passed)

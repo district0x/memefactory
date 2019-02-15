@@ -100,7 +100,7 @@
           :vertical-align :middle
           :text-align :center
           :background-color (color :curator-card-bg)}
-       ]]]
+       [:&.account-tile {:background-color (color :light-green)}]]]]
     [:div.order
      {:position :absolute
       :display :block

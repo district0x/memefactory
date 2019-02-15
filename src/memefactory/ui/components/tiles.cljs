@@ -146,11 +146,11 @@
         [:li [:label "Issued:"]
          (str total-minted " cards")]]]]]))
 
-(defn meme-tile [{:keys [:reg-entry/address :meme/image-hash] :as meme}]
+(defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
   [:div.compact-tile
    [flippable-tile {:front [meme-image image-hash]
                     :back [meme-back-tile meme]}]
    [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                        {:address address}
                                        nil])}
-    [:div.title (-> meme :meme/title)]]])
+    [:div.title (str (when number (str "#" number " "))(-> meme :meme/title))]]])

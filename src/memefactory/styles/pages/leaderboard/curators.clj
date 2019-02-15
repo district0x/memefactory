@@ -92,5 +92,6 @@
         :vertical-align :middle
         :text-align :center
         :background-color (color :curator-card-bg)}
+       [:&.account-tile {:background-color (color :light-green)}]
        (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
        ]]]]])

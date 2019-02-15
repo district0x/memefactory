@@ -107,6 +107,6 @@
      [:.meme-card {:position :relative}]]
     [:.action {:margin :auto
                :grid-area :action}
-     [:span {:color (color :menu-text)
-             :display :inline-block
-             :margin (em 0.5)}]]]])
+     [:.period-ended {:color (color :menu-text)
+                      :display :inline-block
+                      :margin (em 0.5)}]]]])
