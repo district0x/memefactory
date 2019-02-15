@@ -132,14 +132,20 @@ ganache-cli -p 8549
 lein test-dev
 ```
 
-Start UI advanced build:
-```bash
-MEMEFACTORY_ENV=dev lein cljsbuild once "ui"
-docker-compose up --build
-# go to http://localhost:3001/
-```
+### Docker builds
+CI deploys the so-called nightly builds on every succesfull commit to the `master` branch.
+These builds target our QA (ropsten) environment, where a `watchtower` service watches and re-deploys images tagged as `latest`.
+These images are versioned based on the corresponding github commit hash.
 
-### QA and Production
+You can also build these services locally:
+
+=SERVER=
+`docker build -t district0x/memefactory-server -f docker-builds/server/Dockerfile .`
+
+=UI=
+`docker build -t district0x/memefactory-ui -f docker-builds/ui/Dockerfile .`
+
+### QA and Production UI builds
 For qa and production builds all you need to do is set
 `MEMEFACTORY_ENV` appropriately. For example:
 ```bash
