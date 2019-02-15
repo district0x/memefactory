@@ -5,12 +5,13 @@ function build {
   TAG=$(git log -1 --pretty=%h)
   IMG=$NAME:$TAG
   LATEST=$NAME:latest
+  SERVICE=$(echo $NAME | cut -d "-" -f 2)
 
   echo "=============================="
-  echo "Buidling: " $IMG
+  echo  "["$SERVICE"]" "Buidling: " $IMG
   echo "=============================="
 
-  docker build -t $IMG -f docker-builds/server/Dockerfile .
+  docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
   docker tag $IMG $LATEST
 }
 
@@ -26,7 +27,8 @@ function login {
 
 login
 
-images=(district0x/memefactory-server district0x/memefactory-ui)
+images=(district0x/memefactory-server
+        district0x/memefactory-ui)
 
 for i in "${images[@]}"; do
   (
