@@ -77,8 +77,8 @@
                                      :default-route :route/home
                                      :scroll-top? true}
                             :router-google-analytics {:enabled? nil #_(not debug?)}
-                            :district-ui-notification {:default-show-duration 2000
-                                                       :default-hide-duration 1000}})]
+                            :notification {:default-show-duration 3000
+                                           :default-hide-duration 1000}})]
     (js/console.log "Entire config:" (clj->js full-config))
     (-> (mount/with-args full-config)
         (mount/start)))
