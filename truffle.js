@@ -20,7 +20,7 @@ module.exports = {
                              challengeDispensation : 50, // percent
                              voteQuorum : 50 // percent
                             },
-    dankFaucet : {dank : 1e23, // 1e18 = 1 DANK
+    dankFaucet : {dank : 1000000e18, // 1e18 = 1 DANK
                   eth : 0.5 // ETH
                  }},
   networks: {
