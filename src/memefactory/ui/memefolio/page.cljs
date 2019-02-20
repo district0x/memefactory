@@ -341,9 +341,6 @@
                                                                  [:meme/title
                                                                   :reg-entry/address]]]]]]]]]}])
                 (ratom/reaction {:graphql/loading? true}))]
-
-    (log/debug "query" @query)
-
     (let [{:keys [:user/total-created-memes :user/total-created-memes-whitelisted :user/creator-rank :user/largest-sale]} (-> @query :user)
           {:keys [:meme-auction/meme-token]} largest-sale
           {:keys [:meme-token/number :meme-token/meme]} meme-token
@@ -545,10 +542,13 @@
 (defn- build-order-by [prefix order-by]
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))
 
-(defn build-query [tab {:keys [:active-account :form-data :prefix :first :after] :as opts}]
+(defn build-query [tab {:keys [:user-address #_:active-account :form-data :prefix :first :after] :as opts}]
+
+  (log/debug "build-query" user-address)
+
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
-      :collected [[:search-memes (merge {:owner active-account
+      :collected [[:search-memes (merge {:owner user-address #_active-account
                                          :first first}
                                         (when after
                                           {:after (str after)})
@@ -572,9 +572,10 @@
                                           :meme/total-supply
                                           :meme/total-minted
                                           [:reg-entry/creator [:user/address]]
-                                          [:meme/owned-meme-tokens {:owner active-account}
+                                          [:meme/owned-meme-tokens {:owner user-address #_active-account
+                                                                    }
                                            [:meme-token/token-id]]])]]]]
-      :created [[:search-memes (merge {:creator active-account
+      :created [[:search-memes (merge {:creator user-address #_active-account
                                        :first first}
                                       (when after
                                         {:after (str after)})
@@ -597,7 +598,7 @@
                            :meme/total-minted
                            :meme/total-supply
                            :reg-entry/status]]]]]
-      :curated [[:search-memes (merge {:curator active-account
+      :curated [[:search-memes (merge {:curator user-address #_active-account
                                        :first first}
                                       (when (or voted? challenged?)
                                         {:statuses (cond-> []
@@ -622,9 +623,9 @@
                            :meme/meta-hash
                            :meme/number
                            :meme/title
-                           [:challenge/vote {:vote/voter active-account}
+                           [:challenge/vote {:vote/voter user-address #_active-account}
                             [:vote/option]]]]]]]
-      :selling [[:search-meme-auctions (merge {:seller active-account
+      :selling [[:search-meme-auctions (merge {:seller user-address #_active-account
                                                :statuses [:meme-auction.status/active]
                                                :first first}
                                               (when after
@@ -657,7 +658,7 @@
                                :meme/image-hash
                                :meme/meta-hash
                                :meme/total-minted]]]]]]]]]
-      :sold [[:search-meme-auctions (merge {:seller active-account
+      :sold [[:search-meme-auctions (merge {:seller user-address #_active-account
                                             :statuses [:meme-auction.status/done]
                                             :first first}
                                            (when after
@@ -690,8 +691,11 @@
                             :meme/meta-hash
                             :meme/total-minted]]]]]]]]])))
 
-(defn scrolling-container [tab {:keys [:form-data :active-account :prefix]}]
-  (let [ query (build-query tab {:active-account @active-account
+(defn scrolling-container [tab {:keys [:user-address :form-data #_:active-account :prefix]}]
+
+  (log/debug "scrolling-container" {:user user-address})
+
+  (let [ query (build-query tab {:user-address #_:active-account user-address ;;@active-account
                                 :prefix prefix
                                 :form-data @form-data
                                 :after 0
@@ -703,12 +707,15 @@
             :memes :search-memes
             :meme-auctions :search-meme-auctions)
         state (ratom/reaction (mapcat #_safe-mapcat (fn [q] (get-in q [k :items])) @query-subs))]
-    (fn [tab {:keys [:form-data :active-account :prefix]}]
+    (fn [tab {:keys [:user-address :form-data #_:active-account :prefix]}]
+
       (log/debug "re-render" {:tab tab
+                              :query query
                               :state (map #(get-in % [(case prefix
                                                         :memes :reg-entry/address
                                                         :meme-auctions :meme-auction/address)])
                                           @state)})
+
       [:div.scroll-area
        (if (:graphql/loading? @query-subs)
          [:div.spinner]
@@ -718,35 +725,51 @@
                                       (let [{:keys [:has-next-page :end-cursor]} (k (last @query-subs))]
                                         (when (or has-next-page (empty? @state))
                                           (dispatch [::gql-events/query
-                                                     {:query {:queries (build-query tab {:active-account @active-account
+                                                     {:query {:queries (build-query tab {:user-address user-address ;;:active-account @active-account
                                                                                          :prefix prefix
                                                                                          :form-data form-data
                                                                                          :first scroll-interval
                                                                                          :after end-cursor})}
                                                       :id query-id}])))))}]])))
 
-(defn tabbed-pane [tab prefix form-data]
-  (let [active-page-sub (re-frame/subscribe [::router-subs/active-page])
-        active-account-sub (subscribe [::accounts-subs/active-account])
-        user-account (ratom/reaction (or (-> @active-page-sub :params :address) @active-account-sub))
-        tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
-        re-search (fn [] (dispatch [::gql-events/query
-                                    {:query {:queries (build-query tab {:active-account @user-account
-                                                                        :prefix prefix
-                                                                        :form-data @form-data
-                                                                        :first scroll-interval
-                                                                        :after 0})}
-                                     :id (merge @form-data {:tab tab})}]))]
+;; TODO
+(defn tabbed-pane [{:keys [:tab :prefix :form-data]
+                    {:keys [:user-address :url-address?]} :user-account
+                    }]
 
-    (fn [tab prefix form-data]
-      (let [provided-address (-> @active-page-sub :params :address)
-            active-account @active-account-sub]
+  (log/debug "tabbed-pane" {:user user-address})
+
+  (let [;;{:keys [:user-address :url-address?]} user-account
+
+
+        ;; active-page-sub (re-frame/subscribe [::router-subs/active-page])
+        ;; active-account-sub (subscribe [::accounts-subs/active-account])
+        ;; user-account (ratom/reaction (or (-> @active-page-sub :params :address) @active-account-sub))
+
+
+        tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
+        re-search #(dispatch [::gql-events/query
+                              {:query {:queries (build-query tab {#_:active-account :user-address user-address
+                                                                  :prefix prefix
+                                                                  :form-data @form-data
+                                                                  :first scroll-interval
+                                                                  :after 0})}
+                               :id (merge @form-data {:tab tab})}])]
+
+    (fn [{:keys [:tab :prefix :form-data]
+          {:keys [:user-address :url-address?]} :user-account
+          }
+
+         ;; tab prefix form-data user-account
+         ]
+      (let [;;provided-address (-> @active-page-sub :params :address)
+            ;;active-account @active-account-sub
+            ]
         [:div.tabbed-pane
          [:section.search-form
-          [search/search-tools (merge {:title (if (or (empty? provided-address)
-                                                      (= active-account provided-address))
-                                                "My Memefolio"
-                                                (str "Memefolio " provided-address))
+          [search/search-tools (merge {:title (if url-address?
+                                                (str "Memefolio " user-address)
+                                                "My Memefolio")
                                        :form-data form-data
                                        :on-selected-tags-change re-search
                                        :on-search-change re-search
@@ -784,9 +807,9 @@
                                   [:a {:on-click (fn [evt]
                                                    (.preventDefault evt)
                                                    (dispatch [::router-events/navigate :route.memefolio/index
-                                                              (if (and (not (empty? provided-address))
+                                                              (if url-address? #_(and (not (empty? provided-address))
                                                                        (not= active-account provided-address))
-                                                                {:address provided-address}
+                                                                {:address user-address #_provided-address}
                                                                 {})
                                                               {:tab tab-id}]))
                                        :href "#"}
@@ -795,33 +818,45 @@
                                        (str/capitalize))]])
                 [:collected :created :curated :selling :sold]))
           [:div.total
-           [total tab @user-account]]]
+           [total tab user-address #_@user-account]]]
          [:section.stats
           (when (not (contains? #{:selling :sold} tab))
             [:div.rank
-             [rank tab @user-account]])]
+             [rank tab user-address #_@user-account]])]
          [:div.panel
-          [scrolling-container tab {:active-account user-account :form-data form-data :prefix prefix}]]]))))
+          [scrolling-container tab {#_:active-account :user-address user-address #_user-account :form-data form-data :prefix prefix}]]]))))
 
 (defmethod page :route.memefolio/index []
   (let [{:keys [:query]} @(subscribe [::router-subs/active-page])
-        active-tab (or (keyword (:tab query)) default-tab)]
+        active-tab (or (keyword (:tab query)) default-tab)
+        active-account (subscribe [::accounts-subs/active-account])
+        active-page-sub (re-frame/subscribe [::router-subs/active-page])
+        url-account (-> @active-page-sub :params :address)
+        ;; by default use web3 provided account, override with url &address=<address> argument
+        user-account (ratom/reaction (or @active-account url-account))]
     (fn []
-      (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
-                         :memes
-                         (contains? #{:selling :sold} active-tab)
-                         :meme-auctions)
-            order-by? (-> query :order-by nil? not)
-            memes? (= prefix :memes)
-            meme-auctions? (= prefix :meme-auctions)
-            form-data (r/atom {:term (:term query)
-                               :order-by (match [order-by? memes? meme-auctions?]
-                                                [true _ _] (build-order-by prefix (:order-by query))
-                                                [false true false] (build-order-by prefix :created-on)
-                                                [false false true] (build-order-by prefix :started-on))
-                               :order-dir (or (keyword (:order-dir query)) :desc)})]
-        [app-layout/app-layout
-         {:meta {:title "MemeFactory"
-                 :description "Description"}}
-         [:div.memefolio-page
-          [tabbed-pane active-tab prefix form-data]]]))))
+
+      (log/debug "index" {:user @user-account})
+
+      (if-not @user-account
+        [:div "Loading..."]
+        (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
+                           :memes
+                           (contains? #{:selling :sold} active-tab)
+                           :meme-auctions)
+              order-by? (-> query :order-by nil? not)
+              memes? (= prefix :memes)
+              meme-auctions? (= prefix :meme-auctions)
+              form-data (r/atom {:term (:term query)
+                                 :order-by (match [order-by? memes? meme-auctions?]
+                                                  [true _ _] (build-order-by prefix (:order-by query))
+                                                  [false true false] (build-order-by prefix :created-on)
+                                                  [false false true] (build-order-by prefix :started-on))
+                                 :order-dir (or (keyword (:order-dir query)) :desc)})]
+          [app-layout/app-layout
+           {:meta {:title "MemeFactory"
+                   :description "Description"}}
+           [:div.memefolio-page
+            [tabbed-pane {:tab active-tab :prefix prefix :form-data form-data :user-account {:user-address @user-account
+                                                                                             :url-address? (nil? url-account)
+                                                                                             }}]]])))))
