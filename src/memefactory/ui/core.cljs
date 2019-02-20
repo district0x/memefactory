@@ -20,6 +20,7 @@
    [district.ui.web3-tx]
    [district.ui.web3]
    [district.ui.window-size]
+   [memefactory.shared.utils :as shared-utils]
    [memefactory.shared.contract.registry-entry]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.routes :refer [routes]]
@@ -66,11 +67,12 @@
 
 (defn ^:export init []
   (dev-setup)
-  (let [full-config (merge config-map
+  (let [full-config (shared-utils/deep-merge config-map
                            {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)
                                               :format :truffle-json}
                             :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
                             :web3-account-balances {:for-contracts [:ETH :DANK]}
+                            :web3-tx-log {:open-on-tx-hash? true}
                             :reagent-render {:id "app"
                                              :component-var #'router}
                             :router {:routes routes
