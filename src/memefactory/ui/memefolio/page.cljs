@@ -819,7 +819,7 @@
       (log/debug "index" {:user @user-account})
 
       (if-not @user-account
-        [:div "Loading..."]
+        [:div.spinner "Loading..."]
         (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
                            :memes
                            (contains? #{:selling :sold} active-tab)
