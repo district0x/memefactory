@@ -16,7 +16,7 @@
    :time-source :blockchain
    :web3 {:url "http://localhost:8549"}
    :web3-tx-log {:disable-using-localstorage? true
-                 :open-on-tx-hash? false
+                 :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
                  :etherscan-url "https://ropsten.etherscan.io"}
    :graphql {:schema graphql-schema
