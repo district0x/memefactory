@@ -31,7 +31,8 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [taoensso.timbre :as log]))
+   [taoensso.timbre :as log]
+   ))
 
 (def default-tab :collected)
 
@@ -43,8 +44,8 @@
 
 (defn sell-form [{:keys [:meme/title
                          :meme-auction/token-count
-                         :reg-entry/address]}
-                 {:keys [max-auction-duration] :as params}]
+                         :reg-entry/address] :as meme}
+                 {:keys [min-auction-duration max-auction-duration] :as params}]
   (let [tx-id (str (random-uuid))
         active-account @(subscribe [::accounts-subs/active-account])
         meme-sub (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
@@ -53,7 +54,6 @@
         token-ids (ratom/reaction (->> @meme-sub
                                        :meme :meme/owned-meme-tokens
                                        (map :meme-token/token-id)))
-        max-auction-duration (shared-utils/seconds->days (inc max-auction-duration))
         form-data (r/atom {:meme-auction/duration 14
                            :meme-auction/amount 1
                            :meme-auction/description ""})
@@ -68,11 +68,21 @@
                                           :meme-auction/end-price (when (or (not (pos? ep))
                                                                             (< sp ep))
                                                                     {:error "End price should be positive and lower than start price"})
-                                          :meme-auction/duration (cond-> {:hint (str "Max " max-auction-duration)}
-                                                                   (not (< 0 (js/parseInt (:meme-auction/duration @form-data)) (inc max-auction-duration)))
-                                                                   (assoc :error (str "Should be between 1 and " max-auction-duration)))}}))
+                                          :meme-auction/duration (let [duration (js/parseFloat (:meme-auction/duration @form-data))
+                                                                       max-duration (-> max-auction-duration
+                                                                                        shared-utils/seconds->days
+                                                                                        (shared-utils/round 4))
+                                                                       min-duration (-> min-auction-duration
+                                                                                        shared-utils/seconds->days
+                                                                                        (shared-utils/round 4))]
+                                                                   (cond-> {:hint (str "Max " max-duration)}
+                                                                     (not (<= min-duration duration max-duration))
+                                                                     (assoc :error (str "Should be between " min-duration " and " max-duration))))}}))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))]
+
+
+
     (fn []
       [:div.form-panel
        [inputs/with-label
@@ -126,14 +136,14 @@
         [inputs/textarea-input {:form-data form-data
                                 :class "sales-pitch"
                                 :errors errors
-                                :maxlength 100
+                                :maxLength 100
                                 :id :meme-auction/description
                                 :on-click #(.stopPropagation %)}]]
        [:div.buttons
         [:button.cancel "Cancel"]
         [tx-button/tx-button {:primary true
-                              :disabled (or (not-empty @critical-errors)
-                                            (not (pos? (count @token-ids))))
+                              :disabled (boolean (or (not-empty @critical-errors)
+                                                     (not (pos? (count @token-ids)))))
                               :class "create-offering"
                               :pending? @tx-pending?
                               :pending-text "Creating..."
@@ -163,10 +173,12 @@
            @params])]])))
 
 (defmethod panel :collected [_ state]
+
+  (log/debug _ state)
+
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
     [:div.tiles
-
      (if (empty? state)
        [:div.no-items-found "No items found."]
        (doall (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/image-hash :meme/number
@@ -176,25 +188,25 @@
                              token-count (->> token-ids
                                               (filter shared-utils/not-nil?)
                                               count)]
-                         ^{:key address} [:div.compact-tile
-                                          [tiles/flippable-tile {:front (tiles/meme-image image-hash)
-                                                                 :back (if (or (empty? url-address)
-                                                                               (= url-address active-account))
-                                                                         [collected-tile-back {:meme/number number
-                                                                                               :meme/title title
-                                                                                               :reg-entry/address address
-                                                                                               :meme/owned-meme-tokens owned-meme-tokens
-                                                                                               :meme-auction/token-count token-count
-                                                                                               :meme-auction/token-ids token-ids}]
-                                                                         [tiles/meme-back-tile meme])
-                                                                 :flippable-classes #{"meme-image" "cancel" "info"}}]
-                                          [:div.footer
-                                           {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                  {:address address}
-                                                                  nil])}
-                                           [:div.title (str "#" number " " title)]
-                                           (when (and token-count total-supply)
-                                             [:div.number-minted (str "Owning " token-count " out of " total-supply)])]])))
+                         [:div.compact-tile {:key address}
+                          [tiles/flippable-tile {:front (tiles/meme-image image-hash)
+                                                 :back (if (or (empty? url-address)
+                                                               (= url-address active-account))
+                                                         [collected-tile-back {:meme/number number
+                                                                               :meme/title title
+                                                                               :reg-entry/address address
+                                                                               :meme/owned-meme-tokens owned-meme-tokens
+                                                                               :meme-auction/token-count token-count
+                                                                               :meme-auction/token-ids token-ids}]
+                                                         [tiles/meme-back-tile meme])
+                                                 :flippable-classes #{"meme-image" "cancel" "info"}}]
+                          [:div.footer
+                           {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                  {:address address}
+                                                  nil])}
+                           [:div.title (str "#" number " " title)]
+                           (when (and token-count total-supply)
+                             [:div.number-minted (str "Owning " token-count " out of " total-supply)])]])))
                    state)))]))
 
 (defmethod rank :collected [_ active-account]
@@ -287,6 +299,9 @@
                        "All cards issued")]]))))
 
 (defmethod panel :created [_ state]
+
+  (log/debug _ state)
+
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
     [:div.tiles
@@ -370,8 +385,8 @@
                (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")
           [:div.spinner.spinner--var])]
        [:div.var.best-card-sale {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                          {:address (:reg-entry/address meme)}
-                                                          nil])}
+                                                       {:address (:reg-entry/address meme)}
+                                                       nil])}
         [:b "Best Single Card Sale: "]
         (if (and largest-sale number title)
           (str (-> (:meme-auction/end-price largest-sale)
@@ -503,14 +518,21 @@
     (let [total (get-in @query [:search-meme-auctions :total-count])]
       [:div "Total " (or total [:div.spinner.spinner--total])])))
 
+;; TODO : address issues
 (defmethod panel :sold [_ state]
+
+  (log/debug _ state)
+
   [:div.sold-panel
    [:div.tiles
     (if (empty? state)
       [:div.no-items-found "No items found."]
       (doall
-       (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
-              [:div.compact-tile
+       (map (fn [{:keys [:meme-auction/address :meme-auction/bought-for]
+                  {:keys [:meme-token/number]
+                   {:keys [:meme/title :meme/total-minted] :as meme} :meme-token/meme :as meme-token} :meme-auction/meme-token
+                  :as meme-auction}]
+              [:div.compact-tile {:key address}
                [tiles/flippable-tile {:front [tiles/meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
                                       :back [:div.meme-card.back
                                              [tiles/meme-image (get-in meme-auction [:meme-auction/meme-token
@@ -531,12 +553,10 @@
                [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                    {:address (-> meme-token :meme-token/meme :reg-entry/address) }
                                                    nil])}
-                [:div.token-id (str "#"(-> meme-token :meme-token/meme :meme/number))]
-                [:div.title (-> meme-token :meme-token/meme :meme/title)]
-                [:div.number-minted (str (:meme-token/number meme-token)
-                                         "/"
-                                         (-> meme-token :meme-token/meme :meme/total-minted))]
-                [:div.price (format-price (:meme-auction/bought-for meme-auction))]]])
+                [:div.token-id (str "#" number)]
+                [:div.title title]
+                [:div.number-minted (str number "/" total-minted)]
+                [:div.price (format-price bought-for)]]])
             state)))]])
 
 (defn- build-order-by [prefix order-by]
@@ -544,7 +564,7 @@
 
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
 
-  (log/debug "build-query" user-address)
+  ;; (log/debug "build-query" user-address)
 
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
@@ -692,7 +712,7 @@
 
 (defn scrolling-container [tab {:keys [:user-address :form-data :prefix]}]
 
-  (log/debug "scrolling-container" {:user user-address})
+  ;; (log/debug "scrolling-container" {:user user-address})
 
   (let [ query (build-query tab {:user-address user-address
                                 :prefix prefix
@@ -708,7 +728,7 @@
         state (ratom/reaction (mapcat #_safe-mapcat (fn [q] (get-in q [k :items])) @query-subs))]
     (fn [tab {:keys [:user-address :form-data :prefix]}]
 
-      (log/debug "re-render" {:tab tab
+      #_(log/debug "re-render" {:tab tab
                               :query query
                               :state (map #(get-in % [(case prefix
                                                         :memes :reg-entry/address
@@ -734,7 +754,7 @@
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
                     {:keys [:user-address :url-address?]} :user-account}]
 
-  (log/debug "tabbed-pane" {:user user-address})
+  ;; (log/debug "tabbed-pane" {:user user-address})
 
   (let [tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         re-search #(dispatch [::gql-events/query
@@ -789,8 +809,8 @@
                                                  (.preventDefault evt)
                                                  (dispatch [::router-events/navigate :route.memefolio/index
                                                             (if url-address?
-                                                                {:address user-address}
-                                                                {})
+                                                              {:address user-address}
+                                                              {})
                                                             {:tab tab-id}]))
                                      :href "#"}
                                  (-> tab-id
@@ -816,7 +836,7 @@
         user-account (ratom/reaction (or @active-account url-account))]
     (fn []
 
-      (log/debug "index" {:user @user-account})
+      ;; (log/debug "index" {:user @user-account})
 
       (if-not @user-account
         [:div.spinner "Loading..."]
@@ -838,5 +858,4 @@
                    :description "Description"}}
            [:div.memefolio-page
             [tabbed-pane {:tab active-tab :prefix prefix :form-data form-data :user-account {:user-address @user-account
-                                                                                             :url-address? (nil? url-account)
-                                                                                             }}]]])))))
+                                                                                             :url-address? url-account}}]]])))))
