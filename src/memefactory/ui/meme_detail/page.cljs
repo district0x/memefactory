@@ -209,7 +209,7 @@
                          :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
           (when-not (:graphql/loading? @query)
             (if (empty? all-auctions)
-              [:tbody [:tr [:td {:colspan 5} "This meme hasn't been traded yet."]]]
+              [:tbody [:tr [:td {:colSpan 5} "This meme hasn't been traded yet."]]]
               [:tbody
                (doall
                 (for [{:keys [:meme-auction/address :meme-auction/bought-for :meme-auction/bought-on
