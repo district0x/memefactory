@@ -114,9 +114,9 @@
           [:div.vote-input
            [with-label "Amount "
             [text-input {:form-data form-data
-                           :id :amount-vote-for
-                           :dom-id (str address :amount-vote-for)
-                           :errors errors}]
+                         :id :amount-vote-for
+                         :dom-id (str address :amount-vote-for)
+                         :errors errors}]
             {:form-data form-data
              :for (str address :amount-vote-for)
              :id :amount-vote-for}]
