@@ -6,14 +6,15 @@
    [graphql-query.core :refer [graphql-query]]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [mount.core :as mount :refer [defstate]]
-   [re-frame.core :as re-frame])
+   [re-frame.core :as re-frame]
+   [taoensso.timbre :as log])
   (:require-macros [memefactory.ui.utils :refer [get-environment]]))
 
 (def development-config
   {:debug? true
    :logging {:level :debug
              :console? true}
-   :time-source :blockchain
+   :time-source :js-date #_:blockchain
    :web3 {:url "http://localhost:8549"}
    :web3-tx-log {:disable-using-localstorage? true
                  :open-on-tx-hash? true
@@ -65,7 +66,7 @@
 (re-frame/reg-event-fx
  ::load-memefactory-db-params
  (fn [cofx [_ graphql-url]]
-   (js/console.log "Loading initial params from " graphql-url)
+   (log/debug "Loading initial parameters" {:graphql-url graphql-url})
    (let [query (graphql-query {:queries [[:params {:db (graphql-utils/kw->gql-name :meme-registry-db)
                                                    :keys [(graphql-utils/kw->gql-name :max-auction-duration)
                                                           (graphql-utils/kw->gql-name :vote-quorum)
@@ -89,11 +90,13 @@
 (re-frame/reg-event-db
  ::memefactory-db-params-loaded
  (fn [db [_ initial-params-result]]
-
    (let [params-map (->> initial-params-result :data :params
                          (map (fn [entry] [(graphql-utils/gql-name->kw (:param_key entry)) (:param_value entry)]))
-                         (into {}))]
-     (assoc db ::memefactory-db-params params-map))))
+                         ;; limit hardcoded in MemeAuction.sol startAuction
+                         (into {:min-auction-duration 60}))]
+     (log/debug "Initial parameters" params-map)
+     (assoc db ::memefactory-db-params (merge
+                                        params-map)))))
 
 (re-frame/reg-sub
  ::memefactory-db-params

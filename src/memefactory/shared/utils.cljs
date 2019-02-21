@@ -30,11 +30,21 @@
            [false true] (web3-utils/web3-time->local-date-time date)
            [false (:or nil false)] date)))
 
-(defn seconds->days [seconds]
+#_(defn seconds->days [seconds]
   (js/Math.floor (/ seconds 24 60 60)))
 
-(defn days->seconds [days]
+#_(defn days->seconds [days]
   (* days 24 60 60))
+
+(defn seconds->days [seconds]
+  (/ seconds 86400))
+
+(defn days->seconds [days]
+  (* days 86400))
+
+(defn round [num prec]
+  (let [rounding (js/Math.pow 10 prec )]
+    (/ (js/Math.floor (* num rounding)) rounding)))
 
 (defn deep-merge
   "Merge nested values from left to right.

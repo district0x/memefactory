@@ -242,9 +242,9 @@ library RegistryEntryLib {
         }
       }
 
-      // see MemeAuction.sol
+      // see MemeAuction.sol startAuction
       if(record == registry.maxAuctionDurationKey()) {
-        if(_value > 1 minutes) {
+        if(_value >= 1 minutes) {
           return true;
         }
       }
