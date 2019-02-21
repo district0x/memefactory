@@ -36,7 +36,7 @@
 
             (if @claim-vote-amount-tx-success?
               "Collected"
-              "Vote Amount")]
+              "Reclaim amount")]
 
            (when vote-winning-vote-option
              [pending-button {:pending? @claim-vote-reward-tx-pending?
