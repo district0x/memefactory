@@ -173,9 +173,6 @@
            @params])]])))
 
 (defmethod panel :collected [_ state]
-
-  (log/debug _ state)
-
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
     [:div.tiles
@@ -518,7 +515,6 @@
     (let [total (get-in @query [:search-meme-auctions :total-count])]
       [:div "Total " (or total [:div.spinner.spinner--total])])))
 
-;; TODO : address issues
 (defmethod panel :sold [_ state]
 
   (log/debug _ state)
@@ -564,7 +560,7 @@
 
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
 
-  ;; (log/debug "build-query" user-address)
+  (log/debug "build-query" {:user user-address})
 
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
@@ -712,9 +708,9 @@
 
 (defn scrolling-container [tab {:keys [:user-address :form-data :prefix]}]
 
-  ;; (log/debug "scrolling-container" {:user user-address})
+  (log/debug "scrolling-container" {:user user-address})
 
-  (let [ query (build-query tab {:user-address user-address
+  (let [query (build-query tab {:user-address user-address
                                 :prefix prefix
                                 :form-data @form-data
                                 :after 0
@@ -728,7 +724,7 @@
         state (ratom/reaction (mapcat #_safe-mapcat (fn [q] (get-in q [k :items])) @query-subs))]
     (fn [tab {:keys [:user-address :form-data :prefix]}]
 
-      #_(log/debug "re-render" {:tab tab
+      (log/debug "re-render" {:tab tab
                               :query query
                               :state (map #(get-in % [(case prefix
                                                         :memes :reg-entry/address
@@ -754,7 +750,7 @@
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
                     {:keys [:user-address :url-address?]} :user-account}]
 
-  ;; (log/debug "tabbed-pane" {:user user-address})
+  (log/debug "tabbed-pane" {:user user-address})
 
   (let [tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         re-search #(dispatch [::gql-events/query
@@ -836,7 +832,7 @@
         user-account (ratom/reaction (or @active-account url-account))]
     (fn []
 
-      ;; (log/debug "index" {:user @user-account})
+      (log/debug "index" {:user @user-account})
 
       (if-not @user-account
         [:div.spinner "Loading..."]
