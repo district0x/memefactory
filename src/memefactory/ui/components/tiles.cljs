@@ -7,15 +7,17 @@
             [district.ui.component.tx-button :as tx-button]
             [district.ui.graphql.subs :as gql]
             [district.ui.now.subs]
+            [district.ui.router.events :as router-events]
             [district.ui.web3-accounts.subs :as accounts-subs]
             [district.ui.web3-tx-id.subs :as tx-id-subs]
             [memefactory.shared.utils :as shared-utils]
+            [memefactory.ui.contract.meme-auction :as meme-auction]
+            [memefactory.ui.utils :as ui-utils :refer [format-price]]
             [print.foo :refer [look] :include-macros true]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [memefactory.ui.contract.meme-auction :as meme-auction]
-            [district.ui.router.events :as router-events]
-            [memefactory.ui.utils :as ui-utils :refer [format-price]]))
+            [taoensso.timbre :as log]
+            ))
 
 (defn meme-image [image-hash]
   (let [url (-> @(subscribe [::gql/query
@@ -147,6 +149,9 @@
          (str total-minted " cards")]]]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
+
+(log/debug "meme-tile" meme)
+
   [:div.compact-tile
    [flippable-tile {:front [meme-image image-hash]
                     :back [meme-back-tile meme]}]

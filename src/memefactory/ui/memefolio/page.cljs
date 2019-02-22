@@ -828,30 +828,32 @@
         active-account (subscribe [::accounts-subs/active-account])
         active-page-sub (re-frame/subscribe [::router-subs/active-page])
         url-account (-> @active-page-sub :params :address)
-        ;; by default whole page uses web3 provided account, overrides with url &address=<address> argument if present
-        user-account (ratom/reaction (or @active-account url-account))]
-    (fn []
+        ;; by default use web3 account, override if address is part of url
+        user-account (ratom/reaction (or url-account @active-account))]
+    ;;fn []
 
-      (log/debug "index" {:user @user-account})
+    (log/debug "index" {:user {:url url-account
+                               :active @active-account
+                               :final @user-account}})
 
-      (if-not @user-account
-        [:div.spinner "Loading..."]
-        (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
-                           :memes
-                           (contains? #{:selling :sold} active-tab)
-                           :meme-auctions)
-              order-by? (-> query :order-by nil? not)
-              memes? (= prefix :memes)
-              meme-auctions? (= prefix :meme-auctions)
-              form-data (r/atom {:term (:term query)
-                                 :order-by (match [order-by? memes? meme-auctions?]
-                                                  [true _ _] (build-order-by prefix (:order-by query))
-                                                  [false true false] (build-order-by prefix :created-on)
-                                                  [false false true] (build-order-by prefix :started-on))
-                                 :order-dir (or (keyword (:order-dir query)) :desc)})]
-          [app-layout/app-layout
-           {:meta {:title "MemeFactory"
-                   :description "Description"}}
-           [:div.memefolio-page
-            [tabbed-pane {:tab active-tab :prefix prefix :form-data form-data :user-account {:user-address @user-account
-                                                                                             :url-address? url-account}}]]])))))
+    (if-not @user-account
+      [:div.spinner "Loading..."]
+      (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
+                         :memes
+                         (contains? #{:selling :sold} active-tab)
+                         :meme-auctions)
+            order-by? (-> query :order-by nil? not)
+            memes? (= prefix :memes)
+            meme-auctions? (= prefix :meme-auctions)
+            form-data (r/atom {:term (:term query)
+                               :order-by (match [order-by? memes? meme-auctions?]
+                                                [true _ _] (build-order-by prefix (:order-by query))
+                                                [false true false] (build-order-by prefix :created-on)
+                                                [false false true] (build-order-by prefix :started-on))
+                               :order-dir (or (keyword (:order-dir query)) :desc)})]
+        [app-layout/app-layout
+         {:meta {:title "MemeFactory"
+                 :description "Description"}}
+         [:div.memefolio-page
+          [tabbed-pane {:tab active-tab :prefix prefix :form-data form-data :user-account {:user-address @user-account
+                                                                                           :url-address? url-account}}]]]))))
