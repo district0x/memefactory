@@ -707,51 +707,45 @@
                             :meme/total-minted]]]]]]]]])))
 
 (defn scrolling-container [tab {:keys [:user-address :form-data :prefix]}]
-
-  (log/debug "scrolling-container" {:user user-address})
-
   (let [query (build-query tab {:user-address user-address
                                 :prefix prefix
                                 :form-data @form-data
                                 :after 0
                                 :first scroll-interval})
-        query-id (ratom/reaction (merge @form-data {:tab tab}))
+        query-id (merge @form-data {:tab tab :user-address user-address})
         query-subs (subscribe [::gql/query {:queries query}
-                               {:id @query-id}])
+                               {:id query-id}])
         k (case prefix
             :memes :search-memes
             :meme-auctions :search-meme-auctions)
-        state (ratom/reaction (mapcat #_safe-mapcat (fn [q] (get-in q [k :items])) @query-subs))]
-    (fn [tab {:keys [:user-address :form-data :prefix]}]
+        state (mapcat (fn [q] (get-in q [k :items])) @query-subs)]
 
-      (log/debug "re-render" {:tab tab
-                              :query query
-                              :state (map #(get-in % [(case prefix
-                                                        :memes :reg-entry/address
-                                                        :meme-auctions :meme-auction/address)])
-                                          @state)})
+    (log/debug "re-render scrolling-container" {:state (map #(get-in % [(case prefix
+                                                                          :memes :reg-entry/address
+                                                                          :meme-auctions :meme-auction/address)])
+                                                            state)
+                                                :tab tab
+                                                :query-id query-id
+                                                :query query})
 
-      [:div.scroll-area
-       (if (:graphql/loading? @query-subs)
-         [:div.spinner]
-         [panel tab @state])
-       [infinite-scroll {:load-fn (fn []
-                                    (when-not (:graphql/loading? @query-subs)
-                                      (let [{:keys [:has-next-page :end-cursor]} (k (last @query-subs))]
-                                        (when (or has-next-page (empty? @state))
-                                          (dispatch [::gql-events/query
-                                                     {:query {:queries (build-query tab {:user-address user-address
-                                                                                         :prefix prefix
-                                                                                         :form-data form-data
-                                                                                         :first scroll-interval
-                                                                                         :after end-cursor})}
-                                                      :id query-id}])))))}]])))
+    [:div.scroll-area
+     (if (:graphql/loading? @query-subs)
+       [:div.spinner]
+       [panel tab state])
+     [infinite-scroll {:load-fn (fn []
+                                  (when-not (:graphql/loading? @query-subs)
+                                    (let [{:keys [:has-next-page :end-cursor]} (k (last @query-subs))]
+                                      (when (or has-next-page (empty? state))
+                                        (dispatch [::gql-events/query
+                                                   {:query {:queries (build-query tab {:user-address user-address
+                                                                                       :prefix prefix
+                                                                                       :form-data form-data
+                                                                                       :first scroll-interval
+                                                                                       :after end-cursor})}
+                                                    :id query-id}])))))}]]))
 
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
                     {:keys [:user-address :url-address?]} :user-account}]
-
-  (log/debug "tabbed-pane" {:user user-address})
-
   (let [tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         re-search #(dispatch [::gql-events/query
                               {:query {:queries (build-query tab {:user-address user-address
@@ -761,66 +755,66 @@
                                                                   :after 0})}
                                :id (merge @form-data {:tab tab})}])]
 
-    (fn [{:keys [:tab :prefix :form-data]
-          {:keys [:user-address :url-address?]} :user-account}]
-      [:div.tabbed-pane
-       [:section.search-form
-        [search/search-tools (merge {:title (if url-address?
-                                              (str "Memefolio " user-address)
-                                              "My Memefolio")
-                                     :form-data form-data
-                                     :on-selected-tags-change re-search
-                                     :on-search-change re-search
-                                     :on-check-filter-change re-search
-                                     :on-select-change re-search
-                                     :tags (->> @tags :search-tags :items (mapv :tag/name))
-                                     :selected-tags-id :search-tags
-                                     :search-id :term
-                                     :sub-title (str "Search " (cljs.core/name prefix))
-                                     :select-options (case prefix
-                                                       :memes [{:key :memes.order-by/created-on :value "Newest"}
-                                                               {:key :memes.order-by/reveal-period-end :value "Recently Revealed"}
-                                                               {:key :memes.order-by/commit-period-end :value "Recently Commited"}
-                                                               {:key :memes.order-by/challenge-period-end :value "Recently challenged"}
-                                                               {:key :memes.order-by/total-trade-volume :value "Trade Volume"}
-                                                               {:key :memes.order-by/number :value "Number"}
-                                                               {:key :memes.order-by/total-minted :value "Total Minted"}]
+  (log/debug "tabbed-pane" {:user user-address})
 
-                                                       :meme-auctions [{:key :meme-auctions.order-by/started-on :value "Newest"}
-                                                                       {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
-                                                                       {:key :meme-auctions.order-by/price :value "Cheapest"}
-                                                                       {:key :meme-auctions.order-by/random :value "Random"}])}
-                                    (when (= :curated tab)
-                                      {:check-filters [{:label "Voted"
-                                                        :id :voted?}
-                                                       {:label "Challenged"
-                                                        :id :challenged?}]}))]]
-       [:section.tabs
-        (doall
-         (map (fn [tab-id]
-                ^{:key tab-id} [:div
-                                {:class (when (= tab
-                                                 tab-id) "selected")}
-                                [:a {:on-click (fn [evt]
-                                                 (.preventDefault evt)
-                                                 (dispatch [::router-events/navigate :route.memefolio/index
-                                                            (if url-address?
-                                                              {:address user-address}
-                                                              {})
-                                                            {:tab tab-id}]))
-                                     :href "#"}
-                                 (-> tab-id
-                                     cljs.core/name
-                                     (str/capitalize))]])
-              [:collected :created :curated :selling :sold]))
-        [:div.total
-         [total tab user-address]]]
-       [:section.stats
-        (when (not (contains? #{:selling :sold} tab))
-          [:div.rank
-           [rank tab user-address]])]
-       [:div.panel
-        [scrolling-container tab {:user-address user-address :form-data form-data :prefix prefix}]]])))
+    [:div.tabbed-pane
+     [:section.search-form
+      [search/search-tools (merge {:title (if url-address?
+                                            (str "Memefolio " user-address)
+                                            "My Memefolio")
+                                   :form-data form-data
+                                   :on-selected-tags-change re-search
+                                   :on-search-change re-search
+                                   :on-check-filter-change re-search
+                                   :on-select-change re-search
+                                   :tags (->> @tags :search-tags :items (mapv :tag/name))
+                                   :selected-tags-id :search-tags
+                                   :search-id :term
+                                   :sub-title (str "Search " (cljs.core/name prefix))
+                                   :select-options (case prefix
+                                                     :memes [{:key :memes.order-by/created-on :value "Newest"}
+                                                             {:key :memes.order-by/reveal-period-end :value "Recently Revealed"}
+                                                             {:key :memes.order-by/commit-period-end :value "Recently Commited"}
+                                                             {:key :memes.order-by/challenge-period-end :value "Recently challenged"}
+                                                             {:key :memes.order-by/total-trade-volume :value "Trade Volume"}
+                                                             {:key :memes.order-by/number :value "Number"}
+                                                             {:key :memes.order-by/total-minted :value "Total Minted"}]
+
+                                                     :meme-auctions [{:key :meme-auctions.order-by/started-on :value "Newest"}
+                                                                     {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
+                                                                     {:key :meme-auctions.order-by/price :value "Cheapest"}
+                                                                     {:key :meme-auctions.order-by/random :value "Random"}])}
+                                  (when (= :curated tab)
+                                    {:check-filters [{:label "Voted"
+                                                      :id :voted?}
+                                                     {:label "Challenged"
+                                                      :id :challenged?}]}))]]
+     [:section.tabs
+      (doall
+       (map (fn [tab-id]
+              ^{:key tab-id} [:div
+                              {:class (when (= tab
+                                               tab-id) "selected")}
+                              [:a {:on-click (fn [evt]
+                                               (.preventDefault evt)
+                                               (dispatch [::router-events/navigate :route.memefolio/index
+                                                          (if url-address?
+                                                            {:address user-address}
+                                                            {})
+                                                          {:tab tab-id}]))
+                                   :href "#"}
+                               (-> tab-id
+                                   cljs.core/name
+                                   (str/capitalize))]])
+            [:collected :created :curated :selling :sold]))
+      [:div.total
+       [total tab user-address]]]
+     [:section.stats
+      (when (not (contains? #{:selling :sold} tab))
+        [:div.rank
+         [rank tab user-address]])]
+     [:div.panel
+      [scrolling-container tab {:user-address user-address :form-data form-data :prefix prefix}]]]))
 
 (defmethod page :route.memefolio/index []
   (let [{:keys [:query]} @(subscribe [::router-subs/active-page])
@@ -829,29 +823,28 @@
         active-page-sub (re-frame/subscribe [::router-subs/active-page])
         url-account (-> @active-page-sub :params :address)
         ;; by default whole page uses web3 provided account, overrides with url &address=<address> argument if present
-        user-account (ratom/reaction (or @active-account url-account))]
-    (fn []
+        user-account (or @active-account url-account)]
 
-      (log/debug "index" {:user @user-account})
+    (log/debug "index" {:user user-account})
 
-      (if-not @user-account
-        [:div.spinner "Loading..."]
-        (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
-                           :memes
-                           (contains? #{:selling :sold} active-tab)
-                           :meme-auctions)
-              order-by? (-> query :order-by nil? not)
-              memes? (= prefix :memes)
-              meme-auctions? (= prefix :meme-auctions)
-              form-data (r/atom {:term (:term query)
-                                 :order-by (match [order-by? memes? meme-auctions?]
-                                                  [true _ _] (build-order-by prefix (:order-by query))
-                                                  [false true false] (build-order-by prefix :created-on)
-                                                  [false false true] (build-order-by prefix :started-on))
-                                 :order-dir (or (keyword (:order-dir query)) :desc)})]
-          [app-layout/app-layout
-           {:meta {:title "MemeFactory"
-                   :description "Description"}}
-           [:div.memefolio-page
-            [tabbed-pane {:tab active-tab :prefix prefix :form-data form-data :user-account {:user-address @user-account
-                                                                                             :url-address? url-account}}]]])))))
+    (if-not user-account
+      [:div.spinner "Loading..."]
+      (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
+                         :memes
+                         (contains? #{:selling :sold} active-tab)
+                         :meme-auctions)
+            order-by? (-> query :order-by nil? not)
+            memes? (= prefix :memes)
+            meme-auctions? (= prefix :meme-auctions)
+            form-data (r/atom {:term (:term query)
+                               :order-by (match [order-by? memes? meme-auctions?]
+                                                [true _ _] (build-order-by prefix (:order-by query))
+                                                [false true false] (build-order-by prefix :created-on)
+                                                [false false true] (build-order-by prefix :started-on))
+                               :order-dir (or (keyword (:order-dir query)) :desc)})]
+        [app-layout/app-layout
+         {:meta {:title "MemeFactory"
+                 :description "Description"}}
+         [:div.memefolio-page
+          [tabbed-pane {:tab active-tab :prefix prefix :form-data form-data :user-account {:user-address user-account
+                                                                                           :url-address? url-account}}]]]))))
