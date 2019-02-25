@@ -28,7 +28,9 @@
                                                 :gas 6000000}
                                       :tx-id {:meme/mint id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "#/memefolio/?tab=created&term=" title)}
+                                               :related-href {:name :route.memefolio/index,
+                                                              :param nil,
+                                                              :query {:tab "selling", :term "title"}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::mint]
                                                         [::notification-events/show (gstring/format " %s successfully minted" title)]
                                                         [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}
