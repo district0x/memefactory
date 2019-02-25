@@ -1,7 +1,8 @@
 -/dev-server
 -/memefactory-tests
 -/resources/public/js
--/resources/public/js/compiled
+-/resources/public/js/
+-/resources/public/js/*
 -/resources/public/contracts/build
 -/resources/semantic
 -/resources/public/fonts
