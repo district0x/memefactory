@@ -52,7 +52,6 @@
      [:.overlay {:z-index 0}]]]]
   [:.meme-card
    {:position :absolute
-    :background-color (color "gray")
     :width (px card-width)
     :height (px card-height)
     :border-radius "1em"
