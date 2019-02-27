@@ -710,7 +710,6 @@
   (let [query (build-query tab {:user-address user-address
                                 :prefix prefix
                                 :form-data @form-data
-                                :after 0
                                 :first scroll-interval})
         query-id (merge @form-data {:tab tab :user-address user-address})
         query-subs (subscribe [::gql/query {:queries query}
@@ -739,7 +738,7 @@
                                         (dispatch [::gql-events/query
                                                    {:query {:queries (build-query tab {:user-address user-address
                                                                                        :prefix prefix
-                                                                                       :form-data form-data
+                                                                                       :form-data @form-data
                                                                                        :first scroll-interval
                                                                                        :after end-cursor})}
                                                     :id query-id}])))))}]]))
