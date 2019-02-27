@@ -517,7 +517,7 @@
 
 (defmethod panel :sold [_ state]
 
-  (log/debug _ state)
+  ;; (log/debug _ state)
 
   [:div.sold-panel
    [:div.tiles
@@ -818,13 +818,16 @@
 (defmethod page :route.memefolio/index []
   (let [{:keys [:query]} @(subscribe [::router-subs/active-page])
         active-tab (or (keyword (:tab query)) default-tab)
-        active-account (subscribe [::accounts-subs/active-account])
+        active-account @(subscribe [::accounts-subs/active-account])
         active-page-sub (re-frame/subscribe [::router-subs/active-page])
         url-account (-> @active-page-sub :params :address)
         ;; by default whole page uses web3 provided account, overrides with url &address=<address> argument if present
-        user-account (or @active-account url-account)]
+        user-account (match [(nil? url-account) (nil? active-account)]
+                            [true _] active-account
+                            [false _] url-account
+                            [true true] nil)]
 
-    (log/debug "index" {:user user-account})
+    (log/debug "index" {:user user-account :url url-account :active active-account})
 
     (if-not user-account
       [:div.spinner "Loading..."]

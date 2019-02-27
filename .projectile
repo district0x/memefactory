@@ -3,7 +3,9 @@
 -/resources/public/js
 -/resources/public/js/
 -/resources/public/js/*
--/resources/public/contracts/build
+-/resources/public/contracts
+-/resources/public/contracts/
+-/resources/public/contracts/*
 -/resources/semantic
 -/resources/public/fonts
 -/resources/public/icons
