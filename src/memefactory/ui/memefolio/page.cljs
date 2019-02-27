@@ -845,5 +845,6 @@
          {:meta {:title "MemeFactory"
                  :description "Description"}}
          [:div.memefolio-page
+          ^{:key user-account}
           [tabbed-pane {:tab active-tab :prefix prefix :form-data form-data :user-account {:user-address user-account
                                                                                            :url-address? url-account}}]]]))))
