@@ -33,6 +33,8 @@
 
 (def whitelisted-config-keys [:ipfs :ui])
 
+(def trending-votes-period (* 24 60 60)) ;; last 24 H
+
 (defn- query-fields
   "Returns the first order fields"
   [document & [path]]
@@ -110,51 +112,48 @@
          page-start-idx (when after (js/parseInt after))
          page-size first
          now (utils/now-in-seconds)
-         query (cond-> {:select [:re.* :m.* :votes.votes]
+         query (cond-> {:select [:re.* :memes.* :votes.votes-total :v.vote/voter]
+                        :from [:memes]
                         :modifiers [:distinct]
-                        :from [[:memes :m]]
-                        :join [[:reg-entries :re] [:= :m.reg-entry/address :re.reg-entry/address]]
-                        :left-join [[{:select [:mt.reg-entry/address :mt.meme-token/token-id :mto.meme-token/owner]
-                                      :from [[:meme-tokens :mt]]
-                                      :join [[:meme-token-owners :mto]
-                                             [:= :mto.meme-token/token-id :mt.meme-token/token-id]]} :tokens]
-                                    [:= :m.reg-entry/address :tokens.reg-entry/address]
+                        :join [[:reg-entries :re] [:= :memes.reg-entry/address :re.reg-entry/address]]
+                        :left-join [:meme-tags
+                                    [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
 
-                                    [:meme-tags :mtags]
-                                    [:= :mtags.reg-entry/address :m.reg-entry/address]
+                                    [{:select [:votes.reg-entry/address [(sql/call :total :votes.vote/amount) :votes-total]]
+                                      :from [:votes]
+                                      :where [:> :votes.vote/created-on (- now trending-votes-period)]
+                                      :group-by [:votes.reg-entry/address]} :votes]
+                                    [:= :memes.reg-entry/address :votes.reg-entry/address]
 
-                                    [{:select [:v.reg-entry/address [(sql/call :total :v.vote/amount) :votes]]
-                                      :from [[:votes :v]]
-                                      :where [:> :v.vote/created-on (- now (* 24 60 60))] ;; past 24h
-                                      :group-by [:v.reg-entry/address]} :votes]
-                                    [:= :m.reg-entry/address :votes.reg-entry/address]]}
-
-                 title        (sqlh/merge-where [:like :m.meme/title (str "%" title "%")])
+                                    [:votes :v]
+                                    [:= :v.reg-entry/address :re.reg-entry/address]]}
+                 title        (sqlh/merge-where [:like :memes.meme/title (str "%" title "%")])
                  challenged   (sqlh/merge-where [:not= :re.challenge/challenger nil])
-                 tags          (sqlh/merge-where [:=
+                 tags         (sqlh/merge-where [:=
                                                   (count tags)
                                                   {:select [(sql/call :count :*)]
-                                                   :from [[:meme-tags :mtts]]
+                                                   :from [:meme-tags]
                                                    :where [:and
-                                                           [:= :mtts.reg-entry/address :m.reg-entry/address]
-                                                           [:in :mtts.tag/name tags]]}])
-                 tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
+                                                           [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
+                                                           [:in :meme-tags.tag/name tags]]}])
+                 tags-or      (sqlh/merge-where [:in :meme-tags.tag/name tags-or])
                  creator      (sqlh/merge-where [:= :re.reg-entry/creator creator])
-                 curator      (sqlh/merge-where [:= :re.challenge/challenger curator])
+                 curator      (sqlh/merge-where [:or [:= :re.challenge/challenger curator]
+                                                 [:= :v.vote/voter curator]])
                  owner        (sqlh/merge-where [:= :tokens.meme-token/owner owner])
                  statuses-set (sqlh/merge-where [:in (reg-entry-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:memes.order-by/reveal-period-end    :re.challenge/reveal-period-end
                                                            :memes.order-by/commited-period-end  :re.challenge/commit-period-end
                                                            :memes.order-by/challenge-period-end :re.reg-entry/challenge-period-end
-                                                           :memes.order-by/total-trade-volume   :m.meme/total-trade-volume
+                                                           :memes.order-by/total-trade-volume   :memes.meme/total-trade-volume
                                                            :memes.order-by/created-on           :re.reg-entry/created-on
-                                                           :memes.order-by/number               :m.meme/number
-                                                           :memes.order-by/total-minted         :m.meme/total-minted
+                                                           :memes.order-by/number               :memes.meme/number
+                                                           :memes.order-by/total-minted         :memes.meme/total-minted
                                                            :memes.order-by/daily-total-votes    :votes.votes}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]]))]
-     (paged-query query page-size page-start-idx))))
+     (paged-query (look query) page-size page-start-idx))))
 
 (defn search-meme-tokens-query-resolver [_ {:keys [:statuses :order-by :order-dir :owner :first :after] :as args}]
   (log/debug "search-meme-tokens-query-resolver" args)
