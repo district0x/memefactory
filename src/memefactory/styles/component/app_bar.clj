@@ -156,13 +156,9 @@
       [:.tx-content
        {:background (color :white)
         :z-index 99
-        :overflow :hidden
         :color (color :menu-text)
         :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
-        :position :relative
-
-        }
-
+        :position :relative}
        [:.settings
         {:padding "10px 25px"
          :border-bottom (str "1px solid #b2bacb")}
@@ -180,9 +176,11 @@
          :color "#b2bacb"}]
 
        [:.transactions
-        {:flex-grow 1
-         :height (px 424)
-         :overflow-y :scroll}
+        {:height (px 424)
+         :overflow-y :auto
+         :width "104%"
+         :overflow-x :hidden
+         }
 
         [:.transaction
          {:display :grid
