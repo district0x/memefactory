@@ -81,8 +81,6 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))]
 
-
-
     (fn []
       [:div.form-panel
        [inputs/with-label
