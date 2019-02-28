@@ -269,9 +269,9 @@
             {:background-color (color :red)
              :font-size "7px"}
             [:&:before {:content (icons :times)}]]]
-          ["&.pending, &.not-loaded"
-           {:color (color :blue)}
-           [:i.icon {:background-color (color :blue)
+          [:&.pending
+           {:color (color :rank-yellow)}
+           [:i.icon {:background-color (color :rank-yellow)
                      :font-size "10px"}
             [:&:before
              {:content (icons :clock2)}]]]]]]]]
