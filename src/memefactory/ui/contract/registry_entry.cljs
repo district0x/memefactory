@@ -43,7 +43,8 @@
                                                 :gas 6000000}
                                       :tx-id {::approve-and-create-challenge id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "#/meme-detail/" address)}
+                                               :related-href {:name :route.meme-detail/index
+                                                              :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::approve-and-create-challenge]
                                                         [::notification-events/show (gstring/format "Challenge created for %s" title)]
                                                         [::challenge-success]]
@@ -82,7 +83,8 @@
                                                 :gas 6000000}
                                       :tx-id {::approve-and-commit-vote id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "#/meme-detail/" address)}
+                                               :related-href {:name :route.meme-detail/index
+                                                              :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::approve-and-commit-vote]
                                                         [::notification-events/show (gstring/format "Successfully voted %s for %s"
                                                                                                     (if (= option :vote.option/vote-against)
@@ -110,7 +112,8 @@
                                                 :gas 6000000}
                                       :tx-id {::reveal-vote id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "#/meme-detail/" address)}
+                                               :related-href {:name :route.meme-detail/index
+                                                              :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::reveal-vote]
                                                         [::notification-events/show (gstring/format "Successfully revealed %s for %s"
                                                                                                     (if (= option :vote.option/vote-against)
@@ -136,7 +139,8 @@
                                                 :gas 6000000}
                                       :tx-id {::claim-challenge-reward id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "#/meme-detail/" address)}
+                                               :related-href {:name :route.meme-detail/index
+                                                              :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::claim-challenge-reward]
                                                         [::notification-events/show (gstring/format "Successfully claimed challenge reward %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
@@ -157,7 +161,8 @@
                                                 :gas 6000000}
                                       :tx-id {::claim-vote-reward id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "#/meme-detail/" address)}
+                                               :related-href {:name :route.meme-detail/index
+                                                              :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " reward tx success") ::claim-vote-reward]
                                                         [::notification-events/show (gstring/format "Successfully claimed vote reward %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
@@ -179,7 +184,8 @@
                                                 :gas 6000000}
                                       :tx-id {::claim-vote-amount id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "#/meme-detail/" address)}
+                                               :related-href {:name :route.meme-detail/index
+                                                              :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::reclaim-vote-amount]
                                                         [::notification-events/show (gstring/format "Succesfully claimed vote amount %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
