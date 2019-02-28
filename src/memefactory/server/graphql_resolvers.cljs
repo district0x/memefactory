@@ -153,7 +153,7 @@
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]]))]
-     (paged-query (look query) page-size page-start-idx))))
+     (paged-query query page-size page-start-idx))))
 
 (defn search-meme-tokens-query-resolver [_ {:keys [:statuses :order-by :order-dir :owner :first :after] :as args}]
   (log/debug "search-meme-tokens-query-resolver" args)
