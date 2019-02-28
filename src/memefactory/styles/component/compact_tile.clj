@@ -50,7 +50,8 @@
       :transform "rotateY(-180deg)"}]
     [:&.back
      {:transform-style :preserve-3d
-      :transform "rotateY(0deg)"}
+      :transform "rotateY(0deg)"
+      :z-index 1}
      [:.overlay {:z-index 0}]]]]
   [:.meme-card
    {:position :absolute
