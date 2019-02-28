@@ -19,12 +19,13 @@
             [taoensso.timbre :as log]
             ))
 
-(defn meme-image [image-hash]
+(defn meme-image [image-hash & [props]]
   (let [url (-> @(subscribe [::gql/query
                              {:queries [[:config
                                          [[:ipfs [:gateway]]]]]}])
                 :config :ipfs :gateway)]
     [:div.meme-card.front
+     props
      (if (and url (not-empty image-hash))
        [:img.meme-image {:src (str (format/ensure-trailing-slash url) image-hash)}]
        [:div.meme-placehodler [:img {:src "/assets/icons/mememouth.png"}]])]))

@@ -186,7 +186,8 @@
                                               (filter shared-utils/not-nil?)
                                               count)]
                          [:div.compact-tile {:key address}
-                          [tiles/flippable-tile {:front (tiles/meme-image image-hash)
+                          [tiles/flippable-tile {:front (tiles/meme-image image-hash
+                                                                          {:class "collected-tile-front"})
                                                  :back (if (or (empty? url-address)
                                                                (= url-address active-account))
                                                          [collected-tile-back {:meme/number number

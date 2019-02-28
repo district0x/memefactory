@@ -30,6 +30,8 @@
     {:cursor :pointer}
     [:&.front :&.back
      {:transition "transform .7s cubic-bezier(0.4, 0.2, 0.2, 1)"}]
+    [:&.front.collected-tile-front
+     {:backface-visibility "hidden"}]
     [:&.front
      {:text-align :center
       :transform-style :preserve-3d
