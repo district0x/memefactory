@@ -205,7 +205,7 @@
 ;; If testing this by hand remember params like statuses should be string and not keywords
 ;; like (search-meme-auctions-query-resolver nil {:statuses [(enum :meme-auction.status/active)]})
 (defn search-meme-auctions-query-resolver [_ {:keys [:title :tags :tags-or :order-by :order-dir :group-by :statuses :seller :first :after] :as args}]
-  (log/info "search-meme-auctions-query-resolver" args)
+  (log/debug "search-meme-auctions-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          now (utils/now-in-seconds)
@@ -509,7 +509,7 @@
        registry-entry/vote-options))
 
 (defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
-  (log/info "reg-entry->vote-winning-vote-option-resolver " {:reg-entry reg-entry :args args})
+  (log/debug "reg-entry->vote-winning-vote-option-resolver " {:reg-entry reg-entry :args args})
   (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry))
     (let [{:keys [:vote/option]} (db/get {:select [:vote/option]
                                           :from [:votes]
