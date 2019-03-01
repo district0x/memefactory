@@ -149,7 +149,7 @@
                                                            :memes.order-by/created-on           :re.reg-entry/created-on
                                                            :memes.order-by/number               :memes.meme/number
                                                            :memes.order-by/total-minted         :memes.meme/total-minted
-                                                           :memes.order-by/daily-total-votes    :votes.votes}
+                                                           :memes.order-by/daily-total-votes    :votes.votes-total}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]]))]
