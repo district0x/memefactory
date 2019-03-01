@@ -36,4 +36,5 @@ RUN lein cljsbuild once "server"
 # VOLUME /logs
 # EXPOSE 6300
 
-CMD ["node", "server/memefactory.js"]
+ENTRYPOINT ["node", "server/memefactory.js"]
+CMD ["--max-old-space-size=2048"]

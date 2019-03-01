@@ -116,7 +116,13 @@
                         :from [:memes]
                         :modifiers [:distinct]
                         :join [[:reg-entries :re] [:= :memes.reg-entry/address :re.reg-entry/address]]
-                        :left-join [:meme-tags
+                        :left-join [[{:select [:meme-tokens.reg-entry/address :meme-tokens.meme-token/token-id :meme-token-owners.meme-token/owner]
+                                      :from [:meme-tokens]
+                                      :join [:meme-token-owners
+                                             [:= :meme-token-owners.meme-token/token-id :meme-tokens.meme-token/token-id]]} :tokens]
+                                    [:= :memes.reg-entry/address :tokens.reg-entry/address]
+
+                                    :meme-tags
                                     [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
 
                                     [{:select [:votes.reg-entry/address [(sql/call :total :votes.vote/amount) :votes-total]]
@@ -149,7 +155,7 @@
                                                            :memes.order-by/created-on           :re.reg-entry/created-on
                                                            :memes.order-by/number               :memes.meme/number
                                                            :memes.order-by/total-minted         :memes.meme/total-minted
-                                                           :memes.order-by/daily-total-votes    :votes.votes}
+                                                           :memes.order-by/daily-total-votes    :votes.votes-total}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]]))]
@@ -205,7 +211,7 @@
 ;; If testing this by hand remember params like statuses should be string and not keywords
 ;; like (search-meme-auctions-query-resolver nil {:statuses [(enum :meme-auction.status/active)]})
 (defn search-meme-auctions-query-resolver [_ {:keys [:title :tags :tags-or :order-by :order-dir :group-by :statuses :seller :first :after] :as args}]
-  (log/info "search-meme-auctions-query-resolver" args)
+  (log/debug "search-meme-auctions-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          now (utils/now-in-seconds)
@@ -509,7 +515,7 @@
        registry-entry/vote-options))
 
 (defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
-  (log/info "reg-entry->vote-winning-vote-option-resolver " {:reg-entry reg-entry :args args})
+  (log/debug "reg-entry->vote-winning-vote-option-resolver " {:reg-entry reg-entry :args args})
   (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry))
     (let [{:keys [:vote/option]} (db/get {:select [:vote/option]
                                           :from [:votes]
