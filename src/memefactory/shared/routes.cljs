@@ -1,7 +1,7 @@
 (ns memefactory.shared.routes)
 
 (def routes [["/" :route/home]
-             ["/marketplace/index" :route.marketplace/index]
+             ["/marketplace" :route.marketplace/index]
              ["/dankregistry/index" :route.dank-registry/index]
              ["/dankregistry/submit" :route.dank-registry/submit]
              ["/dankregistry/vote" :route.dank-registry/vote]
@@ -14,5 +14,5 @@
              ["/memefolio/:address" :route.memefolio/index]
              ["/memefolio/" :route.memefolio/index]
              ["/meme-detail/:address" :route.meme-detail/index]
-             ["/get-dank/index" :route.get-dank/index]
-             ["/my-settings/index" :route.my-settings/index]])
+             ["/get-dank" :route.get-dank/index]
+             ["/my-settings" :route.my-settings/index]])
