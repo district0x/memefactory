@@ -116,7 +116,13 @@
                         :from [:memes]
                         :modifiers [:distinct]
                         :join [[:reg-entries :re] [:= :memes.reg-entry/address :re.reg-entry/address]]
-                        :left-join [:meme-tags
+                        :left-join [[{:select [:meme-tokens.reg-entry/address :meme-tokens.meme-token/token-id :meme-token-owners.meme-token/owner]
+                                      :from [:meme-tokens]
+                                      :join [:meme-token-owners
+                                             [:= :meme-token-owners.meme-token/token-id :meme-tokens.meme-token/token-id]]} :tokens]
+                                    [:= :memes.reg-entry/address :tokens.reg-entry/address]
+
+                                    :meme-tags
                                     [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
 
                                     [{:select [:votes.reg-entry/address [(sql/call :total :votes.vote/amount) :votes-total]]
