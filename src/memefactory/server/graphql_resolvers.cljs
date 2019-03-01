@@ -62,6 +62,7 @@
         result (db/all paged-query)
         last-idx (cond-> (count result)
                    page-start-idx (+ page-start-idx))]
+    (log/debug "Paged query result" result)
     {:items result
      :total-count total-count
      :end-cursor (str last-idx)
@@ -112,10 +113,10 @@
          page-start-idx (when after (js/parseInt after))
          page-size first
          now (utils/now-in-seconds)
-         query (cond-> {:select [:re.* :memes.* :votes.votes-total :v.vote/voter]
+         query (cond-> {:select [:re.* :memes.* :votes.votes-total]
                         :from [:memes]
                         :modifiers [:distinct]
-                        :join [[:reg-entries :re] [:= :memes.reg-entry/address :re.reg-entry/address]]
+                        :join [[:reg-entries :re] [:= :re.reg-entry/address :memes.reg-entry/address]]
                         :left-join [[{:select [:meme-tokens.reg-entry/address :meme-tokens.meme-token/token-id :meme-token-owners.meme-token/owner]
                                       :from [:meme-tokens]
                                       :join [:meme-token-owners
