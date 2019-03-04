@@ -24,7 +24,7 @@ COPY docker-builds/shared/smart_contracts.cljs /src/memefactory/shared/smart_con
 WORKDIR memefactory
 
 # confirm contract addresses
-#RUN cat /src/memefactory/shared/smart_contracts.cljs
+RUN cat /src/memefactory/shared/smart_contracts.cljs
 
 # build server
 RUN lein deps
