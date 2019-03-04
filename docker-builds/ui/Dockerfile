@@ -35,11 +35,11 @@ WORKDIR memefactory
 
 # add smart_contracts.cljs with ropsten addresses
 # COPY docker-builds/shared/smart_contracts.cljs /src/memefactory/shared/smart_contracts.cljs
-RUN rm /src/memefactory/shared/smart_contracts.cljs \
-    && mv docker-builds/shared/smart_contracts.cljs /src/memefactory/shared/smart_contracts.cljs
+#RUN rm src/memefactory/shared/smart_contracts.cljs \
+#    && mv docker-builds/shared/smart_contracts.cljs src/memefactory/shared/smart_contracts.cljs
 
 # confirm contract addresses
-RUN cat /src/memefactory/shared/smart_contracts.cljs
+RUN cat src/memefactory/shared/smart_contracts.cljs
 
 # build ui
 RUN lein deps
