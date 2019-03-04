@@ -67,7 +67,8 @@
                             :errors errors
                             :label "Upload a file"
                             :file-accept-pred (fn [{:keys [name type size] :as props}]
-                                                (= type "image/png"))
+                                                (js/console.log "Veryfing acceptance of file of type : " type)
+                                                (#{"image/png" "image/gif" "image/jpeg"} type))
                             :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
                                                 (swap! form-data update-in [:file-info] dissoc :error)
                                                 (log/info "Accepted file" props ::file-accepted))
