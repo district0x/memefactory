@@ -37,7 +37,8 @@
    [reagent.ratom :as ratom]
    [taoensso.timbre :as log]
    [goog.string :as gstring]
-   [memefactory.ui.components.buttons :as buttons]))
+   [memefactory.ui.components.buttons :as buttons]
+   [memefactory.ui.dank-registry.vote-page :as vote-page]))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
@@ -87,6 +88,7 @@
                  :user/challenger-total-earned
                  :user/total-created-challenges
                  :user/total-created-challenges-success]]
+               [:challenge/vote-winning-vote-option {:vote/voter active-account}]
 
                [:challenge/vote {:vote/voter active-account}
                 [:vote/option
@@ -519,7 +521,7 @@
               [challenge-header created-on]]
        created-on (into [[status-component meme]
                          [challenger-component meme]
-                         [votes-component meme]])))])
+                         [vote-page/collect-reward-action meme]])))])
 
 (defn details []
 

@@ -172,7 +172,8 @@
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])
         active-account @(subscribe [::accounts-subs/active-account])
         vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)
-        vote-option (-> meme :challenge/vote :vote/option graphql-utils/gql-name->kw)]
+        vote-option (when-let [opt (-> meme :challenge/vote :vote/option)]
+                      (graphql-utils/gql-name->kw opt))]
     (fn [{:keys [] :as meme}]
       (let [disabled (or @tx-pending? @tx-success? (not vote))]
         [:div.reveal
