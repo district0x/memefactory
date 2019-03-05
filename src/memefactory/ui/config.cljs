@@ -15,18 +15,14 @@
    :logging {:level :debug
              :console? true}
    :time-source :js-date
-   :web3 {:url "http://qa.district0x.io:8545"
-          #_"http://localhost:8549"
-          }
+   :web3 {:url "http://localhost:8549"}
    :web3-tx-log {:disable-using-localstorage? true
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
                  :etherscan-url "https://ropsten.etherscan.io"}
    :graphql {:schema graphql-schema
-             :url "http://qa.district0x.io:6300/graphql"
-             #_"http://localhost:6300/graphql"}
-   :ipfs {:host "http://qa.district0x.io:5001"
-          #_"http://127.0.0.1:5001"
+             :url "http://localhost:6300/graphql"}
+   :ipfs {:host "http://127.0.0.1:5001"
           :endpoint "/api/v0"}
    :router {:html5? true}})
 
