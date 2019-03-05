@@ -263,7 +263,7 @@
              :font-size "8px"}
             [:&:before
              {:content (icons :check)}]]]
-          [:&.failure
+          [:&.error
            {:color (color :red)}
            [:i.icon
             {:background-color (color :red)
