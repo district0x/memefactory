@@ -2,28 +2,27 @@
   (:require
    [cljs-web3.core :as web3]
    [district.format :as format]
-   [district.graphql-utils :as graphql-utils]
    [district.ui.component.form.input :refer [index-by-type file-drag-input with-label chip-input text-input int-input]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
+   [district.ui.router.events :as router-events]
+   [district.ui.web3-account-balances.subs :as balance-subs]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.tiles :refer [meme-image]]
    [memefactory.ui.dank-registry.events :as dr-events]
-   [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
    [taoensso.timbre :as log]
-   [memefactory.ui.utils :as mf-utils]
-   [district.ui.web3-account-balances.subs :as balance-subs]))
+   ))
 
 (defn header []
   [:div.submit-info
    [:div.icon]
    [:h2.title "Dank registry - Submit"]
    [:h3.title "Lorem ipsum dolor sit ..."]
-   [:a {:href (mf-utils/path :route.get-dank/index)}
+   [:a {:on-click (dispatch [::router-events/navigate :route.get-dank/index])}
     [:div.get-dank-button "Get Dank"]]])
 
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]

@@ -30,7 +30,9 @@
                                                 :gas 6000000}
                                       :tx-id {:meme-auction/buy id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "#/memefolio/?tab=collected&term=" title)}
+                                               :related-href {:name :route.memefolio/index
+                                                              nil
+                                                              {:tab :collected :term title}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::buy]
                                                         [::notification-events/show (gstring/format "You successfully bought %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
@@ -51,7 +53,9 @@
                                                 :gas 6000000}
                                       :tx-id {:meme-auction/cancel id}
                                       :tx-log {:name tx-name
-                                               :related-href (str "#/memefolio/?tab=collected&term=" title)}
+                                               :related-href {:name :route.memefolio/index
+                                                              nil
+                                                              {:tab :collected :term title}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::cancel]
                                                         [::notification-events/show (gstring/format "Auction %s canceled" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")

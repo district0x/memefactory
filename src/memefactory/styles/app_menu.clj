@@ -58,7 +58,8 @@
 
      [:ul.node {:padding-left (em 0)}
       [:.item.active
-       [:a {:color (color :pink)}]]]
+       [:a {:color (color :pink)
+            :cursor :pointer}]]]
 
      [:ul.node
       [:.item {:font-size (pt 12)}]
@@ -74,7 +75,8 @@
         :padding-bottom menu-gutter}
        [:a
         {:color (color :menu-text)
-         :margin-left (rem 4)}
+         :margin-left (rem 4)
+         :cursor :pointer}
         [:&:hover
          {:color (color :menu-text-hover)}]
         [:&:before

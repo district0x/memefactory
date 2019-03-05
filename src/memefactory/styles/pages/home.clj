@@ -89,6 +89,7 @@
       :font-size (px 12)
       :text-align :center}]
     [:a.more {:position :absolute
+              :cursor :pointer
               :top (em 2)
               :font-size (px 12)
               :color (color :section-subcaption)
