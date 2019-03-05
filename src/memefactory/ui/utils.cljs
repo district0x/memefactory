@@ -9,12 +9,6 @@
   [gql-date]
   (time-coerce/from-long (* 1000 gql-date)))
 
-(defn path [& args]
-  (str "#" (apply router-utils/resolve args)))
-
-(defn path-with-query [path query-params-map]
-  (str path "?" (url/map->query query-params-map)))
-
 (defn format-price [price]
   (format/format-eth (/ price 1e18) {:max-fraction-digits 2
                                      :min-fraction-digits 2}))

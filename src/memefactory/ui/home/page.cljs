@@ -6,7 +6,6 @@
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.tiles :as tiles]
    [print.foo :refer [look] :include-macros true]
    [district.format :as format]
@@ -163,9 +162,10 @@
             [:h2.title "New On Marketplace"]
             [:h3.title "Lorem ipsum ..."]]]
           [auctions-list (-> @new-on-market :search-meme-auctions :items)]
-          [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
-                                                 {:order-by "started-on"
-                                                  :order-dir "desc"})} "See More"]]
+          [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
+                                          nil
+                                          {:order-by "started-on" :order-dir "desc"}])}
+           "See More"]]
 
          [:div.rare-finds
           [:div.icon]
@@ -174,9 +174,9 @@
             [:h2.title "Rare Finds"]
             [:h3.title "Lorem ipsum ..."]]]
           [auctions-list (-> @rare-finds :search-meme-auctions :items)]
-          [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
-                                                 {:order-by "meme-total-minted"
-                                                  :order-dir "asc"})}
+          [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
+                                         nil
+                                         {:order-by "meme-total-minted" :order-dir "asc"}])}
            "See More"]]
 
          [:div.random-pics
@@ -186,8 +186,9 @@
             [:h2.title "Random Picks"]
             [:h3.title "Lorem ipsum ..."]]]
           [auctions-list (-> @random-picks :search-meme-auctions :items)]
-          [:a.more {:href (utils/path-with-query (utils/path :route.marketplace/index)
-                                                 {:order-by "random"})}
+          [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
+                                         nil
+                                         {:order-by "random"}])}
            "See More"]]
 
          [:div.trending-votes

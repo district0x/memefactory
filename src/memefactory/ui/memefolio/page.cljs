@@ -789,8 +789,7 @@
                                                           (if url-address?
                                                             {:address user-address}
                                                             {})
-                                                          {:tab tab-id}]))
-                                   :href "#"}
+                                                          {:tab tab-id}]))}
                                (-> tab-id
                                    cljs.core/name
                                    (str/capitalize))]])

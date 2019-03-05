@@ -1,21 +1,20 @@
 (ns memefactory.ui.components.app-layout
   (:require
-   [reagent.core :as r]
+   [district.format :as format]
    [district.ui.component.active-account :refer [active-account]]
    [district.ui.component.active-account-balance :refer [active-account-balance] :as account-balances]
    [district.ui.component.form.input :as inputs :refer [text-input*]]
+   [district.ui.component.notification :as notification]
    [district.ui.component.tx-log :refer [tx-log]]
-   [district.ui.router.events]
+   [district.ui.router.events :as router-events]
+   [district.ui.router.subs :as router-subs]
    [district.ui.web3-tx-log.events :as tx-log-events]
    [district.ui.web3-tx-log.subs :as tx-log-subs]
-   ;; [district.ui.web3-tx-log-core]
-   [re-frame.core :refer [subscribe dispatch]]
    [memefactory.ui.subs :as mf-subs]
-   [district.ui.router.subs :as router-subs]
    [memefactory.ui.utils :as mf-utils]
-   [district.ui.component.notification :as notification]
-   [district.format :as format]
-   [print.foo :refer [look] :include-macros true]
+   [re-frame.core :refer [subscribe dispatch]]
+   [reagent.core :as r]
+   [taoensso.timbre :as log :refer [spy]]
    ))
 
 (def nav-menu-items [{:text "Marketplace"
@@ -93,7 +92,7 @@
        [:div.tracker-section
         {:on-click (fn []
                      (if (empty? @my-addresses)
-                       (dispatch [:district.ui.router.events/navigate :route/how-it-works {}])
+                       (dispatch [:district.ui.router.events/navigate :route/how-it-works])
                        (dispatch [:district0x.transaction-log/set-open (not @open?)])))}
         (if false;;(empty? @my-addresses)
           [:div "No Accounts"]
@@ -133,20 +132,16 @@
 (defn app-menu
   ([items active-page] (app-menu items active-page 0))
   ([items active-page depth]
-   ^{:key (str depth)}
-   [:ul.node
+   [:ul.node {:key (str depth)}
     (doall
-     (map-indexed (fn [idx {:keys [:text :route :href :class :children]}]
-                    (let [href (or href (mf-utils/path route))]
-                      ^{:key (str depth "-" idx)}
-                      [:li.node-content
-                       [:div.item
-                        {:class (str (when class (name class)) (when (= active-page route) " active"))}
-                        [:a {:href href
-                             :on-click #(js/window.scrollTo 0 0)}
-                         text]]
-                       (when children
-                         [app-menu children active-page (inc depth)])]))
+     (map-indexed (fn [idx {:keys [:text :route :params :query :class :children]}]
+                    [:li.node-content {:key (str depth "-" idx)}
+                     [:div.item
+                      {:class (str (when class (name class)) (when (= active-page route) " active"))}
+                      [:a {:on-click #(dispatch [::router-events/navigate route params query])}
+                       text]]
+                     (when children
+                       [app-menu children active-page (inc depth)])])
                   items))]))
 
 (defn app-layout []
@@ -157,7 +152,7 @@
        [:div.app-menu
         {:class (when-not @drawer-open? "closed")}
         [:div.menu-content
-         [:div.mf-logo {:on-click #(dispatch [:district.ui.router.events/navigate :route/home {}])}
+         [:div.mf-logo {:on-click #(dispatch [::router-events/navigate :route/home])}
           [:img {:src "/assets/icons/mememouth.png"}]
           [:span "MEME FACTORY"]]
          [app-menu nav-menu-items (:name @active-page)]]

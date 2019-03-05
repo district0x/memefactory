@@ -20,8 +20,7 @@
                             (.preventDefault e)
                             (dispatch [::router-events/navigate :route.dank-registry/vote
                                        {}
-                                       {:tab (:title t)}]))
-                :href "#"}
+                                       {:tab (:title t)}]))}
                (:title t)]]))]
          [:div.selected-tab-body
           (some #(when (= (:title %) selected-tab)

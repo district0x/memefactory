@@ -30,7 +30,7 @@
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index,
                                                               :param nil,
-                                                              :query {:tab "selling", :term "title"}}}
+                                                              :query {:tab "selling" :term title}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::mint]
                                                         [::notification-events/show (gstring/format " %s successfully minted" title)]
                                                         [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}
