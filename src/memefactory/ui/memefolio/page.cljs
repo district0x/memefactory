@@ -1,6 +1,7 @@
 (ns memefactory.ui.memefolio.page
   (:require
    [cljs-time.core :as t]
+   [bignumber.core :as bn]
    [cljs-web3.core :as web3]
    [cljs.core.match :refer-macros [match]]
    [clojure.data :as data]
@@ -386,9 +387,10 @@
                                                        nil])}
         [:b "Best Single Card Sale: "]
         (if (and largest-sale number title)
-          (str (-> (:meme-auction/end-price largest-sale)
+          (str (-> (:meme-auction/bought-for largest-sale)
                    (web3/from-wei :ether)
-                   format/format-eth)
+                   (bn/number)
+                   (format/format-eth {:max-fraction-digits 2}))
                " (#" number " " title ")")
           "None")]])))
 

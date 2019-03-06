@@ -813,16 +813,16 @@
        (:user/total-collected-memes sql-query)))))
 
 (defn user->largest-buy-resolver [{:keys [:user/address] :as user}]
-  (log/debug "user->largest-buy-resolver args" user)
+  (log/info "user->largest-buy-resolver args" user)
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:meme-auctions]
-                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/end-price)]
+                            :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/bought-for)]
                                               :from [:meme-auctions]}
-                                          :meme-auctions.meme-auction/end-price]
+                                          :meme-auctions.meme-auction/bought-for]
                                     [:= address :meme-auction/buyer]]})
          {:keys [:meme-auction/buyer]} sql-query]
-     (log/debug "user->largest-buy-resolver query" sql-query)
+     (log/info "user->largest-buy-resolver query" sql-query)
      (when buyer
        sql-query))))
 
@@ -1008,8 +1008,8 @@
               (log/info "Twilio resp:" twilio-response)
               (log/info "Type of success:" (type success))
               (if (not success)
-                (throw (Exception. "Error calling phone verification API:"
-                                   graphql-response))
+                (throw (js/Error. "Error calling phone verification API:"
+                                  graphql-response))
                 graphql-response))))))))
 
 (def exec-promise (.promisify util (aget child-process "exec")))
