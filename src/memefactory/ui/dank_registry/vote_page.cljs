@@ -22,11 +22,10 @@
    [memefactory.ui.dank-registry.events :as dr-events]
    [memefactory.ui.components.spinner :as spinner]
    [district.ui.router.events :as router-events]
-   [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [taoensso.timbre :as log]
+   [taoensso.timbre :as log :refer [spy]]
    [memefactory.ui.components.buttons :as buttons]))
 
 (def page-size 12)
@@ -54,9 +53,10 @@
                                                           [:challenge/vote {:vote/voter @active-account}
                                                            [:vote/option
                                                             :vote/amount]]
-
                                                           :challenge/votes-total]]]}])]
-        (js/console.log "@response:" @response)
+
+        (log/debug "@response" @response)
+
         (if (:graphql/loading? @response)
           [spinner/spin]
           (if-let [meme-voting (:meme @response)]
@@ -64,36 +64,39 @@
                   vote-reward-tx-id (str address "vote-reward")
                   {:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
                   {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total :challenge/vote]} meme-voting
-                  {:keys [:vote/option :vote/amount]} vote
-                  option (graphql-utils/gql-name->kw option)]
-              [:div.collect-reward
-               (log/debug "meme voting" meme-voting ::collect-reward-action)
+                  {:keys [:vote/option :vote/amount]
+                   :or {option "voteOption_noVote"}} vote
+                  option (graphql-utils/gql-name->kw (spy option))]
 
-               (if (pos? votes-total)
-                 [charts/donut-chart meme-voting]
-                 [:div "No votes"])
-               [:ul.vote-info
-                (when (pos? votes-for)
-                  [:li
-                   (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (ui-utils/format-dank votes-for))])
-                (when (pos? votes-against)
-                  [:li
-                   (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (ui-utils/format-dank votes-against))])
-                (when (pos? votes-total)
-                  [:li "Total voted: " (ui-utils/format-dank votes-total)])
-                [:li "Your reward: " (let [reward (+ (:challenge/reward-amount all-rewards)
-                                                     (:vote/reward-amount all-rewards))]
-                                       (ui-utils/format-dank reward))]
-                (when-not (or (= option :vote-option/not-revealed)
-                              (= option :vote-option/no-vote))
-                  [:li (str "You voted: " (gstring/format "%d for %s "
-                                                          (if (pos? amount)
-                                                            (quot amount 1e18)
-                                                            0)
-                                                          (case option
-                                                            :vote-option/vote-for "DANK"
-                                                            :vote-option/vote-against "STANK")))])]
-               (buttons/reclaim-buttons @active-account meme-voting)])))))))
+              (log/debug "vote" {:v vote :o option} ::collect-reward-action)
+
+              [:div.collect-reward
+               [charts/donut-chart meme-voting]
+               (if meme-voting
+                 [:ul.vote-info
+                  (when (pos? votes-for)
+                    [:li
+                     (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (ui-utils/format-dank votes-for))])
+                  (when (pos? votes-against)
+                    [:li
+                     (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (ui-utils/format-dank votes-against))])
+                  (when (pos? votes-total)
+                    [:li "Total voted: " (ui-utils/format-dank votes-total)])
+                  [:li "Your reward: " (let [reward (+ (:challenge/reward-amount all-rewards)
+                                                       (:vote/reward-amount all-rewards))]
+                                         (ui-utils/format-dank reward))]
+
+                  (when-not (or (= option :vote-option/not-revealed)
+                                (= option :vote-option/no-vote))
+                    [:li (str "You voted: " (gstring/format "%d for %s "
+                                                            (if (pos? amount)
+                                                              (quot amount 1e18)
+                                                              0)
+                                                            (case option
+                                                              :vote-option/vote-for "DANK"
+                                                              :vote-option/vote-against "STANK")))])
+                  (buttons/reclaim-buttons @active-account meme-voting)]
+                 [:div "No votes"])])))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote :meme/title] :as meme}]
   (let [tx-id (str address "vote")
@@ -207,32 +210,35 @@
     [:div]))
 
 (defmethod page :route.dank-registry/vote []
-  (let [account (subscribe [::accounts-subs/active-account])]
-    (fn []
-      [app-layout
-       {:meta {:title "MemeFactory"
-               :description "Description"}}
-       [:div.dank-registry-vote-page
-        [:section.vote-header
-         [header]]
-        [:section.challenges
-         [tabbed-pane
-          [{:title "Open Challenges"
-            :content [challenge-list {:include-challenger-info? false
-                                      :query-params {:statuses [:reg-entry.status/commit-period
-                                                                :reg-entry.status/reveal-period]}
-                                      :active-account @account
-                                      :action-child reveal-vote-action
-                                      :key :vote-page/open
-                                      :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
-                                                     {:key "commit-period-end" :value "Commit period end" :dir :asc}]}]}
-           {:title "Resolved Challenges"
-            :content [challenge-list {:include-challenger-info? true
-                                      :query-params {:statuses [:reg-entry.status/blacklisted
-                                                                :reg-entry.status/whitelisted]
-                                                     :challenged true}
-                                      :active-account @account
-                                      :action-child collect-reward-action
-                                      :key :vote-page/resolved
-                                      :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
-                                                     {:key "reveal-period-end" :value "Reveal period end" :dir :asc}]}]}]]]]])))
+  (let [account @(subscribe [::accounts-subs/active-account])]
+    ;;fn []
+
+    (log/debug ":route.dank-registry/vote" account)
+
+    [app-layout
+     {:meta {:title "MemeFactory"
+             :description "Description"}}
+     [:div.dank-registry-vote-page
+      [:section.vote-header
+       [header]]
+      [:section.challenges
+       [tabbed-pane
+        [{:title "Open Challenges"
+          :content [challenge-list {:include-challenger-info? false
+                                    :query-params {:statuses [:reg-entry.status/commit-period
+                                                              :reg-entry.status/reveal-period]}
+                                    :active-account account
+                                    :action-child reveal-vote-action
+                                    :key :vote-page/open
+                                    :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
+                                                   {:key "commit-period-end" :value "Commit period end" :dir :asc}]}]}
+         {:title "Resolved Challenges"
+          :content [challenge-list {:include-challenger-info? true
+                                    :query-params {:statuses [:reg-entry.status/blacklisted
+                                                              :reg-entry.status/whitelisted]
+                                                   :challenged true}
+                                    :active-account account
+                                    :action-child collect-reward-action
+                                    :key :vote-page/resolved
+                                    :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
+                                                   {:key "reveal-period-end" :value "Reveal period end" :dir :asc}]}]}]]]]]))
