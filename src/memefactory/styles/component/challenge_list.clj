@@ -100,7 +100,8 @@
                :max-width (em 18)
                :margin-left (em 0.2)}]
        [:span.address.creator {:cursor :pointer}]]]
-     [:span.challenge-comment {:font-style :italic}]]
+     [:span.challenge-comment {:font-style :italic
+                               :color (color :pink)}]]
     [:div.meme-tile {:display :grid
                      :grid-area :image
                      :justify-items :center}
