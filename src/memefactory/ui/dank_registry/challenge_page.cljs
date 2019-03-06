@@ -61,12 +61,11 @@
             [pending-button {:pending? @tx-pending?
                              :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
                              :pending-text "Challenging ..."
-                             :on-click (fn []
-                                         (dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
-                                                                                        :reg-entry/address address
-                                                                                        :meme/title title
-                                                                                        :comment (:comment @form-data)
-                                                                                        :deposit dank-deposit}]))}
+                             :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
+                                                                                      :reg-entry/address address
+                                                                                      :meme/title title
+                                                                                      :comment (:comment @form-data)
+                                                                                      :deposit dank-deposit}])}
              (if @tx-success?
                "Challenged"
                "Challenge")]

@@ -22,7 +22,7 @@
    [:div.icon]
    [:h2.title "Dank registry - Submit"]
    [:h3.title "Lorem ipsum dolor sit ..."]
-   [:a {:on-click (dispatch [::router-events/navigate :route.get-dank/index])}
+   [:a {:on-click #(dispatch [::router-events/navigate :route.get-dank/index])}
     [:div.get-dank-button "Get Dank"]]])
 
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
