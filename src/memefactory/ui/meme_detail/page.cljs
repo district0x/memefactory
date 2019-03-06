@@ -37,7 +37,8 @@
    [reagent.ratom :as ratom]
    [taoensso.timbre :as log]
    [goog.string :as gstring]
-   [memefactory.ui.components.buttons :as buttons]))
+   [memefactory.ui.components.buttons :as buttons]
+   [memefactory.ui.dank-registry.vote-page :as vote-page]))
 
 (def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
 
@@ -87,6 +88,7 @@
                  :user/challenger-total-earned
                  :user/total-created-challenges
                  :user/total-created-challenges-success]]
+               [:challenge/vote-winning-vote-option {:vote/voter active-account}]
 
                [:challenge/vote {:vote/voter active-account}
                 [:vote/option
@@ -187,21 +189,23 @@
                                                          [:meme-auction/meme-token
                                                           [:meme-token/token-id]]]]]]]}])
             all-auctions (-> @query :meme :meme/meme-auctions)]
+
         [:div.history-component
          [:h1.title "Marketplace history"]
-         [:table
-          [:thead [:tr
-                   [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
-                         :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
-                   [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
-                         :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
-                   [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
-                         :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
-                   [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
-                         :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
-                   [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
-                         :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
-          (if (:graphql/loading? @query)
+         (if (:graphql/loading? @query)
+           [spinner/spin]
+           [:table
+            [:thead [:tr
+                     [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
+                     [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
+                     [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
+                     [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
+                     [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
+                           :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
             (if (empty? all-auctions)
               [:tbody [:tr [:td {:colSpan 5} "This meme hasn't been traded yet."]]]
               [:tbody
@@ -225,7 +229,7 @@
                                       bought-date (ui-utils/gql-date->date bought-on)]
                                   (when-not (or (empty? (str bought-on))
                                                 (> (.getTime bought-date) (.getTime now-date)))
-                                    (format/time-ago bought-date now-date)))]])))]))]]))))
+                                    (format/time-ago bought-date now-date)))]])))])])]))))
 
 (defn challenge-header [created-on]
   (when created-on
@@ -519,7 +523,7 @@
               [challenge-header created-on]]
        created-on (into [[status-component meme]
                          [challenger-component meme]
-                         [votes-component meme]])))])
+                         [vote-page/collect-reward-action meme]])))])
 
 (defn details []
 

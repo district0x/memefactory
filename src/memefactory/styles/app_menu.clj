@@ -78,7 +78,7 @@
          :margin-left (rem 4)
          :cursor :pointer}
         [:&:hover
-         {:color (color :menu-text-hover)}]
+         {:color (color :pink)}]
         [:&:before
          {:display :block
           :background-size [(rem 1.8) (rem 1.8)]

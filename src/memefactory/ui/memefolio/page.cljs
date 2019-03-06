@@ -650,6 +650,9 @@
                            :meme-auction/start-price
                            :meme-auction/end-price
                            :meme-auction/bought-for
+                           :meme-auction/started-on
+                           :meme-auction/duration
+                           [:meme-auction/seller [:user/address]]
                            [:meme-auction/meme-token
                             [:meme-token/number
                              [:meme-token/meme
@@ -814,8 +817,7 @@
 
     (log/debug "index" {:user user-account :url url-account :active active-account})
 
-    (if-not user-account
-      [:div.spinner "Loading..."]
+    (when user-account
       (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
                          :memes
                          (contains? #{:selling :sold} active-tab)

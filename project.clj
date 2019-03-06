@@ -52,7 +52,7 @@
                  [district0x/district-ui-web3-balances "1.0.2"]
                  [district0x/district-ui-web3-tx "1.0.9"]
                  [district0x/district-ui-web3-tx-id "1.0.1"]
-                 [district0x/district-ui-web3-tx-log "1.0.8"]
+                 [district0x/district-ui-web3-tx-log "1.0.9"]
                  [district0x/district-ui-window-size "1.0.1"]
                  [district0x/district-web3-utils "1.0.2"]
                  [district0x/error-handling "1.0.3"]

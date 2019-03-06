@@ -46,39 +46,9 @@
 
 (defstyles core
   [:.meme-detail-page
-   [:.spinner
-    {;; ovverride attr
-     :border-color (color :black)
-     :border-top-color (color :white)
-     :border-width (em 0.4)
-     :width (em 2)
-     :height (em 2)
-     ;; common attr
-     :border-style :solid
-     :border-top-style :solid
-     :border-radius "50%"
-     :animation-name :spin
-     :animation-duration "2s"
-     :animation-iteration-count :infinite
-     :animation-timing-function :linear}]
-   [:.spinner--number
-    {:border-color (color :purple)
-     :border-top-color (color :yellow)
-     :border-width (em 0.3)
-     :width (em 0.9)
-     :height (em 0.9)}]
-   [:.spinner--info
-    {:border-color (color :busy-grey)
-     :border-top-color (color :white)
-     :border-width (em 1)
-     :width (em 7)
-     :height (em 7)}]
-   [:.spinner--challenge
-    {:border-color (color "#04ffcc")
-     :border-top-color (color :white)
-     :width (px outer-radius)
-     :height (px outer-radius)
-     :border-width (px inner-radius)}]
+   [:.spinner-outer {:margin-left :auto
+                     :margin-right :auto}]
+
    [:.address (of-ellipsis)]
    [:section.meme-detail
     [:.spinner-outer {:margin-left :auto
