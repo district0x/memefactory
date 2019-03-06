@@ -21,9 +21,8 @@
   [:div.submit-info
    [:div.icon]
    [:h2.title "Dank registry - Submit"]
-   [:h3.title "Lorem ipsum dolor sit ..."]
-   [:a {:on-click #(dispatch [::router-events/navigate :route.get-dank/index])}
-    [:div.get-dank-button "Get Dank"]]])
+   [:h3.title "Add a new meme to the registry for consideration"]
+   [:a {:on-click #(dispatch [::router-events/navigate :route.get-dank/index])}])
 
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])

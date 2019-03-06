@@ -95,7 +95,7 @@
            [:div.creators-panel
             [:div.icon]
             [:h2.title "LEADERBOARDS - CREATORS"]
-            [:h3.title "lorem ipsum"]
+            [:h3.title "Meme makers ranked by registry success rate and total ETH earned"]
             [:div.order
              (let [total (get-in last-user [:search-users :total-count])]
                [select-input

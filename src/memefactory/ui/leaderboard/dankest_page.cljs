@@ -78,5 +78,5 @@
          [:div.dankest-panel
           [:div.icon]
           [:h2.title "LEADERBOARDS - DANKEST"]
-          [:h3.title "lorem ipsum"]
+          [:h3.title "Memes traded for the most ETH"]
           [dankest-memes-tiles]]]]])))

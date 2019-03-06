@@ -252,7 +252,7 @@
       (str "Address: " (:user/address challenger))]
      [:i (str "\"" comment "\"")]]))
 
-(defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme}]
+(defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme} text]
   (let [status (graphql-utils/gql-name->kw status)
         [period-label period-end] (case status
                                     :reg-entry.status/challenge-period ["Challenge" challenge-period-end]
@@ -281,7 +281,7 @@
                      format/format-time-units)]])
        [:li ""])
 
-     [:div.lorem "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."]]))
+     [:div.lorem text]]))
 
 (defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
                                :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
@@ -476,7 +476,7 @@
      [:h1.title "Challenge"]
      (cond-> [:div.challenge-component-inner
               [challenge-header created-on]]
-       created-on (into [[status-component meme]
+       created-on (into [[status-component meme "This meme has had its place in the registry challenged, and voting has concluded. Voters must now reveal their votes to determine if the meme is accepted or rejected."]
                          [challenger-component meme]
                          (if-not (= 0 days hours minutes seconds)
                            [reveal-vote-component meme]
@@ -491,7 +491,7 @@
      [:h1.title "Challenge"]
      (cond-> [:div.challenge-component-inner
               [challenge-header created-on]]
-       created-on (into [[status-component meme]
+       created-on (into [[status-component meme "This meme has had its place in the registry challenged. It is currently open for voting. When the voting period ends, it will enter the vote reveal phase."]
                          [challenger-component meme]
                          (if-not (= 0 days hours minutes seconds)
                            [vote-component meme]
@@ -507,7 +507,7 @@
        [:h1.title "Challenge"]
        [:div.challenge-component-inner-cp
         [challenge-header created-on]
-        [status-component meme]
+        [status-component meme "This meme has been submitted to the the registry, but has not passed the challenge window for automatic acceptance. It can be challenged at any time before this window ends."]
         (if-not (= 0 days hours minutes seconds)
           [challenge-meme-component meme (:deposit params)]
           [:div "Challenge period ended."])]])))
@@ -521,7 +521,7 @@
       [:h4.title "This meme hasn't been challenged."]]
      (cond-> [:div.challenge-component-inner
               [challenge-header created-on]]
-       created-on (into [[status-component meme]
+       created-on (into [[status-component meme "This meme was challenged, and voting has concluded. Accepted memes are minted to the marketplace, while rejected ones can be resubmitted by the creator."]
                          [challenger-component meme]
                          [vote-page/collect-reward-action meme]])))])
 
@@ -596,7 +596,7 @@
        [:div.relateds-panel
         [:div.icon]
         [:h2.title "RELATED MEMES ON MARKETPLACE"]
-        [:h3.title "lorem ipsum"]
+        [:h3.title "Similar memes for sale now"]
         [related-memes-container address tags]]]]]))
 
 (defmethod page :route.meme-detail/index []

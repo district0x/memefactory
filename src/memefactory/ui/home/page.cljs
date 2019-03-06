@@ -153,14 +153,14 @@
                :description "Description"}
         :search-atom search-atom}
        [:div.home
-        [:p.inspired "Inspired by the work of Simon de la Rouviere and his Curation Markets design, the third district to be deployed to the district0x."]
+        [:p.inspired "A decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."]
         [:section.meme-highlights
          [:div.new-on-marketplace
           [:div.icon]
           [:div.header
            [:div.middle
             [:h2.title "New On Marketplace"]
-            [:h3.title "Lorem ipsum ..."]]]
+            [:h3.title "The latest additions to Meme Factory"]]]
           [auctions-list (-> @new-on-market :search-meme-auctions :items)]
           [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
                                           nil
@@ -172,7 +172,7 @@
           [:div.header
            [:div.middle
             [:h2.title "Rare Finds"]
-            [:h3.title "Lorem ipsum ..."]]]
+            [:h3.title "Exceptional, infrequently traded memes"]]]
           [auctions-list (-> @rare-finds :search-meme-auctions :items)]
           [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
                                          nil
@@ -184,7 +184,7 @@
           [:div.header
            [:div.middle
             [:h2.title "Random Picks"]
-            [:h3.title "Lorem ipsum ..."]]]
+            [:h3.title "A random assortment of memes for sale"]]]
           [auctions-list (-> @random-picks :search-meme-auctions :items)]
           [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
                                          nil
@@ -196,5 +196,5 @@
           [:div.header
            [:div.middle
             [:h2.title "Trending Votes"]
-            [:h3.title "Lorem ipsum ..."]]]
+            [:h3.title "The most active challenges in the last day"]]]
           [memes-list (-> @trending-votes :search-memes :items) "No votes are running currently"]]]]])))

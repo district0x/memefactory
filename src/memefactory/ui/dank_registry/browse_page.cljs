@@ -97,7 +97,7 @@
                          :search-id :search-term
                          :selected-tags-id :search-tags
                          :title "Dank registry"
-                         :sub-title "Sub title"
+                         :sub-title "Browse all memes ever minted"
                          :on-selected-tags-change re-search
                          ;; TODO: Fix this hack, we need a way of passing a select more info
                          :select-options (->> [{:key "number-desc"             :value "Newest"}

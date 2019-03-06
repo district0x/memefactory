@@ -105,7 +105,7 @@
                           :check-filters [{:label "Show only cheapest offering of meme"
                                            :id :only-cheapest?}]
                           :title "Marketplace"
-                          :sub-title "Sub title"
+                          :sub-title "Buy and Sell memes"
                           :on-selected-tags-change re-search
                           :select-options [{:key "started-on" :value "Newest"}
                                            {:key "meme-total-minted" :value "Rarest"}

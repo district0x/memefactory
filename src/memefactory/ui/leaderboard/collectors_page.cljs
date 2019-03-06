@@ -93,7 +93,7 @@
            [:div.collectors-panel
             [:div.icon]
             [:h2.title "LEADERBOARDS - COLLECTORS"]
-            [:h3.title "lorem ipsum"]
+            [:h3.title "Meme addicts with the biggest Memefolios"]
             [:div.order
              (let [total (get-in last-user [:search-users :total-count])]
                [select-input

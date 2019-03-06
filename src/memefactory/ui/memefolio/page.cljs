@@ -769,7 +769,9 @@
                                    :tags (->> @tags :search-tags :items (mapv :tag/name))
                                    :selected-tags-id :search-tags
                                    :search-id :term
-                                   :sub-title (str "Search " (cljs.core/name prefix))
+                                   :sub-title (if url-address?
+                                                (str "User stats and current holdings for account " user-address)
+                                                "A personal history of all memes bought, sold, created, and owned")
                                    :select-options (case prefix
                                                      :memes [{:key :memes.order-by/created-on :value "Newest"}
                                                              {:key :memes.order-by/reveal-period-end :value "Recently Revealed"}
