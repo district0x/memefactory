@@ -46,23 +46,24 @@
     (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::dankest-memes-tiles)
 
     (if (and (empty? all-memes)
-             (false? (:graphql/loading? last-meme)))
+             (not (:graphql/loading? last-meme)))
       [:div.no-items-found "No items found."]
       [:div.scroll-area
        [:div.tiles
         (doall
          (for [{:keys [:reg-entry/address] :as meme} all-memes]
            ^{:key address}
-           [tiles/meme-tile meme]))]
-       (when (:graphql/loading? last-meme)
-         [spinner/spin])
+           [tiles/meme-tile meme]))
+        (when (:graphql/loading? last-meme)
+               [:div.spinner-container [spinner/spin]])]
+
        [infinite-scroll {:load-fn (fn []
                                     (when-not (:graphql/loading? @meme-search)
                                       (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
 
                                         (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
 
-                                        (when (or has-next-page (empty? all-memes))
+                                        (when has-next-page
                                           (dispatch [:district.ui.graphql.events/query
                                                      {:query {:queries [(build-tiles-query end-cursor)]}
                                                       :id :dankest}])))))}]])))

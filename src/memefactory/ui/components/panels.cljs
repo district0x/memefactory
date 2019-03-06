@@ -15,13 +15,14 @@
 
 (defmulti panel (fn [tab & opts] tab))
 
-(defmethod panel :selling [_ state]
+(defmethod panel :selling [_ state loading?]
 
    (log/debug _ state)
 
   [:div.selling-panel
    [:div.tiles
-    (if (empty? state)
+    (if (and (empty? state)
+             (not loading?))
       [:div.no-items-found "No items found."]
       (doall
        (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]

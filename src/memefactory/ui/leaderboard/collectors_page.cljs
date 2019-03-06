@@ -104,7 +104,7 @@
             [:div.scroll-area
              [:div.collectors
               (if (and (empty? all-collectors)
-                       (false? (:graphql/loading? last-user)))
+                       (not (:graphql/loading? last-user)))
                 [:div.no-items-found "No items found."]
                 (doall
                  (map
@@ -112,14 +112,15 @@
                     ^{:key (:user/address collector)}
                     [collectors-tile collector (:overall-stats @totals) num])
                   all-collectors
-                  (iterate inc 1))))]
-             (when (:graphql/loading? last-user)
-               [spinner/spin])
+                  (iterate inc 1))))
+              (when (:graphql/loading? last-user)
+               [:div.spinner-container [spinner/spin]])]
+
              [infinite-scroll {:load-fn (fn []
                                           (when-not (:graphql/loading? last-user)
                                             (let [{:keys [has-next-page end-cursor]} (:search-users last-user)]
 
                                               (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/collectors)
 
-                                              (when (or has-next-page (empty? all-collectors))
+                                              (when has-next-page
                                                 (re-search-users end-cursor)))))}]]]]]]))))

@@ -54,22 +54,25 @@
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
     (log/debug "All auctions" {:auctions (map :meme-auction/address all-auctions)})
     [:div.scroll-area
-     (if (:graphql/loading? @auctions-search)
-       [spinner/spin]
-       [:div.tiles
-        (if (empty? all-auctions)
-          [:div.no-items-found "No items found."]
-          (doall
-           (for [{:keys [:meme-auction/address] :as auc} all-auctions]
-             ^{:key address}
-             [tiles/auction-tile {} auc])))])
+     [:div.tiles
+
+      (if (and (empty? all-auctions)
+               (not (:graphql/loading? (last @auctions-search))))
+        [:div.no-items-found "No items found."]
+        (doall
+         (for [{:keys [:meme-auction/address] :as auc} all-auctions]
+           ^{:key address}
+           [tiles/auction-tile {} auc])))
+      (when (:graphql/loading? (last @auctions-search))
+        [:div.spinner-container [spinner/spin]])]
+
      [infinite-scroll {:load-fn (fn []
                                   (when-not (:graphql/loading? @auctions-search)
                                     (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
 
                                       (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
 
-                                      (when (or has-next-page (empty? all-auctions))
+                                      (when has-next-page
                                         (dispatch [:district.ui.graphql.events/query
                                                    {:query {:queries [(build-tiles-query @form-data end-cursor)]}
                                                     :id @form-data}])))))}]]))

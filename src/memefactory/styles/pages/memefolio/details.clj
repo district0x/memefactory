@@ -51,9 +51,6 @@
 
    [:.address (of-ellipsis)]
    [:section.meme-detail
-    [:.spinner-outer {:margin-left :auto
-                      :margin-right :auto
-                      :margin-top (em 8)}]
     [:.meme-info
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -61,6 +58,7 @@
       :display :grid
       :grid-template-columns "32% 68%"
       :position :relative
+      :min-height (px 480)
       :padding (em 1.4)}
      (for-media-max :large
                     [:&
@@ -69,8 +67,10 @@
                     [:&
                      {:grid-template-columns "100%"
                       :margin-bottom (em 2)}])
-     [">.spinner--info"
-      {:margin :auto}]
+
+     [:&.loading {:display :flex
+                  :align-items :center
+                  :justify-content :center}]
      [:.meme-number
       (font :bungee)
       {:position :absolute
@@ -150,6 +150,7 @@
     [:.history-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+      :min-height (px 250)
       :border-radius "1em 1em 1em 1em"
       :padding-top (em 1)
       :padding-bottom (em 1)}
@@ -158,6 +159,7 @@
                        {:max-height (em 30)
                         :overflow-y :auto
                         :overflow-x :hidden}])
+     [:.spinner-outer {:margin-top (em 4)}]
      [:h1.title
       (font :bungee)
       (for-media-max :computer
@@ -284,17 +286,17 @@
       :color (color :purple)
       :margin-bottom (em 0.1)
       :text-align :center}]
-    [">.spinner--challenge"
-     {:margin :auto
-      :margin-top (em 3)}]
+
     [:.challenge-component
      {:background (color :meme-panel-bg)
+      :min-height (px 250)
       :padding-top (em 1)
       :padding-bottom (em 1)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :border-radius "1em 1em 1em 1em"}
      [:.spinner-outer {:margin-left :auto
-                       :margin-right :auto}]
+                       :margin-right :auto
+                       :margin-top (em 4)}]
      [:.status {:padding-left (em 1)}
        [:li {:font-weight :bold
              :list-style-type :none}
@@ -484,8 +486,12 @@
    [:section.related
     {:margin-top (em 3)}
     [:.relateds-panel
+     {:min-height (px 550)}
      (panel-with-icon {:url "/assets/icons/network.svg"
                        :color (color :redish)})
+     [:.spinner-outer {:margin-left :auto
+                       :margin-right :auto
+                       :padding-top (em 7)}]
      [:h2.title {:padding-top (em 1)}]
      [:.selling-tile-back {:height "100%"
                            :background-color (color :violet)}

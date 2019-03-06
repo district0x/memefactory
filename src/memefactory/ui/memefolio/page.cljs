@@ -181,10 +181,11 @@
                       :reg-entry/address address}
            @params])]])))
 
-(defmethod panel :collected [_ state]
+(defmethod panel :collected [_ state loading?]
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
-    (if (empty? state)
+    (if (and (empty? state)
+             (not loading?))
       [:div.no-items-found "No items found."]
       [:div.tiles
        (doall (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/image-hash :meme/number
@@ -243,17 +244,15 @@
           total-meme-tokens-count (-> @query :search-meme-tokens :total-count)]
       [:div.stats
        [:div.rank
-        (str "RANK: #") (or collector-rank [:div.spinner.spinner--rank])]
+        (str "RANK: #" collector-rank) ]
        [:div.var
         [:b "Unique Memes: "]
-        (if (and total-collected-memes total-memes-count)
-          (str total-collected-memes "/" total-memes-count)
-          [:div.spinner.spinner--var])]
+        (when (and total-collected-memes total-memes-count)
+          (str total-collected-memes "/" total-memes-count))]
        [:div.var
         [:b "Total Cards: "]
-        (if (and total-collected-token-ids total-meme-tokens-count)
-          [:span (str total-collected-token-ids "/" total-meme-tokens-count)]
-          [:div.spinner.spinner--var])]
+        (when (and total-collected-token-ids total-meme-tokens-count)
+          [:span (str total-collected-token-ids "/" total-meme-tokens-count)])]
        [:div.var
         [:b "Largest buy: "]
         (if (and bought-for token-id title)
@@ -300,13 +299,14 @@
                        (str "Max " max-amount)
                        "All cards issued")]]))))
 
-(defmethod panel :created [_ state]
+(defmethod panel :created [_ state loading?]
 
   (log/debug _ state)
 
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
-    (if (empty? state)
+    (if (and (empty? state)
+             (not loading?))
       [:div.no-items-found "No items found."]
       [:div.tiles
        (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
@@ -370,19 +370,17 @@
                                          meme-auctions))]
       [:div.stats
        [:div.rank
-        (str "RANK: #") (or creator-rank [:div.spinner.spinner--rank])]
+        (str "RANK: #" creator-rank)]
        [:div.var
         [:b "Earned: "]
-        (if creator-total-earned
+        (when creator-total-earned
           (format/format-eth (web3/from-wei creator-total-earned :ether) {:max-fraction-digits 2
-                                                                          :min-fraction-digits 0})
-          [:div.spinner.spinner--var])]
+                                                                          :min-fraction-digits 0}))]
        [:div.var
         [:b "Success Rate: "]
-        (if (and total-created-memes-whitelisted total-created-memes)
+        (when (and total-created-memes-whitelisted total-created-memes)
           (str total-created-memes-whitelisted "/" total-created-memes " ("
-               (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")
-          [:div.spinner.spinner--var])]
+               (format/format-percentage total-created-memes-whitelisted total-created-memes) ")"))]
        [:div.var.best-card-sale {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                        {:address (:reg-entry/address meme)}
                                                        nil])}
@@ -401,8 +399,9 @@
     (when-not (:graphql/loading? @query)
       [:div "Total " (get-in @query [:search-memes :total-count])])))
 
-(defmethod panel :curated [_ state]
-  (if (empty? state)
+(defmethod panel :curated [_ state loading?]
+  (if (and (empty? state)
+           (not loading?))
     [:div.no-items-found "No items found."]
     [:div.tiles
      (doall
@@ -446,36 +445,31 @@
                   :user/voter-total-earned]} (:user @query)]
       [:div.stats
        [:div.rank.rank--big
-        (str "RANK: #") (or curator-rank [:div.spinner.spinner--rank])]
+        (str "RANK: #" curator-rank)]
        [:div.curator
         [:div
          [:div.label "CHALLENGES:"]
          [:div [:b "Success Rate:"]
-          (if (and total-created-challenges-success total-created-challenges)
+          (when (and total-created-challenges-success total-created-challenges)
               (str total-created-challenges-success "/" total-created-challenges
-                    " (" (format/format-percentage total-created-challenges-success total-created-challenges)  ")")
-              [:div.spinner.spinner--var])]
+                    " (" (format/format-percentage total-created-challenges-success total-created-challenges)  ")"))]
          [:div [:b "Earned:"]
-          (if challenger-total-earned
-            (ui-utils/format-dank challenger-total-earned)
-            [:div.spinner.spinner--var])]]
+          (when challenger-total-earned
+            (ui-utils/format-dank challenger-total-earned))]]
         [:div
          [:div.label "VOTES:"]
          [:div [:b "Success Rate:"]
-          (if (and total-participated-votes total-participated-votes-success)
+          (when (and total-participated-votes total-participated-votes-success)
             (str total-participated-votes-success "/" total-participated-votes
-                 " (" (format/format-percentage total-participated-votes-success total-participated-votes)  ")")
-              [:div.spinner.spinner--var])]
+                 " (" (format/format-percentage total-participated-votes-success total-participated-votes)  ")"))]
          [:div [:b "Earned:"]
-          (if voter-total-earned
-            (ui-utils/format-dank voter-total-earned)
-            [:div.spinner.spinner--var])]]
+          (when voter-total-earned
+            (ui-utils/format-dank voter-total-earned))]]
         [:div
          [:div.label "TOTAL-EARNINGS:"]
          [:div
-          (if (and challenger-total-earned voter-total-earned)
-            (ui-utils/format-dank (+ challenger-total-earned voter-total-earned))
-            [:div.spinner.spinner--var])]]]])))
+          (when (and challenger-total-earned voter-total-earned)
+            (ui-utils/format-dank (+ challenger-total-earned voter-total-earned)))]]]])))
 
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
@@ -513,14 +507,15 @@
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
                                       [:total-count]]]}])]
     (let [total (get-in @query [:search-meme-auctions :total-count])]
-      [:div "Total " (or total [:div.spinner.spinner--total])])))
+      [:div (str "Total " total)])))
 
-(defmethod panel :sold [_ state]
+(defmethod panel :sold [_ state loading?]
 
   ;; (log/debug _ state)
 
   [:div.sold-panel
-   (if (empty? state)
+   (if (and (empty? state)
+            (not loading?))
      [:div.no-items-found "No items found."]
      [:div.tiles
       (doall
@@ -725,22 +720,21 @@
                                                   :query query})
 
       [:div.scroll-area
-     [:div.inner-panel
-      (if-not (:graphql/loading? (last @query-subs))
-        [panel tab state]
-        [spinner/spin])
+       [:div.inner-panel
+        [panel tab state (:graphql/loading? (last @query-subs))]
+        (when (:graphql/loading? (last @query-subs))
+          [:div.spinner-container [spinner/spin]])
       [infinite-scroll {:load-fn (fn []
                                    (if-not (:graphql/loading? (last @query-subs))
                                      (let [{:keys [:has-next-page :end-cursor]} (k (last @query-subs))]
-                                       (when (or has-next-page (empty? state))
+                                       (when has-next-page
                                          (dispatch [::gql-events/query
                                                     {:query {:queries (build-query tab {:user-address user-address
                                                                                         :prefix prefix
                                                                                         :form-data form-data
                                                                                         :first scroll-interval
                                                                                         :after end-cursor})}
-                                                     :id query-id}])))
-                                     [spinner/spin]))}]]]))
+                                                     :id query-id}])))))}]]]))
 
 
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]

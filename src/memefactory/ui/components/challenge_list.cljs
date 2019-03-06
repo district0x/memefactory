@@ -21,7 +21,7 @@
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]))
 
-(def page-size 12)
+(def page-size 3)
 
 (defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]}]
   (let [{:keys [:order-by :order-dir]} data]
@@ -187,16 +187,17 @@
                          :on-change #(re-search nil)}]]
          [:div.scroll-area
           [:div.memes
-           (if (:graphql/loading? @meme-search)
-             [spinner/spin]
-             (if (empty? all-memes)
-               [:div.challenge "No items found."]
-               (doall
-                (for [{:keys [:reg-entry/address] :as meme} all-memes]
-                  ^{:key address}
-                  [challenge {:entry meme
-                              :include-challenger-info? include-challenger-info?
-                              :action-child action-child}]))))]
+           (if (and (empty? all-memes)
+                    (not (:graphql/loading? (last @meme-search))))
+             [:div.challenge "No items found."]
+             (doall
+              (for [{:keys [:reg-entry/address] :as meme} all-memes]
+                ^{:key address}
+                [challenge {:entry meme
+                            :include-challenger-info? include-challenger-info?
+                            :action-child action-child}])))
+           (when (:graphql/loading? (last @meme-search))
+                 [:div.spinner-container [spinner/spin]])]
           [infinite-scroll {:load-fn (fn []
                                        (when-not (:graphql/loading? @meme-search)
                                          (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]

@@ -107,7 +107,7 @@
             [:div.scroll-area
              [:div.creators
               (if (and (empty? all-creators)
-                       (false? (:graphql/loading? last-user)))
+                       (not (:graphql/loading? last-user)))
                 [:div.no-items-found "No items found."]
                 (doall
                  (map
@@ -115,14 +115,14 @@
                     ^{:key (:user/address creator)}
                     [creator-tile creator num])
                   all-creators
-                  (iterate inc 1))))]
-             (when (:graphql/loading? last-user)
-               [spinner/spin])
+                  (iterate inc 1))))
+              (when (:graphql/loading? last-user)
+               [:div.spinner-container [spinner/spin]])]
              [infinite-scroll {:load-fn (fn []
                                           (when-not (:graphql/loading? last-user)
                                             (let [{:keys [has-next-page end-cursor]} (:search-users last-user)]
 
                                               (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
 
-                                              (when (or has-next-page (empty? all-creators))
+                                              (when has-next-page
                                                 (re-search-users end-cursor)))))}]]]]]]))))

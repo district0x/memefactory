@@ -15,9 +15,11 @@
 
 (defstyles core
   [:.leaderboard-collectors-page
-   [:.spinner-outer {:margin-left :auto
-                     :margin-right :auto
-                     :margin-top (em -1)}]
+   [:.spinner-container {:width (px 900)
+                         :height (px 500)}
+    [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto
+                      :padding-top (em 12)}]]
    [:.loading
     {;;:flex :none
      :color (color :busy-grey)
@@ -44,6 +46,7 @@
      {:width "100%"}
      [:.collectors
       {:display :flex
+       :min-height (em 33)
        :margin-right (em 2)
        :margin-left (em 2)
        :justify-content :left

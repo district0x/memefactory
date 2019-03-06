@@ -15,27 +15,14 @@
 
 (defstyles core
   [:.leaderboard-dankest-page
-   [:.spinner-outer {:margin-left :auto
-                     :margin-right :auto
-                     :margin-top (em -1)}]
-   [:.loading
-    {:flex :none
-     :color (color :busy-grey)
-     :border-top-color (color :white)
-     :margin :auto
-     :border-width (em 1)
-     :border-top-width (em 1)
-     :width (em 7)
-     :height (em 7)
-     :border-style :solid
-     :border-top-style :solid
-     :border-radius "50%"
-     :animation-name :spin
-     :animation-duration "2s"
-     :animation-iteration-count :infinite
-     :animation-timing-function :linear}]
+   [:.spinner-container {:width (px 900)
+                         :height (px 500)}
+    [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto
+                      :padding-top (em 12)}]]
+
    [:section.dankest
-    [:.dankest-panel
+    [:.dankest-panel {:min-height (px 550)}
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})]
     [:.scroll-area

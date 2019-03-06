@@ -165,7 +165,7 @@
      [infinite-scroll {:load-fn (fn []
                                   (when-not (:graphql/loading? @response)
                                     (let [{:keys [:has-next-page :end-cursor]} (:search-meme-auctions (last @response))]
-                                      (when (or has-next-page (empty? state))
+                                      (when has-next-page
                                         (dispatch [::gql-events/query
                                                    {:query {:queries (build-query {:first scroll-interval
                                                                                    :after (or end-cursor 0)})}
@@ -190,7 +190,7 @@
                                                           [:meme-token/token-id]]]]]]]}])
             all-auctions (-> @query :meme :meme/meme-auctions)]
 
-        [:div.history-component
+        [:div
          [:h1.title "Marketplace history"]
          (if (:graphql/loading? @query)
            [spinner/spin]
@@ -552,41 +552,45 @@
              :description "Description"}}
      [:div.meme-detail-page
       [:section.meme-detail
-       [:div.meme-info
-        (when number
-          [:div.meme-number (str "#" number)])
-        [:div.container
-         [tiles/meme-image image-hash]]
+       [:div.meme-info {:class (when meme-not-loaded? "loading")}
         (if meme-not-loaded?
           [spinner/spin]
-          [:div.registry
-           [:h1 title]
-           [:div.status  (case (graphql-utils/gql-name->kw status)
-                           :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
-                           :reg-entry.status/blacklisted [:label.rejected "Rejected"]
-                           :reg-entry.status/challenge-period [:label.rejected "In Challenge Period"]
-                           [:label.challenged "Challenged"])]
-           [:div.description description]
-           [:div.text (format/pluralize total-supply "card")]
-           [:div.text (str "You own " token-count)]
-           [meme-creator-component creator]
-           [:div.tags
-            (for [tag-name tags]
-              ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
-                                                               :route.marketplace/index
-                                                               nil
-                                                               {:search-tags [tag-name]}])} tag-name])]
-           [:div.buttons
-            [:button.search.marketplace {:on-click #(dispatch [::router-events/navigate
-                                                               :route.marketplace/index
-                                                               nil
-                                                               {:term title}])} "Search On Marketplace"]
-            [:button.search.memefolio {:on-click #(dispatch [::router-events/navigate
-                                                             :route.memefolio/index
-                                                             nil
-                                                             {:term title}])} "Search On Memefolio"]]])]]
+          (list
+           (when number
+             [:div.meme-number (str "#" number)])
+           [:div.container
+            [tiles/meme-image image-hash]]
+           [:div.registry
+            [:h1 title]
+            [:div.status  (case (graphql-utils/gql-name->kw status)
+                            :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
+                            :reg-entry.status/blacklisted [:label.rejected "Rejected"]
+                            :reg-entry.status/challenge-period [:label.rejected "In Challenge Period"]
+                            [:label.challenged "Challenged"])]
+            [:div.description description]
+            [:div.text (format/pluralize total-supply "card")]
+            [:div.text (str "You own " token-count)]
+            [meme-creator-component creator]
+            [:div.tags
+             (for [tag-name tags]
+               ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
+                                                                :route.marketplace/index
+                                                                nil
+                                                                {:search-tags [tag-name]}])} tag-name])]
+            [:div.buttons
+             [:button.search.marketplace {:on-click #(dispatch [::router-events/navigate
+                                                                :route.marketplace/index
+                                                                nil
+                                                                {:term title}])} "Search On Marketplace"]
+             [:button.search.memefolio {:on-click #(dispatch [::router-events/navigate
+                                                              :route.memefolio/index
+                                                              nil
+                                                              {:term title}])} "Search On Memefolio"]]]))]]
       [:section.history
-       [history-component address]]
+       [:div.history-component
+        (if meme-not-loaded?
+          [spinner/spin]
+          [history-component address])]]
       [:section.challenge
        [:div.challenge-component
         (if meme-not-loaded?

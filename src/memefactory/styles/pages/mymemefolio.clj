@@ -201,6 +201,7 @@
 
    [:.panel
     {:margin-top 0
+     :min-height (px 550)
      :padding-top (em 2)
      :padding-bottom (em 2)
      :background-color (color :meme-panel-bg)
@@ -210,9 +211,11 @@
     [:.tiles
      {:box-shadow :unset}]
 
-    [:.spinner-outer {:margin-left :auto
-                      :margin-right :auto
-                      :margin-top (em -1)}]
+    [:.spinner-container {:width (px 900)
+                          :height (px 500)}
+     [:.spinner-outer {:margin-left :auto
+                       :margin-right :auto
+                       :padding-top (em 12)}]]
 
     [:.loading
      {:color (color :busy-grey)

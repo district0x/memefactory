@@ -20,8 +20,14 @@
    (search-panel {:background-panel-image "/assets/icons/mf-search2.svg"
                   :color :blue
                   :icon "/assets/icons/memesubmiticon.svg"})
+   [:.spinner-container {:width (px 900)
+                         :height (px 500)}
+    [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto
+                      :padding-top (em 12)}]]
    [:.tiles
     {:margin-top (em 2)
+     :min-height (px 550)
      :padding-top (em 2)
      :padding-bottom (em 2)
      :background-color (color :meme-panel-bg)
@@ -41,13 +47,4 @@
       :animation-name :spin
       :animation-duration "2s"
       :animation-iteration-count :infinite
-      :animation-timing-function :linear}]
-
-    [:.spinner-outer {:margin-left :auto
-                      :margin-right :auto
-                      :margin-top (em -1)}]
-
-    #_[">div>div"
-       {:display :flex
-        :flex-wrap :wrap
-        :justify-content :space-evenly}]]])
+      :animation-timing-function :linear}]]])

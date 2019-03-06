@@ -72,7 +72,7 @@
              [:div.curators
 
               (if (and (empty? lazy-curators)
-                       (false? (:graphql/loading? last-user)))
+                       (not (:graphql/loading? last-user)))
                 [:div.no-items-found "No items found."]
                 (->> lazy-curators
                      (map-indexed
@@ -99,13 +99,14 @@
                             [:span success-votes "/" total-votes " (" (format/format-percentage success-votes total-votes) ")"])]
                          [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
                          [:p.total-earnings "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))
-                     doall))]
-             (when (:graphql/loading? last-user)
-               [spinner/spin])
+                     doall))
+              (when (:graphql/loading? last-user)
+               [:div.spinner-container [spinner/spin]])]
+
              [infinite-scroll {:load-fn (fn [] (when-not (:graphql/loading? last-user)
                                                  (let [{:keys [has-next-page end-cursor]} (:search-users last-user)]
 
                                                    (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/curators)
 
-                                                   (when (or has-next-page (empty? lazy-curators))
+                                                   (when has-next-page
                                                      (lazy-search-users end-cursor)))))}]]]]]]))))
