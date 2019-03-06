@@ -501,7 +501,7 @@
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/active]}
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
-      (let [total (get-in @query [:search-memes :total-count])]
+      (let [total (get-in @query [:search-meme-auctions :total-count])]
         [:div "Total " total]))))
 
 (defmethod total :sold [_ active-account form-data]
