@@ -297,7 +297,10 @@
 
       [:.form-panel
        [:.area
-        [:.help-block {:display :none}]]]
+        [:.help-block {:border-top :none
+                       :height (em 0.4)
+                       :line-height (em 0.4)}
+         #_{:display :none}]]]
 
       [:.form-panel {:color (color :darker-blue)}
        [:.outer {:display :inline-flex

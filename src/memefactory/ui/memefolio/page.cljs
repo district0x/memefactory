@@ -56,9 +56,12 @@
                                        :meme :meme/owned-meme-tokens
                                        (map :meme-token/token-id)))
         form-data (r/atom {:meme-auction/duration 14
-                           :meme-auction/amount 1})
-        errors (ratom/reaction (let [sp (-> @form-data :meme-auction/start-price js/parseFloat)
-                                     ep (-> @form-data :meme-auction/end-price js/parseFloat)]
+                           :meme-auction/amount 1
+                           :meme-auction/description nil
+                           })
+        errors (ratom/reaction (let [{:keys [:meme-auction/start-price :meme-auction/end-price :meme-auction/description]} @form-data
+                                     sp (js/parseFloat start-price)
+                                     ep ( js/parseFloat end-price)]
                                  {:local {:meme-auction/amount (cond-> {:hint (str "Max " (count @token-ids))}
                                                                  (and (not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc (count @token-ids))))
                                                                       (pos? (count @token-ids)))
@@ -77,11 +80,17 @@
                                                                                         (shared-utils/round 4))]
                                                                    (cond-> {:hint (str "Max " max-duration)}
                                                                      (not (<= min-duration duration max-duration))
-                                                                     (assoc :error (str "Should be between " min-duration " and " max-duration))))}}))
+                                                                     (assoc :error (str "Should be between " min-duration " and " max-duration))))
+                                          :meme-auction/description (when (or (empty? description)
+                                                                              (nil? description))
+                                                                      {:error "Give a short pitch"})}}))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))]
 
     (fn []
+
+      (log/debug "form" {:err @errors :form @form-data})
+
       [:div.form-panel
        [inputs/with-label
         "Amount"
@@ -130,12 +139,14 @@
           :for (str address :meme-auction/duration)}]
         [:span.unit "days"]]
        [:span.short-sales-pitch "Short sales pitch"]
+
        [:div.area
         [inputs/textarea-input {:form-data form-data
                                 :class "sales-pitch"
                                 :errors errors
                                 :maxLength 100
                                 :id :meme-auction/description
+                                :dom-id (str address :meme-auction/description)
                                 :on-click #(.stopPropagation %)}]]
        [:div.buttons
         [:button.cancel "Cancel"]
