@@ -15,6 +15,7 @@
         ~@(map (fn [expr] (list '.then expr)) body))
     (fn [error#]
       (taoensso.timbre/error "Promise rejected" (merge {:error error#}
+                                                       (ex-data error#)
                                                        ~(district.shared.error-handling/compiletime-info &env &form *ns*))))))
 
 (defmacro defer [& body]

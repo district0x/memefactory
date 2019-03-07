@@ -24,7 +24,7 @@
              :url "http://localhost:6300/graphql"}
    :ipfs {:host "http://127.0.0.1:5001"
           :endpoint "/api/v0"}
-   :router {:html5? true}})
+   :router {:html5? false}})
 
 (def qa-config
   {:logging {:level :warn
