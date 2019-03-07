@@ -258,10 +258,19 @@
 (def get-user (create-get-fn :users :user/address))
 
 (defn insert-meme-tokens! [{:keys [:token-id-start :token-id-end :reg-entry/address]}]
-  (db/run! {:insert-into :meme-tokens
-            :columns meme-tokens-column-names
-            :values (for [[i token-id] (medley/indexed (range token-id-start (inc token-id-end)))]
-                      [token-id (inc i) address])}))
+  (let [max-token-number (-> (db/get {:select [[(sql/call :max :meme-tokens.meme-token/number) :max-number]]
+                                      :from [:meme-tokens]
+                                      :where [:= :meme-tokens.reg-entry/address address]})
+                             :max-number
+                             (or 0))
+        token-id-range (range token-id-start (inc token-id-end))
+        token-number-range (range (inc max-token-number) (+ max-token-number (count token-id-range) 1))]
+    (db/run! {:insert-into :meme-tokens
+              :columns meme-tokens-column-names
+              :values (map (fn [tnum tid]
+                             [tid tnum address])
+                           token-number-range
+                           token-id-range)})))
 
 (def insert-or-replace-meme-token-owner (create-insert-fn :meme-token-owners
                                                           meme-token-owners-column-names
