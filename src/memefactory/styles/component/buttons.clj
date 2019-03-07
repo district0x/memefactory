@@ -71,7 +71,7 @@
     :border "0.5px solid rgba(224, 180, 240, 0.4)"
     :border-radius (em 2)
     :font-size (em 1)
-    :display :inline}])
+    :display :inline-block}])
 
 (defn vote-button-icon [top]
   [:&:before {:content "''"
