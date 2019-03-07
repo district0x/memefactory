@@ -66,13 +66,14 @@
                             :errors errors
                             :label "Upload a file"
                             :file-accept-pred (fn [{:keys [name type size] :as props}]
-                                                (js/console.log "Veryfing acceptance of file of type : " type)
-                                                (#{"image/png" "image/gif" "image/jpeg"} type))
+                                                (js/console.log "Veryfing acceptance of file of type : " type " and size : " size)
+                                                (and (#{"image/png" "image/gif" "image/jpeg"} type)
+                                                     (< size 1500000)))
                             :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
                                                 (swap! form-data update-in [:file-info] dissoc :error)
                                                 (log/info "Accepted file" props ::file-accepted))
                             :on-file-rejected (fn [{:keys [name type size] :as props}]
-                                                (swap! form-data assoc :file-info {:error "Non .png file selected"})
+                                                (swap! form-data assoc :file-info {:error "Non .png .jpeg or .gif file selected with size less than 1.5 Mb"})
                                                 (log/warn "Rejected file" props ::file-rejected))}]]
          [:div.form-panel
           [with-label "Title"
