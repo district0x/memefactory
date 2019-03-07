@@ -17,7 +17,7 @@
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [taoensso.timbre :as log]
-            ))
+            [clojure.set :as set]))
 
 (defn meme-image [image-hash & [props]]
   (let [url (-> @(subscribe [::gql/query
@@ -37,10 +37,13 @@
       [:div.container {:class (when @flipped? "flipped")
                        :on-click (fn [event]
                                    (if (not-empty flippable-classes)
-                                     (when (contains? flippable-classes
-                                                      (-> event
-                                                          (aget "target")
-                                                          (aget "className")))
+                                     (when (set/intersection
+                                            flippable-classes
+                                            (-> event
+                                                (aget "target")
+                                                (aget "className")
+                                                (str/split #"\ ")
+                                                (into #{})))
                                        (flip))
                                      (flip)))}
        back

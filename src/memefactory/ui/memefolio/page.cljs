@@ -208,7 +208,7 @@
                                                                                :meme-auction/token-count token-count
                                                                                :meme-auction/token-ids token-ids}]
                                                          [tiles/meme-back-tile meme])
-                                                 :flippable-classes #{"meme-image" "cancel" "info"}}]
+                                                 :flippable-classes #{"meme-image" "cancel" "info" "create-offering"}}]
                           [:div.footer
                            {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                   {:address address}
