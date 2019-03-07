@@ -183,7 +183,7 @@
                           (schedule-meme-number-assigner registry-entry (inc (- (bn/number challenge-period-end)
                                                                                 (server-utils/now-in-seconds))))
                           (when search-tags
-                            (doseq [t search-tags]
+                            (doseq [t (into #{} search-tags)]
                               (db/tag-meme! (:reg-entry/address meme) t))))))))))))
 
 (defmethod process-event [:contract/param-change :ParamChangeConstructedEvent]
