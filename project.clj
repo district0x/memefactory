@@ -88,6 +88,7 @@
                        [chalk "2.3.0"]
                        [cors "2.8.4"]
                        [deasync "0.1.11"]
+                       [eccjs "0.3.1"]
                        [express "4.15.3"]
                        [express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
                        [graphql "0.13.1"]
