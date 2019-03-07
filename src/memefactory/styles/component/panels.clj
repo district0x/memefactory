@@ -83,7 +83,8 @@
     {:padding-right (em 3)}
     [:a
      {:color (c/color :section-subcaption)
-      :padding-bottom (em 0.2)}]
+      :padding-bottom (em 0.2)
+      :cursor :pointer}]
     [:&.selected
      [:a
       (border-bottom {:color (c/color :pink)
