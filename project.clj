@@ -20,7 +20,7 @@
                  [district0x/cljs-ipfs-native "0.0.6"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.3"]
-                 [district0x/district-encryption "1.0.0"]
+                 [district0x/district-encryption "1.0.1"]
                  [district0x/district-format "1.0.5"]
                  [district0x/district-graphql-utils "1.0.6"]
                  [district0x/district-sendgrid "1.0.0"]
@@ -55,7 +55,7 @@
                  [district0x/district-ui-web3-tx-log "1.0.9"]
                  [district0x/district-ui-window-size "1.0.1"]
                  [district0x/district-web3-utils "1.0.2"]
-                 [district0x/error-handling "1.0.3"]
+                 [district0x/error-handling "1.0.4"]
                  [district0x/re-frame-ipfs-fx "0.0.2"]
                  ;; version with fix for duplicated query params
                  [funcool/bide "1.6.1-SNAPSHOT"]
