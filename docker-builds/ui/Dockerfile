@@ -43,6 +43,7 @@ RUN cat src/memefactory/shared/smart_contracts.cljs
 
 # build ui
 RUN lein deps
+RUN lein npm install
 RUN lein garden once
 RUN lein solc once
 RUN env MEMEFACTORY_ENV=qa lein cljsbuild once "ui"

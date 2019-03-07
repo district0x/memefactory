@@ -30,6 +30,7 @@ RUN cat src/memefactory/shared/smart_contracts.cljs
 
 # build server
 RUN lein deps
+RUN lein npm install
 RUN lein solc once
 RUN lein cljsbuild once "server"
 
