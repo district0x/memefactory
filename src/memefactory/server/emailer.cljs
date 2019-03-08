@@ -185,4 +185,5 @@
 
 (defn stop [emailer]
   (doseq [listener (remove nil? (:listeners @emailer))]
-    (web3-eth/stop-watching! listener (fn [err]))))
+    (web3-eth/stop-watching! listener (fn [err])))
+  (log/info "stopping emailer" {:state @emailer}))

@@ -32,6 +32,7 @@
             [memefactory.server.macros :refer [defer]]
             [memefactory.server.macros :refer [promise->]]
             [memefactory.server.ranks-cache]
+            [memefactory.server.sigterm]
             [memefactory.server.syncer :as syncer]
             [memefactory.server.utils :as server-utils]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
@@ -175,12 +176,19 @@
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
                             :ui {:public-key "2564e15aaf9593acfdc633bd08f1fc5c089aa43972dd7e8a36d67825cd0154602da47d02f30e1f74e7e72c81ba5f0b3dd20d4d4f0cc6652a2e719a0e9d4c7f10943"
                                  :root-url "http://0.0.0.0:4598/#/"}
-                            :twilio-api-key "d6466540d21254adbe3eb5f59c26689c" ;; override in config
+                            :twilio-api-key "PLACEHOLDER" ;; override in config
                             :blacklist-file "blacklist.edn"
-                            :blacklist-token "123" ;; override in config
-                            }}})
+                            :blacklist-token "PLACEHOLDER" ;; override in config
+                            :sigterm {:on-sigterm (fn [args]
+                                                    (log/info "Received SIGTERM signal" {:args args})
+                                                    (mount/stop #'memefactory.server.db/memefactory-db
+                                                                #'memefactory.server.syncer/syncer
+                                                                #'memefactory.server.emailer/emailer)
+                                                    (log/info "Exiting")
+                                                    (.exit nodejs/process 0))}}}})
       (mount/start)
-      pprint/pprint))
+      pprint/pprint)
+  (log/warn "System started" {:config @config} ::main))
 
 (set! *main-cli-fn* -main)
 
