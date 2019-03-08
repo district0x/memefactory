@@ -125,7 +125,7 @@
                                    (-> meme-token :meme-token/meme :meme/total-minted))]
           [:div.price (format-price price)]]]))))
 
-(defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number] :as meme}]
+(defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number :meme/total-trade-volume] :as meme}]
   (let [user-address (-> meme :reg-entry/creator :user/address)]
     [:div.meme-card.back
      [:div.overlay
@@ -147,7 +147,11 @@
              (str formated-time " ago")
              "less than a minute ago"))]
         [:li [:label "Issued:"]
-         (str total-minted " cards")]]]]]))
+         (str total-minted " cards")]
+        (when total-trade-volume
+          [:li [:label "Trade voume:"]
+           (format/format-eth (/ total-trade-volume 1e18)
+                              {:max-fraction-digits 2})])]]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
 

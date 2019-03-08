@@ -47,7 +47,7 @@
    [:meme/total-supply :unsigned :integer not-nil]
    [:meme/total-minted :unsigned :integer not-nil]
    [:meme/token-id-start :unsigned :integer default-nil #_not-nil]
-   [:meme/total-trade-volume :BIG :INT default-nil]
+   [:meme/total-trade-volume :BIG :INT default-zero]
    [:meme/first-mint-on :unsigned :integer default-nil]
    [(sql/call :primary-key :reg-entry/address)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
