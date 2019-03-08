@@ -22,7 +22,7 @@
   [:div.submit-info
    [:div.icon]
    [:h2.title "Dank registry - Submit"]
-   [:h3.title "Add a new meme to the registry for consideration"]
+   [:h3.title "Submit a new meme to the registry for consideration"]
    [:div.get-dank-button {:on-click #(dispatch [::router-events/navigate :route.get-dank/index])}
     "Get Dank"]])
 
