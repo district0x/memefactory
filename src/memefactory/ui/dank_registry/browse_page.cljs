@@ -56,12 +56,13 @@
       (if (and (empty? all-memes)
                (not (:graphql/loading? last-meme)))
         [:div.no-items-found "No items found."]
-        (if (:graphql/loading? last-meme)
-          [:div.spinner-container [spinner/spin]]
+        (when-not (:graphql/loading? (first @meme-search))
           (doall
             (for [{:keys [:reg-entry/address] :as meme} all-memes]
               ^{:key address}
-              [tiles/meme-tile meme]))))]
+              [tiles/meme-tile meme]))))
+      (when (:graphql/loading? last-meme)
+        [:div.spinner-container [spinner/spin]])]
      [infinite-scroll {:load-fn (fn []
                                   (when-not (:graphql/loading? last-meme)
                                     (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes last-meme)]
