@@ -15,6 +15,7 @@
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
    [taoensso.timbre :as log]
+   [goog.string :as gstring]
    ))
 
 (defn header []
@@ -71,10 +72,10 @@
                                                      (< size 1500000)))
                             :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
                                                 (swap! form-data update-in [:file-info] dissoc :error)
-                                                (log/info "Accepted file" props ::file-accepted))
+                                                (log/info (gstring/format "Accepted file %s %s %s" name type size) ::file-accepted))
                             :on-file-rejected (fn [{:keys [name type size] :as props}]
                                                 (swap! form-data assoc :file-info {:error "Non .png .jpeg or .gif file selected with size less than 1.5 Mb"})
-                                                (log/warn "Rejected file" props ::file-rejected))}]]
+                                                (log/warn (gstring/format "Rejected file %s %s %s" name type size) ::file-rejected))}]]
          [:div.form-panel
           [with-label "Title"
            [text-input {:form-data form-data
@@ -92,6 +93,7 @@
                         :chip-render-fn (fn [c] [:span c])
                         :on-change (fn [c])
                         :id :search-tags
+                        :select-keycodes #{13 188 32}
                         :errors errors
                         :dom-id :search-tags}]
            {:form-data form-data

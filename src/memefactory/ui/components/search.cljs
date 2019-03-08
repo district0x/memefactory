@@ -62,6 +62,7 @@
                       :ac-options tags
                       :on-change on-selected-tags-change
                       :chip-render-fn chip-render
+                      :select-keycodes #{13 188 32}
                       :dom-id :tags}]
          {:group-class :ac-options
           :for :tags
