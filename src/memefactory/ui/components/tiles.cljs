@@ -13,10 +13,9 @@
             [memefactory.shared.utils :as shared-utils]
             [memefactory.ui.contract.meme-auction :as meme-auction]
             [memefactory.ui.utils :as ui-utils :refer [format-price]]
-            [print.foo :refer [look] :include-macros true]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [taoensso.timbre :as log]
+            [taoensso.timbre :as log :refer [spy]]
             [clojure.set :as set]))
 
 (defn meme-image [image-hash & [props]]
@@ -37,13 +36,12 @@
       [:div.container {:class (when @flipped? "flipped")
                        :on-click (fn [event]
                                    (if (not-empty flippable-classes)
-                                     (when-not (empty? (set/intersection
-                                                        (into #{} flippable-classes)
-                                                        (-> event
-                                                            (aget "target")
-                                                            (aget "className")
-                                                            (str/split #"\ ")
-                                                            (into #{}))))
+                                     (when-not (contains? (set flippable-classes)
+                                                          (spy (-> event
+                                                                   (aget "target")
+                                                                   (aget "className")
+                                                                   (str/split #"\ ")
+                                                                   (into #{}))))
                                        (flip))
                                      (flip)))}
        back
