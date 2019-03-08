@@ -50,6 +50,7 @@
      {:opacity 1}]
 
     [:.notification-message
-     {:font-size "15px"}]]
+     {:font-size "15px"
+      :text-overflow :ellipsis}]]
 
    ])
