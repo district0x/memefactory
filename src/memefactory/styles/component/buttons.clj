@@ -47,6 +47,12 @@
     :border-radius "0 0 1em 1em"
     :text-align :center
     :left (px 0)}
+   (for-media-max :tablet
+                   [:&
+                    {:background (str "url('/assets/icons/gears-button-bg-l.png') left 1em center / 29% 29% no-repeat,"
+                                      "url('/assets/icons/gears-button-bg-r.png') right 1em center / 29% 29% no-repeat "
+
+                                      (c/color :purple))}])
    [:&:after
     {:width (em 1)
      :background-position "0 .3em"
