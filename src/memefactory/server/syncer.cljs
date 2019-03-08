@@ -7,6 +7,7 @@
    [cljs-web3.core :as web3]
    [cljs-web3.eth :as web3-eth]
    [cljs.core.async :as async]
+   [cljs.nodejs :as nodejs]
    [clojure.string :as str]
    [district.server.config :refer [config]]
    [district.server.smart-contracts :as smart-contracts :refer [replay-past-events replay-past-events-in-order]]
@@ -37,7 +38,7 @@
 
 ;; this HACK is because mount doesn't support async, so mount start will return
 ;; a chan. We then store created filters in an atom so we can stop them at component stop.
-(def all-filters (atom []))
+(defonce all-filters (atom []))
 
 (declare schedule-meme-number-assigner)
 
@@ -343,8 +344,9 @@
 
 (defmethod process-event [:contract/meme-auction :MemeAuctionCanceledEvent]
   [_ {:keys [meme-auction timestamp] :as ev}]
-  (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
-                                      :meme-auction/canceled-on timestamp}))
+  (try-catch
+   (db/insert-or-update-meme-auction! {:meme-auction/address meme-auction
+                                       :meme-auction/canceled-on timestamp})))
 
 (defmethod process-event [:contract/meme-token :Transfer]
   [_ ev]
@@ -389,24 +391,31 @@
 (defn dispatch-event
   ([ev] (dispatch-event nil ev))
   ([err {:keys [args event address block-number] :as raw-ev}]
-   (let [contract-key (contract-key-from-address address)
-         contract-type ({:meme-registry-db         :contract/eternal-db
-                         :param-change-registry-db :contract/eternal-db
-                         :meme-registry-fwd        :contract/meme
-                         :meme-token               :contract/meme-token
-                         :meme-auction-factory     :contract/meme-auction
-                         :meme-auction-factory-fwd :contract/meme-auction} contract-key)
-         ev (-> args
-                (assoc :contract-address address)
-                (assoc :event (keyword event))
-                (update :timestamp (fn [ts]
-                                     (if ts
-                                       (bn/number ts)
-                                       (server-utils/now-in-seconds))))
-                (update :version bn/number)
-                (assoc :block-number block-number))]
-     (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
-     (process-event contract-type ev))))
+   (try
+    (let [contract-key (contract-key-from-address address)
+          contract-type ({:meme-registry-db         :contract/eternal-db
+                          :param-change-registry-db :contract/eternal-db
+                          :meme-registry-fwd        :contract/meme
+                          :meme-token               :contract/meme-token
+                          :meme-auction-factory     :contract/meme-auction
+                          :meme-auction-factory-fwd :contract/meme-auction} contract-key)
+          ev (-> args
+                 (assoc :contract-address address)
+                 (assoc :event (keyword event))
+                 (update :timestamp (fn [ts]
+                                      (if ts
+                                        (bn/number ts)
+                                        (server-utils/now-in-seconds))))
+                 (update :version bn/number)
+                 (assoc :block-number block-number))]
+      (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
+      (process-event contract-type ev))
+    (catch :default e
+      (log/fatal "Fatal exception when dispatching event. Terminating." (merge (ex-data e)
+                                                                               {:config @config
+                                                                                :event raw-ev
+                                                                                :error e}))
+      (.exit nodejs/process 1)))))
 
 (defn apply-blacklist-patches! []
   (let [{:keys [blacklist-file]} @config
@@ -482,7 +491,9 @@
 
 (defn stop [syncer]
   (doseq [filter (remove nil? @all-filters)]
-    (web3-eth/stop-watching! filter (fn [err]))))
+    (web3-eth/stop-watching! filter (fn [err])))
+  (log/info "stopping syncer" {:state @syncer
+                               :filters @all-filters}))
 
 (defstate ^{:on-reload :noop} syncer
   :start (start (merge (:syncer @config)
