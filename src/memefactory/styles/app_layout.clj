@@ -51,6 +51,8 @@
 
     [:.notification-message
      {:font-size "15px"
+      :overflow :hidden
+      :white-space :nowrap
       :text-overflow :ellipsis}]]
 
    ])
