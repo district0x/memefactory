@@ -96,7 +96,8 @@
                                                      :args args
                                                      :challenge-meta challenge-meta}
                                                     ::approve-and-commit-vote]}]
-      :store (assoc-in store [:votes active-account address] {:option option :salt salt})})))
+      :store (assoc-in store [:votes active-account address] {:option option :salt salt})
+      :db (assoc-in db [:votes active-account address] {:option option :salt salt})})))
 
 (re-frame/reg-event-fx
  ::reveal-vote
