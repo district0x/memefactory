@@ -415,7 +415,7 @@
                                                                                {:config @config
                                                                                 :event raw-ev
                                                                                 :error e}))
-      (.exit nodejs/process -1)))))
+      (.exit nodejs/process 1)))))
 
 (defn apply-blacklist-patches! []
   (let [{:keys [blacklist-file]} @config
