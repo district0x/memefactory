@@ -36,12 +36,11 @@
       [:div.container {:class (when @flipped? "flipped")
                        :on-click (fn [event]
                                    (if (not-empty flippable-classes)
-                                     (when-not (contains? (set flippable-classes)
-                                                          (spy (-> event
-                                                                   (aget "target")
-                                                                   (aget "className")
-                                                                   (str/split #"\ ")
-                                                                   (into #{}))))
+                                     (when-not (empty? (set/intersection (set flippable-classes)
+                                                                         (into #{} (-> event
+                                                                                       (aget "target")
+                                                                                       (aget "className")
+                                                                                       (str/split #"\ ")))))
                                        (flip))
                                      (flip)))}
        back
