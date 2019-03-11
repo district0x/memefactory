@@ -29,7 +29,7 @@
                                       :tx-id {:meme/mint id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index,
-                                                              :param nil,
+                                                              :param nil
                                                               :query {:tab "selling" :term title}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::mint]
                                                         [::notification-events/show (gstring/format " %s successfully minted" title)]
