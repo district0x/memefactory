@@ -11,7 +11,7 @@ module.exports = {
                       challengeDispensation : 50, // percent
                       voteQuorum : 50, // percent
                       maxTotalSupply : 10, // int
-                      maxAuctionDuration : 12096000 // seconds
+                      maxAuctionDuration : 1.21e6 // seconds
                      },
     paramChangeRegistryDb : {challengePeriodDuration : 600, // seconds
                              commitPeriodDuration : 600, // seconds

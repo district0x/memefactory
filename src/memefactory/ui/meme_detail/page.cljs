@@ -564,11 +564,11 @@
 
            [:div.registry {:key :registry}
             [:h1 title]
-            [:div.status  (case (graphql-utils/gql-name->kw status)
-                            :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
-                            :reg-entry.status/blacklisted [:label.rejected "Rejected"]
-                            :reg-entry.status/challenge-period [:label.rejected "In Challenge Period"]
-                            [:label.challenged "Challenged"])]
+            [:div.status (case (graphql-utils/gql-name->kw status)
+                           :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
+                           :reg-entry.status/blacklisted [:label.rejected "Rejected"]
+                           :reg-entry.status/challenge-period [:label.rejected "In Challenge Period"]
+                           [:label.challenged "Challenged"])]
             [:div.description description]
             [:div.text (format/pluralize total-supply "card")]
             [:div.text (str "You own " token-count)]
