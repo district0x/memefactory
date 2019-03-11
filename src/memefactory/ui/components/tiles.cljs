@@ -56,7 +56,7 @@
         cancel-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/cancel tx-id}])
         buy-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme-auction/buy tx-id}])
         cancel-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme-auction/cancel tx-id}])]
-    (fn [opts meme-auction]
+    (fn [opts {:keys [:meme-auction/description] :as meme-auction}]
       (let [remaining (-> (time/time-remaining (t/date-time @now)
                                                end-time)
                           (dissoc :seconds))
@@ -80,7 +80,7 @@
             [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]
             [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
            [:hr]
-           [:p.description (:meme-auction/description meme-auction)]
+           [:p.description {:title description} description]
            (if (= (-> meme-auction :meme-auction/seller :user/address)
                   @active-account)
 
