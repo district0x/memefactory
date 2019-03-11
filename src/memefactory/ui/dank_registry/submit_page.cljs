@@ -7,6 +7,7 @@
    [district.ui.graphql.subs :as gql]
    [district.ui.router.events :as router-events]
    [district.ui.web3-account-balances.subs :as balance-subs]
+   [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.tiles :refer [meme-image]]
    [memefactory.ui.dank-registry.events :as dr-events]
@@ -14,8 +15,7 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [taoensso.timbre :as log]
-   [goog.string :as gstring]
+   [taoensso.timbre :as log :refer [spy]]
    ))
 
 (defn header []
@@ -31,6 +31,7 @@
         form-data (r/atom {:issuance 1})
         max-tags-allowed 6
         errors (reaction {:local (let [{:keys [title issuance file-info]} @form-data
+                                       entered-tag (get @form-data "txt-:search-tags")
                                        max-issuance (or max-total-supply 1)]
                                    (cond-> {:issuance {:hint (str "Max " max-issuance)}}
                                      (empty? title)
@@ -46,14 +47,37 @@
                                      (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-issuance))
 
                                      (> (count (get @form-data :search-tags)) max-tags-allowed)
-                                     (assoc-in [:search-tags :error] (str "Max tags allowed " max-tags-allowed))))
-                          :remote (let [{:keys [file-info]} @form-data]
+                                     (assoc-in [:search-tags :error] (str "Max tags allowed " max-tags-allowed))
+
+                                     (and (not (nil? entered-tag))
+                                          (not (= 0 (compare
+                                                     entered-tag
+                                                     (apply str (re-seq #"[a-zA-Z]" entered-tag))))))
+                                     (assoc-in [:search-tags :error] "Only alphanumerics allowed")
+
+                                     (not= 0 (compare (count (get @form-data :search-tags))
+                                                   (count (filter
+                                                           #(= 0 (compare
+                                                                  %
+                                                                  (apply str (re-seq #"[a-zA-Z]" %))))
+                                                           (get @form-data :search-tags)))))
+                                     (assoc-in [:search-tags :error] "Use only alphanumeric characters")))
+                          :remote (let [{:keys [:file-info :search-tags]} @form-data]
                                     (cond-> {}
                                       (:error file-info)
-                                      (assoc-in [:file-info] (:error file-info))))})
+                                      (assoc-in [:file-info] (:error file-info))
+
+                                      (:error search-tags)
+                                      (assoc-in [:search-tags] (:error search-tags))
+
+                                      ))})
         critical-errors (reaction (index-by-type @errors :error))
         account-balance (subscribe [::balance-subs/active-account-balance :DANK])]
+
     (fn []
+
+      (log/debug "@form-data" @form-data)
+
       [app-layout
        {:meta {:title "MemeFactory"
                :description "Description"}}
@@ -91,7 +115,6 @@
                         :chip-set-path [:search-tags]
                         :ac-options (->> @all-tags-subs :search-tags :items (mapv :tag/name))
                         :chip-render-fn (fn [c] [:span c])
-                        :on-change (fn [c])
                         :id :search-tags
                         :select-keycodes #{13 188 32}
                         :errors errors
