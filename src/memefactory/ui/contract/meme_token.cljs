@@ -37,8 +37,7 @@
                                       :tx-id {:meme-token/transfer-multi-and-start-auction id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index
-                                                              nil
-                                                              {:tab :selling :term title}}}
+                                                              :query {:tab "selling" :term title}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::transfer-multi]
                                                         [::notification-events/show (gstring/format "Offering for %s was successfully created" title)]
                                                         [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}

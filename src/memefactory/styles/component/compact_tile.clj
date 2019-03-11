@@ -94,7 +94,10 @@
        :border-top "1px solid rgba(0, 0, 0, 0.1)"
        :border-bottom "1px solid rgba(255, 255, 255, 0.3)"
        }]
-     [:.description {:font-style :italic}]
+     [:.description {:font-style :italic
+                     :overflow :hidden
+                     :text-overflow :ellipsis
+                     :white-space :normal}]
      [:button
       {:right 0
        :left 0
