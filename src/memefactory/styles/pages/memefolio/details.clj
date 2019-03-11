@@ -363,7 +363,6 @@
       (for-media-max :computer
                      [:&
                       {:grid-template-columns "100%"
-                       :grid-template-rows "100%"
                        :margin-bottom (em 2)}])
       [">*" {:padding (em 1)
              :color (color :menu-text)
