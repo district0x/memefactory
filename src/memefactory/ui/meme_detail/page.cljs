@@ -557,10 +557,12 @@
           [spinner/spin]
           (list
            (when number
-             [:div.meme-number (str "#" number)])
-           [:div.container
+             [:div.meme-number {:key :meme-number} (str "#" number)])
+
+           [:div.container {:key :container}
             [tiles/meme-image image-hash]]
-           [:div.registry
+
+           [:div.registry {:key :registry}
             [:h1 title]
             [:div.status  (case (graphql-utils/gql-name->kw status)
                             :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
@@ -573,10 +575,11 @@
             [meme-creator-component creator]
             [:div.tags
              (for [tag-name tags]
-               ^{:key tag-name} [:button {:on-click #(dispatch [::router-events/navigate
-                                                                :route.marketplace/index
-                                                                nil
-                                                                {:search-tags [tag-name]}])} tag-name])]
+               [:button {:key tag-name
+                         :on-click #(dispatch [::router-events/navigate
+                                               :route.marketplace/index
+                                               nil
+                                               {:search-tags [tag-name]}])} tag-name])]
             [:div.buttons
              [:button.search.marketplace {:on-click #(dispatch [::router-events/navigate
                                                                 :route.marketplace/index
