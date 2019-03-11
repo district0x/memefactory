@@ -48,7 +48,7 @@
      :padding-top (em 0.5)
      :text-align :center}]
    [:h3.title
-    {:white-space :nowrap
+    {:white-space :unset
      :margin-top (em 0.1)
      :position :relative
      :color (c/color :section-subcaption)

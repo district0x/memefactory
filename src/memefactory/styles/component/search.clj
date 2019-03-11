@@ -45,7 +45,7 @@
       :margin-bottom (em 0.1)
       :text-align :center}]
     [:.header :h3
-     {:white-space :nowrap
+     {:white-space :unset
       :margin-top (em 1)
       :position :relative
       :color (c/color :section-subcaption)
