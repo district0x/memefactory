@@ -109,13 +109,14 @@
               (if (and (empty? all-creators)
                        (not (:graphql/loading? last-user)))
                 [:div.no-items-found "No items found."]
-                (doall
-                 (map
-                  (fn [creator num]
-                    ^{:key (:user/address creator)}
-                    [creator-tile creator num])
-                  all-creators
-                  (iterate inc 1))))
+                (when-not (:graphql/loading? (first @users-search))
+                  (doall
+                   (map
+                    (fn [creator num]
+                      ^{:key (:user/address creator)}
+                      [creator-tile creator num])
+                    all-creators
+                    (iterate inc 1)))))
               (when (:graphql/loading? last-user)
                [:div.spinner-container [spinner/spin]])]
              [infinite-scroll {:load-fn (fn []

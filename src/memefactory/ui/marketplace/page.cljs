@@ -59,10 +59,11 @@
       (if (and (empty? all-auctions)
                (not (:graphql/loading? (last @auctions-search))))
         [:div.no-items-found "No items found."]
-        (doall
-         (for [{:keys [:meme-auction/address] :as auc} all-auctions]
-           ^{:key address}
-           [tiles/auction-tile {} auc])))
+        (when-not (:graphql/loading? (first @auctions-search))
+          (doall
+           (for [{:keys [:meme-auction/address] :as auc} all-auctions]
+             ^{:key address}
+             [tiles/auction-tile {} auc]))))
       (when (:graphql/loading? (last @auctions-search))
         [:div.spinner-container [spinner/spin]])]
 

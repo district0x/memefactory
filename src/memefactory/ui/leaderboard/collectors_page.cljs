@@ -106,13 +106,14 @@
               (if (and (empty? all-collectors)
                        (not (:graphql/loading? last-user)))
                 [:div.no-items-found "No items found."]
-                (doall
-                 (map
-                  (fn [collector num]
-                    ^{:key (:user/address collector)}
-                    [collectors-tile collector (:overall-stats @totals) num])
-                  all-collectors
-                  (iterate inc 1))))
+                (when-not (not (:graphql/loading? (first @users-search)))
+                  (doall
+                   (map
+                    (fn [collector num]
+                      ^{:key (:user/address collector)}
+                      [collectors-tile collector (:overall-stats @totals) num])
+                    all-collectors
+                    (iterate inc 1)))))
               (when (:graphql/loading? last-user)
                [:div.spinner-container [spinner/spin]])]
 

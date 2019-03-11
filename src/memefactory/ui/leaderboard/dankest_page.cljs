@@ -50,12 +50,13 @@
       [:div.no-items-found "No items found."]
       [:div.scroll-area
        [:div.tiles
-        (doall
-         (for [{:keys [:reg-entry/address] :as meme} all-memes]
-           ^{:key address}
-           [tiles/meme-tile meme]))
+        (when-not (:graphql/loading? (first @meme-search))
+          (doall
+           (for [{:keys [:reg-entry/address] :as meme} all-memes]
+             ^{:key address}
+             [tiles/meme-tile meme])))
         (when (:graphql/loading? last-meme)
-               [:div.spinner-container [spinner/spin]])]
+          [:div.spinner-container [spinner/spin]])]
 
        [infinite-scroll {:load-fn (fn []
                                     (when-not (:graphql/loading? @meme-search)

@@ -74,32 +74,33 @@
               (if (and (empty? lazy-curators)
                        (not (:graphql/loading? last-user)))
                 [:div.no-items-found "No items found."]
-                (->> lazy-curators
-                     (map-indexed
-                      (fn [idx curator]
-                        ^{:key (:user/address curator)}
-                        [:div.curator {:class (when (= @(subscribe [::accounts-subs/active-account]) (:user/address curator)) "account-tile")}
-                         [:p.number (str "#" (inc idx))]
-                         [:h3.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                             {:address (:user/address curator)}
-                                                             {:tab :curated}])}
-                          (:user/address curator)]
+                (when-not (:graphql/loading? (first @users-search))
+                  (->> lazy-curators
+                       (map-indexed
+                        (fn [idx curator]
+                          ^{:key (:user/address curator)}
+                          [:div.curator {:class (when (= @(subscribe [::accounts-subs/active-account]) (:user/address curator)) "account-tile")}
+                           [:p.number (str "#" (inc idx))]
+                           [:h3.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                               {:address (:user/address curator)}
+                                                               {:tab :curated}])}
+                            (:user/address curator)]
 
-                         [:h4.challenges "CHALLENGES"]
-                         [:p "Success rate: "
-                          (let [total-challenges (:user/total-created-challenges curator)
-                                success-challenges (:user/total-created-challenges-success curator)]
-                            [:span success-challenges "/" total-challenges " (" (format/format-percentage success-challenges total-challenges) ")"])]
-                         [:p "Earned: " [:span (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]]
+                           [:h4.challenges "CHALLENGES"]
+                           [:p "Success rate: "
+                            (let [total-challenges (:user/total-created-challenges curator)
+                                  success-challenges (:user/total-created-challenges-success curator)]
+                              [:span success-challenges "/" total-challenges " (" (format/format-percentage success-challenges total-challenges) ")"])]
+                           [:p "Earned: " [:span (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]]
 
-                         [:h4.votes "VOTES"]
-                         [:p "Success rate: "
-                          (let [total-votes (:user/total-participated-votes curator)
-                                success-votes (:user/total-participated-votes-success curator)]
-                            [:span success-votes "/" total-votes " (" (format/format-percentage success-votes total-votes) ")"])]
-                         [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
-                         [:p.total-earnings "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))
-                     doall))
+                           [:h4.votes "VOTES"]
+                           [:p "Success rate: "
+                            (let [total-votes (:user/total-participated-votes curator)
+                                  success-votes (:user/total-participated-votes-success curator)]
+                              [:span success-votes "/" total-votes " (" (format/format-percentage success-votes total-votes) ")"])]
+                           [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
+                           [:p.total-earnings "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))
+                       doall)))
               (when (:graphql/loading? last-user)
                [:div.spinner-container [spinner/spin]])]
 
