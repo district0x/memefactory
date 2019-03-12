@@ -282,7 +282,7 @@
                             :background-color (color :violet)
                             :backface-visibility :hidden}
      (button-tile-back)
-     [:.sell-form {:background-color :white
+     [:.form {:background-color :white
                    :width "100%"
                    :height "100%"
                    :padding (em 1)
@@ -327,7 +327,7 @@
        [:.buttons {:display :inline-flex
                    :justify-content :space-between
                    :font-size (px 15)
-                   :margin-top (em 0.7)
+                   :margin-top (px -8)
                    :width "100%"}
         [:button.cancel (button {:color :white
                                  :background-color (color :cancel-button)
@@ -340,7 +340,20 @@
                                           :background-color (color :purple)
                                           :width "55%"})
          {:font-size (px 11)
-          :padding (em 0.4)}]]]]]
+          :padding (em 0.4)}]]
+       [:.send-tokens {:text-align :center
+                       :margin-top (px 5)}]]
+      [:&.send-form
+       [:h1 (font :bungee)
+        {:color (color :purple)
+         :font-size (em 1)
+         :text-align :center
+         :margin-bottom (em 4)
+         :margin-top (em 4)
+         :overflow :hidden
+         :text-overflow :ellipsis
+         :white-space :nowrap}]
+       [:.buttons {:margin-top (em 4)}]]]]
     [:.selling-tile-back {:height "100%"
                           :background-color (color :violet)}
      (button-tile-back)]]

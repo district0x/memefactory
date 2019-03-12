@@ -48,3 +48,34 @@
                                                     {:user {:id active-account}
                                                      :args args}
                                                     ::transfer-multi-and-start-auction]}]})))
+
+(reg-event-fx
+ ::safe-transfer-from-multi
+ [interceptors]
+ (fn [{:keys [:db]} [{:keys [:send-tx/id :meme/title :meme-auction/token-ids :send/address] :as args}]]
+   (let [tx-name (str "Send " title)
+         active-account (account-queries/active-account db)]
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-token)
+                                      :fn :safe-transfer-from-multi
+                                      :args (look [active-account
+                                                   address
+                                                   token-ids
+                                                   nil])
+                                      :tx-opts {:from active-account
+                                                :gas 6000000}
+                                      :tx-id {:meme-token/safe-transfer-from-multi id}
+                                      :tx-log {:name tx-name
+                                               ;; :related-href {:name :route.memefolio/index
+                                               ;;                :query {:tab "selling" :term title}}
+                                               }
+
+                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::transfer-multi]
+                                                        [::notification-events/show (gstring/format "%s tokens were successfully sent" title)]
+                                                        [::gql-events/query {:query {:queries [[:meme {:reg-entry/address (:reg-entry/address args)}
+                                                                                                [:meme/total-supply
+                                                                                                 [:meme/owned-meme-tokens {:owner active-account}
+                                                                                                  [:meme-token/token-id]]]]]}}]]
+                                      :on-tx-error [::logging/error (str tx-name " tx error")
+                                                    {:user {:id active-account}
+                                                     :args args}
+                                                    ::safe-transfer-from-multi]}]})))

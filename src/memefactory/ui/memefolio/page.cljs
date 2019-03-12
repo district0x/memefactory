@@ -44,10 +44,78 @@
 
 (defmulti total (fn [tab & opts] tab))
 
+(defn send-form [{:keys [:meme/title
+                         :meme-auction/token-count
+                         :reg-entry/address] :as meme}
+                 send-sell-atom]
+  (let [tx-id (str (random-uuid))
+        active-account @(subscribe [::accounts-subs/active-account])
+        meme-sub (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
+                                                     [[:meme/owned-meme-tokens {:owner active-account}
+                                                       [:meme-token/token-id]]]]]}])
+        token-ids (ratom/reaction (->> @meme-sub
+                                       :meme :meme/owned-meme-tokens
+                                       (map :meme-token/token-id)))
+        form-data (r/atom {:send/amount 1
+                           :send/address ""})
+        errors (ratom/reaction (let []
+                                 {:local  {:send/amount (cond-> {:hint (str "Max " (count @token-ids))}
+                                                          (and (not (< 0 (js/parseInt (:send/amount @form-data)) (inc (count @token-ids))))
+                                                               (pos? (count @token-ids)))
+                                                          (assoc :error (str "Should be between 1 and " (count @token-ids))))
+                                           :send/address (when (empty? (:send/address @form-data))
+                                                           {:error "Address can't be empty"})}}))
+        critical-errors (ratom/reaction (inputs/index-by-type @errors :error))
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/safe-transfer-from-multi tx-id}])]
+    (fn [{:keys [:meme/title
+                 :meme-auction/token-count
+                 :reg-entry/address] :as meme}]
+      [:div.form-panel
+       [inputs/with-label
+        "Amount"
+        [inputs/text-input {:form-data form-data
+                            :errors errors
+                            :id :send/amount
+                            :on-click #(.stopPropagation %)
+                            :dom-id (str address :send/amount)}]
+        {:form-data form-data
+         :id :send/amount
+         :for (str address :send/amount)}]
+       [:div.outer
+        [inputs/with-label
+         "Address"
+         [inputs/text-input {:form-data form-data
+                             :errors errors
+                             :id :send/address
+                             :dom-id (str address :send/address)
+                             :on-click #(.stopPropagation %)}]
+         {:id :send/address
+          :form-data form-data
+          :for (str address :send/address)}]]
+
+       [:div.buttons
+        [:button.cancel {:on-click #(reset! send-sell-atom :sell)} "Cancel"]
+        [tx-button/tx-button {:primary true
+                              :disabled (boolean (or (not-empty @critical-errors)
+                                                     (not (pos? (count @token-ids)))))
+                              :class "create-offering"
+                              :pending? @tx-pending?
+                              :pending-text "Sending..."
+                              :on-click (fn []
+                                          (dispatch [::meme-token/safe-transfer-from-multi (merge @form-data
+                                                                                                  {:send-tx/id tx-id
+                                                                                                   :meme/title title
+                                                                                                   :reg-entry/address address
+                                                                                                   :meme-auction/token-ids (->> @token-ids
+                                                                                                                                (take (int (:send/amount @form-data)))
+                                                                                                                                (map int))})]))}
+         "Send"]]])))
+
 (defn sell-form [{:keys [:meme/title
                          :meme-auction/token-count
                          :reg-entry/address] :as meme}
-                 {:keys [min-auction-duration max-auction-duration] :as params}]
+                 {:keys [min-auction-duration max-auction-duration] :as params}
+                 send-sell-atom]
   (let [tx-id (str (random-uuid))
         active-account @(subscribe [::accounts-subs/active-account])
         meme-sub (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
@@ -57,9 +125,9 @@
                                        :meme :meme/owned-meme-tokens
                                        (map :meme-token/token-id)))
         form-data (r/atom {:meme-auction/duration 14
-                           :meme-auction/amount 1
-                           :meme-auction/description nil
-                           })
+                                :meme-auction/amount 1
+                                :meme-auction/description nil})
+
         errors (ratom/reaction (let [{:keys [:meme-auction/start-price :meme-auction/end-price :meme-auction/description]} @form-data
                                      sp (js/parseFloat start-price)
                                      ep ( js/parseFloat end-price)]
@@ -89,9 +157,6 @@
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))]
 
     (fn []
-
-      (log/debug "form" {:err @errors :form @form-data})
-
       [:div.form-panel
        [inputs/with-label
         "Amount"
@@ -166,21 +231,36 @@
                                                                                                            :meme-auction/token-ids (->> @token-ids
                                                                                                                                         (take (int (:meme-auction/amount @form-data)))
                                                                                                                                         (map int))})]))}
-         "Create Offering"]]])))
+         "Create Offering"]]
+       [:div.send-tokens {:on-click #(reset! send-sell-atom :send)}
+        "Send tokens"]])))
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids :reg-entry/address]}]
-  (let [params (subscribe [:memefactory.ui.config/memefactory-db-params])]
+  (let [params (subscribe [:memefactory.ui.config/memefactory-db-params])
+        form (r/atom :sell)]
     (fn []
-      [:div.collected-tile-back.meme-card.back {:id "collected-back"}
-       [:div.sell-form {:id "collected-back-sell"}
-        [:h1 (str "Sell " "#" number " " title)]
 
-        (when @params
-          [sell-form {:meme/title title
-                      :meme-auction/token-ids token-ids
-                      :meme-auction/token-count token-count
-                      :reg-entry/address address}
-           @params])]])))
+      [:div.collected-tile-back.meme-card.back {:id "collected-back"}
+
+       (when @params
+         (if (= @form :sell)
+           [:div.form.sell-form {:id "collected-back-sell"}
+            [:h1 (str "Sell " "#" number " " title)]
+
+            [sell-form {:meme/title title
+                        :meme-auction/token-ids token-ids
+                        :meme-auction/token-count token-count
+                        :reg-entry/address address}
+             @params
+             form]]
+
+           [:div.form.send-form {:id "collected-back-send"}
+            [:h1 (str "Send to a friend")]
+            [send-form {:meme/title title
+                        :meme-auction/token-ids token-ids
+                        :meme-auction/token-count token-count
+                        :reg-entry/address address}
+             form]]))])))
 
 (defmethod panel :collected [_ state loading-first? loading-last?]
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
