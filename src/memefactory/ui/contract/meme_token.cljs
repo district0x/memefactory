@@ -65,9 +65,8 @@
                                                 :gas 6000000}
                                       :tx-id {:meme-token/safe-transfer-from-multi id}
                                       :tx-log {:name tx-name
-                                               ;; :related-href {:name :route.memefolio/index
-                                               ;;                :query {:tab "selling" :term title}}
-                                               }
+                                               :related-href {:name :route.meme-detail/index
+                                                              :params {:address (:reg-entry/address args)}}}
 
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::transfer-multi]
                                                         [::notification-events/show (gstring/format "%s tokens were successfully sent" title)]
