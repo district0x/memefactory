@@ -106,6 +106,8 @@
     memes_orderBy_createdOn
     memes_orderBy_number
     memes_orderBy_totalMinted
+    memes_orderBy_averagePrice
+    memes_orderBy_highestSingleSale
   }
 
   enum MemesGroupBy {

@@ -25,6 +25,24 @@
     [:.dankest-panel {:min-height (px 550)}
      (panel-with-icon {:url "/assets/icons/trophy2.svg"
                        :color :leaderboard-curator-bg})]
+    [:div.order
+     {:position :absolute
+      :display :block
+      :width (em 16)
+      :right (em 2)
+      :top (em 2)}
+     [:.input-group
+      [:.help-block {:display :none}]]
+     (for-media-max :large
+                    [:&
+                     {:display :inline-block
+                      :position :relative
+                      :height (em 1)
+                      :padding-top (em 1)
+                      :width "calc(100% - 2em)"
+                      :margin-left (em 3)
+                      :margin-right (em 3)
+                      :top (em -1)}])]
     [:.scroll-area
      {:width "100%"}
      [:.tiles

@@ -5,6 +5,7 @@
    [district.ui.router.subs :as router-subs]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [district.ui.component.form.input :refer [select-input]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.search :refer [search-tools]]
@@ -17,10 +18,13 @@
 
 (def page-size 12)
 
-(defn build-tiles-query [after]
+(defn build-tiles-query [after {:keys [order-by]}]
   [:search-memes
    (cond-> {:first page-size
-            :order-by :memes.order-by/total-trade-volume
+            :order-by ({"total-trade-volume"  :memes.order-by/total-trade-volume
+                        "average-price"       :memes.order-by/average-price
+                        "highest-single-sale" :memes.order-by/highest-single-sale}
+                       order-by)
             :statuses [:reg-entry.status/whitelisted]
             :order-dir :desc}
      after (assoc :after after))
@@ -36,14 +40,12 @@
              :meme/total-minted
              :meme/total-trade-volume]]]])
 
-(defn dankest-memes-tiles []
-  (let [meme-search (subscribe [::gql/query {:queries [(build-tiles-query nil)]}
-                                {:id :dankest}])
+(defn dankest-memes-tiles [form-data]
+  (let [meme-search (subscribe [::gql/query {:queries [(build-tiles-query nil @form-data)]}
+                                {:id @form-data}])
         all-memes (->> @meme-search
                        (mapcat (fn [r] (-> r :search-memes :items))))
         last-meme (last @meme-search)]
-
-    (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::dankest-memes-tiles)
 
     (if (and (empty? all-memes)
              (not (:graphql/loading? last-meme)))
@@ -66,11 +68,12 @@
 
                                         (when has-next-page
                                           (dispatch [:district.ui.graphql.events/query
-                                                     {:query {:queries [(build-tiles-query end-cursor)]}
+                                                     {:query {:queries [(build-tiles-query end-cursor @form-data)]}
                                                       :id :dankest}])))))}]])))
 
 (defmethod page :route.leaderboard/dankest []
-  (let [active-page (subscribe [::router-subs/active-page])]
+  (let [active-page (subscribe [::router-subs/active-page])
+        form-data (r/atom {:order-by "average-price"})]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory"
@@ -81,4 +84,11 @@
           [:div.icon]
           [:h2.title "LEADERBOARDS - DANKEST"]
           [:h3.title "Memes traded for the most ETH"]
-          [dankest-memes-tiles]]]]])))
+          [:div.order
+           [select-input
+            {:form-data form-data
+             :id :order-by
+             :options [{:key "average-price" :value "by average price"}
+                       {:key "total-trade-volume" :value "by total volume"}
+                       {:key "highest-single-sale" :value "by highest single sale"}]}]]
+          [dankest-memes-tiles form-data]]]]])))

@@ -117,23 +117,34 @@
                         :from [:memes]
                         :modifiers [:distinct]
                         :join [[:reg-entries :re] [:= :re.reg-entry/address :memes.reg-entry/address]]
-                        :left-join [[{:select [:meme-tokens.reg-entry/address :meme-tokens.meme-token/token-id :meme-token-owners.meme-token/owner]
-                                      :from [:meme-tokens]
-                                      :join [:meme-token-owners
-                                             [:= :meme-token-owners.meme-token/token-id :meme-tokens.meme-token/token-id]]} :tokens]
-                                    [:= :memes.reg-entry/address :tokens.reg-entry/address]
+                        :left-join (cond-> [[{:select [:meme-tokens.reg-entry/address :meme-tokens.meme-token/token-id :meme-token-owners.meme-token/owner]
+                                              :from [:meme-tokens]
+                                              :join [:meme-token-owners
+                                                     [:= :meme-token-owners.meme-token/token-id :meme-tokens.meme-token/token-id]]} :tokens]
+                                            [:= :memes.reg-entry/address :tokens.reg-entry/address]
 
-                                    :meme-tags
-                                    [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
+                                            :meme-tags
+                                            [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
 
-                                    [{:select [:votes.reg-entry/address [(sql/call :total :votes.vote/amount) :votes-total]]
-                                      :from [:votes]
-                                      :where [:> :votes.vote/created-on (- now trending-votes-period)]
-                                      :group-by [:votes.reg-entry/address]} :votes]
-                                    [:= :memes.reg-entry/address :votes.reg-entry/address]
+                                            [{:select [:votes.reg-entry/address [(sql/call :total :votes.vote/amount) :votes-total]]
+                                              :from [:votes]
+                                              :where [:> :votes.vote/created-on (- now trending-votes-period)]
+                                              :group-by [:votes.reg-entry/address]} :votes]
+                                            [:= :memes.reg-entry/address :votes.reg-entry/address]
 
-                                    [:votes :v]
-                                    [:= :v.reg-entry/address :re.reg-entry/address]]}
+                                            [:votes :v]
+                                            [:= :v.reg-entry/address :re.reg-entry/address]]
+
+                                     ;; if ordering by average-price or highest-single-sale
+                                     (#{:memes.order-by/highest-single-sale :memes.order-by/average-price} (graphql-utils/gql-name->kw order-by))
+                                     (into [[{:select [:meme-tokens.reg-entry/address
+                                                       [(sql/call :max :meme-auctions.meme-auction/bought-for) :highest-single-sale]
+                                                       [(sql/call :avg :meme-auctions.meme-auction/bought-for) :average-price]]
+                                              :from [:meme-tokens]
+                                              :join [:meme-auctions
+                                                     [:= :meme-auctions.meme-auction/token-id :meme-tokens.meme-token/token-id]]
+                                              :group-by [:meme-tokens.reg-entry/address]} :auctions]
+                                            [:= :memes.reg-entry/address :tokens.reg-entry/address]]))}
                  title        (sqlh/merge-where [:like :memes.meme/title (str "%" title "%")])
                  challenged   (sqlh/merge-where [:not= :re.challenge/challenger nil])
                  tags         (sqlh/merge-where [:=
@@ -156,7 +167,9 @@
                                                            :memes.order-by/created-on           :re.reg-entry/created-on
                                                            :memes.order-by/number               :memes.meme/number
                                                            :memes.order-by/total-minted         :memes.meme/total-minted
-                                                           :memes.order-by/daily-total-votes    :votes.votes-total}
+                                                           :memes.order-by/daily-total-votes    :votes.votes-total
+                                                           :memes.order-by/average-price        :average-price
+                                                           :memes.order-by/highest-single-sale  :highest-single-sale}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]]))]
