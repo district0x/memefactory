@@ -62,7 +62,8 @@
      [:h2
       {:color (color :purple)
        :cursor :pointer
-       :text-transform :uppercase}
+       :text-transform :uppercase
+       :word-wrap :break-word}
       (font :bungee)
       (for-media-max :computer
                      [:& {:text-align :center}])]
