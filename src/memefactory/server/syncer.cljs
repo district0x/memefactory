@@ -40,6 +40,7 @@
 ;; a chan. We then store created filters in an atom so we can stop them at component stop.
 (defonce all-filters (atom []))
 
+(declare syncer)
 (declare schedule-meme-number-assigner)
 
 (defn evict-ranks-cache []
@@ -207,7 +208,6 @@
 (defmethod process-event [:contract/param-change :change-applied]
   [contract-type {:keys [:registry-entry :timestamp] :as ev}]
   (try-catch
-   ;; TODO: could also just change applied date to timestamp
    (add-param-change registry-entry)))
 
 (defmethod process-event [:contract/registry-entry :ChallengeCreatedEvent]
@@ -391,31 +391,27 @@
 (defn dispatch-event
   ([ev] (dispatch-event nil ev))
   ([err {:keys [args event address block-number] :as raw-ev}]
-   (try
-    (let [contract-key (contract-key-from-address address)
-          contract-type ({:meme-registry-db         :contract/eternal-db
-                          :param-change-registry-db :contract/eternal-db
-                          :meme-registry-fwd        :contract/meme
-                          :meme-token               :contract/meme-token
-                          :meme-auction-factory     :contract/meme-auction
-                          :meme-auction-factory-fwd :contract/meme-auction} contract-key)
-          ev (-> args
-                 (assoc :contract-address address)
-                 (assoc :event (keyword event))
-                 (update :timestamp (fn [ts]
-                                      (if ts
-                                        (bn/number ts)
-                                        (server-utils/now-in-seconds))))
-                 (update :version bn/number)
-                 (assoc :block-number block-number))]
-      (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
-      (process-event contract-type ev))
-    (catch :default e
-      (log/fatal "Fatal exception when dispatching event. Terminating." (merge (ex-data e)
-                                                                               {:config @config
-                                                                                :event raw-ev
-                                                                                :error e}))
-      (.exit nodejs/process 1)))))
+   (if err
+     ((:on-event-error @@#'memefactory.server.syncer/syncer) err)
+     (try-catch
+      (let [contract-key (contract-key-from-address address)
+            contract-type ({:meme-registry-db         :contract/eternal-db
+                            :param-change-registry-db :contract/eternal-db
+                            :meme-registry-fwd        :contract/meme
+                            :meme-token               :contract/meme-token
+                            :meme-auction-factory     :contract/meme-auction
+                            :meme-auction-factory-fwd :contract/meme-auction} contract-key)
+            ev (-> args
+                   (assoc :contract-address address)
+                   (assoc :event (keyword event))
+                   (update :timestamp (fn [ts]
+                                        (if ts
+                                          (bn/number ts)
+                                          (server-utils/now-in-seconds))))
+                   (update :version bn/number)
+                   (assoc :block-number block-number))]
+        (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
+        (process-event contract-type ev))))))
 
 (defn apply-blacklist-patches! []
   (let [{:keys [blacklist-file]} @config
@@ -425,10 +421,13 @@
        (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
        (db/patch-forbidden-reg-entry-image! address)))))
 
-(defn start [{:keys [:initial-param-query] :as opts}]
+(defn start [{:keys [:on-event-error] :as opts}]
 
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
+
+  (when-not on-event-error
+    (throw (js/Error. ":on-event-error is required to start emailer")))
 
   (when-not (= ::db/started @db/memefactory-db)
     (throw (js/Error. "Database module has not started")))
@@ -452,7 +451,7 @@
 
                           meme-token/meme-token-transfer-event]
 
-        ;; just creates the past event filters but doesn't retrieves anything
+        ;; just creates the past event filters but doesn't retrieve anything
         past-events-filters (->> filters-builders
                                  (map #(apply % [{:from-block 0 :to-block (dec last-block-number)}])))]
 
@@ -487,7 +486,8 @@
                                                              challenge-period-end
                                                              reveal-period-end)
                                                            (server-utils/now-in-seconds))))))
-        (reset! all-filters (into past-events-filters watch-filters))))))
+        (reset! all-filters (into past-events-filters watch-filters))))
+    opts))
 
 (defn stop [syncer]
   (doseq [filter (remove nil? @all-filters)]

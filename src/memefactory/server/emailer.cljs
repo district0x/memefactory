@@ -170,12 +170,17 @@
 (defn event-callback [f]
   (fn [error res]
     (if error
-      (log/error "Emailer got error from blockchain event" {:error error} ::event-callback)
+      ((:on-event-error @@#'memefactory.server.emailer/emailer) error)
       (f (:args res)))))
 
-(defn start [{:keys [:api-key :private-key :print-mode?] :as opts}]
+(defn start [{:keys [:api-key :private-key :print-mode? :on-event-error] :as opts}]
+
   (when-not private-key
     (throw (js/Error. ":private-key is required to start emailer")))
+
+  (when-not on-event-error
+    (throw (js/Error. ":on-event-error is required to start emailer")))
+
   (merge opts
          {:listeners
           [(registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" (event-callback send-challenge-created-email))
