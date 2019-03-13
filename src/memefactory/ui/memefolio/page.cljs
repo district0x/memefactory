@@ -651,10 +651,8 @@
                                           {:after (str after)})
                                         (when term
                                           {:title term})
-                                        (when order-by
-                                          {:order-by (build-order-by prefix order-by)})
-                                        (when order-dir
-                                          {:order-dir order-dir})
+                                        {:order-by (build-order-by :memes :created-on)
+                                         :order-dir :desc}
                                         (when search-tags
                                           {:tags search-tags}))
                    [:total-count
@@ -677,10 +675,8 @@
                                         {:after (str after)})
                                       (when term
                                         {:title term})
-                                      (when order-by
-                                        {:order-by (build-order-by prefix order-by)})
-                                      (when order-dir
-                                        {:order-dir order-dir})
+                                      {:order-by (build-order-by :memes :created-on)
+                                       :order-dir :desc}
                                       (when search-tags
                                         {:tags search-tags}))
                  [:total-count
@@ -705,10 +701,8 @@
                                         {:after (str after)})
                                       (when term
                                         {:title term})
-                                      (when order-by
-                                        {:order-by (build-order-by prefix order-by)})
-                                      (when order-dir
-                                        {:order-dir order-dir})
+                                      {:order-by (build-order-by :memes :created-on)
+                                       :order-dir :desc}
                                       (when search-tags
                                         {:tags search-tags}))
                  [:total-count
@@ -728,10 +722,8 @@
                                                 {:after (str after)})
                                               (when term
                                                 {:title term})
-                                              (when order-by
-                                                {:order-by (build-order-by prefix order-by)})
-                                              (when order-dir
-                                                {:order-dir order-dir})
+                                              {:order-by (build-order-by :meme-auctions :started-on)
+                                               :order-dir :desc}
                                               (when search-tags
                                                 {:tags search-tags}))
                  [:total-count
@@ -761,10 +753,8 @@
                                              {:after (str after)})
                                            (when term
                                              {:title term})
-                                           (when order-by
-                                             {:order-by (build-order-by prefix order-by)})
-                                           (when order-dir
-                                             {:order-dir order-dir})
+                                           {:order-by (build-order-by :meme-auctions :started-on)
+                                            :order-dir :desc}
                                            (when search-tags
                                              {:tags search-tags}))
               [:total-count
@@ -797,7 +787,8 @@
               :meme-auctions :search-meme-auctions)
           state (mapcat (fn [q] (get-in q [k :items])) @query-subs)]
 
-      (log/debug "re-render scrolling-container" {:state (map #(get-in % [(case prefix
+      (log/debug "re-render scrolling-container" {:query-subs @query-subs
+                                                  :state (map #(get-in % [(case prefix
                                                                             :memes :reg-entry/address
                                                                             :meme-auctions :meme-auction/address)])
                                                               state)
@@ -807,7 +798,7 @@
 
       [:div.scroll-area
        [:div.inner-panel
-        [panel tab state (:graphql/loading? (last @query-subs))]
+        [panel tab state (:graphql/loading? (first @query-subs)) (:graphql/loading? (last @query-subs))]
         (when (:graphql/loading? (last @query-subs))
           [:div.spinner-container [spinner/spin]])
       [infinite-scroll {:load-fn (fn []
@@ -916,14 +907,7 @@
                          (contains? #{:selling :sold} active-tab)
                          :meme-auctions)
             order-by? (-> query :order-by nil? not)
-            memes? (= prefix :memes)
-            meme-auctions? (= prefix :meme-auctions)
-            form-data (r/atom {:term (:term query)
-                               :order-by (match [order-by? memes? meme-auctions?]
-                                                [true _ _] (build-order-by prefix (:order-by query))
-                                                [false true false] (build-order-by prefix :created-on)
-                                                [false false true] (build-order-by prefix :started-on))
-                               :order-dir (or (keyword (:order-dir query)) :desc)})]
+            form-data (r/atom {:term (:term query)})]
         [app-layout/app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
