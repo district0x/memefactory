@@ -136,7 +136,7 @@
                                             [:= :v.reg-entry/address :re.reg-entry/address]]
 
                                      ;; if ordering by average-price or highest-single-sale
-                                     (#{:memes.order-by/highest-single-sale :memes.order-by/average-price} (graphql-utils/gql-name->kw order-by))
+                                     (and order-by (#{:memes.order-by/highest-single-sale :memes.order-by/average-price} (graphql-utils/gql-name->kw order-by)))
                                      (into [[{:select [:meme-tokens.reg-entry/address
                                                        [(sql/call :max :meme-auctions.meme-auction/bought-for) :highest-single-sale]
                                                        [(sql/call :avg :meme-auctions.meme-auction/bought-for) :average-price]]
