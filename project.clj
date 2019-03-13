@@ -74,7 +74,7 @@
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
-            [lein-figwheel "0.5.16"]
+            [lein-figwheel "0.5.18"]
             [lein-shell "0.5.0"]
             [lein-solc "1.0.11"]
             [lein-doo "0.1.8"]
