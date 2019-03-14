@@ -149,10 +149,7 @@
                                                                                         (shared-utils/round 4))]
                                                                    (cond-> {:hint (str "Max " max-duration)}
                                                                      (not (<= min-duration duration max-duration))
-                                                                     (assoc :error (str "Should be between " min-duration " and " max-duration))))
-                                          :meme-auction/description (when (or (empty? description)
-                                                                              (nil? description))
-                                                                      {:error "Give a short pitch"})}}))
+                                                                     (assoc :error (str "Should be between " min-duration " and " max-duration))))}}))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/transfer-multi-and-start-auction tx-id}])
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))]
 
