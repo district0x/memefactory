@@ -29,8 +29,7 @@
                                       :args [(contract-queries/contract-address db :meme-factory)
                                              deposit
                                              extra-data]
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {:meme/create-meme tx-id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index

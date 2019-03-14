@@ -39,8 +39,7 @@
                                       :args [address
                                              deposit
                                              extra-data]
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {::approve-and-create-challenge id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.meme-detail/index
@@ -79,8 +78,7 @@
                                       :args [address
                                              amount
                                              extra-data]
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {::approve-and-commit-vote id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.meme-detail/index
@@ -109,8 +107,7 @@
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :reveal-vote
                                       :args [(reg-entry/vote-option->num option) salt]
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {::reveal-vote id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.meme-detail/index
@@ -136,8 +133,7 @@
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :claim-challenge-reward
                                       :args []
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {::claim-challenge-reward id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.meme-detail/index
@@ -158,8 +154,7 @@
      {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme address))
                                       :fn :claim-vote-reward
                                       :args (look [active-account])
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {::claim-vote-reward id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.meme-detail/index
@@ -181,8 +176,7 @@
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :reclaim-vote-amount
                                       :args [active-account]
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {::claim-vote-amount id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.meme-detail/index

@@ -32,8 +32,7 @@
                                                                          (web3/to-wei end-price :ether)
                                                                          duration
                                                                          description)]
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {:meme-token/transfer-multi-and-start-auction id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index
@@ -61,8 +60,7 @@
                                                    address
                                                    token-ids
                                                    nil])
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {:meme-token/safe-transfer-from-multi id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.meme-detail/index

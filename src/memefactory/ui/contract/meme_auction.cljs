@@ -26,8 +26,7 @@
                                       :fn :buy
                                       :args []
                                       :tx-opts {:from active-account
-                                                :value value
-                                                :gas 6000000}
+                                                :value value}
                                       :tx-id {:meme-auction/buy id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index
@@ -48,8 +47,7 @@
      {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme-auction address))
                                       :fn :cancel
                                       :args []
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {:meme-auction/cancel id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index

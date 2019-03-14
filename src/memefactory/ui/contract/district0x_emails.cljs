@@ -23,8 +23,7 @@
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :district0x-emails)
                                       :fn :set-email
                                       :args [encrypted-email]
-                                      :tx-opts {:from active-account
-                                                :gas 600000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {:district0x-emails/set-email tx-id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.my-settings/index}}

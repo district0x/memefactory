@@ -24,8 +24,7 @@
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :mint
                                       :args [amount]
-                                      :tx-opts {:from active-account
-                                                :gas 6000000}
+                                      :tx-opts {:from active-account}
                                       :tx-id {:meme/mint id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index,

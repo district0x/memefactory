@@ -98,8 +98,7 @@
                               :fn :verify-and-acquire-dank
                               :args (look [(-> phone-number web3/sha3)
                                            oraclize-string])
-                              :tx-opts {:from active-account
-                                        :gas 6000000}
+                              :tx-opts {:from active-account}
                               ;;:tx-id {:get-dank/verify-and-acquire-dank id}
                               :on-tx-success-n [[::logging/success
                                                  [::acquire-dank-success]]
