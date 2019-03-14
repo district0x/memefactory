@@ -90,6 +90,7 @@
                             :id :file-info
                             :errors errors
                             :label "Upload a file"
+                            :comment "Upload image with ratio 2:3 and size less than 1.5MB"
                             :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                 (js/console.log "Veryfing acceptance of file of type : " type " and size : " size)
                                                 (and (#{"image/png" "image/gif" "image/jpeg"} type)

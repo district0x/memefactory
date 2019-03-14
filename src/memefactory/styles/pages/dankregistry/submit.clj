@@ -50,17 +50,24 @@
        [:.dropzone {:width (px compact-tile/card-width)
                     :height (px compact-tile/card-height)}]
        [:.file-name {:display :none}]
+       [:.file-comment {:color (color :menu-text)
+                        :display :inline-block
+                        :width "100%"
+                        :text-align :center
+                        :font-size (px 11)
+                        :padding-top (em 1.3)
+                        :padding-bottom (em 0.4)}]
        [:.help-block
         {:border-top :none
          :line-height (em 1)
          :margin-top (em -0.5)
-         :margin-bottom (em 3)}]]
+         :margin-bottom (em 5)}]]
       [:label.file-input-label
        {:margin-right :auto
         :margin-left :auto
         :padding-top (em 1)
         :padding-left (em 1.9)
-        :margin-top (em 2)
+        :margin-top (em 1)
         :font-size (px 12)}
        (button {:background-color :purple
                 :color :white
