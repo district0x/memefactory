@@ -106,7 +106,7 @@
               (if (and (empty? all-collectors)
                        (not (:graphql/loading? last-user)))
                 [:div.no-items-found "No items found."]
-                (when-not (not (:graphql/loading? (first @users-search)))
+                (when-not (:graphql/loading? (first @users-search))
                   (doall
                    (map
                     (fn [collector num]
