@@ -23,28 +23,29 @@
                              {:queries [[:config
                                          [[:ipfs [:gateway]]]]]}])
                 :config :ipfs :gateway)]
-    [:div.meme-card.front
+    [:div.meme-card
      props
      (if (and url (not-empty image-hash))
-       [:img.meme-image {:src (str (format/ensure-trailing-slash url) image-hash)}]
-       [:div.meme-placehodler [:img {:src "/assets/icons/mememouth.png"}]])]))
+       [:img.meme-image.initial-fade-in-delay {:src (str (format/ensure-trailing-slash url) image-hash)}]
+       [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])]))
 
 (defn flippable-tile [{:keys [:front :back :flippable-classes]}]
   (let [flipped? (r/atom false)
         flip #(swap! flipped? not)]
     (fn [{:keys [:front :back]}]
-      [:div.container {:class (when @flipped? "flipped")
-                       :on-click (fn [event]
-                                   (if (not-empty flippable-classes)
-                                     (when-not (empty? (set/intersection (set flippable-classes)
-                                                                         (into #{} (-> event
-                                                                                       (aget "target")
-                                                                                       (aget "className")
-                                                                                       (str/split #"\ ")))))
-                                       (flip))
-                                     (flip)))}
-       back
-       front])))
+      [:div.flippable-tile.initial-fade-in-delay
+       {:class (when @flipped? "flipped")
+        :on-click (fn [event]
+                    (if (not-empty flippable-classes)
+                      (when-not (empty? (set/intersection (set flippable-classes)
+                                                          (into #{} (-> event
+                                                                        (aget "target")
+                                                                        (aget "className")
+                                                                        (str/split #"\ ")))))
+                        (flip))
+                      (flip)))}
+       [:div.flippable-tile-front front]
+       [:div.flippable-tile-back back]])))
 
 (defn auction-back-tile [opts meme-auction]
   (let [tx-id (str (:meme-auction/address meme-auction) "auction")
@@ -63,24 +64,25 @@
             price (shared-utils/calculate-meme-auction-price (-> meme-auction
                                                                  (update :meme-auction/started-on #(.getTime (ui-utils/gql-date->date %))))
                                                              (.getTime @now))
-            title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)]
-        [:div.meme-card.back
-         [meme-image (get-in meme-auction [:meme-auction/meme-token
-                                           :meme-token/meme
-                                           :meme/image-hash])]
+            title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)
+            creator-address (:user/address (:meme-auction/seller meme-auction))]
+        [:div.meme-card
          [:div.overlay
-          [:div.info
-           [:ul.meme-data
-            [:li [:label "Seller:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                                  {:address (:user/address (:meme-auction/seller meme-auction))}
-                                                                  {:tab :selling}])}
-                                     (:user/address (:meme-auction/seller meme-auction))]]
-            [:li [:label "Current Price:"] [:span (format-price price)]]
-            [:li [:label "Start Price:"] [:span (format-price (:meme-auction/start-price meme-auction))]]
-            [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]
-            [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
-           [:hr]
-           [:p.description {:title description} description]
+          [:div.logo
+           [:img {:src "/assets/icons/mf-logo.svg"}]]
+          [:ul.meme-data
+           [:li [:label "Seller:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                                 {:address (:user/address (:meme-auction/seller meme-auction))}
+                                                                 {:tab :selling}])
+                                           :title (str "Go to the Memefolio of " creator-address)}
+                                    creator-address]]
+           [:li [:label "Current Price:"] [:span (format-price price)]]
+           [:li [:label "Start Price:"] [:span (format-price (:meme-auction/start-price meme-auction))]]
+           [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]
+           [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
+          [:hr]
+          [:div.description {:title description} description]
+          [:div.input
            (if (= (-> meme-auction :meme-auction/seller :user/address)
                   @active-account)
 
@@ -126,36 +128,38 @@
           [:div.price (format-price price)]]]))))
 
 (defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number :meme/total-trade-volume] :as meme}]
-  (let [user-address (-> meme :reg-entry/creator :user/address)]
-    [:div.meme-card.back
+  (let [creator-address (-> meme :reg-entry/creator :user/address)]
+    [:div.meme-card
      [:div.overlay
-      [:div.info
-       [:ul.meme-data
-        (when number
-          [:li [:label "Registry Number:"]
-           (str "#" number)])
-        [:li [:label "Creator:"]
-         [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                       {:address user-address}
-                                       {:tab :created}])}
-          user-address]]
-        [:li [:label "Created:"]
-         (let [formated-time (-> (time/time-remaining (t/date-time (ui-utils/gql-date->date created-on)) (t/now))
-                                 (dissoc :seconds)
-                                 format/format-time-units)]
-           (if-not (empty? formated-time)
-             (str formated-time " ago")
-             "less than a minute ago"))]
-        [:li [:label "Issued:"]
-         (str total-minted " cards")]
-        (when total-trade-volume
-          [:li [:label "Trade voume:"]
-           (format/format-eth (/ total-trade-volume 1e18)
-                              {:max-fraction-digits 2})])]]]]))
+      [:div.logo
+       [:img {:src "/assets/icons/mf-logo.svg"}]]
+      [:ul.meme-data
+       (when number
+         [:li [:label "Registry Number:"]
+          (str "#" number)])
+       [:li [:label "Creator:"]
+        [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                      {:address creator-address}
+                                      {:tab :created}])
+                :title (str "Go to the Memefolio of " creator-address)}
+         creator-address]]
+       [:li [:label "Created:"]
+        (let [formated-time (-> (time/time-remaining (t/date-time (ui-utils/gql-date->date created-on)) (t/now))
+                                (dissoc :seconds)
+                                format/format-time-units)]
+          (if-not (empty? formated-time)
+            (str formated-time " ago")
+            "less than a minute ago"))]
+       [:li [:label "Issued:"]
+        (str total-minted " cards")]
+       (when total-trade-volume
+         [:li [:label "Trade voume:"]
+          (format/format-eth (/ total-trade-volume 1e18)
+                             {:max-fraction-digits 2})])]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
 
-(log/debug "meme-tile" meme)
+  (log/debug "meme-tile" meme)
 
   [:div.compact-tile
    [flippable-tile {:front [meme-image image-hash]
