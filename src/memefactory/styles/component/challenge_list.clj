@@ -43,6 +43,7 @@
                      :padding-top (em 1)
                      :width "100% !important"
                      :top (em -1)}])]
+   [:.no-items {:height (em 41)}]
    [:.challenge
     {:display :grid
      :grid-template "'info image action'"

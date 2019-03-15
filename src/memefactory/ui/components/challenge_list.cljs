@@ -189,7 +189,7 @@
           [:div.memes
            (if (and (empty? all-memes)
                     (not (:graphql/loading? (last @meme-search))))
-             [:div.challenge "No items found."]
+             [:div.challenge.no-items "No items found."]
              (doall
               (for [{:keys [:reg-entry/address] :as meme} all-memes]
                 ^{:key address}
@@ -197,7 +197,8 @@
                             :include-challenger-info? include-challenger-info?
                             :action-child action-child}])))
            (when (:graphql/loading? (last @meme-search))
-                 [:div.spinner-container [spinner/spin]])]
+             [:div.challenge
+              [:div.spinner-container [spinner/spin]]])]
           [infinite-scroll {:load-fn (fn []
                                        (when-not (:graphql/loading? @meme-search)
                                          (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
