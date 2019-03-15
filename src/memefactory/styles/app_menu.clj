@@ -59,7 +59,9 @@
      [:ul.node {:padding-left (em 0)}
       [:.item.active
        [:a {:color (color :pink)
-            :cursor :pointer}]]]
+            :cursor :pointer}]]
+      [:.item.disabled
+       [:a {:opacity 0.5}]]]
 
      [:ul.node
       [:.item {:font-size (pt 12)}]

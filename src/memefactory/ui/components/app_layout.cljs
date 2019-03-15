@@ -44,10 +44,12 @@
                                   :route :route.leaderboard/curators}]}
                      {:text "My Memefolio"
                       :route :route.memefolio/index
-                      :class :memefolio}
+                      :class :memefolio
+                      :needs-account? true}
                      {:text "My Settings"
                       :route :route.my-settings/index
-                      :class :my-settings}
+                      :class :my-settings
+                      :needs-account? true}
                      {:text "How it Works"
                       :route :route.how-it-works/index
                       :class :how-it-works}
@@ -56,7 +58,8 @@
                       :class :about}
                      {:text "Get DANK"
                       :route :route.get-dank/index
-                      :class :faucet}])
+                      :class :faucet
+                      :needs-account? true}])
 
 (defn search-form [form-data]
   [:div.search
@@ -132,17 +135,23 @@
 (defn app-menu
   ([items active-page] (app-menu items active-page 0))
   ([items active-page depth]
-   [:ul.node {:key (str depth)}
-    (doall
-     (map-indexed (fn [idx {:keys [:text :route :params :query :class :children]}]
-                    [:li.node-content {:key (str depth "-" idx)}
-                     [:div.item
-                      {:class (str (when class (name class)) (when (= active-page route) " active"))}
-                      [:a {:on-click #(dispatch [::router-events/navigate route params query])}
-                       text]]
-                     (when children
-                       [app-menu children active-page (inc depth)])])
-                  items))]))
+   (let [active-account @(subscribe [:district.ui.web3-accounts.subs/active-account])]
+     [:ul.node {:key (str depth)}
+      (doall
+       (map-indexed (fn [idx {:keys [:text :route :params :query :class :children :needs-account?]}]
+                      [:li.node-content {:key (str depth "-" idx)}
+                       [:div.item
+                        {:class (str (when class (name class))
+                                     (when (= active-page route) " active")
+                                     (when (and needs-account? (not active-account)) " disabled"))}
+                        [:a {:on-click (fn []
+                                         (when-not (and needs-account? (not active-account))
+                                           (dispatch [::router-events/navigate route params query])))
+                             :disabled true}
+                         text]]
+                       (when children
+                         [app-menu children active-page (inc depth)])])
+                    items))])))
 
 (defn app-layout []
   (let [active-page (subscribe [::router-subs/active-page])
