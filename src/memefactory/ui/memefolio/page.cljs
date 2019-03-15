@@ -230,7 +230,7 @@
                                                                                                                                         (map int))})]))}
          "Create Offering"]]
        [:div.send-tokens {:on-click #(reset! send-sell-atom :send)}
-        "Send tokens"]])))
+        "Send to a Friend"]])))
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids :reg-entry/address]}]
   (let [params (subscribe [:memefactory.ui.config/memefactory-db-params])

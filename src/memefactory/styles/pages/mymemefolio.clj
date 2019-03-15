@@ -322,7 +322,7 @@
                    :border "1px solid #CCC"
                    :width "100%"
                    :resize :none
-                   :height (em 5)
+                   :height (em 4)
                    :padding (em 0.5)}]
        [:.buttons {:display :inline-flex
                    :justify-content :space-between
@@ -342,7 +342,8 @@
          {:font-size (px 11)
           :padding (em 0.4)}]]
        [:.send-tokens {:text-align :center
-                       :margin-top (px 5)}]]
+                       :margin-top (px 8)
+                       :text-decoration :underline}]]
       [:&.send-form
        [:h1 (font :bungee)
         {:color (color :purple)
