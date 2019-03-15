@@ -122,7 +122,6 @@
    {:display :grid
     :cursor :pointer
     :background-color "white"
-    :transition "transform 0.1s ease"
     :border-radius (em 1)
     :overflow :hidden
     :grid-template-areas "'fill'"
@@ -130,14 +129,6 @@
     :grid-template-columns (px card-width)
     :width (px card-width)
     :height (px card-height)}
-   
-   ["&:hover:not(.flipped)"
-    {:transform "translateY(-4px)"
-     :transition "transform 0.1s ease 0.1s"}]
-
-   ["&:active:not(.flipped)"
-    {:transform "translateY(2px)"
-     :transition "transform 0.1s linear"}]
 
    ;; Front of flippable card styling
    [:.flippable-tile-front
