@@ -302,9 +302,12 @@
         :top (em 0.3)
         :position :relative
         :height (em 2)
-        :width (em 1)
-        :content "''"
-        :background-image (str "url('/assets/icons/ethereum.svg')")}]
+        :width (em 2)
+        :content "''"}]
+      [:&.eth:before {:background-image (str "url('/assets/icons/ethereum.svg')")}]
+      [:&.dank:before {:background-image (str "url('/assets/icons/dank-logo.svg')")
+                       :background-size (px 32)
+                       :background-position (px -5)}]
       [:.balance
        (font :bungee)
        {:white-space :nowrap
@@ -312,8 +315,8 @@
         :position :absolute
         :display :inline-block
         :text-align :center
-        :left 0;
-        :right 0;
+        :left 0                         ;
+        :right 0                        ;
         :margin-right "auto"
         :margin-left "auto"
         :top (em 0.3)
