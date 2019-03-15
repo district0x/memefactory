@@ -21,7 +21,8 @@
 (defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filters
                             on-selected-tags-change on-search-change on-select-change]}]
 
-  (let [search-input-form-data (r/atom {search-id (get @form-data search-id)})]
+  (let [search-input-form-data (r/atom {search-id (get @form-data search-id)})
+        chip-input-form-data (r/atom {})]
     (fn [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filters
                 on-selected-tags-change on-search-change on-select-change]}]
      [:div.search-form
@@ -57,10 +58,12 @@
                        :on-change on-select-change}]
         [with-label
          "Tags"
-         [chip-input {:form-data form-data
+         [chip-input {:form-data chip-input-form-data
                       :chip-set-path [selected-tags-id]
                       :ac-options tags
-                      :on-change on-selected-tags-change
+                      :on-change (fn []
+                                   (swap! form-data assoc selected-tags-id (get @chip-input-form-data selected-tags-id))
+                                   (on-selected-tags-change))
                       :chip-render-fn chip-render
                       :select-keycodes #{13 188 32}
                       :dom-id :tags}]
