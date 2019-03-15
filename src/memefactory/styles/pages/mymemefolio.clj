@@ -211,8 +211,9 @@
 
     [:.tiles
      {:box-shadow :unset}]
-    [:.meme-card
-     [:.overlay {:background overlay-background-footer}]]
+    [:.selling-panel
+     [:.meme-card
+      [:.overlay {:background overlay-background-footer}]]]
     [:.spinner-container {:width (px 900)
                           :height (px 500)}
      [:.spinner-outer {:margin-left :auto

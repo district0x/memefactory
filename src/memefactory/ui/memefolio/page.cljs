@@ -139,7 +139,7 @@
                                                                       "Start price should contain a positive value")
                                           :meme-auction/end-price (when (or (not (pos? ep))
                                                                             (< sp ep))
-                                                                    {:error "End price should be positive and lower than start price"})
+                                                                    {:error "End price should be lower than start price"})
                                           :meme-auction/duration (let [duration (js/parseFloat (:meme-auction/duration @form-data))
                                                                        max-duration (-> max-auction-duration
                                                                                         shared-utils/seconds->days
@@ -608,22 +608,20 @@
                     :as meme-auction}]
                 [:div.compact-tile {:key address}
                  [tiles/flippable-tile {:front [tiles/meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
-                                        :back [:div.meme-card.back
-                                               [tiles/meme-image (get-in meme-auction [:meme-auction/meme-token
-                                                                                       :meme-token/meme
-                                                                                       :meme/image-hash])]
+                                        :back [:div.meme-card
                                                [:div.overlay
-                                                [:div.info
-                                                 [:ul.meme-data
-                                                  [:li [:label "Buyer:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                                                                       {:address (:user/address (:meme-auction/buyer meme-auction))}
-                                                                                                       {:tab :collected}])}
-                                                                          (:user/address (:meme-auction/buyer meme-auction))]]
-                                                  [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
-                                                  [:li [:label "Bought:"] [:span (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
-                                                                                                  (t/date-time @(subscribe [::now-subs/now])))]]]
-                                                 [:hr]
-                                                 [:p.description (:meme-auction/description meme-auction)]]]]}]
+                                                [:div.logo
+                                                 [:img {:src "/assets/icons/mf-logo.svg"}]]
+                                                [:ul.meme-data
+                                                 [:li [:label "Buyer:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                                                                      {:address (:user/address (:meme-auction/buyer meme-auction))}
+                                                                                                      {:tab :collected}])}
+                                                                         (:user/address (:meme-auction/buyer meme-auction))]]
+                                                 [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
+                                                 [:li [:label "Bought:"] [:span (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
+                                                                                                 (t/date-time @(subscribe [::now-subs/now])))]]]
+                                                [:hr]
+                                                [:p.description (:meme-auction/description meme-auction)]]]}]
                  [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                      {:address (-> meme-token :meme-token/meme :reg-entry/address) }
                                                      nil])}
@@ -762,6 +760,7 @@
                         :meme-auction/start-price
                         :meme-auction/end-price
                         :meme-auction/bought-for
+                        [:meme-auction/buyer [:user/address]]
                         [:meme-auction/meme-token
                          [:meme-token/number
                           [:meme-token/meme
