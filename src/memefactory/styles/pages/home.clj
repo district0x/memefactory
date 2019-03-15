@@ -9,7 +9,8 @@
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]))
 
 
 (defstyles core
@@ -57,7 +58,8 @@
      (for-media-max :tablet
                    [:&
                     {:top (em 1.5)}])]]
-
+   [:.meme-card
+    [:.overlay {:background overlay-background-footer}]]
    [:.meme-highlights
     {:margin-top (em 2)
      :border-radius "1em 1em 1em 1em"

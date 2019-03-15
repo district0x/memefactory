@@ -44,6 +44,10 @@
    :animation-timing-function animation-timing})
 
 
+(def overlay-background (str "linear-gradient(to bottom, "
+                             (color :meme-bg) " 0%,"
+                             (color :meme-bg) " 100%)"))
+
 (def overlay-background-footer (str "linear-gradient(to bottom, "
                                     (color :meme-bg) " 0%,"
                                     (color :meme-bg) " 80%,"
@@ -187,7 +191,7 @@
                 'input       input       input'"
       :grid-template-rows "40px 60px 165px 0.8em 1fr 87px"
       :grid-template-columns "1fr 1fr 1fr"
-      :background overlay-background-footer}
+      :background overlay-background}
      no-select-style)
 
     [:.logo

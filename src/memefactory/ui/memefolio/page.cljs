@@ -626,9 +626,9 @@
                                                                                                       {:tab :collected}])}
                                                                          (:user/address (:meme-auction/buyer meme-auction))]]
                                                  [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
-                                                 [:li [:label "Bought:"] [:span (let [time-ago (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
-                                                                                                                (t/date-time @(subscribe [::now-subs/now])))]
-                                                                                  time-ago)]]]
+                                                 [:li [:label "Bought:"] [:span  (let [time-ago (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
+                                                                                                                 (t/date-time @(subscribe [::now-subs/now])))]
+                                                                                   time-ago)]]]
                                                 [:hr]
                                                 [:p.description (:meme-auction/description meme-auction)]]]}]
                  [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
