@@ -20,9 +20,10 @@
           claim-challenge-reward-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-challenge-reward ch-reward-tx-id}])
           claim-challenge-reward-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-challenge-reward ch-reward-tx-id}])
           option (graphql-utils/gql-name->kw option)
-          not-revealed? (= option :vote-option/not-revealed)]
+          not-revealed? (= option :vote-option/not-revealed)
+          reward-amount (+ (:challenge/reward-amount all-rewards) (:vote/reward-amount all-rewards))]
       [:div
-       (when vote
+       (when (and vote (> reward-amount 0))
          (if not-revealed?
            [pending-button {:pending? @claim-vote-amount-tx-pending?
                             :disabled (or @claim-vote-amount-tx-pending? @claim-vote-amount-tx-success?)
