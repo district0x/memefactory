@@ -612,14 +612,20 @@
                                                [:div.overlay
                                                 [:div.logo
                                                  [:img {:src "/assets/icons/mf-logo.svg"}]]
+                                                [:div.details-button
+                                                 {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                                                        {:address (:reg-entry/address meme)}
+                                                                        nil])}
+                                                 [:span "View Details"]]
                                                 [:ul.meme-data
                                                  [:li [:label "Buyer:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                                                                       {:address (:user/address (:meme-auction/buyer meme-auction))}
                                                                                                       {:tab :collected}])}
                                                                          (:user/address (:meme-auction/buyer meme-auction))]]
                                                  [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
-                                                 [:li [:label "Bought:"] [:span (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
-                                                                                                 (t/date-time @(subscribe [::now-subs/now])))]]]
+                                                 [:li [:label "Bought:"] [:span (let [time-ago (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
+                                                                                                                (t/date-time @(subscribe [::now-subs/now])))]
+                                                                                  time-ago)]]]
                                                 [:hr]
                                                 [:p.description (:meme-auction/description meme-auction)]]]}]
                  [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
@@ -760,6 +766,8 @@
                         :meme-auction/start-price
                         :meme-auction/end-price
                         :meme-auction/bought-for
+                        :meme-auction/bought-on
+                        :meme-auction/description
                         [:meme-auction/buyer [:user/address]]
                         [:meme-auction/meme-token
                          [:meme-token/number
