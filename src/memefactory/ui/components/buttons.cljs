@@ -37,7 +37,10 @@
 
             (if @claim-vote-amount-tx-success?
               "Collected"
-              "Reclaim votes")]
+              [:div.label
+                 [:span "Reclaim"]
+                 [:img {:src "/assets/icons/dank-logo.svg"}]
+                 [:span "Votes"]])]
 
            (when vote-winning-vote-option
              [pending-button {:pending? @claim-vote-reward-tx-pending?
@@ -51,7 +54,10 @@
                                                                                                :meme/title (:meme/title meme)})]))}
               (if @claim-vote-reward-tx-success?
                 "Collected"
-                "Vote reward")])))
+                [:div.label
+                 [:span "Claim"]
+                 [:img {:src "/assets/icons/dank-logo.svg"}]
+                 [:span "Reward"]])])))
 
        (when (and (= (:user/address challenger) active-account)
                   (> votes-against votes-for))
@@ -66,4 +72,8 @@
                                                                                           :meme/title (:meme/title meme)}]))}
           (if @claim-challenge-reward-tx-success?
             "Collected"
-            "Challenge Reward")])])))
+            [:div.label
+             [:span "Claim"]
+             [:img {:src "/assets/icons/dank-logo.svg"}]
+             [:span "Reward"]])])])))
+            

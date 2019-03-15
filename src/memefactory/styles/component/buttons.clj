@@ -15,7 +15,9 @@
   [:&
    (font :bungee)
    {:border-radius (em 2)
-    :display "block"
+    :display :flex
+    :align-items :center
+    :justify-content :center
     :height (or height (em 2))
     :width (or width (em 8))
     :border-style "none"
@@ -24,7 +26,18 @@
     :background-color (c/color background-color)
     :white-space :nowrap}
    [:&:disabled
-    {:opacity 0.3}]])
+    {:opacity 0.3}]
+
+   [:.label
+    {:display :flex
+     :height (or height (em 2))
+     :width (or width (em 8))
+     :align-items :center
+     :justify-content :center}
+
+    [:img
+     {:height (or height (em 1.8))
+      :width (or height (em 1.8))}]]])
 
 
 (defn get-dank-button []
