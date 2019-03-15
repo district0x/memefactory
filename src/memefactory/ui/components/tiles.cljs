@@ -65,17 +65,23 @@
                                                                  (update :meme-auction/started-on #(.getTime (ui-utils/gql-date->date %))))
                                                              (.getTime @now))
             title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)
-            creator-address (:user/address (:meme-auction/seller meme-auction))]
+            seller-address (:user/address (:meme-auction/seller meme-auction))
+            meme-address (-> meme-auction :meme-auction/meme-token :meme-token/meme :reg-entry/address)]
         [:div.meme-card
          [:div.overlay
           [:div.logo
            [:img {:src "/assets/icons/mf-logo.svg"}]]
+          [:div.details-button
+           {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                                  {:address meme-address}
+                                  nil])}
+           [:span "View Details"]]
           [:ul.meme-data
            [:li [:label "Seller:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                                  {:address (:user/address (:meme-auction/seller meme-auction))}
                                                                  {:tab :selling}])
-                                           :title (str "Go to the Memefolio of " creator-address)}
-                                    creator-address]]
+                                           :title (str "Go to the Memefolio of " seller-address)}
+                                    seller-address]]
            [:li [:label "Current Price:"] [:span (format-price price)]]
            [:li [:label "Start Price:"] [:span (format-price (:meme-auction/start-price meme-auction))]]
            [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]
@@ -128,11 +134,17 @@
           [:div.price (format-price price)]]]))))
 
 (defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number :meme/total-trade-volume] :as meme}]
-  (let [creator-address (-> meme :reg-entry/creator :user/address)]
+  (let [creator-address (-> meme :reg-entry/creator :user/address)
+        meme-address (-> meme :reg-entry/address)]
     [:div.meme-card
      [:div.overlay
       [:div.logo
        [:img {:src "/assets/icons/mf-logo.svg"}]]
+      [:div.details-button
+       {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
+                              {:address meme-address}
+                              nil])}
+       [:span "View Details"]]
       [:ul.meme-data
        (when number
          [:li [:label "Registry Number:"]

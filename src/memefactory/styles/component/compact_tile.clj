@@ -109,7 +109,7 @@
   ;; General Fade In Animation
   [:.initial-fade-in-delay
    {:animation-name :initial-fade-in
-    :animation-delay "1.50s"
+    :animation-delay "0.35s"
     :animation-duration "0.50s"
     :animation-fill-mode :both}]
 
@@ -122,20 +122,13 @@
    {:display :grid
     :cursor :pointer
     :background-color "white"
-    :transition "transform 0.1s ease"
     :border-radius (em 1)
     :overflow :hidden
     :grid-template-areas "'fill'"
+    :grid-template-rows (px card-height)
+    :grid-template-columns (px card-width)
     :width (px card-width)
     :height (px card-height)}
-   
-   [:&:hover
-    {:transform "translateY(-4px)"
-     :transition "transform 0.1s ease 0.1s"}]
-
-   [:&:active
-    {:transform "translateY(2px)"
-     :transition "transform 0.1s linear"}]
 
    ;; Front of flippable card styling
    [:.flippable-tile-front
@@ -185,13 +178,14 @@
       :width (px card-width)
       :color (color :meme-info-text)
       :grid-template-areas "
-                'logo'
-                'data'
-                'hard-rule'
-                'description'
-                'input'"
-      :grid-template-rows "4em 1fr auto 3em 90px"
-      :grid-template-columns (str card-width "px")
+                '.           .           details-button'
+                'logo        logo        logo'
+                'data        data        data'
+                'hard-rule   hard-rule   hard-rule'
+                'description description description'
+                'input       input       input'"
+      :grid-template-rows "40px 60px 165px 0.8em 1fr 87px"
+      :grid-template-columns "1fr 1fr 1fr"
       :background overlay-background}
      no-select-style)
     
@@ -199,25 +193,35 @@
      {:grid-area :logo
       :display :flex
       :align-items :center
-      :justify-content :center
-      :margin-top (em 2)}]
+      :justify-content :center}]
     
+    [:.details-button
+     {:grid-area :details-button
+      :margin-top (em 0.8)
+      :margin-right (em 0.8)}
+     [:span
+      {:font-size (em 0.9)
+       :text-decoration :underline}]]
+
     [:.meme-data 
      {:grid-area :data
+      :width (px card-width)
       :text-align :center
+      :margin 0
+      :margin-top (em 0.1)
       :padding-left (em 1.2)
       :padding-right (em 1.2)
       :font-size (pt 13)
       :line-height (em 1.8)
-      :list-style :none}
-     
+      :list-style :none} 
+
      [:>li
       (of-ellipsis)
-      {:margin-top (em 0.3)
-       :font-size (em 0.7)
+      {:font-size (em 0.7)
+       :padding-top (em 0.1)
        :padding-right (em 0.5)
        :padding-left (em 0.5)
-       :margin-bottom (em 0.3)}
+       :padding-bottom (em 0.1)}
 
       [:label {:font-weight :bold
                :padding-right (em 0.3)}]
@@ -228,14 +232,17 @@
 
     [:hr
      {:grid-area :hard-rule
-      :margin (em 1)
+      :margin (em 0.4)
       :border 0
       :height 0
       :border-top "1px solid rgba(0, 0, 0, 0.1)"
       :border-bottom "1px solid rgba(255, 255, 255, 0.3)"}]
     
     [:.description
-     {:grid-area :description
+     {:display :flex
+      :justify-content :center
+      :align-items :center
+      :grid-area :description
       :font-style :italic
       :overflow :hidden
       :text-overflow :ellipsis
