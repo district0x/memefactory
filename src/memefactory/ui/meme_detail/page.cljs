@@ -47,8 +47,8 @@
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
 (defn build-meme-query [address active-account]
-  {:queries (cond-> [[:meme {:reg-entry/address address}
-                      [:reg-entry/address
+  {:queries [[:meme {:reg-entry/address address}
+              (cond-> [:reg-entry/address
                        :reg-entry/status
                        :reg-entry/deposit
                        :reg-entry/challenge-period-end
@@ -76,18 +76,18 @@
                          :user/challenger-rank
                          :user/challenger-total-earned
                          :user/total-created-challenges
-                         :user/total-created-challenges-success]]]]]
-              (not-empty active-account) (into [[:meme/owned-meme-tokens {:owner active-account}
-                                                 [:meme-token/token-id]]
-                                                [:challenge/all-rewards {:user/address active-account}
-                                                 [:challenge/reward-amount
-                                                  :vote/reward-amount]][:challenge/vote-winning-vote-option {:vote/voter active-account}]
-                                                [:challenge/vote {:vote/voter active-account}
-                                                 [:vote/option
-                                                  :vote/reward
-                                                  :vote/amount
-                                                  :vote/claimed-reward-on
-                                                  :vote/reclaimed-amount-on]]]))})
+                         :user/total-created-challenges-success]]]
+                active-account (into [[:meme/owned-meme-tokens {:owner active-account}
+                                       [:meme-token/token-id]]
+                                      [:challenge/all-rewards {:user/address active-account}
+                                       [:challenge/reward-amount
+                                        :vote/reward-amount]][:challenge/vote-winning-vote-option {:vote/voter active-account}]
+                                      [:challenge/vote {:vote/voter active-account}
+                                       [:vote/option
+                                        :vote/reward
+                                        :vote/amount
+                                        :vote/claimed-reward-on
+                                        :vote/reclaimed-amount-on]]]))]]})
 
 (defn meme-creator-component [{:keys [:user/address :user/creator-rank :user/total-created-memes
                                       :user/total-created-memes-whitelisted] :as creator}]
