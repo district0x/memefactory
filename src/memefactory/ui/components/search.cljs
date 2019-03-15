@@ -63,7 +63,7 @@
                       :ac-options tags
                       :on-change (fn []
                                    (swap! form-data assoc selected-tags-id (get @chip-input-form-data selected-tags-id))
-                                   (on-selected-tags-change))
+                                   (when on-selected-tags-change (on-selected-tags-change)))
                       :chip-render-fn chip-render
                       :select-keycodes #{13 188 32}
                       :dom-id :tags}]

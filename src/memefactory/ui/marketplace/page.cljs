@@ -110,7 +110,6 @@
                                            :id :only-cheapest?}]
                           :title "Marketplace"
                           :sub-title "Buy and Sell memes"
-                          :on-selected-tags-change re-search
                           :select-options [{:key "started-on" :value "Newest"}
                                            {:key "meme-total-minted" :value "Rarest"}
                                            {:key "price" :value "Cheapest"}
