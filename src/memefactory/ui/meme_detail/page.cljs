@@ -47,55 +47,47 @@
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
 (defn build-meme-query [address active-account]
-  {:queries [[:meme {:reg-entry/address address}
-              [:reg-entry/address
-               :reg-entry/status
-               :reg-entry/deposit
-               :reg-entry/challenge-period-end
-               :meme/image-hash
-               :meme/meta-hash
-               :meme/number
-               :meme/title
-               :meme/total-supply
-
-               [:meme/tags
-                [:tag/name]]
-
-               [:meme/owned-meme-tokens {:owner active-account}
-                [:meme-token/token-id]]
-
-               [:reg-entry/creator
-                [:user/address
-                 :user/total-created-memes
-                 :user/total-created-memes-whitelisted
-                 :user/creator-rank]]
-
-               :challenge/created-on
-               :challenge/commit-period-end
-               :challenge/reveal-period-end
-               :challenge/comment
-               :challenge/votes-for
-               :challenge/votes-against
-               :challenge/votes-total
-
-               [:challenge/all-rewards {:user/address active-account}
-                                       [:challenge/reward-amount
-                                        :vote/reward-amount]]
-
-               [:challenge/challenger
-                [:user/address
-                 :user/challenger-rank
-                 :user/challenger-total-earned
-                 :user/total-created-challenges
-                 :user/total-created-challenges-success]]
-               [:challenge/vote-winning-vote-option {:vote/voter active-account}]
-
-               [:challenge/vote {:vote/voter active-account}
-                [:vote/option
-                 :vote/reward
-                 :vote/amount
-                 :vote/claimed-reward-on
-                 :vote/reclaimed-amount-on]]]]]})
+  {:queries (cond-> [[:meme {:reg-entry/address address}
+                      [:reg-entry/address
+                       :reg-entry/status
+                       :reg-entry/deposit
+                       :reg-entry/challenge-period-end
+                       :meme/image-hash
+                       :meme/meta-hash
+                       :meme/number
+                       :meme/title
+                       :meme/total-supply
+                       [:meme/tags
+                        [:tag/name]]
+                       [:reg-entry/creator
+                        [:user/address
+                         :user/total-created-memes
+                         :user/total-created-memes-whitelisted
+                         :user/creator-rank]]
+                       :challenge/created-on
+                       :challenge/commit-period-end
+                       :challenge/reveal-period-end
+                       :challenge/comment
+                       :challenge/votes-for
+                       :challenge/votes-against
+                       :challenge/votes-total
+                       [:challenge/challenger
+                        [:user/address
+                         :user/challenger-rank
+                         :user/challenger-total-earned
+                         :user/total-created-challenges
+                         :user/total-created-challenges-success]]]]]
+              (not-empty active-account) (into [[:meme/owned-meme-tokens {:owner active-account}
+                                                 [:meme-token/token-id]]
+                                                [:challenge/all-rewards {:user/address active-account}
+                                                 [:challenge/reward-amount
+                                                  :vote/reward-amount]][:challenge/vote-winning-vote-option {:vote/voter active-account}]
+                                                [:challenge/vote {:vote/voter active-account}
+                                                 [:vote/option
+                                                  :vote/reward
+                                                  :vote/amount
+                                                  :vote/claimed-reward-on
+                                                  :vote/reclaimed-amount-on]]]))})
 
 (defn meme-creator-component [{:keys [:user/address :user/creator-rank :user/total-created-memes
                                       :user/total-created-memes-whitelisted] :as creator}]
@@ -529,8 +521,7 @@
 
   (let [active-account @(subscribe [::accounts-subs/active-account])
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
-        meme-sub (when active-account
-                   (subscribe [::gql/query (build-meme-query address active-account)]))
+        meme-sub (subscribe [::gql/query (build-meme-query address active-account)])
         meme (when meme-sub (-> @meme-sub :meme))
         {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger]} meme
@@ -546,7 +537,6 @@
                              (and meme-sub (:graphql/loading? @meme-sub)))]
 
     (log/debug "Query sub:" @(subscribe [::gql/query (build-meme-query address active-account)]))
-
     [app-layout/app-layout
      {:meta {:title "MemeFactory"
              :description "Description"}}
