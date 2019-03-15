@@ -10,7 +10,8 @@
             [memefactory.styles.component.search :refer [search-panel]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]))
 
 (defstyles core
   [:.marketplace-page
@@ -37,6 +38,8 @@
                    [:&
                     {:margin-right (em 0)
                      :margin-left (em 0)}])
+     [:.meme-card
+      [:.overlay {:background overlay-background-footer}]]
      [:.spinner-container {:width (px 900)
                            :height (px 500)}
       [:.spinner-outer {:margin-left :auto

@@ -13,7 +13,8 @@
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
             [clojure.string :as str]
-            [memefactory.styles.pages.memefolio.details :as details]))
+            [memefactory.styles.pages.memefolio.details :as details]
+            [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]))
 
 (defn button-tile-back []
   [:.sell {:display :grid
@@ -210,7 +211,8 @@
 
     [:.tiles
      {:box-shadow :unset}]
-
+    [:.meme-card
+     [:.overlay {:background overlay-background-footer}]]
     [:.spinner-container {:width (px 900)
                           :height (px 500)}
      [:.spinner-outer {:margin-left :auto

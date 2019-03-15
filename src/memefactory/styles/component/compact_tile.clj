@@ -45,11 +45,15 @@
    :animation-timing-function animation-timing})
 
 
-(def overlay-background (str "linear-gradient(to bottom, " 
+(def overlay-background (str "linear-gradient(to bottom, "
                              (color :meme-bg) " 0%,"
-                             (color :meme-bg) " 80%,"
-                             (color :meme-bg-bottom) " 80%,"
-                             (color :meme-bg-bottom) " 100%)"))
+                             (color :meme-bg) " 100%)"))
+
+(def overlay-background-footer (str "linear-gradient(to bottom, "
+                                    (color :meme-bg) " 0%,"
+                                    (color :meme-bg) " 80%,"
+                                    (color :meme-bg-bottom) " 80%,"
+                                    (color :meme-bg-bottom) " 100%)"))
 
 
 (defstyles core
@@ -101,7 +105,7 @@
    [:to {:transform "rotateY(90deg);"
          :opacity 0.0}])
 
-  
+
   ;;
   ;; Main Tile Styling
   ;;
@@ -132,12 +136,12 @@
 
    ;; Front of flippable card styling
    [:.flippable-tile-front
-    (merge 
+    (merge
      {:z-index 9000
       :grid-area "fill"
       :animation-name :flipping-front-facing}
      default-animation-style)]
-   
+
    ;; Back of flippable card styling
    [:.flippable-tile-back
     (merge
@@ -145,14 +149,14 @@
       :grid-area "fill"
       :animation-name :flipping-back-not-facing}
      default-animation-style)]]
-  
+
   ;; Main Animation for flipping
   [:.flippable-tile.flipped
    [:.flippable-tile-front
     (merge
      {:animation-name :flipping-front-not-facing}
      default-animation-style)]
-   
+
    [:.flippable-tile-back
     (merge
      {:animation-name :flipping-back-facing}
@@ -170,7 +174,7 @@
     :justify-content :center
     :border-radius (em 1)
     :overflow :hidden}
-   
+
    [:.overlay
     (merge
      {:display :grid
@@ -188,13 +192,13 @@
       :grid-template-columns "1fr 1fr 1fr"
       :background overlay-background}
      no-select-style)
-    
+
     [:.logo
      {:grid-area :logo
       :display :flex
       :align-items :center
       :justify-content :center}]
-    
+
     [:.details-button
      {:grid-area :details-button
       :margin-top (em 0.8)
@@ -203,7 +207,7 @@
       {:font-size (em 0.9)
        :text-decoration :underline}]]
 
-    [:.meme-data 
+    [:.meme-data
      {:grid-area :data
       :width (px card-width)
       :text-align :center
@@ -213,7 +217,7 @@
       :padding-right (em 1.2)
       :font-size (pt 13)
       :line-height (em 1.8)
-      :list-style :none} 
+      :list-style :none}
 
      [:>li
       (of-ellipsis)
@@ -237,7 +241,7 @@
       :height 0
       :border-top "1px solid rgba(0, 0, 0, 0.1)"
       :border-bottom "1px solid rgba(255, 255, 255, 0.3)"}]
-    
+
     [:.description
      {:display :flex
       :justify-content :center
@@ -249,10 +253,10 @@
       :white-space :normal
       :padding-left (em 1.2)
       :padding-right (em 1.2)}]
-    
+
     [:.input
      {:grid-area :input}
-     
+
      [:button
       {:right 0
        :left 0
