@@ -22,16 +22,19 @@
     (->> (partition n xs)
          (apply concat))))
 
-(defn auctions-list [auctions]
+(defn auctions-list [auctions loading?]
   (let [auctions (take-max-multiple-of 3 auctions)]
     [:div.tiles
-     (if (empty? auctions)
+     (if (and (empty? auctions)
+              (not loading?))
        [:div.no-items-found "No items found."]
-       (doall
-        (for [{:keys [:meme-auction/address] :as auc} auctions]
-          (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
-            [tiles/auction-tile {:key address
-                                 :on-buy-click #()} auc]))))]))
+       (if loading?
+         [:div.spinner-container [spinner/spin]]
+         (doall
+         (for [{:keys [:meme-auction/address] :as auc} auctions]
+           (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
+             [tiles/auction-tile {:key address
+                                  :on-buy-click #()} auc])))))]))
 
 (defn trending-vote-tile [{:keys [:reg-entry/address :meme/image-hash :reg-entry/creator :challenge/commit-period-end
                                   :challenge/challenger :challenge/comment] :as meme}]
@@ -70,18 +73,21 @@
      [:div.title (-> meme :meme/title)]]]))
 
 
-(defn memes-list [memes empty-msg]
+(defn memes-list [memes empty-msg loading?]
   (let [memes (take-max-multiple-of 3 memes)]
     [:div.tiles
 
-     (if (empty? memes)
+     (if (and (empty? memes)
+              (not loading?))
        [:div.no-items-found empty-msg]
-       (doall
-        (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
-          ^{:key address}
-          ;;:div.tile-wrapper
-          [trending-vote-tile m]
-          #_[:div.votes-total (str "Vote amount "(or votes-total 0))])))]))
+       (if loading?
+         [:div.spinner-container [spinner/spin]]
+         (doall
+          (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
+            ^{:key address}
+            ;;:div.tile-wrapper
+            [trending-vote-tile m]
+            #_[:div.votes-total (str "Vote amount "(or votes-total 0))]))))]))
 
 (def auction-node-graph [:meme-auction/address
                          :meme-auction/start-price
@@ -161,7 +167,7 @@
            [:div.middle
             [:h2.title "New On Marketplace"]
             [:h3.title "The latest additions to Meme Factory"]]]
-          [auctions-list (-> @new-on-market :search-meme-auctions :items)]
+          [auctions-list (-> @new-on-market :search-meme-auctions :items) (:graphql/loading? @new-on-market)]
           [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
                                           nil
                                           {:order-by "started-on" :order-dir "desc"}])}
@@ -173,7 +179,7 @@
            [:div.middle
             [:h2.title "Rare Finds"]
             [:h3.title "Exceptional, infrequently traded memes"]]]
-          [auctions-list (-> @rare-finds :search-meme-auctions :items)]
+          [auctions-list (-> @rare-finds :search-meme-auctions :items) (:graphql/loading? @rare-finds)]
           [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
                                          nil
                                          {:order-by "meme-total-minted" :order-dir "asc"}])}
@@ -185,7 +191,7 @@
            [:div.middle
             [:h2.title "Random Picks"]
             [:h3.title "A random assortment of memes for sale"]]]
-          [auctions-list (-> @random-picks :search-meme-auctions :items)]
+          [auctions-list (-> @random-picks :search-meme-auctions :items) (:graphql/loading? @random-picks)]
           [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
                                          nil
                                          {:order-by "random"}])}
@@ -197,4 +203,7 @@
            [:div.middle
             [:h2.title "Trending Votes"]
             [:h3.title "The most active challenges in the last day"]]]
-          [memes-list (-> @trending-votes :search-memes :items) "No votes are running currently"]]]]])))
+          [memes-list
+           (-> @trending-votes :search-memes :items)
+           "No votes are running currently"
+           (:graphql/loading? @trending-votes)]]]]])))

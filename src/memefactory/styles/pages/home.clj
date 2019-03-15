@@ -14,6 +14,11 @@
 
 (defstyles core
   [:.home {:margin-top (px -50)}
+   [:.spinner-container {:width (px 900)
+                           :height (px 500)}
+      [:.spinner-outer {:margin-left :auto
+                        :margin-right :auto
+                        :padding-top (em 12)}]]
    [:p.inspired
     (font :filson)
     {:color (color :pink)
