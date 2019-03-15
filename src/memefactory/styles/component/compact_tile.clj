@@ -109,7 +109,7 @@
   ;; General Fade In Animation
   [:.initial-fade-in-delay
    {:animation-name :initial-fade-in
-    :animation-delay "1.50s"
+    :animation-delay "0.35s"
     :animation-duration "0.50s"
     :animation-fill-mode :both}]
 
