@@ -108,6 +108,7 @@
 (def new-on-marketplace-query
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/started-on
+    :group-by :meme-auctions.group-by/cheapest
     :statuses [:meme-auction.status/active]
     :first 6}
    [[:items auction-node-graph]]])
@@ -116,6 +117,7 @@
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/meme-total-minted
     :statuses [:meme-auction.status/active]
+    :group-by :meme-auctions.group-by/cheapest
     :order-dir :asc
     :first 6}
    [[:items auction-node-graph]]])
@@ -124,6 +126,7 @@
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/random
     :statuses [:meme-auction.status/active]
+    :group-by :meme-auctions.group-by/cheapest
     :first 6}
    [[:items auction-node-graph]]])
 
