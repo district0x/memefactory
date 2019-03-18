@@ -187,8 +187,8 @@
           :grid-template-areas (str "'tx-name tx-status'\n"
                                     "'tx-created-on tx-status'\n"
                                     "'tx-gas tx-status'\n"
-                                    "'tx-sender tx-value'\n"
-                                    "'tx-id tx-value'\n")
+                                    "'tx-id tx-value'\n"
+                                    "'tx-sender tx-value'\n")
           :border-bottom "1px solid lightgrey"
           :cursor :pointer
           :position :relative
