@@ -65,8 +65,8 @@
       [:label.file-input-label
        {:margin-right :auto
         :margin-left :auto
-        :padding-top (em 1)
-        :padding-left (em 1.9)
+        ;; :padding-top (em 1)
+        ;; :padding-left (em 1.9)
         :margin-top (em 1)
         :font-size (px 12)}
        (button {:background-color :purple
