@@ -83,8 +83,8 @@
        :border-radius "0em 0em 1em 1em"
        :background-color (color :yellow)}
       (for-media-max :tablet
-                    [:&
-                     {:left (em 2.5)}])
+                     [:&
+                      {:left (em 2.5)}])
       ]
      [:.registry
       {:padding (em 1)}
@@ -102,7 +102,7 @@
          :height (em 2.2)
          :display :inline-block
          :width (em 2.2)
-         :transform "scale(0.5, 0.5)"
+         :transform "scale(0.40, 0.40)"
          :background-repeat :no-repeat
          :background-position "center center";
          :background-image (str "url('/assets/icons/inregistry-icon.png')")}]
@@ -298,17 +298,17 @@
                        :margin-right :auto
                        :margin-top (em 4)}]
      [:.status {:padding-left (em 1)}
-       [:li {:font-weight :bold
-             :list-style-type :none}
-        [:div {:font-weight :normal
-               :margin-bottom (em 0.5)
-               :margin-top (em 0.5)
-               }]]]
+      [:li {:font-weight :bold
+            :list-style-type :none}
+       [:div {:font-weight :normal
+              :margin-bottom (em 0.5)
+              :margin-top (em 0.5)
+              }]]]
      [:h4.title {:margin-left :auto
-                  :margin-right :auto
-                  :width (em 17)
-                  :margin-top (em 1)
-                  :margin-bottom (em 1)}]
+                 :margin-right :auto
+                 :width (em 17)
+                 :margin-top (em 1)
+                 :margin-bottom (em 1)}]
      [:.challenge-component-inner-cp
       {:display :grid
        :grid-template-columns "50% 50%"
@@ -353,7 +353,7 @@
        (for-media-max :computer
                       [:&
                        {:border-right "0px"}])
-        [:.lorem {:margin-top (em 1)}]]]
+       [:.lorem {:margin-top (em 1)}]]]
      [:.challenge-component-inner
       {:position :relative
        :display :grid
@@ -402,11 +402,11 @@
 
 
 
-       {:display :grid
-     :justify-items :center}
-    [:.vote-info {:list-style :none
-                  :text-align :center
-                  :padding-left (px 0)}]
+      {:display :grid
+       :justify-items :center}
+      [:.vote-info {:list-style :none
+                    :text-align :center
+                    :padding-left (px 0)}]
 
 
 
@@ -436,51 +436,54 @@
                           :margin-top (em 1)}]]
 
       [:.vote
-    {:padding-right 0}
-    (for-media-max :large
-                   [:&
-                    {:margin-right (em 2)
-                     :margin-left (em 2)}])
-    (for-media-max :computer
-                   [:&
-                    {:margin-right (em 0)
-                     :margin-left (em 0)}])
-    [:b {:margin-top (em 0.5)
-         :display :block}]
-    [:.outer {:display :inline-flex
-              :width "100%"
-              :margin-bottom (em 1)}
-     [:.unit {:margin-left (px -40)
-              :margin-top (px 8)
-              :font-size (px 11)
-              :z-index 1}]
-     [:.help-block {:display :none}]]
-    [:.form {:display :inline-flex
-             :margin-top (em 1)}
-     [:input {:border-bottom "1px solid"
-              :border-left 0
-              :border-right 0
-              :border-top 0}]
-     [:.vote-dank {:margin-right (em 2)
-                   :width "50%"}
-      [:.labeled-input-group {:width "100%"}]
-      [:button
-       {:margin-bottom (em 2)}
-       (button {:background-color :rare-meme-icon-bg
-                :color :violet
-                :height (em 3)
-                :width "100%"})
-       (vote-button-icon 2)]]
-     [:.vote-stank
-      {:width "51%"}
-      [:.labeled-input-group {:width "100%"}]
-      [:button
-       (button {:background-color :random-meme-icon-bg
-                :color :violet
-                :height (em 3)
-                :width "100%"})
-       (vote-button-icon 6)
-       [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]]]]]
+       {:padding-right 0}
+       (for-media-max :large
+                      [:&
+                       {:margin-right (em 2)
+                        :margin-left (em 2)}])
+       (for-media-max :computer
+                      [:&
+                       {:margin-right (em 0)
+                        :margin-left (em 0)}])
+       [:b {:margin-top (em 0.5)
+            :display :block}]
+       [:.outer {:display :inline-flex
+                 :width "100%"
+                 :margin-bottom (em 1)}
+        [:.unit {:margin-left (px -40)
+                 :margin-top (px 8)
+                 :font-size (px 11)
+                 :z-index 1}]
+        [:.help-block {:display :none}]]
+       [:.form {:display :inline-flex
+                :margin-top (em 1)}
+        [:input {:border-bottom "1px solid"
+                 :border-left 0
+                 :border-right 0
+                 :border-top 0}]
+        [:.vote-dank {:margin-right (em 2)
+                      :width "50%"}
+         [:.labeled-input-group {:width "100%"}]
+         [:button
+          {:margin-bottom (em 2)}
+          (button {:background-color :rare-meme-icon-bg
+                   :color :violet
+                   :height (em 3)
+                   :width "100%"})
+          (vote-button-icon 2)]]
+        [:.vote-stank
+         {:width "51%"}
+         [:.labeled-input-group {:width "100%"}]
+         [:button
+          (button {:background-color :random-meme-icon-bg
+                   :color :violet
+                   :height (em 3)
+                   :width "100%"})
+          (vote-button-icon 6)
+          [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]]]]
+    [:.challenge-comment
+     {:font-style :italic
+      :color (color :pink)}]]
 
    [:section.related
     {:margin-top (em 3)}

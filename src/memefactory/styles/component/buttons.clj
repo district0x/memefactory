@@ -43,14 +43,10 @@
 (defn get-dank-button []
   [:&
    (font :bungee)
-   {:position :relative
-    ;; :bottom (em -2)
-    ;; :top (em -2)
-    :top (em 0)
+   {:display :flex
+    :align-items :center
+    :justify-content :center 
     :height (em 4)
-    :line-height (em 4)
-    :right (px 0)
-    :display :block
     :cursor :pointer
     :color (c/color :white)
     :background (str "url('/assets/icons/gears-button-bg-l.png') left 1em center / 40% 60% no-repeat,"
@@ -58,14 +54,13 @@
 
                      (c/color :purple))
     :border-radius "0 0 1em 1em"
-    :text-align :center
-    :left (px 0)}
+    :text-align :center}
    (for-media-max :tablet
-                   [:&
-                    {:background (str "url('/assets/icons/gears-button-bg-l.png') left 1em center / 29% 29% no-repeat,"
-                                      "url('/assets/icons/gears-button-bg-r.png') right 1em center / 29% 29% no-repeat "
+                  [:&
+                   {:background (str "url('/assets/icons/gears-button-bg-l.png') left 1em center / 29% 29% no-repeat,"
+                                     "url('/assets/icons/gears-button-bg-r.png') right 1em center / 29% 29% no-repeat "
 
-                                      (c/color :purple))}])
+                                     (c/color :purple))}])
    [:&:after
     {:width (em 1)
      :background-position "0 .3em"
@@ -73,9 +68,13 @@
      :height (em 1)
      :content "' '"
      :background-size "1em,1em"
-     :margin-left (em 1)
      :display "inline-block"
-     :background-image "url(/assets/icons/arrow-white-right.svg)"}]])
+     :background-image "url(/assets/icons/arrow-white-right.svg)"}]
+   
+   [:span {:font-size (em 1.3)}]
+   [:img
+    {:width (em 3.01)
+     :height (em 3.01)}]])
 
 (defn tag []
   [:&
