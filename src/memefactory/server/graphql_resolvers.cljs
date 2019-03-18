@@ -107,13 +107,13 @@
    :else (enum :reg-entry.status/whitelisted)))
 
 (defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :challenged :order-by :order-dir :owner :creator :curator :first :after] :as args}]
-  (log/debug "search-memes-query-resolver" args)
+  (log/info "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          page-start-idx (when after (js/parseInt after))
          page-size first
          now (utils/now-in-seconds)
-         query (cond-> {:select [:re.* :memes.* :votes.votes-total]
+         query (cond-> {:select [:re.* :memes.* :votes.votes-total :meme/average-price :meme/highest-single-sale]
                         :from [:memes]
                         :modifiers [:distinct]
                         :join [[:reg-entries :re] [:= :re.reg-entry/address :memes.reg-entry/address]]
@@ -133,18 +133,16 @@
                                             [:= :memes.reg-entry/address :votes.reg-entry/address]
 
                                             [:votes :v]
-                                            [:= :v.reg-entry/address :re.reg-entry/address]]
+                                            [:= :v.reg-entry/address :re.reg-entry/address]
 
-                                     ;; if ordering by average-price or highest-single-sale
-                                     (and order-by (#{:memes.order-by/highest-single-sale :memes.order-by/average-price} (graphql-utils/gql-name->kw order-by)))
-                                     (into [[{:select [:meme-tokens.reg-entry/address
-                                                       [(sql/call :max :meme-auctions.meme-auction/bought-for) :highest-single-sale]
-                                                       [(sql/call :avg :meme-auctions.meme-auction/bought-for) :average-price]]
+                                            [{:select [:meme-tokens.reg-entry/address
+                                                       [(sql/call :max :meme-auctions.meme-auction/bought-for) :meme/highest-single-sale]
+                                                       [(sql/call :avg :meme-auctions.meme-auction/bought-for) :meme/average-price]]
                                               :from [:meme-tokens]
                                               :join [:meme-auctions
                                                      [:= :meme-auctions.meme-auction/token-id :meme-tokens.meme-token/token-id]]
                                               :group-by [:meme-tokens.reg-entry/address]} :auctions]
-                                            [:= :memes.reg-entry/address :tokens.reg-entry/address]]))}
+                                            [:= :memes.reg-entry/address :auctions.reg-entry/address]])}
                  title        (sqlh/merge-where [:like :memes.meme/title (str "%" title "%")])
                  challenged   (sqlh/merge-where [:not= :re.challenge/challenger nil])
                  tags         (sqlh/merge-where [:=
@@ -168,8 +166,8 @@
                                                            :memes.order-by/number               :memes.meme/number
                                                            :memes.order-by/total-minted         :memes.meme/total-minted
                                                            :memes.order-by/daily-total-votes    :votes.votes-total
-                                                           :memes.order-by/average-price        :average-price
-                                                           :memes.order-by/highest-single-sale  :highest-single-sale}
+                                                           :memes.order-by/average-price        :meme/average-price
+                                                           :memes.order-by/highest-single-sale  :meme/highest-single-sale}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]]))]

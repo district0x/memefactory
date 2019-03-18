@@ -38,7 +38,9 @@
              :meme/title
              :meme/number
              :meme/total-minted
-             :meme/total-trade-volume]]]])
+             :meme/total-trade-volume
+             :meme/average-price
+             :meme/highest-single-sale]]]])
 
 (defn dankest-memes-tiles [form-data]
   (let [meme-search (subscribe [::gql/query {:queries [(build-tiles-query nil @form-data)]}

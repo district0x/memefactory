@@ -251,6 +251,8 @@
 
     meme_totalTradeVolume: Float
     meme_totalTradeVolumeRank: Int
+    meme_averagePrice: Float
+    meme_highestSingleSale: Float
 
     meme_ownedMemeTokens(owner: String): [MemeToken]
 

@@ -133,7 +133,7 @@
                                    (-> meme-token :meme-token/meme :meme/total-minted))]
           [:div.price (format-price price)]]]))))
 
-(defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number :meme/total-trade-volume] :as meme}]
+(defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number :meme/total-trade-volume :meme/average-price :meme/highest-single-sale] :as meme}]
   (let [creator-address (-> meme :reg-entry/creator :user/address)
         meme-address (-> meme :reg-entry/address)]
     [:div.meme-card
@@ -165,8 +165,16 @@
        [:li [:label "Issued:"]
         (str total-minted " cards")]
        (when total-trade-volume
-         [:li [:label "Trade voume:"]
+         [:li [:label "Trade Volume:"]
           (format/format-eth (/ total-trade-volume 1e18)
+                             {:max-fraction-digits 2})])
+       (when average-price
+         [:li [:label "Average Price:"]
+          (format/format-eth (/ average-price 1e18)
+                             {:max-fraction-digits 2})])
+       (when highest-single-sale
+         [:li [:label "Highest Single Sale:"]
+          (format/format-eth (/ highest-single-sale 1e18)
                              {:max-fraction-digits 2})])]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
