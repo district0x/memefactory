@@ -39,7 +39,10 @@
                                                                                              :meme/title (:meme/title meme)})]))}
 
             (if @claim-vote-amount-tx-success?
-              "Collected"
+              [:div.label
+               [:span "Reclaimed"]
+               [:img {:src "/assets/icons/dank-logo.svg"}]]
+
               [:div.label
                [:span "Reclaim"]
                [:img {:src "/assets/icons/dank-logo.svg"}]
@@ -59,7 +62,10 @@
                                                                                                :reg-entry/address address
                                                                                                :meme/title (:meme/title meme)})]))}
               (if @claim-vote-reward-tx-success?
-                "Collected"
+                [:div.label
+                 [:span "Claimed"]
+                 [:img {:src "/assets/icons/dank-logo.svg"}]]
+
                 [:div.label
                  [:span "Claim"]
                  [:img {:src "/assets/icons/dank-logo.svg"}]
@@ -80,7 +86,10 @@
                                                                                           :reg-entry/address address
                                                                                           :meme/title (:meme/title meme)}]))}
           (if @claim-challenge-reward-tx-success?
-            "Collected"
+            [:div.label
+             [:span "Claimed"]
+             [:img {:src "/assets/icons/dank-logo.svg"}]]
+
             [:div.label
              [:span "Claim"]
              [:img {:src "/assets/icons/dank-logo.svg"}]
