@@ -240,7 +240,7 @@
                                           {:address (:user/address challenger)}
                                           {:tab :curated}])}
       (str "Address: " (:user/address challenger))]
-     [:i (str "\"" comment "\"")]]))
+     [:span.challenge-comment (str "\"" comment "\"")]]))
 
 (defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme} text]
   (let [status (graphql-utils/gql-name->kw status)
