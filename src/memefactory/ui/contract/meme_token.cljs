@@ -52,7 +52,7 @@
  ::safe-transfer-from-multi
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme/title :meme-auction/token-ids :send/address] :as args}]]
-   (let [tx-name (str "Send " title)
+   (let [tx-name (str "Send " title " to " address)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-token)
                                       :fn :safe-transfer-from-multi
