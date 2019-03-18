@@ -27,7 +27,10 @@
          (if not-revealed?
            [pending-button {:pending? @claim-vote-amount-tx-pending?
                             :disabled (or @claim-vote-amount-tx-pending? @claim-vote-amount-tx-success?)
-                            :pending-text "Collecting ..."
+                            :pending-text [:div.label
+                                           [:span "Reclaiming"]
+                                           [:img {:src "/assets/icons/dank-logo.svg"}]
+                                           [:span "..."]]
                             :class "collect-amount"
                             :on-click (fn []
                                         (dispatch [::registry-entry/claim-vote-amount (look {:send-tx/id vote-amount-tx-id
@@ -38,14 +41,17 @@
             (if @claim-vote-amount-tx-success?
               "Collected"
               [:div.label
-                 [:span "Reclaim"]
-                 [:img {:src "/assets/icons/dank-logo.svg"}]
-                 [:span "Votes"]])]
+               [:span "Reclaim"]
+               [:img {:src "/assets/icons/dank-logo.svg"}]
+               [:span "Votes"]])]
 
            (when vote-winning-vote-option
              [pending-button {:pending? @claim-vote-reward-tx-pending?
                               :disabled (or @claim-vote-reward-tx-pending? @claim-vote-reward-tx-success?)
-                              :pending-text "Collecting ..."
+                              :pending-text [:div.label
+                                             [:span "Claiming"]
+                                             [:img {:src "/assets/icons/dank-logo.svg"}]
+                                             [:span "..."]]
                               :class "collect-reward"
                               :on-click (fn []
                                           (dispatch [::registry-entry/claim-vote-reward (look {:send-tx/id vote-reward-tx-id
@@ -64,7 +70,10 @@
          [pending-button {:pending? @claim-challenge-reward-tx-pending?
                           :disabled (or (not (pos? (:challenge/reward-amount all-rewards)))
                                         @claim-challenge-reward-tx-pending? @claim-challenge-reward-tx-success?)
-                          :pending-text "Collecting ..."
+                          :pending-text [:div.label
+                                         [:span "Claiming"]
+                                         [:img {:src "/assets/icons/dank-logo.svg"}]
+                                         [:span "..."]]
                           :on-click (fn []
                                       (dispatch [::registry-entry/claim-challenge-reward {:send-tx/id ch-reward-tx-id
                                                                                           :active-account active-account
