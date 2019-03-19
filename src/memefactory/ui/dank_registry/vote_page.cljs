@@ -47,7 +47,8 @@
                                                           :challenge/votes-for
                                                           :challenge/votes-against
                                                           [:challenge/all-rewards {:user/address @active-account}
-                                                           [:challenge/reward-amount]]
+                                                           [:challenge/reward-amount
+                                                            :vote/reward-amount]]
                                                           [:challenge/challenger [:user/address]]
                                                           [:challenge/vote-winning-vote-option {:vote/voter @active-account}]
                                                           [:challenge/vote {:vote/voter @active-account}
