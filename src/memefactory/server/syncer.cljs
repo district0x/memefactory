@@ -407,7 +407,7 @@
                    (update :timestamp (fn [ts]
                                         (if ts
                                           (bn/number ts)
-                                          (server-utils/now-in-seconds))))
+                                          (:timestamp (web3-eth/get-block @web3 block-number)))))
                    (update :version bn/number)
                    (assoc :block-number block-number))]
         (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
