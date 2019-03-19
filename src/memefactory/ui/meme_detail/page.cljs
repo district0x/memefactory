@@ -550,7 +550,7 @@
              [:div.meme-number {:key :meme-number} (str "#" number)])
 
            [:div.container {:key :container}
-            [tiles/meme-image image-hash]]
+            [tiles/meme-image image-hash {:rejected? (-> (graphql-utils/gql-name->kw status) (= :reg-entry.status/blacklisted))}]]
 
            [:div.registry {:key :registry}
             [:h1 title]

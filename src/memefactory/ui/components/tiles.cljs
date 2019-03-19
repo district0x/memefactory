@@ -18,8 +18,9 @@
             [taoensso.timbre :as log :refer [spy]]
             [clojure.set :as set]))
 
-(defn meme-image [image-hash & [props]]
-  (let [url (-> @(subscribe [::gql/query
+(defn meme-image [image-hash & [{:keys [rejected?] :as props}]]
+  (let [props (dissoc props :rejected?)
+        url (-> @(subscribe [::gql/query
                              {:queries [[:config
                                          [[:ipfs [:gateway]]]]]}])
                 :config :ipfs :gateway)]
@@ -27,7 +28,11 @@
      props
      (if (and url (not-empty image-hash))
        [:img.meme-image.initial-fade-in-delay {:src (str (format/ensure-trailing-slash url) image-hash)}]
-       [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])]))
+       [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])
+     (when rejected?
+       [:div.image-tape-container.initial-fade-in-delay
+        [:div.image-tape
+         [:span "Rejected"]]])]))
 
 (defn flippable-tile [{:keys [:front :back :flippable-classes]}]
   (let [flipped? (r/atom false)
