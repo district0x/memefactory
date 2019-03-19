@@ -15,7 +15,8 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [memefactory.ui.components.panels :refer [no-items-found]]))
 
 (def page-size 12)
 
@@ -58,7 +59,7 @@
 
       (if (and (empty? all-auctions)
                (not (:graphql/loading? (last @auctions-search))))
-        [:div.no-items-found "No items found."]
+        [no-items-found]
         (when-not (:graphql/loading? (first @auctions-search))
           (doall
            (for [{:keys [:meme-auction/address] :as auc} all-auctions]

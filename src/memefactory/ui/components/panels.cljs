@@ -11,9 +11,14 @@
             [memefactory.ui.contract.meme-auction :as meme-auction]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [taoensso.timbre :as log]
+            [clojure.string :as str]
             ))
 
 (defmulti panel (fn [tab & opts] tab))
+
+(defn no-items-found [extra-classes]
+  [:div.no-items-found {:class (str/join " " extra-classes)}
+   "No items found"])
 
 (defmethod panel :selling [_ state loading-first? loading-last?]
 
@@ -23,7 +28,7 @@
    [:div.tiles
     (if (and (empty? state)
              (not loading-last?))
-      [:div.no-items-found "No items found."]
+      [no-items-found]
       (when-not loading-first?
         (doall
          (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]

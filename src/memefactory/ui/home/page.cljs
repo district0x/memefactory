@@ -14,7 +14,8 @@
    [district.ui.router.events :as router-events]
    [memefactory.ui.components.challenge-list :refer [current-period-ends]]
    [memefactory.ui.components.spinner :as spinner]
-   [goog.string :as gstring]))
+   [goog.string :as gstring]
+   [memefactory.ui.components.panels :refer [no-items-found]]))
 
 (defn take-max-multiple-of [n xs]
   (if (< (count xs) n)
@@ -27,7 +28,7 @@
     [:div.tiles
      (if (and (empty? auctions)
               (not loading?))
-       [:div.no-items-found "No items found."]
+       [no-items-found]
        (if loading?
          [:div.spinner-container [spinner/spin]]
          (doall

@@ -14,7 +14,8 @@
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [taoensso.timbre :as log]))
+   [taoensso.timbre :as log]
+   [memefactory.ui.components.panels :refer [no-items-found]]))
 
 (def page-size 12)
 
@@ -51,7 +52,7 @@
 
     (if (and (empty? all-memes)
              (not (:graphql/loading? last-meme)))
-      [:div.no-items-found "No items found."]
+      [no-items-found]
       [:div.scroll-area
        [:div.tiles
         (when-not (:graphql/loading? (first @meme-search))

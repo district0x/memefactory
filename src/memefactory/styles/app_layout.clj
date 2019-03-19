@@ -16,8 +16,11 @@
    (for-media-max :tablet
                   [:&
                    (grid-columns "100%")])
-   [:div.no-items-found {:padding (em 1)
-                         :text-align :left}]
+   [:div.no-items-found {:color (color :menu-text)
+                         :width "100%"
+                         :text-align :center
+                         :padding-top (px 230)
+                         :padding-bottom (px 230)}]
    [:div.notification
     {:color (color :meme-info-text)
      :background-color (color :deep-purple)

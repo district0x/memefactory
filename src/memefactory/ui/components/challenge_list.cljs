@@ -19,7 +19,8 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]
-   [district.ui.router.events :as router-events]))
+   [district.ui.router.events :as router-events]
+   [memefactory.ui.components.panels :refer [no-items-found]]))
 
 (def page-size 3)
 
@@ -189,7 +190,8 @@
           [:div.memes
            (if (and (empty? all-memes)
                     (not (:graphql/loading? (last @meme-search))))
-             [:div.challenge.no-items "No items found."]
+             [:div.no-items
+              [no-items-found]]
              (doall
               (for [{:keys [:reg-entry/address] :as meme} all-memes]
                 ^{:key address}

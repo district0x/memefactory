@@ -12,7 +12,8 @@
    [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
-   [district.ui.web3-accounts.subs :as accounts-subs]))
+   [district.ui.web3-accounts.subs :as accounts-subs]
+   [memefactory.ui.components.panels :refer [no-items-found]]))
 
 (def page-size 12)
 
@@ -73,7 +74,7 @@
 
               (if (and (empty? lazy-curators)
                        (not (:graphql/loading? last-user)))
-                [:div.no-items-found "No items found."]
+                [no-items-found]
                 (when-not (:graphql/loading? (first @users-search))
                   (->> lazy-curators
                        (map-indexed

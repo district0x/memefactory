@@ -34,7 +34,7 @@
    [reagent.core :as r]
    [reagent.ratom :as ratom]
    [taoensso.timbre :as log]
-   ))
+   [memefactory.ui.components.panels :refer [no-items-found]]))
 
 (def default-tab :collected)
 
@@ -264,7 +264,7 @@
         active-account @(subscribe [::accounts-subs/active-account])]
     (if (and (empty? state)
              (not loading-last?))
-      [:div.no-items-found "No items found."]
+      [no-items-found]
       [:div.tiles
        (when-not loading-first?
          (doall (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/image-hash :meme/number
@@ -386,7 +386,7 @@
         active-account @(subscribe [::accounts-subs/active-account])]
     (if (and (empty? state)
              (not loading-last?))
-      [:div.no-items-found "No items found."]
+      [no-items-found]
       [:div.tiles
        (when-not loading-first?
          (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
@@ -483,7 +483,7 @@
 (defmethod panel :curated [_ state loading-first? loading-last?]
   (if (and (empty? state)
            (not loading-last?))
-    [:div.no-items-found "No items found."]
+    [no-items-found]
     [:div.tiles
      (when-not loading-first?
        (doall
@@ -598,7 +598,7 @@
   [:div.sold-panel
    (if (and (empty? state)
             (not loading-last?))
-     [:div.no-items-found "No items found."]
+     [no-items-found]
      [:div.tiles
       (when-not loading-first?
         (doall
