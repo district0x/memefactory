@@ -6,7 +6,6 @@
    [memefactory.styles.base.colors :refer [color]]
    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
    [memefactory.styles.base.fonts :refer [font]]
-   [memefactory.styles.base.fonts :refer [font]]
    [memefactory.styles.component.buttons :refer [button]]
    [memefactory.styles.component.overflow :refer [of-ellipsis]]
    [garden.units :refer [px em pt]]))
@@ -163,17 +162,19 @@
   ;;
 
   [:.meme-card
-   {:display :flex
+   {:display :grid
+    :grid-template-areas "'fill'"
+    :grid-template-columns (px card-width)
+    :grid-template-rows (px card-height)
     :height (px card-height)
     :width (px card-width)
-    :align-items :center
-    :justify-content :center
     :border-radius (em 1)
     :overflow :hidden}
 
    [:.overlay
     (merge
      {:display :grid
+      :grid-area :fill
       :height (px card-height)
       :width (px card-width)
       :color (color :meme-info-text)
@@ -275,7 +276,8 @@
                      :background-image "url(/assets/icons/arrow-white-right.svg)"}]]]]
 
    [:.meme-placeholder
-    {:display :flex
+    {:grid-area :fill
+     :display :flex
      :justify-content :center
      :align-items :center}
 
@@ -287,7 +289,8 @@
 
    [:.meme-image
     (merge
-     {:width (px card-width)
+     {:grid-area :fill
+      :width (px card-width)
       :height (px card-height)
       :margin :auto}
      no-select-style
@@ -326,4 +329,26 @@
 
     [:.price
      (font :bungee)
-     {:margin-top (em 0.3)}]]])
+     {:margin-top (em 0.3)}]]]
+
+  [:.image-tape-container
+   {:overflow :hidden
+    :grid-area :fill
+    :background-color "rgba(0, 0, 0, 0.3)"
+    :z-index 1}
+   [:.image-tape
+    {:display :flex
+     :position :relative
+     :align-items :center
+     :justify-content :center
+     :top (px (- (/ card-height 2) 60))
+     :right (px (- (/ card-width 2) 5))
+     :background-color (color :rank-yellow)
+     :height (px (* card-height 0.15))
+     :transform "rotate(-12deg)"
+     :width (px (* card-width 2.01))}
+    [:>*
+     (font :bungee)
+     {:overflow :hidden
+      :color (color :violet)
+      :font-size (em 2.01)}]]])

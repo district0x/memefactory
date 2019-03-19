@@ -393,11 +393,11 @@
                                   :meme/title :meme/total-supply :meme/total-minted
                                   :reg-entry/status] :as meme}]
                        (when address
-                         (let [status (graphql-utils/gql-name->kw status)]
+                         (let [status (graphql-utils/gql-name->kw (or status :undefined))
+                               rejected? (= status :reg-entry.status/blacklisted)]
                            ^{:key address} [:div.compact-tile
                                             [:div.container
-                                             [tiles/meme-image image-hash]
-                                             #_[tiles/meme-front-tile {} meme]]
+                                             [tiles/meme-image image-hash {:rejected? rejected?}]]
                                             [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                                               {:address address}
                                                                               nil])}
@@ -487,15 +487,18 @@
     [:div.tiles
      (when-not loading-first?
        (doall
-        (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
+        (map (fn [{:keys [:reg-entry/address :reg-entry/status
+                          :meme/image-hash :meme/number
                           :meme/title :challenge/vote] :as meme}]
                (when address
-                 (let [{:keys [:vote/option]} vote]
+                 (let [{:keys [:vote/option]} vote
+                       status (graphql-utils/gql-name->kw (or status :undefined))
+                       rejected? (= status :reg-entry.status/blacklisted)]
                    ^{:key address}
                    [:div.compact-tile
                     [:div.container
                      [:div.meme-card-front
-                      [tiles/meme-image image-hash]]]
+                      [tiles/meme-image image-hash {:rejected? rejected?}]]]
                     [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                         {:address address}
                                                         nil])}

@@ -151,7 +151,7 @@
                                              name])]]))
 
        [:div.meme-tile
-        [tiles/meme-image image-hash]]
+        [tiles/meme-image image-hash {:rejected? (= status :reg-entry.status/blacklisted)}]]
        [:div.action
         (if (and (= 0 days hours minutes seconds)
                  (not (#{:reg-entry.status/whitelisted :reg-entry.status/blacklisted} status)))
