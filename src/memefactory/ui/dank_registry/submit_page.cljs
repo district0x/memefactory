@@ -25,7 +25,8 @@
    [:h3.title "Submit a new meme to the registry for consideration"]
    [:div.get-dank-button {:on-click #(dispatch [::router-events/navigate :route.get-dank/index])}
     [:span "Get Dank"]
-    [:img {:src "/assets/icons/dank-logo.svg"}]]])
+    [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+    [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]])
 
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
