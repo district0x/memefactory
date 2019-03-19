@@ -224,7 +224,7 @@
       [:section.challenges
        [tabbed-pane
         [{:title "Open Challenges"
-          :content [challenge-list {:include-challenger-info? false
+          :content [challenge-list {:include-challenger-info? true
                                     :query-params {:statuses [:reg-entry.status/commit-period
                                                               :reg-entry.status/reveal-period]}
                                     :active-account account
