@@ -40,8 +40,6 @@
    [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.dank-registry.vote-page :as vote-page]))
 
-(def description "Lorem ipsum dolor sit amet, consectetur adipiscing elit")
-
 (def scroll-interval 5)
 
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
@@ -350,7 +348,7 @@
         vote-option (-> meme :challenge/vote :vote/option graphql-utils/gql-name->kw)]
     (fn []
       [:div.reveal
-       [:div description]
+       [:div "This meme has been challenged and voting has concluded. You can reveal any votes you made with the button below, before time runs out on the reveal period."]
        [remaining-time-component (ui-utils/gql-date->date reveal-period-end)]
        [:div
         [tx-button/tx-button {:primary true
@@ -391,8 +389,7 @@
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])]
     (fn []
       [:div.vote
-       [:div description]
-       #_[remaining-time-component (ui-utils/gql-date->date commit-period-end)]
+       [:div "Below you can choose to vote \"Dank\" to include the Meme in the registry or \"Stank\" to reject it. You can enter the amount of DANK tokens to commit to this vote."]
        [:div.form
         [:div.vote-dank
          [:div.outer
@@ -524,7 +521,7 @@
         meme-sub (subscribe [::gql/query (build-meme-query address active-account)])
         meme (when meme-sub (-> @meme-sub :meme))
         {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply
-                :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger]} meme
+                :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end]} meme
         token-count (->> owned-meme-tokens
                          (map :meme-token/token-id)
                          (filter shared-utils/not-nil?)
@@ -559,7 +556,17 @@
                            :reg-entry.status/blacklisted [:label.rejected "Rejected"]
                            :reg-entry.status/challenge-period [:label.rejected "In Challenge Period"]
                            [:label.challenged "Challenged"])]
-            [:div.description description]
+            [:div.description (case (graphql-utils/gql-name->kw status)
+                                :reg-entry.status/whitelisted      "This meme has passed through the challenge phase and has been placed into the Dank Registry."
+                                :reg-entry.status/blacklisted      "This meme was challenged and lost. It's ineligible for the Dank Registry unless resubmitted."
+                                :reg-entry.status/challenge-period (gstring/format "This meme has been submitted to the Dank Registry, but is still open to be challenged. The challenge window closes in %s"
+                                                                                   (format/format-time-units
+                                                                                    (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                                                         (ui-utils/gql-date->date challenge-period-end))))
+                                (gstring/format "This meme has had its status in the registry challenged. It will be either accepted or rejected when the vote and reveal phases conclude in %s"
+                                                (format/format-time-units
+                                                 (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                      (ui-utils/gql-date->date reveal-period-end)))))]
             [:div.text (format/pluralize total-supply "card")]
             [:div.text (str "You own " token-count)]
             [meme-creator-component creator]
