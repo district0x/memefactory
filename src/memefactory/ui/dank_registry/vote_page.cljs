@@ -37,7 +37,8 @@
    [:h3.title "View challenges and vote to earn more DANK"]
    [:div.get-dank-button {:on-click #(dispatch [::router-events/navigate :route.get-dank/index nil nil])}
     [:span "Get Dank"]
-    [:img {:src "/assets/icons/dank-logo.svg"}]]])
+    [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+    [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]])
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards] :as meme}]
   (let [active-account (subscribe [::accounts-subs/active-account])]

@@ -61,20 +61,16 @@
                                      "url('/assets/icons/gears-button-bg-r.png') right 1em center / 29% 29% no-repeat "
 
                                      (c/color :purple))}])
-   [:&:after
-    {:width (em 1)
-     :background-position "0 .3em"
-     :background-repeat "no-repeat"
-     :height (em 1)
-     :content "' '"
-     :background-size "1em,1em"
-     :display "inline-block"
-     :background-image "url(/assets/icons/arrow-white-right.svg)"}]
    
-   [:span {:font-size (em 1.3)}]
-   [:img
-    {:width (em 3.01)
-     :height (em 3.01)}]])
+   [:span {:font-size (em 1.1)}]
+
+   [:.dank-logo
+    {:width (em 2.5)
+     :height (em 2.5)}]
+
+   [:.arrow-icon
+    {:width (px 15)
+     :height (px 15)}]])
 
 (defn tag []
   [:&

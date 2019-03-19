@@ -30,7 +30,8 @@
    [:h3.title "View and Challenge new entries to the registry"]
    [:div.get-dank-button {:on-click #(dispatch [::router-events/navigate :route.get-dank/index nil nil])}
     [:span "Get Dank"]
-    [:img {:src "/assets/icons/dank-logo.svg"}]]])
+    [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+    [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]])
 
 (defn open-challenge-action [{:keys [:reg-entry/address :meme/title]}]
   (let [form-data (r/atom {})
