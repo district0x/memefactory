@@ -16,6 +16,8 @@
                 owner: String,
                 creator: String,
                 curator: String,
+                challenger: String,
+                voter: String,
                 challenged: Boolean,
                 first: Int,
                 after: String

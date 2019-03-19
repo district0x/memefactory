@@ -692,12 +692,13 @@
                            :meme/total-supply
                            :reg-entry/status]]]]]
       :curated [[:search-memes (merge {:curator user-address
-                                       :first first}
-                                      (when (or voted? challenged?)
-                                        {:statuses (cond-> []
-                                                     voted? (conj :reg-entry.status/blacklisted
-                                                                  :reg-entry.status/whitelisted)
-                                                     challenged? (conj :reg-entry.status/challenge-period))})
+                                       :first (if (or challenged? voted?)
+                                                first
+                                                0)}
+                                      (cond
+                                        (and voted? challenged?) {:curator user-address}
+                                        voted?                   {:voter user-address}
+                                        challenged?              {:challenger user-address})
                                       (when after
                                         {:after (str after)})
                                       (when term
@@ -911,7 +912,9 @@
                          (contains? #{:selling :sold} active-tab)
                          :meme-auctions)
             order-by? (-> query :order-by nil? not)
-            form-data (r/atom {:term (:term query)})]
+            form-data (r/atom {:term (:term query)
+                               :voted? true
+                               :challenged? true})]
         [app-layout/app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
