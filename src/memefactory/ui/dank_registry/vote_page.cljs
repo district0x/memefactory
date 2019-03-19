@@ -70,9 +70,12 @@
 
               (log/debug "vote" {:v vote :o option} ::collect-reward-action)
 
-              [:div.collect-reward
-               [charts/donut-chart meme-voting]
-               (if meme-voting
+
+              (if (and (zero? votes-for)
+                       (zero? votes-against))
+                [:div "This challenge didn't receive any votes"]
+                [:div.collect-reward
+                 [charts/donut-chart meme-voting]
                  [:ul.vote-info
                   (when (pos? votes-for)
                     [:li
@@ -82,9 +85,10 @@
                      (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (ui-utils/format-dank votes-against))])
                   (when (pos? votes-total)
                     [:li "Total voted: " (ui-utils/format-dank votes-total)])
-                  [:li "Your reward: " (let [reward (+ (:challenge/reward-amount all-rewards)
-                                                       (:vote/reward-amount all-rewards))]
-                                         (ui-utils/format-dank reward))]
+                  (let [reward (+ (:challenge/reward-amount all-rewards)
+                                  (:vote/reward-amount all-rewards))]
+                    (when (pos? reward)
+                      [:li "Your reward: " (ui-utils/format-dank reward)]))
 
                   (when-not (or (= option :vote-option/not-revealed)
                                 (= option :vote-option/no-vote))
@@ -96,7 +100,7 @@
                                                               :vote-option/vote-for "DANK"
                                                               :vote-option/vote-against "STANK")))])
                   (buttons/reclaim-buttons @active-account meme-voting)]
-                 [:div "No votes"])])))))))
+                 ]))))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote :meme/title] :as meme}]
   (let [tx-id (str address "vote")
