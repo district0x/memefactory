@@ -54,14 +54,14 @@
                                      (and (not (nil? entered-tag))
                                           (not (= 0 (compare
                                                      entered-tag
-                                                     (apply str (re-seq #"[a-zA-Z]" entered-tag))))))
+                                                     (apply str (re-seq #"[a-zA-Z0-9]" entered-tag))))))
                                      (assoc-in [:search-tags :error] "Only alphanumeric characters are allowed")
 
                                      (not= 0 (compare (count (get @form-data :search-tags))
                                                    (count (filter
                                                            #(= 0 (compare
                                                                   %
-                                                                  (apply str (re-seq #"[a-zA-Z]" %))))
+                                                                  (apply str (re-seq #"[a-zA-Z0-9]" %))))
                                                            (get @form-data :search-tags)))))
                                      (assoc-in [:search-tags :error] "Only alphanumeric characters are allowed")))
                           :remote (let [{:keys [:file-info :search-tags]} @form-data]
