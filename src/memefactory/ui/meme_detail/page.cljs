@@ -553,8 +553,8 @@
             [:h1 title]
             [:div.status (case (graphql-utils/gql-name->kw status)
                            :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
-                           :reg-entry.status/blacklisted [:label.rejected "Rejected"]
-                           :reg-entry.status/challenge-period [:label.rejected "In Challenge Period"]
+                           :reg-entry.status/blacklisted [:label.rejected "Rejected from Registry"]
+                           :reg-entry.status/challenge-period [:label.rejected "Open for Challenge"]
                            [:label.challenged "Challenged"])]
             [:div.description (case (graphql-utils/gql-name->kw status)
                                 :reg-entry.status/whitelisted      "This meme has passed through the challenge phase and has been placed into the Dank Registry."
