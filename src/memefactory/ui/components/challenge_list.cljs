@@ -87,7 +87,11 @@
                                                   tccs
                                                   tcc
                                                   (if (pos? tcc) (/ (* 100 tccs) tcc) 0)))]]
-   [:li "Address: " [:span.address (-> user :user/address)]]])
+   [:li "Address: " [:span.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                                          {:address (:user/address user)}
+                                                          {:tab :curated}])
+                                    :class "creator"}
+                     (-> user :user/address)]]])
 
 (defn current-period-ends [label end-date]
 
