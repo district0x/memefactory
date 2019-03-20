@@ -2,6 +2,7 @@
   (:require [clojure.string :as s]
             [garden.def :refer [defstyles]]
             [garden.units :refer [px em]]
+            [garden.color :refer [transparentize]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.grid :refer [grid-columns]]
             [memefactory.styles.base.media :refer [for-media-max]]))
@@ -16,7 +17,7 @@
    (for-media-max :tablet
                   [:&
                    (grid-columns "100%")])
-   [:div.no-items-found {:color (color :menu-text)
+   [:div.no-items-found {:color (transparentize (color :menu-text) 0.5)
                          :width "100%"
                          :text-align :center
                          :padding-top (px 230)
