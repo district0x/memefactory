@@ -109,6 +109,7 @@
 (def new-on-marketplace-query
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/started-on
+    :order-dir :desc
     :group-by :meme-auctions.group-by/cheapest
     :statuses [:meme-auction.status/active]
     :first 6}
