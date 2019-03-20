@@ -281,7 +281,7 @@
   (let [accounts (web3-eth/accounts @web3)]
     (dank-token/transfer {:to account :amount (web3-core/to-wei dank-amount :ether)}
                          ;; this is the deployer of dank-token so it owns the initial amount
-                         {:from (last accounts)})))
+                         {:from (first accounts)})))
 
 (comment
   ;; Contract call log instrument snippet
