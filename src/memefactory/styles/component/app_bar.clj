@@ -307,7 +307,7 @@
       [:&.eth:before {:background-image (str "url('/assets/icons/ethereum.svg')")}]
       [:&.dank:before {:background-image (str "url('/assets/icons/dank-logo.svg')")
                        :background-size (px 32)
-                       :background-position [(px -5) (px -6)]}]
+                       :background-position "-5px -6px"}]
       [:.balance
        (font :bungee)
        {:white-space :nowrap
