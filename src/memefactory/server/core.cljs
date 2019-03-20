@@ -31,10 +31,10 @@
                                 (ex-message err))
                            (do
                              (log/warn "RPC node lost its state or went offline. Resyncing" {:error err})
-                             (mount/stop #'memefactory.server.syncer/syncer
+                             #_(mount/stop #'memefactory.server.syncer/syncer
                                          #'memefactory.server.emailer/emailer
                                          #'memefactory.server.db/memefactory-db)
-                             (mount/start #'memefactory.server.db/memefactory-db
+                             #_(mount/start #'memefactory.server.db/memefactory-db
                                           #'memefactory.server.syncer/syncer
                                           #'memefactory.server.emailer/emailer))
                            (do
