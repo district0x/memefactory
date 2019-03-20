@@ -16,7 +16,7 @@
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
    [taoensso.timbre :as log :refer [spy]]
-   ))
+   [clojure.string :as str]))
 
 (defn header []
   [:div.submit-info
@@ -36,7 +36,7 @@
                                        entered-tag (get @form-data "txt-:search-tags")
                                        max-issuance (or max-total-supply 1)]
                                    (cond-> {:issuance {:hint (str "Max " max-issuance)}}
-                                     (empty? title)
+                                     (str/blank? title)
                                      (assoc-in [:title :error] "Title cannot be empty")
 
                                      (not file-info)

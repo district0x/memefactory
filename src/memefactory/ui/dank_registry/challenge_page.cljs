@@ -2,7 +2,7 @@
   (:require
    [cljs-time.core :as t]
    [cljs-time.extend]
-   [district.format :as format]
+   [clojure.string :as str]
    [district.format :as format]
    [district.time :as time]
    [district.ui.component.form.input :refer [select-input with-label text-input pending-button]]
@@ -41,7 +41,7 @@
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
         errors (reaction {:local (let [{:keys [comment]} @form-data]
                                    (cond-> {}
-                                     (empty? comment)
+                                     (str/blank? comment)
                                      (assoc :comment "Challenge reason can't be empty")))})]
     (fn [{:keys [:reg-entry/address]}]
       (let [dank-deposit (:deposit @(subscribe [:memefactory.ui.config/memefactory-db-params]))]
