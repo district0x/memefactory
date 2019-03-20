@@ -71,7 +71,7 @@
   (let [open? (r/atom nil)];;(subscribe [:district0x.transaction-log/open?])]
     (fn []
       [:div.app-bar-mobile
-       [:div.logo]
+       [:div.logo {:on-click #(dispatch [::router-events/navigate :route/home])}]
        [:div.menu-selection
         [:i.icon.hamburger
          {:on-click (fn [e]
