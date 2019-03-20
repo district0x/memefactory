@@ -63,8 +63,8 @@
                                                           (and (not (< 0 (js/parseInt (:send/amount @form-data)) (inc (count @token-ids))))
                                                                (pos? (count @token-ids)))
                                                           (assoc :error (str "Should be between 1 and " (count @token-ids))))
-                                           :send/address (when (empty? (:send/address @form-data))
-                                                           {:error "Address can't be empty"})}}))
+                                           :send/address (when-not (web3/address? (:send/address @form-data))
+                                                           {:error "Invalid address format"})}}))
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/safe-transfer-from-multi tx-id}])]
     (fn [{:keys [:meme/title
