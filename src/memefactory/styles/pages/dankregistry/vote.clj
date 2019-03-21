@@ -102,7 +102,7 @@
    [:.reveal
     {:text-align :center}
     [:img {:width (em 7)}]
-    [:.button-wrapper {:display :inline-block}
+    [:.button-wrapper {:display :block}
      [:button
       {:margin-top (em 2)}
       (button {:background-color :purple
