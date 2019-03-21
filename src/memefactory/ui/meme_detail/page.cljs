@@ -123,7 +123,8 @@
         build-query (fn [{:keys [:first :after]}]
                       [[:search-meme-auctions {:tags-or tags
                                                :after (str after)
-                                               :first first}
+                                               :first first
+                                               :group-by :meme-auctions.group-by/cheapest}
                         [:total-count
                          :end-cursor
                          :has-next-page
