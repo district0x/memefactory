@@ -518,7 +518,8 @@
 
   (let [active-account @(subscribe [::accounts-subs/active-account])
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
-        meme-sub (subscribe [::gql/query (build-meme-query address active-account)])
+        meme-sub (subscribe [::gql/query (build-meme-query address active-account)
+                             {:refetch-on [:memefactory.ui.contract.registry-entry/challenge-success]}])
         meme (when meme-sub (-> @meme-sub :meme))
         {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end]} meme
