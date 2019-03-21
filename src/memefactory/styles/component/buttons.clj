@@ -74,18 +74,17 @@
 
 (defn tag []
   [:&
-   {:text-transform :capitalize
+   {:line-height 1
+    :text-transform :capitalize
     :background-color (c/color :tags-grey)
-    :color :black
+    :color (c/color :menu-text)
     :margin (em 0.3)
-    :padding-left (em 2.5)
-    :padding-right (em 2.5)
-    :padding-top (em 0.7)
-    :padding-bottom (em 0.7)
     :border "0.5px solid rgba(224, 180, 240, 0.4)"
     :border-radius (em 2)
-    :font-size (em 1)
+    :font-size (px 12)
+    :padding "8px 20px"
     :display :inline-block}])
+
 
 (defn vote-button-icon [top]
   [:&:before {:content "''"
