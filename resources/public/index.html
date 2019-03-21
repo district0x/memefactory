@@ -11,6 +11,13 @@
 
     <meta id="description" name="description" content="Create and trade provably rare digital assets on the Ethereum blockchain."/>
     <link rel="stylesheet" href="./css/semantic.min.css">
+    <!-- Temporary Fix until Semantic-UI is removed -->
+    <style>
+     html, body {
+	 height: auto;
+	 min-height: 100vh;
+     }
+    </style>
     <link rel="stylesheet" href="./css/main.css?v=0.1.0">
     <link rel="stylesheet" href="./icons/style.css">
     <link href="https://fonts.googleapis.com/css?family=Bungee" rel="stylesheet">
@@ -27,7 +34,7 @@
 
 </head>
 <body>
-  <div id="app" style="height: 100%">
+  <div id="app" style="height: 100vh;">
     <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 10px">
       <div class="spinner-outer">
         <img src="/assets/icons/mememouth.png"/>

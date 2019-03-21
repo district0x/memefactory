@@ -68,16 +68,18 @@
       (when (:graphql/loading? (last @auctions-search))
         [:div.spinner-container [spinner/spin]])]
 
-     [infinite-scroll {:load-fn (fn []
-                                  (when-not (:graphql/loading? @auctions-search)
-                                    (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
+     [infinite-scroll
+      {:load-fn
+       (fn []
+         (when-not (:graphql/loading? @auctions-search)
+           (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
 
-                                      (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
+             (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
 
-                                      (when has-next-page
-                                        (dispatch [:district.ui.graphql.events/query
-                                                   {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                    :id @form-data}])))))}]]))
+             (when has-next-page
+               (dispatch [:district.ui.graphql.events/query
+                          {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                           :id @form-data}])))))}]]))
 
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])

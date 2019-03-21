@@ -47,33 +47,38 @@
                                   :user/creator-rank]]]]]])
 
 (defn dank-registry-tiles [form-data meme-search]
-  (let [all-memes (->> @meme-search
-                       (mapcat (fn [r] (-> r :search-memes :items))))
-        last-meme (last @meme-search)]
-
+  (let [all-memes (->> @meme-search (mapcat (fn [r] (-> r :search-memes :items))))]
     (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::dank-registry-tiles)
-    [:div.scroll-area
-     [:div.tiles
-      (if (and (empty? all-memes)
-               (not (:graphql/loading? last-meme)))
-        [no-items-found]
-        (when-not (:graphql/loading? (first @meme-search))
-          (doall
-            (for [{:keys [:reg-entry/address] :as meme} all-memes]
-              ^{:key address}
-              [tiles/meme-tile meme]))))
-      (when (:graphql/loading? last-meme)
-        [:div.spinner-container [spinner/spin]])]
-     [infinite-scroll {:load-fn (fn []
-                                  (when-not (:graphql/loading? last-meme)
-                                    (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes last-meme)]
+    (fn []
+      (let [last-meme (last @meme-search)
+            memes-loading? (:graphql/loading? last-meme)]
+        (.log js/console "Meme's loading?" memes-loading?)
+        [:div.scroll-area
+         [:div.tiles
+          (cond 
+            (and (empty? all-memes) (not memes-loading?))
+            [no-items-found]
 
-                                      (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} ::dank-registry-tiles)
+            (:graphql/loading? (first @meme-search))
+            (doall
+             (for [{:keys [:reg-entry/address] :as meme} all-memes]
+               ^{:key address}
+               [tiles/meme-tile meme])))
+          (when memes-loading?
+            [:div.spinner-container [spinner/spin]])]
+         [infinite-scroll
+          {:load-fn
+           (fn []
+             (.log js/console (clj->js last-meme))
+             (when-not memes-loading?
+               (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes last-meme)]
 
-                                      (when has-next-page
-                                        (dispatch [:district.ui.graphql.events/query
-                                                   {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                    :id @form-data}])))))}]]))
+                 (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} ::dank-registry-tiles)
+
+                 (when has-next-page
+                   (dispatch [:district.ui.graphql.events/query
+                              {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                               :id @form-data}])))))}]]))))
 
 (defmethod page :route.dank-registry/browse []
   (let [active-page (subscribe [::router-subs/active-page])
@@ -90,6 +95,7 @@
                                     {:id @form-data
                                      :disable-fetch? false}])
             search-total-count (-> @meme-search first :search-memes :total-count)]
+        (.log js/console (clj->js @meme-search))
         [app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}
