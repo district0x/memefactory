@@ -99,15 +99,15 @@
         }
        [:&:before
         {:content "''"
-         :height (em 2.2)
+         :height (em 2.25)
          :display :inline-block
-         :width (em 2.2)
+         :width (em 2.25)
          :transform "scale(0.40, 0.40)"
          :background-repeat :no-repeat
          :background-position "center center";
          :background-image (str "url('/assets/icons/inregistry-icon.png')")}]
        [:label
-        {:line-height (em 2.3)
+        {:line-height (em 2.37)
          :font-weight :bold
          :color (color :menu-text)}]]
       [:.creator
