@@ -52,7 +52,6 @@
     (fn []
       (let [last-meme (last @meme-search)
             memes-loading? (:graphql/loading? last-meme)]
-        (.log js/console "Meme's loading?" memes-loading?)
         [:div.scroll-area
          [:div.tiles
           (cond 
@@ -69,7 +68,6 @@
          [infinite-scroll
           {:load-fn
            (fn []
-             (.log js/console (clj->js last-meme))
              (when-not memes-loading?
                (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes last-meme)]
 
@@ -95,7 +93,6 @@
                                     {:id @form-data
                                      :disable-fetch? false}])
             search-total-count (-> @meme-search first :search-memes :total-count)]
-        (.log js/console (clj->js @meme-search))
         [app-layout
          {:meta {:title "MemeFactory"
                  :description "Description"}}

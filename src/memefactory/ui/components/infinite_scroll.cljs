@@ -40,7 +40,7 @@
   (debounce
    (fn [e]
      (when (should-load-more? el-node default-onload-threshold)
-       (.log js/console "Infinite Scroll Triggered")
+       (log/debug "Infinite Scroll Triggered")
        (if onload-callback
          (onload-callback)
          (throw (ex-info "Onload Callback not set for infinite scroll" {}))))
