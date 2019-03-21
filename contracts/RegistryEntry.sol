@@ -199,55 +199,50 @@ contract RegistryEntry is ApproveAndCallFallBack {
     registry.fireVoteAmountClaimedEvent(version, _voter);
   }
 
+
   /**
    * @dev Claims vote reward after reveal period
    * Voter has reward only if voted for winning option
    * Voter has reward only when revealed the vote
-   * Can be called by anybody, to claim voter's reward to him
-   * @param _voter Address of a voter
-   */
-  function claimVoteReward(
-                           address _voter
-                           )
-    external
-    notEmergency
-  {
-
-    require(challenge.isVoteRevealPeriodOver());
-    require(!challenge.isVoteRewardClaimed(_voter));
-    require(challenge.isVoteRevealed(_voter));
-    require(challenge.votedWinningVoteOption(_voter));
-
-    uint reward = challenge.voteReward(_voter);
-
-    require(reward > 0);
-    require(registryToken.transfer(_voter, reward));
-    challenge.vote[_voter].claimedRewardOn = now;
-
-    registry.fireVoteRewardClaimedEvent(version,
-                                        _voter,
-                                        reward);
-  }
-
-  /**
-   * @dev Claims challenger's reward after reveal period
+   *
+   * Claims challenger's reward after reveal period
    * Challenger has reward only if winning option is VoteAgainst
-   * Can be called by anybody, to claim challenger's reward to him/her
+
    */
-  function claimChallengeReward()
+  function claimRewards()
     external
     notEmergency
   {
-    require(challenge.isVoteRevealPeriodOver());
-    require(!challenge.isChallengeRewardClaimed());
-    require(!challenge.isWinningOptionVoteFor());
-    require(registryToken.transfer(challenge.challenger, challenge.challengeReward(deposit)));
+    // Challenge reward
+    if(challenge.isVoteRevealPeriodOver() &&
+       !challenge.isChallengeRewardClaimed() &&
+       !challenge.isWinningOptionVoteFor() &&
+       challenge.challenger == msg.sender){
 
-    challenge.claimedRewardOn = now;
+      registryToken.transfer(challenge.challenger, challenge.challengeReward(deposit));
 
-    registry.fireChallengeRewardClaimedEvent(version,
-                                             challenge.challenger,
-                                             challenge.challengeReward(deposit));
+      registry.fireChallengeRewardClaimedEvent(version,
+                                               challenge.challenger,
+                                               challenge.challengeReward(deposit));
+    }
+
+    // Votes reward
+    if(challenge.isVoteRevealPeriodOver() &&
+       !challenge.isVoteRewardClaimed(msg.sender) &&
+       challenge.isVoteRevealed(msg.sender) &&
+       challenge.votedWinningVoteOption(msg.sender)){
+
+      uint reward = challenge.voteReward(msg.sender);
+
+      if(reward > 0){
+        registryToken.transfer(msg.sender, reward);
+        challenge.vote[msg.sender].claimedRewardOn = now;
+
+        registry.fireVoteRewardClaimedEvent(version,
+                                            msg.sender,
+                                            reward);
+      }
+    }
   }
 
   /**

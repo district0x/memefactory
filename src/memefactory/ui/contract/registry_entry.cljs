@@ -125,47 +125,25 @@
                                                     ::reveal-vote]}]})))
 
 (re-frame/reg-event-fx
- ::claim-challenge-reward
+ ::claim-rewards
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :from :meme/title] :as args}]]
-   (let [tx-name (gstring/format "Claim challenge reward %s" title)
+   (let [tx-name (gstring/format "Claim rewards %s" title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
-                                      :fn :claim-challenge-reward
+                                      :fn :claim-rewards
                                       :args []
                                       :tx-opts {:from active-account}
-                                      :tx-id {::claim-challenge-reward id}
+                                      :tx-id {::claim-rewards id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.meme-detail/index
                                                               :params {:address address}}}
-                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::claim-challenge-reward]
-                                                        [::notification-events/show (gstring/format "Successfully claimed challenge reward %s" title)]]
+                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::claim-rewards]
+                                                        [::notification-events/show (gstring/format "Successfully claimed rewards %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}
-                                                    ::claim-challenge-reward]}]})))
-
-(re-frame/reg-event-fx
- ::claim-vote-reward
- [interceptors]
- (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :active-account :meme/title] :as args}]]
-   (let [tx-name (gstring/format "Claim vote reward %s" title)
-         active-account (account-queries/active-account db)]
-     {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme address))
-                                      :fn :claim-vote-reward
-                                      :args (look [active-account])
-                                      :tx-opts {:from active-account}
-                                      :tx-id {::claim-vote-reward id}
-                                      :tx-log {:name tx-name
-                                               :related-href {:name :route.meme-detail/index
-                                                              :params {:address address}}}
-                                      :on-tx-success-n [[::logging/info (str tx-name " reward tx success") ::claim-vote-reward]
-                                                        [::notification-events/show (gstring/format "Successfully claimed vote reward %s" title)]]
-                                      :on-tx-error [::logging/error (str tx-name " tx error")
-                                                    {:user {:id active-account}
-                                                     :args args}
-                                                    ::claim-vote-reward]}]})))
-
+                                                    ::claim-rewards]}]})))
 
 (re-frame/reg-event-fx
  ::claim-vote-amount
