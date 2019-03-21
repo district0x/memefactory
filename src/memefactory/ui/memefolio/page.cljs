@@ -401,7 +401,7 @@
                                             [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                                               {:address address}
                                                                               nil])}
-                                             [:div.title (str "#" number " " title)]
+                                             [:div.title (str (when number (str "#" number " ")) title)]
                                              [:div.issued (str total-minted "/" total-supply" Issued")]
                                              [:div.status
                                               (case status
@@ -502,7 +502,7 @@
                     [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                         {:address address}
                                                         nil])}
-                     [:div.title [:b (str "#" number " " title)]]
+                     [:div.title [:b (str (when number (str "#" number " ")) title)]]
                      [:div.vote-option
                       (cond
                         (= option (graphql-utils/kw->gql-name :vote-option/not-revealed))
