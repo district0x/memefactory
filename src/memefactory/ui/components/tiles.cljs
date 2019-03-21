@@ -32,7 +32,7 @@
      (when rejected?
        [:div.image-tape-container.initial-fade-in-delay
         [:div.image-tape
-         [:span "Rejected"]]])]))
+         [:span "Stank"]]])]))
 
 (defn flippable-tile [{:keys [:front :back :flippable-classes]}]
   (let [flipped? (r/atom false)
