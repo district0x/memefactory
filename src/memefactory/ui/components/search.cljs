@@ -22,7 +22,7 @@
                             on-selected-tags-change on-search-change on-select-change]}]
 
   (let [search-input-form-data (r/atom {search-id (get @form-data search-id)})
-        chip-input-form-data (r/atom {})]
+        chip-input-form-data (r/atom {selected-tags-id (get @form-data selected-tags-id)})]
     (fn [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filters
                 on-selected-tags-change on-search-change on-select-change]}]
      [:div.search-form

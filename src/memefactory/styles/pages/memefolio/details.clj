@@ -125,6 +125,7 @@
        {:margin-top (em 1)
         :margin-bottom (em 0.5)}
        [:button (tag)
+        {:cursor :pointer}
         {:color (color :menu-text)}]]
       [:.buttons
        {:display :flex}
