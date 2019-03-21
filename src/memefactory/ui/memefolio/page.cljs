@@ -125,8 +125,8 @@
                                        :meme :meme/owned-meme-tokens
                                        (map :meme-token/token-id)))
         form-data (r/atom {:meme-auction/duration 14
-                                :meme-auction/amount 1
-                                :meme-auction/description nil})
+                           :meme-auction/amount 1
+                           :meme-auction/description ""})
 
         errors (ratom/reaction (let [{:keys [:meme-auction/start-price :meme-auction/end-price :meme-auction/description]} @form-data
                                      sp (js/parseFloat start-price)
