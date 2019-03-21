@@ -32,7 +32,9 @@
                    [:&
                     {:grid-template-columns "100%"}])
     [:.image-panel {:display :flex
-                    :justify-content :center}]
+                    :justify-content :center}
+     [:.help-block
+      {:text-align :center}]]
     [">div"
      {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
       :background-color (color :white)
