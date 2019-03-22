@@ -108,8 +108,8 @@
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
      [:div.address (str "Address: " address)]]))
 
-(defn related-memes-component [state]
-  (panel :selling state))
+(defn related-memes-component [state loading-first? loading-last?]
+  (panel :selling state loading-first? loading-last?))
 
 (defn related-memes-container [address tags]
   (let [safe-mapcat (fn [f queries] (loop [queries queries
@@ -150,12 +150,12 @@
                    (mapcat (fn [q] (get-in q [:search-meme-auctions :items])))
                    (remove #(= (-> % :meme-auction/meme-token :meme-token/meme :reg-entry/address) address)))]
 
-    (log/debug "Related memes" {:address address :tags tags :resp @response})
+
 
     [:div.scroll-area
-     [related-memes-component state]
+     [related-memes-component state (:graphql/loading? (first @response)) (:graphql/loading? (last @response))]
      [infinite-scroll {:load-fn (fn []
-                                  (when-not (:graphql/loading? @response)
+                                  (when-not (:graphql/loading? (last @response))
                                     (let [{:keys [:has-next-page :end-cursor]} (:search-meme-auctions (last @response))]
                                       (when has-next-page
                                         (dispatch [::gql-events/query
@@ -609,7 +609,9 @@
         [:div.icon]
         [:h2.title "RELATED MEMES ON MARKETPLACE"]
         [:h3.title "Similar memes for sale now"]
-        [related-memes-container address tags]]]]]))
+        (if meme-not-loaded?
+          [spinner/spin]
+          [related-memes-container address tags])]]]]))
 
 (defmethod page :route.meme-detail/index []
   (r/create-class {:component-did-mount #(js/window.scrollTo 0 0)
