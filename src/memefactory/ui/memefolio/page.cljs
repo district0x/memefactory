@@ -664,12 +664,16 @@
                     :has-next-page
                     [:items (remove nil? [:reg-entry/address
                                           :reg-entry/status
+                                          :reg-entry/created-on
                                           :meme/image-hash
                                           :meme/meta-hash
                                           :meme/number
                                           :meme/title
                                           :meme/total-supply
                                           :meme/total-minted
+                                          :meme/total-trade-volume
+                                          :meme/average-price
+                                          :meme/highest-single-sale
                                           [:reg-entry/creator [:user/address]]
                                           [:meme/owned-meme-tokens {:owner user-address}
                                            [:meme-token/token-id]]])]]]]
