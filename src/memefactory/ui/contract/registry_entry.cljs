@@ -132,7 +132,7 @@
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :claim-rewards
-                                      :args []
+                                      :args [active-account]
                                       :tx-opts {:from active-account}
                                       :tx-id {::claim-rewards id}
                                       :tx-log {:name tx-name

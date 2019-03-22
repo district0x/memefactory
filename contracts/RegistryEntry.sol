@@ -209,7 +209,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
    * Challenger has reward only if winning option is VoteAgainst
 
    */
-  function claimRewards()
+  function claimRewards(address _user)
     external
     notEmergency
   {
@@ -217,7 +217,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     if(challenge.isVoteRevealPeriodOver() &&
        !challenge.isChallengeRewardClaimed() &&
        !challenge.isWinningOptionVoteFor() &&
-       challenge.challenger == msg.sender){
+       challenge.challenger == _user){
 
       registryToken.transfer(challenge.challenger, challenge.challengeReward(deposit));
 
@@ -228,18 +228,18 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
     // Votes reward
     if(challenge.isVoteRevealPeriodOver() &&
-       !challenge.isVoteRewardClaimed(msg.sender) &&
-       challenge.isVoteRevealed(msg.sender) &&
-       challenge.votedWinningVoteOption(msg.sender)){
+       !challenge.isVoteRewardClaimed(_user) &&
+       challenge.isVoteRevealed(_user) &&
+       challenge.votedWinningVoteOption(_user)){
 
-      uint reward = challenge.voteReward(msg.sender);
+      uint reward = challenge.voteReward(_user);
 
       if(reward > 0){
-        registryToken.transfer(msg.sender, reward);
-        challenge.vote[msg.sender].claimedRewardOn = now;
+        registryToken.transfer(_user, reward);
+        challenge.vote[_user].claimedRewardOn = now;
 
         registry.fireVoteRewardClaimedEvent(version,
-                                            msg.sender,
+                                            _user,
                                             reward);
       }
     }
