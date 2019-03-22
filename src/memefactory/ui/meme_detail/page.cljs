@@ -49,6 +49,7 @@
               (cond-> [:reg-entry/address
                        :reg-entry/status
                        :reg-entry/deposit
+                       :reg-entry/created-on
                        :reg-entry/challenge-period-end
                        :meme/image-hash
                        :meme/meta-hash
@@ -522,7 +523,7 @@
         meme-sub (subscribe [::gql/query (build-meme-query address active-account)
                              {:refetch-on [:memefactory.ui.contract.registry-entry/challenge-success]}])
         meme (when meme-sub (-> @meme-sub :meme))
-        {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply
+        {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply :reg-entry/created-on
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end]} meme
         token-count (->> owned-meme-tokens
                          (map :meme-token/token-id)
@@ -569,8 +570,14 @@
                                                 (format/format-time-units
                                                  (time/time-remaining @(subscribe [:district.ui.now.subs/now])
                                                                       (ui-utils/gql-date->date reveal-period-end)))))]
-            [:div.text (format/pluralize total-supply "card")]
-            [:div.text (str "You own " token-count)]
+            [:div.text (str "Created " (let [days (:days (time/time-remaining (ui-utils/gql-date->date created-on)
+                                                                              @(subscribe [:district.ui.now.subs/now])))]
+                                         (if (pos? days)
+                                           (str days " ago")
+                                           "today")))]
+            [:div.text (gstring/format "You own %s out of %d"
+                                       (format/pluralize token-count "card")
+                                       total-supply)]
             [meme-creator-component creator]
             [:div.tags
              (for [tag-name tags]
