@@ -508,8 +508,7 @@
   [:div
    [:h1.title "Challenge"]
    (if-not created-on
-     [:div
-      [:h4.title "This meme hasn't been challenged."]]
+     [:div.no-challenge "This meme hasn't been challenged"]
      (cond-> [:div.challenge-component-inner
               [challenge-header created-on]]
        created-on (into [[status-component meme "This meme was challenged, and voting has concluded. Accepted memes are minted to the marketplace, while rejected ones can be resubmitted by the creator."]

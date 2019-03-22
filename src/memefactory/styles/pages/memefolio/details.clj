@@ -11,6 +11,7 @@
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [memefactory.styles.component.search :refer [search-panel]]
             [memefactory.styles.component.panels :refer [panel-with-icon tabs]]
+            [garden.color :refer [transparentize]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
             [clojure.string :as str]))
@@ -305,6 +306,10 @@
               :margin-bottom (em 0.5)
               :margin-top (em 0.5)
               }]]]
+     [:.no-challenge {:color (transparentize (color :menu-text) 0.5)
+                      :width "100%"
+                      :text-align :center
+                      :padding-top (px 84)}]
      [:h4.title {:margin-left :auto
                  :margin-right :auto
                  :width (em 17)
