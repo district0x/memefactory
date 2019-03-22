@@ -14,7 +14,8 @@
             [garden.color :refer [transparentize]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]))
 
 (def radius 170)
 (def outer-radius radius)
@@ -501,9 +502,13 @@
                        :margin-right :auto
                        :padding-top (em 7)}]
      [:h2.title {:padding-top (em 1)}]
-     [:.selling-tile-back {:height "100%"
-                           :background-color (color :violet)}
-      (button-tile-back)]
+     [:.selling-panel
+      [:.meme-card
+       [:.overlay {:background overlay-background-footer}]
+       [:.selling-tile-back {:height "100%"
+                             :background-color (color :violet)}
+        (button-tile-back)]]]
+
      [:.scroll-area
       {:background-color :white
        :color (color :menu-text)
