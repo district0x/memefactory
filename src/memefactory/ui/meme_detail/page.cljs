@@ -576,7 +576,7 @@
             [:div.text (str "Created " (let [days (:days (time/time-remaining (ui-utils/gql-date->date created-on)
                                                                               @(subscribe [:district.ui.now.subs/now])))]
                                          (if (pos? days)
-                                           (str days " ago")
+                                           (str (format/pluralize days "day") " ago")
                                            "today")))]
             [:div.text (gstring/format "You own %s out of %d"
                                        (format/pluralize token-count "card")
