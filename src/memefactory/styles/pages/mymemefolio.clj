@@ -326,7 +326,8 @@
                    :width "100%"
                    :resize :none
                    :height (em 4)
-                   :padding (em 0.5)}]
+                   :padding (em 0.5)
+                   :color (color :darker-blue)}]
        [:.buttons {:display :inline-flex
                    :justify-content :space-between
                    :font-size (px 15)
