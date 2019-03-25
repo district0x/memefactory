@@ -4,7 +4,7 @@
   {:district-config {:name "DistrictConfig",
                      :address "0x938d46ccad6328751f182cdc8df1b3dd0858caf1"},
    :dank-faucet {:name "DankFaucet",
-                 :address "0x0670f58c0dc5d1eb8a81c98463ad1ce0cdc5b718"},
+                 :address "0xbbeeb93c68e3577af91a8baacc2245eadd956b03"},
    :ds-guard {:name "DSGuard",
               :address "0xb8462dbc8d7de9039eb73f24c06bc007393ed0cd"},
    :param-change-registry {:name "ParamChangeRegistry",
