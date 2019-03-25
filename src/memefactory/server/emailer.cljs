@@ -41,29 +41,31 @@
      (promise-> (district0x-emails/get-email {:district0x-emails/address creator})
                 #(validate-email %)
                 (fn [to] (if to
-                           (send-email {:from from
-                                        :to to
-                                        :subject (str "Your meme has been challenged ")
-                                        :content (templates/challenge-created-email-body {:meme/title title
-                                                                                          :meme-url (str root-url
-                                                                                                         "meme-detail/"
-                                                                                                         registry-entry)
-                                                                                          :registry-entry registry-entry})
-                                        :substitutions {:header (str title " meme challenged")
-                                                        :button-title "Cast your vote"
-                                                        :button-href (str root-url "dankregistry/vote")}
-                                        :on-success #(log/info "Success sending meme challenged email" {:to to
-                                                                                                        :registry-entry registry-entry
-                                                                                                        :meme-title title}
-                                                               ::send-challenge-created-email)
-                                        :on-error #(log/error "Error when sending meme challenged email" {:error %
-                                                                                                          :event ev
-                                                                                                          :meme meme
-                                                                                                          :to to}
-                                                              ::send-challenge-created-email)
-                                        :template-id template-id
-                                        :api-key api-key
-                                        :print-mode? print-mode?})
+                           (do
+                             (log/info "Sending meme challenged email" ev ::send-challenge-created-email)
+                             (send-email {:from from
+                                            :to to
+                                            :subject (str "Your meme has been challenged ")
+                                            :content (templates/challenge-created-email-body {:meme/title title
+                                                                                              :meme-url (str root-url
+                                                                                                             "meme-detail/"
+                                                                                                             registry-entry)
+                                                                                              :registry-entry registry-entry})
+                                            :substitutions {:header (str title " meme challenged")
+                                                            :button-title "Cast your vote"
+                                                            :button-href (str root-url "dankregistry/vote")}
+                                            :on-success #(log/info "Success sending meme challenged email" {:to to
+                                                                                                            :registry-entry registry-entry
+                                                                                                            :meme-title title}
+                                                                   ::send-challenge-created-email)
+                                            :on-error #(log/error "Error when sending meme challenged email" {:error %
+                                                                                                              :event ev
+                                                                                                              :meme meme
+                                                                                                              :to to}
+                                                                  ::send-challenge-created-email)
+                                            :template-id template-id
+                                            :api-key api-key
+                                            :print-mode? print-mode?}))
                            (log/warn "No email found for challenged meme creator" {:event ev :meme meme} ::send-challenge-created-email)))))))
 
 (defn send-auction-bought-email [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
@@ -108,30 +110,32 @@
                 #(validate-email %)
                 (fn [to]
                   (if to
-                    (send-email {:from from
-                                 :to to
-                                 :subject "You received a vote reward"
-                                 :content (templates/vote-reward-claimed-email-body {:amount amount
-                                                                                     :title title})
-                                 :substitutions {:header (str "Reward for voting on " {:meme/title title
-                                                                                       :amount amount
-                                                                                       :meme-url (str root-url
-                                                                                                      "meme-detail/"
-                                                                                                      registry-entry)})
-                                                 :button-title "Check leaderboard"
-                                                 :button-href (str root-url "leaderboard/curators")}
-                                 :on-success #(log/info "Success sending email" {:to to
-                                                                                 :registry-entry registry-entry
-                                                                                 :meme-title title}
-                                                        ::send-vote-reward-claimed-email)
-                                 :on-error #(log/error "Error when sending email" {:error %
-                                                                                   :event ev
-                                                                                   :meme meme
-                                                                                   :to to}
-                                                       ::send-vote-reward-claimed-email)
-                                 :template-id template-id
-                                 :api-key api-key
-                                 :print-mode? print-mode?})
+                    (do
+                      (log/info "Sending vote reward received email" ev ::send-vote-reward-claimed-email)
+                      (send-email {:from from
+                                     :to to
+                                     :subject "You received a vote reward"
+                                     :content (templates/vote-reward-claimed-email-body {:amount amount
+                                                                                         :title title})
+                                     :substitutions {:header (str "Reward for voting on " {:meme/title title
+                                                                                           :amount amount
+                                                                                           :meme-url (str root-url
+                                                                                                          "meme-detail/"
+                                                                                                          registry-entry)})
+                                                     :button-title "Check leaderboard"
+                                                     :button-href (str root-url "leaderboard/curators")}
+                                     :on-success #(log/info "Success sending email" {:to to
+                                                                                     :registry-entry registry-entry
+                                                                                     :meme-title title}
+                                                            ::send-vote-reward-claimed-email)
+                                     :on-error #(log/error "Error when sending email" {:error %
+                                                                                       :event ev
+                                                                                       :meme meme
+                                                                                       :to to}
+                                                           ::send-vote-reward-claimed-email)
+                                     :template-id template-id
+                                     :api-key api-key
+                                     :print-mode? print-mode?}))
                     (log/warn "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email)))))))
 
 (defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
@@ -142,29 +146,30 @@
      (promise-> (district0x-emails/get-email {:district0x-emails/address challenger})
                 #(validate-email %)
                 (fn [to] (if to
-                           (send-email {:from from
-                                        :to to
-                                        :subject "You received a challenge reward"
-                                        :content (templates/challenge-reward-claimed-email-body {:amount amount
-                                                                                                 :title title
-                                                                                                 :meme-url (str root-url
-                                                                                                                "meme-detail/"
-                                                                                                                registry-entry)})
-                                        :substitutions {:header (str "Reward for challenging " registry-entry)
-                                                        :button-title "Check leaderboard"
-                                                        :button-href (str root-url "leaderboard/curators")}
-                                        :on-success #(log/info "Success sending challenge reward claimed email" {:to to
-                                                                                                                 :registry-entry registry-entry
-                                                                                                                 :title title}
-                                                               ::send-challenge-reward-claimed-email)
-                                        :on-error #(log/error "Error when sending challenge reward claimed email" {:error %
-                                                                                                                   :event ev
-                                                                                                                   :meme meme
-                                                                                                                   :to to}
-                                                              ::send-challenge-reward-claimed-email)
-                                        :template-id template-id
-                                        :api-key api-key
-                                        :print-mode? print-mode?})
+                           (do (log/info "Sending chalenge reward received email" ev ::send-challenge-reward-claimed-email)
+                               (send-email {:from from
+                                            :to to
+                                            :subject "You received a challenge reward"
+                                            :content (templates/challenge-reward-claimed-email-body {:amount amount
+                                                                                                     :title title
+                                                                                                     :meme-url (str root-url
+                                                                                                                    "meme-detail/"
+                                                                                                                    registry-entry)})
+                                            :substitutions {:header (str "Reward for challenging " registry-entry)
+                                                            :button-title "Check leaderboard"
+                                                            :button-href (str root-url "leaderboard/curators")}
+                                            :on-success #(log/info "Success sending challenge reward claimed email" {:to to
+                                                                                                                     :registry-entry registry-entry
+                                                                                                                     :title title}
+                                                                   ::send-challenge-reward-claimed-email)
+                                            :on-error #(log/error "Error when sending challenge reward claimed email" {:error %
+                                                                                                                       :event ev
+                                                                                                                       :meme meme
+                                                                                                                       :to to}
+                                                                  ::send-challenge-reward-claimed-email)
+                                            :template-id template-id
+                                            :api-key api-key
+                                            :print-mode? print-mode?}))
                            (log/warn "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email)))))))
 
 (defn event-callback [f]
