@@ -2,7 +2,8 @@
   (:require
    [district.ui.component.form.input :refer [with-label select-input text-input checkbox-input with-label chip-input]]
    [print.foo :refer [look] :include-macros true]
-   [reagent.core :as r])
+   [reagent.core :as r]
+   [clojure.string :as str])
   (:require-macros [reagent.ratom :refer [reaction]]))
 
 (defn get-by-path
@@ -41,8 +42,12 @@
                                          (= key-code 13) ;; return key
                                          (do
                                            (swap! form-data assoc search-id input)
-                                           (when on-search-change (on-search-change input)))
-                                         )))
+                                           (when on-search-change (on-search-change input))))))
+                      :on-key-up (fn [e]
+                                   (let [key-code (-> e .-keyCode)
+                                         input (get @search-input-form-data search-id)]
+                                     (when (str/blank? input)
+                                       (swap! form-data assoc search-id input))))
                       ;; :placeholder "Name"
                       :form-data search-input-form-data
                       :id search-id
