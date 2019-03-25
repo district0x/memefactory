@@ -22,6 +22,8 @@
                          :text-align :center
                          :padding-top (px 230)
                          :padding-bottom (px 230)}]
+   [:.address {:cursor :pointer}
+    [:&.active-address {:color (color :purple)}]]
    [:div.notification
     {:color (color :meme-info-text)
      :background-color (color :deep-purple)

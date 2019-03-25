@@ -106,7 +106,13 @@
                      (format/format-token creator-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
-     [:div.address (str "Address: " address)]]))
+     [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                          {:address address}
+                                          {:tab :created}])}
+      [:span "Address:"]
+      [:span.address {:class (when (= address @(subscribe [::accounts-subs/active-account]))
+                               "active-address")}
+       address]]]))
 
 (defn related-memes-component [state loading-first? loading-last?]
   (panel :selling state loading-first? loading-last?))
@@ -212,13 +218,17 @@
                     ^{:key address}
                     [:tr
                      [:td.meme-token (:meme-token/token-id meme-token)]
-                     [:td.seller-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                     [:td.address.seller-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                                 {:address (:user/address seller)}
-                                                                {:tab :sold}])}
+                                                                {:tab :sold}])
+                                          :class (when (= (:user/address seller) @(subscribe [::accounts-subs/active-account]))
+                                                   "active-address")}
                       (:user/address seller)]
-                     [:td.buyer-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                     [:td.address.buyer-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                                {:address (:user/address buyer)}
-                                                               {:tab :collected}])}
+                                                               {:tab :collected}])
+                                         :class (when (= (:user/address buyer) @(subscribe [::accounts-subs/active-account]))
+                                                  "active-address")}
                       (:user/address buyer)]
                      [:td.end-price (format-price bought-for)]
                      [:td.time  (let [now-date (t/date-time @now)
@@ -245,7 +255,10 @@
      [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                           {:address (:user/address challenger)}
                                           {:tab :curated}])}
-      (str "Address: " (:user/address challenger))]
+      [:span "Address:"]
+      [:span.address {:class (when (= (:user/address challenger) @(subscribe [::accounts-subs/active-account]))
+                               "active-address")}
+       (:user/address challenger)]]
      [:span.challenge-comment (str "\"" comment "\"")]]))
 
 (defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme} text]
