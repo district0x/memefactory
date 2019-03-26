@@ -10,6 +10,7 @@
 (defstyles core
   [:.tiles
    {:display :flex
+    :overflow :visible
     :flex-wrap :wrap
     :justify-content :left
     :padding-left (em 2.5)
