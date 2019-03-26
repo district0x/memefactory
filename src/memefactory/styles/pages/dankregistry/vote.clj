@@ -64,6 +64,9 @@
                    :grid-template-columns "80% 20%"
                    :border-bottom "1px solid"
                    :margin-bottom (em 1)}
+     [:img.dank-logo-small
+      {:margin-left (px 6)}
+      (for-media-max :tablet [:& {:margin-left (px 17)}])]
      [:span {:margin-top (px 8)}]
      [:.help-block {:display :none}]]
     [:.vote-dank

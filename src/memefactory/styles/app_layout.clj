@@ -22,6 +22,13 @@
                          :text-align :center
                          :padding-top (px 230)
                          :padding-bottom (px 230)}]
+   [:.dank-wrapper
+    {:display :inline-flex
+     :align-items :center
+     :justify-content :center}
+    [:span]
+    [:img {:width (px 35)}]]
+   [:img.dank-logo-small {:width (px 35)}]
    [:.address {:cursor :pointer}
     [:&.active-address {:color (color :purple)}]]
    [:div.notification

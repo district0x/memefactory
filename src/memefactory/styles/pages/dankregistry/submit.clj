@@ -117,7 +117,10 @@
                  :height (em 3.3)
                  :width (em 10)})]
 
-       [:.dank {:flex 1
-                :margin-left (em 1)}]]
+       [:.dank-wrapper {:flex 1
+                        :margin-left (em -15)}
+        (for-media-max :tablet
+                     [:&
+                      {:margin-left (em -7)}])]]
       [:.not-enough-dank {:margin-top (em 1)
                            :color :red}]]]]])

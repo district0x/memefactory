@@ -38,7 +38,8 @@
    [taoensso.timbre :as log]
    [goog.string :as gstring]
    [memefactory.ui.components.buttons :as buttons]
-   [memefactory.ui.dank-registry.vote-page :as vote-page]))
+   [memefactory.ui.dank-registry.vote-page :as vote-page]
+   [memefactory.ui.components.general :refer [dank-with-logo]]))
 
 (def scroll-interval 5)
 
@@ -336,7 +337,7 @@
                                :maxLength 2000
                                :errors errors}]
        [:div.controls
-        [:div.dank (format/format-token (quot deposit 1e18) {:token "DANK"})]
+        [dank-with-logo (quot dank-deposit 1e18)]
         [tx-button/tx-button {:primary true
                               :disabled (or @tx-success? (not (empty? (:local @errors))))
                               :pending? @tx-pending?
@@ -421,7 +422,7 @@
            {:form-data form-data
             :for :vote/amount-for
             :id :vote/amount-for}]
-          [:span.unit "DANK"]]
+          [:img.dank-logo-small.unit {:src "/assets/icons/dank-logo.svg"}]]
 
          [inputs/pending-button
           {:pending? @tx-pending?
@@ -450,7 +451,7 @@
            {:form-data form-data
             :for :vote/amount-against
             :id :vote/amount-against}]
-          [:span.unit "DANK"]]
+          [:img.dank-logo-small.unit {:src "/assets/icons/dank-logo.svg"}]]
          [inputs/pending-button
           {:pending? @tx-pending?
            :disabled (or (-> @errors :local :vote/amount-against empty? not)
