@@ -491,6 +491,7 @@
                           :meme/image-hash :meme/number
                           :meme/title :challenge/vote] :as meme}]
                (when address
+                 (.log js/console (clj->js meme))
                  (let [{:keys [:vote/option]} vote
                        status (graphql-utils/gql-name->kw (or status :undefined))
                        rejected? (= status :reg-entry.status/blacklisted)]
@@ -722,6 +723,7 @@
                            :meme/meta-hash
                            :meme/number
                            :meme/title
+                           :reg-entry/status
                            [:challenge/vote {:vote/voter user-address}
                             [:vote/option]]]]]]]
       :selling [[:search-meme-auctions (merge {:seller user-address
