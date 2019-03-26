@@ -8,7 +8,7 @@
                   reveal-period-end))
 
 (defn meme-auction-bought-email-body [{:keys [:meme/title :meme-url]}]
-  (gstring/format "Your <a href=\"%s\">%s meme auction</a> has been bought"
+  (gstring/format "Your auction <a href=\"%s\">%s</a> has been bought"
                   meme-url
                   title))
 

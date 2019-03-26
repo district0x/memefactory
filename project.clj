@@ -37,6 +37,7 @@
                  [district0x/district-ui-component-active-account "1.0.1"]
                  [district0x/district-ui-component-active-account-balance "1.0.1"]
                  [district0x/district-ui-component-form "0.2.6"]
+                 [district0x/district-ui-component-meta-tags "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
                  [district0x/district-ui-graphql "1.0.9"]
@@ -58,8 +59,7 @@
                  [district0x/district-web3-utils "1.0.2"]
                  [district0x/error-handling "1.0.4"]
                  [district0x/re-frame-ipfs-fx "0.0.2"]
-                 ;; version with fix for duplicated query params
-                 [funcool/bide "1.6.1-SNAPSHOT"]
+                 [funcool/bide "1.6.1-SNAPSHOT"] ;; version with fix for duplicated query params
                  [garden "1.3.5"]
                  [medley "1.0.0"]
                  [mount "0.1.12"]
