@@ -491,7 +491,6 @@
                           :meme/image-hash :meme/number
                           :meme/title :challenge/vote] :as meme}]
                (when address
-                 (.log js/console (clj->js meme))
                  (let [{:keys [:vote/option]} vote
                        status (graphql-utils/gql-name->kw (or status :undefined))
                        rejected? (= status :reg-entry.status/blacklisted)]
