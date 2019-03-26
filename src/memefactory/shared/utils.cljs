@@ -2,7 +2,8 @@
   (:require [bignumber.core :as bn]
             [cljs.core.match :refer-macros [match]]
             [district.web3-utils :as web3-utils]
-            [print.foo :refer [look] :include-macros true]))
+            [print.foo :refer [look] :include-macros true])
+  (:import [goog.async Debouncer]))
 
 (def not-nil? (complement nil?))
 
@@ -29,12 +30,6 @@
            [true _] nil
            [false true] (web3-utils/web3-time->local-date-time date)
            [false (:or nil false)] date)))
-
-#_(defn seconds->days [seconds]
-  (js/Math.floor (/ seconds 24 60 60)))
-
-#_(defn days->seconds [days]
-  (* days 24 60 60))
 
 (defn seconds->days [seconds]
   (/ seconds 86400))
@@ -72,3 +67,7 @@
               m2))
   ([m1 m2 & ms]
    (apply deep-merge (deep-merge m1 m2) ms)))
+
+(defn debounce [f interval]
+  (let [dbnc (Debouncer. f interval)]
+    (fn [& args] (.apply (.-fire dbnc) dbnc (to-array args)))))
