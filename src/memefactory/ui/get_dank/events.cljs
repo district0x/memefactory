@@ -74,11 +74,11 @@
 
 (re-frame/reg-event-fx
  ::encrypt-payload-success
- (fn [{:keys [db]} [_ {:keys [country-code phone-number verification-code] :as data}]]
-   ()
+ (fn [{:keys [db]} [_ {:keys [country-code phone-number verification-code] :as data} http-resp]]
+   (log/info "Encryption success:" data)
    {:db (assoc db
           ::spinner true)
-    :dispatch [::verify-and-acquire-dank data]}))
+    :dispatch [::verify-and-acquire-dank data http-resp]}))
 
 (re-frame/reg-event-fx
  ::verify-and-acquire-dank
