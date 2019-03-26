@@ -167,8 +167,7 @@
                               :ipfs {:host "http://127.0.0.1:5001"
                                      :endpoint "/api/v0"
                                      :gateway "http://127.0.0.1:8080/ipfs"}
-                              :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts
-                                                :print-gas-usage? true}
+                              :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
                               :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
                               :ui {:public-key "PLACEHOLDER"
                                    :root-url "http://0.0.0.0:4598/#/"}

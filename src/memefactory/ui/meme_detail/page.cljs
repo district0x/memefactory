@@ -488,7 +488,7 @@
                          [challenger-component meme]
                          (if-not (= 0 days hours minutes seconds)
                            [reveal-vote-component meme]
-                           [:div "Reveal period ended. Please refresh the page."])]))]))
+                           [:div "Reveal period ended."])]))]))
 
 (defmethod challenge-component :reg-entry.status/commit-period
   [{:keys [:challenge/created-on :reg-entry/status :challenge/commit-period-end] :as meme}]

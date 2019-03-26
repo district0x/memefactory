@@ -51,7 +51,7 @@
                                                                      :gql-name->kw graphql-utils/gql-name->kw})
                                         :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                         :path "/graphql"
-                                        :graphiql true}
+                                        :graphiql false}
                               :web3 {:url "localhost:8545"}
                               :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                               :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
