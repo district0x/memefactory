@@ -66,6 +66,11 @@
    [:from {:opacity 0.0}]
    [:to {:opacity 1.0}])
 
+  (at-keyframes
+   :fade-out
+   [:from {:opacity 1.0}]
+   [:to {:opacity 0.0}])
+
   ;; Flipping Front Forwards (not facing)
   (at-keyframes
    :flipping-front-not-facing
@@ -340,12 +345,20 @@
     :grid-area :fill
     :background-color "rgba(0, 0, 0, 0.3)"
     :z-index 1}
+
+   [:&:hover
+    {:animation-name :fade-out
+     :animation-duration "0.11s"
+     :animation-delay "0.001s"
+     :animation-timing-function :linear
+     :animation-fill-mode :both}]
+
    [:.image-tape
     {:display :flex
      :position :relative
      :align-items :center
      :justify-content :center
-     :top (px (- (/ card-height 2) 60))
+     :top (px (- (/ card-height 2) 45))
      :right (px (- (/ card-width 2) 5))
      :background-color (color :rank-yellow)
      :height (px (* card-height 0.15))
