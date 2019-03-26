@@ -1029,43 +1029,56 @@
 
 (defn encrypt-verification-payload-resolver
   [_ {:keys [country-code phone-number verification-code] :as args}]
-  (try-catch-throw
-   ;; Build Oraclize call
-   (let [encryption-script "./scripts/encrypted_queries_tools.py"
-         oraclize-public-key "044992e9473b7d90ca54d2886c7addd14a61109af202f1c95e218b0c99eb060c7134c4ae46345d0383ac996185762f04997d6fd6c393c86e4325c469741e64eca9"
-         json-payload (->> (clj->js {:json {:via "sms"
-                                            :phone_number phone-number
-                                            :country_code country-code
-                                            :verification_code verification-code}
-                                     :headers {:content-type "application/json"
-                                               "X-Authy-API-Key" (:twilio-api-key @config)}})
-                           (.stringify js/JSON))
-         full-encryption-command (str "python "
-                                      encryption-script
-                                      " -p "
-                                      oraclize-public-key
-                                      " -e "
-                                      \' json-payload \')]
-     (log/debug full-encryption-command)
+  (try
+    ;; Build Oraclize call
+    (let [encryption-script "./scripts/encrypted_queries_tools.py"
+          oraclize-public-key "044992e9473b7d90ca54d2886c7addd14a61109af202f1c95e218b0c99eb060c7134c4ae46345d0383ac996185762f04997d6fd6c393c86e4325c469741e64eca9"
+          json-payload (->> (clj->js {:json {:via "sms"
+                                             :phone_number phone-number
+                                             :country_code country-code
+                                             :verification_code verification-code}
+                                      :headers {:content-type "application/json"
+                                                "X-Authy-API-Key" (:twilio-api-key @config)}})
+                            (.stringify js/JSON))
+          full-encryption-command (str "python "
+                                       encryption-script
+                                       " -p "
+                                       oraclize-public-key
+                                       " -e "
+                                       \' json-payload \')]
+      (log/debug full-encryption-command)
 
-     ;; Shell out
-     ;; Run the Python script to encrypt the payload
-     (-> (exec-promise full-encryption-command)
-         (.then (fn [result]
-                  (let [python-result (js->clj result)]
-                    (log/debug "python encryption result:" python-result)
-                    (let [stdout (get python-result "stdout")
-                          stderr (get python-result "stderr")]
+      ;; Shell out
+      ;; Run the Python script to encrypt the payload
+      (-> (exec-promise full-encryption-command)
+          (.then (fn [result]
+                   (let [python-result (js->clj result)]
+                     (log/debug "python encryption result:" python-result)
+                     (let [stdout (get python-result "stdout")
+                           stderr (get python-result "stderr")]
 
-                      ;; Return the encrypted payload
-                      (if (clojure.string/blank? stderr)
-                        (do
-                          {:success true
-                           :payload (clojure.string/trim-newline stdout)})
+                       ;; Return the encrypted payload
+                       ;; (if (clojure.string/blank? stderr)
+                       ;;   (do
+                       ;;     {:success true
+                       ;;      :payload (clojure.string/trim-newline stdout)})
 
-                        (do
-                          {:success false
-                           :payload stderr}))))))))))
+                       ;;   (do
+                       ;;     {:success false
+                       ;;      :payload stderr}))
+
+                       ;; Who needs error handling? Apparently we don't. With the
+                       ;; latest version of the Python (both 2 and 3) encryption
+                       ;; library it spits a warning out to stderr for using the
+                       ;; encode_point() function. Until Oraclize upgrades the
+                       ;; encrypted_queries_tools.py script we're rollin' dirty.
+                       {:success true
+                            :payload (clojure.string/trim-newline stdout)}))))))
+    (catch Exception ex
+      ;; We'll get here if there's an issue calling python
+      (log/error "Error calling python:" ex)
+      {:success false
+       :payload (.getMessage ex)})))
 
 (defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
 
