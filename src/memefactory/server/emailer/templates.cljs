@@ -12,14 +12,15 @@
                   meme-url
                   title))
 
-(defn vote-reward-claimed-email-body [{:keys [:amount :meme/title :meme-url]}]
-  (gstring/format "You received %d as a reward for voting on <a href=\"%s\">%s</a>"
+(defn vote-reward-claimed-email-body [{:keys [:amount :meme/title :meme-url :vote/option]}]
+  (gstring/format "You received  %s as a reward for voting %s for <a href=\"%s\">%s</a>"
                   amount
+                  option
                   meme-url
                   title))
 
 (defn challenge-reward-claimed-email-body [{:keys [:amount :meme/title :meme-url]}]
-  (gstring/format "You received %d as a reward for challenging <a href=\"%s\">%s</a>"
+  (gstring/format "You received %s as a reward for challenging <a href=\"%s\">%s</a>"
                   amount
                   meme-url
                   title))

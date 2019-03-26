@@ -1,11 +1,13 @@
 (ns memefactory.server.emailer
   (:require
+   [cljs-time.coerce :as time-coerce]
    [cljs-web3.eth :as web3-eth]
    [district.encryption :as encryption]
    [district.format :as format]
    [district.sendgrid :refer [send-email]]
    [district.server.config :as config]
    [district.shared.error-handling :refer [try-catch]]
+   [district.time :as time]
    [goog.format.EmailAddress :as email-address]
    [memefactory.server.contract.district0x-emails :as district0x-emails]
    [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
@@ -15,11 +17,6 @@
    [memefactory.server.macros :refer [promise->]]
    [mount.core :as mount :refer [defstate]]
    [taoensso.timbre :as log]
-
-   [district.time :as time]
-   [cljs-time.core :as t]
-   [cljs-time.coerce :as time-coerce]
-
    ))
 
 (declare start)
@@ -52,17 +49,12 @@
                                           :to to
                                           :subject (str title " challenged!")
                                           :content (templates/challenge-created-email-body {:meme/title title
-                                                                                            :meme-url (str root-url
-                                                                                                           "meme-detail/"
-                                                                                                           registry-entry)
+                                                                                            :meme-url (str root-url "meme-detail/" registry-entry)
                                                                                             :reveal-period-end (-> reveal-period-end time/epoch->long time-coerce/from-long format/format-date)})
                                           :substitutions {:header (str title " meme challenged")
                                                           :button-title "Vote Now"
                                                           :button-href (str root-url "dankregistry/vote")
-                                                          :meme-image-url (str ipfs-gateway-url image-hash)
-                                                          ;; TODO : group unsubscribe
-                                                          ;; :unsubscribe-href "[unsubscribe]"
-                                                          }
+                                                          :meme-image-url (str ipfs-gateway-url image-hash)}
                                           :on-success #(log/info "Success sending meme challenged email" {:to to
                                                                                                           :registry-entry registry-entry
                                                                                                           :meme-title title}
@@ -90,9 +82,7 @@
                                         :to to
                                         :subject (str "One of your auctions has been bought")
                                         :content (templates/meme-auction-bought-email-body {:meme/title title
-                                                                                            :meme-url (str root-url
-                                                                                                           "meme-detail/"
-                                                                                                           (:reg-entry/address meme))})
+                                                                                            :meme-url (str root-url "meme-detail/" (:reg-entry/address meme))})
                                         :substitutions {:header (str "Your auction for " title " has been bought")
                                                         :button-title "Check the leaderboard"
                                                         :button-href (str root-url "leaderboard/collectors")}
@@ -113,6 +103,7 @@
 (defn send-vote-reward-claimed-email [{:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (try-catch
    (let [{:keys [:meme/title] :as meme} (db/get-meme registry-entry)
+         {:keys [:vote/option]} (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/option])
          {:keys [:from :template-id :api-key :print-mode?]} @emailer
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address voter})
@@ -124,15 +115,15 @@
                       (send-email {:from from
                                    :to to
                                    :subject "You received a vote reward"
-                                   :content (templates/vote-reward-claimed-email-body {:amount amount
-                                                                                       :title title})
-                                   :substitutions {:header (str "Reward for voting on " {:meme/title title
-                                                                                         :amount amount
-                                                                                         :meme-url (str root-url
-                                                                                                        "meme-detail/"
-                                                                                                        registry-entry)})
-                                                   :button-title "Check leaderboard"
-                                                   :button-href (str root-url "leaderboard/curators")}
+                                   :content (templates/vote-reward-claimed-email-body {:meme/title title
+                                                                                       :vote/option (case option
+                                                                                                      1 "DANK"
+                                                                                                      2 "STANK")
+                                                                                       :amount (format/format-dnt amount)
+                                                                                       :meme-url (str root-url "meme-detail/" registry-entry)})
+                                   :substitutions {:header "Vote Reward"
+                                                   :button-title "My Memefolio"
+                                                   :button-href (str root-url "memefolio/?tab=curated")}
                                    :on-success #(log/info "Success sending email" {:to to
                                                                                    :registry-entry registry-entry
                                                                                    :meme-title title}
@@ -147,6 +138,7 @@
                                    :print-mode? print-mode?}))
                     (log/warn "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email)))))))
 
+;; TODO
 (defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
   (try-catch
    (let [{:keys [:meme/title] :as meme} (db/get-meme registry-entry)
@@ -159,14 +151,14 @@
                                (send-email {:from from
                                             :to to
                                             :subject "You received a challenge reward"
-                                            :content (templates/challenge-reward-claimed-email-body {:amount amount
-                                                                                                     :title title
+                                            :content (templates/challenge-reward-claimed-email-body {:amount (format/format-dnt amount)
+                                                                                                     :meme/title title
                                                                                                      :meme-url (str root-url
                                                                                                                     "meme-detail/"
                                                                                                                     registry-entry)})
-                                            :substitutions {:header (str "Reward for challenging " registry-entry)
-                                                            :button-title "Check leaderboard"
-                                                            :button-href (str root-url "leaderboard/curators")}
+                                            :substitutions {:header "Challenge Reward"
+                                                            :button-title "My Memefolio"
+                                                            :button-href (str root-url "memefolio/?tab=curated")}
                                             :on-success #(log/info "Success sending challenge reward claimed email" {:to to
                                                                                                                      :registry-entry registry-entry
                                                                                                                      :title title}
