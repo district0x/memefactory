@@ -1,34 +1,28 @@
 (ns memefactory.ui.components.infinite-scroll
-  (:require [reagent.core :as r]))
+  (:require [reagent.core :as r]
+            ;; [taoensso.timbre :as log :refer [spy]]
+            ;; [memefactory.shared.utils :as utils]
+            [react-infinite]
+            ))
 
-(defn- get-scroll-top []
+(def react-infinite (r/adapt-react-class js/Infinite))
+
+#_(defn- get-scroll-top []
   (if (exists? (.-pageYOffset js/window))
     (.-pageYOffset js/window)
     (.-scrollTop (or (.-documentElement js/document)
                      (.-parentNode (.-body js/document))
                      (.-body js/document)))))
 
-(defn- get-el-top-position [node]
+#_(defn- get-el-top-position [node]
   (if (not node)
     0
     (+ (.-offsetTop node) (get-el-top-position (.-offsetParent node)))))
 
-(defn- safe-component-mounted? [component]
+#_(defn- safe-component-mounted? [component]
   (try (boolean (r/dom-node component)) (catch js/Object _ false)))
 
-(defn debounce
-  ([threshold f] (debounce threshold f (constantly nil)))
-  ([threshold f prep-fn]
-   (let [t (atom nil)]
-     (fn [& args]
-       (when @t (js/clearTimeout @t))
-       (apply prep-fn args)
-       (reset! t (js/setTimeout #(do
-                                   (reset! t nil)
-                                   (apply f args))
-                                threshold))))))
-
-(defn infinite-scroll [props]
+#_(defn infinite-scroll [props]
   (let [listener-fn (atom nil)
         detach-scroll-listener (fn []
                                  (when @listener-fn
@@ -39,18 +33,29 @@
                             (let [node (r/dom-node this)
                                   scroll-top (get-scroll-top)
                                   my-top (get-el-top-position node)
-                                  threshold 50]
-                              (< (- (+ my-top (.-offsetHeight node))
-                                    scroll-top
-                                    (.-innerHeight js/window))
-                                 threshold)))
+                                  threshold 0]
+
+                              (log/debug "load-more?" {:load? (> threshold (- (.-offsetHeight node)
+                                                                              (+ (.-innerHeight js/window)
+                                                                                 scroll-top)))
+                                                       :t threshold
+                                                       :v (- (.-offsetHeight node)
+                                                             (+ (.-innerHeight js/window)
+                                                                scroll-top))})
+
+                              (> threshold
+                                 (- (.-offsetHeight node)
+                                    (+ (.-innerHeight js/window)
+                                       scroll-top)))
+
+                              ))
         scroll-listener (fn [this]
                           (when (safe-component-mounted? this)
                             (let [{:keys [load-fn]} (r/props this)]
                               (when (should-load-more? this)
                                 (detach-scroll-listener)
                                 (load-fn)))))
-        debounced-scroll-listener (debounce 200 scroll-listener)
+        debounced-scroll-listener (utils/debounce scroll-listener 50)
         attach-scroll-listener (fn [this]
                                  (when-not @listener-fn
                                    (reset! listener-fn (partial debounced-scroll-listener this))
@@ -61,3 +66,14 @@
       :component-did-update attach-scroll-listener
       :component-will-unmount detach-scroll-listener
       :reagent-render (fn [] [:div.infinite-scroll])})))
+
+(defn infinite-scroll [{:keys [:load-fn :element-height :infinite-load-begin-edge-offset :use-window-as-scroll-container]
+                        :or {element-height 400
+                             infinite-load-begin-edge-offset 100
+                             use-window-as-scroll-container true}
+                        :as props}]
+  [react-infinite (r/merge-props props
+                                 {:element-height element-height
+                                  :infinite-load-begin-edge-offset infinite-load-begin-edge-offset
+                                  :use-window-as-scroll-container use-window-as-scroll-container
+                                  :on-infinite-load load-fn})])

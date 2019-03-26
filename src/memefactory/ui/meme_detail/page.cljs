@@ -504,7 +504,7 @@
                          [challenger-component meme]
                          (if-not (= 0 days hours minutes seconds)
                            [vote-component meme]
-                           [:div "Commit period ended. Please refresh the page."])]))]))
+                           [:div "Commit period ended."])]))]))
 
 (defmethod challenge-component :reg-entry.status/challenge-period
   [{:keys [:challenge/created-on :reg-entry/status :reg-entry/challenge-period-end] :as meme}]

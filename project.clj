@@ -12,6 +12,7 @@
                  [cljsjs/d3 "4.12.0-0"]
                  [cljsjs/react "16.4.1-0"]
                  [cljsjs/react-dom "16.4.1-0"]
+                 [cljsjs/react-infinite "0.13.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]

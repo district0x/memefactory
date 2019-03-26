@@ -51,7 +51,8 @@
                        (mapcat (fn [r] (-> r :search-memes :items))))
         last-meme (last @meme-search)]
 
-    (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::dank-registry-tiles)
+    (log/debug "#memes" {:c (count all-memes)})
+
     [:div.scroll-area
      [:div.tiles
       (if (and (empty? all-memes)
@@ -67,9 +68,6 @@
      [infinite-scroll {:load-fn (fn []
                                   (when-not (:graphql/loading? last-meme)
                                     (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes last-meme)]
-
-                                      (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} ::dank-registry-tiles)
-
                                       (when has-next-page
                                         (dispatch [:district.ui.graphql.events/query
                                                    {:query {:queries [(build-tiles-query @form-data end-cursor)]}

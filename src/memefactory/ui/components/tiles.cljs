@@ -183,9 +183,6 @@
                              {:max-fraction-digits 2})])]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
-
-  (log/debug "meme-tile" meme)
-
   [:div.compact-tile
    [flippable-tile {:front [meme-image image-hash]
                     :back [meme-back-tile meme]}]
