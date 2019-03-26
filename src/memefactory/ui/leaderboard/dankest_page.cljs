@@ -76,7 +76,7 @@
 
 (defmethod page :route.leaderboard/dankest []
   (let [active-page (subscribe [::router-subs/active-page])
-        form-data (r/atom {:order-by "average-price"})]
+        form-data (r/atom {:order-by "total-trade-volume"})]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory"
