@@ -72,8 +72,9 @@
                              infinite-load-begin-edge-offset 100
                              use-window-as-scroll-container true}
                         :as props}]
-  [react-infinite (r/merge-props props
-                                 {:element-height element-height
-                                  :infinite-load-begin-edge-offset infinite-load-begin-edge-offset
-                                  :use-window-as-scroll-container use-window-as-scroll-container
-                                  :on-infinite-load load-fn})])
+  [:div.infinite-scroll
+   [react-infinite (r/merge-props props
+                                  {:element-height element-height
+                                   :infinite-load-begin-edge-offset infinite-load-begin-edge-offset
+                                   :use-window-as-scroll-container use-window-as-scroll-container
+                                   :on-infinite-load load-fn})]])
