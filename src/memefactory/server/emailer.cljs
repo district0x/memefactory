@@ -16,8 +16,7 @@
    [memefactory.server.emailer.templates :as templates]
    [memefactory.server.macros :refer [promise->]]
    [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log]
-   ))
+   [taoensso.timbre :as log]))
 
 (declare start)
 (declare stop)
