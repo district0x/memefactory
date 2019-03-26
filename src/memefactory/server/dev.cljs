@@ -148,7 +148,7 @@
 
 (defn -main [& _]
   (let [on-event-error (fn [err]
-                         #_(log/error "RPC node error" {:error err}))]
+                         (log/error "RPC node error" {:error err}))]
     (-> (mount/with-args
           {:config {:default {:logging {:level "info"
                                         :console? true}

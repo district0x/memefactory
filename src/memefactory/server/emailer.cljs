@@ -71,20 +71,22 @@
 (defn send-auction-bought-email [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (try-catch
    (let [{:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
-         {:keys [:meme/title] :as meme} (db/get-meme-by-auction-address address)
+         {:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme-by-auction-address address)
          {:keys [:from :template-id :api-key :print-mode?]} @emailer
-         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))]
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
+         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address seller})
                 #(validate-email %)
                 (fn [to] (if to
                            (send-email {:from from
                                         :to to
-                                        :subject (str "One of your auctions has been bought")
+                                        :subject (str title " bought!")
                                         :content (templates/meme-auction-bought-email-body {:meme/title title
                                                                                             :meme-url (str root-url "meme-detail/" (:reg-entry/address meme))})
-                                        :substitutions {:header (str "Your auction for " title " has been bought")
-                                                        :button-title "Check the leaderboard"
-                                                        :button-href (str root-url "leaderboard/collectors")}
+                                        :substitutions {:header "Auction Bought"
+                                                        :button-title "Leaderboard"
+                                                        :button-href (str root-url "leaderboard/collectors")
+                                                        :meme-image-url (str ipfs-gateway-url image-hash)}
                                         :on-success #(log/info "Success sending auction bought email" {:to to
                                                                                                        :meme-auction meme-auction
                                                                                                        :meme-title title}
@@ -101,10 +103,11 @@
 
 (defn send-vote-reward-claimed-email [{:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (try-catch
-   (let [{:keys [:meme/title] :as meme} (db/get-meme registry-entry)
+   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:vote/option]} (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/option])
          {:keys [:from :template-id :api-key :print-mode?]} @emailer
-         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))]
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
+         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address voter})
                 #(validate-email %)
                 (fn [to]
@@ -122,7 +125,8 @@
                                                                                        :meme-url (str root-url "meme-detail/" registry-entry)})
                                    :substitutions {:header "Vote Reward"
                                                    :button-title "My Memefolio"
-                                                   :button-href (str root-url "memefolio/?tab=curated")}
+                                                   :button-href (str root-url "memefolio/?tab=curated")
+                                                   :meme-image-url (str ipfs-gateway-url image-hash)}
                                    :on-success #(log/info "Success sending email" {:to to
                                                                                    :registry-entry registry-entry
                                                                                    :meme-title title}
@@ -137,12 +141,12 @@
                                    :print-mode? print-mode?}))
                     (log/warn "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email)))))))
 
-;; TODO
 (defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
   (try-catch
-   (let [{:keys [:meme/title] :as meme} (db/get-meme registry-entry)
+   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:from :template-id :api-key :print-mode?]} @emailer
-         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))]
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
+         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address challenger})
                 #(validate-email %)
                 (fn [to] (if to
@@ -157,7 +161,8 @@
                                                                                                                     registry-entry)})
                                             :substitutions {:header "Challenge Reward"
                                                             :button-title "My Memefolio"
-                                                            :button-href (str root-url "memefolio/?tab=curated")}
+                                                            :button-href (str root-url "memefolio/?tab=curated")
+                                                            :meme-image-url (str ipfs-gateway-url image-hash)}
                                             :on-success #(log/info "Success sending challenge reward claimed email" {:to to
                                                                                                                      :registry-entry registry-entry
                                                                                                                      :title title}
