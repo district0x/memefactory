@@ -72,7 +72,7 @@
    [:div.go-button]])
 
 (defn app-bar-mobile [drawer-open?]
-  (let [open? (r/atom nil)];;(subscribe [:district0x.transaction-log/open?])]
+  (let [open? (r/atom nil)]
     (fn []
       [:div.app-bar-mobile
        [:div.logo {:on-click #(dispatch [::router-events/navigate :route/home])}]
@@ -80,10 +80,7 @@
         [:i.icon.hamburger
          {:on-click (fn [e]
                       (.stopPropagation e)
-                      (swap! drawer-open? not)
-                      ;; (dispatch [:district0x.menu-drawer/set true])
-                      )}]]
-       ])))
+                      (swap! drawer-open? not))}]]])))
 
 (defn app-bar [{:keys [search-atom]}]
   (let [open? (r/atom nil)
@@ -94,8 +91,6 @@
       [:div.app-bar
        [:div.account-section
         [active-account]]
-       #_[:div.search-section
-        [search-form search-term]]
        [:div.tracker-section
         {:on-click (fn []
                      (if (empty? @my-addresses)

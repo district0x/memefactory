@@ -1,15 +1,15 @@
 (ns memefactory.ui.my-settings.page
-  (:require [memefactory.ui.components.app-layout :refer [app-layout]]
+  (:require [district.ui.component.form.input :refer [with-label text-input]]
             [district.ui.component.page :refer [page]]
-            [reagent.core :as r]
-            [district.ui.component.form.input :refer [with-label text-input]]
-            [re-frame.core :as re-frame]
-            [memefactory.ui.contract.district0x-emails :as ms-events]
-            [goog.format.EmailAddress :as email-address]
-            [reagent.ratom :refer [reaction]]
             [district.ui.graphql.subs :as gql]
-            [district.ui.web3-accounts.subs :as accounts-subs]))
-
+            [district.ui.web3-accounts.subs :as accounts-subs]
+            [goog.format.EmailAddress :as email-address]
+            [memefactory.ui.components.app-layout :refer [app-layout]]
+            [memefactory.ui.contract.district0x-emails :as ms-events]
+            [re-frame.core :as re-frame]
+            [reagent.core :as r]
+            [reagent.ratom :refer [reaction]]
+            [taoensso.timbre :as log :refer [spy]]))
 
 (defn valid-email? [s & [{:keys [:allow-empty?]}]]
   (let [valid? (email-address/isValidAddress s)]
@@ -27,7 +27,6 @@
                                    (not (valid-email? (or (:email @form-data) "")))
                                    (assoc-in [:email :error] "Invalid email format"))})]
     (fn []
-
       (let [public-key (-> @public-key-sub :config :ui :public-key)
             settings (re-frame/subscribe [:memefactory.ui.subs/settings @active-account])]
         [:div.my-settings-box

@@ -122,7 +122,7 @@
                                                                                        :vote/option (case option
                                                                                                       1 "DANK"
                                                                                                       2 "STANK")
-                                                                                       :amount (-> amount web3/from-wei format/format-dnt)
+                                                                                       :amount (-> amount (web3/from-wei :ether) format/format-dnt)
                                                                                        :meme-url (str root-url "meme-detail/" registry-entry)})
                                    :substitutions {:header "Vote Reward"
                                                    :button-title "My Memefolio"
@@ -155,7 +155,7 @@
                                (send-email {:from from
                                             :to to
                                             :subject "You received a challenge reward"
-                                            :content (templates/challenge-reward-claimed-email-body {:amount (-> amount web3/from-wei format/format-dnt)
+                                            :content (templates/challenge-reward-claimed-email-body {:amount (-> amount (web3/from-wei :ether) format/format-dnt)
                                                                                                      :meme/title title
                                                                                                      :meme-url (str root-url
                                                                                                                     "meme-detail/"
