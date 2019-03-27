@@ -102,16 +102,18 @@
         (if-not (seq @accounts)
           [:div.no-accounts "No Accounts"]
           [:div.accounts
-           [:div.dank-logo {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
-            [:img {:src "/assets/icons/dank-logo.svg"}]
+           [:div.dank-section {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
+            [:div.dank-logo
+             [:img {:src "/assets/icons/dank-logo.svg"}]]
             [active-account-balance
              {:token-code :DANK
               :contract :DANK
               :class "dank"
               :locale "en-US"
               :max-fraction-digits 0}]]
-           [:div.eth-logo {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
-            [:img {:src "/assets/icons/ethereum.svg"}]
+           [:div.eth-section {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
+            [:div.eth-logo
+             [:img {:src "/assets/icons/ethereum.svg"}]]
             [active-account-balance
              {:token-code :ETH
               :locale "en-US"

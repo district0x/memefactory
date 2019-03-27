@@ -104,12 +104,12 @@
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:display :flex
                  :margin-top (em 1)
-                 :justify-content :center
+                 :justify-content :flex-start
                  :align-items :center}
        [:button
         {:padding-top (em 0.2)
-         :margin-left (em 0.3)
-         :margin-right (em 0.3)
+         :margin-left (em 0.5)
+         :margin-right (em 0.5)
          :font-size (px 12)}
         (button {:background-color :purple
                  :color :white
@@ -118,8 +118,8 @@
 
        [:.dank-wrapper
         {:flex 0
-         :margin-left (em 0.3)
-         :margin-right (em 0.3)
+         :margin-left (em 0.5)
+         :margin-right (em 0.5)
          :justify-content :space-evenly}]]
       [:.not-enough-dank {:margin-top (em 1)
                           :color :red}]]]]])
