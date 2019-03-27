@@ -613,11 +613,12 @@
                           :class "search marketplace"}
               "Search On Marketplace"]
 
-             [nav-anchor {:route :route.memefolio/index
-                          :params nil
-                          :query {:term title}
-                          :class "search memefolio"}
-              "Search On Memefolio"]]]))]]
+             (when active-account
+               [nav-anchor {:route :route.memefolio/index
+                            :params nil
+                            :query {:term title}
+                            :class "search memefolio"}
+                "Search On Memefolio"])]]))]]
       [:section.history
        [:div.history-component
         (if meme-not-loaded?

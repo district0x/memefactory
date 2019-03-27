@@ -151,12 +151,16 @@
          :margin-right (em 1)
          :margin-top (em 1)}
         [:&.marketplace {:background-color (color :purple)
-                         :color (color :white)}]
+                         :color (color :white)}
+         (for-media-max :tablet
+                        [:&
+                         {:display :none}])]
         [:&.memefolio {:background-color (color :pink)
                        :color (color :white)}]]]]]]
    [:section.history
     {:color (color :menu-text)
      :margin-top (em 3)}
+    [:a.address {:color (color :menu-text)}]
     [:.history-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
