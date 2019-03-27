@@ -18,7 +18,7 @@
    [memefactory.server.emailer.templates :as templates]
    [memefactory.server.macros :refer [promise->]]
    [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log]))
+   [taoensso.timbre :as log :refer [spy]]))
 
 (declare start)
 (declare stop)
@@ -42,7 +42,7 @@
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
          ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
          [unit value] (time/time-remaining-biggest-unit (t/now)
-                                                        (-> reveal-period-end time/epoch->long time-coerce/from-long))]
+                                                        (-> commit-period-end time/epoch->long time-coerce/from-long))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address creator})
                 #(validate-email %)
                 (fn [to] (if to
