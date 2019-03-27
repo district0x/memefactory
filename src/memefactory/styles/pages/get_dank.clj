@@ -10,8 +10,8 @@
 (defstyles core
   [:.get-dank-page
    [:.spinner-outer {:margin-left :auto
-                      :margin-right :auto
-                      :margin-top (em -1)}]
+                     :margin-right :auto
+                     :margin-top (em 4)}]
    (for-media-max :tablet
                    [:&
                     {:margin-right (em 2)
@@ -23,18 +23,21 @@
     [:.icon {:background-size [(em 4) (em 4)]
              :background-position-x (em 0.2)}]
 
-    [:.form {:font-size (px 14)
-             :margin (em 2)
-             :height (em 4)
-             :display :flex
-             :justify-content :space-around
-             :padding-left (em 20)
-             :padding-right (em 20)}
-     [:.country-code {:width (em 6.1)}]
-     (for-media-max :tablet
-                   [:&
-                    {:padding (px 0)
-                     :display :block}])]
+    [:.body
+     {:min-height (em 13)}
+
+     [:.form {:font-size (px 14)
+              :padding-top (em 4)
+              :height (em 4)
+              :display :flex
+              :justify-content :space-around
+              :padding-left (em 20)
+              :padding-right (em 20)}
+      [:.country-code {:width (em 6.1)}]
+      (for-media-max :tablet
+                     [:&
+                      {:padding (px 0)
+                       :display :block}])]]
 
     [:.footer
       (get-dank-button)]]])
