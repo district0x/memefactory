@@ -10,6 +10,7 @@
    [district.ui.router.subs :as router-subs]
    [district.ui.web3-tx-log.events :as tx-log-events]
    [district.ui.web3-tx-log.subs :as tx-log-subs]
+   [district.ui.web3-accounts.subs :as accounts-subs]
    [memefactory.ui.subs :as mf-subs]
    [memefactory.ui.utils :as mf-utils]
    [re-frame.core :refer [subscribe dispatch]]
@@ -83,31 +84,32 @@
 
 (defn app-bar [{:keys [search-atom]}]
   (let [open? (r/atom nil)
-        my-addresses (r/atom nil);;(subscribe [:district0x/my-addresses])
+        my-addresses (r/atom nil)
+        accounts (subscribe [::accounts-subs/accounts])
         search-term (r/atom {})
         tx-log-open? (subscribe [::tx-log-subs/open?])]
     (fn []
       [:div.app-bar
        [:div.account-section
         [active-account]]
-       #_[:div.search-section
-        [search-form search-term]]
        [:div.tracker-section
         {:on-click (fn []
                      (if (empty? @my-addresses)
                        (dispatch [:district.ui.router.events/navigate :route/how-it-works])
                        (dispatch [:district0x.transaction-log/set-open (not @open?)])))}
-        (if false;;(empty? @my-addresses)
-          [:div "No Accounts"]
+        (if-not (seq @accounts)
+          [:div.no-accounts "No Accounts"]
           [:div.accounts
-           [:div {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
+           [:div.dank-logo {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
+            [:img {:src "/assets/icons/dank-logo.svg"}]
             [active-account-balance
              {:token-code :DANK
               :contract :DANK
               :class "dank"
               :locale "en-US"
               :max-fraction-digits 0}]]
-           [:div {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
+           [:div.eth-logo {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
+            [:img {:src "/assets/icons/ethereum.svg"}]
             [active-account-balance
              {:token-code :ETH
               :locale "en-US"
@@ -116,9 +118,9 @@
             {:header-props {:text "Transaction Log"}
              :transactions-props {:transaction-props {:tx-value-el (fn [{:keys [tx]}]
                                                                      [:span.tx-value (format/format-eth (if-let [v (:value tx)]
-                                                                                                (/ v 1e18)
-                                                                                                0)
-                                                                                              {:max-fraction-digits 3})])}}}]])]])))
+                                                                                                          (/ v 1e18)
+                                                                                                          0)
+                                                                                                        {:max-fraction-digits 3})])}}}]])]])))
 
 (defn current-page? [a b]
   (= a b))
