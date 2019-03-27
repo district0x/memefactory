@@ -111,7 +111,7 @@
                                                  [::acquire-dank-success]]
                                                 [::hide-spinner]
                                                 [::notification-events/show
-                                                 "DANK acquired"]]
+                                                 "Successfully requested DANK. It'll be delivered within few minutes!"]]
                               :on-tx-hash-error [::logging/error
                                                  [::verify-and-acquire-dank]]
                               :on-tx-error [::logging/error
