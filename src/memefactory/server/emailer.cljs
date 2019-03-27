@@ -1,5 +1,6 @@
 (ns memefactory.server.emailer
   (:require
+   [cljs-time.core :as t]
    [cljs-time.coerce :as time-coerce]
    [cljs-web3.eth :as web3-eth]
    [cljs-web3.core :as web3]
@@ -39,7 +40,9 @@
    (let [{:keys [:reg-entry/creator :meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:from :template-id :api-key :print-mode?]} @emailer
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
-         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))]
+         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
+         [unit value] (time/time-remaining-biggest-unit (t/now)
+                                                        (-> reveal-period-end time/epoch->long time-coerce/from-long))]
      (promise-> (district0x-emails/get-email {:district0x-emails/address creator})
                 #(validate-email %)
                 (fn [to] (if to
@@ -50,7 +53,8 @@
                                           :subject (str title " challenged!")
                                           :content (templates/challenge-created-email-body {:meme/title title
                                                                                             :meme-url (str root-url "meme-detail/" registry-entry)
-                                                                                            :reveal-period-end (-> reveal-period-end time/epoch->long time-coerce/from-long format/format-date)})
+                                                                                            :time-remaining (format/format-time-units {unit value})
+                                                                                            })
                                           :substitutions {:header (str title " meme challenged")
                                                           :button-title "Vote Now"
                                                           :button-href (str root-url "dankregistry/vote")
@@ -122,7 +126,7 @@
                                                                                        :vote/option (case option
                                                                                                       1 "DANK"
                                                                                                       2 "STANK")
-                                                                                       :amount (-> amount (web3/from-wei :ether) format/format-dnt)
+                                                                                       :amount (-> amount (web3/from-wei :ether) (format/format-token {:token "DANK"}))
                                                                                        :meme-url (str root-url "meme-detail/" registry-entry)})
                                    :substitutions {:header "Vote Reward"
                                                    :button-title "My Memefolio"
@@ -155,7 +159,7 @@
                                (send-email {:from from
                                             :to to
                                             :subject "You received a challenge reward"
-                                            :content (templates/challenge-reward-claimed-email-body {:amount (-> amount (web3/from-wei :ether) format/format-dnt)
+                                            :content (templates/challenge-reward-claimed-email-body {:amount (-> amount (web3/from-wei :ether) (format/format-token {:token "DANK"}))
                                                                                                      :meme/title title
                                                                                                      :meme-url (str root-url
                                                                                                                     "meme-detail/"
