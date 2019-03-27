@@ -117,7 +117,12 @@
        [">*"
         {:font-size (em 0.9)
          :color (color :menu-text)}]
-       [:.address {:cursor :pointer}]]
+       [:.address {:cursor :pointer
+                   :display :inline-block
+                   :vertical-align :middle}
+        (for-media-max :tablet
+                       [:&
+                        {:max-width (em 17)}])]]
       [:.description
        {:margin-bottom (em 1)}]
       [:.description, :.text
@@ -126,7 +131,7 @@
       [:.tags
        {:margin-top (em 1)
         :margin-bottom (em 0.5)}
-       [:button (tag)
+       [:.tag (tag)
         {:cursor :pointer}
         {:color (color :menu-text)}]]
       [:.buttons
@@ -134,7 +139,7 @@
        (for-media-max :large
                       [:&
                        {:flex-direction :column}])
-       [:button.search
+       [:a.search
         (button {:color :meme-buy-button
                  :height (em 2.7)})
         (for-media-max :computer

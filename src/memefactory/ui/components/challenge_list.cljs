@@ -21,7 +21,8 @@
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
    [memefactory.ui.components.panels :refer [no-items-found]]
-   [district.ui.web3-accounts.subs :as accounts-subs]))
+   [district.ui.web3-accounts.subs :as accounts-subs]
+   [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (def page-size 3)
 
@@ -73,12 +74,13 @@
                                                   tcmw
                                                   tcm
                                                   (if (pos? tcm) (/ (* 100 tcmw) tcm) 0)))]]
-   [:li "Address: " [:span.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                          {:address (:user/address user)}
-                                                          {:tab :created}])
-                                    :class (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
-                                             "active-address")}
-                     (-> user :user/address)]]])
+   [:li "Address: "
+    [nav-anchor {:route :route.memefolio/index
+                 :params {:address (:user/address user)}
+                 :query {:tab :created}
+                 :class (str "address " (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
+                                          "active-address"))}
+     (-> user :user/address)]]])
 
 (defn challenger-info [user]
   [:ol {:class :challenger}
@@ -89,12 +91,13 @@
                                                   tccs
                                                   tcc
                                                   (if (pos? tcc) (/ (* 100 tccs) tcc) 0)))]]
-   [:li "Address: " [:span.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                          {:address (:user/address user)}
-                                                          {:tab :curated}])
-                                    :class (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
-                                             "active-address")}
-                     (-> user :user/address)]]])
+   [:li "Address: "
+    [nav-anchor {:route :route.memefolio/index
+                 :params {:address (:user/address user)}
+                 :query {:tab :curated}
+                 :class (str "address " (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
+                                          "active-address"))}
+     (-> user :user/address)]]])
 
 (defn current-period-ends [label end-date]
 
@@ -122,10 +125,10 @@
                                                                                        (utils/gql-date->date period-end))]
       [:div.challenge
        (cond-> [:div.info
-                [:h2 {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                            {:address address}
-                                            nil])}
-                 title]
+                [nav-anchor {:route :route.meme-detail/index
+                             :params {:address address}
+                             :query nil}
+                 [:h2 title]]
 
                 [:ol.meme
                  [:li "Created: " [:span (let [formated-time (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))

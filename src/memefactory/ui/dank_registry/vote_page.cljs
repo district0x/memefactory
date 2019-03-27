@@ -26,7 +26,8 @@
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
    [taoensso.timbre :as log :refer [spy]]
-   [memefactory.ui.components.buttons :as buttons]))
+   [memefactory.ui.components.buttons :as buttons]
+   [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (def page-size 12)
 
@@ -35,10 +36,11 @@
    [:div.icon]
    [:h2.title "Dank registry - VOTE"]
    [:h3.title "View challenges and vote to earn more DANK"]
-   [:div.get-dank-button {:on-click #(dispatch [::router-events/navigate :route.get-dank/index nil nil])}
-    [:span "Get Dank"]
-    [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
-    [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]])
+   [nav-anchor {:route :route.get-dank/index}
+    [:div.get-dank-button
+     [:span "Get Dank"]
+     [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+     [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]])
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards] :as meme}]
   (let [active-account (subscribe [::accounts-subs/active-account])]

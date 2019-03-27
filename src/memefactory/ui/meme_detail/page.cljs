@@ -39,7 +39,7 @@
    [goog.string :as gstring]
    [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.dank-registry.vote-page :as vote-page]
-   [memefactory.ui.components.general :refer [dank-with-logo]]))
+   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]))
 
 (def scroll-interval 5)
 
@@ -107,12 +107,13 @@
                      (format/format-token creator-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
-     [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                          {:address address}
-                                          {:tab :created}])}
+     [:div {}
       [:span "Address:"]
-      [:span.address {:class (when (= address @(subscribe [::accounts-subs/active-account]))
-                               "active-address")}
+      [nav-anchor {:route :route.memefolio/index
+                   :params {:address address}
+                   :query {:tab :created}
+                   :class (str "address " (when (= address @(subscribe [::accounts-subs/active-account]))
+                                            "active-address"))}
        address]]]))
 
 (defn related-memes-component [state loading-first? loading-last?]
@@ -219,18 +220,20 @@
                     ^{:key address}
                     [:tr
                      [:td.meme-token (:meme-token/token-id meme-token)]
-                     [:td.address.seller-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                                {:address (:user/address seller)}
-                                                                {:tab :sold}])
-                                          :class (when (= (:user/address seller) @(subscribe [::accounts-subs/active-account]))
-                                                   "active-address")}
-                      (:user/address seller)]
-                     [:td.address.buyer-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                               {:address (:user/address buyer)}
-                                                               {:tab :collected}])
-                                         :class (when (= (:user/address buyer) @(subscribe [::accounts-subs/active-account]))
-                                                  "active-address")}
-                      (:user/address buyer)]
+                     [:td.seller-address
+                      [nav-anchor {:route :route.memefolio/index
+                                   :params {:address (:user/address seller)}
+                                   :query {:tab :sold}
+                                   :class (str "address seller-address " (when (= (:user/address seller) @(subscribe [::accounts-subs/active-account]))
+                                                                           "active-address"))}
+                       (:user/address seller)]]
+                     [:td.buyer-address
+                      [nav-anchor {:route :route.memefolio/index
+                                   :params {:address (:user/address seller)}
+                                   :query {:tab :collected}
+                                   :class (str "address buyer-address " (when (= (:user/address buyer) @(subscribe [::accounts-subs/active-account]))
+                                                                          "active-address"))}
+                       (:user/address buyer)]]
                      [:td.end-price (format-price bought-for)]
                      [:td.time  (let [now-date (t/date-time @now)
                                       bought-date (ui-utils/gql-date->date bought-on)]
@@ -253,12 +256,13 @@
                      (format-dank challenger-total-earned) ")")]
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
-     [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                          {:address (:user/address challenger)}
-                                          {:tab :curated}])}
+     [:div.address
       [:span "Address:"]
-      [:span.address {:class (when (= (:user/address challenger) @(subscribe [::accounts-subs/active-account]))
-                               "active-address")}
+      [nav-anchor {:route :route.memefolio/index
+                   :params {:address (:user/address challenger)}
+                   :query {:tab :curated}
+                   :class (str "address " (when (= (:user/address challenger) @(subscribe [::accounts-subs/active-account]))
+                                            "active-address"))}
        (:user/address challenger)]]
      [:span.challenge-comment (str "\"" comment "\"")]]))
 
@@ -597,20 +601,24 @@
             [meme-creator-component creator]
             [:div.tags
              (for [tag-name tags]
-               [:button {:key tag-name
-                         :on-click #(dispatch [::router-events/navigate
-                                               :route.marketplace/index
-                                               nil
-                                               {:search-tags [tag-name]}])} tag-name])]
+               [nav-anchor {:route :route.marketplace/index
+                            :params nil
+                            :query {:search-tags [tag-name]}
+                            :class "tag"
+                            :key tag-name}
+                tag-name])]
             [:div.buttons
-             [:button.search.marketplace {:on-click #(dispatch [::router-events/navigate
-                                                                :route.marketplace/index
-                                                                nil
-                                                                {:term title}])} "Search On Marketplace"]
-             [:button.search.memefolio {:on-click #(dispatch [::router-events/navigate
-                                                              :route.memefolio/index
-                                                              nil
-                                                              {:term title}])} "Search On Memefolio"]]]))]]
+             [nav-anchor {:route :route.marketplace/index
+                          :params nil
+                          :query {:term title}
+                          :class "search marketplace"}
+              "Search On Marketplace"]
+
+             [nav-anchor {:route :route.memefolio/index
+                          :params nil
+                          :query {:term title}
+                          :class "search memefolio"}
+              "Search On Memefolio"]]]))]]
       [:section.history
        [:div.history-component
         (if meme-not-loaded?

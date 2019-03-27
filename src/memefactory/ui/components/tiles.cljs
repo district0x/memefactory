@@ -16,7 +16,8 @@
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [taoensso.timbre :as log :refer [spy]]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (defn meme-image [image-hash & [{:keys [rejected?] :as props}]]
   (let [props (dissoc props :rejected?)
@@ -76,17 +77,18 @@
          [:div.overlay
           [:div.logo
            [:img {:src "/assets/icons/mf-logo.svg"}]]
-          [:div.details-button
-           {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                  {:address meme-address}
-                                  nil])}
+
+          [nav-anchor {:route :route.meme-detail/index
+                       :params {:address meme-address}
+                       :class "details-button"}
            [:span "View Details"]]
           [:ul.meme-data
-           [:li [:label "Seller:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                                 {:address (:user/address (:meme-auction/seller meme-auction))}
-                                                                 {:tab :selling}])
-                                           :title (str "Go to the Memefolio of " seller-address)}
-                                    seller-address]]
+           [:li [:label "Seller:"]
+            [nav-anchor {:route :route.memefolio/index
+             :params {:address (:user/address (:meme-auction/seller meme-auction))}
+                         :query {:tab :selling}
+                         :title (str "Go to the Memefolio of " seller-address)}
+             seller-address]]
            [:li [:label "Current Price:"] [:span (format-price price)]]
            [:li [:label "Start Price:"] [:span (format-price (:meme-auction/start-price meme-auction))]]
            [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]
@@ -128,15 +130,16 @@
         [:div.compact-tile
          [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
                           :back [auction-back-tile opts meme-auction]}]
-         [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                             {:address (-> meme-token :meme-token/meme :reg-entry/address) }
-                                             nil])}
-          [:div.token-id (str "#"(-> meme-token :meme-token/meme :meme/number))]
-          [:div.title (-> meme-token :meme-token/meme :meme/title)]
-          [:div.number-minted (str (:meme-token/number meme-token)
-                                   "/"
-                                   (-> meme-token :meme-token/meme :meme/total-minted))]
-          [:div.price (format-price price)]]]))))
+
+         [nav-anchor {:route :route.meme-detail/index
+                      :params {:address (-> meme-token :meme-token/meme :reg-entry/address)}}
+          [:div.footer
+           [:div.token-id (str "#"(-> meme-token :meme-token/meme :meme/number))]
+           [:div.title (-> meme-token :meme-token/meme :meme/title)]
+           [:div.number-minted (str (:meme-token/number meme-token)
+                                    "/"
+                                    (-> meme-token :meme-token/meme :meme/total-minted))]
+           [:div.price (format-price price)]]]]))))
 
 (defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number :meme/total-trade-volume :meme/average-price :meme/highest-single-sale] :as meme}]
   (let [creator-address (-> meme :reg-entry/creator :user/address)
@@ -145,20 +148,19 @@
      [:div.overlay
       [:div.logo
        [:img {:src "/assets/icons/mf-logo.svg"}]]
-      [:div.details-button
-       {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                              {:address meme-address}
-                              nil])}
+      [nav-anchor {:route :route.meme-detail/index
+                   :params {:address meme-address}
+                   :class "details-button"}
        [:span "View Details"]]
       [:ul.meme-data
        (when number
          [:li [:label "Registry Number:"]
           (str "#" number)])
        [:li [:label "Creator:"]
-        [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                      {:address creator-address}
-                                      {:tab :created}])
-                :title (str "Go to the Memefolio of " creator-address)}
+        [nav-anchor {:route :route.memefolio/index
+                     :params {:address creator-address}
+                     :query {:tab :created}
+                     :title (str "Go to the Memefolio of " creator-address)}
          creator-address]]
        [:li [:label "Created:"]
         (let [formated-time (-> (time/time-remaining (t/date-time (ui-utils/gql-date->date created-on)) (t/now))
@@ -186,7 +188,7 @@
   [:div.compact-tile
    [flippable-tile {:front [meme-image image-hash]
                     :back [meme-back-tile meme]}]
-   [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                       {:address address}
-                                       nil])}
-    [:div.title (str (when number (str "#" number " "))(-> meme :meme/title))]]])
+   [nav-anchor {:route :route.meme-detail/index
+                :params {:address address}}
+    [:div.footer
+     [:div.title (str (when number (str "#" number " "))(-> meme :meme/title))]]]])

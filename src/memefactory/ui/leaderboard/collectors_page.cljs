@@ -13,7 +13,8 @@
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
    [district.ui.web3-accounts.subs :as accounts-subs]
-   [memefactory.ui.components.panels :refer [no-items-found]]))
+   [memefactory.ui.components.panels :refer [no-items-found]]
+   [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (def page-size 12)
 
@@ -46,9 +47,10 @@
                  :meme-token/meme)]
     [:div.user-tile {:class (when (= @(subscribe [::accounts-subs/active-account]) address) "account-tile")}
      [:div.number (str "#" num)]
-     [:span.user-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                {:address address}
-                                                {:tab :collected}])}
+     [nav-anchor {:route :route.memefolio/index
+                  :params {:address address}
+                  :query {:tab :collected}
+                  :class "user-address"}
       address]
      [:ul ;; TODO complete these after Matus comments
       [:li "Unique Memes: " [:span.unique (gstring/format "%d/%d (%d%%)"

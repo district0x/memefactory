@@ -22,17 +22,18 @@
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
    [district.graphql-utils :as graphql-utils]
-   [memefactory.ui.components.general :refer [dank-with-logo]]))
+   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]))
 
 (defn header []
   [:div.challenge-info
    [:div.icon]
    [:h2.title "Dank registry - Challenge"]
    [:h3.title "View and Challenge new entries to the registry"]
-   [:div.get-dank-button {:on-click #(dispatch [::router-events/navigate :route.get-dank/index nil nil])}
-    [:span "Get Dank"]
-    [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
-    [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]])
+   [nav-anchor {:route :route.get-dank/index}
+    [:div.get-dank-button
+     [:span "Get Dank"]
+     [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+     [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]])
 
 
 (defn open-challenge-action [{:keys [:reg-entry/address :meme/title]}]

@@ -14,7 +14,8 @@
    [district.ui.router.events :as router-events]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.general :refer [dank-with-logo]]))
+   [memefactory.ui.components.general :refer [dank-with-logo]]
+   [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (def page-size 12)
 
@@ -83,10 +84,11 @@
                           ^{:key (:user/address curator)}
                           [:div.curator {:class (when (= @(subscribe [::accounts-subs/active-account]) (:user/address curator)) "account-tile")}
                            [:p.number (str "#" (inc idx))]
-                           [:h3.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                               {:address (:user/address curator)}
-                                                               {:tab :curated}])}
-                            (:user/address curator)]
+                           [nav-anchor {:route :route.memefolio/index
+                                        :params {:address (:user/address curator)}
+                                        :query {:tab :curated}}
+                            [:h3.address
+                             (:user/address curator)]]
 
                            [:h4.challenges "CHALLENGES"]
                            [:p "Success rate: "
