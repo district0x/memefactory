@@ -105,6 +105,7 @@
                               :fn :verify-and-acquire-dank
                               :args (look [(-> phone-number web3/sha3)
                                            oraclize-string])
+                              :tx-log {:name "Request DANK"}
                               :tx-opts {:from active-account}
                               ;;:tx-id {:get-dank/verify-and-acquire-dank id}
                               :on-tx-success-n [[::logging/success
