@@ -48,7 +48,7 @@
       [:img {:width (px compact-tile/card-width)
              :height (px compact-tile/card-height)}]
       [:.input-group #_{ :margin-left :auto
-                      :margin-right :auto}
+                        :margin-right :auto}
        [:.dropzone {:width (px compact-tile/card-width)
                     :height (px compact-tile/card-height)}]
        [:.file-name {:display :none}]
@@ -78,10 +78,10 @@
       ["input[type=file]"
        {:display :none}
        #_{:right 0
-        :left (em 2)
-        :position :absolute
-        :margin-right :auto
-        :margin-left 0}
+          :left (em 2)
+          :position :absolute
+          :margin-right :auto
+          :margin-left 0}
        #_(button {:color :meme-buy-button})]]
 
      [:&.form-panel
@@ -104,23 +104,22 @@
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:display :flex
                  :margin-top (em 1)
-                 :position :relative
                  :justify-content :center
                  :align-items :center}
        [:button
-        {:margin-right :auto
-         :margin-left 0
-         :padding-top (em 0.2)
+        {:padding-top (em 0.2)
+         :margin-left (em 0.3)
+         :margin-right (em 0.3)
          :font-size (px 12)}
         (button {:background-color :purple
                  :color :white
                  :height (em 3.3)
                  :width (em 10)})]
 
-       [:.dank-wrapper {:flex 1
-                        :margin-left (em -15)}
-        (for-media-max :tablet
-                     [:&
-                      {:margin-left (em -7)}])]]
+       [:.dank-wrapper
+        {:flex 0
+         :margin-left (em 0.3)
+         :margin-right (em 0.3)
+         :justify-content :space-evenly}]]
       [:.not-enough-dank {:margin-top (em 1)
-                           :color :red}]]]]])
+                          :color :red}]]]]])
