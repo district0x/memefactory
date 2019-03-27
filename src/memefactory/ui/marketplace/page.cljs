@@ -100,8 +100,8 @@
                                      :disable-fetch? false}])
             search-total-count (-> @auctions-search first :search-meme-auctions :total-count)]
         [app-layout
-         {:meta {:title "MemeFactory"
-                 :description "Description"}}
+         {:meta {:title "MemeFactory - Marketplace"
+                 :description "Buy and Sell memes. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
          [:div.marketplace-page
           [:section.marketplace
            [search-tools {:form-data form-data

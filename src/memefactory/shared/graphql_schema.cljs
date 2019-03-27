@@ -454,6 +454,7 @@
 
   type UIConfig{
     publicKey: String
+    rootUrl: String
   }
 
   type Ipfs {

@@ -4,8 +4,10 @@
    [district.ui.component.active-account :refer [active-account]]
    [district.ui.component.active-account-balance :refer [active-account-balance] :as account-balances]
    [district.ui.component.form.input :as inputs :refer [text-input*]]
+   [district.ui.component.meta-tags :as meta-tags]
    [district.ui.component.notification :as notification]
    [district.ui.component.tx-log :refer [tx-log]]
+   [district.ui.graphql.subs :as gql]
    [district.ui.router.events :as router-events]
    [district.ui.router.subs :as router-subs]
    [district.ui.web3-tx-log.events :as tx-log-events]
@@ -53,10 +55,12 @@
                       :needs-account? true}
                      {:text "How it Works"
                       :route :route.how-it-works/index
-                      :class :how-it-works}
+                      :class :how-it-works
+                      :needs-account? false}
                      {:text "About"
                       :route :route.about/index
-                      :class :about}
+                      :class :about
+                      :needs-account? false}
                      {:text "Get DANK"
                       :route :route.get-dank/index
                       :class :faucet
@@ -69,7 +73,7 @@
    [:div.go-button]])
 
 (defn app-bar-mobile [drawer-open?]
-  (let [open? (r/atom nil)];;(subscribe [:district0x.transaction-log/open?])]
+  (let [open? (r/atom nil)]
     (fn []
       [:div.app-bar-mobile
        [:div.logo {:on-click #(dispatch [::router-events/navigate :route/home])}]
@@ -77,10 +81,7 @@
         [:i.icon.hamburger
          {:on-click (fn [e]
                       (.stopPropagation e)
-                      (swap! drawer-open? not)
-                      ;; (dispatch [:district0x.menu-drawer/set true])
-                      )}]]
-       ])))
+                      (swap! drawer-open? not))}]]])))
 
 (defn app-bar [{:keys [search-atom]}]
   (let [open? (r/atom nil)
@@ -155,11 +156,18 @@
                          [app-menu children active-page (inc depth)])])
                     items))])))
 
+
 (defn app-layout []
-  (let [active-page (subscribe [::router-subs/active-page])
+  (let [root-url (subscribe [::gql/query
+                             {:queries [[:config
+                                         [[:ui [:root-url]]]]]}])
+
+        active-page (subscribe [::router-subs/active-page])
         drawer-open? (r/atom false)]
-    (fn [{:keys [:meta :search-atom]} & children]
+    (fn [{:keys [:search-atom :meta]}
+         & children]
       [:div.app-container
+       [meta-tags/meta-tags meta {:id "image" :name "og:image" :content (str (-> @root-url :config :ui :root-url) "/assets/images/1_OInGI_RrVwH6uF3OcqJuwQ.jpg")}]
        [:div.app-menu
         {:class (when-not @drawer-open? "closed")}
         [:div.menu-content

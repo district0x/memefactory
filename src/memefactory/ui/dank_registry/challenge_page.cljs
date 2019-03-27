@@ -78,8 +78,8 @@
 
 (defmethod page :route.dank-registry/challenge []
   [app-layout
-   {:meta {:title "MemeFactory"
-           :description "Description"}}
+   {:meta {:title "MemeFactory - Challenge"
+           :description "View and Challenge new entries to the registry. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
    [:div.dank-registry-challenge
     [:div.challenge-header
      [header]]

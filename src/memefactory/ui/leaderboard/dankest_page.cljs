@@ -79,8 +79,8 @@
         form-data (r/atom {:order-by "total-trade-volume"})]
     (fn []
       [app-layout
-       {:meta {:title "MemeFactory"
-               :description "Description"}}
+       {:meta {:title "MemeFactory - Dankest Memes"
+               :description "Memes traded for the most ETH. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
        [:div.leaderboard-dankest-page
         [:section.dankest
          [:div.dankest-panel
