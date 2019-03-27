@@ -100,8 +100,8 @@
   [:.input-group
    [:&.has-error
     [:.help-block
-      {:color (color :red)
-       }]]
+     {:color (color :red)
+      }]]
    [:&.has-warning
     [:.help-block
      {:color (color :yellow)}]]
@@ -171,6 +171,7 @@
      :padding-top "1em"
      :padding-left "1.8em"
      :padding-bottom "0.75em"
+     :margin-right "2em"
      :font-size (px 12)
      :color (color :menu-text)
      :background-position "right 1.5em center"
