@@ -96,7 +96,7 @@
    :flipping-back-not-facing
    [:from {:transform "rotateY(0deg);"}]
    [:to {:transform "rotateY(-180deg);"}])
-  
+
 
 
   ;;
@@ -176,7 +176,7 @@
     :width (px card-width)
     :border-radius (em 1)
     :overflow :hidden}
-
+   [:a {:color :white}]
    [:.overlay
     (merge
      {:display :grid
@@ -208,7 +208,8 @@
       :margin-right (em 0.8)}
      [:span
       {:font-size (em 0.9)
-       :text-decoration :underline}]]
+       :text-decoration :underline
+       :color :white}]]
 
     [:.meme-data
      {:grid-area :data

@@ -62,6 +62,7 @@
         :vertical-align :middle
         :text-align :center
         :background-color (color :curator-card-bg)}
+       [:a {:color (color :menu-text)}]
        (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
        [:ul {:line-height (em 2)}
         [:.best-sale {:cursor :pointer}]]

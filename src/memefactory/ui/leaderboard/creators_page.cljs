@@ -14,7 +14,8 @@
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
    [district.ui.web3-accounts.subs :as accounts-subs]
-   [memefactory.ui.components.panels :refer [no-items-found]]))
+   [memefactory.ui.components.panels :refer [no-items-found]]
+   [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (def page-size 12)
 
@@ -48,9 +49,10 @@
                  :meme-token/meme)]
     [:div.user-tile {:class (when (= @(subscribe [::accounts-subs/active-account]) address) "account-tile")}
      [:div.number (str "#" num)]
-     [:span.user-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                {:address address}
-                                                {:tab :created}])}
+     [nav-anchor {:route :route.memefolio/index
+                  :params {:address address}
+                  :query {:tab :created}
+                  :class "user-address"}
       address]
      [:ul
       [:li "Earned: " [:span.earned (format-price creator-total-earned)]]
@@ -62,15 +64,16 @@
                                                                        total-created-memes)
                                                                     0))]]
       (when (:meme/title meme)
-        [:li "Best single card sale: " [:span.best-sale {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                               {:address (:reg-entry/address meme)}
-                                                                               nil])}
-                                        (gstring/format "%.2f ETH (#%d %s)"
-                                                        (-> largest-sale :meme-auction/bought-for (/ 1e18))
-                                                        (-> largest-sale
-                                                            :meme-auction/meme-token
-                                                            :meme-token/number)
-                                                        (:meme/title meme))]])]]))
+        [:li "Best single card sale: "
+         [nav-anchor {:route :route.meme-detail/index
+                      :params {:address (:reg-entry/address meme)}
+                      :class "best-sale"}
+          (gstring/format "%.2f ETH (#%d %s)"
+                          (-> largest-sale :meme-auction/bought-for (/ 1e18))
+                          (-> largest-sale
+                              :meme-auction/meme-token
+                              :meme-token/number)
+                          (:meme/title meme))]])]]))
 
 (defmethod page :route.leaderboard/creators []
   (let [form-data (r/atom {:order-by "total-earned"})]

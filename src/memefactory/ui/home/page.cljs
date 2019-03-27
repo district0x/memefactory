@@ -15,7 +15,8 @@
    [memefactory.ui.components.challenge-list :refer [current-period-ends]]
    [memefactory.ui.components.spinner :as spinner]
    [goog.string :as gstring]
-   [memefactory.ui.components.panels :refer [no-items-found]]))
+   [memefactory.ui.components.panels :refer [no-items-found]]
+   [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (defn take-max-multiple-of [n xs]
   (if (< (count xs) n)
@@ -48,18 +49,19 @@
                                    [:div.info
                                     [:ul.meme-data
                                      [:li [:label "Creator:"]
-                                      [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                                    {:address (:user/address creator)}
-                                                                    {:tab :created}])}
+                                      [nav-anchor {:route :route.memefolio/index
+                                                   :params {:address (:user/address creator)}
+                                                   :query {:tab :created}}
                                        (:user/address creator)]]
                                      [:li [:label "Voting period ends in: "]
                                       [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
                                                                       (utils/gql-date->date commit-period-end))
                                                  format/format-time-units)]]
                                      [:li [:label "Challenger :"]
-                                      [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                                    {:address (-> challenger :user/address)}
-                                                                    {:tab :curated}])}
+                                      [nav-anchor {:route :route.memefolio/index
+                                                   :params {:address (:user/address challenger)}
+                                                   :query {:tab :curated}}
+                                       (:user/address creator)
                                        (-> challenger :user/address)]]
                                      [:li [:label "Challenger success rate:"]
                                       [:span (gstring/format "%d/%d (%d%%)"
@@ -68,10 +70,10 @@
                                                              (if (pos? total-created-challenges) (/ (* 100 total-created-challenges-success) total-created-challenges) 0))]]]
                                     [:hr]
                                     [:p.comment comment]]]]}]
-    [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                        {:address address}
-                                        nil])}
-     [:div.title (-> meme :meme/title)]]]))
+     [nav-anchor {:route :route.meme-detail/index
+                  :params {:address address}}
+      [:div.footer
+       [:div.title (-> meme :meme/title)]]]]))
 
 
 (defn memes-list [memes empty-msg loading?]
@@ -172,9 +174,9 @@
             [:h2.title "New On Marketplace"]
             [:h3.title "The latest additions to Meme Factory"]]]
           [auctions-list (-> @new-on-market :search-meme-auctions :items) (:graphql/loading? @new-on-market)]
-          [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
-                                          nil
-                                          {:order-by "started-on" :order-dir "desc"}])}
+          [nav-anchor {:route :route.marketplace/index
+                       :query {:order-by "started-on" :order-dir "desc"}
+                       :class "more"}
            "See More"]]
 
          [:div.rare-finds
@@ -184,9 +186,9 @@
             [:h2.title "Rare Finds"]
             [:h3.title "Exceptional, infrequently traded memes"]]]
           [auctions-list (-> @rare-finds :search-meme-auctions :items) (:graphql/loading? @rare-finds)]
-          [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
-                                         nil
-                                         {:order-by "meme-total-minted" :order-dir "asc"}])}
+          [nav-anchor {:route :route.marketplace/index
+                       :query {:order-by "meme-total-minted" :order-dir "asc"}
+                       :class "more"}
            "See More"]]
 
          [:div.random-pics
@@ -196,9 +198,8 @@
             [:h2.title "Random Picks"]
             [:h3.title "A random assortment of memes for sale"]]]
           [auctions-list (-> @random-picks :search-meme-auctions :items) (:graphql/loading? @random-picks)]
-          [:a.more {:on-click #(dispatch [::router-events/navigate :route.marketplace/index
-                                         nil
-                                         {:order-by "random"}])}
+          [nav-anchor {:route :route.marketplace/index
+                       :query {:order-by "random"}}
            "See More"]]
 
          [:div.trending-votes

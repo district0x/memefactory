@@ -34,7 +34,8 @@
    [reagent.core :as r]
    [reagent.ratom :as ratom]
    [taoensso.timbre :as log]
-   [memefactory.ui.components.panels :refer [no-items-found]]))
+   [memefactory.ui.components.panels :refer [no-items-found]]
+   [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (def default-tab :collected)
 
@@ -287,10 +288,10 @@
                                                                                  :meme-auction/token-ids token-ids}]
                                                            [tiles/meme-back-tile meme])
                                                    :flippable-classes #{"meme-image" "cancel" "info" "create-offering"}}]
-                            [:div.footer
-                             {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                    {:address address}
-                                                    nil])}
+                            [nav-anchor {:route :route.meme-detail/index
+                                         :params {:address address}
+                                         :query nil
+                                         :class "footer"}
                              [:div.title (str "#" number " " title)]
                              (when (and token-count total-supply)
                                [:div.number-minted (str "Owning " token-count " out of " total-supply)])]])))
@@ -398,9 +399,10 @@
                            ^{:key address} [:div.compact-tile
                                             [:div.container
                                              [tiles/meme-image image-hash {:rejected? rejected?}]]
-                                            [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                              {:address address}
-                                                                              nil])}
+                                            [nav-anchor {:route :route.meme-detail/index
+                                                         :params {:address address}
+                                                         :query nil
+                                                         :class "footer"}
                                              [:div.title (str (when number (str "#" number " ")) title)]
                                              [:div.issued (str total-minted "/" total-supply" Issued")]
                                              [:div.status
@@ -461,9 +463,10 @@
         (when (and total-created-memes-whitelisted total-created-memes)
           (str total-created-memes-whitelisted "/" total-created-memes " ("
                (format/format-percentage total-created-memes-whitelisted total-created-memes) ")"))]
-       [:div.var.best-card-sale {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                       {:address (:reg-entry/address meme)}
-                                                       nil])}
+       [nav-anchor {:route :route.meme-detail/index
+                    :params {:address (:reg-entry/address meme)}
+                    :query nil
+                    :class "var best-card-sale"}
         [:b "Best Single Card Sale: "]
         (if (and largest-sale number title)
           (str (-> (:meme-auction/bought-for largest-sale)
@@ -499,9 +502,10 @@
                     [:div.container
                      [:div.meme-card-front
                       [tiles/meme-image image-hash {:rejected? rejected?}]]]
-                    [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                        {:address address}
-                                                        nil])}
+                    [nav-anchor {:route :route.meme-detail/index
+                                 :params {:address address}
+                                 :query nil
+                                 :class "footer"}
                      [:div.title [:b (str (when number (str "#" number " ")) title)]]
                      [:div.vote-option
                       (cond
@@ -615,25 +619,30 @@
                                                [:div.overlay
                                                 [:div.logo
                                                  [:img {:src "/assets/icons/mf-logo.svg"}]]
-                                                [:div.details-button
-                                                 {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                                        {:address (:reg-entry/address meme)}
-                                                                        nil])}
+                                                [nav-anchor {:route :route.meme-detail/index
+                                                             :params {:address (:reg-entry/address meme)}
+                                                             :query nil
+                                                             :class "details-button"}
                                                  [:span "View Details"]]
                                                 [:ul.meme-data
-                                                 [:li [:label "Buyer:"] [:span {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
-                                                                                                      {:address (:user/address (:meme-auction/buyer meme-auction))}
-                                                                                                      {:tab :collected}])}
-                                                                         (:user/address (:meme-auction/buyer meme-auction))]]
+                                                 [:li [:label "Buyer:"]
+
+                                                  [nav-anchor {:route :route.memefolio/index
+                                                               :params {:address (:user/address (:meme-auction/buyer meme-auction))}
+                                                               :query {:tab :collected}}
+                                                   (:user/address (:meme-auction/buyer meme-auction))]]
                                                  [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
                                                  [:li [:label "Bought:"] [:span  (let [time-ago (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
                                                                                                                  (t/date-time @(subscribe [::now-subs/now])))]
                                                                                    time-ago)]]]
                                                 [:hr]
                                                 [:p.description (:meme-auction/description meme-auction)]]]}]
-                 [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
-                                                     {:address (-> meme-token :meme-token/meme :reg-entry/address) }
-                                                     nil])}
+
+
+                 [nav-anchor {:route :route.meme-detail/index
+                              :params {:address (-> meme-token :meme-token/meme :reg-entry/address) }
+                              :query nil
+                              :class "footer"}
                   [:div.token-id (str "#" number)]
                   [:div.title title]
                   [:div.number-minted (str number "/" total-minted)]
@@ -880,13 +889,12 @@
               ^{:key tab-id} [:div
                               {:class (when (= tab
                                                tab-id) "selected")}
-                              [:a {:on-click (fn [evt]
-                                               (.preventDefault evt)
-                                               (dispatch [::router-events/navigate :route.memefolio/index
-                                                          (if url-address?
-                                                            {:address user-address}
-                                                            {})
-                                                          {:tab tab-id}]))}
+
+                              [nav-anchor {:route :route.memefolio/index
+                                           :params (if url-address?
+                                                     {:address user-address}
+                                                     {})
+                                           :query {:tab tab-id}}
                                (-> tab-id
                                    cljs.core/name
                                    (str/capitalize))]])

@@ -18,7 +18,7 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log :refer [spy]]
-   ))
+   [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (def nav-menu-items [{:text "Marketplace"
                       :route :route.marketplace/index
@@ -76,7 +76,8 @@
   (let [open? (r/atom nil)]
     (fn []
       [:div.app-bar-mobile
-       [:div.logo {:on-click #(dispatch [::router-events/navigate :route/home])}]
+       [nav-anchor {:route :route/home}
+        [:div.logo]]
        [:div.menu-selection
         [:i.icon.hamburger
          {:on-click (fn [e]
@@ -147,10 +148,12 @@
                         {:class (str (when class (name class))
                                      (when (= active-page route) " active")
                                      (when (and needs-account? (not active-account)) " disabled"))}
-                        [:a {:on-click (fn []
-                                         (when-not (and needs-account? (not active-account))
-                                           (dispatch [::router-events/navigate route params query])))
-                             :disabled true}
+                        [nav-anchor (merge
+                                     {:disabled true}
+                                     (when-not (and needs-account? (not active-account))
+                                       {:route route
+                                        :params params
+                                        :query query}))
                          text]]
                        (when children
                          [app-menu children active-page (inc depth)])])
@@ -171,9 +174,10 @@
        [:div.app-menu
         {:class (when-not @drawer-open? "closed")}
         [:div.menu-content
-         [:div.mf-logo {:on-click #(dispatch [::router-events/navigate :route/home])}
-          [:img {:src "/assets/icons/mememouth.png"}]
-          [:span "MEME FACTORY"]]
+         [nav-anchor {:route :route/home}
+          [:div.mf-logo
+           [:img {:src "/assets/icons/mememouth.png"}]
+           [:span "MEME FACTORY"]]]
          [app-menu nav-menu-items (:name @active-page)]]
         [district0x-banner]]
        [:div.app-content

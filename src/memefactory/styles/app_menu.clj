@@ -90,6 +90,7 @@
           :position :absolute
           :height (rem 1.8)
           :width (rem 1.8)}]]
+
        (let [icons [[:dankregistry "dankregistry"]
                     [:about "about"]
                     [:marketplace "marketplace"]
@@ -97,13 +98,16 @@
                     [:leaderboard "leaderboard"]
                     [:memefolio "mymemefolio"]
                     [:my-settings "mysettings"]
-                    [:faucet "get-dank-icon-pink"]]]
+                    [:faucet "dank-logo"]]]
          (mapv (fn [[cls img]]
                  [(keyword (str "&." (name cls)))
                   [:a:before
                    {:content "''"
                     :background-image (str "url('/assets/icons/" img ".svg')")}]])
-               icons))]]]
+               icons))]
+      [:.item.faucet
+       [:a:before {:background-size "3rem,3rem"
+                   :background-position (px -8)}]]]]
     [:.district0x-banner
      (font :filson)
      {:padding-left (em 3)

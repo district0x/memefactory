@@ -211,6 +211,7 @@
 
     [:.tiles
      {:box-shadow :unset}]
+    [:.meme-card [:a {:color :white}]]
     [:.selling-panel
      [:.meme-card
       [:.overlay {:background overlay-background-footer}]]]
