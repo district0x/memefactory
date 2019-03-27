@@ -207,7 +207,7 @@
                      :line-height "1.6"
                      :overflow :hidden
                      :text-overflow :ellipsis
-                     :width (em 11.3)
+                     :width (em 14)
                      :white-space :nowrap}]
 
          [:.tx-created-on
