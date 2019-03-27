@@ -11,6 +11,7 @@
    [garden.units :refer [rem px em]]))
 
 (def bar-height (px 50))
+(def tracker-width 300)
 
 (defstyles core
   [:.app-bar-mobile
@@ -24,7 +25,6 @@
      :background-size [(rem 3) (rem 3)]
      :background-position "5px 5px"
      :background-repeat :no-repeat
-     ;; :margin-left (rem -3)
      :background-image (str "url('/assets/icons/mf-logo.svg')")}
     [:&:before
      (font :bungee)
@@ -32,9 +32,7 @@
       :font-size (px 18)
       :line-height (em 1.2)
       :color (color :menu-logo)
-      ;; :margin-right (em 5)
       :width (rem 5)
-      ;; :padding-top (rem 2.8)
       :padding-left (rem 4)
       :display :block
       :min-height (rem 8)}]]
@@ -68,7 +66,7 @@
     {:align-items :left
      :width (px 250)
      :padding "0 10px"}
-    [:.active-account ;;-select
+    [:.active-account
      [:i.dropdown.icon:before
       {:content "url('/assets/icons/dropdown.png')" ;;No, we can't just bg scale, thanks upstream !important
        :display :inline-flex
@@ -96,38 +94,51 @@
        :content "''"
        :background-size [(em 1.3) (em 1.3)]
        :background-repeat :no-repeat
-       ;; :background-color (color :yellow)
        :background-image "url('/assets/icons/search.png')"
-       ;; :margin-left (rem -3)
-       ;; :margin-top (rem -0.2)
        :top (em 0.4)
        :right (em 0.6)
        :position :absolute
        :height (em 1.3)
-       :width (em 1.3)}
-      [:&.hover
-       {
-        ;; :background-color (color :yellow)
-        }]]]]
+       :width (em 1.3)}]]]
    [:.tracker-section
     {:cursor :pointer
      :transition "width 100ms cubic-bezier(0.23, 1, 0.32, 1) 0ms"
-     :width :transactionLogWidth
+     :width (px tracker-width)
      :height "100%"
      :display :flex
      :align-items :center
      :justify-content :center}
+    [:.no-accounts
+     {:display :flex
+      :justify-content :center
+      :align-items :center
+      :text-align :center}]
     [:.accounts
      {:display :grid
       :grid-template-areas
-      (str
-       "'dank eth'\n"
-       "'tx-log tx-log'\n")
+      "'dank-section eth-section'
+       'tx-log tx-log'"
       :height "100%"
-      :align-items :center
-      :justify-content :center
+      :width (px tracker-width)
+      :background-color (color :ticker-background)
       :grid-template-rows (em 3.6)}
-     [">div" {:height "100%"}]
+     [:.dank-logo
+      {:grid-area :dank-section
+       :display :flex
+       :align-items :center}
+      [:img
+       {:width (em 3.5)
+        :height (em 3.5)
+        :margin-left (em 1.5)}]]
+     [:.eth-logo
+      {:grid-area :eth-section
+       :display :flex
+       :flex-grow 0
+       :align-items :center}
+      [:img
+       {:width (em 2.5)
+        :height (em 2.5)
+        :margin-left (em 0.5)}]]
      [:.tx-log.open
       {:transform "scaleY(1)"}]
 
@@ -139,8 +150,7 @@
        :transition-property "transform, -webkit-transform"
        :transition-duration ".3s, .3s"
        :transition-timing-function "cubic-bezier(0.23, 1, 0.32, 1), cubic-bezier(0.23, 1, 0.32, 1)"
-       :transform-origin :top
-       :width (px 300)}
+       :transform-origin :top}
 
       [:.header
        {:background (color :pink)
@@ -150,8 +160,6 @@
         :text-align :center
         :padding-top (em 0.3)
         :cursor :pointer}]
-
-
 
       [:.tx-content
        {:background (color :white)
@@ -179,8 +187,7 @@
         {:height (px 424)
          :overflow-y :auto
          :width "104%"
-         :overflow-x :hidden
-         }
+         :overflow-x :hidden}
 
         [:.transaction
          {:display :grid
@@ -276,61 +283,27 @@
             [:&:before
              {:content (icons :clock2)}]]]]]]]]
 
-     [:&.dank
-      {:grid-area :dank}]
-
-     [:&.eth
-      {:grid-area :eth}]
-
      [:.active-account-balance
-      {:display :block
-       :height "100%"
-       :min-width (em 9)
+      {:display :flex
+       :min-width (em 7)
        :background-color (color :ticker-background)
-       :position :relative
-       ;; :font-size (px 18)
+       :flex-direction :column
+       :justify-content :center
+       :align-items :center
+       
        }
       ["&:not(:last-child)"
        {:border-right (px 1)
         :border-right-color (color :black)
         :border-right-style :solid}]
-      [:&:before
-       {:display :block
-        :background-size [(em 1) (em 2)]
-        :background-repeat :no-repeat
-        :left (em 0.4)
-        :top (em 0.3)
-        :position :relative
-        :height (em 2)
-        :width (em 2)
-        :content "''"}]
-      [:&.eth:before {:background-image (str "url('/assets/icons/ethereum.svg')")}]
-      [:&.dank:before {:background-image (str "url('/assets/icons/dank-logo.svg')")
-                       :background-size (px 32)
-                       :background-position "-5px -6px"}]
+
       [:.balance
        (font :bungee)
        {:white-space :nowrap
         :color (color :ticker-color)
-        :position :absolute
-        :display :inline-block
         :text-align :center
-        :left 0                         ;
-        :right 0                        ;
-        :margin-right "auto"
-        :margin-left "auto"
-        :top (em 0.3)
         :overflow :hidden
         :text-overflow :ellipsis}]
       [:.token-code
        {:white-space :nowrap
-        :color (color :ticker-token-color)
-        :position :absolute
-        :display :block
-        :left 0
-        :right 0
-        :top (em 1.5)
-        :width (em 2)
-        :margin-right "auto"
-        :margin-left "auto"
-        :bottom (em 0.3)}]]]]])
+        :color (color :ticker-token-color)}]]]]])

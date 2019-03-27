@@ -125,8 +125,8 @@
                                        :meme :meme/owned-meme-tokens
                                        (map :meme-token/token-id)))
         form-data (r/atom {:meme-auction/duration 14
-                                :meme-auction/amount 1
-                                :meme-auction/description nil})
+                           :meme-auction/amount 1
+                           :meme-auction/description ""})
 
         errors (ratom/reaction (let [{:keys [:meme-auction/start-price :meme-auction/end-price :meme-auction/description]} @form-data
                                      sp (js/parseFloat start-price)
@@ -401,7 +401,7 @@
                                             [:a.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                                               {:address address}
                                                                               nil])}
-                                             [:div.title (str "#" number " " title)]
+                                             [:div.title (str (when number (str "#" number " ")) title)]
                                              [:div.issued (str total-minted "/" total-supply" Issued")]
                                              [:div.status
                                               (case status
@@ -502,7 +502,7 @@
                     [:div.footer {:on-click #(dispatch [::router-events/navigate :route.meme-detail/index
                                                         {:address address}
                                                         nil])}
-                     [:div.title [:b (str "#" number " " title)]]
+                     [:div.title [:b (str (when number (str "#" number " ")) title)]]
                      [:div.vote-option
                       (cond
                         (= option (graphql-utils/kw->gql-name :vote-option/not-revealed))
@@ -664,12 +664,16 @@
                     :has-next-page
                     [:items (remove nil? [:reg-entry/address
                                           :reg-entry/status
+                                          :reg-entry/created-on
                                           :meme/image-hash
                                           :meme/meta-hash
                                           :meme/number
                                           :meme/title
                                           :meme/total-supply
                                           :meme/total-minted
+                                          :meme/total-trade-volume
+                                          :meme/average-price
+                                          :meme/highest-single-sale
                                           [:reg-entry/creator [:user/address]]
                                           [:meme/owned-meme-tokens {:owner user-address}
                                            [:meme-token/token-id]]])]]]]
@@ -718,6 +722,7 @@
                            :meme/meta-hash
                            :meme/number
                            :meme/title
+                           :reg-entry/status
                            [:challenge/vote {:vote/voter user-address}
                             [:vote/option]]]]]]]
       :selling [[:search-meme-auctions (merge {:seller user-address

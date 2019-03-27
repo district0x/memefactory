@@ -17,10 +17,11 @@
                     {:margin-right (em 2)
                      :margin-left (em 2)}])
    [:.get-dank-box
-    (panel-with-icon {:url "/assets/icons/get-dank-icon-bg.svg"
+    (panel-with-icon {:url "/assets/icons/dank-logo.svg"
                       :color :redish})
     [:h3.title {:white-space :normal}]
-    [:.icon {:background-size [(em 3) (em 3)]}]
+    [:.icon {:background-size [(em 3) (em 3)]
+             :background-position-x (em 0.7)}]
 
     [:.form {:font-size (px 14)
              :margin (em 2)

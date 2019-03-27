@@ -18,7 +18,7 @@
 
 
 (def animation-speed "0.35s")
-(def animation-timing "linear")
+(def animation-timing "ease-in")
 
 
 (def no-select-style
@@ -41,7 +41,9 @@
 (def default-animation-style
   {:animation-duration animation-speed
    :animation-fill-mode :both
-   :animation-timing-function animation-timing})
+   :animation-timing-function animation-timing
+   :-webkit-transform-style :preserve-3d
+   :transform-style :preserve-3d})
 
 
 (def overlay-background (str "linear-gradient(to bottom, "
@@ -66,43 +68,35 @@
    [:from {:opacity 0.0}]
    [:to {:opacity 1.0}])
 
+  (at-keyframes
+   :fade-out
+   [:from {:opacity 1.0}]
+   [:to {:opacity 0.0}])
+
   ;; Flipping Front Forwards (not facing)
   (at-keyframes
    :flipping-front-not-facing
-   [:from {:transform "rotateY(0deg);"
-           :opacity 1.0}]
-   ["50%" {:opacity 0.0}]
-   [:to {:transform "rotateY(180deg);"
-         :opacity 1.0}])
+   [:from {:transform "rotateY(0deg);"}]
+   [:to {:transform "rotateY(180deg);"}])
 
   ;; Flipping Front Backwards (facing)
   (at-keyframes
    :flipping-front-facing
-   [:from {:transform "rotateY(180deg);"
-           :opacity 1.0}]
-   ["50%" {:opacity 0.0}]
-   [:to {:transform "rotateY(0deg);"
-         :opacity 1.0}])
+   [:from {:transform "rotateY(180deg);"}]
+   [:to {:transform "rotateY(0deg);"}])
 
   ;; Flipping the Back Forwards (facing)
   (at-keyframes
    :flipping-back-facing
-   [:from {:transform "rotateY(90deg);"
-           :opacity 0.0}]
-   ["50%" {:transform "rotateY(90deg);"
-           :opacity 1.0}]
-   [:to {:transform "rotateY(0deg);"
-         :opacity 1.0}])
+   [:from {:transform "rotateY(-180deg);"}]
+   [:to {:transform "rotateY(0deg);"}])
 
   ;; Flipping the Back Backwards (not facing)
   (at-keyframes
    :flipping-back-not-facing
-   [:from {:transform "rotateY(0deg);"
-           :opacity 1.0}]
-   ["50%" {:transform "rotateY(90deg);"
-           :opacity 0.0}]
-   [:to {:transform "rotateY(90deg);"
-         :opacity 0.0}])
+   [:from {:transform "rotateY(0deg);"}]
+   [:to {:transform "rotateY(-180deg);"}])
+  
 
 
   ;;
@@ -123,10 +117,15 @@
 
   [:.flippable-tile
    {:display :grid
+    :perspective (px 1280)
+    :-webkit-transform-style :preserve-3d
+    :transform-style :preserve-3d
+    :-webkit-backface-visibility :hidden
+    :backface-visibility :hidden
     :cursor :pointer
     :background-color "white"
     :border-radius (em 1)
-    :overflow :hidden
+    :overflow :visible
     :grid-template-areas "'fill'"
     :grid-template-rows (px card-height)
     :grid-template-columns (px card-width)
@@ -145,8 +144,11 @@
    [:.flippable-tile-back
     (merge
      {:z-index 9001
+      :transform "rotate(5px);"
       :grid-area "fill"
-      :animation-name :flipping-back-not-facing}
+      :animation-name :flipping-back-not-facing
+      :-webkit-backface-visibility :hidden
+      :backface-visibility :hidden}
      default-animation-style)]]
 
   ;; Main Animation for flipping
@@ -305,7 +307,6 @@
     :width (px card-width)
     :margin-top (em 1)
     :margin-bottom (em 1)
-    ;; :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
     :display :block
     :position :relative
     :text-align :center}
@@ -340,12 +341,20 @@
     :grid-area :fill
     :background-color "rgba(0, 0, 0, 0.3)"
     :z-index 1}
+
+   [:&:hover
+    {:animation-name :fade-out
+     :animation-duration "0.11s"
+     :animation-delay "0.001s"
+     :animation-timing-function :linear
+     :animation-fill-mode :both}]
+
    [:.image-tape
     {:display :flex
      :position :relative
      :align-items :center
      :justify-content :center
-     :top (px (- (/ card-height 2) 60))
+     :top (px (- (/ card-height 2) 45))
      :right (px (- (/ card-width 2) 5))
      :background-color (color :rank-yellow)
      :height (px (* card-height 0.15))

@@ -54,7 +54,7 @@
       (for-media-max :large [:& {:justify-content :center}])
       [:.curator
        {:min-width (em 18)
-        :padding-top (em 3)
+        :padding-top (em 2)
         :padding-left (em 1)
         :padding-right (em 1)}
        (for-media-max :tablet
@@ -63,7 +63,7 @@
                         :margin-right (em 0)}])
        ["> *"
         {:display :block
-         :margin-bottom (em 0.5)
+         :margin-bottom (em 0.4)
          :margin-top 0}
         [:&.number
          {:color (color :purple)
@@ -88,7 +88,7 @@
          :color (color :section-subcaption)}
         [:span
          {:font-weight :normal}]]
-       [:p.total-earnings {:margin-top (px 25)}]
+
 
        {:width (em 20)
         :display :block

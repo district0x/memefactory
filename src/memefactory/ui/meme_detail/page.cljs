@@ -38,7 +38,8 @@
    [taoensso.timbre :as log]
    [goog.string :as gstring]
    [memefactory.ui.components.buttons :as buttons]
-   [memefactory.ui.dank-registry.vote-page :as vote-page]))
+   [memefactory.ui.dank-registry.vote-page :as vote-page]
+   [memefactory.ui.components.general :refer [dank-with-logo]]))
 
 (def scroll-interval 5)
 
@@ -49,6 +50,7 @@
               (cond-> [:reg-entry/address
                        :reg-entry/status
                        :reg-entry/deposit
+                       :reg-entry/created-on
                        :reg-entry/challenge-period-end
                        :meme/image-hash
                        :meme/meta-hash
@@ -105,10 +107,16 @@
                      (format/format-token creator-total-earned {:token "DANK"}) ")")]
      [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
-     [:div.address (str "Address: " address)]]))
+     [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                                          {:address address}
+                                          {:tab :created}])}
+      [:span "Address:"]
+      [:span.address {:class (when (= address @(subscribe [::accounts-subs/active-account]))
+                               "active-address")}
+       address]]]))
 
-(defn related-memes-component [state]
-  (panel :selling state))
+(defn related-memes-component [state loading-first? loading-last?]
+  (panel :selling state loading-first? loading-last?))
 
 (defn related-memes-container [address tags]
   (let [safe-mapcat (fn [f queries] (loop [queries queries
@@ -123,7 +131,8 @@
         build-query (fn [{:keys [:first :after]}]
                       [[:search-meme-auctions {:tags-or tags
                                                :after (str after)
-                                               :first first}
+                                               :first first
+                                               :group-by :meme-auctions.group-by/cheapest}
                         [:total-count
                          :end-cursor
                          :has-next-page
@@ -132,6 +141,10 @@
                                   :meme-auction/start-price
                                   :meme-auction/end-price
                                   :meme-auction/bought-for
+                                  :meme-auction/duration
+                                  :meme-auction/started-on
+                                  :meme-auction/description
+                                  [:meme-auction/seller [:user/address]]
                                   [:meme-auction/meme-token
                                    [:meme-token/number
                                     [:meme-token/meme
@@ -148,12 +161,12 @@
                    (mapcat (fn [q] (get-in q [:search-meme-auctions :items])))
                    (remove #(= (-> % :meme-auction/meme-token :meme-token/meme :reg-entry/address) address)))]
 
-    (log/debug "Related memes" {:address address :tags tags :resp @response})
+
 
     [:div.scroll-area
-     [related-memes-component state]
+     [related-memes-component state (:graphql/loading? (first @response)) (:graphql/loading? (last @response))]
      [infinite-scroll {:load-fn (fn []
-                                  (when-not (:graphql/loading? @response)
+                                  (when-not (:graphql/loading? (last @response))
                                     (let [{:keys [:has-next-page :end-cursor]} (:search-meme-auctions (last @response))]
                                       (when has-next-page
                                         (dispatch [::gql-events/query
@@ -206,13 +219,17 @@
                     ^{:key address}
                     [:tr
                      [:td.meme-token (:meme-token/token-id meme-token)]
-                     [:td.seller-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                     [:td.address.seller-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                                 {:address (:user/address seller)}
-                                                                {:tab :sold}])}
+                                                                {:tab :sold}])
+                                          :class (when (= (:user/address seller) @(subscribe [::accounts-subs/active-account]))
+                                                   "active-address")}
                       (:user/address seller)]
-                     [:td.buyer-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
+                     [:td.address.buyer-address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                                {:address (:user/address buyer)}
-                                                               {:tab :collected}])}
+                                                               {:tab :collected}])
+                                         :class (when (= (:user/address buyer) @(subscribe [::accounts-subs/active-account]))
+                                                  "active-address")}
                       (:user/address buyer)]
                      [:td.end-price (format-price bought-for)]
                      [:td.time  (let [now-date (t/date-time @now)
@@ -233,13 +250,16 @@
     [:div.challenger
      [:b "Challenger"]
      [:div.rank (str "Rank: #" challenger-rank " ("
-                     (format/format-token challenger-total-earned {:token "DANK"}) ")")]
+                     (format-dank challenger-total-earned) ")")]
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
      [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                           {:address (:user/address challenger)}
                                           {:tab :curated}])}
-      (str "Address: " (:user/address challenger))]
+      [:span "Address:"]
+      [:span.address {:class (when (= (:user/address challenger) @(subscribe [::accounts-subs/active-account]))
+                               "active-address")}
+       (:user/address challenger)]]
      [:span.challenge-comment (str "\"" comment "\"")]]))
 
 (defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme} text]
@@ -317,7 +337,7 @@
                                :maxLength 2000
                                :errors errors}]
        [:div.controls
-        [:div.dank (format/format-token (quot deposit 1e18) {:token "DANK"})]
+        [dank-with-logo (quot dank-deposit 1e18)]
         [tx-button/tx-button {:primary true
                               :disabled (or @tx-success? (not (empty? (:local @errors))))
                               :pending? @tx-pending?
@@ -402,7 +422,7 @@
            {:form-data form-data
             :for :vote/amount-for
             :id :vote/amount-for}]
-          [:span.unit "DANK"]]
+          [:img.dank-logo-small.unit {:src "/assets/icons/dank-logo.svg"}]]
 
          [inputs/pending-button
           {:pending? @tx-pending?
@@ -431,7 +451,7 @@
            {:form-data form-data
             :for :vote/amount-against
             :id :vote/amount-against}]
-          [:span.unit "DANK"]]
+          [:img.dank-logo-small.unit {:src "/assets/icons/dank-logo.svg"}]]
          [inputs/pending-button
           {:pending? @tx-pending?
            :disabled (or (-> @errors :local :vote/amount-against empty? not)
@@ -469,7 +489,7 @@
                          [challenger-component meme]
                          (if-not (= 0 days hours minutes seconds)
                            [reveal-vote-component meme]
-                           [:div "Reveal period ended. Please refresh the page."])]))]))
+                           [:div "Reveal period ended."])]))]))
 
 (defmethod challenge-component :reg-entry.status/commit-period
   [{:keys [:challenge/created-on :reg-entry/status :challenge/commit-period-end] :as meme}]
@@ -484,7 +504,7 @@
                          [challenger-component meme]
                          (if-not (= 0 days hours minutes seconds)
                            [vote-component meme]
-                           [:div "Commit period ended. Please refresh the page."])]))]))
+                           [:div "Commit period ended."])]))]))
 
 (defmethod challenge-component :reg-entry.status/challenge-period
   [{:keys [:challenge/created-on :reg-entry/status :reg-entry/challenge-period-end] :as meme}]
@@ -506,8 +526,7 @@
   [:div
    [:h1.title "Challenge"]
    (if-not created-on
-     [:div
-      [:h4.title "This meme hasn't been challenged."]]
+     [:div.no-challenge "This meme hasn't been challenged"]
      (cond-> [:div.challenge-component-inner
               [challenge-header created-on]]
        created-on (into [[status-component meme "This meme was challenged, and voting has concluded. Accepted memes are minted to the marketplace, while rejected ones can be resubmitted by the creator."]
@@ -518,9 +537,10 @@
 
   (let [active-account @(subscribe [::accounts-subs/active-account])
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
-        meme-sub (subscribe [::gql/query (build-meme-query address active-account)])
+        meme-sub (subscribe [::gql/query (build-meme-query address active-account)
+                             {:refetch-on [:memefactory.ui.contract.registry-entry/challenge-success]}])
         meme (when meme-sub (-> @meme-sub :meme))
-        {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply
+        {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply :reg-entry/created-on
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end]} meme
         token-count (->> owned-meme-tokens
                          (map :meme-token/token-id)
@@ -567,8 +587,14 @@
                                                 (format/format-time-units
                                                  (time/time-remaining @(subscribe [:district.ui.now.subs/now])
                                                                       (ui-utils/gql-date->date reveal-period-end)))))]
-            [:div.text (format/pluralize total-supply "card")]
-            [:div.text (str "You own " token-count)]
+            [:div.text (str "Created " (let [days (:days (time/time-remaining (ui-utils/gql-date->date created-on)
+                                                                              @(subscribe [:district.ui.now.subs/now])))]
+                                         (if (pos? days)
+                                           (str (format/pluralize days "day") " ago")
+                                           "today")))]
+            [:div.text (gstring/format "You own %s out of %d"
+                                       (format/pluralize token-count "card")
+                                       total-supply)]
             [meme-creator-component creator]
             [:div.tags
              (for [tag-name tags]
@@ -601,7 +627,9 @@
         [:div.icon]
         [:h2.title "RELATED MEMES ON MARKETPLACE"]
         [:h3.title "Similar memes for sale now"]
-        [related-memes-container address tags]]]]]))
+        (if meme-not-loaded?
+          [spinner/spin]
+          [related-memes-container address tags])]]]]))
 
 (defmethod page :route.meme-detail/index []
   (r/create-class {:component-did-mount #(js/window.scrollTo 0 0)

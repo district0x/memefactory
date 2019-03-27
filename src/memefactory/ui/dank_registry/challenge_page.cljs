@@ -21,7 +21,8 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [district.graphql-utils :as graphql-utils]))
+   [district.graphql-utils :as graphql-utils]
+   [memefactory.ui.components.general :refer [dank-with-logo]]))
 
 (defn header []
   [:div.challenge-info
@@ -32,6 +33,7 @@
     [:span "Get Dank"]
     [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
     [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]])
+
 
 (defn open-challenge-action [{:keys [:reg-entry/address :meme/title]}]
   (let [form-data (r/atom {})
@@ -71,7 +73,7 @@
              (if @tx-success?
                "Challenged"
                "Challenge")]
-            [:span.dank (format/format-token (/ dank-deposit 1e18)  {:token "DANK"})]]
+            [dank-with-logo (/ dank-deposit 1e18)]]
            [:button.open-challenge {:on-click #(swap! open? not)} "Challenge"])]))))
 
 (defmethod page :route.dank-registry/challenge []

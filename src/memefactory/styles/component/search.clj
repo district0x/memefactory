@@ -78,7 +78,7 @@
      {:display :grid
       :margin-left (em 2)
       :padding-top (em 2)
-      :grid-template-columns "60% 17% 23%"
+      :grid-template-columns "7fr minmax(180px, 3fr) 3fr"
       :grid-template-rows "2.5em 3em 2em"
       :grid-template-areas
       (str

@@ -16,7 +16,8 @@
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
    [taoensso.timbre :as log :refer [spy]]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [memefactory.ui.components.general :refer [dank-with-logo]]))
 
 (defn header []
   [:div.submit-info
@@ -141,7 +142,7 @@
                      :disabled (or (not (empty? @critical-errors))
                                    (< @account-balance deposit))}
             "Submit"]
-           [:span.dank (format/format-token (web3/from-wei deposit :ether) {:token "DANK"})]]
+           [dank-with-logo (web3/from-wei deposit :ether)]]
           (when (< @account-balance deposit)
             [:div.not-enough-dank "You don't have enough DANK token to submit a meme"])]]]])))
 

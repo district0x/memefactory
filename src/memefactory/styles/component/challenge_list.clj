@@ -13,19 +13,16 @@
 
 (defstyles core
   [:.challenges.panel
-    [:.spinner-container {:width (px 900)
+   [:.spinner-container {:width (px 900)
                          :height (px 500)}
     [:.spinner-outer {:margin-left :auto
                       :margin-right :auto
                       :padding-top (em 12)}]]
-   #_[:.controls {:width (em 11)
-                :margin-left :auto
-                :margin-right 0}]
    [:.controls {:display :block
                 :margin-top (em 4)
                 :margin-left :auto
                 :margin-right 0
-                :width (em 11)
+                :width (em 14)
                 :right (em 0)
                 :height 0
                 :top (em -4)

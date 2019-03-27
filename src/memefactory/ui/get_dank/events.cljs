@@ -13,12 +13,12 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [goog.string :as gstring]
-            [graphql-query.core :refer [graphql-query]]))
+            [graphql-query.core :refer [graphql-query]]
+            [taoensso.timbre :as log]))
 
 (re-frame/reg-event-fx
  ::show-spinner
  (fn [{:keys [db]} [_ _]]
-
    {:db (assoc db
           ::spinner true)}))
 
@@ -46,7 +46,7 @@
 (re-frame/reg-event-fx
  ::verification-code-success
  (fn [{:keys [db]} [_ {:keys [data]}]]
-   (println "in verification-code-success, data:" data)
+   (log/debug "in verification-code-success, data:" data)
    (let [success (get-in data [:sendVerificationCode :success])
          msg     (get-in data [:sendVerificationCode :msg])]
      (if success
@@ -69,16 +69,23 @@
                    :timeout         8000
                    :response-format (ajax/json-response-format {:keywords? true})
                    :format          (ajax/json-request-format)
-                   :on-success-n    [[::show-spinner]
-                                     [::verify-and-acquire-dank data]]
+                   :on-success      [::encrypt-payload-success data]
                    :on-failure      [::verification-code-error]}})))
+
+(re-frame/reg-event-fx
+ ::encrypt-payload-success
+ (fn [{:keys [db]} [_ {:keys [country-code phone-number verification-code] :as data} http-resp]]
+   (log/info "Encryption success:" data)
+   {:db (assoc db
+          ::spinner true)
+    :dispatch [::verify-and-acquire-dank data http-resp]}))
 
 (re-frame/reg-event-fx
  ::verify-and-acquire-dank
  (fn [{:keys [db]} [_ {:keys [country-code phone-number verification-code]
                        :as data} http-resp]]
-   (println "in verify-and-acquire-dank data:" data)
-   (println "in verify-and-acquire-dank http-resp:" http-resp)
+   (log/debug "in verify-and-acquire-dank data:" data)
+   (log/debug "in verify-and-acquire-dank http-resp:" http-resp)
    (let [active-account (account-queries/active-account db)
          encrypted-payload (get-in http-resp [:data :encryptVerificationPayload :payload])
          oraclize-string (str "[computation] "
@@ -88,10 +95,10 @@
                               "'${[decrypt] "
                               encrypted-payload
                               "}']")]
-     (println "in verify-and-acquire-dank")
-     (println "country-code:" country-code "phone-number" phone-number "verification-code" verification-code)
-     (println "encrypted-payload:" encrypted-payload)
-     (println "oraclize-string:" oraclize-string)
+     (log/debug "in verify-and-acquire-dank")
+     (log/debug "country-code:" country-code "phone-number" phone-number "verification-code" verification-code)
+     (log/debug "encrypted-payload:" encrypted-payload)
+     (log/debug "oraclize-string:" oraclize-string)
      (when encrypted-payload
        {:dispatch
         [::tx-events/send-tx {:instance (look (contract-queries/instance db :dank-faucet))
@@ -114,19 +121,19 @@
  ::verification-code-error
  (fn [db [_ data]]
    ;; TODO add http level errors here
-   (println "in verification-code-error, data:" data)
+   (log/debug "in verification-code-error, data:" data)
    db))
 
 (re-frame/reg-event-db
  ::acquire-dank-success
  (fn [db [_ data]]
    ;; TODO add twilio level errors here
-   (println "in acquire-dank-success, data:" data)
+   (log/debug "in acquire-dank-success, data:" data)
    db))
 
 (re-frame/reg-event-db
  ::acquire-dank-error
  (fn [db [_ data]]
    ;; TODO add http level errors here
-   (println "in acquire-dank-error, data:" data)
+   (log/debug "in acquire-dank-error, data:" data)
    db))

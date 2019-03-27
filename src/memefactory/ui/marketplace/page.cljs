@@ -87,7 +87,8 @@
                              :search-tags (when-let [tags (:search-tags query)]
                                             (str/split tags #","))
                              :order-by (or (:order-by query) "started-on")
-                             :order-dir (or (:order-dir query) "desc")}))
+                             :order-dir (or (:order-dir query) "desc")
+                             :only-cheapest? true}))
         all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     (fn []
       (let [re-search (fn [& _]

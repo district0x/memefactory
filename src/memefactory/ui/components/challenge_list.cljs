@@ -20,7 +20,8 @@
    [reagent.core :as r]
    [taoensso.timbre :as log]
    [district.ui.router.events :as router-events]
-   [memefactory.ui.components.panels :refer [no-items-found]]))
+   [memefactory.ui.components.panels :refer [no-items-found]]
+   [district.ui.web3-accounts.subs :as accounts-subs]))
 
 (def page-size 3)
 
@@ -75,7 +76,8 @@
    [:li "Address: " [:span.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                           {:address (:user/address user)}
                                                           {:tab :created}])
-                                    :class "creator"}
+                                    :class (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
+                                             "active-address")}
                      (-> user :user/address)]]])
 
 (defn challenger-info [user]
@@ -90,7 +92,8 @@
    [:li "Address: " [:span.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                                           {:address (:user/address user)}
                                                           {:tab :curated}])
-                                    :class "creator"}
+                                    :class (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
+                                             "active-address")}
                      (-> user :user/address)]]])
 
 (defn current-period-ends [label end-date]

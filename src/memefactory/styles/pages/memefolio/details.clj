@@ -11,9 +11,11 @@
             [memefactory.styles.base.media :refer [for-media-min for-media-max]]
             [memefactory.styles.component.search :refer [search-panel]]
             [memefactory.styles.component.panels :refer [panel-with-icon tabs]]
+            [garden.color :refer [transparentize]]
             [garden.selectors :as sel]
             [garden.units :refer [pt px em rem]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]))
 
 (def radius 170)
 (def outer-radius radius)
@@ -125,6 +127,7 @@
        {:margin-top (em 1)
         :margin-bottom (em 0.5)}
        [:button (tag)
+        {:cursor :pointer}
         {:color (color :menu-text)}]]
       [:.buttons
        {:display :flex}
@@ -304,6 +307,10 @@
               :margin-bottom (em 0.5)
               :margin-top (em 0.5)
               }]]]
+     [:.no-challenge {:color (transparentize (color :menu-text) 0.5)
+                      :width "100%"
+                      :text-align :center
+                      :padding-top (px 84)}]
      [:h4.title {:margin-left :auto
                  :margin-right :auto
                  :width (em 17)
@@ -450,10 +457,10 @@
        [:.outer {:display :inline-flex
                  :width "100%"
                  :margin-bottom (em 1)}
-        [:.unit {:margin-left (px -40)
-                 :margin-top (px 8)
+        [:.unit {:margin-left (px -30)
                  :font-size (px 11)
-                 :z-index 1}]
+                 :z-index 1
+                 :height (px 35)}]
         [:.help-block {:display :none}]]
        [:.form {:display :inline-flex
                 :margin-top (em 1)}
@@ -495,9 +502,13 @@
                        :margin-right :auto
                        :padding-top (em 7)}]
      [:h2.title {:padding-top (em 1)}]
-     [:.selling-tile-back {:height "100%"
-                           :background-color (color :violet)}
-      (button-tile-back)]
+     [:.selling-panel
+      [:.meme-card
+       [:.overlay {:background overlay-background-footer}]
+       [:.selling-tile-back {:height "100%"
+                             :background-color (color :violet)}
+        (button-tile-back)]]]
+
      [:.scroll-area
       {:background-color :white
        :color (color :menu-text)

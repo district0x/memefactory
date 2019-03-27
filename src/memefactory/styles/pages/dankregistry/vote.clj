@@ -42,6 +42,7 @@
                   :right (em 0)
                   :height 0
                   :top (em -4)
+                  :width (em 14)
                   :position :relative}
 
       [:.help-block {:display :none}]
@@ -64,6 +65,9 @@
                    :grid-template-columns "80% 20%"
                    :border-bottom "1px solid"
                    :margin-bottom (em 1)}
+     [:img.dank-logo-small
+      {:margin-left (px 6)}
+      (for-media-max :tablet [:& {:margin-left (px 17)}])]
      [:span {:margin-top (px 8)}]
      [:.help-block {:display :none}]]
     [:.vote-dank
@@ -98,11 +102,11 @@
     [:p.token-return {:text-align :center
                       :font-size (px 12)
                       :margin-left (em 0.5)
-         :margin-right (em 0.5)}]]
+                      :margin-right (em 0.5)}]]
    [:.reveal
     {:text-align :center}
     [:img {:width (em 7)}]
-    [:.button-wrapper {:display :inline-block}
+    [:.button-wrapper {:display :block}
      [:button
       {:margin-top (em 2)}
       (button {:background-color :purple
