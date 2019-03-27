@@ -108,7 +108,7 @@
      [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
      [:div {}
-      [:span "Address:"]
+      [:span "Address: "]
       [nav-anchor {:route :route.memefolio/index
                    :params {:address address}
                    :query {:tab :created}
