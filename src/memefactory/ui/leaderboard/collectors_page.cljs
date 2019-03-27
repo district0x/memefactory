@@ -87,8 +87,8 @@
         (log/debug "All collectors" {:colectors all-collectors} :route.leaderboard/collectors)
 
         [app-layout
-         {:meta {:title "MemeFactory"
-                 :description "Description"}}
+         {:meta {:title "MemeFactory - Collectors Leaderboard"
+                 :description "Meme addicts with the biggest Memefolios. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
          [:div.leaderboard-collectors-page
           [:section.collectors
            [:div.collectors-panel

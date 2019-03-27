@@ -54,8 +54,8 @@
             lazy-curators (mapcat #(get-in % [:search-users :items]) @users-search)
             last-user (last @users-search)]
         [app-layout
-         {:meta {:title "MemeFactory"
-                 :description "Description"}}
+         {:meta {:title "MemeFactory - Curators Leaderboard"
+                 :description "The most prolific challengers and voters on MemeFactory. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
          [:div.leaderboard-curators-page
           [:section.curators
            [:div.curators-panel

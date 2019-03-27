@@ -56,7 +56,7 @@
 
 (defmethod page :route.my-settings/index []
   [app-layout
-   {:meta {:title "MemeFactory"
-           :description "Description"}}
+   {:meta {:title "MemeFactory - My Settings"
+           :description "MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
    [:div.my-settings-page
     [my-settings]]])

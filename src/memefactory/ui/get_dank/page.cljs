@@ -29,8 +29,8 @@
     (fn []
       (let [show-spinner? @(subscribe [:memefactory.ui.subs/dank-faucet-spinner])]
         [app-layout
-         {:meta {:title "MemeFactory"
-                 :description "Faucet for initial DANK"}}
+         {:meta {:title "MemeFactory - Receive initial DANK tokens"
+                 :description "Enter your phone number and we'll send you a one-time allotment of DANK tokens. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
          [:div.get-dank-page
           [:div.get-dank-box
            [:div.icon]

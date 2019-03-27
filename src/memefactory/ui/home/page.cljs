@@ -156,12 +156,11 @@
         new-on-market (subscribe [::gql/query {:queries [new-on-marketplace-query]}])
         rare-finds (subscribe [::gql/query {:queries [rare-finds-query]}])
         random-picks (subscribe [::gql/query {:queries [random-picks-query]}])
-        trending-votes (subscribe [::gql/query {:queries [trending-votes-query]}])
-        ]
+        trending-votes (subscribe [::gql/query {:queries [trending-votes-query]}])]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory"
-               :description "Description"}
+               :description "MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}
         :search-atom search-atom}
        [:div.home
         [:p.inspired "A decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."]

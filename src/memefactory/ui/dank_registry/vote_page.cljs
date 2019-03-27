@@ -227,13 +227,12 @@
 
 (defmethod page :route.dank-registry/vote []
   (let [account @(subscribe [::accounts-subs/active-account])]
-    ;;fn []
 
     (log/debug ":route.dank-registry/vote" account)
 
     [app-layout
-     {:meta {:title "MemeFactory"
-             :description "Description"}}
+     {:meta {:title "MemeFactory - Vote"
+             :description "View challenges and vote to earn more DANK. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
      [:div.dank-registry-vote-page
       [:section.vote-header
        [header]]

@@ -924,8 +924,10 @@
                                :voted? true
                                :challenged? true})]
         [app-layout/app-layout
-         {:meta {:title "MemeFactory"
-                 :description "Description"}}
+         {:meta {:title (if url-account
+                          (str "MemeFactory - Memefolio " user-account)
+                          "MemeFactory - My Memefolio")
+                 :description "A personal history of all memes bought, sold, created, and owned. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
          [:div.memefolio-page
           ^{:key user-account}
           [tabbed-pane {:tab active-tab :prefix prefix :form-data form-data :user-account {:user-address user-account

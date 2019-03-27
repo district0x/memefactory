@@ -89,8 +89,8 @@
                                      :disable-fetch? false}])
             search-total-count (-> @meme-search first :search-memes :total-count)]
         [app-layout
-         {:meta {:title "MemeFactory"
-                 :description "Description"}}
+         {:meta {:title "MemeFactory - Dank Registry"
+                 :description "Browse all memes ever minted. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
          [:div.dank-registry-index-page
           [search-tools {:form-data form-data
                          :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))

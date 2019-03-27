@@ -89,8 +89,8 @@
         (log/debug "All creators" {:creators all-creators})
 
         [app-layout
-         {:meta {:title "MemeFactory"
-                 :description "Description"}}
+         {:meta {:title "MemeFactory - Creators Leaderboard"
+                 :description "Meme makers ranked by registry success rate and total ETH earned. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
          [:div.leaderboard-creators-page
           [:section.creators
            [:div.creators-panel

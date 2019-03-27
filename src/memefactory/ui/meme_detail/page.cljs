@@ -534,7 +534,6 @@
                          [vote-page/collect-reward-action meme]])))])
 
 (defn details []
-
   (let [active-account @(subscribe [::accounts-subs/active-account])
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         meme-sub (subscribe [::gql/query (build-meme-query address active-account)
@@ -555,8 +554,8 @@
 
     (log/debug "Query sub:" @(subscribe [::gql/query (build-meme-query address active-account)]))
     [app-layout/app-layout
-     {:meta {:title "MemeFactory"
-             :description "Description"}}
+     {:meta {:title (str "MemeFactory - " title)
+             :description (str "Details of meme " title ". " "MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets.")}}
      [:div.meme-detail-page
       [:section.meme-detail
        [:div.meme-info {:class (when meme-not-loaded? "loading")}
