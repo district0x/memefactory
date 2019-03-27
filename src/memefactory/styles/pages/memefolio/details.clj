@@ -119,6 +119,8 @@
          :color (color :menu-text)}]
        [:.address {:cursor :pointer
                    :display :inline-block
+                   :color (color :menu-text)
+                   :margin-left (px 3)
                    :vertical-align :middle}
         (for-media-max :tablet
                        [:&
@@ -393,7 +395,9 @@
        (for-media-max :computer
                       [:&
                        {:border-right "0px"}])
-       [:.address {:cursor :pointer}]
+       [:a.address {:cursor :pointer
+                   :color (color :menu-text)
+                   :margin-left (px 3)}]
        [:b {:display :block}]
        [">*"
         {:margin-bottom  (em 0.5)}]]

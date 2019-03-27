@@ -65,7 +65,8 @@
        [:a {:color (color :menu-text)}]
        (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
        [:ul {:line-height (em 2)}
-        [:.best-sale {:cursor :pointer}]]
+        [:.best-sale {:cursor :pointer
+                      :font-weight :normal}]]
        ["> *"
         {:display :block
          :margin-bottom (em 0.5)
@@ -80,6 +81,7 @@
         ]
        [:.user-address
         {:font-weight :bold
+         :color (color :deep-purple)
          :cursor :pointer
          :font-size (px 13)
          :overflow "hidden"
