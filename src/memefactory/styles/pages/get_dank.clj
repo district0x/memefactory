@@ -40,4 +40,8 @@
                        :display :block}])]]
 
     [:.footer
-      (get-dank-button)]]])
+     (get-dank-button)
+     {:width "100%"
+      :border :none}
+     [:&:disabled
+      {:opacity 0.3}]]]])

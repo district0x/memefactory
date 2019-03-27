@@ -11,20 +11,25 @@
    [district.ui.component.form.input :refer [index-by-type
                                              text-input
                                              with-label]]
-   [district.ui.graphql.subs :as gql]))
+   [district.ui.graphql.subs :as gql]
+   [clojure.string :as str]))
 
 (def verify-through-oracle-timeout 300000)
 
 (defmethod page :route.get-dank/index []
   (let [form-data (r/atom {})
         stage (r/atom 1)
-        errors (reaction {:local (let [{:keys [country-code phone-number]} @form-data]
+        errors (reaction {:local (let [{:keys [country-code phone-number verification-code]} @form-data]
                                    (cond-> {}
-                                     (empty? country-code)
+                                     (str/blank? country-code)
                                      (assoc-in [:country-code :error] "Country code is mandatory")
 
-                                     (empty? phone-number)
-                                     (assoc-in [:phone-number :error] "Phone number is mandatory")))})
+                                     (str/blank? phone-number)
+                                     (assoc-in [:phone-number :error] "Phone number is mandatory")
+
+                                     (and (= @stage 2)
+                                          (str/blank? verification-code))
+                                     (assoc-in [:verification-code :error] "")))})
         critical-errors (reaction (index-by-type @errors :error))]
     (fn []
       (let [show-spinner? @(subscribe [:memefactory.ui.subs/dank-faucet-spinner])]
@@ -45,6 +50,7 @@
                    [with-label
                     "Country Code"
                     [text-input (merge {:form-data form-data
+                                        :key :country-code
                                         :errors errors
                                         :id :country-code
                                         :dom-id :country-code
@@ -56,6 +62,7 @@
                     "Phone Number"
                     [text-input (merge {:form-data form-data
                                         :errors errors
+                                        :key :phone-number
                                         :id :phone-number
                                         :dom-id :phone-number
                                         :class "phone"})]
@@ -67,13 +74,14 @@
                     "Verification Code"
                     [text-input (merge {:form-data form-data
                                         :errors errors
+                                        :key :verification-code
                                         :dom-id :verification-code
                                         :id :verification-code})]
                     {:form-data form-data
                      :for :verification-code
                      :id :verification-code}]]))]
            (when-not show-spinner?
-             [:div.footer
+             [:button.footer
               {:on-click (fn []
                            (let [verification-code (:verification-code @form-data)]
                              (println "verification-code blank?:"
