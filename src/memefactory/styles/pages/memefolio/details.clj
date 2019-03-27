@@ -463,9 +463,10 @@
                  :width "100%"
                  :margin-bottom (em 1)}
         [:.unit {:margin-left (px -30)
+                 :margin-top (px 8)
                  :font-size (px 11)
                  :z-index 1
-                 :height (px 35)}]
+                 }]
         [:.help-block {:display :none}]]
        [:.form {:display :inline-flex
                 :margin-top (em 1)}

@@ -421,12 +421,11 @@
            [inputs/text-input {:form-data form-data
                                :id :vote/amount-for
                                :dom-id :vote/amount-for
-                               :errors errors
-                               }]
+                               :errors errors}]
            {:form-data form-data
             :for :vote/amount-for
             :id :vote/amount-for}]
-          [:img.dank-logo-small.unit {:src "/assets/icons/dank-logo.svg"}]]
+           [:span.unit "DANK"]]
 
          [inputs/pending-button
           {:pending? @tx-pending?
@@ -455,7 +454,7 @@
            {:form-data form-data
             :for :vote/amount-against
             :id :vote/amount-against}]
-          [:img.dank-logo-small.unit {:src "/assets/icons/dank-logo.svg"}]]
+           [:span.unit "DANK"]]
          [inputs/pending-button
           {:pending? @tx-pending?
            :disabled (or (-> @errors :local :vote/amount-against empty? not)

@@ -144,7 +144,7 @@
             {:form-data form-data
              :for (str address :amount-vote-for)
              :id :amount-vote-for}]
-           [:img.dank-logo-small {:src "/assets/icons/dank-logo.svg"}]]
+           [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
                            :disabled (or voted? (-> @errors :local :amount-vote-for))
@@ -169,7 +169,7 @@
             {:form-data form-data
              :for (str address :amount-vote-against)
              :id :amount-vote-against}]
-           [:img.dank-logo-small {:src "/assets/icons/dank-logo.svg"}]]
+           [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
                            :disabled (or voted? (-> @errors :local :amount-vote-against))
