@@ -110,7 +110,7 @@
      [:div.address {:on-click #(dispatch [::router-events/navigate :route.memefolio/index
                                           {:address address}
                                           {:tab :created}])}
-      [:span "Address:"]
+      [:span "Address: "]
       [:span.address {:class (when (= address @(subscribe [::accounts-subs/active-account]))
                                "active-address")}
        address]]]))
