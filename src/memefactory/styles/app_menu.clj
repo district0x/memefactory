@@ -106,8 +106,11 @@
                     :background-image (str "url('/assets/icons/" img ".svg')")}]])
                icons))]
       [:.item.faucet
-       [:a:before {:background-size "3rem,3rem"
-                   :background-position (px -8)}]]]]
+       [:a:before {:background-size "3.1rem"
+                   :background-position (px -7)
+                   :height (rem 2.1)
+                   :width (rem 2.2)
+                   :margin-top (px -6)}]]]]
     [:.district0x-banner
      (font :filson)
      {:padding-left (em 3)
