@@ -78,7 +78,9 @@
 
               (if (and (zero? votes-for)
                        (zero? votes-against))
-                [:div "This challenge didn't receive any votes"]
+                [:div.collect-reward
+                 [:div "This challenge didn't receive any votes"]
+                 (buttons/reclaim-buttons @active-account meme-voting)]
                 [:div.collect-reward
                  [charts/donut-chart meme-voting]
                  (into
