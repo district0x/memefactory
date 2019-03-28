@@ -149,7 +149,7 @@
  ::claim-vote-amount
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :meme/title] :as args}]]
-   (let [tx-name (gstring/format "Claim vote amount %s" title)
+   (let [tx-name (gstring/format "Reclaim votes from %s" title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :reclaim-vote-amount
@@ -160,7 +160,7 @@
                                                :related-href {:name :route.meme-detail/index
                                                               :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::reclaim-vote-amount]
-                                                        [::notification-events/show (gstring/format "Succesfully claimed vote amount %s" title)]]
+                                                        [::notification-events/show (gstring/format "Succesfully reclaimed votes from %s" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:is active-account}
                                                      :args args}
