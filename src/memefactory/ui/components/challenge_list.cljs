@@ -157,8 +157,13 @@
                                                                     (str "\""comment "\""))]
                                          [:ol.tags
                                           (for [{:keys [:tag/name]} tags]
-                                            [:li.tag {:key name}
-                                             name])]]))
+                                            [nav-anchor {:route :route.marketplace/index
+                                                         :params nil
+                                                         :query {:search-tags [name]}
+                                                         :class "tag"
+                                                         :key name}
+                                             [:li.tag {:key name}
+                                              name]])]]))
 
        [:div.meme-tile
         [tiles/meme-image image-hash {:rejected? (= status :reg-entry.status/blacklisted)}]]
