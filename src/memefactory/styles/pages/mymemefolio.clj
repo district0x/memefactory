@@ -335,7 +335,7 @@
                    :margin-top (px -8)
                    :width "100%"}
         [:button.cancel (button {:color :white
-                                 :background-color (color :cancel-button)
+                                 :background-color (color :pink)
                                  :height (em 3.5)
                                  :width "40%"})
          {:font-size (px 11)
