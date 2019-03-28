@@ -29,7 +29,8 @@
     [:span]
     [:img {:width (px 35)}]]
    [:img.dank-logo-small {:width (px 35)}]
-   [:.address {:cursor :pointer}
+   [:a.address {:cursor :pointer
+               :color (color :menu-text)}
     [:&.active-address {:color (color :purple)}]]
    [:div.notification
     {:color (color :meme-info-text)
