@@ -42,9 +42,9 @@
  ::cancel
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :meme/title] :as args}]]
-   (let [tx-name (gstring/format "Cancel selling of %s" title)
+   (let [tx-name (gstring/format "Cancel offering %s" title)
          active-account (account-queries/active-account db)]
-     {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db :meme-auction address))
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-auction address)
                                       :fn :cancel
                                       :args []
                                       :tx-opts {:from active-account}
@@ -53,7 +53,7 @@
                                                :related-href {:name :route.memefolio/index
                                                               :query {:tab "collected" :term title}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::cancel]
-                                                        [::notification-events/show (gstring/format "Auction %s canceled" title)]]
+                                                        [::notification-events/show (gstring/format "%s offering canceled" title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}
