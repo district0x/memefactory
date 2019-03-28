@@ -22,6 +22,7 @@
                          :text-align :center
                          :padding-top (px 230)
                          :padding-bottom (px 230)}]
+   [:iframe {:margin-right (em 1)}]
    [:.meme-comment {:color (color :pink)
                     :font-style :italic}]
    [:.dank-wrapper
