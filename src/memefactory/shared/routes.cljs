@@ -15,4 +15,5 @@
              ["/memefolio/" :route.memefolio/index]
              ["/meme-detail/:address" :route.meme-detail/index]
              ["/get-dank" :route.get-dank/index]
-             ["/my-settings" :route.my-settings/index]])
+             ["/my-settings" :route.my-settings/index]
+             ["/about" :route.about/index]])
