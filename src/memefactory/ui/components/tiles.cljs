@@ -85,7 +85,7 @@
           [:ul.meme-data
            [:li [:label "Seller:"]
             [nav-anchor {:route :route.memefolio/index
-             :params {:address (:user/address (:meme-auction/seller meme-auction))}
+                         :params {:address (:user/address (:meme-auction/seller meme-auction))}
                          :query {:tab :selling}
                          :title (str "Go to the Memefolio of " seller-address)}
              seller-address]]
@@ -101,7 +101,7 @@
 
              [inputs/pending-button {:pending? @cancel-tx-pending?
                                      :pending-text "Cancelling..."
-                                     :disabled (or @cancel-tx-pending? @cancel-tx-success?)
+                                     :disabled (or @cancel-tx-pending? @cancel-tx-success? (not @active-account))
                                      :on-click (fn [e]
                                                  (.stopPropagation e)
                                                  (dispatch [::meme-auction/cancel {:send-tx/id tx-id
@@ -111,7 +111,7 @@
 
              [inputs/pending-button {:pending? @buy-tx-pending?
                                      :pending-text "Buying..."
-                                     :disabled (or @buy-tx-pending? @buy-tx-success?)
+                                     :disabled (or @buy-tx-pending? @buy-tx-success? (not @active-account))
                                      :class (when-not @buy-tx-success? "buy")
                                      :on-click (fn [e]
                                                  (.stopPropagation e)
