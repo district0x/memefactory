@@ -67,7 +67,7 @@
 
 (defn creator-info [user]
   [:ol {:class :creator}
-   [:li "Rank: " [:span (gstring/format "#%d" (or (:user/creator-rank user) 0))]]
+   [:li "Rank: " [:span (if-let [rank (:user/creator-rank user)] (str "#" rank) "N/A")]]
    [:li "Success Rate: " [:span (let [tcmw (or (:user/total-created-memes-whitelisted user) 0)
                                       tcm (or (:user/total-created-memes user) 0)]
                                   (gstring/format "%d/%d (%d%%)"
@@ -84,7 +84,7 @@
 
 (defn challenger-info [user]
   [:ol {:class :challenger}
-   [:li "Rank: " [:span (gstring/format "#%d" (or (:user/challenger-rank user) 0))]]
+   [:li "Rank: " [:span (if-let [rank (:user/challenger-rank user)] (str "#" rank) "N/A")]]
    [:li "Success Rate: " [:span (let [tccs (or (:user/total-created-challenges-success user) 0)
                                       tcc (or (:user/total-created-challenges user) 0)]
                                   (gstring/format "%d/%d (%d%%)"
