@@ -181,13 +181,14 @@
 
 (defn event-callback [f]
   (fn [err {:keys [:args] :as evt}]
-    (when err
-      (log/error "Error when processing event" {:event evt :error err}))      
-    (f args)))
+    ;; (when err
+    ;;   (log/error "Error when processing event" {:event evt :error err}))
+    (when evt
+      (f args))))
 
 (defn start [{:keys [:api-key :private-key :print-mode? :on-event-error] :as opts}]
   (when-not private-key
-    (throw (js/Error. ":private-key is required to start emailer")))  
+    (throw (js/Error. ":private-key is required to start emailer")))
   (merge opts
          {:filters [(registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" (event-callback send-challenge-created-email))
                     (meme-auction-factory/meme-auction-buy-event "latest" (event-callback send-auction-bought-email))

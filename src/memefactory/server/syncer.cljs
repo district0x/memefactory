@@ -381,7 +381,7 @@
 
 (defmethod process-event :default
   [contract-type {:keys [:event-type] :as evt}]
-  #_(log/warn (str "No process-event method defined for processing contract-type: " contract-type " event-type: " event-type) evt ::process-event))
+  (log/warn (str "No process-event method defined for processing contract-type: " contract-type " event-type: " event-type) evt ::process-event))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of events processors ;;
@@ -397,28 +397,28 @@
 
 (defn dispatch-event
   ([ev] (dispatch-event nil ev))
-  ([err {:keys [args event address block-number] :as raw-ev}]
+  ([err {:keys [args event address block-number] :as evt}]
    (when err
      (log/error "Error when dispatching event" {:error err} ::dispatch-event))   
-   (try-catch
-    (let [contract-key (contract-key-from-address address)
-          contract-type ({:meme-registry-db         :contract/eternal-db
-                          :param-change-registry-db :contract/eternal-db
-                          :meme-registry-fwd        :contract/meme
-                          :meme-token               :contract/meme-token
-                          :meme-auction-factory     :contract/meme-auction
-                          :meme-auction-factory-fwd :contract/meme-auction} contract-key)
-          ev (-> args
-                 (assoc :contract-address address)
-                 (assoc :event (keyword event))
-                 (update :timestamp (fn [ts]
-                                      (if ts
-                                        (bn/number ts)
-                                        (:timestamp (web3-eth/get-block @web3 block-number)))))
-                 (update :version bn/number)
-                 (assoc :block-number block-number))]
-      (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
-      (process-event contract-type ev)))))
+   (when evt
+     (let [contract-key (contract-key-from-address address)
+           contract-type ({:meme-registry-db         :contract/eternal-db
+                           :param-change-registry-db :contract/eternal-db
+                           :meme-registry-fwd        :contract/meme
+                           :meme-token               :contract/meme-token
+                           :meme-auction-factory     :contract/meme-auction
+                           :meme-auction-factory-fwd :contract/meme-auction} contract-key)
+           ev (-> args
+                  (assoc :contract-address address)
+                  (assoc :event (keyword event))
+                  (update :timestamp (fn [ts]
+                                       (if ts
+                                         (bn/number ts)
+                                         (:timestamp (web3-eth/get-block @web3 block-number)))))
+                  (update :version bn/number)
+                  (assoc :block-number block-number))]
+       (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
+       (process-event contract-type ev)))))
 
 (defn apply-blacklist-patches! []
   (let [{:keys [blacklist-file]} @config
