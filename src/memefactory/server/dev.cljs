@@ -147,43 +147,39 @@
         (log/info "Finished syncing database" ))))
 
 (defn -main [& _]
-  (let [on-event-error (fn [err]
-                         (log/error "RPC node error" {:error err}))]
-    (-> (mount/with-args
-          {:config {:default {:logging {:level "info"
-                                        :console? true}
-                              :web3-tx-log {:open-on-tx-hash? true}
-                              :time-source :blockchain
-                              :graphql {:port 6300
-                                        :middlewares [logging-middlewares]
-                                        :schema (utils/build-schema graphql-schema
-                                                                    resolvers-map
-                                                                    {:kw->gql-name graphql-utils/kw->gql-name
-                                                                     :gql-name->kw graphql-utils/gql-name->kw})
-                                        :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
-                                        :path "/graphql"
-                                        :graphiql true}
-                              :web3 {:port 8549}
-                              :ipfs {:host "http://127.0.0.1:5001"
-                                     :endpoint "/api/v0"
-                                     :gateway "http://127.0.0.1:8080/ipfs"}
-                              :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
-                              :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
-                              :ui {:public-key "PLACEHOLDER"
-                                   :root-url "http://0.0.0.0:4598/#/"}
-                              :twilio-api-key "PLACEHOLDER"
-                              :blacklist-file "blacklist.edn"
-                              :blacklist-token "PLACEHOLDER"
-                              :syncer {:on-event-error on-event-error}
-                              :emailer {:private-key "PLACEHOLDER"
-                                        :api-key "PLACEHOLDER"
-                                        :template-id "PLACEHOLDER"
-                                        :from "district0x@district0x.io"
-                                        :print-mode? true
-                                        :on-event-error on-event-error}}}})
-        (mount/start)
-        pprint/pprint))
-  (log/warn "System started" {:config @config} ::main))
+  (-> (mount/with-args
+        {:config {:default {:logging {:level "info"
+                                      :console? true}
+                            :web3-tx-log {:open-on-tx-hash? true}
+                            :time-source :blockchain
+                            :graphql {:port 6300
+                                      :middlewares [logging-middlewares]
+                                      :schema (utils/build-schema graphql-schema
+                                                                  resolvers-map
+                                                                  {:kw->gql-name graphql-utils/kw->gql-name
+                                                                   :gql-name->kw graphql-utils/gql-name->kw})
+                                      :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
+                                      :path "/graphql"
+                                      :graphiql true}
+                            :web3 {:port 8549}
+                            :ipfs {:host "http://127.0.0.1:5001"
+                                   :endpoint "/api/v0"
+                                   :gateway "http://127.0.0.1:8080/ipfs"}
+                            :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
+                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
+                            :ui {:public-key "PLACEHOLDER"
+                                 :root-url "http://0.0.0.0:4598/#/"}
+                            :twilio-api-key "PLACEHOLDER"
+                            :blacklist-file "blacklist.edn"
+                            :blacklist-token "PLACEHOLDER"
+                            :emailer {:private-key "PLACEHOLDER"
+                                      :api-key "PLACEHOLDER"
+                                      :template-id "PLACEHOLDER"
+                                      :from "district0x@district0x.io"
+                                      :print-mode? true}}}})
+      (mount/start)
+      (#(log/warn "Started" {:components %
+                             :config @config}))))
 
 (set! *main-cli-fn* -main)
 
