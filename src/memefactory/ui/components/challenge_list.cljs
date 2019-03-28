@@ -207,12 +207,13 @@
                     (not (:graphql/loading? (last @meme-search))))
              [:div.no-items
               [no-items-found]]
-             (doall
-              (for [{:keys [:reg-entry/address] :as meme} all-memes]
-                ^{:key address}
-                [challenge {:entry meme
-                            :include-challenger-info? include-challenger-info?
-                            :action-child action-child}])))
+             (when-not (:graphql/loading? (first @meme-search))
+               (doall
+                (for [{:keys [:reg-entry/address] :as meme} all-memes]
+                  ^{:key address}
+                  [challenge {:entry meme
+                              :include-challenger-info? include-challenger-info?
+                              :action-child action-child}]))))
            (when (:graphql/loading? (last @meme-search))
              [:div.challenge
               [:div.spinner-container [spinner/spin]]])]
