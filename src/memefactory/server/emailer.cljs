@@ -1,8 +1,11 @@
 (ns memefactory.server.emailer
   (:require
+   [ajax.core :as http]
    [cljs-time.coerce :as time-coerce]
    [cljs-time.core :as t]
+   [cljs.core.async :as async]
    [cljs-web3.core :as web3]
+   [memefactory.server.macros :refer [promise->]]
    [cljs-web3.eth :as web3-eth]
    [district.encryption :as encryption]
    [district.format :as format]
@@ -19,10 +22,18 @@
    [memefactory.server.macros :refer [promise->]]
    [memefactory.server.utils :as server-utils]
    [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log :refer [spy]]))
+   [taoensso.timbre :as log :refer [spy]])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
+
+(defonce all-filters (atom []))
 
 (declare start)
 (declare stop)
+
+(defn clj->json
+  [coll]
+  (.stringify js/JSON (clj->js coll)))
+
 
 (defstate emailer
   :start (start (merge (:emailer @config/config)
@@ -179,21 +190,48 @@
                                            :print-mode? print-mode?}))
                           (log/warn "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email))))))
 
-(defn event-callback [f]
-  (fn [err {:keys [:args] :as evt}]
-    ;; (when err
-    ;;   (log/error "Error when processing event" {:event evt :error err}))
-    (when evt
-      (f args))))
+(defn filter-installed? [id]
+  (js/Promise.
+   (fn [resolve reject]
+     (http/ajax-request
+      {:uri (get-in @config/config [:web3 :url])
+       :method :post
+       :headers {"Content-Type" "application/json"}
+       :params {:jsonrpc "2.0"
+                :method "eth_getFilterChanges"
+                :params [id]
+                :id 1}
+       :handler #(resolve %)
+       :error-handler #(reject %)
+       :format (http/json-request-format)
+       :response-format (http/json-response-format {:keywords? true})}))))
+
+(defn event-callback [_ {:keys [:args :event] :as evt}]
+  (promise-> (js/Promise.resolve (keyword event))
+             #(-> (get @all-filters %) .-filterId)
+             #(filter-installed? %)
+             (fn [[_ {:keys [:result :error]}]]
+               (if error
+                 (log/warn "RPC node lost its state, resyncing")
+                 (case (keyword event)
+                   :ChallengeCreatedEvent (send-challenge-created-email args)
+                   :MemeAuctionBuyEvent (send-auction-bought-email args)
+                   :ChallengeRewardClaimedEvent (send-challenge-reward-claimed-email args)
+                   :VoteRewardClaimedEvent (send-vote-reward-claimed-email args)
+                   :default)))))
 
 (defn start [{:keys [:api-key :private-key :print-mode? :on-event-error] :as opts}]
   (when-not private-key
     (throw (js/Error. ":private-key is required to start emailer")))
-  (merge opts
-         {:filters [(registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" (event-callback send-challenge-created-email))
-                    (meme-auction-factory/meme-auction-buy-event "latest" (event-callback send-auction-bought-email))
-                    (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" (event-callback send-challenge-reward-claimed-email))
-                    (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" (event-callback send-vote-reward-claimed-email))]}))
+  (reset! all-filters  (zipmap
+                        [:ChallengeCreatedEvent 
+                         :MemeAuctionBuyEvent 
+                         :ChallengeRewardClaimedEvent
+                         :VoteRewardClaimedEvent]
+                        [(registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
+                         (meme-auction-factory/meme-auction-buy-event "latest" event-callback)
+                         (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
+                         (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)])))
 
 (defn stop [emailer]
   (log/info "stopping emailer" @emailer)
