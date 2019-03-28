@@ -22,6 +22,8 @@
                          :text-align :center
                          :padding-top (px 230)
                          :padding-bottom (px 230)}]
+   [:.meme-comment {:color (color :pink)
+                    :font-style :italic}]
    [:.dank-wrapper
     {:display :inline-flex
      :align-items :center

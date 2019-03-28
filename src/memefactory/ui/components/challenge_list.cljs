@@ -46,6 +46,7 @@
                        :meme/total-supply
                        :meme/image-hash
                        :meme/title
+                       :meme/comment
                        [:meme/tags [:tag/name]]
                        [:reg-entry/creator [:user/address
                                             :user/creator-rank
@@ -150,7 +151,9 @@
                    [:li ""])
                  [:li "Issued: " [:span total-supply]]]
                 [:h3 "Creator"]
-                [creator-info creator]]
+                [creator-info creator]
+                (when-let [meme-comment (:meme/comment entry)]
+                  [:p.meme-comment (str "\"" meme-comment "\"")])]
          include-challenger-info? (into [[:h3.challenger "Challenger"]
                                          [challenger-info challenger]])
          true                     (into [[:span.challenge-comment (when-not (empty? comment)

@@ -136,6 +136,15 @@
            {:form-data form-data
             :id :issuance
             :for :issuance}]
+          [:div.comment
+           [:label "Comment"]
+           [text-input {:form-data form-data
+                        :id :comment
+                        :errors errors
+                        :class "comment"
+                        :input-type :textarea
+                        :dom-id :comment
+                        :maxLength 500}]]
           #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
           [:div.submit
            [:button {:on-click (fn []

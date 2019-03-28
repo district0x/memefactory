@@ -178,8 +178,9 @@
          (let [{:keys [:meme/meta-hash]} meme]
            (promise-> (get-ipfs-meta meta-hash)
                       (fn [meme-meta]
-                        (let [{:keys [title image-hash search-tags]} meme-meta]
+                        (let [{:keys [title image-hash search-tags comment]} meme-meta]
                           (db/update-meme! {:reg-entry/address registry-entry
+                                            :meme/comment comment
                                             :meme/image-hash image-hash
                                             :meme/title title})
                           (schedule-meme-number-assigner registry-entry (inc (- (bn/number challenge-period-end)

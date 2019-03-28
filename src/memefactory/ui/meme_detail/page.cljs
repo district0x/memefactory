@@ -56,6 +56,7 @@
                        :meme/meta-hash
                        :meme/number
                        :meme/title
+                       :meme/comment
                        :meme/total-supply
                        [:meme/tags
                         [:tag/name]]
@@ -598,6 +599,8 @@
                                        (format/pluralize token-count "card")
                                        total-supply)]
             [meme-creator-component creator]
+            (when-let [meme-comment (:meme/comment meme)]
+              [:p.meme-comment (str "\"" meme-comment "\"")])
             [:div.tags
              (for [tag-name tags]
                [nav-anchor {:route :route.marketplace/index
