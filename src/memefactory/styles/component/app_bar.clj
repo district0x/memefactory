@@ -117,11 +117,6 @@
      :display :flex
      :align-items :center
      :justify-content :center}
-    [:.no-accounts
-     {:display :flex
-      :justify-content :center
-      :align-items :center
-      :text-align :center}]
     [:.accounts
      {:display :grid
       :grid-template-areas

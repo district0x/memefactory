@@ -99,8 +99,7 @@
                      (if (empty? @my-addresses)
                        (dispatch [:district.ui.router.events/navigate :route/how-it-works])
                        (dispatch [:district0x.transaction-log/set-open (not @open?)])))}
-        (if-not (seq @accounts)
-          [:div.no-accounts "No Accounts"]
+        (when (seq @accounts)
           [:div.accounts
            [:div.dank-section {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
             [:div.dank-logo
