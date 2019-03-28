@@ -141,13 +141,16 @@
                                           :meme-auction/end-price (when (or (not (pos? ep))
                                                                             (< sp ep))
                                                                     {:error "End price should be lower than start price"})
-                                          :meme-auction/duration (let [duration (js/parseFloat (:meme-auction/duration @form-data))
+                                          ;; HACK ALERT
+                                          ;; TODO: this durations should be specified in days and not in seconds at param level
+                                          :meme-auction/duration (let [duration (js/parseInt (:meme-auction/duration @form-data))
                                                                        max-duration (-> max-auction-duration
                                                                                         shared-utils/seconds->days
-                                                                                        (shared-utils/round 4))
-                                                                       min-duration (-> min-auction-duration
-                                                                                        shared-utils/seconds->days
-                                                                                        (shared-utils/round 4))]
+                                                                                        int)
+                                                                       min-duration (let [md (-> min-auction-duration
+                                                                                                 shared-utils/seconds->days
+                                                                                                 int)]
+                                                                                      (if (zero? md) 1 md))]
                                                                    (cond-> {:hint (str "Max " max-duration)}
                                                                      (not (<= min-duration duration max-duration))
                                                                      (assoc :error (str "Should be between " min-duration " and " max-duration))))}}))
