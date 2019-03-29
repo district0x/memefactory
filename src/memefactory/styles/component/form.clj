@@ -121,6 +121,8 @@
     [:&:focus {:outline "none"}]
     [:&:focus+.help-block:before
      {:transform "scale(1)"}]]
+   ["input[type=\"text\"]:disabled"
+    {:background-color :transparent}]
 
    [:.help-block
     {:border :none

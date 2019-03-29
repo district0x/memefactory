@@ -9,6 +9,7 @@
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [district.ui.web3-account-balances.subs :as balance-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [goog.string :as gstring]
    [memefactory.ui.events :as memefactory-events]
@@ -53,7 +54,8 @@
                                      (str/blank? comment)
                                      (assoc :comment "Challenge reason can't be empty")))})]
     (fn [{:keys [:reg-entry/address]}]
-      (let [dank-deposit (:deposit @(subscribe [:memefactory.ui.config/memefactory-db-params]))]
+      (let [dank-deposit (:deposit @(subscribe [:memefactory.ui.config/memefactory-db-params]))
+            account-balance (subscribe [::balance-subs/active-account-balance :DANK])]
         [:div.challenge-controls
          [:div.vs
           [:img.vs-left {:src "/assets/icons/mememouth.png"}]
@@ -80,10 +82,13 @@
              (if @tx-success?
                "Challenged"
                "Challenge")]
+
             [dank-with-logo (/ dank-deposit 1e18)]]
            [:button.open-challenge
             {:on-click (when @active-account #(swap! open? not))
-             :class [(when (not @active-account) "disabled")]} "Challenge"])]))))
+             :class [(when (not @active-account) "disabled")]} "Challenge"])
+         (when (or (not @active-account) (< @account-balance dank-deposit))
+           [:div.not-enough-dank "You don't have enough DANK token to challenge this meme"])]))))
 
 (defmethod page :route.dank-registry/challenge []
   [app-layout

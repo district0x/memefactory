@@ -366,6 +366,10 @@
                  :background-color :purple
                  :width (em 11)
                  :height (em 3)})]]
+      [:.not-enough-dank
+       {:text-align :center
+        :padding-top (em 1.01)
+        :color (color :red)}]
       [:.status
        {:border-right "1px solid rgba(174, 175, 177, 0.5)"}
        (for-media-max :computer
@@ -400,8 +404,8 @@
                       [:&
                        {:border-right "0px"}])
        [:a.address {:cursor :pointer
-                   :color (color :menu-text)
-                   :margin-left (px 3)}]
+                    :color (color :menu-text)
+                    :margin-left (px 3)}]
        [:b {:display :block}]
        [">*"
         {:margin-bottom  (em 0.5)}]]
@@ -501,7 +505,11 @@
                    :height (em 3)
                    :width "100%"})
           (vote-button-icon 6)
-          [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]]]]
+          [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
+       [:.not-enough-dank
+        {:text-align :center
+         :padding-top (em 1.01)
+         :color (color :red)}]]]]
     [:.challenge-comment
      {:font-style :italic
       :color (color :pink)}]]
