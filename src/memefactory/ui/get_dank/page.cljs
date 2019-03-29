@@ -18,8 +18,8 @@
 
 (defmethod page :route.get-dank/index []
   (let [form-data (r/atom {})
-        stage (r/atom 1)
-        errors (reaction {:local (let [{:keys [country-code phone-number verification-code]} @form-data]
+        errors (reaction {:local (let [{:keys [country-code phone-number verification-code]} @form-data
+                                       stage @(subscribe [:memefactory.ui.subs/dank-faucet-stage])]
                                    (cond-> {}
                                      (str/blank? country-code)
                                      (assoc-in [:country-code :error] "Country code is mandatory")
@@ -27,7 +27,7 @@
                                      (str/blank? phone-number)
                                      (assoc-in [:phone-number :error] "Phone number is mandatory")
 
-                                     (and (= @stage 2)
+                                     (and (= stage 2)
                                           (str/blank? verification-code))
                                      (assoc-in [:verification-code :error] "")))})
         critical-errors (reaction (index-by-type @errors :error))]
@@ -44,7 +44,7 @@
            [:div.body
             (if show-spinner?
               [spinner/spin]
-              (case @stage
+              (case @(subscribe [:memefactory.ui.subs/dank-faucet-stage])
                 1 [:div.form
 
                    [with-label
@@ -91,10 +91,10 @@
                                  (dispatch [::dank-events/send-verification-code @form-data])
                                  (js/setTimeout #(dispatch [::dank-events/hide-spinner])
                                                 verify-through-oracle-timeout)
-                                 (reset! stage 2))
+                                 #_(reset! stage 2))
                                (do ; Stage 2
                                  (dispatch [::dank-events/encrypt-verification-payload @form-data])
                                  (reset! form-data {})
-                                 (reset! stage 1)))))
+                                 #_(reset! stage 1)))))
                :disabled (not (empty? @critical-errors))}
               "Submit"])]]]))))

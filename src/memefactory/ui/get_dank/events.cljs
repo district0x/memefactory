@@ -29,12 +29,19 @@
           ::spinner false)}))
 
 (re-frame/reg-event-fx
+ ::stage
+ (fn [{:keys [db]} [_ {:keys [stage-number]}]]
+   {:db (assoc db :memefactory.ui.get-dank.page/stage stage-number)}))
+
+(re-frame/reg-event-fx
  ::send-verification-code
  (fn [{:keys [db]} [_ {:keys [country-code phone-number]}]]
    (let [allocated-dank (web3-eth/contract-get-data
                          (contract-queries/instance db :dank-faucet)
                          :allocated-dank
                          (web3/sha3 phone-number))]
+     (log/debug "Faucet contract:" (contract-queries/instance db :dank-faucet))
+     (log/debug "DANK already allocated to this phone number:" allocated-dank)
      (if (<= allocated-dank 0)
 
        (let [mutation (gstring/format
@@ -59,7 +66,8 @@
    (let [success (get-in data [:sendVerificationCode :success])
          msg     (get-in data [:sendVerificationCode :msg])]
      (if success
-       {:db db}
+       {:db db
+        :dispatch [::stage 2]}
 
        ;; Handle Twilio level errors here
        {:db db
@@ -119,7 +127,8 @@
                               ;;:tx-id {:get-dank/verify-and-acquire-dank id}
                               :on-tx-success-n [[::hide-spinner]
                                                 [::notification-events/show
-                                                 "Successfully requested DANK. It'll be delivered within few minutes!"]]
+                                                 "Successfully requested DANK. It'll be delivered within few minutes!"]
+                                                [::stage 1]]
                               :on-tx-hash-error [::logging/error
                                                  [::verify-and-acquire-dank]]
                               :on-tx-error [::logging/error

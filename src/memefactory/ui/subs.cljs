@@ -26,3 +26,8 @@
  ::dank-faucet-spinner
  (fn [db _]
    (:memefactory.ui.get-dank.events/spinner db)))
+
+(re-frame/reg-sub
+ ::dank-faucet-stage
+ (fn [db _]
+   (:memefactory.ui.get-dank.page/stage db)))
