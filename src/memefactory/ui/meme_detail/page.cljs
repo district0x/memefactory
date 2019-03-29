@@ -201,20 +201,21 @@
          [:h1.title "Marketplace history"]
          (if (:graphql/loading? @query)
            [spinner/spin]
-           [:table
-            [:thead [:tr
-                     [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
-                     [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
-                     [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
-                     [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
-                     [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
-            (if (empty? all-auctions)
-              [:tbody [:tr [:td {:colSpan 5} "This meme hasn't been traded yet."]]]
+
+           (if (empty? all-auctions)
+             [:div.not-traded-yet "This meme hasn't been traded yet"]
+             [:table
+              [:thead [:tr
+                       [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
+                       [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
+                       [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
+                       [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
+                       [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
               [:tbody
                (doall
                 (for [{:keys [:meme-auction/address :meme-auction/bought-for :meme-auction/bought-on
@@ -242,7 +243,7 @@
                                       bought-date (ui-utils/gql-date->date bought-on)]
                                   (when-not (or (empty? (str bought-on))
                                                 (> (.getTime bought-date) (.getTime now-date)))
-                                    (format/time-ago bought-date now-date)))]])))])])]))))
+                                    (format/time-ago bought-date now-date)))]])))]]))]))))
 
 (defn challenge-header [created-on]
   (when created-on
