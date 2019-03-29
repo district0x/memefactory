@@ -199,7 +199,8 @@
             [:h3.title "A random assortment of memes for sale"]]]
           [auctions-list (-> @random-picks :search-meme-auctions :items) (:graphql/loading? @random-picks)]
           [nav-anchor {:route :route.marketplace/index
-                       :query {:order-by "random"}}
+                       :query {:order-by "random"}
+                       :class "more"}
            "See More"]]
 
          [:div.trending-votes
