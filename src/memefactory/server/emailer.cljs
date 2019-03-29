@@ -25,7 +25,7 @@
    [taoensso.timbre :as log :refer [spy]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defonce all-filters (atom []))
+;; (defonce all-filters (atom []))
 
 (declare start)
 (declare stop)
@@ -33,7 +33,6 @@
 (defn clj->json
   [coll]
   (.stringify js/JSON (clj->js coll)))
-
 
 (defstate emailer
   :start (start (merge (:emailer @config/config)
@@ -55,7 +54,7 @@
         [unit value] (time/time-remaining-biggest-unit (t/now)
                                                        (-> commit-period-end time/epoch->long time-coerce/from-long))]
     (promise-> (district0x-emails/get-email {:district0x-emails/address creator})
-               #(validate-email %)
+               #(validate-email (spy %))
                (fn [to] (if to
                           (do
                             (log/info "Sending meme challenged email" ev ::send-challenge-created-email)
@@ -200,40 +199,43 @@
        :params {:jsonrpc "2.0"
                 :method "eth_getFilterChanges"
                 :params [id]
-                :id 1}
+                :id id}
        :handler #(resolve %)
        :error-handler #(reject %)
        :format (http/json-request-format)
        :response-format (http/json-response-format {:keywords? true})}))))
 
 (defn event-callback [_ {:keys [:args :event] :as evt}]
-  (promise-> (js/Promise.resolve (keyword event))
-             #(-> (get @all-filters %) .-filterId)
-             #(filter-installed? %)
-             (fn [[_ {:keys [:result :error]}]]
-               (if error
-                 (log/warn "RPC node lost its state, resyncing")
-                 (case (keyword event)
-                   :ChallengeCreatedEvent (send-challenge-created-email args)
-                   :MemeAuctionBuyEvent (send-auction-bought-email args)
-                   :ChallengeRewardClaimedEvent (send-challenge-reward-claimed-email args)
-                   :VoteRewardClaimedEvent (send-vote-reward-claimed-email args)
-                   :default)))))
+  (when evt
+    (promise-> (js/Promise.resolve (keyword event))
+               #(-> @emailer :filters (get %) .-filterId)
+               #(filter-installed? %)
+               (fn [[_ {:keys [:result :error :id]}]]
+                 (if error
+                   (do
+                     (log/warn "RPC node error" {:error error :filter-id id}))
+                   (case (keyword event)
+                     :ChallengeCreatedEvent (send-challenge-created-email (spy args))
+                     :MemeAuctionBuyEvent (send-auction-bought-email args)
+                     :ChallengeRewardClaimedEvent (send-challenge-reward-claimed-email args)
+                     :VoteRewardClaimedEvent (send-vote-reward-claimed-email args)
+                     :default))))))
+
 
 (defn start [{:keys [:api-key :private-key :print-mode? :on-event-error] :as opts}]
   (when-not private-key
     (throw (js/Error. ":private-key is required to start emailer")))
-  (reset! all-filters  (zipmap
-                        [:ChallengeCreatedEvent 
-                         :MemeAuctionBuyEvent 
-                         :ChallengeRewardClaimedEvent
-                         :VoteRewardClaimedEvent]
-                        [(registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
-                         (meme-auction-factory/meme-auction-buy-event "latest" event-callback)
-                         (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
-                         (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)])))
+  (merge opts {:filters (zipmap
+                         [:ChallengeCreatedEvent
+                          :MemeAuctionBuyEvent
+                          :ChallengeRewardClaimedEvent
+                          :VoteRewardClaimedEvent]
+                         [(registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
+                          (meme-auction-factory/meme-auction-buy-event "latest" event-callback)
+                          (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
+                          (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)])}))
 
-(defn stop [emailer]
-  (log/info "stopping emailer" @emailer)
-  (doseq [f (remove nil? (:filters @emailer))]
+(defn stop [this]
+  (log/info "stopping emailer" @this)
+  (doseq [f (remove nil? (-> @this :filters vals))]
     (server-utils/uninstall-filter f)))
