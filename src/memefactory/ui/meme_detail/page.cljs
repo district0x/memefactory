@@ -193,7 +193,8 @@
                                                          [:meme-auction/buyer
                                                           [:user/address]]
                                                          [:meme-auction/meme-token
-                                                          [:meme-token/token-id]]]]]]]}])
+                                                          [:meme-token/token-id
+                                                           :meme-token/number]]]]]]]}])
             all-auctions (-> @query :meme :meme/meme-auctions)]
 
         [:div
@@ -221,7 +222,7 @@
                   (when address
                     ^{:key address}
                     [:tr
-                     [:td.meme-token (:meme-token/token-id meme-token)]
+                     [:td.meme-token (:meme-token/number meme-token)]
                      [:td.seller-address
                       [nav-anchor {:route :route.memefolio/index
                                    :params {:address (:user/address seller)}
