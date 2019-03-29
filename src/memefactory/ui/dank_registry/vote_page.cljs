@@ -1,5 +1,6 @@
 (ns memefactory.ui.dank-registry.vote-page
   (:require
+   [bignumber.core :as bn]
    [cljs-time.core :as t]
    [cljs-time.extend]
    [cljs-web3.core :as web3]
@@ -192,7 +193,7 @@
                                                                                                              js/parseInt
                                                                                                              (web3/to-wei :ether))}]))}
            (if voted? "Voted" "Vote Stank")]]
-         (if (> account-balance 0)
+         (if (bn/> account-balance 0)
            [:<>
             [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
                                                 (format/format-token (/ account-balance 1e18) {:token "DANK"}))]

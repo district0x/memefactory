@@ -1,5 +1,6 @@
 (ns memefactory.ui.meme-detail.page
   (:require
+   [bignumber.core :as bn]
    [cljs-time.core :as t]
    [cljs-time.format :as time-format]
    [cljs-web3.core :as web3]
@@ -358,7 +359,7 @@
          (if @tx-success?
            "Challenged"
            "Challenge")]]
-       (when (or (not @active-account) (< @account-balance dank-deposit))
+       (when (or (not @active-account) (bn/< @account-balance dank-deposit))
          [:div.not-enough-dank "You don't have enough DANK token to challenge this meme"])])))
 
 (defn remaining-time-component [to-time]
@@ -480,11 +481,11 @@
           (if @tx-success?
             "Voted"
             "Vote Stank")]]]
-       (if (> @balance-dank 0)
+       (if (bn/> @balance-dank 0)
          [:<>
           [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
           [:div "Token will be returned to you after revealing your vote."]]
-         [:div.not-enough-dank "You do not have any DANK tokens to vote on this meme challenge"])])))
+         [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])])))
 
 (defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
