@@ -205,18 +205,18 @@
   (let [tx-id (str "reveal" address)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])
-        active-account @(subscribe [::accounts-subs/active-account])
-        vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)
+        active-account (subscribe [::accounts-subs/active-account])
         vote-option (when-let [opt (-> meme :challenge/vote :vote/option)]
                       (graphql-utils/gql-name->kw opt))]
     (fn [{:keys [] :as meme}]
-      (let [disabled (or @tx-pending? @tx-success? (not vote) (not @active-account))]
+      (let [vote (get @(subscribe [:memefactory.ui.subs/votes @active-account]) address)
+            disabled? (or @tx-pending? @tx-success? (not vote) (not @active-account))]
         [:div.reveal
          [:img {:src "/assets/icons/mememouth.png"}]
          [:div.button-wrapper
           [pending-button {:pending? @tx-pending?
                            :pending-text "Revealing ..."
-                           :disabled disabled
+                           :disabled disabled?
                            :on-click (fn []
                                        (dispatch [::registry-entry/reveal-vote
                                                   {:send-tx/id tx-id
