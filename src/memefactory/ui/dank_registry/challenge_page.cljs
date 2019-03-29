@@ -1,5 +1,6 @@
 (ns memefactory.ui.dank-registry.challenge-page
   (:require
+   [bignumber.core :as bn]
    [cljs-time.core :as t]
    [cljs-time.extend]
    [clojure.string :as str]
@@ -87,7 +88,7 @@
            [:button.open-challenge
             {:on-click (when @active-account #(swap! open? not))
              :class [(when (not @active-account) "disabled")]} "Challenge"])
-         (when (or (not @active-account) (< @account-balance dank-deposit))
+         (when (or (not @active-account) (bn/< @account-balance dank-deposit))
            [:div.not-enough-dank "You don't have enough DANK token to challenge this meme"])]))))
 
 (defmethod page :route.dank-registry/challenge []
