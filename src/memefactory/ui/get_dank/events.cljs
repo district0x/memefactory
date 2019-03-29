@@ -31,17 +31,26 @@
 (re-frame/reg-event-fx
  ::send-verification-code
  (fn [{:keys [db]} [_ {:keys [country-code phone-number]}]]
-   (let [mutation (gstring/format
-                   "mutation {sendVerificationCode(countryCode:\"%s\", phoneNumber:\"%s\") {id, status, msg, success}}"
-                   country-code phone-number)]
-     {:http-xhrio {:method          :post
-                   :uri             (get-in config-map [:graphql :url])
-                   :params          {:query mutation}
-                   :timeout         8000
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :format          (ajax/json-request-format)
-                   :on-success      [::verification-code-success]
-                   :on-failure      [::verification-code-error]}})))
+   (let [allocated-dank (web3-eth/contract-get-data
+                         (contract-queries/instance db :dank-faucet)
+                         :allocated-dank
+                         (web3/sha3 phone-number))]
+     (if (<= allocated-dank 0)
+
+       (let [mutation (gstring/format
+                       "mutation {sendVerificationCode(countryCode:\"%s\", phoneNumber:\"%s\") {id, status, msg, success}}"
+                       country-code phone-number)]
+         {:http-xhrio {:method          :post
+                       :uri             (get-in config-map [:graphql :url])
+                       :params          {:query mutation}
+                       :timeout         8000
+                       :response-format (ajax/json-response-format {:keywords? true})
+                       :format          (ajax/json-request-format)
+                       :on-success      [::verification-code-success]
+                       :on-failure      [::verification-code-error]}})
+
+       {:db db
+        :dispatch [::notification-events/show "DANK already acquired bawse"]}))))
 
 (re-frame/reg-event-fx
  ::verification-code-success
@@ -108,9 +117,7 @@
                               :tx-log {:name "Request DANK"}
                               :tx-opts {:from active-account}
                               ;;:tx-id {:get-dank/verify-and-acquire-dank id}
-                              :on-tx-success-n [[::logging/success
-                                                 [::acquire-dank-success]]
-                                                [::hide-spinner]
+                              :on-tx-success-n [[::hide-spinner]
                                                 [::notification-events/show
                                                  "Successfully requested DANK. It'll be delivered within few minutes!"]]
                               :on-tx-hash-error [::logging/error
