@@ -50,12 +50,12 @@
                              (log/info "Sending meme challenged email" ev ::send-challenge-created-email)
                              (send-email {:from from
                                           :to to
-                                          :subject (str title " challenged!")
+                                          :subject (str title " was challenged!")
                                           :content (templates/challenge-created-email-body {:meme/title title
                                                                                             :meme-url (str root-url "meme-detail/" registry-entry)
                                                                                             :time-remaining (format/format-time-units {unit value})
                                                                                             })
-                                          :substitutions {:header (str title " meme challenged")
+                                          :substitutions {:header (str title " was challenged")
                                                           :button-title "Vote Now"
                                                           :button-href (str root-url "dankregistry/vote")
                                                           :meme-image-url (str ipfs-gateway-url image-hash)}
@@ -85,18 +85,18 @@
                 (fn [to] (if to
                            (send-email {:from from
                                         :to to
-                                        :subject (str title " bought!")
+                                        :subject (str title " was bought!")
                                         :content (templates/meme-auction-bought-email-body {:meme/title title
                                                                                             :meme-url (str root-url "meme-detail/" (:reg-entry/address meme))})
-                                        :substitutions {:header "Auction Bought"
-                                                        :button-title "Leaderboard"
-                                                        :button-href (str root-url "leaderboard/collectors")
+                                        :substitutions {:header (str title " was bought!")
+                                                        :button-title "My Memefolio"
+                                                        :button-href (str root-url "memefolio/?tab=sold")
                                                         :meme-image-url (str ipfs-gateway-url image-hash)}
-                                        :on-success #(log/info "Success sending auction bought email" {:to to
+                                        :on-success #(log/info "Success sending offering bought email" {:to to
                                                                                                        :meme-auction meme-auction
                                                                                                        :meme-title title}
                                                                ::send-auction-bought-email)
-                                        :on-error #(log/error "Error when sending auction-bought email" {:error %
+                                        :on-error #(log/error "Error when sending offering-bought email" {:error %
                                                                                                          :event ev
                                                                                                          :meme-auction meme-auction
                                                                                                          :to to}
@@ -104,7 +104,7 @@
                                         :template-id template-id
                                         :api-key api-key
                                         :print-mode? print-mode?})
-                           (log/warn "No email found for meme auction seller" {:event ev :meme-auction meme-auction} ::send-auction-bought-email)))))))
+                           (log/warn "No email found for meme seller" {:event ev :meme-auction meme-auction} ::send-auction-bought-email)))))))
 
 (defn send-vote-reward-claimed-email [{:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (try-catch
