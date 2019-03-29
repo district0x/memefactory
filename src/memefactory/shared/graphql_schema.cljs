@@ -244,6 +244,7 @@
     challenge_availableVoteAmount(voter: ID!): Int
 
     meme_title: String
+    meme_comment: String
     meme_number: Int
     meme_metaHash: String
     meme_imageHash: String

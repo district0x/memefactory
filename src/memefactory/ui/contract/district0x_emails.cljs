@@ -28,7 +28,8 @@
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.my-settings/index}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::save-settings]
-                                                        [::notification-events/show (gstring/format "Settings saved")]
+                                                        [::notification-events/show
+                                                         (gstring/format "Settings were successfully saved")]
                                                         [::settings-saved args]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}

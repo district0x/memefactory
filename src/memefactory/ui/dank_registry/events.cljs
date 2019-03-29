@@ -11,6 +11,7 @@
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
    [taoensso.timbre :as log]
+   [clojure.string :as str]
    ))
 
 (re-frame/reg-event-fx
@@ -24,8 +25,9 @@
                                                                           :deposit deposit}
                            ::upload-meme]}}))
 
-(defn build-meme-meta-string [{:keys [title search-tags issuance] :as data} image-hash]
+(defn build-meme-meta-string [{:keys [title search-tags issuance comment] :as data} image-hash]
   (-> {:title title
+       :comment (str/trim (or comment ""))
        :search-tags search-tags
        :issuance issuance
        :image-hash image-hash}

@@ -46,7 +46,8 @@
                     :rank-yellow "#ffd800"
                     :yellow "#ffea00"
                     :redish "#f25e5e"
-                    })
+                    :grey "#ccc"})
+
 
 (defn color [name]
   (get names->colors name name))

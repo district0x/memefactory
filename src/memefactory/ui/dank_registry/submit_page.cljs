@@ -7,6 +7,7 @@
    [district.ui.graphql.subs :as gql]
    [district.ui.router.events :as router-events]
    [district.ui.web3-account-balances.subs :as balance-subs]
+   [district.ui.web3-accounts.subs :as accounts-subs]
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.tiles :refer [meme-image]]
@@ -21,15 +22,19 @@
    [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (defn header []
-  [:div.submit-info
-   [:div.icon]
-   [:h2.title "Dank registry - Submit"]
-   [:h3.title "Submit a new meme to the registry for consideration"]
-   [nav-anchor {:route :route.get-dank/index}
-    [:div.get-dank-button
-     [:span "Get Dank"]
-     [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
-     [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]])
+  (let [active-account (subscribe [::accounts-subs/active-account])]
+    (fn []
+      (let [account-active? (boolean @active-account)]
+        [:div.submit-info
+         [:div.icon]
+         [:h2.title "Dank registry - Submit"]
+         [:h3.title "Submit a new meme to the registry for consideration"]
+         [nav-anchor {:route (when account-active? :route.get-dank/index)}
+          [:div.get-dank-button
+           {:class (when-not account-active? "disabled")}
+           [:span "Get Dank"]
+           [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+           [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]]))))
 
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
@@ -136,6 +141,15 @@
            {:form-data form-data
             :id :issuance
             :for :issuance}]
+          [:div.comment
+           [:label "Comment"]
+           [text-input {:form-data form-data
+                        :id :comment
+                        :errors errors
+                        :class "comment"
+                        :input-type :textarea
+                        :dom-id :comment
+                        :maxLength 500}]]
           #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
           [:div.submit
            [:button {:on-click (fn []
@@ -146,7 +160,7 @@
             "Submit"]
            [dank-with-logo (web3/from-wei deposit :ether)]]
           (when (< @account-balance deposit)
-            [:div.not-enough-dank "You don't have enough DANK token to submit a meme"])]]]])))
+            [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])]]]])))
 
 (defmethod page :route.dank-registry/submit []
   (let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]

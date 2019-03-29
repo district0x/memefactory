@@ -1,5 +1,6 @@
 (ns memefactory.ui.meme-detail.page
   (:require
+   [bignumber.core :as bn]
    [cljs-time.core :as t]
    [cljs-time.format :as time-format]
    [cljs-web3.core :as web3]
@@ -56,6 +57,7 @@
                        :meme/meta-hash
                        :meme/number
                        :meme/title
+                       :meme/comment
                        :meme/total-supply
                        [:meme/tags
                         [:tag/name]]
@@ -229,7 +231,7 @@
                        (:user/address seller)]]
                      [:td.buyer-address
                       [nav-anchor {:route :route.memefolio/index
-                                   :params {:address (:user/address seller)}
+                                   :params {:address (:user/address buyer)}
                                    :query {:tab :collected}
                                    :class (str "address buyer-address " (when (= (:user/address buyer) @(subscribe [::accounts-subs/active-account]))
                                                                           "active-address"))}
@@ -328,6 +330,8 @@
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit :meme/title] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})
+        active-account (subscribe [::accounts-subs/active-account])
+        account-balance (subscribe [::account-balances-subs/active-account-balance :DANK])
         errors (ratom/reaction {:local (when-not (spec/check ::spec/challenge-comment (:challenge/comment @form-data))
                                          {:challenge/comment "Comment shouldn't be empty."})})
         tx-id (str (:reg-entry/address meme) "challenges")
@@ -337,13 +341,14 @@
       [:div
        [:b "Challenge Explanation"]
        [inputs/textarea-input {:form-data form-data
+                               :disabled (not @active-account)
                                :id :challenge/comment
                                :maxLength 2000
                                :errors errors}]
        [:div.controls
         [dank-with-logo (quot dank-deposit 1e18)]
         [tx-button/tx-button {:primary true
-                              :disabled (or @tx-success? (not (empty? (:local @errors))))
+                              :disabled (or @tx-success? (not (empty? (:local @errors))) (not @active-account))
                               :pending? @tx-pending?
                               :pending-text "Challenging..."
                               :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
@@ -353,7 +358,9 @@
                                                                                         :meme/title title}])}
          (if @tx-success?
            "Challenged"
-           "Challenge")]]])))
+           "Challenge")]]
+       (when (or (not @active-account) (bn/< @account-balance dank-deposit))
+         [:div.not-enough-dank "You don't have enough DANK tokens to challenge this meme"])])))
 
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])
@@ -393,6 +400,7 @@
 
 (defn vote-component [{:keys [:challenge/commit-period-end :meme/title] :as meme}]
   (let [balance-dank (subscribe [::account-balances-subs/active-account-balance :DANK])
+        active-account (subscribe [::accounts-subs/active-account])
         form-data (r/atom {:vote/amount-for nil
                            :vote/amount-against nil})
 
@@ -412,67 +420,73 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])]
     (fn []
-      [:div.vote
-       [:div "Below you can choose to vote \"Dank\" to include the Meme in the registry or \"Stank\" to reject it. You can enter the amount of DANK tokens to commit to this vote."]
-       [:div.form
-        [:div.vote-dank
-         [:div.outer
-          [inputs/with-label "Amount "
-           [inputs/text-input {:form-data form-data
-                               :id :vote/amount-for
-                               :dom-id :vote/amount-for
-                               :errors errors}]
-           {:form-data form-data
-            :for :vote/amount-for
-            :id :vote/amount-for}]
-           [:span.unit "DANK"]]
+      (let [disabled? (or (not @active-account) (bn/<= @balance-dank 0))]
+        [:div.vote
+         [:div "Below you can choose to vote \"Dank\" to include the Meme in the registry or \"Stank\" to reject it. You can enter the amount of DANK tokens to commit to this vote."]
+         [:div.form
+          [:div.vote-dank
+           [:div.outer
+            [inputs/with-label "Amount "
+             [inputs/text-input {:form-data form-data
+                                 :disabled disabled?
+                                 :id :vote/amount-for
+                                 :dom-id :vote/amount-for
+                                 :errors errors}]
+             {:form-data form-data
+              :for :vote/amount-for
+              :id :vote/amount-for}]
+            [:span.unit "DANK"]]
 
-         [inputs/pending-button
-          {:pending? @tx-pending?
-           :disabled (or (-> @errors :local :vote/amount-for empty? not)
-                         @tx-success?)
-           :pending-text "Voting..."
-           :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                           :reg-entry/address (:reg-entry/address meme)
-                                                                           :vote/option :vote.option/vote-for
-                                                                           :vote/amount (-> @form-data
+           [inputs/pending-button
+            {:pending? @tx-pending?
+             :disabled (or (-> @errors :local :vote/amount-for empty? not)
+                           @tx-success?)
+             :pending-text "Voting..."
+             :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                             :reg-entry/address (:reg-entry/address meme)
+                                                                             :vote/option :vote.option/vote-for
+                                                                             :vote/amount (-> @form-data
                                                                                             :vote/amount-for
                                                                                             js/parseInt
                                                                                             (web3/to-wei :ether))
-                                                                           :meme/title title}])}
-          (if @tx-success?
-            "Voted"
-            "Vote Dank")]]
+                                                                             :meme/title title}])}
+            (if @tx-success?
+              "Voted"
+              "Vote Dank")]]
 
-        [:div.vote-stank
-         [:div.outer
-          [inputs/with-label "Amount "
-           [inputs/text-input {:form-data form-data
-                               :id :vote/amount-against
-                               :dom-id :vote/amount-against
-                               :errors errors}]
-           {:form-data form-data
-            :for :vote/amount-against
-            :id :vote/amount-against}]
-           [:span.unit "DANK"]]
-         [inputs/pending-button
-          {:pending? @tx-pending?
-           :disabled (or (-> @errors :local :vote/amount-against empty? not)
-                         @tx-success?)
-           :pending-text "Voting..."
-           :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                           :reg-entry/address (:reg-entry/address meme)
-                                                                           :vote/option :vote.option/vote-against
-                                                                           :vote/amount (-> @form-data
+          [:div.vote-stank
+           [:div.outer
+            [inputs/with-label "Amount "
+             [inputs/text-input {:form-data form-data
+                                 :disabled disabled?
+                                 :id :vote/amount-against
+                                 :dom-id :vote/amount-against
+                                 :errors errors}]
+             {:form-data form-data
+              :for :vote/amount-against
+              :id :vote/amount-against}]
+            [:span.unit "DANK"]]
+           [inputs/pending-button
+            {:pending? @tx-pending?
+             :disabled (or (-> @errors :local :vote/amount-against empty? not)
+                           @tx-success?)
+             :pending-text "Voting..."
+             :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                             :reg-entry/address (:reg-entry/address meme)
+                                                                             :vote/option :vote.option/vote-against
+                                                                             :vote/amount (-> @form-data
                                                                                             :vote/amount-against
                                                                                             js/parseInt
                                                                                             (web3/to-wei :ether))
-                                                                           :meme/title title}])}
-          (if @tx-success?
-            "Voted"
-            "Vote Stank")]]]
-       [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
-       [:div "Token will be returned to you after revealing your vote."]])))
+                                                                             :meme/title title}])}
+            (if @tx-success?
+              "Voted"
+              "Vote Stank")]]]
+         (if (bn/> @balance-dank 0)
+           [:<>
+            [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
+            [:div "Token will be returned to you after revealing your vote."]]
+           [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 (defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
@@ -598,6 +612,8 @@
                                        (format/pluralize token-count "card")
                                        total-supply)]
             [meme-creator-component creator]
+            (when (seq (:meme/comment meme))
+              [:p.meme-comment (str "\"" (:meme/comment meme) "\"")])
             [:div.tags
              (for [tag-name tags]
                [nav-anchor {:route :route.marketplace/index

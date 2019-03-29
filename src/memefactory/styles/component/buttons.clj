@@ -11,20 +11,23 @@
             [garden.units :refer [pt px em rem]]
             [clojure.string :as str]))
 
-(defn button [{:keys [color background-color before-icon after-icon width height]}]
+(defn button [{:keys [color background-color before-icon after-icon width height line-height]}]
   [:&
    (font :bungee)
-   {:border-radius (em 2)
-    :display :flex
-    :align-items :center
-    :justify-content :center
-    :height (or height (em 2))
-    :width (or width (em 8))
-    :border-style "none"
-    :color (c/color color)
-    :cursor :pointer
-    :background-color (c/color background-color)
-    :white-space :nowrap}
+   (merge
+     {:border-radius (em 2)
+      :display :flex
+      :align-items :center
+      :justify-content :center
+      :height (or height (em 2))
+      :width (or width (em 8))
+      :border-style "none"
+      :color (c/color color)
+      :cursor :pointer
+      :background-color (c/color background-color)
+      :white-space :nowrap}
+     (when line-height
+       {:line-height line-height}))
    [:&:disabled
     {:opacity 0.3}]
 
@@ -62,6 +65,10 @@
 
                                      (c/color :purple))}])
    
+   [:&.disabled
+    {:opacity 0.3
+     :cursor :initial}]
+
    [:span {:font-size (em 1.1)}]
 
    [:.dank-logo
@@ -86,7 +93,7 @@
     :display :inline-block}])
 
 
-(defn vote-button-icon [top]
+(defn vote-button-icon [top & [left]]
   [:&:before {:content "''"
               :background-image "url('/assets/icons/thumb-up.svg')"
               :background-size "20px 20px"
@@ -96,4 +103,6 @@
               :position :relative
               :margin-right (px 10)
               :height (px 20)
-              :top (px top)}])
+              :top (px top)
+              :left (px (or left 0))}])
+

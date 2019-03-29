@@ -46,6 +46,7 @@
                        :meme/total-supply
                        :meme/image-hash
                        :meme/title
+                       :meme/comment
                        [:meme/tags [:tag/name]]
                        [:reg-entry/creator [:user/address
                                             :user/creator-rank
@@ -150,15 +151,22 @@
                    [:li ""])
                  [:li "Issued: " [:span total-supply]]]
                 [:h3 "Creator"]
-                [creator-info creator]]
+                [creator-info creator]
+                (when (seq (:meme/comment entry))
+                  [:p.meme-comment (str "\"" (:meme/comment entry) "\"")])]
          include-challenger-info? (into [[:h3.challenger "Challenger"]
                                          [challenger-info challenger]])
          true                     (into [[:span.challenge-comment (when-not (empty? comment)
                                                                     (str "\""comment "\""))]
                                          [:ol.tags
                                           (for [{:keys [:tag/name]} tags]
-                                            [:li.tag {:key name}
-                                             name])]]))
+                                            [nav-anchor {:route :route.marketplace/index
+                                                         :params nil
+                                                         :query {:search-tags [name]}
+                                                         :class "tag"
+                                                         :key name}
+                                             [:li.tag {:key name}
+                                              name]])]]))
 
        [:div.meme-tile
         [tiles/meme-image image-hash {:rejected? (= status :reg-entry.status/blacklisted)}]]
@@ -202,12 +210,13 @@
                     (not (:graphql/loading? (last @meme-search))))
              [:div.no-items
               [no-items-found]]
-             (doall
-              (for [{:keys [:reg-entry/address] :as meme} all-memes]
-                ^{:key address}
-                [challenge {:entry meme
-                            :include-challenger-info? include-challenger-info?
-                            :action-child action-child}])))
+             (when-not (:graphql/loading? (first @meme-search))
+               (doall
+                (for [{:keys [:reg-entry/address] :as meme} all-memes]
+                  ^{:key address}
+                  [challenge {:entry meme
+                              :include-challenger-info? include-challenger-info?
+                              :action-child action-child}]))))
            (when (:graphql/loading? (last @meme-search))
              [:div.challenge
               [:div.spinner-container [spinner/spin]]])]

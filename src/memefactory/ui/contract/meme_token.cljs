@@ -19,7 +19,7 @@
  ::transfer-multi-and-start-auction
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :reg-entry/address :meme/title :meme-auction/token-ids :meme-auction/start-price :meme-auction/end-price :meme-auction/duration :meme-auction/description] :as args}]]
-   (let [tx-name (str "Offered on market " title)
+   (let [tx-name (str "Offer " title)
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-token)
                                       :fn :safe-transfer-from-multi

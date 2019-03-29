@@ -1,5 +1,6 @@
 (ns memefactory.ui.dank-registry.vote-page
   (:require
+   [bignumber.core :as bn]
    [cljs-time.core :as t]
    [cljs-time.extend]
    [cljs-web3.core :as web3]
@@ -32,15 +33,19 @@
 (def page-size 12)
 
 (defn header []
-  [:div.registry-vote-header
-   [:div.icon]
-   [:h2.title "Dank registry - VOTE"]
-   [:h3.title "View challenges and vote to earn more DANK"]
-   [nav-anchor {:route :route.get-dank/index}
-    [:div.get-dank-button
-     [:span "Get Dank"]
-     [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
-     [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]])
+  (let [active-account (subscribe [::accounts-subs/active-account])]
+    (fn []
+      (let [account-active? (boolean @active-account)]
+        [:div.registry-vote-header
+         [:div.icon]
+         [:h2.title "Dank registry - VOTE"]
+         [:h3.title "View challenges and vote to earn more DANK"]
+         [nav-anchor {:route (when account-active? :route.get-dank/index)}
+          [:div.get-dank-button
+           {:class (when-not account-active? "disabled")}
+           [:span "Get Dank"]
+           [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+           [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]]))))
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards] :as meme}]
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -78,7 +83,9 @@
 
               (if (and (zero? votes-for)
                        (zero? votes-against))
-                [:div "This challenge didn't receive any votes"]
+                [:div.collect-reward
+                 [:div "This challenge didn't receive any votes"]
+                 (buttons/reclaim-buttons @active-account meme-voting)]
                 [:div.collect-reward
                  [charts/donut-chart meme-voting]
                  (into
@@ -127,18 +134,21 @@
                                      (assoc :amount-vote-for "Amount to vote for should be a positive number")
 
                                      (not (try (< 0 (js/parseInt amount-vote-against)) (catch js/Error e nil)))
-                                     (assoc :amount-vote-against "Amount to vote against should be a positive number")))})]
+                                     (assoc :amount-vote-against "Amount to vote against should be a positive number")))})
+        active-account (subscribe [::accounts-subs/active-account])]
     (fn [{:keys [:reg-entry/address :challenge/vote] :as meme}]
       (let [voted? (or (pos? (:vote/amount vote))
                        @tx-pending?
                        @tx-success?)
-            account-balance @(subscribe [::balance-subs/active-account-balance :DANK])]
+            account-balance @(subscribe [::balance-subs/active-account-balance :DANK])
+            disabled? (or (not @active-account) (bn/<= account-balance 0))]
         [:div.vote
          [:div.vote-dank
           [:div.vote-input
            [with-label "Amount "
             [text-input {:form-data form-data
                          :id :amount-vote-for
+                         :disabled disabled?
                          :dom-id (str address :amount-vote-for)
                          :errors errors}]
             {:form-data form-data
@@ -147,7 +157,7 @@
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
-                           :disabled (or voted? (-> @errors :local :amount-vote-for))
+                           :disabled (or voted? (-> @errors :local :amount-vote-for) disabled?)
                            :on-click (fn []
                                        (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                             :reg-entry/address address
@@ -164,6 +174,7 @@
            [with-label "Amount "
             [text-input {:form-data form-data
                          :id :amount-vote-against
+                         :disabled disabled?
                          :dom-id (str address :amount-vote-against)
                          :errors errors}]
             {:form-data form-data
@@ -172,7 +183,7 @@
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
-                           :disabled (or voted? (-> @errors :local :amount-vote-against))
+                           :disabled (or voted? (-> @errors :local :amount-vote-against) disabled?)
                            :on-click (fn []
                                        (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                             :reg-entry/address address
@@ -183,26 +194,29 @@
                                                                                                              js/parseInt
                                                                                                              (web3/to-wei :ether))}]))}
            (if voted? "Voted" "Vote Stank")]]
-         [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
-                                             (format/format-token (/ account-balance 1e18) {:token "DANK"}))]
-         [:p.token-return  "Tokens will be returned to you after revealing your vote."]]))))
+         (if (bn/> account-balance 0)
+           [:<>
+            [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
+                                                (format/format-token (/ account-balance 1e18) {:token "DANK"}))]
+            [:p.token-return  "Tokens will be returned to you after revealing your vote."]]
+           [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 (defn reveal-action [{:keys [:challenge/vote :reg-entry/address :meme/title] :as meme}]
   (let [tx-id (str "reveal" address)
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reveal-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])
-        active-account @(subscribe [::accounts-subs/active-account])
-        vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)
+        active-account (subscribe [::accounts-subs/active-account])
         vote-option (when-let [opt (-> meme :challenge/vote :vote/option)]
                       (graphql-utils/gql-name->kw opt))]
     (fn [{:keys [] :as meme}]
-      (let [disabled (or @tx-pending? @tx-success? (not vote))]
+      (let [vote (get @(subscribe [:memefactory.ui.subs/votes @active-account]) address)
+            disabled? (or @tx-pending? @tx-success? (not vote) (not @active-account))]
         [:div.reveal
          [:img {:src "/assets/icons/mememouth.png"}]
          [:div.button-wrapper
           [pending-button {:pending? @tx-pending?
                            :pending-text "Revealing ..."
-                           :disabled disabled
+                           :disabled disabled?
                            :on-click (fn []
                                        (dispatch [::registry-entry/reveal-vote
                                                   {:send-tx/id tx-id
