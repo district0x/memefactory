@@ -611,8 +611,8 @@
                                        (format/pluralize token-count "card")
                                        total-supply)]
             [meme-creator-component creator]
-            (when-let [meme-comment (:meme/comment meme)]
-              [:p.meme-comment (str "\"" meme-comment "\"")])
+            (when (seq (:meme/comment meme))
+              [:p.meme-comment (str "\"" (:meme/comment meme) "\"")])
             [:div.tags
              (for [tag-name tags]
                [nav-anchor {:route :route.marketplace/index

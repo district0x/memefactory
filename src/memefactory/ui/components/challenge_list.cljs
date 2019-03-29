@@ -152,8 +152,8 @@
                  [:li "Issued: " [:span total-supply]]]
                 [:h3 "Creator"]
                 [creator-info creator]
-                (when-let [meme-comment (:meme/comment entry)]
-                  [:p.meme-comment (str "\"" meme-comment "\"")])]
+                (when (seq (:meme/comment entry))
+                  [:p.meme-comment (str "\"" (:meme/comment entry) "\"")])]
          include-challenger-info? (into [[:h3.challenger "Challenger"]
                                          [challenger-info challenger]])
          true                     (into [[:span.challenge-comment (when-not (empty? comment)
