@@ -99,7 +99,11 @@
     [:p.token-return {:text-align :center
                       :font-size (px 12)
                       :margin-left (em 0.5)
-                      :margin-right (em 0.5)}]]
+                      :margin-right (em 0.5)}]
+    [:.not-enough-dank
+     {:text-align :center
+        :padding-top (em 1.5)
+        :color (color :red)}]]
    [:.reveal
     {:text-align :center}
     [:img {:width (em 7)}]

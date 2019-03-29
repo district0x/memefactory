@@ -50,6 +50,9 @@
                 :padding (em 1)
                 :color :grey}]
 
+    [:.not-enough-dank {:margin-top (em 1)
+                        :color :red}]
+
     [:button.open-challenge {:margin-top (em 2)}
      [:&.disabled
       {:opacity 0.3}]]

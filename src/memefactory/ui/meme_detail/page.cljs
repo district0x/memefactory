@@ -329,6 +329,8 @@
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit :meme/title] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})
+        active-account (subscribe [::accounts-subs/active-account])
+        account-balance (subscribe [::account-balances-subs/active-account-balance :DANK])
         errors (ratom/reaction {:local (when-not (spec/check ::spec/challenge-comment (:challenge/comment @form-data))
                                          {:challenge/comment "Comment shouldn't be empty."})})
         tx-id (str (:reg-entry/address meme) "challenges")
@@ -338,13 +340,14 @@
       [:div
        [:b "Challenge Explanation"]
        [inputs/textarea-input {:form-data form-data
+                               :disabled (not @active-account)
                                :id :challenge/comment
                                :maxLength 2000
                                :errors errors}]
        [:div.controls
         [dank-with-logo (quot dank-deposit 1e18)]
         [tx-button/tx-button {:primary true
-                              :disabled (or @tx-success? (not (empty? (:local @errors))))
+                              :disabled (or @tx-success? (not (empty? (:local @errors))) (not @active-account))
                               :pending? @tx-pending?
                               :pending-text "Challenging..."
                               :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
@@ -354,7 +357,9 @@
                                                                                         :meme/title title}])}
          (if @tx-success?
            "Challenged"
-           "Challenge")]]])))
+           "Challenge")]]
+       (when (or (not @active-account) (< @account-balance dank-deposit))
+         [:div.not-enough-dank "You don't have enough DANK token to challenge this meme"])])))
 
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])
@@ -394,6 +399,7 @@
 
 (defn vote-component [{:keys [:challenge/commit-period-end :meme/title] :as meme}]
   (let [balance-dank (subscribe [::account-balances-subs/active-account-balance :DANK])
+        active-account (subscribe [::accounts-subs/active-account])
         form-data (r/atom {:vote/amount-for nil
                            :vote/amount-against nil})
 
@@ -420,13 +426,14 @@
          [:div.outer
           [inputs/with-label "Amount "
            [inputs/text-input {:form-data form-data
+                               :disabled (not @active-account)
                                :id :vote/amount-for
                                :dom-id :vote/amount-for
                                :errors errors}]
            {:form-data form-data
             :for :vote/amount-for
             :id :vote/amount-for}]
-           [:span.unit "DANK"]]
+          [:span.unit "DANK"]]
 
          [inputs/pending-button
           {:pending? @tx-pending?
@@ -449,13 +456,14 @@
          [:div.outer
           [inputs/with-label "Amount "
            [inputs/text-input {:form-data form-data
+                               :disabled (not @active-account)
                                :id :vote/amount-against
                                :dom-id :vote/amount-against
                                :errors errors}]
            {:form-data form-data
             :for :vote/amount-against
             :id :vote/amount-against}]
-           [:span.unit "DANK"]]
+          [:span.unit "DANK"]]
          [inputs/pending-button
           {:pending? @tx-pending?
            :disabled (or (-> @errors :local :vote/amount-against empty? not)
@@ -472,8 +480,11 @@
           (if @tx-success?
             "Voted"
             "Vote Stank")]]]
-       [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
-       [:div "Token will be returned to you after revealing your vote."]])))
+       (if (> @balance-dank 0)
+         [:<>
+          [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
+          [:div "Token will be returned to you after revealing your vote."]]
+         [:div.not-enough-dank "You do not have any DANK tokens to vote on this meme challenge"])])))
 
 (defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]

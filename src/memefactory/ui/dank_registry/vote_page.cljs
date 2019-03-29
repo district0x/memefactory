@@ -146,6 +146,7 @@
            [with-label "Amount "
             [text-input {:form-data form-data
                          :id :amount-vote-for
+                         :disabled (not @active-account)
                          :dom-id (str address :amount-vote-for)
                          :errors errors}]
             {:form-data form-data
@@ -171,6 +172,7 @@
            [with-label "Amount "
             [text-input {:form-data form-data
                          :id :amount-vote-against
+                         :disabled (not @active-account)
                          :dom-id (str address :amount-vote-against)
                          :errors errors}]
             {:form-data form-data
@@ -190,9 +192,12 @@
                                                                                                              js/parseInt
                                                                                                              (web3/to-wei :ether))}]))}
            (if voted? "Voted" "Vote Stank")]]
-         [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
-                                             (format/format-token (/ account-balance 1e18) {:token "DANK"}))]
-         [:p.token-return  "Tokens will be returned to you after revealing your vote."]]))))
+         (if (> account-balance 0)
+           [:<>
+            [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
+                                                (format/format-token (/ account-balance 1e18) {:token "DANK"}))]
+            [:p.token-return  "Tokens will be returned to you after revealing your vote."]]
+           [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 (defn reveal-action [{:keys [:challenge/vote :reg-entry/address :meme/title] :as meme}]
   (let [tx-id (str "reveal" address)
