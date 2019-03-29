@@ -62,6 +62,10 @@
 
                                      (c/color :purple))}])
    
+   [:&.disabled
+    {:opacity 0.3
+     :cursor :initial}]
+
    [:span {:font-size (em 1.1)}]
 
    [:.dank-logo
