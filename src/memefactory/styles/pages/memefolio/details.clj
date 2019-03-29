@@ -117,15 +117,7 @@
         :margin-bottom (em 1)}
        [">*"
         {:font-size (em 0.9)
-         :color (color :menu-text)}]
-       [:.address {:cursor :pointer
-                   :display :inline-block
-                   :color (color :menu-text)
-                   :margin-left (px 3)
-                   :vertical-align :middle}
-        (for-media-max :tablet
-                       [:&
-                        {:max-width (em 17)}])]]
+         :color (color :menu-text)}]]
       [:.description
        {:margin-bottom (em 1)}]
       [:.description, :.text
@@ -161,7 +153,6 @@
    [:section.history
     {:color (color :menu-text)
      :margin-top (em 3)}
-    [:a.address {:color (color :menu-text)}]
     [:.history-component
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -404,9 +395,6 @@
        (for-media-max :computer
                       [:&
                        {:border-right "0px"}])
-       [:a.address {:cursor :pointer
-                    :color (color :menu-text)
-                    :margin-left (px 3)}]
        [:b {:display :block}]
        [">*"
         {:margin-bottom  (em 0.5)}]]
