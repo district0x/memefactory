@@ -11,7 +11,6 @@
    [district.server.web3 :refer [web3]]
    [district.server.web3-watcher]
    [memefactory.server.db]
-   [memefactory.server.emailer]
    [memefactory.server.generator]
    [memefactory.server.graphql-resolvers :refer [resolvers-map]]
    [memefactory.server.ipfs]
@@ -46,12 +45,10 @@
                                                         (log/warn "Ethereum node went online again" ::web3-watcher)
                                                         (mount/stop #'memefactory.server.db/memefactory-db)
                                                         (mount/start #'memefactory.server.db/memefactory-db
-                                                                     #'memefactory.server.syncer/syncer
-                                                                     #'memefactory.server.emailer/emailer))
+                                                                     #'memefactory.server.syncer/syncer))
                                            :on-offline (fn []
                                                          (log/warn "Ethereum node went offline" ::web3-watcher)
-                                                         (mount/stop #'memefactory.server.syncer/syncer
-                                                                     #'memefactory.server.emailer/emailer))}
+                                                         (mount/stop #'memefactory.server.syncer/syncer))}
                             :ui {:public-key "PLACEHOLDER"
                                  :root-url "https://memefactory.io"}
                             :twilio-api-key "PLACEHOLDER"

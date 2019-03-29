@@ -24,7 +24,6 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
-            [memefactory.server.emailer]
             [memefactory.server.generator :as generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.ipfs]
