@@ -12,6 +12,7 @@
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [district.ui.web3-account-balances.subs :as balance-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
+   [cljs-web3.core :as web3]
    [goog.string :as gstring]
    [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.components.app-layout :refer [app-layout]]
@@ -84,7 +85,7 @@
                "Challenged"
                "Challenge")]
 
-            [dank-with-logo (/ dank-deposit 1e18)]]
+            [dank-with-logo (web3/from-wei dank-deposit :ether)]]
            [:button.open-challenge
             {:on-click (when @active-account #(swap! open? not))
              :class [(when (not @active-account) "disabled")]} "Challenge"])

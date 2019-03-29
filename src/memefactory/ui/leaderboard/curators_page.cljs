@@ -15,7 +15,8 @@
    [district.ui.web3-accounts.subs :as accounts-subs]
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.general :refer [dank-with-logo]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+   [memefactory.ui.components.general :refer [nav-anchor]]
+   [cljs-web3.core :as web3]))
 
 (def page-size 12)
 
@@ -95,7 +96,7 @@
                             (let [total-challenges (:user/total-created-challenges curator)
                                   success-challenges (:user/total-created-challenges-success curator)]
                               [:span success-challenges "/" total-challenges " (" (format/format-percentage success-challenges total-challenges) ")"])]
-                           [:p "Earned: " [:span (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]]
+                           [:p "Earned: " [:span (format/format-token (web3/from-wei (:user/challenger-total-earned curator) :ether) {:token "DANK"})]]
 
                            [:h4.votes "VOTES"]
                            [:p "Success rate: "
@@ -103,8 +104,8 @@
                                   success-votes (:user/total-participated-votes-success curator)]
                               [:span success-votes "/" total-votes " (" (format/format-percentage success-votes total-votes) ")"])]
 
-                           [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
-                           [:p.total-earnings "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))
+                           [:p "Earned: " [:span (format/format-token (web3/from-wei (:user/voter-total-earned curator) :ether) {:token "DANK"})]]
+                           [:p.total-earnings "Total Earnings: " [:span (format/format-token (web3/from-wei (:user/curator-total-earned curator) :ether) {:token "DANK"})]]]))
                        doall)))
               (when (:graphql/loading? last-user)
                [:div.spinner-container [spinner/spin]])]

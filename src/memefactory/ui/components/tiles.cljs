@@ -17,7 +17,8 @@
             [reagent.core :as r]
             [taoensso.timbre :as log :refer [spy]]
             [clojure.set :as set]
-            [memefactory.ui.components.general :refer [nav-anchor]]))
+            [memefactory.ui.components.general :refer [nav-anchor]]
+            [cljs-web3.core :as web3]))
 
 (defn meme-image [image-hash & [{:keys [rejected?] :as props}]]
   (let [props (dissoc props :rejected?)
@@ -173,15 +174,15 @@
         (str total-minted " cards")]
        (when total-trade-volume
          [:li [:label "Trade Volume:"]
-          (format/format-eth (/ total-trade-volume 1e18)
+          (format/format-eth (web3/from-wei total-trade-volume :ether)
                              {:max-fraction-digits 2})])
        (when average-price
          [:li [:label "Average Price:"]
-          (format/format-eth (/ average-price 1e18)
+          (format/format-eth (web3/from-wei average-price :ether)
                              {:max-fraction-digits 2})])
        (when highest-single-sale
          [:li [:label "Highest Single Sale:"]
-          (format/format-eth (/ highest-single-sale 1e18)
+          (format/format-eth (web3/from-wei highest-single-sale :ether)
                              {:max-fraction-digits 2})])]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]

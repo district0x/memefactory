@@ -18,7 +18,8 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log :refer [spy]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+   [memefactory.ui.components.general :refer [nav-anchor]]
+   [cljs-web3.core :as web3]))
 
 (def nav-menu-items [{:text "Marketplace"
                       :route :route.marketplace/index
@@ -121,7 +122,7 @@
             {:header-props {:text "Transaction Log"}
              :transactions-props {:transaction-props {:tx-value-el (fn [{:keys [tx]}]
                                                                      [:span.tx-value (format/format-eth (if-let [v (:value tx)]
-                                                                                                          (/ v 1e18)
+                                                                                                          (web3/from-wei v :ether)
                                                                                                           0)
                                                                                                         {:max-fraction-digits 3})])}}}]])]])))
 

@@ -98,11 +98,11 @@
                                       [[:items [:meme-auction/start-price
                                                 :meme-auction/end-price
                                                 :meme-auction/bought-for]]]]]}])
-        creator-total-earned (quot (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
-                                        (+ total-earned end-price))
-                                      0
-                                      (-> @query :search-meme-auctions :items))
-                                   1e18)]
+        creator-total-earned (web3/from-wei (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
+                                                      (+ total-earned end-price))
+                                                    0
+                                                    (-> @query :search-meme-auctions :items))
+                                            :ether)]
     [:div.creator
      [:b "Creator"]
      [:div.rank (str "Rank: #" creator-rank " ("
@@ -306,7 +306,7 @@
   (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on :vote/reclaimed-amount-on :vote/amount]} vote
         active-account (subscribe [::accounts-subs/active-account])
         option (graphql-utils/gql-name->kw option)
-        reward (if (nil? reward) 0 (quot reward 1e18))
+        reward (if (nil? reward) 0 (web3/from-wei reward :ether))
         tx-id (:reg-entry/address meme)
         claim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
         claim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])
@@ -323,7 +323,7 @@
                     (= option :vote-option/no-vote))
         [:div.text (str "You voted: " (gstring/format "%d for %s "
                                                 (if (pos? amount)
-                                                  (quot amount 1e18)
+                                                  (web3/from-wei amount :ether)
                                                   0)
                                                 (case option
                                                   :vote-option/vote-for "DANK"
@@ -348,7 +348,7 @@
                                :maxLength 2000
                                :errors errors}]
        [:div.controls
-        [dank-with-logo (quot dank-deposit 1e18)]
+        [dank-with-logo (web3/from-wei dank-deposit :ether)]
         [tx-button/tx-button {:primary true
                               :disabled (or @tx-success? (not (empty? (:local @errors))) (not @active-account))
                               :pending? @tx-pending?
@@ -408,7 +408,7 @@
 
         errors (ratom/reaction {:local (let [amount-for (-> @form-data :vote/amount-for js/parseInt)
                                              amount-against (-> @form-data :vote/amount-against js/parseInt)
-                                             balance (if (pos? @balance-dank) (quot @balance-dank 1e18) 0)]
+                                             balance (if (pos? @balance-dank) (web3/from-wei @balance-dank :ether) 0)]
                                          (cond-> {}
                                            (or (not (spec/check ::spec/pos-int amount-for))
                                                (< balance amount-for))
@@ -486,7 +486,7 @@
               "Vote Stank")]]]
          (if (bn/> @balance-dank 0)
            [:<>
-            [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
+            [:div "You can vote with up to " (format/format-token (web3/from-wei @balance-dank :ether))]
             [:div "Token will be returned to you after revealing your vote."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 

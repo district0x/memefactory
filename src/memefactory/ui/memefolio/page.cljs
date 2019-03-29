@@ -340,7 +340,7 @@
         [:b "Largest buy: "]
         (if (and bought-for token-id title)
 
-          [:span (str (format/format-eth (/ bought-for 1e18)
+          [:span (str (format/format-eth (web3/from-wei bought-for :ether)
                                          {:max-fraction-digits 2})
                       " (#" token-id " " title ")")]
           [:span "None"])]])))
