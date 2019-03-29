@@ -758,6 +758,7 @@
                            :meme-auction/bought-for
                            :meme-auction/started-on
                            :meme-auction/duration
+                           :meme-auction/description
                            [:meme-auction/seller [:user/address]]
                            [:meme-auction/meme-token
                             [:meme-token/number
