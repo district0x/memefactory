@@ -230,15 +230,15 @@
 (defn start [{:keys [:api-key :private-key :print-mode? :on-event-error] :as opts}]
   (when-not private-key
     (throw (js/Error. ":private-key is required to start emailer")))
-
-  ;; TODO : block untill filters are installed
-  (go
-    (reset! all-filters
-            {:ChallengeCreatedEvent (registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
-             :MemeAuctionBuyEvent (meme-auction-factory/meme-auction-buy-event "latest" event-callback)
-             :ChallengeRewardClaimedEvent (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
-             :VoteRewardClaimedEvent (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)}))
-  (log/info "Emailer starting. Installed filter ids:" {:filter-ids (map #(-> % .-filterId) (vals @all-filters))})
+  (reset! all-filters
+          {:ChallengeCreatedEvent (registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
+           :MemeAuctionBuyEvent (meme-auction-factory/meme-auction-buy-event "latest" event-callback)
+           :ChallengeRewardClaimedEvent (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
+           :VoteRewardClaimedEvent (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)})
+  ;; block for some time untill filters are installed
+  (js/setTimeout
+   #(log/info "Emailer starting. Installed filter ids:" {:filter-ids (map (fn [filt] (.-filterId filt)) (vals @all-filters))})
+   4000)
   opts)
 
 (defn stop [this]
