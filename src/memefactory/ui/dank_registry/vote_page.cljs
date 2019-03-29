@@ -32,15 +32,19 @@
 (def page-size 12)
 
 (defn header []
-  [:div.registry-vote-header
-   [:div.icon]
-   [:h2.title "Dank registry - VOTE"]
-   [:h3.title "View challenges and vote to earn more DANK"]
-   [nav-anchor {:route :route.get-dank/index}
-    [:div.get-dank-button
-     [:span "Get Dank"]
-     [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
-     [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]])
+  (let [active-account (subscribe [::accounts-subs/active-account])]
+    (fn []
+      (let [account-active? (boolean @active-account)]
+        [:div.registry-vote-header
+         [:div.icon]
+         [:h2.title "Dank registry - VOTE"]
+         [:h3.title "View challenges and vote to earn more DANK"]
+         [nav-anchor {:route (when account-active? :route.get-dank/index)}
+          [:div.get-dank-button
+           {:class (when-not account-active? "disabled")}
+           [:span "Get Dank"]
+           [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+           [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]]))))
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards] :as meme}]
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -129,7 +133,8 @@
                                      (assoc :amount-vote-for "Amount to vote for should be a positive number")
 
                                      (not (try (< 0 (js/parseInt amount-vote-against)) (catch js/Error e nil)))
-                                     (assoc :amount-vote-against "Amount to vote against should be a positive number")))})]
+                                     (assoc :amount-vote-against "Amount to vote against should be a positive number")))})
+        active-account (subscribe [::accounts-subs/active-account])]
     (fn [{:keys [:reg-entry/address :challenge/vote] :as meme}]
       (let [voted? (or (pos? (:vote/amount vote))
                        @tx-pending?
@@ -149,7 +154,7 @@
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
-                           :disabled (or voted? (-> @errors :local :amount-vote-for))
+                           :disabled (or voted? (-> @errors :local :amount-vote-for) (not @active-account))
                            :on-click (fn []
                                        (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                             :reg-entry/address address
@@ -174,7 +179,7 @@
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
-                           :disabled (or voted? (-> @errors :local :amount-vote-against))
+                           :disabled (or voted? (-> @errors :local :amount-vote-against) (not @active-account))
                            :on-click (fn []
                                        (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                             :reg-entry/address address
@@ -198,7 +203,7 @@
         vote-option (when-let [opt (-> meme :challenge/vote :vote/option)]
                       (graphql-utils/gql-name->kw opt))]
     (fn [{:keys [] :as meme}]
-      (let [disabled (or @tx-pending? @tx-success? (not vote))]
+      (let [disabled (or @tx-pending? @tx-success? (not vote) (not @active-account))]
         [:div.reveal
          [:img {:src "/assets/icons/mememouth.png"}]
          [:div.button-wrapper

@@ -50,7 +50,9 @@
                 :padding (em 1)
                 :color :grey}]
 
-    [:button.open-challenge {:margin-top (em 2)}]
+    [:button.open-challenge {:margin-top (em 2)}
+     [:&.disabled
+      {:opacity 0.3}]]
     [:button
      {:margin-left :auto
       :margin-bottom (em 1)
