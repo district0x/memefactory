@@ -25,6 +25,8 @@
    [taoensso.timbre :as log :refer [spy]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
+(defonce all-filters (atom []))
+
 (declare start)
 (declare stop)
 
@@ -52,7 +54,7 @@
         [unit value] (time/time-remaining-biggest-unit (t/now)
                                                        (-> commit-period-end time/epoch->long time-coerce/from-long))]
     (promise-> (district0x-emails/get-email {:district0x-emails/address creator})
-               #(validate-email (spy %))
+               #(validate-email %)
                (fn [to] (if to
                           (do
                             (log/info "Sending meme challenged email" ev ::send-challenge-created-email)
@@ -61,8 +63,7 @@
                                          :subject (str title " challenged!")
                                          :content (templates/challenge-created-email-body {:meme/title title
                                                                                            :meme-url (str root-url "meme-detail/" registry-entry)
-                                                                                           :time-remaining (format/format-time-units {unit value})
-                                                                                           })
+                                                                                           :time-remaining (format/format-time-units {unit value})})
                                          :substitutions {:header (str title " meme challenged")
                                                          :button-title "Vote Now"
                                                          :button-href (str root-url "dankregistry/vote")
@@ -204,46 +205,43 @@
        :response-format (http/json-response-format {:keywords? true})}))))
 
 (defn event-callback [err {:keys [:args :event] :as evt}]
-
   (when err
     (do
       (log/error "Error calling event callback. Restarting emailer" {:error err
-                                                                     :filter-ids (map #(-> %  .-filterId) (-> @emailer :filters vals))})
+                                                                     :filter-ids (map #(-> % .-filterId) (vals @all-filters))})
       (mount/stop #'memefactory.server.emailer/emailer)
       (mount/start #'memefactory.server.emailer/emailer)))
-
   (when evt
     (promise-> (js/Promise.resolve (keyword event))
-               #(-> @emailer :filters (get %) .-filterId)
+               #(-> @all-filters (get %) .-filterId)
                #(filter-installed? %)
                (fn [[_ {:keys [:result :error :id]}]]
                  (if error
+                   (log/error "Error: event filter not found in RPC node" {:error error :event event :filter-id id})
                    (do
-                     (log/error "RPC node error" {:error error :filter-id id})
-                     ;; TODO : reinstall filter
-                     )
-                   (case (keyword event)
-                     :ChallengeCreatedEvent (send-challenge-created-email args)
-                     :MemeAuctionBuyEvent (send-auction-bought-email args)
-                     :ChallengeRewardClaimedEvent (send-challenge-reward-claimed-email args)
-                     :VoteRewardClaimedEvent (send-vote-reward-claimed-email args)
-                     :default))))))
+                     (log/info "Event filter found in RPC node" {:event event :filter-id id})
+                     (case (keyword event)
+                       :ChallengeCreatedEvent (send-challenge-created-email args)
+                       :MemeAuctionBuyEvent (send-auction-bought-email args)
+                       :ChallengeRewardClaimedEvent (send-challenge-reward-claimed-email args)
+                       :VoteRewardClaimedEvent (send-vote-reward-claimed-email args)
+                       :default)))))))
 
 (defn start [{:keys [:api-key :private-key :print-mode? :on-event-error] :as opts}]
   (when-not private-key
     (throw (js/Error. ":private-key is required to start emailer")))
-  (log/info "Emailer starting" opts)
-  (merge opts {:filters (zipmap
-                         [:ChallengeCreatedEvent
-                          :MemeAuctionBuyEvent
-                          :ChallengeRewardClaimedEvent
-                          :VoteRewardClaimedEvent]
-                         [(registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
-                          (meme-auction-factory/meme-auction-buy-event "latest" event-callback)
-                          (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
-                          (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)])}))
+
+  ;; TODO : block untill filters are installed
+  (go
+    (reset! all-filters
+            {:ChallengeCreatedEvent (registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
+             :MemeAuctionBuyEvent (meme-auction-factory/meme-auction-buy-event "latest" event-callback)
+             :ChallengeRewardClaimedEvent (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
+             :VoteRewardClaimedEvent (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)}))
+  (log/info "Emailer starting. Installed filter ids:" {:filter-ids (map #(-> % .-filterId) (vals @all-filters))})
+  opts)
 
 (defn stop [this]
-  (log/info "Emailer stopping" @this)
-  (doseq [f (remove nil? (-> @this :filters vals))]
+  (log/info "Emailer stopping" {:filter-ids (map #(-> % .-filterId) (vals @all-filters))})
+  (doseq [f (vals @all-filters)]
     (server-utils/uninstall-filter f)))
