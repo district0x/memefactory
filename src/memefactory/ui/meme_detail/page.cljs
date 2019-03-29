@@ -231,7 +231,7 @@
                        (:user/address seller)]]
                      [:td.buyer-address
                       [nav-anchor {:route :route.memefolio/index
-                                   :params {:address (:user/address seller)}
+                                   :params {:address (:user/address buyer)}
                                    :query {:tab :collected}
                                    :class (str "address buyer-address " (when (= (:user/address buyer) @(subscribe [::accounts-subs/active-account]))
                                                                           "active-address"))}
