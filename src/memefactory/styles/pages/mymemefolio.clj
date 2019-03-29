@@ -291,7 +291,7 @@
                    :height "100%"
                    :padding (em 1)
                    :text-align :left
-                   :border "1px solid grey"
+                   :border (str "1px solid " (color :grey))
                    :border-radius "1em"}
       [:h1 (font :bungee)
        {:color (color :purple)
@@ -323,16 +323,17 @@
        [:.short-sales-pitch {:margin-bottom (em 0.4)
                              :display :block}]
        [:textarea {:background (color :white)
-                   :border "1px solid #CCC"
+                   :border (str "1px solid " (color :grey))
                    :width "100%"
                    :resize :none
                    :height (em 4)
                    :padding (em 0.5)
-                   :color (color :darker-blue)}]
+                   :color (color :darker-blue)
+                   :font-size (px 13)}]
        [:.buttons {:display :inline-flex
                    :justify-content :space-between
                    :font-size (px 15)
-                   :margin-top (px -8)
+                   :margin-top (px -4)
                    :width "100%"}
         [:button.cancel (button {:color :white
                                  :background-color (color :pink)
@@ -346,8 +347,9 @@
                                           :width "55%"})
          {:font-size (px 11)
           :padding (em 0.4)}]]
-       [:.send-tokens {:text-align :center
-                       :margin-top (px 8)
+       [:.send-tokens {:font-size (px 12)
+                       :text-align :center
+                       :margin-top (px 10)
                        :text-decoration :underline}]]
       [:&.send-form
        [:h1 (font :bungee)

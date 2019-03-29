@@ -31,8 +31,12 @@
                    [:&
                     {:grid-template-columns "100%"}])
     [:div.comment
+        [:label
+         {:color (color :menu-text)
+          :display :block
+          :margin-bottom (px 3)}]
         [:textarea {:background (color :white)
-                    :border "1px solid #CCC"
+                    :border (str "1px solid " (color :grey))
                     :width "100%"
                     :resize :none
                     :height (em 6)
@@ -78,7 +82,7 @@
         :margin-left :auto
         ;; :padding-top (em 1)
         ;; :padding-left (em 1.9)
-        :margin-top (em 1)
+        :margin-top (em 0.7)
         :font-size (px 12)}
        (button {:background-color :purple
                 :color :white
@@ -131,4 +135,4 @@
          :margin-right (em 0.5)
          :justify-content :space-evenly}]]
       [:.not-enough-dank {:margin-top (em 1)
-                          :color :red}]]]]])
+                          :color (color :redish)}]]]]])

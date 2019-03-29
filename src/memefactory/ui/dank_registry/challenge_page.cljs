@@ -89,7 +89,7 @@
             {:on-click (when @active-account #(swap! open? not))
              :class [(when (not @active-account) "disabled")]} "Challenge"])
          (when (or (not @active-account) (bn/< @account-balance dank-deposit))
-           [:div.not-enough-dank "You don't have enough DANK token to challenge this meme"])]))))
+           [:div.not-enough-dank "You don't have enough DANK tokens to challenge this meme"])]))))
 
 (defmethod page :route.dank-registry/challenge []
   [app-layout

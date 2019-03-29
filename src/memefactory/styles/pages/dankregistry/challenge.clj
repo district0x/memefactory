@@ -51,7 +51,7 @@
                 :color :grey}]
 
     [:.not-enough-dank {:margin-top (em 1)
-                        :color :red}]
+                        :color (color :redish)}]
 
     [:button.open-challenge {:margin-top (em 2)}
      [:&.disabled

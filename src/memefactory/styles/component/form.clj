@@ -18,13 +18,12 @@
      :z-index 1
      :cursor :text
      :margin-top (em 0.5)
-     :margin-left (em 0.1)
      :margin-bottom 0
-     :display :block}]
+     :display :block
+     :color (color :menu-text)}]
    [:&:focus-within :&.filled
     [">label"
      {:margin-top (em -1.2)
-      :margin-left (em 0.4)
       :font-size (em 0.6)}]]]
   [:.labeled-input-group.tall-version
    [">label"
@@ -58,7 +57,7 @@
       :margin-left (em 0.3)
       :margin-right (em 0.3)
       :border-style :solid
-      :border-color "#CCC"
+      :border-color (color :grey)
       :padding "0.4em 1em 0.4em 1em"
       :background-color (color :search-input-bg)}
      [:span
@@ -83,7 +82,7 @@
       :margin-left (em 1)
       :border-width (px 1)
       :border-style :solid
-      :border-color "#CCC"
+      :border-color (color :grey)
       :z-index 1000
       :background-color "white"}
      [:li
@@ -100,22 +99,18 @@
   [:.input-group
    [:&.has-error
     [:.help-block
-     {:color (color :red)
-      }]]
+     {:color (color :redish)}]]
    [:&.has-warning
     [:.help-block
      {:color (color :yellow)}]]
    [:&.has-hint
     [:.help-block
-     {:color (color :grey)}]]
+     {:color (color :menu-text)}]]
    ["input[type=text]"
-    ;; (font :filson)
     {:box-sizing :border-box
-     :padding-left (em 0.3)
      :border :none
      :color (color :menu-text)
      :line-height (em 1.95)
-     ;; :border-bottom "1px solid #CCC"
      :width "100%"
      :position :relative}
     [:&:focus {:outline "none"}]
@@ -131,7 +126,7 @@
      :padding-bottom (em 0.9)
      :font-size (em 0.8)
      :padding-top (em 0)
-     :border-top "1px solid #CCC"}
+     :border-top (str "1px solid " (color :grey))}
     [:&:before
      {:content "''"
       :background-color :dodgerblue

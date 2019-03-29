@@ -140,14 +140,15 @@
       (let [voted? (or (pos? (:vote/amount vote))
                        @tx-pending?
                        @tx-success?)
-            account-balance @(subscribe [::balance-subs/active-account-balance :DANK])]
+            account-balance @(subscribe [::balance-subs/active-account-balance :DANK])
+            disabled? (or (not @active-account) (bn/<= account-balance 0))]
         [:div.vote
          [:div.vote-dank
           [:div.vote-input
            [with-label "Amount "
             [text-input {:form-data form-data
                          :id :amount-vote-for
-                         :disabled (not @active-account)
+                         :disabled disabled?
                          :dom-id (str address :amount-vote-for)
                          :errors errors}]
             {:form-data form-data
@@ -156,7 +157,7 @@
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
-                           :disabled (or voted? (-> @errors :local :amount-vote-for) (not @active-account))
+                           :disabled (or voted? (-> @errors :local :amount-vote-for) disabled?)
                            :on-click (fn []
                                        (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                             :reg-entry/address address
@@ -173,7 +174,7 @@
            [with-label "Amount "
             [text-input {:form-data form-data
                          :id :amount-vote-against
-                         :disabled (not @active-account)
+                         :disabled disabled?
                          :dom-id (str address :amount-vote-against)
                          :errors errors}]
             {:form-data form-data
@@ -182,7 +183,7 @@
            [:span "DANK"]]
           [pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
-                           :disabled (or voted? (-> @errors :local :amount-vote-against) (not @active-account))
+                           :disabled (or voted? (-> @errors :local :amount-vote-against) disabled?)
                            :on-click (fn []
                                        (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                                             :reg-entry/address address

@@ -360,7 +360,7 @@
            "Challenged"
            "Challenge")]]
        (when (or (not @active-account) (bn/< @account-balance dank-deposit))
-         [:div.not-enough-dank "You don't have enough DANK token to challenge this meme"])])))
+         [:div.not-enough-dank "You don't have enough DANK tokens to challenge this meme"])])))
 
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])
@@ -420,72 +420,73 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])]
     (fn []
-      [:div.vote
-       [:div "Below you can choose to vote \"Dank\" to include the Meme in the registry or \"Stank\" to reject it. You can enter the amount of DANK tokens to commit to this vote."]
-       [:div.form
-        [:div.vote-dank
-         [:div.outer
-          [inputs/with-label "Amount "
-           [inputs/text-input {:form-data form-data
-                               :disabled (not @active-account)
-                               :id :vote/amount-for
-                               :dom-id :vote/amount-for
-                               :errors errors}]
-           {:form-data form-data
-            :for :vote/amount-for
-            :id :vote/amount-for}]
-          [:span.unit "DANK"]]
+      (let [disabled? (or (not @active-account) (bn/<= @balance-dank 0))]
+        [:div.vote
+         [:div "Below you can choose to vote \"Dank\" to include the Meme in the registry or \"Stank\" to reject it. You can enter the amount of DANK tokens to commit to this vote."]
+         [:div.form
+          [:div.vote-dank
+           [:div.outer
+            [inputs/with-label "Amount "
+             [inputs/text-input {:form-data form-data
+                                 :disabled disabled?
+                                 :id :vote/amount-for
+                                 :dom-id :vote/amount-for
+                                 :errors errors}]
+             {:form-data form-data
+              :for :vote/amount-for
+              :id :vote/amount-for}]
+            [:span.unit "DANK"]]
 
-         [inputs/pending-button
-          {:pending? @tx-pending?
-           :disabled (or (-> @errors :local :vote/amount-for empty? not)
-                         @tx-success?)
-           :pending-text "Voting..."
-           :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                           :reg-entry/address (:reg-entry/address meme)
-                                                                           :vote/option :vote.option/vote-for
-                                                                           :vote/amount (-> @form-data
+           [inputs/pending-button
+            {:pending? @tx-pending?
+             :disabled (or (-> @errors :local :vote/amount-for empty? not)
+                           @tx-success?)
+             :pending-text "Voting..."
+             :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                             :reg-entry/address (:reg-entry/address meme)
+                                                                             :vote/option :vote.option/vote-for
+                                                                             :vote/amount (-> @form-data
                                                                                             :vote/amount-for
                                                                                             js/parseInt
                                                                                             (web3/to-wei :ether))
-                                                                           :meme/title title}])}
-          (if @tx-success?
-            "Voted"
-            "Vote Dank")]]
+                                                                             :meme/title title}])}
+            (if @tx-success?
+              "Voted"
+              "Vote Dank")]]
 
-        [:div.vote-stank
-         [:div.outer
-          [inputs/with-label "Amount "
-           [inputs/text-input {:form-data form-data
-                               :disabled (not @active-account)
-                               :id :vote/amount-against
-                               :dom-id :vote/amount-against
-                               :errors errors}]
-           {:form-data form-data
-            :for :vote/amount-against
-            :id :vote/amount-against}]
-          [:span.unit "DANK"]]
-         [inputs/pending-button
-          {:pending? @tx-pending?
-           :disabled (or (-> @errors :local :vote/amount-against empty? not)
-                         @tx-success?)
-           :pending-text "Voting..."
-           :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                           :reg-entry/address (:reg-entry/address meme)
-                                                                           :vote/option :vote.option/vote-against
-                                                                           :vote/amount (-> @form-data
+          [:div.vote-stank
+           [:div.outer
+            [inputs/with-label "Amount "
+             [inputs/text-input {:form-data form-data
+                                 :disabled disabled?
+                                 :id :vote/amount-against
+                                 :dom-id :vote/amount-against
+                                 :errors errors}]
+             {:form-data form-data
+              :for :vote/amount-against
+              :id :vote/amount-against}]
+            [:span.unit "DANK"]]
+           [inputs/pending-button
+            {:pending? @tx-pending?
+             :disabled (or (-> @errors :local :vote/amount-against empty? not)
+                           @tx-success?)
+             :pending-text "Voting..."
+             :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                             :reg-entry/address (:reg-entry/address meme)
+                                                                             :vote/option :vote.option/vote-against
+                                                                             :vote/amount (-> @form-data
                                                                                             :vote/amount-against
                                                                                             js/parseInt
                                                                                             (web3/to-wei :ether))
-                                                                           :meme/title title}])}
-          (if @tx-success?
-            "Voted"
-            "Vote Stank")]]]
-       (if (bn/> @balance-dank 0)
-         [:<>
-          [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
-          [:div "Token will be returned to you after revealing your vote."]]
-         [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])])))
+                                                                             :meme/title title}])}
+            (if @tx-success?
+              "Voted"
+              "Vote Stank")]]]
+         (if (bn/> @balance-dank 0)
+           [:<>
+            [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
+            [:div "Token will be returned to you after revealing your vote."]]
+           [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 (defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]

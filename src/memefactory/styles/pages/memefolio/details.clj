@@ -113,7 +113,8 @@
          :font-weight :bold
          :color (color :menu-text)}]]
       [:.creator
-       {:margin-top (em 1)}
+       {:margin-top (em 1)
+        :margin-bottom (em 1)}
        [">*"
         {:font-size (em 0.9)
          :color (color :menu-text)}]
@@ -367,9 +368,9 @@
                  :width (em 11)
                  :height (em 3)})]]
       [:.not-enough-dank
-       {:text-align :center
+       {:text-align :right
         :padding-top (em 1.01)
-        :color (color :red)}]
+        :color (color :redish)}]
       [:.status
        {:border-right "1px solid rgba(174, 175, 177, 0.5)"}
        (for-media-max :computer
@@ -456,7 +457,7 @@
                  :background-color :purple
                  :width (em 13)
                  :height (em 3)})]
-       [:.no-reveal-info {:color :red
+       [:.no-reveal-info {:color (color :redish)
                           :margin-top (em 1)}]]
 
       [:.vote
@@ -486,7 +487,7 @@
                  :border-left 0
                  :border-right 0
                  :border-top 0}]
-        [:.vote-dank {:margin-right (em 2)
+        [:.vote-dank {:margin-right (em 1.5)
                       :width "50%"}
          [:.labeled-input-group {:width "100%"}]
          [:button
@@ -494,8 +495,9 @@
           (button {:background-color :rare-meme-icon-bg
                    :color :violet
                    :height (em 3)
+                   :line-height (em 3)
                    :width "100%"})
-          (vote-button-icon 2)]]
+          (vote-button-icon -2 3)]]
         [:.vote-stank
          {:width "51%"}
          [:.labeled-input-group {:width "100%"}]
@@ -503,13 +505,13 @@
           (button {:background-color :random-meme-icon-bg
                    :color :violet
                    :height (em 3)
+                   :line-height (em 3)
                    :width "100%"})
-          (vote-button-icon 6)
+          (vote-button-icon 0 3)
           [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
        [:.not-enough-dank
         {:text-align :center
-         :padding-top (em 1.01)
-         :color (color :red)}]]]]
+         :color (color :redish)}]]]]
     [:.challenge-comment
      {:font-style :italic
       :color (color :pink)}]]

@@ -160,7 +160,7 @@
             "Submit"]
            [dank-with-logo (web3/from-wei deposit :ether)]]
           (when (< @account-balance deposit)
-            [:div.not-enough-dank "You don't have enough DANK token to submit a meme"])]]]])))
+            [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])]]]])))
 
 (defmethod page :route.dank-registry/submit []
   (let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]
