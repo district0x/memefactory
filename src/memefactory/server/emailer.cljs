@@ -30,10 +30,6 @@
 (declare start)
 (declare stop)
 
-(defn clj->json
-  [coll]
-  (.stringify js/JSON (clj->js coll)))
-
 (defstate emailer
   :start (start (merge (:emailer @config/config)
                        (:emailer (mount/args))))
@@ -237,7 +233,7 @@
            :VoteRewardClaimedEvent (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)})
   ;; block for some time untill filters are installed
   (js/setTimeout
-   #(log/info "Emailer starting. Installed filter ids:" {:filter-ids (map (fn [filt] (.-filterId filt)) (vals @all-filters))})
+   #(log/info "Emailer starting. Installed filters with ids:" {:filter-ids (map (fn [filt] (.-filterId filt)) (vals @all-filters))})
    4000)
   opts)
 
