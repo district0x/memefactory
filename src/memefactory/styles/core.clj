@@ -19,6 +19,8 @@
             [memefactory.styles.pages.leaderboard :as page.leaderboard]
             [memefactory.styles.pages.my-settings :as page.my-settings]
             [memefactory.styles.pages.get-dank :as page.get-dank]
+            [memefactory.styles.pages.about :as page.about]
+            [memefactory.styles.pages.how-it-works :as page.how-it-works]
             [memefactory.styles.component.challenge-list :as challenge-list]))
 
 (defstyles main
@@ -40,4 +42,6 @@
   page.leaderboard/core
   page.my-settings/core
   page.get-dank/core
+  page.about/core
+  page.how-it-works/core
   challenge-list/core)
