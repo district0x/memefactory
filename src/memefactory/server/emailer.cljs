@@ -1,6 +1,5 @@
 (ns memefactory.server.emailer
   (:require
-   [ajax.core :as http]
    [cljs-time.coerce :as time-coerce]
    [cljs-time.core :as t]
    [cljs-web3.core :as web3]

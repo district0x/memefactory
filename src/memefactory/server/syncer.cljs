@@ -15,7 +15,6 @@
    [district.web3-utils :as web3-utils]
    [memefactory.server.contract.eternal-db :as eternal-db]
    [memefactory.server.contract.meme :as meme]
-   [memefactory.server.emailer :as emailer]
    [memefactory.server.contract.meme-auction :as meme-auction]
    [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
    [memefactory.server.contract.meme-token :as meme-token]
@@ -23,6 +22,7 @@
    [memefactory.server.contract.registry :as registry]
    [memefactory.server.contract.registry-entry :as registry-entry]
    [memefactory.server.db :as db]
+   [memefactory.server.emailer :as emailer]
    [memefactory.server.generator]
    [memefactory.server.graphql-resolvers :refer [reg-entry-status]]
    [memefactory.server.ipfs :as ipfs]
@@ -222,7 +222,6 @@
 (defmethod process-event [:contract/registry-entry :ChallengeCreatedEvent]
   [_ {:keys [:registry-entry :challenger :commit-period-end
              :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
-  (emailer/send-challenge-created-email ev)
   (let [challenge {:reg-entry/address registry-entry
                    :challenge/challenger challenger
                    :challenge/commit-period-end (bn/number commit-period-end)
@@ -270,7 +269,6 @@
 
 (defmethod process-event [:contract/registry-entry :VoteRewardClaimedEvent]
   [_ {:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
-  (emailer/send-vote-reward-claimed-email ev)
   (let [vote {:reg-entry/address registry-entry
               :vote/voter voter
               :vote/claimed-reward-on timestamp}]
@@ -287,7 +285,6 @@
 
 (defmethod process-event [:contract/registry-entry :ChallengeRewardClaimedEvent]
   [_ {:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
-  (emailer/send-challenge-reward-claimed-email ev)
   (let [reg-entry (db/get-registry-entry {:reg-entry/address registry-entry}
                                          [:challenge/challenger :reg-entry/deposit])
         {:keys [:challenge/challenger :reg-entry/deposit]} reg-entry]
@@ -333,7 +330,6 @@
 
 (defmethod process-event [:contract/meme-auction :MemeAuctionBuyEvent]
   [_ {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
-  (emailer/send-auction-bought-email ev)
   (let [auction (db/get-meme-auction meme-auction)
         reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
                               :reg-entry/address)
@@ -400,29 +396,37 @@
 (defn dispatch-event
   ([ev] (dispatch-event nil ev))
   ([err {:keys [args event address block-number] :as evt}]
-   (if err     
+   (if err
      (log/error "Error when dispatching event" {:error err
                                                 :filter-ids (map (fn [filt] (.-filterId filt)) @all-filters)}
                 ::dispatch-event)
-     (when evt
-       (let [contract-key (contract-key-from-address address)
-             contract-type ({:meme-registry-db         :contract/eternal-db
-                             :param-change-registry-db :contract/eternal-db
-                             :meme-registry-fwd        :contract/meme
-                             :meme-token               :contract/meme-token
-                             :meme-auction-factory     :contract/meme-auction
-                             :meme-auction-factory-fwd :contract/meme-auction} contract-key)
-             ev (-> args
-                    (assoc :contract-address address)
-                    (assoc :event (keyword event))
-                    (update :timestamp (fn [ts]
-                                         (if ts
-                                           (bn/number ts)
-                                           (:timestamp (web3-eth/get-block @web3 block-number)))))
-                    (update :version bn/number)
-                    (assoc :block-number block-number))]
-         (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
-         (process-event contract-type ev))))))
+     (if-let [event (keyword event)]
+       (do
+         (when (= (last-block-number) block-number)
+           (case event
+             :ChallengeCreatedEvent (emailer/send-challenge-created-email args)
+             :MemeAuctionBuyEvent (emailer/send-auction-bought-email args)
+             :ChallengeRewardClaimedEvent (emailer/send-challenge-reward-claimed-email args)
+             :VoteRewardClaimedEvent (emailer/send-vote-reward-claimed-email args)
+             :default))
+         (let [contract-key (contract-key-from-address address)
+               contract-type ({:meme-registry-db         :contract/eternal-db
+                               :param-change-registry-db :contract/eternal-db
+                               :meme-registry-fwd        :contract/meme
+                               :meme-token               :contract/meme-token
+                               :meme-auction-factory     :contract/meme-auction
+                               :meme-auction-factory-fwd :contract/meme-auction} contract-key)
+               ev (-> args
+                      (assoc :contract-address address)
+                      (assoc :event event)
+                      (update :timestamp (fn [ts]
+                                           (if ts
+                                             (bn/number ts)
+                                             (:timestamp (web3-eth/get-block @web3 block-number)))))
+                      (update :version bn/number)
+                      (assoc :block-number block-number))]
+           (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
+           (process-event contract-type ev)))))))
 
 (defn apply-blacklist-patches! []
   (let [{:keys [blacklist-file]} @config
@@ -494,9 +498,7 @@
                                                              challenge-period-end
                                                              reveal-period-end)
                                                            (server-utils/now-in-seconds))))))
-        (reset! all-filters
-                watch-filters
-                #_(into past-events-filters watch-filters))))
+        (reset! all-filters (into past-events-filters watch-filters))))
 
     ;; block for some time untill filters are installed
     (js/setTimeout
