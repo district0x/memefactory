@@ -51,6 +51,14 @@
 
 (declare schedule-meme-number-assigner)
 
+(defn uninstall-filter [f]
+  (web3-eth/stop-watching! f
+                           (fn [err]
+                             (let [id (-> f  .-filterId)]
+                               (if err
+                                 (log/error "Error uninstalling event filter" {:error err :filter-id id})
+                                 (log/info "Uninstalled event filter" {:filter-id id}))))))
+
 (defn evict-ranks-cache []
   (ranks-cache/evict-rank :creator-rank)
   (ranks-cache/evict-rank :collector-rank)
@@ -510,4 +518,4 @@
 (defn stop [syncer]
   (log/warn "Stopping syncer" {:filter-ids (map #(-> % .-filterId) @all-filters)})
   (doseq [f (remove nil? @all-filters)]
-    (server-utils/uninstall-filter f)))
+    (uninstall-filter f)))
