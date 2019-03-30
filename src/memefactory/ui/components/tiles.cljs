@@ -172,18 +172,9 @@
             "less than a minute ago"))]
        [:li [:label "Issued:"]
         (str total-minted " cards")]
-       (when total-trade-volume
-         [:li [:label "Trade Volume:"]
-          (format/format-eth (web3/from-wei total-trade-volume :ether)
-                             {:max-fraction-digits 2})])
-       (when average-price
-         [:li [:label "Average Price:"]
-          (format/format-eth (web3/from-wei average-price :ether)
-                             {:max-fraction-digits 2})])
-       (when highest-single-sale
-         [:li [:label "Highest Single Sale:"]
-          (format/format-eth (web3/from-wei highest-single-sale :ether)
-                             {:max-fraction-digits 2})])]]]))
+       [:li [:label "Trade Volume:"] (ui-utils/format-price total-trade-volume)]
+       [:li [:label "Average Price:"] (ui-utils/format-price average-price)]
+       [:li [:label "Highest Single Sale:"] (ui-utils/format-price highest-single-sale)]]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
   [:div.compact-tile

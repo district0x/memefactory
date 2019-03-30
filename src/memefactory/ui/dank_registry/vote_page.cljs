@@ -196,7 +196,7 @@
          (if (bn/> account-balance 0)
            [:<>
             [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
-                                                (format/format-token (web3/from-wei account-balance :ether) {:token "DANK"}))]
+                                                (ui-utils/format-dank account-balance))]
             [:p.token-return  "Tokens will be returned to you after revealing your vote."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 

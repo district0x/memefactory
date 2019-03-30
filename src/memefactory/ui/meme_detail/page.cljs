@@ -105,8 +105,7 @@
                                             :ether)]
     [:div.creator
      [:b "Creator"]
-     [:div.rank (str "Rank: #" creator-rank " ("
-                     (format/format-token creator-total-earned {:token "DANK"}) ")")]
+     [:div.rank (str "Rank: #" creator-rank " (" (ui-utils/format-dank creator-total-earned) ")")]
      [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
      [:div {}
@@ -486,7 +485,7 @@
               "Vote Stank")]]]
          (if (bn/> @balance-dank 0)
            [:<>
-            [:div "You can vote with up to " (format/format-token (web3/from-wei @balance-dank :ether))]
+            [:div "You can vote with up to " (ui-utils/format-dank @balance-dank)]
             [:div "Token will be returned to you after revealing your vote."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 

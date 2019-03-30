@@ -1,28 +1,29 @@
 (ns memefactory.server.emailer
   (:require
-   [ajax.core :as http]
-   [cljs-time.coerce :as time-coerce]
-   [cljs-time.core :as t]
-   [cljs.core.async :as async]
-   [cljs-web3.core :as web3]
-   [memefactory.server.macros :refer [promise->]]
-   [cljs-web3.eth :as web3-eth]
-   [district.encryption :as encryption]
-   [district.format :as format]
-   [district.sendgrid :refer [send-email]]
-   [district.server.config :as config]
-   [district.shared.error-handling :refer [try-catch try-catch-throw]]
-   [district.time :as time]
-   [goog.format.EmailAddress :as email-address]
-   [memefactory.server.contract.district0x-emails :as district0x-emails]
-   [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
-   [memefactory.server.contract.registry :as registry]
-   [memefactory.server.db :as db]
-   [memefactory.server.emailer.templates :as templates]
-   [memefactory.server.macros :refer [promise->]]
-   [memefactory.server.utils :as server-utils]
-   [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log :refer [spy]])
+    [ajax.core :as http]
+    [bignumber.core :as bn]
+    [cljs-time.coerce :as time-coerce]
+    [cljs-time.core :as t]
+    [cljs-web3.core :as web3]
+    [cljs-web3.eth :as web3-eth]
+    [cljs.core.async :as async]
+    [district.encryption :as encryption]
+    [district.format :as format]
+    [district.sendgrid :refer [send-email]]
+    [district.server.config :as config]
+    [district.shared.error-handling :refer [try-catch try-catch-throw]]
+    [district.time :as time]
+    [goog.format.EmailAddress :as email-address]
+    [memefactory.server.contract.district0x-emails :as district0x-emails]
+    [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
+    [memefactory.server.contract.registry :as registry]
+    [memefactory.server.db :as db]
+    [memefactory.server.emailer.templates :as templates]
+    [memefactory.server.macros :refer [promise->]]
+    [memefactory.server.macros :refer [promise->]]
+    [memefactory.server.utils :as server-utils]
+    [mount.core :as mount :refer [defstate]]
+    [taoensso.timbre :as log :refer [spy]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defonce all-filters (atom []))
@@ -129,7 +130,10 @@
                                                                                       :vote/option (case option
                                                                                                      1 "DANK"
                                                                                                      2 "STANK")
-                                                                                      :amount (-> amount (web3/from-wei :ether) (format/format-token {:token "DANK"}))
+                                                                                      :amount (-> amount
+                                                                                                (web3/from-wei :ether)
+                                                                                                bn/number
+                                                                                                (format/format-token {:token "DANK"}))
                                                                                       :meme-url (str root-url "meme-detail/" registry-entry)})
                                   :substitutions {:header "Vote Reward"
                                                   :button-title "My Memefolio"
@@ -161,7 +165,10 @@
                               (send-email {:from from
                                            :to to
                                            :subject "You received a challenge reward"
-                                           :content (templates/challenge-reward-claimed-email-body {:amount (-> amount (web3/from-wei :ether) (format/format-token {:token "DANK"}))
+                                           :content (templates/challenge-reward-claimed-email-body {:amount (-> amount
+                                                                                                              (web3/from-wei :ether)
+                                                                                                              bn/number
+                                                                                                              (format/format-token {:token "DANK"}))
                                                                                                     :meme/title title
                                                                                                     :meme-url (str root-url
                                                                                                                    "meme-detail/"
