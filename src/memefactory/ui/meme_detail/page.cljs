@@ -44,7 +44,7 @@
 
 (def scroll-interval 5)
 
-(def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
+(def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm Z"))
 
 (defn build-meme-query [address active-account]
   {:queries [[:meme {:reg-entry/address address}
@@ -261,7 +261,7 @@
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
      [:div.address
-      [:span "Address:"]
+      [:span "Address: "]
       [nav-anchor {:route :route.memefolio/index
                    :params {:address (:user/address challenger)}
                    :query {:tab :curated}
