@@ -332,7 +332,8 @@
        [:.short-sales-pitch {:margin-bottom (em 0.4)
                              :display :block}]
        [:textarea {:background (color :white)
-                   :border (str "1px solid " (color :grey))
+                   :border (str "1px solid" )
+                   :border-color (color :grey)
                    :width "100%"
                    :resize :none
                    :height (em 4)

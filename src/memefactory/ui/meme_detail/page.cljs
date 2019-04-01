@@ -121,19 +121,11 @@
   (panel :selling state loading-first? loading-last?))
 
 (defn related-memes-container [address tags]
-  (let [safe-mapcat (fn [f queries] (loop [queries queries
-                                           result []]
-                                      (if (empty? queries)
-                                        result
-                                        (recur (rest queries)
-                                               (let [not-contains? (complement contains?)
-                                                     new (filter #(not-contains? (set result) %)
-                                                                 (f (first queries)))]
-                                                 (into result new))))))
-        build-query (fn [{:keys [:first :after]}]
+  (let [build-query (fn [{:keys [:first :after]}]
                       [[:search-meme-auctions {:tags-or tags
                                                :after (str after)
                                                :first first
+                                               :non-for-meme address
                                                :group-by :meme-auctions.group-by/cheapest}
                         [:total-count
                          :end-cursor
@@ -160,8 +152,7 @@
                                                                  :first scroll-interval})}
                              {:id address}])
         state (->> @response
-                   (mapcat (fn [q] (get-in q [:search-meme-auctions :items])))
-                   (remove #(= (-> % :meme-auction/meme-token :meme-token/meme :reg-entry/address) address)))]
+                   (mapcat (fn [q] (get-in q [:search-meme-auctions :items]))))]
 
 
 
