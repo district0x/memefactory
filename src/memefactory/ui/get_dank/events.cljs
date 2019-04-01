@@ -30,7 +30,7 @@
 
 (re-frame/reg-event-fx
  ::stage
- (fn [{:keys [db]} [_ {:keys [stage-number]}]]
+ (fn [{:keys [db]} [_ stage-number]]
    {:db (assoc db :memefactory.ui.get-dank.page/stage stage-number)}))
 
 (defn get-allocated-dank [db phone-number]
