@@ -33,31 +33,44 @@
  (fn [{:keys [db]} [_ {:keys [stage-number]}]]
    {:db (assoc db :memefactory.ui.get-dank.page/stage stage-number)}))
 
+(defn get-allocated-dank [db phone-number]
+  (js/Promise.
+   (fn [resolve reject]
+     (web3-eth/contract-call
+      (contract-queries/instance db :dank-faucet)
+      :allocated-dank
+      (web3/sha3 phone-number)
+      (fn [error data]
+        (if error
+          (reject error)
+          (resolve (first (aget data "c")))))))))
+
+(re-frame/reg-event-fx
+ ::check-for-preallocated-dank
+ (fn [{:keys [db]} [_ {:keys [country-code phone-number] :as data}]]
+   (-> (get-allocated-dank db phone-number)
+       (.then
+        (fn [allocated-dank error]
+          (if (<= allocated-dank 0)
+            (re-frame/dispatch [::send-verification-code data])
+            (re-frame/dispatch [::notification-events/show
+                                "DANK already acquired bawse"])))))
+   {:db db}))
+
 (re-frame/reg-event-fx
  ::send-verification-code
  (fn [{:keys [db]} [_ {:keys [country-code phone-number]}]]
-   (let [allocated-dank (web3-eth/contract-get-data
-                         (contract-queries/instance db :dank-faucet)
-                         :allocated-dank
-                         (web3/sha3 phone-number))]
-     (log/debug "Faucet contract:" (contract-queries/instance db :dank-faucet))
-     (log/debug "DANK already allocated to this phone number:" allocated-dank)
-     (if (<= allocated-dank 0)
-
-       (let [mutation (gstring/format
-                       "mutation {sendVerificationCode(countryCode:\"%s\", phoneNumber:\"%s\") {id, status, msg, success}}"
-                       country-code phone-number)]
-         {:http-xhrio {:method          :post
-                       :uri             (get-in config-map [:graphql :url])
-                       :params          {:query mutation}
-                       :timeout         8000
-                       :response-format (ajax/json-response-format {:keywords? true})
-                       :format          (ajax/json-request-format)
-                       :on-success      [::verification-code-success]
-                       :on-failure      [::verification-code-error]}})
-
-       {:db db
-        :dispatch [::notification-events/show "DANK already acquired bawse"]}))))
+   (let [mutation (gstring/format
+                   "mutation {sendVerificationCode(countryCode:\"%s\", phoneNumber:\"%s\") {id, status, msg, success}}"
+                   country-code phone-number)]
+     {:http-xhrio {:method          :post
+                   :uri             (get-in config-map [:graphql :url])
+                   :params          {:query mutation}
+                   :timeout         8000
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :format          (ajax/json-request-format)
+                   :on-success      [::verification-code-success]
+                   :on-failure      [::verification-code-error]}})))
 
 (re-frame/reg-event-fx
  ::verification-code-success
@@ -112,7 +125,6 @@
                               "'${[decrypt] "
                               encrypted-payload
                               "}']")]
-     (log/debug "in verify-and-acquire-dank")
      (log/debug "country-code:" country-code "phone-number" phone-number "verification-code" verification-code)
      (log/debug "encrypted-payload:" encrypted-payload)
      (log/debug "oraclize-string:" oraclize-string)

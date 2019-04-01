@@ -88,13 +88,11 @@
                                       (clojure.string/blank? verification-code))
                              (if (clojure.string/blank? verification-code)
                                (do ; Stage 1
-                                 (dispatch [::dank-events/send-verification-code @form-data])
+                                 (dispatch [::dank-events/check-for-preallocated-dank @form-data])
                                  (js/setTimeout #(dispatch [::dank-events/hide-spinner])
-                                                verify-through-oracle-timeout)
-                                 #_(reset! stage 2))
+                                                verify-through-oracle-timeout))
                                (do ; Stage 2
                                  (dispatch [::dank-events/encrypt-verification-payload @form-data])
-                                 (reset! form-data {})
-                                 #_(reset! stage 1)))))
+                                 (reset! form-data {})))))
                :disabled (not (empty? @critical-errors))}
               "Submit"])]]]))))
