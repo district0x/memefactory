@@ -410,7 +410,7 @@
 
 (defn dispatch-event
   ([ev] (dispatch-event nil ev))
-  ([err {:keys [args event address block-number] :as evt}]
+  ([err {:keys [args event address block-number latest-event?] :as evt}]
    (if err
      (log/error "Error when dispatching event" {:error err
                                                 :filter-ids (map (fn [filt] (.-filterId filt)) @all-filters)}
@@ -431,7 +431,7 @@
                                          (:timestamp (web3-eth/get-block @web3 block-number)))))
                   (update :version bn/number)
                   (assoc :block-number block-number)
-                  (assoc :latest-event? (= (last-block-number) block-number)))]
+                  (assoc :latest-event? latest-event?))]
        (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
        (process-event contract-type ev)))))
 
@@ -484,7 +484,7 @@
 
       ;; install the watch filters and start listening
       (let [watch-filters (->> filters-builders
-                               (map #(apply % ["latest" dispatch-event]))
+                               (map #(apply % ["latest" (fn [err evt] (dispatch-event err (merge evt {:latest-event? true})))]))
                                doall)]
 
         ;; if there are any memes with unasigned numbers but still assignable
