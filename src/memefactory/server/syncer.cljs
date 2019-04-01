@@ -229,7 +229,7 @@
 
 (defmethod process-event [:contract/registry-entry :ChallengeCreatedEvent]
   [_ {:keys [:registry-entry :challenger :commit-period-end
-             :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
+             :reveal-period-end :reward-pool :metahash :timestamp :version :latest-event?] :as ev}]
   (let [challenge {:reg-entry/address registry-entry
                    :challenge/challenger challenger
                    :challenge/commit-period-end (bn/number commit-period-end)
@@ -238,6 +238,8 @@
                    :challenge/meta-hash (web3/to-ascii metahash)}
         registry-entry {:reg-entry/address registry-entry
                         :reg-entry/version version}]
+    (when latest-event?
+      (emailer/send-challenge-created-email ev))
     (db/update-user! {:user/address challenger})
     (db/update-registry-entry! (merge registry-entry
                                       challenge
@@ -276,10 +278,12 @@
      (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :VoteRewardClaimedEvent]
-  [_ {:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
+  [_ {:keys [:registry-entry :timestamp :version :voter :amount :latest-event?] :as ev}]
   (let [vote {:reg-entry/address registry-entry
               :vote/voter voter
               :vote/claimed-reward-on timestamp}]
+    (when latest-event?
+      (emailer/send-vote-reward-claimed-email ev))
     (db/update-vote! vote)
     (db/inc-user-field! voter :user/voter-total-earned (bn/number amount))))
 
@@ -292,11 +296,12 @@
      (db/update-vote! vote))))
 
 (defmethod process-event [:contract/registry-entry :ChallengeRewardClaimedEvent]
-  [_ {:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
+  [_ {:keys [:registry-entry :timestamp :version :challenger :amount :latest-event?] :as ev}]
   (let [reg-entry (db/get-registry-entry {:reg-entry/address registry-entry}
                                          [:challenge/challenger :reg-entry/deposit])
         {:keys [:challenge/challenger :reg-entry/deposit]} reg-entry]
-
+    (when latest-event?
+      (emailer/send-challenge-reward-claimed-email ev))
     (db/update-registry-entry! {:reg-entry/address registry-entry
                                 :challenge/claimed-reward-on timestamp
                                 :challenge/reward-amount (bn/number amount)})
@@ -337,12 +342,14 @@
      (db/insert-or-update-meme-auction! meme-auction))))
 
 (defmethod process-event [:contract/meme-auction :MemeAuctionBuyEvent]
-  [_ {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
+  [_ {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds :latest-event?] :as ev}]
   (let [auction (db/get-meme-auction meme-auction)
         reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
                               :reg-entry/address)
         seller-address (:meme-auction/seller auction)
         {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller-address} [:user/best-single-card-sale])]
+    (when latest-event?
+      (emailer/send-auction-bought-email ev))
     (db/update-user! {:user/address seller-address
                       :user/best-single-card-sale (max best-single-card-sale
                                                        (bn/number seller-proceeds))})
@@ -408,33 +415,25 @@
      (log/error "Error when dispatching event" {:error err
                                                 :filter-ids (map (fn [filt] (.-filterId filt)) @all-filters)}
                 ::dispatch-event)
-     (if-let [event (keyword event)]
-       (do
-         (when (= (last-block-number) block-number)
-           (case event
-             :ChallengeCreatedEvent (emailer/send-challenge-created-email args)
-             :MemeAuctionBuyEvent (emailer/send-auction-bought-email args)
-             :ChallengeRewardClaimedEvent (emailer/send-challenge-reward-claimed-email args)
-             :VoteRewardClaimedEvent (emailer/send-vote-reward-claimed-email args)
-             :default))
-         (let [contract-key (contract-key-from-address address)
-               contract-type ({:meme-registry-db         :contract/eternal-db
-                               :param-change-registry-db :contract/eternal-db
-                               :meme-registry-fwd        :contract/meme
-                               :meme-token               :contract/meme-token
-                               :meme-auction-factory     :contract/meme-auction
-                               :meme-auction-factory-fwd :contract/meme-auction} contract-key)
-               ev (-> args
-                      (assoc :contract-address address)
-                      (assoc :event event)
-                      (update :timestamp (fn [ts]
-                                           (if ts
-                                             (bn/number ts)
-                                             (:timestamp (web3-eth/get-block @web3 block-number)))))
-                      (update :version bn/number)
-                      (assoc :block-number block-number))]
-           (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
-           (process-event contract-type ev)))))))
+     (let [contract-key (contract-key-from-address address)
+           contract-type ({:meme-registry-db         :contract/eternal-db
+                           :param-change-registry-db :contract/eternal-db
+                           :meme-registry-fwd        :contract/meme
+                           :meme-token               :contract/meme-token
+                           :meme-auction-factory     :contract/meme-auction
+                           :meme-auction-factory-fwd :contract/meme-auction} contract-key)
+           ev (-> args
+                  (assoc :contract-address address)
+                  (assoc :event (keyword event))
+                  (update :timestamp (fn [ts]
+                                       (if ts
+                                         (bn/number ts)
+                                         (:timestamp (web3-eth/get-block @web3 block-number)))))
+                  (update :version bn/number)
+                  (assoc :block-number block-number)
+                  (assoc :latest-event? (= (last-block-number) block-number)))]
+       (log/info (str "Dispatching smart contract event "  contract-type " " (:event ev)) {:ev ev} ::dispatch-event)
+       (process-event contract-type ev)))))
 
 (defn apply-blacklist-patches! []
   (let [{:keys [blacklist-file]} @config
@@ -506,13 +505,8 @@
                                                              challenge-period-end
                                                              reveal-period-end)
                                                            (server-utils/now-in-seconds))))))
-        (reset! all-filters (into past-events-filters watch-filters))))
-
-    ;; block for some time untill filters are installed
-    (js/setTimeout
-     #(log/info "Starting syncer. Installed filters with ids:" {:filter-ids (map (fn [filt] (.-filterId filt)) @all-filters)})
-     4000)
-
+        (reset! all-filters (into past-events-filters watch-filters))
+        (log/info "Starting syncer. Installed filters with ids:" {:filter-ids (map (fn [filt] (.-filterId filt)) @all-filters)})))
     opts))
 
 (defn stop [syncer]
