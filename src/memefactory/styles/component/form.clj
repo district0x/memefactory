@@ -112,7 +112,8 @@
      :color (color :menu-text)
      :line-height (em 1.95)
      :width "100%"
-     :position :relative}
+     :position :relative
+     :background-color :transparent}
     [:&:focus {:outline "none"}]
     [:&:focus+.help-block:before
      {:transform "scale(1)"}]]

@@ -325,7 +325,7 @@
           {:keys [:meme/title]} meme
           total-memes-count (-> @query :search-memes :total-count)
           total-meme-tokens-count (-> @query :search-meme-tokens :total-count)]
-      [:div.stats
+      [:div.stats.collected
        [:div.rank
         (str "RANK: #" collector-rank) ]
        [:div.var
@@ -452,7 +452,7 @@
                                            (+ total-earned end-price))
                                          0
                                          meme-auctions))]
-      [:div.stats
+      [:div.stats.created
        [:div.rank
         (str "RANK: #" creator-rank)]
        [:div.var

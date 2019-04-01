@@ -158,18 +158,27 @@
       :padding-left (em 3)}
      (for-media-max :computer
                     [:&
+                     {:padding-left (em 1.7)}])
+     (for-media-max :computer
+                    [:&
                      {:width "100%"
                       :border-radius "1em 1em 0em 0em"}])
-     [:&.rank--big
-      {:line-height (em 6)
-       :margin :auto
-       :height "100%"
-       :align-self :center}]]
+     (for-media-min :computer
+                    [:&.rank--big
+                     {:line-height (em 6)
+                      :margin :auto
+                      :height "100%"
+                      :align-self :center}])]
     [:.stats
      {:display :flex}
      (for-media-max :computer
                     [:&
                      {:flex-direction :column}])
+     (for-media-max :computer
+                    [:&.collected :&.created
+                     {:padding-bottom (em 0.9)}
+                     [:.rank
+                      {:margin-bottom (em 0.9)}]])
      [:.var
       {:color (color :section-subcaption)
        :margin-right (em 1)
