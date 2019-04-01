@@ -1,51 +1,36 @@
 (ns memefactory.server.emailer
   (:require
-    [ajax.core :as http]
-    [bignumber.core :as bn]
-    [cljs-time.coerce :as time-coerce]
-    [cljs-time.core :as t]
-    [cljs-web3.core :as web3]
-    [cljs-web3.eth :as web3-eth]
-    [cljs.core.async :as async]
-    [district.encryption :as encryption]
-    [district.format :as format]
-    [district.sendgrid :refer [send-email]]
-    [district.server.config :as config]
-    [district.shared.error-handling :refer [try-catch try-catch-throw]]
-    [district.time :as time]
-    [goog.format.EmailAddress :as email-address]
-    [memefactory.server.contract.district0x-emails :as district0x-emails]
-    [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
-    [memefactory.server.contract.registry :as registry]
-    [memefactory.server.db :as db]
-    [memefactory.server.emailer.templates :as templates]
-    [memefactory.server.macros :refer [promise->]]
-    [memefactory.server.macros :refer [promise->]]
-    [memefactory.server.utils :as server-utils]
-    [mount.core :as mount :refer [defstate]]
-    [taoensso.timbre :as log :refer [spy]])
-  (:require-macros [cljs.core.async.macros :refer [go]]))
-
-(defonce all-filters (atom []))
-
-(declare start)
-(declare stop)
-
-(defstate emailer
-  :start (start (merge (:emailer @config/config)
-                       (:emailer (mount/args))))
-  :stop (stop emailer))
+   [cljs-time.coerce :as time-coerce]
+   [cljs-time.core :as t]
+   [cljs-web3.core :as web3]
+   [memefactory.server.macros :refer [promise->]]
+   [cljs-web3.eth :as web3-eth]
+   [district.encryption :as encryption]
+   [district.format :as format]
+   [district.sendgrid :refer [send-email]]
+   [district.server.config :as config]
+   [district.shared.error-handling :refer [try-catch try-catch-throw]]
+   [district.time :as time]
+   [goog.format.EmailAddress :as email-address]
+   [memefactory.server.contract.district0x-emails :as district0x-emails]
+   [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
+   [memefactory.server.contract.registry :as registry]
+   [memefactory.server.db :as db]
+   [memefactory.server.emailer.templates :as templates]
+   [memefactory.server.macros :refer [promise->]]
+   [memefactory.server.utils :as server-utils]
+   [taoensso.timbre :as log :refer [spy]]))
 
 (defn validate-email [base64-encrypted-email]
   (when-not (empty? base64-encrypted-email)
-    (let [email (encryption/decode-decrypt (:private-key @emailer) base64-encrypted-email)]
+    (let [email (encryption/decode-decrypt (get-in @config/config [:emailer :private-key]) base64-encrypted-email)]
       (when (email-address/isValidAddress email)
         email))))
 
 (defn send-challenge-created-email [{:keys [:registry-entry :challenger :commit-period-end
                                             :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (let [{:keys [:reg-entry/creator :meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
-        {:keys [:from :template-id :api-key :print-mode?]} @emailer
+        {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
         [unit value] (time/time-remaining-biggest-unit (t/now)
@@ -57,11 +42,11 @@
                             (log/info "Sending meme challenged email" ev ::send-challenge-created-email)
                             (send-email {:from from
                                          :to to
-                                         :subject (str title " was challenged!")
+                                         :subject (str title " challenged!")
                                          :content (templates/challenge-created-email-body {:meme/title title
                                                                                            :meme-url (str root-url "meme-detail/" registry-entry)
                                                                                            :time-remaining (format/format-time-units {unit value})})
-                                         :substitutions {:header (str title " was challenged")
+                                         :substitutions {:header (str title " meme challenged")
                                                          :button-title "Vote Now"
                                                          :button-href (str root-url "dankregistry/vote")
                                                          :meme-image-url (str ipfs-gateway-url image-hash)}
@@ -82,7 +67,7 @@
 (defn send-auction-bought-email [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (let [{:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
         {:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme-by-auction-address address)
-        {:keys [:from :template-id :api-key :print-mode?]} @emailer
+        {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))]
     (promise-> (district0x-emails/get-email {:district0x-emails/address seller})
@@ -90,12 +75,12 @@
                (fn [to] (if to
                           (send-email {:from from
                                        :to to
-                                       :subject (str title " was bought!")
+                                       :subject (str title " bought!")
                                        :content (templates/meme-auction-bought-email-body {:meme/title title
                                                                                            :meme-url (str root-url "meme-detail/" (:reg-entry/address meme))})
-                                       :substitutions {:header (str title " was bought!")
-                                                       :button-title "My Memefolio"
-                                                       :button-href (str root-url "memefolio/?tab=sold")
+                                       :substitutions {:header "Auction Bought"
+                                                       :button-title "Leaderboard"
+                                                       :button-href (str root-url "leaderboard/collectors")
                                                        :meme-image-url (str ipfs-gateway-url image-hash)}
                                        :on-success #(log/info "Success sending auction bought email" {:to to
                                                                                                       :meme-auction meme-auction
@@ -114,7 +99,7 @@
 (defn send-vote-reward-claimed-email [{:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
         {:keys [:vote/option]} (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/option])
-        {:keys [:from :template-id :api-key :print-mode?]} @emailer
+        {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer ])
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))]
     (promise-> (district0x-emails/get-email {:district0x-emails/address voter})
@@ -130,10 +115,7 @@
                                                                                       :vote/option (case option
                                                                                                      1 "DANK"
                                                                                                      2 "STANK")
-                                                                                      :amount (-> amount
-                                                                                                (web3/from-wei :ether)
-                                                                                                bn/number
-                                                                                                (format/format-token {:token "DANK"}))
+                                                                                      :amount (-> amount (web3/from-wei :ether) (format/format-token {:token "DANK"}))
                                                                                       :meme-url (str root-url "meme-detail/" registry-entry)})
                                   :substitutions {:header "Vote Reward"
                                                   :button-title "My Memefolio"
@@ -155,7 +137,7 @@
 
 (defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
-        {:keys [:from :template-id :api-key :print-mode?]} @emailer
+        {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))]
     (promise-> (district0x-emails/get-email {:district0x-emails/address challenger})
@@ -165,10 +147,7 @@
                               (send-email {:from from
                                            :to to
                                            :subject "You received a challenge reward"
-                                           :content (templates/challenge-reward-claimed-email-body {:amount (-> amount
-                                                                                                              (web3/from-wei :ether)
-                                                                                                              bn/number
-                                                                                                              (format/format-token {:token "DANK"}))
+                                           :content (templates/challenge-reward-claimed-email-body {:amount (-> amount (web3/from-wei :ether) (format/format-token {:token "DANK"}))
                                                                                                     :meme/title title
                                                                                                     :meme-url (str root-url
                                                                                                                    "meme-detail/"
@@ -190,61 +169,3 @@
                                            :api-key api-key
                                            :print-mode? print-mode?}))
                           (log/warn "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email))))))
-
-(defn filter-installed? [id]
-  (js/Promise.
-   (fn [resolve reject]
-     (http/ajax-request
-      {:uri (get-in @config/config [:web3 :url])
-       :method :post
-       :headers {"Content-Type" "application/json"}
-       :params {:jsonrpc "2.0"
-                :method "eth_getFilterChanges"
-                :params [id]
-                :id id}
-       :handler #(resolve %)
-       :error-handler #(reject %)
-       :format (http/json-request-format)
-       :response-format (http/json-response-format {:keywords? true})}))))
-
-(defn event-callback [err {:keys [:args :event] :as evt}]
-  (when err
-    (do
-      (log/error "Error calling event callback. Restarting emailer" {:error err
-                                                                     :filter-ids (map #(-> % .-filterId) (vals @all-filters))})
-      (mount/stop #'memefactory.server.emailer/emailer)
-      (mount/start #'memefactory.server.emailer/emailer)))
-  (when evt
-    (promise-> (js/Promise.resolve (keyword event))
-               #(-> @all-filters (get %) .-filterId)
-               #(filter-installed? %)
-               (fn [[_ {:keys [:result :error :id]}]]
-                 (if error
-                   (log/error "Error: event filter not found in RPC node" {:error error :event event :filter-id id})
-                   (do
-                     (log/info "Event filter found in RPC node" {:event event :filter-id id})
-                     (case (keyword event)
-                       :ChallengeCreatedEvent (send-challenge-created-email args)
-                       :MemeAuctionBuyEvent (send-auction-bought-email args)
-                       :ChallengeRewardClaimedEvent (send-challenge-reward-claimed-email args)
-                       :VoteRewardClaimedEvent (send-vote-reward-claimed-email args)
-                       :default)))))))
-
-(defn start [{:keys [:api-key :private-key :print-mode? :on-event-error] :as opts}]
-  (when-not private-key
-    (throw (js/Error. ":private-key is required to start emailer")))
-  (reset! all-filters
-          {:ChallengeCreatedEvent (registry/challenge-created-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
-           :MemeAuctionBuyEvent (meme-auction-factory/meme-auction-buy-event "latest" event-callback)
-           :ChallengeRewardClaimedEvent (registry/challenge-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)
-           :VoteRewardClaimedEvent (registry/vote-reward-claimed-event [:meme-registry :meme-registry-fwd] "latest" event-callback)})
-  ;; block for some time untill filters are installed
-  (js/setTimeout
-   #(log/info "Emailer starting. Installed filters with ids:" {:filter-ids (map (fn [filt] (.-filterId filt)) (vals @all-filters))})
-   4000)
-  opts)
-
-(defn stop [this]
-  (log/info "Emailer stopping" {:filter-ids (map #(-> % .-filterId) (vals @all-filters))})
-  (doseq [f (vals @all-filters)]
-    (server-utils/uninstall-filter f)))
