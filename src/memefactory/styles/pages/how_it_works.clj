@@ -26,7 +26,18 @@
                       :color :sky-blue})]
    [:.setting-up
     (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]
+                      :color :sky-blue})
+    [:.badges {:display :flex
+               :align-items :center
+               :justify-content :space-evenly}
+     [:.metamask-wallet
+      (for-media-max :tablet
+                     [:& {:display :none}])
+      [:img {:width (px 130)}]]
+     [:.coinbase-wallet
+      (for-media-min :tablet
+                     [:& {:display :none}])
+      [:img {:width (px 130)}]]]]
    [:.browsing-memes
     (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
                       :color :sky-blue})]
