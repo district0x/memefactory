@@ -101,7 +101,7 @@
                   @active-account)
 
              [inputs/pending-button {:pending? @cancel-tx-pending?
-                                     :pending-text "Cancelling..."
+                                     :pending-text "Cancelling"
                                      :disabled (or @cancel-tx-pending? @cancel-tx-success? (not @active-account))
                                      :on-click (fn [e]
                                                  (.stopPropagation e)
