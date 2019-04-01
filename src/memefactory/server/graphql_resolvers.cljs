@@ -831,7 +831,8 @@
    (let [sql-query (db/get {:select [:*]
                             :from [:meme-auctions]
                             :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/bought-for)]
-                                              :from [:meme-auctions]}
+                                              :from [:meme-auctions]
+                                              :where [:= address :meme-auction/buyer]}
                                           :meme-auctions.meme-auction/bought-for]
                                     [:= address :meme-auction/buyer]]})
          {:keys [:meme-auction/buyer]} sql-query]
@@ -1074,7 +1075,7 @@
                        ;; encrypted_queries_tools.py script we're rollin' dirty.
                        {:success true
                             :payload (clojure.string/trim-newline stdout)}))))))
-    (catch Exception ex
+    (catch js/Error ex
       ;; We'll get here if there's an issue calling python
       (log/error "Error calling python:" ex)
       {:success false

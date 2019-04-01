@@ -339,9 +339,7 @@
        [:div.var
         [:b "Largest buy: "]
         (if (and bought-for token-id title)
-
-          [:span (str (ui-utils/format-price bought-for)
-                      " (#" token-id " " title ")")]
+          [:span (str (ui-utils/format-price bought-for))]
           [:span "None"])]])))
 
 (defmethod total :collected [_ active-account]
