@@ -111,7 +111,7 @@
               (if @cancel-tx-success? "Canceled" "Cancel Sell")]
 
              [inputs/pending-button {:pending? @buy-tx-pending?
-                                     :pending-text "Buying..."
+                                     :pending-text "Buying"
                                      :disabled (or @buy-tx-pending? @buy-tx-success? (not @active-account))
                                      :class (when-not @buy-tx-success? "buy")
                                      :on-click (fn [e]
