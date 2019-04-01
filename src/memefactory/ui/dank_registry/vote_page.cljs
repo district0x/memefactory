@@ -48,80 +48,79 @@
            [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]]))))
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards] :as meme}]
-  (let [active-account (subscribe [::accounts-subs/active-account])]
-    (when @active-account
-      (let [response (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
+  (let [active-account (subscribe [::accounts-subs/active-account])
+        response (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
+                                                     (cond->
                                                          [:reg-entry/address
                                                           :meme/title
                                                           :challenge/votes-for
                                                           :challenge/votes-against
-                                                          [:challenge/all-rewards {:user/address @active-account}
-                                                           [:challenge/reward-amount
-                                                            :vote/reward-amount]]
                                                           [:challenge/challenger [:user/address]]
-                                                          [:challenge/vote-winning-vote-option {:vote/voter @active-account}]
-                                                          [:challenge/vote {:vote/voter @active-account}
-                                                           [:vote/option
-                                                            :vote/amount]]
-                                                          :challenge/votes-total]]]}])]
+                                                          :challenge/votes-total]
+                                                       @active-account (into [[:challenge/all-rewards {:user/address @active-account}
+                                                                               [:challenge/reward-amount
+                                                                                :vote/reward-amount]]
+                                                                              [:challenge/vote-winning-vote-option {:vote/voter @active-account}]
+                                                                              [:challenge/vote {:vote/voter @active-account}
+                                                                               [:vote/option
+                                                                                :vote/amount]]]))]]}])]
+    (log/debug "@response" @response)
 
-        (log/debug "@response" @response)
+    (if (:graphql/loading? @response)
+      [spinner/spin]
+      (if-let [meme-voting (:meme @response)]
+        (let [ch-reward-tx-id (str address "challenge-reward")
+              vote-reward-tx-id (str address "vote-reward")
+              {:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
+              {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total :challenge/vote]} meme-voting
+              {:keys [:vote/option :vote/amount]
+               :or {option "voteOption_noVote"}} vote
+              option (graphql-utils/gql-name->kw (spy option))]
 
-        (if (:graphql/loading? @response)
-          [spinner/spin]
-          (if-let [meme-voting (:meme @response)]
-            (let [ch-reward-tx-id (str address "challenge-reward")
-                  vote-reward-tx-id (str address "vote-reward")
-                  {:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
-                  {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total :challenge/vote]} meme-voting
-                  {:keys [:vote/option :vote/amount]
-                   :or {option "voteOption_noVote"}} vote
-                  option (graphql-utils/gql-name->kw (spy option))]
-
-              (log/debug "vote" {:v vote :o option} ::collect-reward-action)
+          (log/debug "vote" {:v vote :o option} ::collect-reward-action)
 
 
-              (if (and (zero? votes-for)
-                       (zero? votes-against))
-                [:div.collect-reward
-                 [:div "This challenge didn't receive any votes"]
-                 (buttons/reclaim-buttons @active-account meme-voting)]
-                [:div.collect-reward
-                 [charts/donut-chart meme-voting]
-                 (into
-                  [:ul.vote-info
-                   [:li
-                    (gstring/format "Voted Dank: %s (%d) "
-                                    (format/format-percentage (or votes-for 0) votes-total)
-                                    (quot (or votes-for 0) 1e18))]
-                   [:li
-                    (gstring/format "Voted Stank: %s (%d) "
-                                    (format/format-percentage (or votes-against 0) votes-total)
-                                    (quot (or votes-against 0) 1e18))]
-                   [:li (gstring/format "Total voted: %d" (quot (or votes-total 0) 1e18))]
-                   (when-not (or (= option :vote-option/not-revealed)
-                                 (= option :vote-option/no-vote))
-                     [:li (str "You voted: " (gstring/format "%d for %s "
-                                                             (if (pos? amount)
-                                                               (quot amount 1e18)
-                                                               0)
-                                                             (case option
-                                                               :vote-option/vote-for "DANK"
-                                                               :vote-option/vote-against "STANK")))])]
-                  (cond
-                    (and (pos? (:challenge/reward-amount all-rewards))
-                         (pos? (:vote/reward-amount all-rewards)))
-                    [[:li "Your vote reward: " (ui-utils/format-dank (:vote/reward-amount all-rewards))]
-                     [:li "Your challenge reward: " (ui-utils/format-dank (:challenge/reward-amount all-rewards))]
-                     [:li "Your total reward: " (ui-utils/format-dank (+ (:challenge/reward-amount all-rewards)
-                                                                         (:vote/reward-amount all-rewards)))]]
-                    (pos? (:challenge/reward-amount all-rewards))
-                    [[:li "Your challenge reward: " (ui-utils/format-dank (:challenge/reward-amount all-rewards))]]
+          (if (and (zero? votes-for)
+                   (zero? votes-against))
+            [:div.collect-reward
+             [:div "This challenge didn't receive any votes"]
+             (when @active-account (buttons/reclaim-buttons @active-account meme-voting))]
+            [:div.collect-reward
+             [charts/donut-chart meme-voting]
+             (into
+              [:ul.vote-info
+               [:li
+                (gstring/format "Voted Dank: %s (%d) "
+                                (format/format-percentage (or votes-for 0) votes-total)
+                                (web3/from-wei (or votes-for 0) :ether))]
+               [:li
+                (gstring/format "Voted Stank: %s (%d) "
+                                (format/format-percentage (or votes-against 0) votes-total)
+                                (web3/from-wei (or votes-against 0) :ether))]
+               [:li (gstring/format "Total voted: %d" (web3/from-wei (or votes-total 0) :ether))]
+               (when-not (or (= option :vote-option/not-revealed)
+                             (= option :vote-option/no-vote))
+                 [:li (str "You voted: " (gstring/format "%d for %s "
+                                                         (if (pos? amount)
+                                                           (web3/from-wei amount :ether)
+                                                           0)
+                                                         (case option
+                                                           :vote-option/vote-for "DANK"
+                                                           :vote-option/vote-against "STANK")))])]
+              (cond
+                (and (pos? (:challenge/reward-amount all-rewards))
+                     (pos? (:vote/reward-amount all-rewards)))
+                [[:li "Your vote reward: " (ui-utils/format-dank (:vote/reward-amount all-rewards))]
+                 [:li "Your challenge reward: " (ui-utils/format-dank (:challenge/reward-amount all-rewards))]
+                 [:li "Your total reward: " (ui-utils/format-dank (+ (:challenge/reward-amount all-rewards)
+                                                                     (:vote/reward-amount all-rewards)))]]
+                (pos? (:challenge/reward-amount all-rewards))
+                [[:li "Your challenge reward: " (ui-utils/format-dank (:challenge/reward-amount all-rewards))]]
 
-                    (pos? (:vote/reward-amount all-rewards))
-                    [[:li "Your reward: " (ui-utils/format-dank (:vote/reward-amount all-rewards))]]))
+                (pos? (:vote/reward-amount all-rewards))
+                [[:li "Your reward: " (ui-utils/format-dank (:vote/reward-amount all-rewards))]]))
 
-                 (buttons/reclaim-buttons @active-account meme-voting)]))))))))
+             (when @active-account (buttons/reclaim-buttons @active-account meme-voting))]))))))
 
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote :meme/title] :as meme}]
   (let [tx-id (str address "vote")
@@ -197,7 +196,7 @@
          (if (bn/> account-balance 0)
            [:<>
             [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
-                                                (format/format-token (/ account-balance 1e18) {:token "DANK"}))]
+                                                (ui-utils/format-dank account-balance))]
             [:p.token-return  "Tokens will be returned to you after revealing your vote."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 

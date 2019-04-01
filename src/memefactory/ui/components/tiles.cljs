@@ -17,7 +17,8 @@
             [reagent.core :as r]
             [taoensso.timbre :as log :refer [spy]]
             [clojure.set :as set]
-            [memefactory.ui.components.general :refer [nav-anchor]]))
+            [memefactory.ui.components.general :refer [nav-anchor]]
+            [cljs-web3.core :as web3]))
 
 (defn meme-image [image-hash & [{:keys [rejected?] :as props}]]
   (let [props (dissoc props :rejected?)
@@ -100,7 +101,7 @@
                   @active-account)
 
              [inputs/pending-button {:pending? @cancel-tx-pending?
-                                     :pending-text "Cancelling..."
+                                     :pending-text "Cancelling"
                                      :disabled (or @cancel-tx-pending? @cancel-tx-success? (not @active-account))
                                      :on-click (fn [e]
                                                  (.stopPropagation e)
@@ -110,7 +111,7 @@
               (if @cancel-tx-success? "Canceled" "Cancel Sell")]
 
              [inputs/pending-button {:pending? @buy-tx-pending?
-                                     :pending-text "Buying..."
+                                     :pending-text "Buying"
                                      :disabled (or @buy-tx-pending? @buy-tx-success? (not @active-account))
                                      :class (when-not @buy-tx-success? "buy")
                                      :on-click (fn [e]
@@ -171,18 +172,9 @@
             "less than a minute ago"))]
        [:li [:label "Issued:"]
         (str total-minted " cards")]
-       (when total-trade-volume
-         [:li [:label "Trade Volume:"]
-          (format/format-eth (/ total-trade-volume 1e18)
-                             {:max-fraction-digits 2})])
-       (when average-price
-         [:li [:label "Average Price:"]
-          (format/format-eth (/ average-price 1e18)
-                             {:max-fraction-digits 2})])
-       (when highest-single-sale
-         [:li [:label "Highest Single Sale:"]
-          (format/format-eth (/ highest-single-sale 1e18)
-                             {:max-fraction-digits 2})])]]]))
+       [:li [:label "Trade Volume:"] (ui-utils/format-price total-trade-volume)]
+       [:li [:label "Average Price:"] (ui-utils/format-price average-price)]
+       [:li [:label "Highest Single Sale:"] (ui-utils/format-price highest-single-sale)]]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
   [:div.compact-tile

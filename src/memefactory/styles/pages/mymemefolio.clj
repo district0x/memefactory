@@ -158,18 +158,27 @@
       :padding-left (em 3)}
      (for-media-max :computer
                     [:&
+                     {:padding-left (em 1.7)}])
+     (for-media-max :computer
+                    [:&
                      {:width "100%"
                       :border-radius "1em 1em 0em 0em"}])
-     [:&.rank--big
-      {:line-height (em 6)
-       :margin :auto
-       :height "100%"
-       :align-self :center}]]
+     (for-media-min :computer
+                    [:&.rank--big
+                     {:line-height (em 6)
+                      :margin :auto
+                      :height "100%"
+                      :align-self :center}])]
     [:.stats
      {:display :flex}
      (for-media-max :computer
                     [:&
                      {:flex-direction :column}])
+     (for-media-max :computer
+                    [:&.collected :&.created
+                     {:padding-bottom (em 0.9)}
+                     [:.rank
+                      {:margin-bottom (em 0.9)}]])
      [:.var
       {:color (color :section-subcaption)
        :margin-right (em 1)
@@ -283,16 +292,16 @@
                 :font-size (em 0.8)
                 :color (color :meme-tile-footer)}]]]
     [:.collected-tile-back {:height "100%"
-                            :background-color (color :violet)
-                            :backface-visibility :hidden}
+                            :background-color (color :violet)}
      (button-tile-back)
      [:.form {:background-color :white
-                   :width "100%"
-                   :height "100%"
-                   :padding (em 1)
-                   :text-align :left
-                   :border (str "1px solid " (color :grey))
-                   :border-radius "1em"}
+              :width "100%"
+              :height "100%"
+              :padding (em 1)
+              :text-align :left
+              :border "1px solid "
+              :border-color (color :grey)
+              :border-radius "1em"}
       [:h1 (font :bungee)
        {:color (color :purple)
         :font-size (em 1)

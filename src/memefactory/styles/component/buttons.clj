@@ -48,7 +48,7 @@
    (font :bungee)
    {:display :flex
     :align-items :center
-    :justify-content :center 
+    :justify-content :center
     :height (em 4)
     :cursor :pointer
     :color (c/color :white)
@@ -64,7 +64,7 @@
                                      "url('/assets/icons/gears-button-bg-r.png') right 1em center / 29% 29% no-repeat "
 
                                      (c/color :purple))}])
-   
+
    [:&.disabled
     {:opacity 0.3
      :cursor :initial}]
@@ -105,4 +105,3 @@
               :height (px 20)
               :top (px top)
               :left (px (or left 0))}])
-
