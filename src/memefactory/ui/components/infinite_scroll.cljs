@@ -7,9 +7,9 @@
 
 (def react-infinite (r/adapt-react-class js/Infinite))
 
-(def card-height 400) ;; px
-(def default-onload-threshold (* 1.5 card-height)) ;; px
-(def default-debounce-interval 250) ;; ms
+;; (def card-height 400) ;; px
+;; (def default-onload-threshold (* 1.5 card-height)) ;; px
+;; (def default-debounce-interval 250) ;; ms
 
 
 (defn- get-scroll-top []
@@ -26,7 +26,6 @@
 
 (defn- safe-component-mounted? [component]
   (try (boolean (r/dom-node component)) (catch js/Object _ false)))
-
 
 (defn- get-page-height []
   (let [body (.-body js/document)
@@ -50,7 +49,7 @@
         bottom-offset (- page-height page-bottom)]
     (<= bottom-offset onload-threshold)))
 
-(defn infinite-scroll [props]
+#_(defn infinite-scroll [props]
   (let [listener-fn (atom nil)
         detach-scroll-listener (fn []
                                  (when @listener-fn
@@ -98,14 +97,35 @@
       :component-will-unmount detach-scroll-listener
       :reagent-render (fn [] [:div.infinite-scroll])})))
 
-#_(defn infinite-scroll [{:keys [:load-fn :element-height :infinite-load-begin-edge-offset :use-window-as-scroll-container]
-                        :or {element-height 400
-                             infinite-load-begin-edge-offset 100
-                             use-window-as-scroll-container true}
-                        :as props} & children]
-  [react-infinite (r/merge-props (dissoc props :load-fn)
-                                 {:element-height element-height
-                                  :infinite-load-begin-edge-offset infinite-load-begin-edge-offset
-                                  :use-window-as-scroll-container use-window-as-scroll-container
-                                  :on-infinite-load load-fn})
-   children])
+
+
+(defn infinite-scroll [{:keys [:class :element-height :use-window-as-scroll-container
+                               :container-height :infinite-load-begin-edge-offset
+                               :loading-spinner-delegate
+                               :load-fn]
+                        :or {class :infinite-scroll
+                             element-height 400
+                             use-window-as-scroll-container true
+                             container-height (get-page-height)
+                             infinite-load-begin-edge-offset 400
+                             loading-spinner-delegate (fn []
+                                                        [:div.loading-spinner-delegate "Loading..." ])}
+                        :as props} & [children]]
+  (let [load-disabled? (r/atom false)
+        loading? (r/atom false)]
+    [react-infinite (spy (r/merge-props (dissoc props :load-fn)
+                                        {:class class
+                                         :element-height element-height
+                                         :use-window-as-scroll-container use-window-as-scroll-container
+                                         :container-height container-height
+                                         :infinite-load-begin-edge-offset infinite-load-begin-edge-offset
+                                         :loading-spinner-delegate loading-spinner-delegate
+                                         :is-infinite-loading @loading?
+                                         :on-infinite-load (fn []
+                                                             (when (and (not @load-disabled?)
+                                                                        (not @loading?))
+                                                               (reset! load-disabled? true)
+                                                               (js/setTimeout #(reset! load-disabled? false) 300)
+                                                               (load-fn)
+                                                               (reset! load-disabled? false)))}))
+     children]))
