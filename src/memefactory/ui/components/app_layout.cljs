@@ -8,6 +8,7 @@
     [district.ui.component.meta-tags :as meta-tags]
     [district.ui.component.notification :as notification]
     [district.ui.component.tx-log :refer [tx-log]]
+    [district.ui.mobile.subs :as mobile-subs]
     [district.ui.graphql.subs :as gql]
     [district.ui.router.events :as router-events]
     [district.ui.router.subs :as router-subs]
@@ -166,7 +167,10 @@
                                          [[:ui [:root-url]]]]]}])
 
         active-page (subscribe [::router-subs/active-page])
-        drawer-open? (r/atom false)]
+        drawer-open? (r/atom false)
+        active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
+        mobile-device? (subscribe [::mobile-subs/coinbase-compatible?])
+        coinbase-appstore-link (subscribe [::mf-subs/mobile-coinbase-appstore-link])]
     (fn [{:keys [:search-atom :meta]}
          & children]
       [:div.app-container
@@ -183,6 +187,10 @@
        [:div.app-content
         [app-bar {:search-atom search-atom}]
         [app-bar-mobile drawer-open?]
+        (when (and (not @active-account) @mobile-device?)
+         [:a.coinbase-promotion
+          {:href @coinbase-appstore-link}
+          [:span "Submit Memes with "] [:img {:src "assets/images/coinbase_logo.png"}]])
         [:div.main-content
          [:div.main-content-inner
           (map-indexed (fn [index item]
