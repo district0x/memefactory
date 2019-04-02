@@ -14,19 +14,19 @@
 
 
 (defstyles core
-  [:.home {:margin-top (px -50)}
+  [:.home
    [:.spinner-container {:width (px 900)
-                           :height (px 500)}
-      [:.spinner-outer {:margin-left :auto
-                        :margin-right :auto
-                        :padding-top (em 12)}]]
+                         :height (px 500)}
+    [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto
+                      :padding-top (em 12)}]]
    [:p.inspired
     (font :filson)
     {:color (color :pink)
      :position :relative
      :margin-right :auto
      :margin-left :auto
-     :padding-top (em 5)
+     :padding-top (em 6)
      :text-align :center
      :font-weight :lighter
      :font-size (pt 14)
@@ -56,8 +56,8 @@
       :width (em 4)
       :background-image (str "url('/assets/icons/mouth.svg')")}
      (for-media-max :tablet
-                   [:&
-                    {:top (em 1.5)}])]]
+                    [:&
+                     {:top (em 1.5)}])]]
    [:.meme-card
     [:.overlay {:background overlay-background-footer}]]
    [:.meme-highlights
