@@ -16,17 +16,15 @@
    [:.panel {:margin-bottom (em 2)}]
    [:.body {:font-size (px 15)
             :padding (em 2)}
-    [:iframe {:margin-left :auto
-              :margin-right :auto
-              :display :block
-              :margin-bottom (px 25)
-              :margin-top (px 25)}]]
+    [:iframe :img
+     {:margin-left :auto
+      :margin-right :auto
+      :display :block
+      :margin-bottom (px 25)
+      :margin-top (px 25)}]]
    [:.how-it-works
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]
-   [:.setting-up
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})
+    (panel-with-icon {:url "/assets/icons/how-it-works2.svg"
+                      :color "#202ca1"})
     [:.badges {:display :flex
                :align-items :center
                :justify-content :space-evenly}
@@ -37,22 +35,4 @@
      [:.coinbase-wallet
       (for-media-min :tablet
                      [:& {:display :none}])
-      [:img {:width (px 130)}]]]]
-   [:.browsing-memes
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]
-   [:.buying-memes
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]
-   [:.getting-dank
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]
-   [:.voting
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]
-   [:.challenging
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]
-   [:.submitting-memes
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]])
+      [:img {:width (px 130)}]]]]])

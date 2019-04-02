@@ -28,29 +28,29 @@
      :background-position "right -3em bottom -1.2em"
      :background-image (str "url('" background-panel-image "')")
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-     :padding-bottom (em 1)
-     }
+     :padding-bottom (em 1)}
     [:.header :h2
      (font :bungee)
      (for-media-max :tablet
                     [:&
-                     {:margin-top (em 1)
-                      :font-size (px 19)}])
+                     {:font-size (px 19)}])
      {:white-space :nowrap
       :position :relative
       :color (c/color color)
-      :font-size (px 22)
+      :font-size (px 23)
       :margin-top (em 0.3)
       :padding-top (em 0.2)
-      :margin-bottom (em 0.1)
+      :margin-bottom 0
       :text-align :center}]
     [:.header :h3
      {:white-space :unset
-      :margin-top (em 1)
+      :margin-top (px 10)
       :position :relative
       :color (c/color :section-subcaption)
       :font-size (px 13)
-      :text-align :center}]
+      :text-align :center
+      :padding-left (px 5)
+      :padding-right (px 5)}]
     [:.icon
      (for-media-max :tablet
                     [:&

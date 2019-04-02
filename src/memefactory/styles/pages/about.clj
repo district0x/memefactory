@@ -17,11 +17,8 @@
    [:.body {:font-size (px 15)
             :padding (em 2)}]
    [:.about
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]
-   [:.what-is
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]
-   [:.more-info
-    (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
-                      :color :sky-blue})]])
+    (panel-with-icon {:url "/assets/icons/about2.svg"
+                      :color "#93bfd4"})
+    [:&
+     [:h2.title
+      {:color "#05d36e"}]]]])
