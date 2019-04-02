@@ -12,7 +12,8 @@
                                              text-input
                                              with-label]]
    [district.ui.graphql.subs :as gql]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [taoensso.timbre :as log]))
 
 (def verify-through-oracle-timeout 300000)
 
@@ -44,51 +45,51 @@
            [:div.body
             (if show-spinner?
               [spinner/spin]
-              (case @(subscribe [:memefactory.ui.subs/dank-faucet-stage])
-                1 [:div.form
+              (let [stage @(subscribe [:memefactory.ui.subs/dank-faucet-stage])]
+                (log/debug "Faucet stage:" stage)
+                (case stage
+                  1 [:div.form
 
-                   [with-label
-                    "Country Code"
-                    [text-input (merge {:form-data form-data
-                                        :key :country-code
-                                        :errors errors
-                                        :id :country-code
-                                        :dom-id :country-code
-                                        :class "country-code"})]
-                    {:form-data form-data
-                     :for :country-code
-                     :id :country-code}]
-                   [with-label
-                    "Phone Number"
-                    [text-input (merge {:form-data form-data
-                                        :errors errors
-                                        :key :phone-number
-                                        :id :phone-number
-                                        :dom-id :phone-number
-                                        :class "phone"})]
-                    {:form-data form-data
-                     :for :phone-number
-                     :id :phone-number}]]
-                2 [:div.form
-                   [with-label
-                    "Verification Code"
-                    [text-input (merge {:form-data form-data
-                                        :errors errors
-                                        :key :verification-code
-                                        :dom-id :verification-code
-                                        :id :verification-code})]
-                    {:form-data form-data
-                     :for :verification-code
-                     :id :verification-code}]]))]
+                     [with-label
+                      "Country Code"
+                      [text-input (merge {:form-data form-data
+                                          :key :country-code
+                                          :errors errors
+                                          :id :country-code
+                                          :dom-id :country-code
+                                          :class "country-code"})]
+                      {:form-data form-data
+                       :for :country-code
+                       :id :country-code}]
+                     [with-label
+                      "Phone Number"
+                      [text-input (merge {:form-data form-data
+                                          :errors errors
+                                          :key :phone-number
+                                          :id :phone-number
+                                          :dom-id :phone-number
+                                          :class "phone"})]
+                      {:form-data form-data
+                       :for :phone-number
+                       :id :phone-number}]]
+                  2 [:div.form
+                     [with-label
+                      "Verification Code"
+                      [text-input (merge {:form-data form-data
+                                          :errors errors
+                                          :key :verification-code
+                                          :dom-id :verification-code
+                                          :id :verification-code})]
+                      {:form-data form-data
+                       :for :verification-code
+                       :id :verification-code}]])))]
            (when-not show-spinner?
              [:button.footer
               {:on-click (fn []
                            (let [verification-code (:verification-code @form-data)]
-                             (println "verification-code blank?:"
-                                      (clojure.string/blank? verification-code))
                              (if (clojure.string/blank? verification-code)
                                (do ; Stage 1
-                                 (dispatch [::dank-events/check-for-preallocated-dank @form-data])
+                                 (dispatch [::dank-events/get-allocated-dank @form-data])
                                  (js/setTimeout #(dispatch [::dank-events/hide-spinner])
                                                 verify-through-oracle-timeout))
                                (do ; Stage 2

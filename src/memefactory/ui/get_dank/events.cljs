@@ -6,6 +6,7 @@
             [district.ui.smart-contracts.queries :as contract-queries]
             [district.ui.web3-accounts.queries :as account-queries]
             [district.ui.web3-tx.events :as tx-events]
+            [district0x.re-frame.web3-fx]
             [memefactory.ui.config :refer [config-map]]
             [memefactory.ui.contract.meme-factory :as meme-factory]
             [print.foo :refer [look] :include-macros true]
@@ -46,16 +47,25 @@
           (resolve (first (aget data "c")))))))))
 
 (re-frame/reg-event-fx
- ::check-for-preallocated-dank
+ ::get-allocated-dank
  (fn [{:keys [db]} [_ {:keys [country-code phone-number] :as data}]]
-   (-> (get-allocated-dank db phone-number)
-       (.then
-        (fn [allocated-dank error]
-          (if (<= allocated-dank 0)
-            (re-frame/dispatch [::send-verification-code data])
-            (re-frame/dispatch [::notification-events/show
-                                "DANK already acquired bawse"])))))
-   {:db db}))
+   {:web3/call {:web3 (:web3 db)
+                :fns [{:instance (contract-queries/instance db :dank-faucet)
+                       :fn :allocated-dank
+                       :args [(web3/sha3 phone-number)]
+                       :on-success [::send-dank-but-only-once data]
+                       :on-error [::error]}]}}))
+
+(re-frame/reg-event-fx
+ ::send-dank-but-only-once
+ (fn [{:keys [db]} [_ {:keys [country-code phone-number] :as data} resp]]
+   (let [allocated-dank (aget resp "c")]
+     (if (<= allocated-dank 0)
+       {:db db
+        :dispatch [::send-verification-code data]}
+       {:db db
+        :dispatch [::notification-events/show
+                   "DANK already acquired bawse"]}))))
 
 (re-frame/reg-event-fx
  ::send-verification-code
@@ -136,7 +146,6 @@
                                            oraclize-string])
                               :tx-log {:name "Request DANK"}
                               :tx-opts {:from active-account}
-                              ;;:tx-id {:get-dank/verify-and-acquire-dank id}
                               :on-tx-success-n [[::hide-spinner]
                                                 [::notification-events/show
                                                  "Successfully requested DANK. It'll be delivered within few minutes!"]
@@ -147,22 +156,13 @@
                                             [::verify-and-acquire-dank]]}]}))))
 
 (re-frame/reg-event-db
+ ::check-dank-error
+ (fn [db [_ data]]
+   (log/debug "Error checking for allocated DANK:" data)
+   db))
+
+(re-frame/reg-event-db
  ::verification-code-error
  (fn [db [_ data]]
-   ;; TODO add http level errors here
-   (log/debug "in verification-code-error, data:" data)
-   db))
-
-(re-frame/reg-event-db
- ::acquire-dank-success
- (fn [db [_ data]]
-   ;; TODO add twilio level errors here
-   (log/debug "in acquire-dank-success, data:" data)
-   db))
-
-(re-frame/reg-event-db
- ::acquire-dank-error
- (fn [db [_ data]]
-   ;; TODO add http level errors here
-   (log/debug "in acquire-dank-error, data:" data)
+   (log/debug "Error verifying verification code:" data)
    db))
