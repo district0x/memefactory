@@ -7,6 +7,7 @@
             [district.ui.component.tx-button :as tx-button]
             [district.ui.graphql.subs :as gql]
             [district.ui.now.subs]
+            [district.ui.mobile.subs :as mobile-subs]
             [district.ui.router.events :as router-events]
             [district.ui.web3-accounts.subs :as accounts-subs]
             [district.ui.web3-tx-id.subs :as tx-id-subs]
@@ -38,10 +39,13 @@
 
 (defn flippable-tile [{:keys [:front :back :flippable-classes]}]
   (let [flipped? (r/atom false)
-        flip #(swap! flipped? not)]
+        flip #(swap! flipped? not)
+        android-device? @(subscribe [::mobile-subs/android?])
+        ios-device? @(subscribe [::mobile-subs/ios?])]
     (fn [{:keys [:front :back]}]
       [:div.flippable-tile.initial-fade-in-delay
-       {:class (when @flipped? "flipped")
+       {:class [(when @flipped? "flipped") " "
+                (when (or android-device? ios-device?) "mobile")]
         :on-click (fn [event]
                     (if (not-empty flippable-classes)
                       (when-not (empty? (set/intersection (set flippable-classes)
