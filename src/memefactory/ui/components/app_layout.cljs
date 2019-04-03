@@ -141,24 +141,44 @@
   ([items active-page] (app-menu items active-page 0))
   ([items active-page depth]
    (let [active-account @(subscribe [:district.ui.web3-accounts.subs/active-account])]
-     [:ul.node {:key (str depth)}
-      (doall
-       (map-indexed (fn [idx {:keys [:text :route :params :query :class :children :needs-account?]}]
-                      [:li.node-content {:key (str depth "-" idx)}
-                       [:div.item
-                        {:class (str (when class (name class))
-                                     (when (= active-page route) " active")
-                                     (when (and needs-account? (not active-account)) " disabled"))}
-                        [nav-anchor (merge
-                                     {:disabled true}
-                                     (when-not (and needs-account? (not active-account))
-                                       {:route route
-                                        :params params
-                                        :query query}))
-                         text]]
-                       (when children
-                         [app-menu children active-page (inc depth)])])
-                    items))])))
+     [:<>
+      ;; Account Balance Header for Mobile
+      (when (and active-account (= depth 0))
+        [:div.accounts
+         [:div.dank-section
+          [:div.dank-logo
+           [:img {:src "/assets/icons/dank-logo.svg"}]]
+          [active-account-balance
+           {:token-code :DANK
+            :contract :DANK
+            :class "dank"
+            :locale "en-US"
+            :max-fraction-digits 0}]]
+         [:div.eth-section
+          [:div.eth-logo
+           [:img {:src "/assets/icons/ethereum.svg"}]]
+          [active-account-balance
+           {:token-code :ETH
+            :locale "en-US"
+            :class "eth"}]]])
+      [:ul.node {:key (str depth)}
+       (doall
+        (map-indexed (fn [idx {:keys [:text :route :params :query :class :children :needs-account?]}]
+                       [:li.node-content {:key (str depth "-" idx)}
+                        [:div.item
+                         {:class (str (when class (name class))
+                                      (when (= active-page route) " active")
+                                      (when (and needs-account? (not active-account)) " disabled"))}
+                         [nav-anchor (merge
+                                      {:disabled true}
+                                      (when-not (and needs-account? (not active-account))
+                                        {:route route
+                                         :params params
+                                         :query query}))
+                          text]]
+                        (when children
+                          [app-menu children active-page (inc depth)])])
+                     items))]])))
 
 
 (defn app-layout []
