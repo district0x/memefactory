@@ -439,13 +439,20 @@
          :text-align :center}]]
 
       [:.reveal
-       [:button {:margin-top (em 1)}
+       {:text-align :center}
+       [:button {}
         (button {:color :white
                  :background-color :purple
                  :width (em 13)
-                 :height (em 3)})]
+                 :height (em 3)})
+        [:& {:display :inline}]]
        [:.no-reveal-info {:color (color :redish)
-                          :margin-top (em 1)}]]
+                          :margin-top (em 1)}]
+       [:.reveal-time-remaining
+        {:margin-top (px 20)
+         :margin-bottom (px 20)
+         :font-weight :bold
+         :text-align :center}]]
 
       [:.vote
        {:padding-right 0}

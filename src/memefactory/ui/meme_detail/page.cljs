@@ -291,35 +291,6 @@
 
      [:div.lorem text]]))
 
-(defn votes-component [{:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total
-                               :challenge/challenger :reg-entry/creator :challenge/vote] :as meme}]
-  (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on :vote/reclaimed-amount-on :vote/amount]} vote
-        active-account (subscribe [::accounts-subs/active-account])
-        option (graphql-utils/gql-name->kw option)
-        reward (if (nil? reward) 0 (web3/from-wei reward :ether))
-        tx-id (:reg-entry/address meme)
-        claim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
-        claim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])
-        reclaim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/reclaim-vote-amount tx-id}])
-        reclaim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reclaim-vote-amount tx-id}])]
-    [:div.votes
-     (when (< 0 votes-total)
-       [charts/donut-chart meme])
-     [:div.votes-inner
-      [:div.text (str "Voted Dank: " (format/format-percentage votes-for votes-total) " - " (format-dank votes-for))]
-      [:div.text (str "Voted Stank: " (format/format-percentage votes-against votes-total) " - " (format-dank votes-against ))]
-      [:div.text (str "Total voted: " (format-dank votes-total))]
-      (when-not (or (= option :vote-option/not-revealed)
-                    (= option :vote-option/no-vote))
-        [:div.text (str "You voted: " (gstring/format "%d for %s "
-                                                (if (pos? amount)
-                                                  (web3/from-wei amount :ether)
-                                                  0)
-                                                (case option
-                                                  :vote-option/vote-for "DANK"
-                                                  :vote-option/vote-against "STANK")))])
-      (buttons/reclaim-buttons @active-account meme)]]))
-
 (defn challenge-meme-component [{:keys [:reg-entry/deposit :meme/title] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})
         active-account (subscribe [::accounts-subs/active-account])
@@ -357,10 +328,10 @@
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])
         {:keys [:days :hours :minutes :seconds]} @time-remaining]
-    [:b (str (format/pluralize days "Day") ", "
-             hours " Hr. "
-             minutes " Min. "
-             seconds " Sec.")]))
+    [:div.reveal-time-remaining (str (format/pluralize days "day") " "
+                                     (format/pluralize hours "hour") " "
+                                     minutes " min. "
+                                     seconds " sec.")]))
 
 (defn reveal-vote-component [{:keys [:challenge/reveal-period-end :challenge/vote :reg-entry/address :meme/title] :as meme}]
   (let [tx-id (str "reveal" address)
@@ -373,19 +344,18 @@
       [:div.reveal
        [:div "This meme has been challenged and voting has concluded. You can reveal any votes you made with the button below, before time runs out on the reveal period."]
        [remaining-time-component (ui-utils/gql-date->date reveal-period-end)]
-       [:div
-        [tx-button/tx-button {:primary true
-                              :disabled (or @tx-success? (not vote))
-                              :pending? @tx-pending?
-                              :pending-text "Revealing..."
-                              :on-click #(dispatch [::registry-entry/reveal-vote
-                                                    {:send-tx/id tx-id
-                                                     :reg-entry/address (:reg-entry/address meme)
-                                                     :meme/title title}
-                                                    vote])}
-         (if @tx-success?
-           "Revealed"
-           "Reveal My Vote")]]
+       [tx-button/tx-button {:primary true
+                             :disabled (or @tx-success? (not vote))
+                             :pending? @tx-pending?
+                             :pending-text "Revealing..."
+                             :on-click #(dispatch [::registry-entry/reveal-vote
+                                                   {:send-tx/id tx-id
+                                                    :reg-entry/address (:reg-entry/address meme)
+                                                    :meme/title title}
+                                                   vote])}
+        (if @tx-success?
+          "Revealed"
+          "Reveal My Vote")]
        (when (and (= vote-option :vote-option/not-revealed)
                   (not vote))
          [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])])))
@@ -432,6 +402,7 @@
            [inputs/pending-button
             {:pending? @tx-pending?
              :disabled (or (-> @errors :local :vote/amount-for empty? not)
+                           @tx-pending?
                            @tx-success?)
              :pending-text "Voting..."
              :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
@@ -461,6 +432,7 @@
            [inputs/pending-button
             {:pending? @tx-pending?
              :disabled (or (-> @errors :local :vote/amount-against empty? not)
+                           @tx-pending?
                            @tx-success?)
              :pending-text "Voting..."
              :on-click #(dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id

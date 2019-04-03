@@ -100,13 +100,18 @@
                [:li (gstring/format "Total voted: %d" (web3/from-wei (or votes-total 0) :ether))]
                (when-not (or (= option :vote-option/not-revealed)
                              (= option :vote-option/no-vote))
-                 [:li (str "You voted: " (gstring/format "%d for %s "
+                 [:li (str "You voted: " (gstring/format "%d for %s (%s)"
                                                          (if (pos? amount)
                                                            (web3/from-wei amount :ether)
                                                            0)
                                                          (case option
                                                            :vote-option/vote-for "DANK"
-                                                           :vote-option/vote-against "STANK")))])]
+                                                           :vote-option/vote-against "STANK")
+                                                         (format/format-percentage
+                                                           amount
+                                                           (case option
+                                                             :vote-option/vote-for votes-for
+                                                             :vote-option/vote-against votes-against))))])]
               (cond
                 (and (pos? (:challenge/reward-amount all-rewards))
                      (pos? (:vote/reward-amount all-rewards)))
