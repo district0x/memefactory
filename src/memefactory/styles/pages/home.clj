@@ -26,7 +26,7 @@
      :position :relative
      :margin-right :auto
      :margin-left :auto
-     :padding-top (em 6)
+     :padding-top (em 2.7)
      :text-align :center
      :font-weight :lighter
      :font-size (pt 14)
@@ -34,18 +34,19 @@
      :line-height (em 1.9)}
     (for-media-max :tablet
                    [:&
-                    {:width "100%"}])
+                    {:width "100%"
+                     :padding-top (em 5)}])
     [:&:before
      (font :bungee)
      {:content "'MF'"
       :color "black"
       :font-size (em 1.1)
-      :line-height (em 3)
+      :line-height (em 1)
       :background-size [(em 2.8) (em 2.8)]
       :background-repeat :no-repeat
-      :background-position-y (em 2)
+      :background-position-y (em 1)
       :background-position-x :center
-      :top (em 0.5)
+      :top (em 0)
       ;; :center (rem 0)
       :position :absolute
       :margin-right :auto
@@ -128,7 +129,10 @@
                 :background-image (str "url('/assets/icons/chevron-right.svg')")
                 :margin-left (em 0.7)
                 :color (color :pink)
-                :display :inline-block}]]
+                :display :inline-block}
+      (for-media-max :tablet
+                     [:&
+                      {:display :none}])]]
     [:.icon
      (for-media-max :tablet
                     [:&
