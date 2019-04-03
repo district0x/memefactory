@@ -45,18 +45,10 @@
     (fn [{:keys [:front :back]}]
       [:div.flippable-tile.initial-fade-in-delay
        {:class [(when @flipped? "flipped") " "
-                (when (or android-device? ios-device?) "mobile")]
-        :on-click (fn [event]
-                    (if (not-empty flippable-classes)
-                      (when-not (empty? (set/intersection (set flippable-classes)
-                                                          (into #{} (-> event
-                                                                        (aget "target")
-                                                                        (aget "className")
-                                                                        (str/split #"\ ")))))
-                        (flip))
-                      (flip)))}
-       [:div.flippable-tile-front front]
-       [:div.flippable-tile-back back]])))
+                (when (or android-device? ios-device?) "mobile")]}
+                    
+       [:div.flippable-tile-front {:on-click flip} front]
+       [:div.flippable-tile-back {:on-click flip} back]])))
 
 (defn auction-back-tile [opts meme-auction]
   (let [tx-id (str (:meme-auction/address meme-auction) "auction")
