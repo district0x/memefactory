@@ -65,7 +65,8 @@
  (fn [{:keys [db store]}]
    {:db (assoc db
                :settings (:settings store)
-               :votes (:votes store))}))
+               :votes (:votes store)
+               :memefactory.ui.get-dank.page/stage 1)}))
 
 (defn ^:export init []
   (dev-setup)

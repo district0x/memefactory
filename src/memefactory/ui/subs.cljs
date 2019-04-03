@@ -30,11 +30,16 @@
    (:memefactory.ui.get-dank.events/spinner db)))
 
 (re-frame/reg-sub
-  ::mobile-coinbase-appstore-link
-  :<- [::mobile-subs/android?]
-  :<- [::mobile-subs/ios?]
-  (fn [[android? ios?]]
-    (cond
-      android? (:android-mobile-link ui.mobile/coinbase-appstore-links)
-      ios? (:ios-mobile-link ui.mobile/coinbase-appstore-links)
-      :else (:main-mobile-link ui.mobile/coinbase-appstore-links))))
+ ::dank-faucet-stage
+ (fn [db _]
+   (:memefactory.ui.get-dank.page/stage db)))
+
+(re-frame/reg-sub
+ ::mobile-coinbase-appstore-link
+ :<- [::mobile-subs/android?]
+ :<- [::mobile-subs/ios?]
+ (fn [[android? ios?]]
+   (cond
+     android? (:android-mobile-link ui.mobile/coinbase-appstore-links)
+     ios? (:ios-mobile-link ui.mobile/coinbase-appstore-links)
+     :else (:main-mobile-link ui.mobile/coinbase-appstore-links))))
