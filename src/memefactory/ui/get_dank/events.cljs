@@ -34,18 +34,6 @@
  (fn [{:keys [db]} [_ stage-number]]
    {:db (assoc db :memefactory.ui.get-dank.page/stage stage-number)}))
 
-(defn get-allocated-dank [db phone-number]
-  (js/Promise.
-   (fn [resolve reject]
-     (web3-eth/contract-call
-      (contract-queries/instance db :dank-faucet)
-      :allocated-dank
-      (web3/sha3 phone-number)
-      (fn [error data]
-        (if error
-          (reject error)
-          (resolve (first (aget data "c")))))))))
-
 (re-frame/reg-event-fx
  ::get-allocated-dank
  (fn [{:keys [db]} [_ {:keys [country-code phone-number] :as data}]]
