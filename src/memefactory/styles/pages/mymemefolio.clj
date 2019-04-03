@@ -64,7 +64,12 @@
           :text-overflow :ellipsis
           :margin-left :auto
           :margin-right :auto
-          :overflow :hidden}]]
+          :overflow :hidden}
+     [:.copy {:background-color (color :mymemefolio-green)
+              :padding (px 4)
+              :cursor :pointer
+              :margin-left (px 10)
+              :border-radius (px 15)}]]]
    [:.tabbed-pane
     {:max-width (px 985)
      :margin-right :auto

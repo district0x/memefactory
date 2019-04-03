@@ -8,6 +8,7 @@
    [clojure.string :as str]
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
+   [memefactory.ui.utils :refer [copy-to-clipboard]]
    [district.time :as time]
    [district.ui.component.form.input :as inputs]
    [district.ui.component.page :refer [page]]
@@ -847,8 +848,16 @@
     [:div.tabbed-pane
      [:section.search-form
       [search/search-tools (merge {:title (if url-address?
-                                            (str "Memefolio " user-address)
-                                            "My Memefolio")
+                                            [:span (str "Memefolio " user-address)]
+                                            [:span "My Memefolio" (let [loc-str (str (.-location js/window))
+                                                                        loc (if-let [qidx (str/index-of loc-str "?")]
+                                                                              (subs loc-str 0 qidx)
+                                                                              loc-str)
+                                                                        user-link (str loc user-address "?tab=" (name tab))]
+                                                                    [:img.copy {:on-click (fn []
+                                                                                            (copy-to-clipboard user-link))
+                                                                                :title "Copy shareable URL to clipboard"
+                                                                                :src "/assets/icons/link.svg"}])])
                                    :form-data form-data
                                    :on-selected-tags-change re-search
                                    :on-search-change re-search
