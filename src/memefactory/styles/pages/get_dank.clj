@@ -13,9 +13,9 @@
                      :margin-right :auto
                      :margin-top (em 4)}]
    (for-media-max :tablet
-                   [:&
-                    {:margin-right (em 2)
-                     :margin-left (em 2)}])
+                  [:&
+                   {:margin-right (em 2)
+                    :margin-left (em 2)}])
    [:.get-dank-box
     (panel-with-icon {:url "/assets/icons/dank-logo.svg"
                       :color :purple})
@@ -25,19 +25,22 @@
 
     [:.body
      {:min-height (em 13)}
-
-     [:.form {:font-size (px 14)
-              :padding-top (em 4)
-              :height (em 4)
-              :display :flex
-              :justify-content :space-around
-              :padding-left (em 20)
-              :padding-right (em 20)}
+     [:.form 
+      {:display :flex
+       :flex-direction :row
+       :font-size (px 14)
+       :padding-top (em 4)
+       :height (em 4)
+       :justify-content :center}
+      [:.labeled-input-group
+       {:padding-left (em 1)
+        :padding-right (em 1)}]
       [:.country-code {:width (em 6.1)}]
       (for-media-max :tablet
                      [:&
-                      {:padding (px 0)
+                      {:padding (em 2)
                        :display :block}])]]
+    
 
     [:.footer
      (get-dank-button)
