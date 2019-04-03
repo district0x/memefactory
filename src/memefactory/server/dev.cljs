@@ -160,7 +160,10 @@
                                       :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
                                       :graphiql true}
-                            :web3 {:port 8549}
+
+                            :web3 {:url "http://localhost:8549"
+                                   ;; :url "http://qa.district0x.io:8545"
+                                   }
                             :ipfs {:host "http://127.0.0.1:5001"
                                    :endpoint "/api/v0"
                                    :gateway "http://127.0.0.1:8080/ipfs"}
@@ -175,7 +178,8 @@
                                       :api-key "PLACEHOLDER"
                                       :template-id "PLACEHOLDER"
                                       :from "district0x@district0x.io"
-                                      :print-mode? true}}}})
+                                      :print-mode? true}
+                            :syncer {:create-events-cache? false}}}})
       (mount/start)
       (#(log/warn "Started" {:components %
                              :config @config}))))

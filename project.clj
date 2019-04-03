@@ -68,7 +68,8 @@
                  [org.clojure/clojurescript "1.10.439"]
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [print-foo-cljs "2.0.3"]
-                 [re-frame "0.10.5"]]
+                 [re-frame "0.10.5"]
+                 [cljs-node-io "1.1.2"]]
 
   :exclusions [funcool/bide
                express-graphql

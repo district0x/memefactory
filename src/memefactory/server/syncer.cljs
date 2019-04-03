@@ -33,7 +33,8 @@
    [memefactory.shared.smart-contracts :as sc]
    [mount.core :as mount :refer [defstate]]
    [print.foo :refer [look] :include-macros true]
-   [taoensso.timbre :as log])
+   [taoensso.timbre :as log]
+   [cljs-node-io.core :as io :refer [slurp spit]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 ;; this HACK is because mount doesn't support async, so mount start will return
@@ -443,7 +444,8 @@
        (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
        (db/patch-forbidden-reg-entry-image! address)))))
 
-(defn start [{:keys [:on-event-error] :as opts}]
+(def events-cache-file-name "events-cache.edn")
+(defn start [{:keys [:on-event-error :create-events-cache?] :as opts}]
 
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
@@ -475,10 +477,39 @@
                                  (map #(apply % [{:from-block 0 :to-block (dec last-block-number)}])))]
 
     (go
-      (when (pos? last-block-number)
-        ;; use past-events-filters to retrieve past events in order
-        ;; block until all replayed before installing new events filters
-        (async/<! (replay-past-events-in-order past-events-filters dispatch-event)))
+      (let [past-events-cache (try
+                                (cljs.reader/read-string {:readers {'object (fn [[t v]]
+                                                                             (if (= "BigNumber" (str t))
+                                                                               (str v)
+                                                                               nil))}}
+                                                         (slurp events-cache-file-name))
+                                (catch js/Error e nil))]
+
+        (if-not (empty? past-events-cache)
+
+          ;; We have past events on cache, replay from there
+          (do
+            (log/warn (str "REPLAYING EVENTS FROM CACHE : " (count past-events-cache) " only intended for dev since the cache could be out of date."))
+            (log/warn ("If this isn't intended remove " events-cache-file-name))
+            (doseq [ev past-events-cache]
+              (dispatch-event ev)))
+
+          ;; We don't have anything on event cache
+          (let [events-cache (atom [])]
+            (when (pos? last-block-number)
+              ;; use past-events-filters to retrieve past events in order
+              ;; block until all replayed before installing new events filters
+              (log/info "REPLAYING PAST EVENTS FROM BLOCKCHAIN")
+              (async/<! (replay-past-events-in-order
+                         past-events-filters
+                         (fn [ev]
+                           (let [ev (assoc-in ev [:args :timestamp]
+                                              (:timestamp (web3-eth/get-block @web3
+                                                                              (:block-number ev))))]
+                             (swap! events-cache conj ev)
+                             (dispatch-event ev))))))
+
+            (when create-events-cache? (spit events-cache-file-name @events-cache)))))
 
       (apply-blacklist-patches!)
 
