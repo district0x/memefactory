@@ -42,11 +42,11 @@
                             (log/info "Sending meme challenged email" ev ::send-challenge-created-email)
                             (send-email {:from from
                                          :to to
-                                         :subject (str title " challenged!")
+                                         :subject (str title " was challenged!")
                                          :content (templates/challenge-created-email-body {:meme/title title
                                                                                            :meme-url (str root-url "meme-detail/" registry-entry)
                                                                                            :time-remaining (format/format-time-units {unit value})})
-                                         :substitutions {:header (str title " meme challenged")
+                                         :substitutions {:header (str title " was challenged")
                                                          :button-title "Vote Now"
                                                          :button-href (str root-url "dankregistry/vote")
                                                          :meme-image-url (str ipfs-gateway-url image-hash)}
@@ -75,12 +75,12 @@
                (fn [to] (if to
                           (send-email {:from from
                                        :to to
-                                       :subject (str title " bought!")
+                                       :subject (str title " was sold!")
                                        :content (templates/meme-auction-bought-email-body {:meme/title title
                                                                                            :meme-url (str root-url "meme-detail/" (:reg-entry/address meme))})
-                                       :substitutions {:header "Auction Bought"
-                                                       :button-title "Leaderboard"
-                                                       :button-href (str root-url "leaderboard/collectors")
+                                       :substitutions {:header (str title " was sold!")
+                                                       :button-title "My Memefolio"
+                                                       :button-href (str root-url "memefolio/?tab=sold")
                                                        :meme-image-url (str ipfs-gateway-url image-hash)}
                                        :on-success #(log/info "Success sending auction bought email" {:to to
                                                                                                       :meme-auction meme-auction
