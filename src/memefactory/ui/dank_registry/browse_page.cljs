@@ -217,4 +217,9 @@
                          :on-search-change re-search
                          :on-check-filter-change re-search
                          :on-select-change re-search}]
-          [dank-registry-tiles form-data meme-search]]]))))
+
+
+          [dank-registry-tiles form-data meme-search]
+
+
+          ]]))))
