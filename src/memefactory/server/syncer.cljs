@@ -490,7 +490,7 @@
           ;; We have past events on cache, replay from there
           (do
             (log/warn (str "REPLAYING EVENTS FROM CACHE : " (count past-events-cache) " only intended for dev since the cache could be out of date."))
-            (log/warn ("If this isn't intended remove " events-cache-file-name))
+            (log/warn (str "If this isn't intended remove " events-cache-file-name))
             (doseq [ev past-events-cache]
               (dispatch-event ev)))
 
