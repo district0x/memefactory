@@ -126,6 +126,7 @@
                                                :after (str after)
                                                :first first
                                                :non-for-meme address
+                                               :statuses [:meme-auction.status/active]
                                                :group-by :meme-auctions.group-by/cheapest}
                         [:total-count
                          :end-cursor
