@@ -1,5 +1,6 @@
 (ns memefactory.server.dev
-  (:require [bignumber.core :as bn]
+  (:require [ajax.core :as http]
+            [bignumber.core :as bn]
             [camel-snake-kebab.core :as cs :include-macros true]
             [cljs-time.core :as t]
             [cljs-web3.core :as web3-core]
@@ -24,7 +25,6 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
-            [memefactory.server.emailer]
             [memefactory.server.generator :as generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.ipfs]
@@ -36,7 +36,6 @@
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.smart-contracts]
             [mount.core :as mount]
-            [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]))
 
 (nodejs/enable-util-print!)
@@ -296,3 +295,19 @@
                                  (map (fn [p] (str (:type p) " " (:name p) " = " (:value p))))
                                  (clojure.string/join ",\n"))")")
               (apply cc (into [contract-instance method] args)))))))
+
+(defn filter-installed? [id]
+  (js/Promise.
+   (fn [resolve reject]
+     (http/ajax-request
+      {:uri (get-in @config [:web3 :url])
+       :method :post
+       :headers {"Content-Type" "application/json"}
+       :params {:jsonrpc "2.0"
+                :method "eth_getFilterChanges"
+                :params [id]
+                :id id}
+       :handler #(resolve %)
+       :error-handler #(reject %)
+       :format (http/json-request-format)
+       :response-format (http/json-response-format {:keywords? true})}))))

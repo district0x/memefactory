@@ -1,24 +1,27 @@
 (ns memefactory.ui.components.app-layout
   (:require
-   [district.format :as format]
-   [district.ui.component.active-account :refer [active-account]]
-   [district.ui.component.active-account-balance :refer [active-account-balance] :as account-balances]
-   [district.ui.component.form.input :as inputs :refer [text-input*]]
-   [district.ui.component.meta-tags :as meta-tags]
-   [district.ui.component.notification :as notification]
-   [district.ui.component.tx-log :refer [tx-log]]
-   [district.ui.graphql.subs :as gql]
-   [district.ui.router.events :as router-events]
-   [district.ui.router.subs :as router-subs]
-   [district.ui.web3-tx-log.events :as tx-log-events]
-   [district.ui.web3-tx-log.subs :as tx-log-subs]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   [memefactory.ui.subs :as mf-subs]
-   [memefactory.ui.utils :as mf-utils]
-   [re-frame.core :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [taoensso.timbre :as log :refer [spy]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+    [cljs-web3.core :as web3]
+    [district.format :as format]
+    [district.ui.component.active-account :refer [active-account]]
+    [district.ui.component.active-account-balance :refer [active-account-balance] :as account-balances]
+    [district.ui.component.form.input :as inputs :refer [text-input*]]
+    [district.ui.component.meta-tags :as meta-tags]
+    [district.ui.component.notification :as notification]
+    [district.ui.component.tx-log :refer [tx-log]]
+    [district.ui.mobile.subs :as mobile-subs]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.router.events :as router-events]
+    [district.ui.router.subs :as router-subs]
+    [district.ui.web3-accounts.subs :as accounts-subs]
+    [district.ui.web3-tx-log.events :as tx-log-events]
+    [district.ui.web3-tx-log.subs :as tx-log-subs]
+    [memefactory.ui.components.general :refer [nav-anchor]]
+    [memefactory.ui.subs :as mf-subs]
+    [memefactory.ui.utils :as mf-utils]
+    [memefactory.ui.utils :as ui-utils]
+    [re-frame.core :refer [subscribe dispatch]]
+    [reagent.core :as r]
+    [taoensso.timbre :as log :refer [spy]]))
 
 (def nav-menu-items [{:text "Marketplace"
                       :route :route.marketplace/index
@@ -120,10 +123,7 @@
            [tx-log
             {:header-props {:text "Transaction Log"}
              :transactions-props {:transaction-props {:tx-value-el (fn [{:keys [tx]}]
-                                                                     [:span.tx-value (format/format-eth (if-let [v (:value tx)]
-                                                                                                          (/ v 1e18)
-                                                                                                          0)
-                                                                                                        {:max-fraction-digits 3})])}}}]])]])))
+                                                                     [:span.tx-value (ui-utils/format-price (:value tx))])}}}]])]])))
 
 (defn current-page? [a b]
   (= a b))
@@ -167,7 +167,10 @@
                                          [[:ui [:root-url]]]]]}])
 
         active-page (subscribe [::router-subs/active-page])
-        drawer-open? (r/atom false)]
+        drawer-open? (r/atom false)
+        active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
+        mobile-device? (subscribe [::mobile-subs/coinbase-compatible?])
+        coinbase-appstore-link (subscribe [::mf-subs/mobile-coinbase-appstore-link])]
     (fn [{:keys [:search-atom :meta]}
          & children]
       [:div.app-container
@@ -184,6 +187,10 @@
        [:div.app-content
         [app-bar {:search-atom search-atom}]
         [app-bar-mobile drawer-open?]
+        (when (and (not @active-account) @mobile-device?)
+         [:a.coinbase-promotion
+          {:href @coinbase-appstore-link}
+          [:span "Submit Memes with "] [:img {:src "assets/images/coinbase_logo.png"}]])
         [:div.main-content
          [:div.main-content-inner
           (map-indexed (fn [index item]

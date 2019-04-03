@@ -7,6 +7,7 @@
    [district.ui.logging]
    [district.ui.notification]
    [district.ui.now]
+   [district.ui.mobile]
    [district.ui.reagent-render]
    [district.ui.router-google-analytics]
    [district.ui.router]

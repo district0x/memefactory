@@ -112,7 +112,8 @@
      :color (color :menu-text)
      :line-height (em 1.95)
      :width "100%"
-     :position :relative}
+     :position :relative
+     :background-color :transparent}
     [:&:focus {:outline "none"}]
     [:&:focus+.help-block:before
      {:transform "scale(1)"}]]
@@ -126,7 +127,8 @@
      :padding-bottom (em 0.9)
      :font-size (em 0.8)
      :padding-top (em 0)
-     :border-top (str "1px solid " (color :grey))}
+     :border-top (str "1px solid")
+     :border-color (color :grey)}
     [:&:before
      {:content "''"
       :background-color :dodgerblue

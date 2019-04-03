@@ -44,7 +44,7 @@
 
 (def scroll-interval 5)
 
-(def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
+(def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm Z"))
 
 (defn build-meme-query [address active-account]
   {:queries [[:meme {:reg-entry/address address}
@@ -98,15 +98,14 @@
                                       [[:items [:meme-auction/start-price
                                                 :meme-auction/end-price
                                                 :meme-auction/bought-for]]]]]}])
-        creator-total-earned (quot (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
-                                        (+ total-earned end-price))
-                                      0
-                                      (-> @query :search-meme-auctions :items))
-                                   1e18)]
+        creator-total-earned (web3/from-wei (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
+                                                      (+ total-earned end-price))
+                                                    0
+                                                    (-> @query :search-meme-auctions :items))
+                                            :ether)]
     [:div.creator
      [:b "Creator"]
-     [:div.rank (str "Rank: #" creator-rank " ("
-                     (format/format-token creator-total-earned {:token "DANK"}) ")")]
+     [:div.rank (str "Rank: #" creator-rank " (" (ui-utils/format-dank creator-total-earned) ")")]
      [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
      [:div {}
@@ -122,19 +121,11 @@
   (panel :selling state loading-first? loading-last?))
 
 (defn related-memes-container [address tags]
-  (let [safe-mapcat (fn [f queries] (loop [queries queries
-                                           result []]
-                                      (if (empty? queries)
-                                        result
-                                        (recur (rest queries)
-                                               (let [not-contains? (complement contains?)
-                                                     new (filter #(not-contains? (set result) %)
-                                                                 (f (first queries)))]
-                                                 (into result new))))))
-        build-query (fn [{:keys [:first :after]}]
+  (let [build-query (fn [{:keys [:first :after]}]
                       [[:search-meme-auctions {:tags-or tags
                                                :after (str after)
                                                :first first
+                                               :non-for-meme address
                                                :group-by :meme-auctions.group-by/cheapest}
                         [:total-count
                          :end-cursor
@@ -161,8 +152,7 @@
                                                                  :first scroll-interval})}
                              {:id address}])
         state (->> @response
-                   (mapcat (fn [q] (get-in q [:search-meme-auctions :items])))
-                   (remove #(= (-> % :meme-auction/meme-token :meme-token/meme :reg-entry/address) address)))]
+                   (mapcat (fn [q] (get-in q [:search-meme-auctions :items]))))]
 
 
 
@@ -201,20 +191,21 @@
          [:h1.title "Marketplace history"]
          (if (:graphql/loading? @query)
            [spinner/spin]
-           [:table
-            [:thead [:tr
-                     [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
-                     [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
-                     [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
-                     [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
-                     [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
-                           :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
-            (if (empty? all-auctions)
-              [:tbody [:tr [:td {:colSpan 5} "This meme hasn't been traded yet."]]]
+
+           (if (empty? all-auctions)
+             [:div.not-traded-yet "This meme hasn't been traded yet"]
+             [:table
+              [:thead [:tr
+                       [:th {:class (if (:meme-auctions.order-by/token-id @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/token-id)} "Card Number"]
+                       [:th {:class (if (:meme-auctions.order-by/seller @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/seller)} "Seller"]
+                       [:th {:class (if (:meme-auctions.order-by/buyer @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/buyer)} "Buyer"]
+                       [:th {:class (if (:meme-auctions.order-by/price @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/price)} "Price"]
+                       [:th {:class (if (:meme-auctions.order-by/bought-on @order-by) :up :down)
+                             :on-click #(flip-ordering :meme-auctions.order-by/bought-on)} "Time Ago"]]]
               [:tbody
                (doall
                 (for [{:keys [:meme-auction/address :meme-auction/bought-for :meme-auction/bought-on
@@ -242,7 +233,7 @@
                                       bought-date (ui-utils/gql-date->date bought-on)]
                                   (when-not (or (empty? (str bought-on))
                                                 (> (.getTime bought-date) (.getTime now-date)))
-                                    (format/time-ago bought-date now-date)))]])))])])]))))
+                                    (format/time-ago bought-date now-date)))]])))]]))]))))
 
 (defn challenge-header [created-on]
   (when created-on
@@ -260,7 +251,7 @@
      [:div.success (str "Success rate: " total-created-challenges-success "/" total-created-challenges " ("
                         (format/format-percentage total-created-challenges-success total-created-challenges) ")")]
      [:div.address
-      [:span "Address:"]
+      [:span "Address: "]
       [nav-anchor {:route :route.memefolio/index
                    :params {:address (:user/address challenger)}
                    :query {:tab :curated}
@@ -305,7 +296,7 @@
   (let [{:keys [:vote/option :vote/reward :vote/claimed-reward-on :vote/reclaimed-amount-on :vote/amount]} vote
         active-account (subscribe [::accounts-subs/active-account])
         option (graphql-utils/gql-name->kw option)
-        reward (if (nil? reward) 0 (quot reward 1e18))
+        reward (if (nil? reward) 0 (web3/from-wei reward :ether))
         tx-id (:reg-entry/address meme)
         claim-tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/claim-vote-reward tx-id}])
         claim-tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/claim-vote-reward tx-id}])
@@ -322,7 +313,7 @@
                     (= option :vote-option/no-vote))
         [:div.text (str "You voted: " (gstring/format "%d for %s "
                                                 (if (pos? amount)
-                                                  (quot amount 1e18)
+                                                  (web3/from-wei amount :ether)
                                                   0)
                                                 (case option
                                                   :vote-option/vote-for "DANK"
@@ -347,7 +338,7 @@
                                :maxLength 2000
                                :errors errors}]
        [:div.controls
-        [dank-with-logo (quot dank-deposit 1e18)]
+        [dank-with-logo (web3/from-wei dank-deposit :ether)]
         [tx-button/tx-button {:primary true
                               :disabled (or @tx-success? (not (empty? (:local @errors))) (not @active-account))
                               :pending? @tx-pending?
@@ -407,7 +398,7 @@
 
         errors (ratom/reaction {:local (let [amount-for (-> @form-data :vote/amount-for js/parseInt)
                                              amount-against (-> @form-data :vote/amount-against js/parseInt)
-                                             balance (if (pos? @balance-dank) (quot @balance-dank 1e18) 0)]
+                                             balance (if (pos? @balance-dank) (web3/from-wei @balance-dank :ether) 0)]
                                          (cond-> {}
                                            (or (not (spec/check ::spec/pos-int amount-for))
                                                (< balance amount-for))
@@ -485,7 +476,7 @@
               "Vote Stank")]]]
          (if (bn/> @balance-dank 0)
            [:<>
-            [:div "You can vote with up to " (format/format-token (quot @balance-dank 1e18) {:token "DANK"})]
+            [:div "You can vote with up to " (ui-utils/format-dank @balance-dank)]
             [:div "Token will be returned to you after revealing your vote."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 

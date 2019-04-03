@@ -160,11 +160,10 @@
       :border-radius "1em 1em 1em 1em"
       :padding-top (em 1)
       :padding-bottom (em 1)}
-     #_(for-media-max :computer
-                      [:&
-                       {:max-height (em 30)
-                        :overflow-y :auto
-                        :overflow-x :hidden}])
+     [:.not-traded-yet {:color (transparentize (color :menu-text) 0.5)
+                        :padding-top (em 6)
+                        :padding-left 0
+                        :text-align :center}]
      [:.spinner-outer {:margin-top (em 4)}]
      [:h1.title
       (font :bungee)

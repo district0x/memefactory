@@ -325,7 +325,7 @@
           {:keys [:meme/title]} meme
           total-memes-count (-> @query :search-memes :total-count)
           total-meme-tokens-count (-> @query :search-meme-tokens :total-count)]
-      [:div.stats
+      [:div.stats.collected
        [:div.rank
         (str "RANK: #" collector-rank) ]
        [:div.var
@@ -339,10 +339,7 @@
        [:div.var
         [:b "Largest buy: "]
         (if (and bought-for token-id title)
-
-          [:span (str (format/format-eth (/ bought-for 1e18)
-                                         {:max-fraction-digits 2})
-                      " (#" token-id " " title ")")]
+          [:span (str (ui-utils/format-price bought-for))]
           [:span "None"])]])))
 
 (defmethod total :collected [_ active-account]
@@ -453,14 +450,11 @@
                                            (+ total-earned end-price))
                                          0
                                          meme-auctions))]
-      [:div.stats
+      [:div.stats.created
        [:div.rank
         (str "RANK: #" creator-rank)]
        [:div.var
-        [:b "Earned: "]
-        (when creator-total-earned
-          (format/format-eth (web3/from-wei creator-total-earned :ether) {:max-fraction-digits 2
-                                                                          :min-fraction-digits 0}))]
+        [:b "Earned: "] (ui-utils/format-price creator-total-earned)]
        [:div.var
         [:b "Success Rate: "]
         (when (and total-created-memes-whitelisted total-created-memes)
@@ -472,10 +466,7 @@
                     :class "var best-card-sale"}
         [:b "Best Single Card Sale: "]
         (if (and largest-sale number title)
-          (str (-> (:meme-auction/bought-for largest-sale)
-                   (web3/from-wei :ether)
-                   (bn/number)
-                   (format/format-eth {:max-fraction-digits 2}))
+          (str (ui-utils/format-price (:meme-auction/bought-for largest-sale))
                " (#" number " " title ")")
           "None")]])))
 

@@ -135,11 +135,11 @@
     :grid-template-columns (px card-width)
     :width (px card-width)
     :height (px card-height)}
-   (for-media-max
-    :tablet
-    [:& {:perspective :none
-         :-webkit-transform-style :flat
-         :transform-style :flat}])
+
+   [:&.mobile
+    {:perspective :none
+     :-webkit-transform-style :flat
+     :transform-style :flat}]
 
    ;; Front of flippable card styling
    [:.flippable-tile-front

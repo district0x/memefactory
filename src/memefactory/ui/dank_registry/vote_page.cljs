@@ -92,17 +92,17 @@
                [:li
                 (gstring/format "Voted Dank: %s (%d) "
                                 (format/format-percentage (or votes-for 0) votes-total)
-                                (quot (or votes-for 0) 1e18))]
+                                (web3/from-wei (or votes-for 0) :ether))]
                [:li
                 (gstring/format "Voted Stank: %s (%d) "
                                 (format/format-percentage (or votes-against 0) votes-total)
-                                (quot (or votes-against 0) 1e18))]
-               [:li (gstring/format "Total voted: %d" (quot (or votes-total 0) 1e18))]
+                                (web3/from-wei (or votes-against 0) :ether))]
+               [:li (gstring/format "Total voted: %d" (web3/from-wei (or votes-total 0) :ether))]
                (when-not (or (= option :vote-option/not-revealed)
                              (= option :vote-option/no-vote))
                  [:li (str "You voted: " (gstring/format "%d for %s "
                                                          (if (pos? amount)
-                                                           (quot amount 1e18)
+                                                           (web3/from-wei amount :ether)
                                                            0)
                                                          (case option
                                                            :vote-option/vote-for "DANK"
@@ -196,7 +196,7 @@
          (if (bn/> account-balance 0)
            [:<>
             [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
-                                                (format/format-token (/ account-balance 1e18) {:token "DANK"}))]
+                                                (ui-utils/format-dank account-balance))]
             [:p.token-return  "Tokens will be returned to you after revealing your vote."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 

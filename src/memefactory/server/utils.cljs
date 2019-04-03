@@ -28,11 +28,3 @@
 
 (defn save-to-edn-file [content file]
   (.writeFileSync fs file (pr-str content)))
-
-(defn uninstall-filter [f]
-  (web3-eth/stop-watching! f
-                           (fn [err]
-                             (let [id (-> f  .-filterId)]
-                               (if err
-                                 (log/error "Error uninstalling past event filter" {:error err :filter-id id})
-                                 (log/info "Uninstalled past event filter" {:filter-id id}))))))

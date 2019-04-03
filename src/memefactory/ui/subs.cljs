@@ -1,6 +1,8 @@
 (ns memefactory.ui.subs
   (:require
-   [re-frame.core :as re-frame]))
+   [re-frame.core :as re-frame]
+   [district.ui.mobile.subs :as mobile-subs]
+   [memefactory.ui.mobile :as ui.mobile]))
 
 (re-frame/reg-sub
  ::menu-drawer-open?
@@ -31,3 +33,13 @@
  ::dank-faucet-stage
  (fn [db _]
    (:memefactory.ui.get-dank.page/stage db)))
+
+(re-frame/reg-sub
+ ::mobile-coinbase-appstore-link
+ :<- [::mobile-subs/android?]
+ :<- [::mobile-subs/ios?]
+ (fn [[android? ios?]]
+   (cond
+     android? (:android-mobile-link ui.mobile/coinbase-appstore-links)
+     ios? (:ios-mobile-link ui.mobile/coinbase-appstore-links)
+     :else (:main-mobile-link ui.mobile/coinbase-appstore-links))))
