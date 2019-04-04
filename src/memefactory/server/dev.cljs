@@ -179,7 +179,7 @@
                                       :template-id "PLACEHOLDER"
                                       :from "district0x@district0x.io"
                                       :print-mode? true}
-                            :syncer {:create-events-cache? false}}}})
+                            :syncer {:read-events-from-cache? true}}}})
       (mount/start)
       (#(log/warn "Started" {:components %
                              :config @config}))))

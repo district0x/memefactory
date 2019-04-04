@@ -444,8 +444,9 @@
        (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
        (db/patch-forbidden-reg-entry-image! address)))))
 
-(def events-cache-file-name "events-cache.edn")
-(defn start [{:keys [:on-event-error :create-events-cache?] :as opts}]
+(def events-cache-file-name "events-cache.log")
+
+(defn start [{:keys [:on-event-error :read-events-from-cache?] :as opts}]
 
   (when-not (web3/connected? @web3)
     (throw (js/Error. "Can't connect to Ethereum node")))
@@ -477,45 +478,45 @@
                                  (map #(apply % [{:from-block 0 :to-block (dec last-block-number)}])))]
 
     (go
-      (let [past-events-cache (try
-                                (cljs.reader/read-string {:readers {'object (fn [[t v]]
-                                                                             (if (= "BigNumber" (str t))
-                                                                               (str v)
-                                                                               nil))}}
-                                                         (slurp events-cache-file-name))
-                                (catch js/Error e nil))]
+      (if read-events-from-cache?
 
-        (if-not (empty? past-events-cache)
+        ;; replaying past events from cache
+        (let [past-events-cache (try
+                                  (cljs.reader/read-string {:readers {'object (fn [[t v]]
+                                                                                (if (= "BigNumber" (str t))
+                                                                                  (str v)
+                                                                                  nil))}}
+                                                           (str "[" (slurp events-cache-file-name) "]"))
+                                  (catch js/Error e nil))]
 
-          ;; We have past events on cache, replay from there
           (do
-            (log/warn (str "REPLAYING EVENTS FROM CACHE : " (count past-events-cache) " only intended for dev since the cache could be out of date."))
-            (log/warn (str "If this isn't intended remove " events-cache-file-name))
+            (log/warn (str "REPLAYING EVENTS FROM CACHE : " (count past-events-cache)))
             (doseq [ev past-events-cache]
-              (dispatch-event ev)))
+              (dispatch-event ev))))
 
-          ;; We don't have anything on event cache
-          (let [events-cache (atom [])]
-            (when (pos? last-block-number)
-              ;; use past-events-filters to retrieve past events in order
-              ;; block until all replayed before installing new events filters
-              (log/info "REPLAYING PAST EVENTS FROM BLOCKCHAIN")
-              (async/<! (replay-past-events-in-order
-                         past-events-filters
-                         (fn [ev]
-                           (let [ev (assoc-in ev [:args :timestamp]
-                                              (:timestamp (web3-eth/get-block @web3
-                                                                              (:block-number ev))))]
-                             (swap! events-cache conj ev)
-                             (dispatch-event ev))))))
-
-            (when create-events-cache? (spit events-cache-file-name @events-cache)))))
+        ;; replaying past events from blockchain
+        (when (pos? last-block-number)
+          ;; use past-events-filters to retrieve past events in order
+          ;; block until all replayed before installing new events filters
+          (log/info "REPLAYING PAST EVENTS FROM BLOCKCHAIN")
+          ;; ensure events cache file is empty
+          (server-utils/delete-file events-cache-file-name)
+          (async/<! (replay-past-events-in-order
+                     past-events-filters
+                     (fn [ev]
+                       (let [ev (assoc-in ev [:args :timestamp]
+                                          (:timestamp (web3-eth/get-block @web3
+                                                                          (:block-number ev))))]
+                         (server-utils/append-line-to-file events-cache-file-name (str ev))
+                         (dispatch-event ev)))))))
 
       (apply-blacklist-patches!)
 
       ;; install the watch filters and start listening
       (let [watch-filters (->> filters-builders
-                               (map #(apply % ["latest" (fn [err evt] (dispatch-event err (merge evt {:latest-event? true})))]))
+                               (map #(apply % ["latest" (fn [err evt]
+                                                          (when-not err (server-utils/append-line-to-file events-cache-file-name (str evt)))
+                                                          (dispatch-event err (merge evt {:latest-event? true})))]))
                                doall)]
 
         ;; if there are any memes with unasigned numbers but still assignable
