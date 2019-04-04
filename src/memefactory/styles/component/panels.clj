@@ -82,7 +82,7 @@
                    {:justify-content :space-evenly
                     :margin-right (em 2)
                     :margin-left (em 2)}])
-   [">div"
+   [:.tab
     (for-media-max :tablet
                    [:&
                     {:padding-right (em 0.2)

@@ -346,7 +346,7 @@
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
                                                   [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
-      [:div "Total "  (get-in @query [:search-memes :total-count])])))
+      [:div.total "Total "  (get-in @query [:search-memes :total-count])])))
 
 (defn issue-form [{:keys [:meme/title :reg-entry/address :meme/total-supply :meme/total-minted]}]
   (let [tx-id (str (random-uuid))
@@ -475,7 +475,7 @@
                           {:queries [[:search-memes {:creator active-account}
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
-      [:div "Total " (get-in @query [:search-memes :total-count])])))
+      [:div.total "Total " (get-in @query [:search-memes :total-count])])))
 
 (defmethod panel :curated [_ state loading-first? loading-last?]
   (if (and (empty? state)
@@ -559,7 +559,7 @@
                                                   [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-memes :total-count])]
-        [:div "Total " total]))))
+        [:div.total "Total " total]))))
 
 (defmethod total :created [_ active-account]
   (let [query (subscribe [::gql/query
@@ -567,7 +567,7 @@
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-memes :total-count])]
-        [:div "Total " total]))))
+        [:div.total "Total " total]))))
 
 (defmethod total :curated [_ active-account]
   (let [query (subscribe [::gql/query
@@ -575,7 +575,7 @@
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-memes :total-count])]
-        [:div "Total " total]))))
+        [:div.total "Total " total]))))
 
 (defmethod total :selling [_ active-account]
   (let [query (subscribe [::gql/query
@@ -583,14 +583,14 @@
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-meme-auctions :total-count])]
-        [:div "Total " total]))))
+        [:div.total "Total " total]))))
 
-(defmethod total :sold [_ active-account form-data]
+(defmethod total :sold [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
                                       [:total-count]]]}])]
     (let [total (get-in @query [:search-meme-auctions :total-count])]
-      [:div (str "Total " total)])))
+      [:div.total (str "Total " total)])))
 
 (defmethod panel :sold [_ state loading-first? loading-last?]
 
@@ -881,7 +881,7 @@
      [:section.tabs
       (doall
        (map (fn [tab-id]
-              ^{:key tab-id} [:div
+              ^{:key tab-id} [:div.tab
                               {:class (when (= tab
                                                tab-id) "selected")}
 
@@ -894,8 +894,7 @@
                                    cljs.core/name
                                    (str/capitalize))]])
             [:collected :created :curated :selling :sold]))
-      [:div.total
-       [total tab user-address]]]
+      [total tab user-address]]
      [:section.stats
       (when (not (contains? #{:selling :sold} tab))
         [:div.rank

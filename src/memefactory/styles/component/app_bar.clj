@@ -73,19 +73,19 @@
                    {:display :none}])
    [:.account-section
     {:align-items :left
-     :width (px 250)
      :padding "0 10px"}
+    (for-media-max :computer
+                   [:&
+                    {:width (px 250)}])
     [:.active-account
+     {:overflow "hidden"
+      :white-space "nowrap"
+      :text-overflow :ellipsis
+      :width "100%"}
      [:i.dropdown.icon:before
       {:content "url('/assets/icons/dropdown.png')" ;;No, we can't just bg scale, thanks upstream !important
        :display :inline-flex
-       :transform "scale(.5)"}]
-     [:span.text
-      {:overflow "hidden"
-       :white-space "nowrap"
-       :text-overflow :ellipsis
-       :width "100%"
-       :display "inline-block"}]]]
+       :transform "scale(.5)"}]]]
 
    [:.search-section
     [:.search

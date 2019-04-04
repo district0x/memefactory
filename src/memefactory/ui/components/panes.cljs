@@ -14,8 +14,8 @@
          [:div.tabs-titles
           (doall
            (for [t tabs]
-             [:div {:class (when (= (:title t) selected-tab) "selected")
-                    :key (:title t)}
+             [:div.tab {:class (when (= (:title t) selected-tab) "selected")
+                        :key (:title t)}
 
               [nav-anchor {:route :route.dank-registry/vote
                            :params {}

@@ -109,20 +109,14 @@
      :width (em 1)
      :height (em 1)}]
    [:.total
-    {:position :relative
-     :left (em 41)
+    {:padding-right 0
+     :flex 1
+     :text-align :right
      :font-size (em 0.9)
      :color (color :section-subcaption)}
-    (for-media-max :computer
+    (for-media-max :tablet
                    [:&
-                    {:margin-right (em 2)
-                     :margin-top (em 2)
-                     :margin-left (em 6)}])
-    [">div"
-     {:display :flex
-      :margin :auto}
-     [">.spinner--total"
-      {:margin-left (em 0.5)}]]]
+                    {:display :none}])]
    [:section.stats
     {:display :flex
      :margin-top 0
@@ -331,9 +325,8 @@
           [:&:before {:width 0}]]]]
        [:.short-sales-pitch {:margin-bottom (em 0.4)
                              :display :block}]
-       [:textarea {:background (color :white)
-                   :border (str "1px solid" )
-                   :border-color (color :grey)
+       [:textarea {:background :transparent
+                   :border (str "1px solid " (color :grey))
                    :width "100%"
                    :resize :none
                    :height (em 4)
