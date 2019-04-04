@@ -37,9 +37,27 @@
         [:div.image-tape
          [:span "Stank"]]])]))
 
+(defn- event-target-classlist [event]
+  (-> (aget event "target" "className")
+      (str/split #"\ +")))      
+
+(defn- event-target-has-class? [event class]
+  (let [classlist (set (event-target-classlist event))]
+    (.log js/console (clj->js classlist))
+    (contains? classlist class)))
+
+(defn- event-target-in-classlist? [event classlist]
+  (some #(event-target-has-class? event %) classlist))
+
 (defn flippable-tile [{:keys [:front :back :flippable-classes]}]
   (let [flipped? (r/atom false)
         flip #(swap! flipped? not)
+        handle-click
+        (if-not flippable-classes
+          flip
+          (fn [event]
+            (when (event-target-in-classlist? event flippable-classes)
+              (flip))))
         android-device? @(subscribe [::mobile-subs/android?])
         ios-device? @(subscribe [::mobile-subs/ios?])]
     (fn [{:keys [:front :back]}]
@@ -47,8 +65,8 @@
        {:class [(when @flipped? "flipped") " "
                 (when (or android-device? ios-device?) "mobile")]}
                     
-       [:div.flippable-tile-front {:on-click flip} front]
-       [:div.flippable-tile-back {:on-click flip} back]])))
+       [:div.flippable-tile-front {:on-click handle-click} front]
+       [:div.flippable-tile-back {:on-click handle-click} back]])))
 
 (defn auction-back-tile [opts meme-auction]
   (let [tx-id (str (:meme-auction/address meme-auction) "auction")

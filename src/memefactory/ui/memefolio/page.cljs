@@ -277,12 +277,12 @@
                          (let [token-ids (map :meme-token/token-id owned-meme-tokens)
                                token-count (->> token-ids
                                                 (filter shared-utils/not-nil?)
-                                                count)]
+                                                count)
+                               active-user-page? (or (empty? url-address) (= url-address active-account))]
                            [:div.compact-tile {:key address}
                             [tiles/flippable-tile {:front (tiles/meme-image image-hash
                                                                             {:class "collected-tile-front"})
-                                                   :back (if (or (empty? url-address)
-                                                                 (= url-address active-account))
+                                                   :back (if active-user-page?
                                                            [collected-tile-back {:meme/number number
                                                                                  :meme/title title
                                                                                  :reg-entry/address address
@@ -290,7 +290,8 @@
                                                                                  :meme-auction/token-count token-count
                                                                                  :meme-auction/token-ids token-ids}]
                                                            [tiles/meme-back-tile meme])
-                                                   :flippable-classes #{"meme-image" "cancel" "info" "create-offering"}}]
+                                                   :flippable-classes (when active-user-page? 
+                                                                        #{"meme-image" "cancel" "info" "create-offering"})}]
                             [nav-anchor {:route :route.meme-detail/index
                                          :params {:address address}
                                          :query nil
