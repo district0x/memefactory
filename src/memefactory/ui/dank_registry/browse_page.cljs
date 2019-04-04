@@ -19,7 +19,8 @@
    [taoensso.timbre :as log :refer [spy]]
    [memefactory.ui.components.panels :refer [no-items-found]]))
 
-(def page-size 3 #_12)
+(def elem-height 435)
+(def page-size 3)
 
 (defn build-tiles-query [{:keys [:search-term :order-by :search-tags :order-dir :only-cheapest?]} after]
   [:search-memes
@@ -49,15 +50,7 @@
              [:reg-entry/creator [:user/address
                                   :user/creator-rank]]]]]])
 
-
-;;;;;;;;;;;;;;;;;;;;;;
-
-;; (def scroll-interval 3)
-
-(def elem-height 400)
-
 (defn build-elems [from to]
-  (log/debug "@build-elems" {:f from :t to})
   (doall
    (for [i (range from to)]
      [:div {:key i
@@ -69,120 +62,99 @@
                     :border-bottom "1px solid #000"}}
       (str "ELEM " i)])))
 
-(defn puke [col]
+(defn puke [{:keys [:reg-entry/address] :as col}]
   [:pre {:style {:height (str elem-height "px")
                  :text-align :center
-                 :width "120px"
+                 :width "290px"
                  :margin :auto
                  :background-color "#ddd"
-                 :border-bottom "1px solid #000"}}
-   (with-out-str (cljs.pprint/pprint col))])
+                 :border-bottom "1px solid #000"
+                 :border-radius "1em"
+                 :white-space :nowrap
+                 :overflow :hidden
+                 :text-overflow :ellipsis
+                 }}
+   address])
 
-;;;;;;;;;;;;;;;;;;;;;;
-
-(defn dank-registry-tiles [form-data meme-search]
-  (let [
-
-        ;; all-memes (->> (spy @meme-search)
-        ;;                (mapcat (fn [r] (-> r :search-memes :items))))
-
-        ;; last-meme (last @meme-search)
-
-        state (r/atom nil)
-        loading? (r/atom false)
-
-        update-state (fn [{:keys [:from :to]}]
-
-                       (log/debug "@update-state" {
-                                                   ;; :q (graphql-ui-utils/parse-query {:queries [(build-tiles-query @form-data to)]}
-                                                   ;;                                  {:kw->gql-name graphql-utils/kw->gql-name})
-                                                   :f from
-                                                   :t to})
-
-                       #_(swap! state (fn [old new] (into old (concat new)))
-                              (build-elems from to))
-
-                       (reset! loading? true)
-
-                       (POST "http://qa.district0x.io:6300/graphql"
-                           :params {:query (:query-str (graphql-ui-utils/parse-query {:queries [(build-tiles-query @form-data (str to))]}
-                                                                                     {:kw->gql-name graphql-utils/kw->gql-name}))
-                                    :id @form-data}
-                           :format :json
-                           :response-format :json
-                           :handler #_#(log/info "response: "(graphql-utils/js->clj-response (clj->js %) {:gql-name->kw graphql-utils/gql-name->kw}))
-                           #(do
-                              (swap! state (fn [old new] (into old (concat new)))
-                                       (get-in (graphql-utils/js->clj-response (clj->js %) {:gql-name->kw graphql-utils/gql-name->kw})
-                                               [:data :search-memes :items]))
-                              (reset! loading? false))
-                           :error-handler #(log/error "error: " %))
-
-
-                       )
-
+#_(defn dank-registry-tiles [form-data meme-search]
+  (let [all-memes (->> @meme-search
+                       (mapcat (fn [r] (-> r :search-memes :items))))
+        meme-count (count all-memes)
+        last-meme (last @meme-search)
+        loading? (:graphql/loading? last-meme)
         ]
 
-    (fn []
+      (log/debug "#state" {:c meme-count})
 
-      (log/debug "#state" {:c (-> @state count)})
+      (if (and (empty? all-memes)
+               (not loading?))
+        [no-items-found]
+        [infinite-scroll/infinite-scroll {:element-height (* elem-height (/ meme-count 3))
+                                          ;; :container-height (* elem-height (/ meme-count 3))
+                                          :handle-scroll (fn [node]
+                                                           (let [app (-> js/document (.getElementById "app-container"))
 
-      (if true #_(empty? all-memes)
-          ;;[no-items-found]
-          [:div.scroll-area
-           [:div.tiles
-            [infinite-scroll/infinite-scroll {:loading? @loading?
-                                              :load-fn (fn []
+                                                                 page-height (-> app .-offsetHeight)
+                                                                 window-height (-> js/window .-innerHeight)
+                                                                 scroll-position (-> js/window .-scrollY)
 
-                                                         (log/debug "@on-load")
+                                                                 ]
 
-                                                         #_(let [{:keys [:has-next-page :end-cursor]} (:search-memes last-meme)]
-                                                             (when has-next-page
-                                                               (dispatch [:district.ui.graphql.events/query
-                                                                          {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                                           :id @form-data}])))
+                                                             (log/info "@scrolled" {:page-height page-height
+                                                                                    :window-height window-height
+                                                                                    :scroll-position scroll-position
+                                                                                    :bottom? (<= page-height (+ window-height scroll-position))
 
-                                                         (let [from (-> @state count)
-                                                               to (+ page-size from)]
-                                                           (log/debug "@on-load" {:f from :t to})
-                                                           (update-state {:from from :to to}))
+                                                                                    })))
+                                          :preload-batch-size (* elem-height (/ meme-count 3))
+                                          :infinite-load-begin-edge-offset 400
+                                          :loading? loading?
+                                          :loading-spinner-delegate (fn [] [spinner/spin])
+                                          :load-fn (fn []
+                                                     (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes last-meme)]
+                                                       (when has-next-page
+                                                         (dispatch [:district.ui.graphql.events/query
+                                                                    {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                                     :id @form-data}]))))}
 
-                                                         )}
+         [:table
+          (doall
+           (for [[index [one two three]] (map-indexed vector (partition 3 all-memes))]
+             [:tr {:key index}
+              [:td [puke one]]
+              [:td [puke two]]
+              [:td [puke three]]]))
 
-             #_(reverse @state)
-
-             (doall
-              (for [{:keys [:reg-entry/address] :as meme} (reverse @state)]
-                ^{:key address} [puke meme]))
-
-             ;; (doall
-             ;;  (for [{:keys [:reg-entry/address] :as meme} all-memes]
-             ;;    ^{:key address} [tiles/meme-tile meme]))
-
-             ]]]))
-
-
-    #_[:div.scroll-area
-       [:div.tiles
-        (if (and (empty? all-memes)
-                 (not (:graphql/loading? last-meme)))
-          [no-items-found]
-          (when-not (:graphql/loading? (first @meme-search))
-            (doall
-             (for [{:keys [:reg-entry/address] :as meme} all-memes]
-               ^{:key address}
-               [tiles/meme-tile meme]))))
-        (when (:graphql/loading? last-meme)
-          [:div.spinner-container [spinner/spin]])]
-       [infinite-scroll {:load-fn (fn []
-                                    (when-not (:graphql/loading? last-meme)
-                                      (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes last-meme)]
-                                        (when has-next-page
-                                          (dispatch [:district.ui.graphql.events/query
-                                                     {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                      :id @form-data}])))))}]]))
+          ]])))
 
 
+(defn dank-registry-tiles [form-data meme-search]
+  (let [all-memes (->> @meme-search
+                       (mapcat (fn [r] (-> r :search-memes :items))))
+        last-meme (last @meme-search)]
+
+    (log/debug "#memes" {:c (count all-memes)})
+
+    [:div.scroll-area
+     [:div.tiles
+      (if (and (empty? all-memes)
+               (not (:graphql/loading? last-meme)))
+        [no-items-found]
+        (when-not (:graphql/loading? (first @meme-search))
+          (doall
+            (for [{:keys [:reg-entry/address] :as meme} all-memes]
+              ^{:key address}
+              [puke meme]
+              #_[tiles/meme-tile meme]))))
+      #_(when (:graphql/loading? last-meme)
+        [:div.spinner-container [spinner/spin]])]
+     [infinite-scroll/infinite-scroll {:load-fn (fn []
+                                  (when-not (:graphql/loading? last-meme)
+                                    (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes last-meme)]
+                                      (when has-next-page
+                                        (dispatch [:district.ui.graphql.events/query
+                                                   {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                    :id @form-data}])))))}]]))
 
 (defmethod page :route.dank-registry/browse []
   (let [active-page (subscribe [::router-subs/active-page])
@@ -217,9 +189,4 @@
                          :on-search-change re-search
                          :on-check-filter-change re-search
                          :on-select-change re-search}]
-
-
-          [dank-registry-tiles form-data meme-search]
-
-
-          ]]))))
+          [dank-registry-tiles form-data meme-search]]]))))
