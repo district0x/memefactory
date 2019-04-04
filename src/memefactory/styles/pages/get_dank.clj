@@ -38,8 +38,8 @@
       [:.country-code {:width (em 6.1)}]
       (for-media-max :tablet
                      [:&
-                      {:padding (em 2)
-                       :display :block}])]]
+                      {:flex-direction :column}])]]
+    
     
 
     [:.footer
