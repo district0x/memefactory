@@ -39,7 +39,7 @@
 
 (def default-tab :collected)
 
-(def scroll-interval 5)
+(def scroll-interval 3)
 
 (defmulti rank (fn [tab & opts] tab))
 
@@ -381,7 +381,7 @@
 
 (defmethod panel :created [_ state loading-first? loading-last?]
 
-  (log/debug _ state)
+  #_(log/debug _ state)
 
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
@@ -654,7 +654,7 @@
 
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
 
-  (log/debug "build-query" {:user user-address})
+  #_(log/debug "build-query" {:user user-address})
 
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
@@ -807,33 +807,32 @@
           k (case prefix
               :memes :search-memes
               :meme-auctions :search-meme-auctions)
-          state (mapcat (fn [q] (get-in q [k :items])) @query-subs)]
+          state (mapcat (fn [q] (get-in q [k :items])) @query-subs)
+          loading? (:graphql/loading? (last @query-subs))
+          has-more? (:has-next-page (k (last @query-subs)))]
 
-      (log/debug "re-render scrolling-container" {:query-subs @query-subs
-                                                  :state (map #(get-in % [(case prefix
-                                                                            :memes :reg-entry/address
-                                                                            :meme-auctions :meme-auction/address)])
-                                                              state)
-                                                  :tab tab
-                                                  :query-id query-id
-                                                  :query query})
+      (log/debug "#memes" {:c (count (map #(get-in % [(case prefix
+                                                        :memes :reg-entry/address
+                                                        :meme-auctions :meme-auction/address)])
+                                          state))})
 
       [:div.scroll-area
        [:div.inner-panel
-        [panel tab state (:graphql/loading? (first @query-subs)) (:graphql/loading? (last @query-subs))]
-        (when (:graphql/loading? (last @query-subs))
+        [panel tab state (:graphql/loading? (first @query-subs)) loading?]
+        (when loading?
           [:div.spinner-container [spinner/spin]])
-      [infinite-scroll {:load-fn (fn []
-                                   (if-not (:graphql/loading? (last @query-subs))
-                                     (let [{:keys [:has-next-page :end-cursor]} (k (last @query-subs))]
-                                       (when has-next-page
-                                         (dispatch [::gql-events/query
-                                                    {:query {:queries (build-query tab {:user-address user-address
-                                                                                        :prefix prefix
-                                                                                        :form-data form-data
-                                                                                        :first scroll-interval
-                                                                                        :after end-cursor})}
-                                                     :id query-id}])))))}]]]))
+        [infinite-scroll {:loading? loading?
+                          :has-more? has-more?
+                          :infinite-load-threshold 0
+                          :debounce-interval 200
+                          :load-fn #(let [{:keys [:end-cursor]} (k (last @query-subs))]
+                                      (dispatch [::gql-events/query
+                                                 {:query {:queries (build-query tab {:user-address user-address
+                                                                                     :prefix prefix
+                                                                                     :form-data form-data
+                                                                                     :first scroll-interval
+                                                                                     :after end-cursor})}
+                                                  :id query-id}]))}]]]))
 
 
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
@@ -847,7 +846,7 @@
                                                                   :after 0})}
                                :id (merge @form-data {:tab tab})}])]
 
-  (log/debug "tabbed-pane" {:user user-address})
+  #_(log/debug "tabbed-pane" {:user user-address})
 
     [:div.tabbed-pane
      [:section.search-form
@@ -920,7 +919,7 @@
                             [false _] url-account
                             [true true] nil)]
 
-    (log/debug "index" {:user user-account :url url-account :active active-account})
+    #_(log/debug "index" {:user user-account :url url-account :active active-account})
 
     (when user-account
       (let [prefix (cond (contains? #{:collected :created :curated} active-tab)

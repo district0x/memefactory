@@ -184,10 +184,12 @@
                                     {:id {:params params :key key}}])
             all-memes (->> @meme-search
                            (mapcat (fn [r] (-> r :search-memes :items)))
-                           (remove #(nil? (:reg-entry/address %))))]
+                           (remove #(nil? (:reg-entry/address %))))
+            loading? (:graphql/loading? @meme-search)
+            has-more? (-> (last @meme-search) :search-memes :has-next-page)]
 
-        (log/debug "All Rendering here" all-memes ::challenge-list)
-        (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::challenge-list)
+        #_(log/debug "All Rendering here" all-memes ::challenge-list)
+        #_(log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::challenge-list)
 
         [:div.challenges.panel
          [:div.controls
@@ -199,7 +201,7 @@
          [:div.scroll-area
           [:div.memes
            (if (and (empty? all-memes)
-                    (not (:graphql/loading? (last @meme-search))))
+                    (not loading?))
              [:div.no-items
               [no-items-found]]
              (doall
@@ -208,14 +210,12 @@
                 [challenge {:entry meme
                             :include-challenger-info? include-challenger-info?
                             :action-child action-child}])))
-           (when (:graphql/loading? (last @meme-search))
+           (when loading?
              [:div.challenge
               [:div.spinner-container [spinner/spin]]])]
-          [infinite-scroll {:load-fn (fn []
-                                       (when-not (:graphql/loading? @meme-search)
-                                         (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
-
-                                           (log/debug "Scrolled to load more" {:has-next-page has-next-page :end-cursor end-cursor} ::challenge-list)
-
-                                           (when has-next-page
-                                             (re-search end-cursor)))))}]]]))))
+          [infinite-scroll {:loading? loading?
+                            :has-more? has-more?
+                            :infinite-load-threshold 0
+                            :debounce-interval 200
+                            :load-fn #(let [{:keys [:end-cursor]} (:search-memes (last @meme-search))]
+                                        (re-search end-cursor))}]]]))))

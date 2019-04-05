@@ -41,7 +41,7 @@
    [memefactory.ui.dank-registry.vote-page :as vote-page]
    [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]))
 
-(def scroll-interval 5)
+(def scroll-interval 6)
 
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
@@ -160,20 +160,20 @@
                              {:id address}])
         state (->> @response
                    (mapcat (fn [q] (get-in q [:search-meme-auctions :items])))
-                   (remove #(= (-> % :meme-auction/meme-token :meme-token/meme :reg-entry/address) address)))]
-
-
-
+                   (remove #(= (-> % :meme-auction/meme-token :meme-token/meme :reg-entry/address) address)))
+        loading? (:graphql/loading? (last @response))
+        has-more? (-> (last @response) :search-meme-auctions :has-next-page)]
     [:div.scroll-area
-     [related-memes-component state (:graphql/loading? (first @response)) (:graphql/loading? (last @response))]
-     [infinite-scroll {:load-fn (fn []
-                                  (when-not (:graphql/loading? (last @response))
-                                    (let [{:keys [:has-next-page :end-cursor]} (:search-meme-auctions (last @response))]
-                                      (when has-next-page
-                                        (dispatch [::gql-events/query
-                                                   {:query {:queries (build-query {:first scroll-interval
-                                                                                   :after (or end-cursor 0)})}
-                                                    :id address}])))))}]]))
+     [related-memes-component state (:graphql/loading? (first @response)) loading?]
+     [infinite-scroll {:loading? loading?
+                       :has-more? has-more?
+                       :infinite-load-threshold 0
+                       :debounce-interval 200
+                       :load-fn #(let [{:keys [:end-cursor]} (:search-meme-auctions (last @response))]
+                                   (dispatch [::gql-events/query
+                                              {:query {:queries (build-query {:first scroll-interval
+                                                                              :after (or end-cursor 0)})}
+                                               :id address}]))}]]))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
@@ -555,7 +555,7 @@
         meme-not-loaded? (or (not status)
                              (and meme-sub (:graphql/loading? @meme-sub)))]
 
-    (log/debug "Query sub:" @(subscribe [::gql/query (build-meme-query address active-account)]))
+    #_(log/debug "Query sub:" @(subscribe [::gql/query (build-meme-query address active-account)]))
     [app-layout/app-layout
      {:meta {:title (str "MemeFactory - " title)
              :description (str "Details of meme " title ". " "MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets.")}}

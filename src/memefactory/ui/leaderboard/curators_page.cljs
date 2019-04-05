@@ -17,7 +17,7 @@
    [memefactory.ui.components.general :refer [dank-with-logo]]
    [memefactory.ui.components.general :refer [nav-anchor]]))
 
-(def page-size 12)
+(def page-size 6)
 
 (defn build-curators-query [{:keys [order-by after]}]
   [:search-users
@@ -53,7 +53,9 @@
             users-search (subscribe [::gql/query {:queries [(build-curators-query {:order-by order-by})]}
                                      {:id @form-data}])
             lazy-curators (mapcat #(get-in % [:search-users :items]) @users-search)
-            last-user (last @users-search)]
+            last-user (last @users-search)
+            loading? (:graphql/loading? last-user)
+            has-more? (-> last-user :search-users :has-next-page)]
         [app-layout
          {:meta {:title "MemeFactory - Curators Leaderboard"
                  :description "The most prolific challengers and voters on MemeFactory. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
@@ -73,9 +75,8 @@
                            {:key "voter-total-earned" :value "by total votes earnings"}]}])]
             [:div.scroll-area
              [:div.curators
-
               (if (and (empty? lazy-curators)
-                       (not (:graphql/loading? last-user)))
+                       (not loading?))
                 [no-items-found]
                 (when-not (:graphql/loading? (first @users-search))
                   (->> lazy-curators
@@ -106,13 +107,11 @@
                            [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
                            [:p.total-earnings "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))
                        doall)))
-              (when (:graphql/loading? last-user)
+              (when loading?
                [:div.spinner-container [spinner/spin]])]
-
-             [infinite-scroll {:load-fn (fn [] (when-not (:graphql/loading? last-user)
-                                                 (let [{:keys [has-next-page end-cursor]} (:search-users last-user)]
-
-                                                   (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/curators)
-
-                                                   (when has-next-page
-                                                     (lazy-search-users end-cursor)))))}]]]]]]))))
+             [infinite-scroll {:loading? loading?
+                               :has-more? has-more?
+                               :infinite-load-threshold 0
+                               :debounce-interval 200
+                               :load-fn #(let [{:keys [:end-cursor]} (:search-users last-user)]
+                                           (lazy-search-users end-cursor))}]]]]]]))))
