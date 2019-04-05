@@ -12,16 +12,22 @@
    [:.spinner-outer {:margin-left :auto
                      :margin-right :auto
                      :margin-top (em 4)}]
-   (for-media-max :tablet
-                  [:&
-                   {:margin-right (em 2)
-                    :margin-left (em 2)}])
    [:.get-dank-box
     (panel-with-icon {:url "/assets/icons/dank-logo.svg"
                       :color :purple})
-    [:h3.title {:white-space :normal}]
-    [:.icon {:background-size [(em 4) (em 4)]
-             :background-position-x (em 0.2)}]
+
+    [:h2.title 
+     {:padding-left (em 2)
+      :padding-right (em 2)}]
+
+    [:h3.title 
+     {:white-space :normal
+      :padding-left (em 2)
+      :padding-right (em 2)}]
+
+    [:.icon
+     {:background-size [(em 4) (em 4)]
+      :background-position-x (em 0.2)}]
 
     [:.body
      {:min-height (em 13)}
@@ -30,6 +36,8 @@
        :flex-direction :row
        :font-size (px 14)
        :padding-top (em 4)
+       :padding-left (em 1)
+       :padding-right (em 1)
        :height (em 4)
        :justify-content :center}
       [:.labeled-input-group
