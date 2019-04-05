@@ -43,7 +43,6 @@
 
 (defn- event-target-has-class? [event class]
   (let [classlist (set (event-target-classlist event))]
-    (.log js/console (clj->js classlist))
     (contains? classlist class)))
 
 (defn- event-target-in-classlist? [event classlist]
