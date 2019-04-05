@@ -46,6 +46,7 @@
                        :meme/total-supply
                        :meme/image-hash
                        :meme/title
+                       :meme/comment
                        [:meme/tags [:tag/name]]
                        [:reg-entry/creator [:user/address
                                             :user/creator-rank
@@ -67,7 +68,7 @@
 
 (defn creator-info [user]
   [:ol {:class :creator}
-   [:li "Rank: " [:span (gstring/format "#%d" (or (:user/creator-rank user) 0))]]
+   [:li "Rank: " [:span (if-let [rank (:user/creator-rank user)] (str "#" rank) "N/A")]]
    [:li "Success Rate: " [:span (let [tcmw (or (:user/total-created-memes-whitelisted user) 0)
                                       tcm (or (:user/total-created-memes user) 0)]
                                   (gstring/format "%d/%d (%d%%)"
@@ -84,7 +85,7 @@
 
 (defn challenger-info [user]
   [:ol {:class :challenger}
-   [:li "Rank: " [:span (gstring/format "#%d" (or (:user/challenger-rank user) 0))]]
+   [:li "Rank: " [:span (if-let [rank (:user/challenger-rank user)] (str "#" rank) "N/A")]]
    [:li "Success Rate: " [:span (let [tccs (or (:user/total-created-challenges-success user) 0)
                                       tcc (or (:user/total-created-challenges user) 0)]
                                   (gstring/format "%d/%d (%d%%)"
@@ -150,15 +151,22 @@
                    [:li ""])
                  [:li "Issued: " [:span total-supply]]]
                 [:h3 "Creator"]
-                [creator-info creator]]
+                [creator-info creator]
+                (when (seq (:meme/comment entry))
+                  [:p.meme-comment (str "\"" (:meme/comment entry) "\"")])]
          include-challenger-info? (into [[:h3.challenger "Challenger"]
                                          [challenger-info challenger]])
          true                     (into [[:span.challenge-comment (when-not (empty? comment)
                                                                     (str "\""comment "\""))]
                                          [:ol.tags
                                           (for [{:keys [:tag/name]} tags]
-                                            [:li.tag {:key name}
-                                             name])]]))
+                                            [nav-anchor {:route :route.marketplace/index
+                                                         :params nil
+                                                         :query {:search-tags [name]}
+                                                         :class "tag"
+                                                         :key name}
+                                             [:li.tag {:key name}
+                                              name]])]]))
 
        [:div.meme-tile
         [tiles/meme-image image-hash {:rejected? (= status :reg-entry.status/blacklisted)}]]
@@ -185,11 +193,11 @@
             all-memes (->> @meme-search
                            (mapcat (fn [r] (-> r :search-memes :items)))
                            (remove #(nil? (:reg-entry/address %))))
-            loading? (:graphql/loading? @meme-search)
+            loading? (:graphql/loading? (last @meme-search))
             has-more? (-> (last @meme-search) :search-memes :has-next-page)]
 
-        #_(log/debug "All Rendering here" all-memes ::challenge-list)
-        #_(log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::challenge-list)
+        (log/debug "All Rendering here" all-memes ::challenge-list)
+        (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::challenge-list)
 
         [:div.challenges.panel
          [:div.controls
@@ -204,12 +212,13 @@
                     (not loading?))
              [:div.no-items
               [no-items-found]]
-             (doall
-              (for [{:keys [:reg-entry/address] :as meme} all-memes]
-                ^{:key address}
-                [challenge {:entry meme
-                            :include-challenger-info? include-challenger-info?
-                            :action-child action-child}])))
+             (when-not loading?
+               (doall
+                (for [{:keys [:reg-entry/address] :as meme} all-memes]
+                  ^{:key address}
+                  [challenge {:entry meme
+                              :include-challenger-info? include-challenger-info?
+                              :action-child action-child}]))))
            (when loading?
              [:div.challenge
               [:div.spinner-container [spinner/spin]]])]
@@ -217,5 +226,5 @@
                             :has-more? has-more?
                             :infinite-load-threshold 0
                             :debounce-interval 200
-                            :load-fn #(let [{:keys [:end-cursor]} (:search-memes (last @meme-search))]
-                                        (re-search end-cursor))}]]]))))
+                            :load-fn (let [{:keys [:end-cursor]} (:search-memes (last @meme-search))]
+                                       (re-search end-cursor))}]]]))))
