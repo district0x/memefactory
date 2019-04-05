@@ -41,7 +41,7 @@
    [memefactory.ui.dank-registry.vote-page :as vote-page]
    [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]))
 
-(def scroll-interval 6)
+(def scroll-interval 3)
 
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
