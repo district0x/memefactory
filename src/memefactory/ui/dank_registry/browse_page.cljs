@@ -127,14 +127,6 @@
 
           ]])))
 
-(defn items-list [items]
-  [:ul {:style {:list-style-type :none}}
-   (for [{:keys [:reg-entry/address] :as meme} items]
-     ^{:key address}
-     [:li {:style {:height "100px" :width "400px"
-                   :border "1px solid gray"}}
-      [:div address]])])
-
 (defn memes-list [memes]
   [:div.tiles
    (for [{:keys [:reg-entry/address] :as meme} memes]
@@ -144,19 +136,17 @@
   (let [all-memes (->> @meme-search
                        (mapcat (fn [r] (-> r :search-memes :items))))
         last-meme (last @meme-search)
-
+        no-memes? (empty? all-memes)
         loading? (:graphql/loading? last-meme)
         has-more? (-> last-meme :search-memes :has-next-page)]
 
-    (log/debug "#memes" {:c (count all-memes)
-                         :loading? loading?
-                         :has-more? has-more?})
+    (log/debug "#memes" {:c (count all-memes)})
 
     [:div.scroll-area
 
-     [memes-list all-memes]
+     #_[memes-list all-memes]
 
-     [:div
+     #_[:div
       (cond
         loading?
         "Loading ..."
@@ -167,7 +157,7 @@
         :else
         "No more memes!!")]
 
-     #_[:div.tiles
+     [:div.tiles
       (if (and (empty? all-memes)
                (not (:graphql/loading? last-meme)))
         [no-items-found]
@@ -175,9 +165,9 @@
           (doall
            (for [{:keys [:reg-entry/address] :as meme} all-memes]
              ^{:key address}
-             [puke meme]
-             #_[tiles/meme-tile meme]))))
-      #_(when (:graphql/loading? last-meme)
+             #_[puke meme]
+             [tiles/meme-tile meme]))))
+      (when (:graphql/loading? last-meme)
           [:div.spinner-container [spinner/spin]])]
 
      [infinite-scroll/infinite-scroll {:loading? loading?
