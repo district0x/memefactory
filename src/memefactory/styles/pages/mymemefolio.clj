@@ -1,20 +1,22 @@
 (ns memefactory.styles.pages.mymemefolio
-  (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.component.buttons :refer [button]]
-            [memefactory.styles.base.borders :refer [border-top border-bottom]]
-            [memefactory.styles.base.colors :refer [color]]
-            [memefactory.styles.base.fonts :refer [font]]
-            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-            [memefactory.styles.component.search :refer [search-panel]]
-            [memefactory.styles.component.panels :refer [tabs]]
-            [garden.selectors :as sel]
-            [garden.units :refer [pt px em rem]]
-            [clojure.string :as str]
-            [memefactory.styles.pages.memefolio.details :as details]
-            [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]))
+  (:require
+    [garden.def :refer [defstyles]]
+    [garden.stylesheet :refer [at-media]]
+    [clojure.string :as s]
+    [memefactory.styles.base.icons :refer [icons]]
+    [memefactory.styles.component.buttons :refer [button]]
+    [memefactory.styles.base.borders :refer [border-top border-bottom]]
+    [memefactory.styles.base.colors :refer [color]]
+    [memefactory.styles.base.fonts :refer [font]]
+    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
+    [memefactory.styles.component.search :refer [search-panel]]
+    [memefactory.styles.component.panels :refer [tabs]]
+    [garden.selectors :as sel]
+    [garden.units :refer [pt px em rem]]
+    [clojure.string :as str]
+    [memefactory.styles.pages.memefolio.details :as details]
+    [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]
+    [garden.color :as color]))
 
 (defn button-tile-back []
   [:.sell {:display :grid
@@ -65,11 +67,21 @@
           :margin-left :auto
           :margin-right :auto
           :overflow :hidden}
-     [:.copy {:background-color (color :mymemefolio-green)
-              :padding (px 4)
-              :cursor :pointer
-              :margin-left (px 10)
-              :border-radius (px 15)}]]]
+     [:.copy
+      {:background-color (color :mymemefolio-green)
+       :padding (px 4)
+       :cursor :pointer
+       :margin-left (px 10)
+       :margin-bottom (px -1)
+       :border-radius (px 15)
+       :line-height (px 20)}
+      (for-media-max :tablet
+                     [:&
+                      {:margin-bottom (px -3)}])
+      [:&:hover
+       {:background-color (color/transparentize (color :mymemefolio-green) 0.3)}]
+      [:&:active
+       {:background-color (color/transparentize (color :mymemefolio-green) 0.5)}]]]]
    [:.tabbed-pane
     {:max-width (px 985)
      :margin-right :auto

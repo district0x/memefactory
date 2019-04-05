@@ -855,10 +855,14 @@
                                                                               (subs loc-str 0 qidx)
                                                                               loc-str)
                                                                         user-link (str loc user-address "?tab=" (name tab))]
-                                                                    [:img.copy {:on-click (fn []
-                                                                                            (copy-to-clipboard user-link))
-                                                                                :title "Copy shareable URL to clipboard"
-                                                                                :src "/assets/icons/link.svg"}])])
+                                                                    [:img.copy
+                                                                     {:on-click
+                                                                      (fn []
+                                                                        (copy-to-clipboard user-link)
+                                                                        (dispatch [:district.ui.notification.events/show
+                                                                                   "Your Memefolio URL was copied to clipboard!"]))
+                                                                      :title "Copy shareable URL to clipboard"
+                                                                      :src "/assets/icons/link.svg"}])])
                                    :form-data form-data
                                    :on-selected-tags-change re-search
                                    :on-search-change re-search
