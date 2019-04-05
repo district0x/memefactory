@@ -39,7 +39,7 @@
 
 (def default-tab :collected)
 
-(def scroll-interval 3)
+(def page-size 3)
 
 (defmulti rank (fn [tab & opts] tab))
 
@@ -800,7 +800,7 @@
     (let [query (build-query tab {:user-address user-address
                                   :prefix prefix
                                   :form-data @form-data
-                                  :first scroll-interval})
+                                  :first page-size})
           query-id (merge @form-data {:tab tab :user-address user-address})
           query-subs (subscribe [::gql/query {:queries query}
                                  {:id query-id}])
@@ -830,7 +830,7 @@
                                                  {:query {:queries (build-query tab {:user-address user-address
                                                                                      :prefix prefix
                                                                                      :form-data form-data
-                                                                                     :first scroll-interval
+                                                                                     :first page-size
                                                                                      :after end-cursor})}
                                                   :id query-id}]))}]]]))
 
@@ -842,7 +842,7 @@
                               {:query {:queries (build-query tab {:user-address user-address
                                                                   :prefix prefix
                                                                   :form-data @form-data
-                                                                  :first scroll-interval
+                                                                  :first page-size
                                                                   :after 0})}
                                :id (merge @form-data {:tab tab})}])]
 

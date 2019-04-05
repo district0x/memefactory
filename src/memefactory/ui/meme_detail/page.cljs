@@ -41,7 +41,7 @@
    [memefactory.ui.dank-registry.vote-page :as vote-page]
    [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]))
 
-(def scroll-interval 3)
+(def page-size 3)
 
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm:ss Z"))
 
@@ -156,7 +156,7 @@
                                       :meme/meta-hash
                                       :meme/total-minted]]]]]]]]])
         response (subscribe [::gql/query {:queries (build-query {:after 0
-                                                                 :first scroll-interval})}
+                                                                 :first page-size})}
                              {:id address}])
         state (->> @response
                    (mapcat (fn [q] (get-in q [:search-meme-auctions :items])))
@@ -171,7 +171,7 @@
                        :debounce-interval 200
                        :load-fn #(let [{:keys [:end-cursor]} (:search-meme-auctions (last @response))]
                                    (dispatch [::gql-events/query
-                                              {:query {:queries (build-query {:first scroll-interval
+                                              {:query {:queries (build-query {:first page-size
                                                                               :after (or end-cursor 0)})}
                                                :id address}]))}]]))
 

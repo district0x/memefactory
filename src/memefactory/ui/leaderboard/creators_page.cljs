@@ -17,7 +17,7 @@
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.general :refer [nav-anchor]]))
 
-(def page-size 12)
+(def page-size 6)
 
 (defn build-creators-query [{:keys [order-by after]}]
   [:search-users
@@ -87,9 +87,11 @@
             users-search (subscribe [::gql/query {:queries [(build-creators-query {:order-by order-by})]}
                                      {:id @form-data}])
             all-creators (mapcat #(get-in % [:search-users :items]) @users-search)
-            last-user (last @users-search)]
+            last-user (last @users-search)
+            loading? (:graphql/loading? last-user)
+            has-more? (-> last-user :search-users :has-next-page)]
 
-        (log/debug "All creators" {:creators all-creators})
+        (log/debug "#creators" {:c (count all-creators)})
 
         [app-layout
          {:meta {:title "MemeFactory - Creators Leaderboard"
@@ -111,7 +113,7 @@
             [:div.scroll-area
              [:div.creators
               (if (and (empty? all-creators)
-                       (not (:graphql/loading? last-user)))
+                       (not loading?))
                 [no-items-found]
                 (when-not (:graphql/loading? (first @users-search))
                   (doall
@@ -121,13 +123,11 @@
                       [creator-tile creator num])
                     all-creators
                     (iterate inc 1)))))
-              (when (:graphql/loading? last-user)
-               [:div.spinner-container [spinner/spin]])]
-             [infinite-scroll {:load-fn (fn []
-                                          (when-not (:graphql/loading? last-user)
-                                            (let [{:keys [has-next-page end-cursor]} (:search-users last-user)]
-
-                                              (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
-
-                                              (when has-next-page
-                                                (re-search-users end-cursor)))))}]]]]]]))))
+              (when loading?
+                [:div.spinner-container [spinner/spin]])]
+             [infinite-scroll {:loading? loading?
+                               :has-more? has-more?
+                               :infinite-load-threshold 0
+                               :debounce-interval 200
+                               :load-fn #(let [{:keys [:end-cursor]} (:search-users last-user)]
+                                           (re-search-users end-cursor))}]]]]]]))))
