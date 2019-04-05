@@ -67,69 +67,10 @@
         :color (color :menu-logo)}]]
 
      [:.accounts
-      {:display :none
-       :grid-template-areas
-       "'dank-section eth-section'
-       'tx-log       tx-log'"
-       :height "100%"
-       :width (px tracker-width)
-       :background-color (color :ticker-background)}
+      {:display :none}
       (for-media-max
        :tablet
-       [:& {:display :grid}])
-      [:.dank-section
-       (merge
-        {:grid-area :dank-section
-         :box-sizing :border-box
-         :border-right-width (px 1)
-         :border-right-style :solid
-         :border-right-color "rgba(101,0,57,0.5)"
-         :display :flex
-         :justify-content :center}
-        account-section-style)
-       [:.dank-logo
-        {:grid-area :logo
-         :display :flex
-         :justify-content :center}
-        [:img
-         {:width (em 1.8)
-          :height (em 1.8)
-          :margin-top (em 0.25)
-          :margin-right (em 0.7)}]]]
-      [:.eth-section
-       (merge
-        {:grid-area :eth-section
-         :display :flex
-         :justify-content :center}
-        account-section-style)
-       [:.eth-logo
-        {:grid-area :logo
-         :display :flex
-         :justify-content :center}
-        [:img
-         {:width (em 1.3)
-          :height (em 1.3)
-          :margin-top (em 0.6)
-          :margin-right (em 0.7)}]]]
-
-      [:.active-account-balance
-       {:grid-area :account-balance
-        :display :flex
-        :background-color (color :ticker-background)
-        :flex-direction :column
-        :justify-content :center
-        :align-items :center}
-
-       [:.balance
-        (font :bungee)
-        {:white-space :nowrap
-         :color (color :ticker-color)
-         :text-align :center
-         :overflow :hidden
-         :text-overflow :ellipsis}]
-       [:.token-code
-        {:white-space :nowrap
-         :color (color :ticker-token-color)}]]]
+       [:& {:display :grid}])]
 
      [:ul.node
       {:padding-left (em 0)
