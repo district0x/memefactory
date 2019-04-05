@@ -30,7 +30,7 @@
      order-by                (assoc :order-by (keyword "meme-auctions.order-by" order-by))
      order-dir               (assoc :order-dir (get {"started-on" :desc
                                                      "meme-total-minted" :asc
-                                                     "price" :desc}
+                                                     "price" :asc}
                                                     order-by
                                                     :desc))
      only-cheapest?          (assoc :group-by :meme-auctions.group-by/cheapest))

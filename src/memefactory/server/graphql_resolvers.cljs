@@ -283,11 +283,11 @@
                                      :meme-auctions.order-by/bought-on          :meme-auction/bought-on
                                      :meme-auctions.order-by/token-id           :meme-auction/token-id
                                      :meme-auctions.order-by/meme-total-minted  :meme/total-minted
-                                     :meme-auctions.group-by/cheapest           #(shared-utils/calculate-meme-auction-price % now)}
+                                     :meme-auctions.order-by/price              #(shared-utils/calculate-meme-auction-price % now)}
                                     (graphql-utils/gql-name->kw order-by)
                                     :meme-auction/started-on)
 
-                               (if (= (keyword order-dir) :desc) < >))
+                               (if (= (keyword order-dir) :desc) > <))
 
                       ;; random is a special ordering case because we can't call sort-by for it
                       (and order-by (= (graphql-utils/gql-name->kw order-by) :meme-auctions.order-by/random))
