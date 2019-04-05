@@ -61,7 +61,7 @@
     (r/create-class
      {:component-did-mount attach-scroll-listener
       :component-did-update (fn [this _]
-                              (do ;;(attach-scroll-listener this)
+                              (do (attach-scroll-listener this)
                                 (let [{:keys [:load-fn :has-more? :loading?]} (r/props this)
                                       {:keys [:bottom? :page-height]} (get-position root-id)
                                       {previous-page-height :page-height} @state]
