@@ -1,5 +1,6 @@
 (ns memefactory.server.dev
-  (:require [bignumber.core :as bn]
+  (:require [ajax.core :as http]
+            [bignumber.core :as bn]
             [camel-snake-kebab.core :as cs :include-macros true]
             [cljs-time.core :as t]
             [cljs-web3.core :as web3-core]
@@ -24,7 +25,6 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.db]
-            [memefactory.server.emailer]
             [memefactory.server.generator :as generator]
             [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
             [memefactory.server.ipfs]
@@ -36,7 +36,6 @@
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.smart-contracts]
             [mount.core :as mount]
-            [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]))
 
 (nodejs/enable-util-print!)
@@ -147,43 +146,43 @@
         (log/info "Finished syncing database" ))))
 
 (defn -main [& _]
-  (let [on-event-error (fn [err]
-                         (log/error "RPC node error" {:error err}))]
-    (-> (mount/with-args
-          {:config {:default {:logging {:level "info"
-                                        :console? true}
-                              :web3-tx-log {:open-on-tx-hash? true}
-                              :time-source :blockchain
-                              :graphql {:port 6300
-                                        :middlewares [logging-middlewares]
-                                        :schema (utils/build-schema graphql-schema
-                                                                    resolvers-map
-                                                                    {:kw->gql-name graphql-utils/kw->gql-name
-                                                                     :gql-name->kw graphql-utils/gql-name->kw})
-                                        :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
-                                        :path "/graphql"
-                                        :graphiql true}
-                              :web3 {:port 8549}
-                              :ipfs {:host "http://127.0.0.1:5001"
-                                     :endpoint "/api/v0"
-                                     :gateway "http://127.0.0.1:8080/ipfs"}
-                              :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
-                              :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
-                              :ui {:public-key "PLACEHOLDER"
-                                   :root-url "http://0.0.0.0:4598/#/"}
-                              :twilio-api-key "PLACEHOLDER"
-                              :blacklist-file "blacklist.edn"
-                              :blacklist-token "PLACEHOLDER"
-                              :syncer {:on-event-error on-event-error}
-                              :emailer {:private-key "PLACEHOLDER"
-                                        :api-key "PLACEHOLDER"
-                                        :template-id "PLACEHOLDER"
-                                        :from "district0x@district0x.io"
-                                        :print-mode? true
-                                        :on-event-error on-event-error}}}})
-        (mount/start)
-        pprint/pprint))
-  (log/warn "System started" {:config @config} ::main))
+  (-> (mount/with-args
+        {:config {:default {:logging {:level "info"
+                                      :console? true}
+                            :web3-tx-log {:open-on-tx-hash? true}
+                            :time-source :blockchain
+                            :graphql {:port 6300
+                                      :middlewares [logging-middlewares]
+                                      :schema (utils/build-schema graphql-schema
+                                                                  resolvers-map
+                                                                  {:kw->gql-name graphql-utils/kw->gql-name
+                                                                   :gql-name->kw graphql-utils/gql-name->kw})
+                                      :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
+                                      :path "/graphql"
+                                      :graphiql true}
+
+                            :web3 {:url "http://localhost:8549"
+                                   ;; :url "http://qa.district0x.io:8545"
+                                   }
+                            :ipfs {:host "http://127.0.0.1:5001"
+                                   :endpoint "/api/v0"
+                                   :gateway "http://127.0.0.1:8080/ipfs"}
+                            :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
+                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
+                            :ui {:public-key "PLACEHOLDER"
+                                 :root-url "http://0.0.0.0:4598/#/"}
+                            :twilio-api-key "PLACEHOLDER"
+                            :blacklist-file "blacklist.edn"
+                            :blacklist-token "PLACEHOLDER"
+                            :emailer {:private-key "PLACEHOLDER"
+                                      :api-key "PLACEHOLDER"
+                                      :template-id "PLACEHOLDER"
+                                      :from "district0x@district0x.io"
+                                      :print-mode? true}
+                            :syncer {:read-events-from-cache? true}}}})
+      (mount/start)
+      (#(log/warn "Started" {:components %
+                             :config @config}))))
 
 (set! *main-cli-fn* -main)
 
@@ -300,3 +299,19 @@
                                  (map (fn [p] (str (:type p) " " (:name p) " = " (:value p))))
                                  (clojure.string/join ",\n"))")")
               (apply cc (into [contract-instance method] args)))))))
+
+(defn filter-installed? [id]
+  (js/Promise.
+   (fn [resolve reject]
+     (http/ajax-request
+      {:uri (get-in @config [:web3 :url])
+       :method :post
+       :headers {"Content-Type" "application/json"}
+       :params {:jsonrpc "2.0"
+                :method "eth_getFilterChanges"
+                :params [id]
+                :id id}
+       :handler #(resolve %)
+       :error-handler #(reject %)
+       :format (http/json-request-format)
+       :response-format (http/json-response-format {:keywords? true})}))))

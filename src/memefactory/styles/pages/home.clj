@@ -14,19 +14,19 @@
 
 
 (defstyles core
-  [:.home {:margin-top (px -50)}
+  [:.home
    [:.spinner-container {:width (px 900)
-                           :height (px 500)}
-      [:.spinner-outer {:margin-left :auto
-                        :margin-right :auto
-                        :padding-top (em 12)}]]
+                         :height (px 500)}
+    [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto
+                      :padding-top (em 12)}]]
    [:p.inspired
     (font :filson)
     {:color (color :pink)
      :position :relative
      :margin-right :auto
      :margin-left :auto
-     :padding-top (em 5)
+     :padding-top (em 2.7)
      :text-align :center
      :font-weight :lighter
      :font-size (pt 14)
@@ -34,18 +34,19 @@
      :line-height (em 1.9)}
     (for-media-max :tablet
                    [:&
-                    {:width "100%"}])
+                    {:width "100%"
+                     :padding-top (em 5)}])
     [:&:before
      (font :bungee)
      {:content "'MF'"
       :color "black"
       :font-size (em 1.1)
-      :line-height (em 3)
+      :line-height (em 1)
       :background-size [(em 2.8) (em 2.8)]
       :background-repeat :no-repeat
-      :background-position-y (em 2)
+      :background-position-y (em 1)
       :background-position-x :center
-      :top (em 0.5)
+      :top (em 0)
       ;; :center (rem 0)
       :position :absolute
       :margin-right :auto
@@ -56,8 +57,8 @@
       :width (em 4)
       :background-image (str "url('/assets/icons/mouth.svg')")}
      (for-media-max :tablet
-                   [:&
-                    {:top (em 1.5)}])]]
+                    [:&
+                     {:top (em 1.5)}])]]
    [:.meme-card
     [:.overlay {:background overlay-background-footer}]]
    [:.meme-highlights
@@ -128,7 +129,10 @@
                 :background-image (str "url('/assets/icons/chevron-right.svg')")
                 :margin-left (em 0.7)
                 :color (color :pink)
-                :display :inline-block}]]
+                :display :inline-block}
+      (for-media-max :tablet
+                     [:&
+                      {:display :none}])]]
     [:.icon
      (for-media-max :tablet
                     [:&

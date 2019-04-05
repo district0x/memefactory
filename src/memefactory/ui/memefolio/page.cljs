@@ -8,6 +8,7 @@
    [clojure.string :as str]
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
+   [memefactory.ui.utils :refer [copy-to-clipboard]]
    [district.time :as time]
    [district.ui.component.form.input :as inputs]
    [district.ui.component.page :refer [page]]
@@ -141,13 +142,16 @@
                                           :meme-auction/end-price (when (or (not (pos? ep))
                                                                             (< sp ep))
                                                                     {:error "End price should be lower than start price"})
-                                          :meme-auction/duration (let [duration (js/parseFloat (:meme-auction/duration @form-data))
+                                          ;; HACK ALERT
+                                          ;; TODO: this durations should be specified in days and not in seconds at param level
+                                          :meme-auction/duration (let [duration (js/parseInt (:meme-auction/duration @form-data))
                                                                        max-duration (-> max-auction-duration
                                                                                         shared-utils/seconds->days
-                                                                                        (shared-utils/round 4))
-                                                                       min-duration (-> min-auction-duration
-                                                                                        shared-utils/seconds->days
-                                                                                        (shared-utils/round 4))]
+                                                                                        int)
+                                                                       min-duration (let [md (-> min-auction-duration
+                                                                                                 shared-utils/seconds->days
+                                                                                                 int)]
+                                                                                      (if (zero? md) 1 md))]
                                                                    (cond-> {:hint (str "Max " max-duration)}
                                                                      (not (<= min-duration duration max-duration))
                                                                      (assoc :error (str "Should be between " min-duration " and " max-duration))))}}))
@@ -274,12 +278,12 @@
                          (let [token-ids (map :meme-token/token-id owned-meme-tokens)
                                token-count (->> token-ids
                                                 (filter shared-utils/not-nil?)
-                                                count)]
+                                                count)
+                               active-user-page? (or (empty? url-address) (= url-address active-account))]
                            [:div.compact-tile {:key address}
                             [tiles/flippable-tile {:front (tiles/meme-image image-hash
                                                                             {:class "collected-tile-front"})
-                                                   :back (if (or (empty? url-address)
-                                                                 (= url-address active-account))
+                                                   :back (if active-user-page?
                                                            [collected-tile-back {:meme/number number
                                                                                  :meme/title title
                                                                                  :reg-entry/address address
@@ -287,7 +291,8 @@
                                                                                  :meme-auction/token-count token-count
                                                                                  :meme-auction/token-ids token-ids}]
                                                            [tiles/meme-back-tile meme])
-                                                   :flippable-classes #{"meme-image" "cancel" "info" "create-offering"}}]
+                                                   :flippable-classes (when active-user-page? 
+                                                                        #{"meme-image" "cancel" "info" "create-offering"})}]
                             [nav-anchor {:route :route.meme-detail/index
                                          :params {:address address}
                                          :query nil
@@ -322,7 +327,7 @@
           {:keys [:meme/title]} meme
           total-memes-count (-> @query :search-memes :total-count)
           total-meme-tokens-count (-> @query :search-meme-tokens :total-count)]
-      [:div.stats
+      [:div.stats.collected
        [:div.rank
         (str "RANK: #" collector-rank) ]
        [:div.var
@@ -336,17 +341,14 @@
        [:div.var
         [:b "Largest buy: "]
         (if (and bought-for token-id title)
-
-          [:span (str (format/format-eth (/ bought-for 1e18)
-                                         {:max-fraction-digits 2})
-                      " (#" token-id " " title ")")]
+          [:span (str (ui-utils/format-price bought-for))]
           [:span "None"])]])))
 
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
                                                   [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
-      [:div "Total "  (get-in @query [:search-memes :total-count])])))
+      [:div.total "Total "  (get-in @query [:search-memes :total-count])])))
 
 (defn issue-form [{:keys [:meme/title :reg-entry/address :meme/total-supply :meme/total-minted]}]
   (let [tx-id (str (random-uuid))
@@ -450,14 +452,11 @@
                                            (+ total-earned end-price))
                                          0
                                          meme-auctions))]
-      [:div.stats
+      [:div.stats.created
        [:div.rank
         (str "RANK: #" creator-rank)]
        [:div.var
-        [:b "Earned: "]
-        (when creator-total-earned
-          (format/format-eth (web3/from-wei creator-total-earned :ether) {:max-fraction-digits 2
-                                                                          :min-fraction-digits 0}))]
+        [:b "Earned: "] (ui-utils/format-price creator-total-earned)]
        [:div.var
         [:b "Success Rate: "]
         (when (and total-created-memes-whitelisted total-created-memes)
@@ -469,10 +468,7 @@
                     :class "var best-card-sale"}
         [:b "Best Single Card Sale: "]
         (if (and largest-sale number title)
-          (str (-> (:meme-auction/bought-for largest-sale)
-                   (web3/from-wei :ether)
-                   (bn/number)
-                   (format/format-eth {:max-fraction-digits 2}))
+          (str (ui-utils/format-price (:meme-auction/bought-for largest-sale))
                " (#" number " " title ")")
           "None")]])))
 
@@ -481,7 +477,7 @@
                           {:queries [[:search-memes {:creator active-account}
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
-      [:div "Total " (get-in @query [:search-memes :total-count])])))
+      [:div.total "Total " (get-in @query [:search-memes :total-count])])))
 
 (defmethod panel :curated [_ state loading-first? loading-last?]
   (if (and (empty? state)
@@ -565,7 +561,7 @@
                                                   [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-memes :total-count])]
-        [:div "Total " total]))))
+        [:div.total "Total " total]))))
 
 (defmethod total :created [_ active-account]
   (let [query (subscribe [::gql/query
@@ -573,7 +569,7 @@
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-memes :total-count])]
-        [:div "Total " total]))))
+        [:div.total "Total " total]))))
 
 (defmethod total :curated [_ active-account]
   (let [query (subscribe [::gql/query
@@ -581,7 +577,7 @@
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-memes :total-count])]
-        [:div "Total " total]))))
+        [:div.total "Total " total]))))
 
 (defmethod total :selling [_ active-account]
   (let [query (subscribe [::gql/query
@@ -589,14 +585,14 @@
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-meme-auctions :total-count])]
-        [:div "Total " total]))))
+        [:div.total "Total " total]))))
 
-(defmethod total :sold [_ active-account form-data]
+(defmethod total :sold [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
                                       [:total-count]]]}])]
     (let [total (get-in @query [:search-meme-auctions :total-count])]
-      [:div (str "Total " total)])))
+      [:div.total (str "Total " total)])))
 
 (defmethod panel :sold [_ state loading-first? loading-last?]
 
@@ -755,6 +751,7 @@
                            :meme-auction/bought-for
                            :meme-auction/started-on
                            :meme-auction/duration
+                           :meme-auction/description
                            [:meme-auction/seller [:user/address]]
                            [:meme-auction/meme-token
                             [:meme-token/number
@@ -851,8 +848,20 @@
     [:div.tabbed-pane
      [:section.search-form
       [search/search-tools (merge {:title (if url-address?
-                                            (str "Memefolio " user-address)
-                                            "My Memefolio")
+                                            [:span (str "Memefolio " user-address)]
+                                            [:span "My Memefolio" (let [loc-str (str (.-location js/window))
+                                                                        loc (if-let [qidx (str/index-of loc-str "?")]
+                                                                              (subs loc-str 0 qidx)
+                                                                              loc-str)
+                                                                        user-link (str loc user-address "?tab=" (name tab))]
+                                                                    [:img.copy
+                                                                     {:on-click
+                                                                      (fn []
+                                                                        (copy-to-clipboard user-link)
+                                                                        (dispatch [:district.ui.notification.events/show
+                                                                                   "Your Memefolio URL was copied to clipboard!"]))
+                                                                      :title "Copy shareable URL to clipboard"
+                                                                      :src "/assets/icons/link.svg"}])])
                                    :form-data form-data
                                    :on-selected-tags-change re-search
                                    :on-search-change re-search
@@ -885,7 +894,7 @@
      [:section.tabs
       (doall
        (map (fn [tab-id]
-              ^{:key tab-id} [:div
+              ^{:key tab-id} [:div.tab
                               {:class (when (= tab
                                                tab-id) "selected")}
 
@@ -898,8 +907,7 @@
                                    cljs.core/name
                                    (str/capitalize))]])
             [:collected :created :curated :selling :sold]))
-      [:div.total
-       [total tab user-address]]]
+      [total tab user-address]]
      [:section.stats
       (when (not (contains? #{:selling :sold} tab))
         [:div.rank

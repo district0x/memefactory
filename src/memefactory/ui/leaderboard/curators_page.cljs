@@ -1,21 +1,23 @@
 (ns memefactory.ui.leaderboard.curators-page
   (:require
-   [district.format :as format]
-   [district.ui.component.form.input :refer [select-input]]
-   [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
-   [goog.string :as gstring]
-   [memefactory.ui.components.app-layout :refer [app-layout]]
-   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-   [memefactory.ui.components.spinner :as spinner]
-   [re-frame.core :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [taoensso.timbre :as log]
-   [district.ui.router.events :as router-events]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.general :refer [dank-with-logo]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+    [cljs-web3.core :as web3]
+    [district.format :as format]
+    [district.ui.component.form.input :refer [select-input]]
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.router.events :as router-events]
+    [district.ui.web3-accounts.subs :as accounts-subs]
+    [goog.string :as gstring]
+    [memefactory.ui.components.app-layout :refer [app-layout]]
+    [memefactory.ui.components.general :refer [dank-with-logo]]
+    [memefactory.ui.components.general :refer [nav-anchor]]
+    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+    [memefactory.ui.components.panels :refer [no-items-found]]
+    [memefactory.ui.components.spinner :as spinner]
+    [memefactory.ui.utils :as ui-utils]
+    [re-frame.core :refer [subscribe dispatch]]
+    [reagent.core :as r]
+    [taoensso.timbre :as log]))
 
 (def page-size 6)
 
@@ -81,7 +83,7 @@
                 (when-not (:graphql/loading? (first @users-search))
                   (->> lazy-curators
                        (map-indexed
-                        (fn [idx curator]
+                         (fn [idx curator]
                           ^{:key (:user/address curator)}
                           [:div.curator {:class (when (= @(subscribe [::accounts-subs/active-account]) (:user/address curator)) "account-tile")}
                            [:p.number (str "#" (inc idx))]
@@ -96,7 +98,7 @@
                             (let [total-challenges (:user/total-created-challenges curator)
                                   success-challenges (:user/total-created-challenges-success curator)]
                               [:span success-challenges "/" total-challenges " (" (format/format-percentage success-challenges total-challenges) ")"])]
-                           [:p "Earned: " [:span (format/format-token (/ (:user/challenger-total-earned curator) 1e18) {:token "DANK"})]]
+                           [:p "Earned: " [:span (ui-utils/format-dank (:user/challenger-total-earned curator))]]
 
                            [:h4.votes "VOTES"]
                            [:p "Success rate: "
@@ -104,8 +106,8 @@
                                   success-votes (:user/total-participated-votes-success curator)]
                               [:span success-votes "/" total-votes " (" (format/format-percentage success-votes total-votes) ")"])]
 
-                           [:p "Earned: " [:span (format/format-token (/ (:user/voter-total-earned curator) 1e18) {:token "DANK"})]]
-                           [:p.total-earnings "Total Earnings: " [:span (format/format-token (/ (:user/curator-total-earned curator) 1e18) {:token "DANK"})]]]))
+                           [:p "Earned: " [:span (ui-utils/format-dank (:user/voter-total-earned curator))]]
+                           [:p.total-earnings "Total Earnings: " [:span (ui-utils/format-dank (web3/from-wei (:user/curator-total-earned curator) :ether))]]]))
                        doall)))
               (when loading?
                [:div.spinner-container [spinner/spin]])]

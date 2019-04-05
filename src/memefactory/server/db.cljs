@@ -41,6 +41,7 @@
 (def memes-columns
   [[:reg-entry/address address not-nil]
    [:meme/title :varchar not-nil]
+   [:meme/comment :varchar default-nil]
    [:meme/number :integer default-nil]
    [:meme/image-hash ipfs-hash not-nil]
    [:meme/meta-hash ipfs-hash not-nil]

@@ -1,20 +1,22 @@
 (ns memefactory.styles.pages.mymemefolio
-  (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.component.buttons :refer [button]]
-            [memefactory.styles.base.borders :refer [border-top border-bottom]]
-            [memefactory.styles.base.colors :refer [color]]
-            [memefactory.styles.base.fonts :refer [font]]
-            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-            [memefactory.styles.component.search :refer [search-panel]]
-            [memefactory.styles.component.panels :refer [tabs]]
-            [garden.selectors :as sel]
-            [garden.units :refer [pt px em rem]]
-            [clojure.string :as str]
-            [memefactory.styles.pages.memefolio.details :as details]
-            [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]))
+  (:require
+    [garden.def :refer [defstyles]]
+    [garden.stylesheet :refer [at-media]]
+    [clojure.string :as s]
+    [memefactory.styles.base.icons :refer [icons]]
+    [memefactory.styles.component.buttons :refer [button]]
+    [memefactory.styles.base.borders :refer [border-top border-bottom]]
+    [memefactory.styles.base.colors :refer [color]]
+    [memefactory.styles.base.fonts :refer [font]]
+    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
+    [memefactory.styles.component.search :refer [search-panel]]
+    [memefactory.styles.component.panels :refer [tabs]]
+    [garden.selectors :as sel]
+    [garden.units :refer [pt px em rem]]
+    [clojure.string :as str]
+    [memefactory.styles.pages.memefolio.details :as details]
+    [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]
+    [garden.color :as color]))
 
 (defn button-tile-back []
   [:.sell {:display :grid
@@ -64,7 +66,22 @@
           :text-overflow :ellipsis
           :margin-left :auto
           :margin-right :auto
-          :overflow :hidden}]]
+          :overflow :hidden}
+     [:.copy
+      {:background-color (color :mymemefolio-green)
+       :padding (px 4)
+       :cursor :pointer
+       :margin-left (px 10)
+       :margin-bottom (px -1)
+       :border-radius (px 15)
+       :line-height (px 20)}
+      (for-media-max :tablet
+                     [:&
+                      {:margin-bottom (px -3)}])
+      [:&:hover
+       {:background-color (color/transparentize (color :mymemefolio-green) 0.3)}]
+      [:&:active
+       {:background-color (color/transparentize (color :mymemefolio-green) 0.5)}]]]]
    [:.tabbed-pane
     {:max-width (px 985)
      :margin-right :auto
@@ -109,20 +126,14 @@
      :width (em 1)
      :height (em 1)}]
    [:.total
-    {:position :relative
-     :left (em 41)
+    {:padding-right 0
+     :flex 1
+     :text-align :right
      :font-size (em 0.9)
      :color (color :section-subcaption)}
-    (for-media-max :computer
+    (for-media-max :tablet
                    [:&
-                    {:margin-right (em 2)
-                     :margin-top (em 2)
-                     :margin-left (em 6)}])
-    [">div"
-     {:display :flex
-      :margin :auto}
-     [">.spinner--total"
-      {:margin-left (em 0.5)}]]]
+                    {:display :none}])]
    [:section.stats
     {:display :flex
      :margin-top 0
@@ -158,18 +169,27 @@
       :padding-left (em 3)}
      (for-media-max :computer
                     [:&
+                     {:padding-left (em 1.7)}])
+     (for-media-max :computer
+                    [:&
                      {:width "100%"
                       :border-radius "1em 1em 0em 0em"}])
-     [:&.rank--big
-      {:line-height (em 6)
-       :margin :auto
-       :height "100%"
-       :align-self :center}]]
+     (for-media-min :computer
+                    [:&.rank--big
+                     {:line-height (em 6)
+                      :margin :auto
+                      :height "100%"
+                      :align-self :center}])]
     [:.stats
      {:display :flex}
      (for-media-max :computer
                     [:&
                      {:flex-direction :column}])
+     (for-media-max :computer
+                    [:&.collected :&.created
+                     {:padding-bottom (em 0.9)}
+                     [:.rank
+                      {:margin-bottom (em 0.9)}]])
      [:.var
       {:color (color :section-subcaption)
        :margin-right (em 1)
@@ -283,16 +303,16 @@
                 :font-size (em 0.8)
                 :color (color :meme-tile-footer)}]]]
     [:.collected-tile-back {:height "100%"
-                            :background-color (color :violet)
-                            :backface-visibility :hidden}
+                            :background-color (color :violet)}
      (button-tile-back)
      [:.form {:background-color :white
-                   :width "100%"
-                   :height "100%"
-                   :padding (em 1)
-                   :text-align :left
-                   :border "1px solid grey"
-                   :border-radius "1em"}
+              :width "100%"
+              :height "100%"
+              :padding (em 1)
+              :text-align :left
+              :border "1px solid "
+              :border-color (color :grey)
+              :border-radius "1em"}
       [:h1 (font :bungee)
        {:color (color :purple)
         :font-size (em 1)
@@ -322,20 +342,21 @@
           [:&:before {:width 0}]]]]
        [:.short-sales-pitch {:margin-bottom (em 0.4)
                              :display :block}]
-       [:textarea {:background (color :white)
-                   :border "1px solid #CCC"
+       [:textarea {:background :transparent
+                   :border (str "1px solid " (color :grey))
                    :width "100%"
                    :resize :none
                    :height (em 4)
                    :padding (em 0.5)
-                   :color (color :darker-blue)}]
+                   :color (color :darker-blue)
+                   :font-size (px 13)}]
        [:.buttons {:display :inline-flex
                    :justify-content :space-between
                    :font-size (px 15)
-                   :margin-top (px -8)
+                   :margin-top (px -4)
                    :width "100%"}
         [:button.cancel (button {:color :white
-                                 :background-color (color :cancel-button)
+                                 :background-color (color :pink)
                                  :height (em 3.5)
                                  :width "40%"})
          {:font-size (px 11)
@@ -346,8 +367,9 @@
                                           :width "55%"})
          {:font-size (px 11)
           :padding (em 0.4)}]]
-       [:.send-tokens {:text-align :center
-                       :margin-top (px 8)
+       [:.send-tokens {:font-size (px 12)
+                       :text-align :center
+                       :margin-top (px 10)
                        :text-decoration :underline}]]
       [:&.send-form
        [:h1 (font :bungee)

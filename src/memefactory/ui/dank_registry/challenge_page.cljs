@@ -1,5 +1,6 @@
 (ns memefactory.ui.dank-registry.challenge-page
   (:require
+   [bignumber.core :as bn]
    [cljs-time.core :as t]
    [cljs-time.extend]
    [clojure.string :as str]
@@ -9,6 +10,9 @@
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [district.ui.web3-account-balances.subs :as balance-subs]
+   [district.ui.web3-accounts.subs :as accounts-subs]
+   [cljs-web3.core :as web3]
    [goog.string :as gstring]
    [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.components.app-layout :refer [app-layout]]
@@ -25,15 +29,19 @@
    [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]))
 
 (defn header []
-  [:div.challenge-info
-   [:div.icon]
-   [:h2.title "Dank registry - Challenge"]
-   [:h3.title "View and Challenge new entries to the registry"]
-   [nav-anchor {:route :route.get-dank/index}
-    [:div.get-dank-button
-     [:span "Get Dank"]
-     [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
-     [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]])
+  (let [active-account (subscribe [::accounts-subs/active-account])]
+    (fn []
+      (let [account-active? (boolean @active-account)]
+        [:div.challenge-info
+         [:div.icon]
+         [:h2.title "Dank registry - Challenge"]
+         [:h3.title "View and Challenge new entries to the registry"]
+         [nav-anchor {:route (when account-active? :route.get-dank/index)}
+          [:div.get-dank-button
+           {:class (when-not account-active? "disabled")}
+           [:span "Get Dank"]
+           [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+           [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]]))))
 
 
 (defn open-challenge-action [{:keys [:reg-entry/address :meme/title]}]
@@ -42,12 +50,14 @@
         tx-id (str address "challenges")
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])
+        active-account (subscribe [::accounts-subs/active-account])
         errors (reaction {:local (let [{:keys [comment]} @form-data]
                                    (cond-> {}
                                      (str/blank? comment)
                                      (assoc :comment "Challenge reason can't be empty")))})]
     (fn [{:keys [:reg-entry/address]}]
-      (let [dank-deposit (:deposit @(subscribe [:memefactory.ui.config/memefactory-db-params]))]
+      (let [dank-deposit (:deposit @(subscribe [:memefactory.ui.config/memefactory-db-params]))
+            account-balance (subscribe [::balance-subs/active-account-balance :DANK])]
         [:div.challenge-controls
          [:div.vs
           [:img.vs-left {:src "/assets/icons/mememouth.png"}]
@@ -57,25 +67,30 @@
            [:div
             [text-input {:form-data form-data
                          :id :comment
-                         :disabled @tx-success?
+                         :disabled (or @tx-success? (not @active-account))
                          :errors errors
                          :placeholder "Challenge Reason..."
                          :class "challenge-reason"
                          :input-type :textarea
                          :maxLength 2000}]
             [pending-button {:pending? @tx-pending?
-                             :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))))
+                             :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))) (not @active-account))
                              :pending-text "Challenging ..."
                              :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
-                                                                                      :reg-entry/address address
-                                                                                      :meme/title title
-                                                                                      :comment (:comment @form-data)
-                                                                                      :deposit dank-deposit}])}
+                                                                                       :reg-entry/address address
+                                                                                       :meme/title title
+                                                                                       :comment (:comment @form-data)
+                                                                                       :deposit dank-deposit}])}
              (if @tx-success?
                "Challenged"
                "Challenge")]
-            [dank-with-logo (/ dank-deposit 1e18)]]
-           [:button.open-challenge {:on-click #(swap! open? not)} "Challenge"])]))))
+
+            [dank-with-logo (web3/from-wei dank-deposit :ether)]]
+           [:button.open-challenge
+            {:on-click (when @active-account #(swap! open? not))
+             :class [(when (not @active-account) "disabled")]} "Challenge"])
+         (when (or (not @active-account) (bn/< @account-balance dank-deposit))
+           [:div.not-enough-dank "You don't have enough DANK tokens to challenge this meme"])]))))
 
 (defmethod page :route.dank-registry/challenge []
   [app-layout

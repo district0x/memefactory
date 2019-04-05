@@ -26,11 +26,24 @@
     {:display :grid
      :grid-template-columns "50% 50%"
      ;; :grid-column-gap (em 2)
-     :padding-top (em 4)
-     }
+     :padding-top (em 4)}
     (for-media-max :computer
                    [:&
                     {:grid-template-columns "100%"}])
+    [:div.comment
+        [:label
+         {:color (color :menu-text)
+          :display :block
+          :margin-bottom (px 3)}]
+        [:textarea {:background (color :white)
+                    :border (str "1px solid " (color :grey))
+                    :width "100%"
+                    :resize :none
+                    :height (em 6)
+                    :padding (em 0.5)
+                    :color (color :darker-blue)}]
+     [:.help-block
+      {:display :none}]]
     [:.image-panel {:display :flex
                     :justify-content :center}
      [:.help-block
@@ -69,7 +82,7 @@
         :margin-left :auto
         ;; :padding-top (em 1)
         ;; :padding-left (em 1.9)
-        :margin-top (em 1)
+        :margin-top (em 0.7)
         :font-size (px 12)}
        (button {:background-color :purple
                 :color :white
@@ -104,12 +117,12 @@
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:display :flex
                  :margin-top (em 1)
-                 :justify-content :center
+                 :justify-content :flex-start
                  :align-items :center}
        [:button
         {:padding-top (em 0.2)
-         :margin-left (em 0.3)
-         :margin-right (em 0.3)
+         :margin-left (em 0.5)
+         :margin-right (em 0.5)
          :font-size (px 12)}
         (button {:background-color :purple
                  :color :white
@@ -118,8 +131,8 @@
 
        [:.dank-wrapper
         {:flex 0
-         :margin-left (em 0.3)
-         :margin-right (em 0.3)
+         :margin-left (em 0.5)
+         :margin-right (em 0.5)
          :justify-content :space-evenly}]]
       [:.not-enough-dank {:margin-top (em 1)
-                          :color :red}]]]]])
+                          :color (color :redish)}]]]]])

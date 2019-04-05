@@ -7,6 +7,7 @@
             [district.ui.component.tx-button :as tx-button]
             [district.ui.graphql.subs :as gql]
             [district.ui.now.subs]
+            [district.ui.mobile.subs :as mobile-subs]
             [district.ui.router.events :as router-events]
             [district.ui.web3-accounts.subs :as accounts-subs]
             [district.ui.web3-tx-id.subs :as tx-id-subs]
@@ -17,7 +18,8 @@
             [reagent.core :as r]
             [taoensso.timbre :as log :refer [spy]]
             [clojure.set :as set]
-            [memefactory.ui.components.general :refer [nav-anchor]]))
+            [memefactory.ui.components.general :refer [nav-anchor]]
+            [cljs-web3.core :as web3]))
 
 (defn meme-image [image-hash & [{:keys [rejected?] :as props}]]
   (let [props (dissoc props :rejected?)
@@ -35,23 +37,35 @@
         [:div.image-tape
          [:span "Stank"]]])]))
 
+(defn- event-target-classlist [event]
+  (-> (aget event "target" "className")
+      (str/split #"\ +")))      
+
+(defn- event-target-has-class? [event class]
+  (let [classlist (set (event-target-classlist event))]
+    (contains? classlist class)))
+
+(defn- event-target-in-classlist? [event classlist]
+  (some #(event-target-has-class? event %) classlist))
+
 (defn flippable-tile [{:keys [:front :back :flippable-classes]}]
   (let [flipped? (r/atom false)
-        flip #(swap! flipped? not)]
+        flip #(swap! flipped? not)
+        handle-click
+        (if-not flippable-classes
+          flip
+          (fn [event]
+            (when (event-target-in-classlist? event flippable-classes)
+              (flip))))
+        android-device? @(subscribe [::mobile-subs/android?])
+        ios-device? @(subscribe [::mobile-subs/ios?])]
     (fn [{:keys [:front :back]}]
       [:div.flippable-tile.initial-fade-in-delay
-       {:class (when @flipped? "flipped")
-        :on-click (fn [event]
-                    (if (not-empty flippable-classes)
-                      (when-not (empty? (set/intersection (set flippable-classes)
-                                                          (into #{} (-> event
-                                                                        (aget "target")
-                                                                        (aget "className")
-                                                                        (str/split #"\ ")))))
-                        (flip))
-                      (flip)))}
-       [:div.flippable-tile-front front]
-       [:div.flippable-tile-back back]])))
+       {:class [(when @flipped? "flipped") " "
+                (when (or android-device? ios-device?) "mobile")]}
+                    
+       [:div.flippable-tile-front {:on-click handle-click} front]
+       [:div.flippable-tile-back {:on-click handle-click} back]])))
 
 (defn auction-back-tile [opts meme-auction]
   (let [tx-id (str (:meme-auction/address meme-auction) "auction")
@@ -85,7 +99,7 @@
           [:ul.meme-data
            [:li [:label "Seller:"]
             [nav-anchor {:route :route.memefolio/index
-             :params {:address (:user/address (:meme-auction/seller meme-auction))}
+                         :params {:address (:user/address (:meme-auction/seller meme-auction))}
                          :query {:tab :selling}
                          :title (str "Go to the Memefolio of " seller-address)}
              seller-address]]
@@ -100,8 +114,8 @@
                   @active-account)
 
              [inputs/pending-button {:pending? @cancel-tx-pending?
-                                     :pending-text "Cancelling..."
-                                     :disabled (or @cancel-tx-pending? @cancel-tx-success?)
+                                     :pending-text "Cancelling"
+                                     :disabled (or @cancel-tx-pending? @cancel-tx-success? (not @active-account))
                                      :on-click (fn [e]
                                                  (.stopPropagation e)
                                                  (dispatch [::meme-auction/cancel {:send-tx/id tx-id
@@ -110,8 +124,8 @@
               (if @cancel-tx-success? "Canceled" "Cancel Sell")]
 
              [inputs/pending-button {:pending? @buy-tx-pending?
-                                     :pending-text "Buying..."
-                                     :disabled (or @buy-tx-pending? @buy-tx-success?)
+                                     :pending-text "Buying"
+                                     :disabled (or @buy-tx-pending? @buy-tx-success? (not @active-account))
                                      :class (when-not @buy-tx-success? "buy")
                                      :on-click (fn [e]
                                                  (.stopPropagation e)
@@ -171,18 +185,9 @@
             "less than a minute ago"))]
        [:li [:label "Issued:"]
         (str total-minted " cards")]
-       (when total-trade-volume
-         [:li [:label "Trade Volume:"]
-          (format/format-eth (/ total-trade-volume 1e18)
-                             {:max-fraction-digits 2})])
-       (when average-price
-         [:li [:label "Average Price:"]
-          (format/format-eth (/ average-price 1e18)
-                             {:max-fraction-digits 2})])
-       (when highest-single-sale
-         [:li [:label "Highest Single Sale:"]
-          (format/format-eth (/ highest-single-sale 1e18)
-                             {:max-fraction-digits 2})])]]]))
+       [:li [:label "Trade Volume:"] (ui-utils/format-price total-trade-volume)]
+       [:li [:label "Average Price:"] (ui-utils/format-price average-price)]
+       [:li [:label "Highest Single Sale:"] (ui-utils/format-price highest-single-sale)]]]]))
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
   [:div.compact-tile

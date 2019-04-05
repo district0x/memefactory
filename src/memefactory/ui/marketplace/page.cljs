@@ -28,7 +28,11 @@
      (not-empty search-tags) (assoc :tags search-tags)
      after                   (assoc :after after)
      order-by                (assoc :order-by (keyword "meme-auctions.order-by" order-by))
-     order-dir               (assoc :order-dir (keyword order-dir))
+     order-dir               (assoc :order-dir (get {"started-on" :desc
+                                                     "meme-total-minted" :asc
+                                                     "price" :asc}
+                                                    order-by
+                                                    :desc))
      only-cheapest?          (assoc :group-by :meme-auctions.group-by/cheapest))
    [:total-count
     :end-cursor

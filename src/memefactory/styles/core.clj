@@ -8,6 +8,7 @@
             [memefactory.styles.component.compact-tile :as compact-tile]
             [memefactory.styles.component.form :as form]
             [memefactory.styles.component.spinner :as spinner]
+            [memefactory.styles.component.account-balances :as account-balances]
             [memefactory.styles.container.tiles :as tiles]
             [memefactory.styles.app-menu :as app-menu]
             [memefactory.styles.pages.home :as page.home]
@@ -19,6 +20,8 @@
             [memefactory.styles.pages.leaderboard :as page.leaderboard]
             [memefactory.styles.pages.my-settings :as page.my-settings]
             [memefactory.styles.pages.get-dank :as page.get-dank]
+            [memefactory.styles.pages.about :as page.about]
+            [memefactory.styles.pages.how-it-works :as page.how-it-works]
             [memefactory.styles.component.challenge-list :as challenge-list]))
 
 (defstyles main
@@ -33,6 +36,7 @@
   page.marketplace/core
   form/core
   spinner/core
+  account-balances/core
   page.memefolio/core
   page.dankregistry/core
   page.dankregistry.challenge/core
@@ -40,4 +44,6 @@
   page.leaderboard/core
   page.my-settings/core
   page.get-dank/core
+  page.about/core
+  page.how-it-works/core
   challenge-list/core)

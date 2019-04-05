@@ -45,9 +45,9 @@
                     :busy-grey "#5c5c5c"
                     :rank-yellow "#ffd800"
                     :yellow "#ffea00"
-                    :cancel-button "#d0e5e8"
                     :redish "#f25e5e"
-                    })
+                    :grey "#ccc"})
+
 
 (defn color [name]
   (get names->colors name name))

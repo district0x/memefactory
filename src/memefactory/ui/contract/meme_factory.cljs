@@ -17,7 +17,7 @@
  (fn [{:keys [db]} [_ data deposit {:keys [Name Hash Size] :as meme-meta}]]
    (log/info "Meme meta uploaded with hash" {:hash Hash} ::approve-and-create-meme)
    (let [tx-id (str (random-uuid))
-         tx-name (gstring/format "Meme %s submitted" (:title data))
+         tx-name (gstring/format "%s submitted" (:title data))
          active-account (account-queries/active-account db)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme-factory)
                                                 :create-meme
@@ -34,8 +34,8 @@
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index
                                                               :query {:tab "created" :term (:title data)}}}
-                                      :on-tx-hash-n [[::notification-events/show (gstring/format "Your meme was successfully submitted")]]
-                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::create-meme]]
+                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::create-meme]
+                                                        [::notification-events/show (gstring/format "%s was successfully submitted" (:title data))]]
                                       :on-tx-error [::logging/error (str tx-name " tx error") {:user {:id active-account}
                                                                                                :deposit deposit
                                                                                                :data data

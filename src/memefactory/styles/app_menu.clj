@@ -12,6 +12,18 @@
 
 (def menu-gutter (px 8))
 
+(def bar-height 50) ;; px
+(def tracker-width 270) ;; px
+
+
+(def account-section-style
+  {:display :grid
+   :grid-template-areas "'logo account-balance .'"
+   :grid-template-rows (str bar-height "px")
+   :grid-template-columns "1fr 1fr 1fr"
+   :height (px bar-height)
+   :width (px (/ tracker-width 2))})
+
 (defstyles core
   [:.app-container
    [:.app-menu
@@ -44,8 +56,8 @@
        :display :grid
        :grid-template-columns "50% 50%"}
       (for-media-max :tablet
-                   [:&
-                    {:grid-template-columns "30% 50%"}])
+                     [:&
+                      {:grid-template-columns "30% 50%"}])
       [:img
        {:width (em 4)}]
       [:span
@@ -54,9 +66,15 @@
         :line-height (em 1.4)
         :color (color :menu-logo)}]]
 
+     [:.accounts
+      {:display :none}
+      (for-media-max
+       :tablet
+       [:& {:display :grid}])]
 
-
-     [:ul.node {:padding-left (em 0)}
+     [:ul.node
+      {:padding-left (em 0)
+       :margin 0}
       [:.item.active
        [:a {:color (color :pink)
             :cursor :pointer}]]

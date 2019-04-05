@@ -224,14 +224,14 @@
 
 ;; If testing this by hand remember params like statuses should be string and not keywords
 ;; like (search-meme-auctions-query-resolver nil {:statuses [(enum :meme-auction.status/active)]})
-(defn search-meme-auctions-query-resolver [_ {:keys [:title :tags :tags-or :order-by :order-dir :group-by :statuses :seller :first :after] :as args}]
-  (log/debug "search-meme-auctions-query-resolver" args)
+(defn search-meme-auctions-query-resolver [_ {:keys [:title :non-for-meme :tags :tags-or :order-by :order-dir :group-by :statuses :seller :first :after] :as args}]
+  (log/info "search-meme-auctions-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          now (utils/now-in-seconds)
          page-start-idx (when after (js/parseInt after))
          page-size first
-         query (cond-> {:select [:ma.* :m.reg-entry/address]
+         query (cond-> {:select [:ma.* :m.reg-entry/address :m.meme/total-minted]
                         :modifiers [:distinct]
                         :from [[:meme-auctions :ma]]
                         :join [[:meme-tokens :mt] [:= :mt.meme-token/token-id :ma.meme-auction/token-id]
@@ -247,6 +247,7 @@
                                                    :where [:and
                                                            [:= :mtts.reg-entry/address :m.reg-entry/address]
                                                            [:in :mtts.tag/name tags]]}])
+                 non-for-meme (sqlh/merge-where [:not= :m.reg-entry/address non-for-meme])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
@@ -269,17 +270,28 @@
        ;; group-by and order-by current price and pagination in Clojure
        (let [total-count (count (db/all query))
              result (cond->> (db/all query)
-                      ;; ordering by price
-                      (and order-by
-                           (= (graphql-utils/gql-name->kw order-by)
-                              :meme-auctions.order-by/price))
-                      (sort-by #(shared-utils/calculate-meme-auction-price % now) (if (= (keyword order-dir) :desc) < >))
 
                       ;; grouping cheapest
                       (and group-by
                            (= (graphql-utils/gql-name->kw group-by)
                               :meme-auctions.group-by/cheapest))
                       (squash-by-min :reg-entry/address #(shared-utils/calculate-meme-auction-price % now))
+
+                      ;; ordering
+                      order-by
+                      (sort-by (get {:meme-auctions.order-by/started-on         :meme-auction/started-on
+                                     :meme-auctions.order-by/bought-on          :meme-auction/bought-on
+                                     :meme-auctions.order-by/token-id           :meme-auction/token-id
+                                     :meme-auctions.order-by/meme-total-minted  :meme/total-minted
+                                     :meme-auctions.order-by/price              #(shared-utils/calculate-meme-auction-price % now)}
+                                    (graphql-utils/gql-name->kw order-by)
+                                    :meme-auction/started-on)
+
+                               (if (= (keyword order-dir) :desc) > <))
+
+                      ;; random is a special ordering case because we can't call sort-by for it
+                      (and order-by (= (graphql-utils/gql-name->kw order-by) :meme-auctions.order-by/random))
+                      (shuffle)
 
                       ;; pagination
                       page-start-idx (drop page-start-idx)
@@ -831,7 +843,8 @@
    (let [sql-query (db/get {:select [:*]
                             :from [:meme-auctions]
                             :where [:and [:= {:select [(sql/call :max :meme-auctions.meme-auction/bought-for)]
-                                              :from [:meme-auctions]}
+                                              :from [:meme-auctions]
+                                              :where [:= address :meme-auction/buyer]}
                                           :meme-auctions.meme-auction/bought-for]
                                     [:= address :meme-auction/buyer]]})
          {:keys [:meme-auction/buyer]} sql-query]
@@ -1074,7 +1087,7 @@
                        ;; encrypted_queries_tools.py script we're rollin' dirty.
                        {:success true
                             :payload (clojure.string/trim-newline stdout)}))))))
-    (catch Exception ex
+    (catch js/Error ex
       ;; We'll get here if there's an issue calling python
       (log/error "Error calling python:" ex)
       {:success false

@@ -73,8 +73,9 @@
       (button {:background-color :rare-meme-icon-bg
                :color :violet
                :height (em 3)
+               :line-height (em 3)
                :width "100%"})
-      (vote-button-icon 2)
+      (vote-button-icon -1 -4)
       {:white-space :nowrap
        :padding-right (em 1)
        :padding-bottom (em 0.4)
@@ -84,8 +85,9 @@
       (button {:background-color :random-meme-icon-bg
                :color :violet
                :height (em 3)
+               :line-height (em 3)
                :width "100%"})
-      (vote-button-icon 6)
+      (vote-button-icon 0 -3)
       {:white-space :nowrap
        :padding-right (em 1)
        :padding-bottom (em 0.4)
@@ -99,7 +101,11 @@
     [:p.token-return {:text-align :center
                       :font-size (px 12)
                       :margin-left (em 0.5)
-                      :margin-right (em 0.5)}]]
+                      :margin-right (em 0.5)}]
+    [:.not-enough-dank
+     {:text-align :center
+      :padding-top (em 1.5)
+      :color (color :redish)}]]
    [:.reveal
     {:text-align :center}
     [:img {:width (em 7)}]
@@ -110,7 +116,7 @@
                :color :white
                :height (em 3)
                :width (em 14)})]]
-    [:.no-reveal-info {:color :red
+    [:.no-reveal-info {:color (color :redish)
                        :margin-top (em 1)}]]
    [:.collect-reward
     {:display :grid

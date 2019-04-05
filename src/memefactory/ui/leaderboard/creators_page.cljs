@@ -15,7 +15,8 @@
    [district.ui.router.events :as router-events]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+   [memefactory.ui.components.general :refer [nav-anchor]]
+   [cljs-web3.core :as web3]))
 
 (def page-size 6)
 
@@ -69,7 +70,7 @@
                       :params {:address (:reg-entry/address meme)}
                       :class "best-sale"}
           (gstring/format "%.2f ETH (#%d %s)"
-                          (-> largest-sale :meme-auction/bought-for (/ 1e18))
+                          (web3/from-wei (:meme-auction/bought-for largest-sale) :ether)
                           (-> largest-sale
                               :meme-auction/meme-token
                               :meme-token/number)

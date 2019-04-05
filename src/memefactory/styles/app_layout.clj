@@ -22,6 +22,9 @@
                          :text-align :center
                          :padding-top (px 230)
                          :padding-bottom (px 230)}]
+   [:iframe {:margin-right (em 1)}]
+   [:.meme-comment {:color (color :pink)
+                    :font-style :italic}]
    [:.dank-wrapper
     {:display :inline-flex
      :align-items :center
@@ -29,8 +32,21 @@
     [:span]
     [:img {:width (px 35)}]]
    [:img.dank-logo-small {:width (px 35)}]
-   [:.address {:cursor :pointer}
+   [:a.address {:cursor :pointer
+                :color (color :menu-text)}
     [:&.active-address {:color (color :purple)}]]
+   [:.coinbase-promotion
+    {:display :flex
+     :z-index 9999
+     :flex-direction :row
+     :height (em 2)
+     :background-color :white
+     :justify-content :center
+     :align-items :center}
+    [:span
+     {}]
+    [:img
+     {:width "120px"}]]
    [:div.notification
     {:color (color :meme-info-text)
      :background-color (color :deep-purple)

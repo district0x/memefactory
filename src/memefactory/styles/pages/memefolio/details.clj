@@ -113,16 +113,11 @@
          :font-weight :bold
          :color (color :menu-text)}]]
       [:.creator
-       {:margin-top (em 1)}
+       {:margin-top (em 1)
+        :margin-bottom (em 1)}
        [">*"
         {:font-size (em 0.9)
-         :color (color :menu-text)}]
-       [:.address {:cursor :pointer
-                   :display :inline-block
-                   :vertical-align :middle}
-        (for-media-max :tablet
-                       [:&
-                        {:max-width (em 17)}])]]
+         :color (color :menu-text)}]]
       [:.description
        {:margin-bottom (em 1)}]
       [:.description, :.text
@@ -149,7 +144,10 @@
          :margin-right (em 1)
          :margin-top (em 1)}
         [:&.marketplace {:background-color (color :purple)
-                         :color (color :white)}]
+                         :color (color :white)}
+         (for-media-max :tablet
+                        [:&
+                         {:display :none}])]
         [:&.memefolio {:background-color (color :pink)
                        :color (color :white)}]]]]]]
    [:section.history
@@ -162,11 +160,10 @@
       :border-radius "1em 1em 1em 1em"
       :padding-top (em 1)
       :padding-bottom (em 1)}
-     #_(for-media-max :computer
-                      [:&
-                       {:max-height (em 30)
-                        :overflow-y :auto
-                        :overflow-x :hidden}])
+     [:.not-traded-yet {:color (transparentize (color :menu-text) 0.5)
+                        :padding-top (em 6)
+                        :padding-left 0
+                        :text-align :center}]
      [:.spinner-outer {:margin-top (em 4)}]
      [:h1.title
       (font :bungee)
@@ -360,6 +357,10 @@
                  :background-color :purple
                  :width (em 11)
                  :height (em 3)})]]
+      [:.not-enough-dank
+       {:text-align :right
+        :padding-top (em 1.01)
+        :color (color :redish)}]
       [:.status
        {:border-right "1px solid rgba(174, 175, 177, 0.5)"}
        (for-media-max :computer
@@ -393,7 +394,6 @@
        (for-media-max :computer
                       [:&
                        {:border-right "0px"}])
-       [:.address {:cursor :pointer}]
        [:b {:display :block}]
        [">*"
         {:margin-bottom  (em 0.5)}]]
@@ -439,13 +439,20 @@
          :text-align :center}]]
 
       [:.reveal
-       [:button {:margin-top (em 1)}
+       {:text-align :center}
+       [:button {}
         (button {:color :white
                  :background-color :purple
                  :width (em 13)
-                 :height (em 3)})]
-       [:.no-reveal-info {:color :red
-                          :margin-top (em 1)}]]
+                 :height (em 3)})
+        [:& {:display :inline}]]
+       [:.no-reveal-info {:color (color :redish)
+                          :margin-top (em 1)}]
+       [:.reveal-time-remaining
+        {:margin-top (px 20)
+         :margin-bottom (px 20)
+         :font-weight :bold
+         :text-align :center}]]
 
       [:.vote
        {:padding-right 0}
@@ -474,7 +481,7 @@
                  :border-left 0
                  :border-right 0
                  :border-top 0}]
-        [:.vote-dank {:margin-right (em 2)
+        [:.vote-dank {:margin-right (em 1.5)
                       :width "50%"}
          [:.labeled-input-group {:width "100%"}]
          [:button
@@ -482,8 +489,9 @@
           (button {:background-color :rare-meme-icon-bg
                    :color :violet
                    :height (em 3)
+                   :line-height (em 3)
                    :width "100%"})
-          (vote-button-icon 2)]]
+          (vote-button-icon -2 3)]]
         [:.vote-stank
          {:width "51%"}
          [:.labeled-input-group {:width "100%"}]
@@ -491,9 +499,13 @@
           (button {:background-color :random-meme-icon-bg
                    :color :violet
                    :height (em 3)
+                   :line-height (em 3)
                    :width "100%"})
-          (vote-button-icon 6)
-          [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]]]]
+          (vote-button-icon 0 3)
+          [:&:before {:transform "scaleX(-1) scaleY(-1)"}]]]]
+       [:.not-enough-dank
+        {:text-align :center
+         :color (color :redish)}]]]]
     [:.challenge-comment
      {:font-style :italic
       :color (color :pink)}]]

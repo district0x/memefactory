@@ -39,7 +39,8 @@
 
 
 (def default-animation-style
-  {:animation-duration animation-speed
+  {:-webkit-animation-duration animation-speed
+   :animation-duration animation-speed
    :animation-fill-mode :both
    :animation-timing-function animation-timing
    :-webkit-transform-style :preserve-3d
@@ -106,12 +107,15 @@
   ;; General Fade In Animation
   [:.initial-fade-in-delay
    {:animation-name :initial-fade-in
+    :-webkit-animation-delay "0.35s"
     :animation-delay "0.35s"
+    :-webkit-animation-duration "0.50s"
     :animation-duration "0.50s"
     :animation-fill-mode :both}]
 
   [:.initial-fade-in
    {:animation-name :initial-fade-in
+    :-webkit-animation-duration "0.50s"
     :animation-duration "0.50s"
     :animation-fill-mode :both}]
 
@@ -131,6 +135,11 @@
     :grid-template-columns (px card-width)
     :width (px card-width)
     :height (px card-height)}
+
+   [:&.mobile
+    {:perspective :none
+     :-webkit-transform-style :flat
+     :transform-style :flat}]
 
    ;; Front of flippable card styling
    [:.flippable-tile-front

@@ -7,6 +7,7 @@
    [district.ui.logging]
    [district.ui.notification]
    [district.ui.now]
+   [district.ui.mobile]
    [district.ui.reagent-render]
    [district.ui.router-google-analytics]
    [district.ui.router]
@@ -64,7 +65,8 @@
  (fn [{:keys [db store]}]
    {:db (assoc db
                :settings (:settings store)
-               :votes (:votes store))}))
+               :votes (:votes store)
+               :memefactory.ui.get-dank.page/stage 1)}))
 
 (defn ^:export init []
   (dev-setup)

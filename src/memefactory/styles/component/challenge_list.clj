@@ -52,6 +52,7 @@
      :border-radius (em 0.6)
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
      :padding (em 2.4)}
+    [:a.address {:margin-left (px 3)}]
     (for-media-max :computer
                    [:& {:grid-template "'image' 'info' 'action'"}])
     (for-media-max :large

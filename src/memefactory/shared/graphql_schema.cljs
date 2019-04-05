@@ -41,7 +41,8 @@
       statuses: [MemeAuctionStatus],
       seller: String,
       first: Int,
-      after: String
+      after: String,
+      nonForMeme: String
     ): MemeAuctionList
 
     searchTags(first: Int, after: String): TagList
@@ -244,6 +245,7 @@
     challenge_availableVoteAmount(voter: ID!): Int
 
     meme_title: String
+    meme_comment: String
     meme_number: Int
     meme_metaHash: String
     meme_imageHash: String

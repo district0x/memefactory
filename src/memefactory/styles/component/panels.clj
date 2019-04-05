@@ -42,18 +42,25 @@
                     {:font-size (px 19)}])
     {:width "100%"
      :position :relative
-     :font-size (px 25)
+     :font-size (px 23)
      :margin-top (em 0.3)
-     :margin-bottom (em 0.3)
-     :padding-top (em 0.5)
-     :text-align :center}]
+     :margin-bottom 0
+     :padding-top (em 0.7)
+     :text-align :center}
+    [:&.secondary
+     {:padding-top (em 1)
+      :padding-bottom (em 1)
+      :margin-top (em 0)}]]
    [:h3.title
     {:white-space :unset
-     :margin-top (em 0.1)
+     :margin-top (px 10)
      :position :relative
      :color (c/color :section-subcaption)
      :font-size (px 13)
-     :text-align :center}]
+     :text-align :center
+     :padding-left (px 5)
+     :padding-right (px 5)}]
+
    [:.icon {:background-color (c/color color)
             :background-position-x (em 1)
             :background-position-y :center
@@ -75,7 +82,7 @@
                    {:justify-content :space-evenly
                     :margin-right (em 2)
                     :margin-left (em 2)}])
-   [">div"
+   [:.tab
     (for-media-max :tablet
                    [:&
                     {:padding-right (em 0.2)
