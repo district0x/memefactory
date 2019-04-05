@@ -88,6 +88,8 @@
         [:div.spinner-container [spinner/spin]])]
      [infinite-scroll/infinite-scroll {:loading? loading?
                                        :has-more? has-more?
+                                       :infinite-load-threshold 50
+                                       :debounce-interval 200
                                        :load-fn #(let [{:keys [:has-next-page :end-cursor]} (:search-memes last-meme)]
                                                    (dispatch [:district.ui.graphql.events/query
                                                               {:query {:queries [(build-tiles-query @form-data end-cursor)]}
