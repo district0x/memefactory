@@ -8,6 +8,7 @@
             [memefactory.styles.component.compact-tile :as compact-tile]
             [memefactory.styles.component.form :as form]
             [memefactory.styles.component.spinner :as spinner]
+            [memefactory.styles.component.account-balances :as account-balances]
             [memefactory.styles.container.tiles :as tiles]
             [memefactory.styles.app-menu :as app-menu]
             [memefactory.styles.pages.home :as page.home]
@@ -35,6 +36,7 @@
   page.marketplace/core
   form/core
   spinner/core
+  account-balances/core
   page.memefolio/core
   page.dankregistry/core
   page.dankregistry.challenge/core

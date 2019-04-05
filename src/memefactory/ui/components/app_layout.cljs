@@ -16,6 +16,7 @@
     [district.ui.web3-tx-log.events :as tx-log-events]
     [district.ui.web3-tx-log.subs :as tx-log-subs]
     [memefactory.ui.components.general :refer [nav-anchor]]
+    [memefactory.ui.components.account-balances :refer [account-balances]]
     [memefactory.ui.subs :as mf-subs]
     [memefactory.ui.utils :as mf-utils]
     [memefactory.ui.utils :as ui-utils]
@@ -103,27 +104,7 @@
                        (dispatch [:district.ui.router.events/navigate :route/how-it-works])
                        (dispatch [:district0x.transaction-log/set-open (not @open?)])))}
         (when (seq @accounts)
-          [:div.accounts
-           [:div.dank-section {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
-            [:div.dank-logo
-             [:img {:src "/assets/icons/dank-logo.svg"}]]
-            [active-account-balance
-             {:token-code :DANK
-              :contract :DANK
-              :class "dank"
-              :locale "en-US"
-              :max-fraction-digits 0}]]
-           [:div.eth-section {:on-click #(dispatch [::tx-log-events/set-open (not @tx-log-open?)])}
-            [:div.eth-logo
-             [:img {:src "/assets/icons/ethereum.svg"}]]
-            [active-account-balance
-             {:token-code :ETH
-              :locale "en-US"
-              :class "eth"}]]
-           [tx-log
-            {:header-props {:text "Transaction Log"}
-             :transactions-props {:transaction-props {:tx-value-el (fn [{:keys [tx]}]
-                                                                     [:span.tx-value (ui-utils/format-price (:value tx))])}}}]])]])))
+          [account-balances {:with-tx-logs? true}])]])))
 
 (defn current-page? [a b]
   (= a b))
@@ -144,23 +125,7 @@
      [:<>
       ;; Account Balance Header for Mobile
       (when (and active-account (= depth 0))
-        [:div.accounts
-         [:div.dank-section
-          [:div.dank-logo
-           [:img {:src "/assets/icons/dank-logo.svg"}]]
-          [active-account-balance
-           {:token-code :DANK
-            :contract :DANK
-            :class "dank"
-            :locale "en-US"
-            :max-fraction-digits 0}]]
-         [:div.eth-section
-          [:div.eth-logo
-           [:img {:src "/assets/icons/ethereum.svg"}]]
-          [active-account-balance
-           {:token-code :ETH
-            :locale "en-US"
-            :class "eth"}]]])
+        [account-balances {:with-tx-logs? false}])
       [:ul.node {:key (str depth)}
        (doall
         (map-indexed (fn [idx {:keys [:text :route :params :query :class :children :needs-account?]}]
