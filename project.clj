@@ -36,7 +36,7 @@
                  [district0x/district-time "1.0.0"]
                  [district0x/district-ui-component-active-account "1.0.1"]
                  [district0x/district-ui-component-active-account-balance "1.0.1"]
-                 [district0x/district-ui-component-form "0.2.6"]
+                 [district0x/district-ui-component-form "0.2.7"]
                  [district0x/district-ui-component-meta-tags "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]

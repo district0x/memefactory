@@ -1,6 +1,6 @@
 (ns memefactory.ui.components.search
   (:require
-   [district.ui.component.form.input :refer [with-label select-input text-input checkbox-input with-label chip-input]]
+   [district.ui.component.form.input :refer [with-label select-input text-input checkbox-input with-label chip-input radio-group]]
    [print.foo :refer [look] :include-macros true]
    [reagent.core :as r]
    [clojure.string :as str])
@@ -20,12 +20,12 @@
   [:span c])
 
 (defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filters
-                            on-selected-tags-change on-search-change on-select-change]}]
+                            on-selected-tags-change on-search-change on-select-change option-filters option-filters-id]}]
 
   (let [search-input-form-data (r/atom {search-id (get @form-data search-id)})
         chip-input-form-data (r/atom {selected-tags-id (get @form-data selected-tags-id)})]
     (fn [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filters
-                on-selected-tags-change on-search-change on-select-change]}]
+                on-selected-tags-change on-search-change on-select-change option-filters option-filters-id]}]
      [:div.search-form
       [:div.icon]
       [:div.header
@@ -76,7 +76,7 @@
           :for :tags
           :form-data form-data
           :id [selected-tags-id]}]
-        (when check-filters
+        (if check-filters
           [:div.check-group (doall
                              (for [{:keys [id label on-check-filter-change]} check-filters]
                                ^{:key id} [:div.single-check
@@ -84,4 +84,8 @@
                                                             :id id
                                                             :on-change on-check-filter-change}]
                                            [:label {:on-click #(swap! form-data update id not)}
-                                            label]]))])]]])))
+                                            label]]))]
+          [:div.options-group
+           [radio-group {:id option-filters-id
+                         :form-data form-data
+                         :options option-filters}]])]]])))

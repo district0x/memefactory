@@ -326,7 +326,8 @@
      :bottom 0
      :cursor :pointer
      :line-height (em 1.2)
-     :font-size (em 0.9)}
+     :font-size (em 0.9)
+     :color (color :menu-text)}
 
     [:.token-id :.title {:display :inline-block}]
 

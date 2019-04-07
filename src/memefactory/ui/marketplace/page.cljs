@@ -20,20 +20,33 @@
 
 (def page-size 12)
 
-(defn build-tiles-query [{:keys [:search-term :search-tags :order-by :order-dir :only-cheapest?]} after]
+(defn build-tiles-query [{:keys [:search-term :search-tags :order-by :order-dir :option-filters]} after]
   [:search-meme-auctions
    (cond-> {:first page-size
             :statuses [:meme-auction.status/active]}
-     (not-empty search-term) (assoc :title search-term)
-     (not-empty search-tags) (assoc :tags search-tags)
-     after                   (assoc :after after)
-     order-by                (assoc :order-by (keyword "meme-auctions.order-by" order-by))
-     order-dir               (assoc :order-dir (get {"started-on" :desc
-                                                     "meme-total-minted" :asc
-                                                     "price" :asc}
-                                                    order-by
-                                                    :desc))
-     only-cheapest?          (assoc :group-by :meme-auctions.group-by/cheapest))
+     (not-empty search-term)
+     (assoc :title search-term)
+
+     (not-empty search-tags)
+     (assoc :tags search-tags)
+
+     after
+     (assoc :after after)
+
+     order-by
+     (assoc :order-by (keyword "meme-auctions.order-by" order-by))
+
+     order-dir
+     (assoc :order-dir (get {"started-on" :desc
+                             "meme-total-minted" :asc
+                             "price" :asc}
+                            order-by
+                            :desc))
+
+     (#{:only-lowest-number :only-cheapest} option-filters)
+     (assoc :group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
+                            :only-cheapest :meme-auctions.group-by/cheapest}
+                           option-filters)))
    [:total-count
     :end-cursor
     :has-next-page
@@ -68,7 +81,9 @@
           (doall
            (for [{:keys [:meme-auction/address] :as auc} all-auctions]
              ^{:key address}
-             [tiles/auction-tile {} auc]))))
+             [tiles/auction-tile
+              {:show-cards-left? (contains? #{:only-cheapest :only-lowest-number} (:option-filters @form-data))}
+              auc]))))
       (when (:graphql/loading? (last @auctions-search))
         [:div.spinner-container [spinner/spin]])]
 
@@ -88,6 +103,7 @@
         form-data (let [{:keys [query]} @active-page]
                     (log/debug "Starting with " (:term query))
                     (r/atom {:search-term (:term query)
+                             :option-filters :only-lowest-number
                              :search-tags (when-let [tags (:search-tags query)]
                                             (str/split tags #","))
                              :order-by (or (:order-by query) "started-on")
@@ -112,8 +128,9 @@
                           :tags (->> @all-tags-subs :search-tags :items (mapv :tag/name))
                           :search-id :search-term
                           :selected-tags-id :search-tags
-                          :check-filters [{:label "Show only cheapest offering of meme"
-                                           :id :only-cheapest?}]
+                          :option-filters-id :option-filters
+                          ;; :check-filters [{:label "Show only cheapest offering of meme"
+                          ;;                  :id :only-cheapest?}]
                           :title "Marketplace"
                           :sub-title "Buy and Sell memes"
                           :select-options [{:key "started-on" :value "Newest"}
@@ -122,7 +139,9 @@
                                            {:key "random" :value "Random"}]
                           :search-result-count search-total-count
                           :on-check-filter-change re-search
-
+                          :option-filters [{:key :only-lowest-number :label "Show only the lowest card number of meme"}
+                                           {:key :only-cheapest      :label "Show only the cheapest card of meme"}
+                                           {:key :all-cards          :label "All cards"}]
                           }]
            [:div.search-results
             [marketplace-tiles form-data auctions-search]]]]]))))

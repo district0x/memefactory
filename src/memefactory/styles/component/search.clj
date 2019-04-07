@@ -77,6 +77,7 @@
     [:.form
      {:display :grid
       :margin-left (em 2)
+      :margin-right (em 2)
       :padding-top (em 2)
       :grid-template-columns "7fr minmax(180px, 3fr) 3fr"
       :grid-template-rows "2.5em 3em 2em"
@@ -88,7 +89,17 @@
       :grid-column-gap (em 2)
       :color (c/color :section-subcaption)}
      (for-media-max :tablet
-                   [:& {:display :none}])
+                    [:& {:grid-template-rows "3em 3em 4em 6em"
+                         :grid-template-columns "100%"
+                         :grid-template-areas
+                         (str
+                          "'name'\n"
+                          "'dropdown'\n"
+                          "'chip'\n"
+                          "'checkbox'\n")}
+                     [:.filled
+                      [:label {:display :none}]]])
+
      [:.name {:grid-area :name}
       [:.help-block {:height :2px}]]
      [:.options {:grid-area :dropdown}
@@ -107,6 +118,7 @@
         :padding-left (em 0.4)
         :margin-top (em 1)}
        [:.input-group
+
         [:input {:-webkit-appearance :none
                  :-moz-appearance :none
                  :background-color :white
@@ -121,6 +133,23 @@
                 :margin-left (em 0.6)
                 :margin-bottom (em 0.2)
                 :white-space :nowrap}]]
+      [:.help-block {:display :none}]]
+     [:.options-group
+      {:margin-top (px 10)
+       :grid-area :checkbox
+       :justify-self :end
+       :width (px 573)
+       :display :flex}
+      (for-media-max :tablet
+                     [:& {:justify-self :unset
+                          :width :unset}])
+      [:.radio {:display :inline-block
+                :margin-left (px 10)}
+       (for-media-max :tablet
+                      [:& {:display :block
+                           :margin-left 0}])
+       [:label {:margin-left (px 8)
+                :font-size (px 12)}]]
       [:.help-block {:display :none}]]]]
    [:.search-form
     (for-media-max :tablet

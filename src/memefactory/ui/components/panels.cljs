@@ -32,5 +32,5 @@
       (when-not loading-first?
         (doall
          (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
-                ^{:key address} [tiles/auction-tile {} meme-auction])
+                ^{:key address} [tiles/auction-tile {:show-cards-left? true} meme-auction])
               state))))]])
