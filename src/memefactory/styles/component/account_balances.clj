@@ -67,7 +67,8 @@
        :margin-top (em 0.6)
        :margin-right (em 0.7)}]]]
    [:.tx-log.open
-    {:transform "scaleY(1)"}]
+    {:width (px account-balance-width)
+     :transform "scaleY(1)"}]
 
    [:.tx-log
     {:grid-area :tx-log
@@ -95,7 +96,7 @@
       :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
       :position :relative}
      [:.settings
-      {:padding "10px 25px"
+      {:padding (em 1.01)
        :border-bottom (str "1px solid #b2bacb")}
       [:.ui.checkbox
        [:label
