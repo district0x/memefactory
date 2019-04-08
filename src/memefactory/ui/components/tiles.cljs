@@ -156,14 +156,14 @@
           [:div.footer
            [:div.token-id (str "#"(-> meme-token :meme-token/meme :meme/number))]
            [:div.title (-> meme-token :meme-token/meme :meme/title)]
-           (when show-cards-left?
-             [:div.cards-left (str (format/pluralize
-                                    (-> @meme-auctions :search-meme-auctions :items count)
-                                    "card")
-                                   " left")])
-           [:div.number-minted (str (:meme-token/number meme-token)
+           [:div.number-minted (str "card #" (:meme-token/number meme-token)
                                     "/"
                                     (-> meme-token :meme-token/meme :meme/total-minted))]
+           (when show-cards-left?
+             [:div.cards-left (str (format/pluralize
+                                     (-> @meme-auctions :search-meme-auctions :items count)
+                                     "card")
+                                   " left")])
            [:div.price (format-price price)]]]]))))
 
 (defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number :meme/total-trade-volume :meme/average-price :meme/highest-single-sale] :as meme}]

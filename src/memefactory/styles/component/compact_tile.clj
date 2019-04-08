@@ -341,11 +341,12 @@
               :font-weight :bold
               :cursor :pointer}]
 
-    [:.number-minted {:margin-top (em 0.3)}]
+    [:.number-minted :.cards-left
+     {:margin-top (em 0.2)}]
 
     [:.price
      (font :bungee)
-     {:margin-top (em 0.3)}]]]
+     {:margin-top (em 0.2)}]]]
 
   [:.image-tape-container
    {:overflow :hidden

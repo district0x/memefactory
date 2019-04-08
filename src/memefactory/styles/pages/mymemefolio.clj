@@ -256,7 +256,7 @@
      [:.footer {:text-align :center
                 :color (color :meme-tile-footer)
                 :cursor :pointer
-                :line-height (em 1.5)}
+                :line-height (em 1.2)}
       [:.status {:font-weight :bold
                  :font-style :italic}]
       [:.vote-option

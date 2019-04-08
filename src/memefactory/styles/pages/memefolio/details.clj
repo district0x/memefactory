@@ -144,10 +144,7 @@
          :margin-right (em 1)
          :margin-top (em 1)}
         [:&.marketplace {:background-color (color :purple)
-                         :color (color :white)}
-         (for-media-max :tablet
-                        [:&
-                         {:display :none}])]
+                         :color (color :white)}]
         [:&.memefolio {:background-color (color :pink)
                        :color (color :white)}]]]]]]
    [:section.history

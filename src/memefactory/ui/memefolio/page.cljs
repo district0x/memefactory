@@ -641,7 +641,7 @@
                               :class "footer"}
                   [:div.token-id (str "#" number)]
                   [:div.title title]
-                  [:div.number-minted (str number "/" total-minted)]
+                  [:div.number-minted (str "card #" number "/" total-minted)]
                   [:div.price (ui-utils/format-price bought-for)]]])
               state)))])])
 
