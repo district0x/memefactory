@@ -175,7 +175,7 @@
         (when (and (not @active-account) @mobile-device?)
          [:a.coinbase-promotion
           {:href @coinbase-appstore-link}
-          [:span "Submit Memes with "] [:img {:src "assets/images/coinbase_logo.png"}]])
+          [:span "Submit Memes with "] [:img {:src "images/coinbase_logo.png"}]])
         [:div.main-content
          [:div.main-content-inner
           (map-indexed (fn [index item]
