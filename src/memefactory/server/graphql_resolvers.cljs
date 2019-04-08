@@ -273,7 +273,7 @@
 
                       ;; grouping cheapest
                       group-by
-                      (squash-by-min :reg-entry/address (get {:meme-auctions.group-by/cheapest           #(shared-utils/calculate-meme-auction-price % now)
+                      (squash-by-min :reg-entry/address (get {:meme-auctions.group-by/cheapest           (juxt #(shared-utils/calculate-meme-auction-price % now) :meme-token/number)
                                                               :meme-auctions.group-by/lowest-card-number #(:meme-token/number %)}
                                                              (graphql-utils/gql-name->kw group-by)))
 
