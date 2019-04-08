@@ -103,7 +103,9 @@
         form-data (let [{:keys [query]} @active-page]
                     (log/debug "Starting with " (:term query))
                     (r/atom {:search-term (:term query)
-                             :option-filters :only-lowest-number
+                             :option-filters (if-let [opt (:option-filter query)]
+                                               (keyword opt)
+                                               :only-lowest-number)
                              :search-tags (when-let [tags (:search-tags query)]
                                             (str/split tags #","))
                              :order-by (or (:order-by query) "started-on")

@@ -590,7 +590,7 @@
             [:div.buttons
              [nav-anchor {:route :route.marketplace/index
                           :params nil
-                          :query {:term title}
+                          :query {:term title :option-filter "all-cards"}
                           :class "search marketplace"}
               "Search On Marketplace"]
 
