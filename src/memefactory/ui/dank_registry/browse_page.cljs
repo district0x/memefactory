@@ -14,7 +14,7 @@
             [taoensso.timbre :as log :refer [spy]]
             [memefactory.ui.components.panels :refer [no-items-found]]))
 
-(def page-size 12)
+(def page-size 6)
 
 (defn build-tiles-query [{:keys [:search-term :order-by :search-tags :order-dir :only-cheapest?]} after]
   [:search-memes

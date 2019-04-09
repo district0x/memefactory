@@ -137,8 +137,8 @@
                                                          "Loading..." ])}
                         :as props} & [children]]
   (into [react-infinite (r/merge-props (dissoc props :load-fn :loading?)
-                                       {:class #_"tiles" (name class)
-                                        :element-height element-height
+                                       {:class "tiles" #_(name class)
+                                        :element-height (quot element-height 3)
                                         :infinite-load-begin-edge-offset element-height ;;infinite-load-threshold
                                         :use-window-as-scroll-container use-window-as-scroll-container
                                         :container-height (-> js/window .-innerHeight) ;;container-height
@@ -146,7 +146,7 @@
                                         :is-infinite-loading loading?
                                         :handle-scroll (fn [evt]
                                                          (let [{:keys [:to-bottom :page-height] :as pos} (get-position "app-container")]
-                                                           (if (and  has-more? 
+                                                           (if (and  has-more?
                                                                      (<= to-bottom 10 #_infinite-load-threshold))
                                                              (do (log/debug "stuck at bottom, autoscrolling!")
                                                                  (-> js/window (.scrollBy 0 -500))))
