@@ -14,7 +14,7 @@
             [taoensso.timbre :as log :refer [spy]]
             [memefactory.ui.components.panels :refer [no-items-found]]))
 
-(def page-size 3)
+(def page-size 12)
 
 (defn build-tiles-query [{:keys [:search-term :order-by :search-tags :order-dir :only-cheapest?]} after]
   [:search-memes
@@ -71,21 +71,21 @@
         loading? (:graphql/loading? last-meme)
         has-more? (-> last-meme :search-memes :has-next-page)]
 
-    (log/debug "#memes" {:c (count all-memes)})
+    ;; (log/debug "#memes" {:c (count all-memes)})
 
     [:div.scroll-area
-     [:div.tiles
-      (if (and (empty? all-memes)
-               (not (:graphql/loading? last-meme)))
-        [no-items-found]
-        (when-not (:graphql/loading? (first @meme-search))
-          (doall
-           (for [{:keys [:reg-entry/address] :as meme} all-memes]
-             ^{:key address}
-             #_[puke meme]
-             [tiles/meme-tile meme]))))
-      (when (:graphql/loading? last-meme)
-        [:div.spinner-container [spinner/spin]])]
+     ;;:div.tiles
+     #_(if (and (empty? all-memes)
+                (not (:graphql/loading? last-meme)))
+         [no-items-found]
+         (when-not (:graphql/loading? (first @meme-search))
+           (doall
+            (for [{:keys [:reg-entry/address] :as meme} all-memes]
+              ^{:key address}
+              #_[puke meme]
+              [tiles/meme-tile meme]))))
+     #_(when (:graphql/loading? last-meme)
+         [:div.spinner-container [spinner/spin]])
      [infinite-scroll/infinite-scroll {:loading? loading?
                                        :has-more? has-more?
                                        :infinite-load-threshold 0
@@ -93,7 +93,17 @@
                                        :load-fn #(let [{:keys [:end-cursor]} (:search-memes last-meme)]
                                                    (dispatch [:district.ui.graphql.events/query
                                                               {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                               :id @form-data}]))}]]))
+                                                               :id @form-data}]))}
+
+
+      (when-not (:graphql/loading? (first @meme-search))
+        (doall
+         (for [{:keys [:reg-entry/address] :as meme} all-memes]
+           ^{:key address}
+           #_[puke meme]
+           [tiles/meme-tile meme])))
+
+      ]]))
 
 (defmethod page :route.dank-registry/browse []
   (let [active-page (subscribe [::router-subs/active-page])
