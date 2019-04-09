@@ -44,36 +44,44 @@
 
   (let [{:keys [:user/total-created-challenges-success :user/total-created-challenges]} challenger]
     [:div.compact-tile
-    [tiles/flippable-tile {:front [tiles/meme-image image-hash]
-                           :back [:div.meme-card.back
-                                  [:div.overlay
-                                   [:div.info
-                                    [:ul.meme-data
-                                     [:li [:label "Creator:"]
-                                      [nav-anchor {:route :route.memefolio/index
-                                                   :params {:address (:user/address creator)}
-                                                   :query {:tab :created}}
-                                       (:user/address creator)]]
-                                     [:li [:label "Voting period ends in: "]
-                                      [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                      (utils/gql-date->date commit-period-end))
-                                                 format/format-time-units)]]
-                                     [:li [:label "Challenger :"]
-                                      [nav-anchor {:route :route.memefolio/index
-                                                   :params {:address (:user/address challenger)}
-                                                   :query {:tab :curated}}
-                                       (:user/address creator)
-                                       (-> challenger :user/address)]]
-                                     [:li [:label "Challenger success rate:"]
-                                      [:span (gstring/format "%d/%d (%d%%)"
-                                                             total-created-challenges-success
-                                                             total-created-challenges
-                                                             (if (pos? total-created-challenges) (/ (* 100 total-created-challenges-success) total-created-challenges) 0))]]]
-                                    [:hr]
-                                    [:p.comment comment]]]]}]
+     [tiles/flippable-tile
+      {:front [tiles/meme-image image-hash]
+       :back [:div.meme-card.back
+              [:div.overlay
+               [:div.logo
+                [:img {:src "/assets/icons/mf-logo.svg"}]]
+
+               [nav-anchor {:route :route.meme-detail/index
+                            :params {:address address}
+                            :class "details-button"}
+                [:span "View Details"]]
+
+               [:ul.meme-data
+                [:li [:label "Creator:"]
+                 [nav-anchor {:route :route.memefolio/index
+                              :params {:address (:user/address creator)}
+                              :query {:tab :created}}
+                  (:user/address creator)]]
+                [:li [:label "Voting period ends in: "]
+                 [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                 (utils/gql-date->date commit-period-end))
+                            format/format-time-units)]]
+                [:li [:label "Challenger :"]
+                 [nav-anchor {:route :route.memefolio/index
+                              :params {:address (:user/address challenger)}
+                              :query {:tab :curated}}
+                  (:user/address creator)
+                  (-> challenger :user/address)]]
+                [:li [:label "Challenger success rate:"]
+                 [:span (gstring/format "%d/%d (%d%%)"
+                                        total-created-challenges-success
+                                        total-created-challenges
+                                        (if (pos? total-created-challenges) (/ (* 100 total-created-challenges-success) total-created-challenges) 0))]]]
+               [:hr]
+               [:div.description {:style {:color "#f25e5e"}} comment]]]}]
      [nav-anchor {:route :route.meme-detail/index
                   :params {:address address}}
-      [:div.footer
+      [:div.input
        [:div.title (-> meme :meme/title)]]]]))
 
 
