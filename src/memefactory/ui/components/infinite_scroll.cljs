@@ -2,6 +2,8 @@
   (:require [reagent.core :as r]
             [taoensso.timbre :as log :refer [spy]]
             [memefactory.shared.utils :as utils]
+            [re-frame.core :refer [subscribe]]
+            [district.ui.window-size.subs :as w-size-subs]
             [react-infinite]))
 
 (def react-infinite (r/adapt-react-class js/Infinite))
@@ -136,24 +138,26 @@
                                                                                                 :text-overflow :ellipsis}}
                                                          "Loading..." ])}
                         :as props} & [children]]
-  (into [react-infinite (r/merge-props (dissoc props :load-fn :loading?)
-                                       {:class "tiles" #_(name class)
-                                        :element-height (quot element-height 3)
-                                        :infinite-load-begin-edge-offset element-height ;;infinite-load-threshold
-                                        :use-window-as-scroll-container use-window-as-scroll-container
-                                        :container-height (-> js/window .-innerHeight) ;;container-height
-                                        :loading-spinner-delegate loading-spinner-delegate
-                                        :is-infinite-loading loading?
-                                        :handle-scroll (fn [evt]
-                                                         (let [{:keys [:to-bottom :page-height] :as pos} (get-position "app-container")]
-                                                           (if (and  has-more?
-                                                                     (<= to-bottom 10 #_infinite-load-threshold))
-                                                             (do (log/debug "stuck at bottom, autoscrolling!")
-                                                                 (-> js/window (.scrollBy 0 -500))))
-
-                                                           ))
-                                        :time-scroll-state-lasts-for-after-user-scrolls 1000
-                                        :on-infinite-load (fn []
-                                                            (when (not loading?)
-                                                              (load-fn)))})
-         ] children))
+  [:div
+   (let [row-height (if @(subscribe [::w-size-subs/mobile?])
+                      element-height
+                      (quot element-height 3))]
+     (into [react-infinite (r/merge-props (dissoc props :load-fn :loading?)
+                                         {:class "tiles" #_(name class)
+                                          :element-height row-height
+                                          :infinite-load-begin-edge-offset row-height ;;infinite-load-threshold
+                                          :use-window-as-scroll-container use-window-as-scroll-container
+                                          :container-height (-> js/window .-innerHeight) ;;container-height
+                                          :loading-spinner-delegate loading-spinner-delegate
+                                          :is-infinite-loading loading?
+                                          :handle-scroll (fn [evt]
+                                                           (let [{:keys [:to-bottom :page-height] :as pos} (get-position "app-container")]
+                                                             (if (and  has-more?
+                                                                       (<= to-bottom 10 #_infinite-load-threshold))
+                                                               (do (log/debug "stuck at bottom, autoscrolling!")
+                                                                   (-> js/window (.scrollBy 0 -500))))))
+                                          :time-scroll-state-lasts-for-after-user-scrolls 1000
+                                          :on-infinite-load (fn []
+                                                              (when (not loading?)
+                                                                (load-fn)))})
+           ] children))])
