@@ -1,23 +1,23 @@
 (ns memefactory.ui.leaderboard.curators-page
   (:require
-    [cljs-web3.core :as web3]
-    [district.format :as format]
-    [district.ui.component.form.input :refer [select-input]]
-    [district.ui.component.page :refer [page]]
-    [district.ui.graphql.subs :as gql]
-    [district.ui.router.events :as router-events]
-    [district.ui.web3-accounts.subs :as accounts-subs]
-    [goog.string :as gstring]
-    [memefactory.ui.components.app-layout :refer [app-layout]]
-    [memefactory.ui.components.general :refer [dank-with-logo]]
-    [memefactory.ui.components.general :refer [nav-anchor]]
-    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-    [memefactory.ui.components.panels :refer [no-items-found]]
-    [memefactory.ui.components.spinner :as spinner]
-    [memefactory.ui.utils :as ui-utils]
-    [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]
-    [taoensso.timbre :as log]))
+   [cljs-web3.core :as web3]
+   [district.format :as format]
+   [district.ui.component.form.input :refer [select-input]]
+   [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
+   [district.ui.router.events :as router-events]
+   [district.ui.web3-accounts.subs :as accounts-subs]
+   [goog.string :as gstring]
+   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.general :refer [dank-with-logo]]
+   [memefactory.ui.components.general :refer [nav-anchor]]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.panels :refer [no-items-found]]
+   [memefactory.ui.components.spinner :as spinner]
+   [memefactory.ui.utils :as ui-utils]
+   [re-frame.core :refer [subscribe dispatch]]
+   [reagent.core :as r]
+   [taoensso.timbre :as log]))
 
 (def page-size 6)
 
@@ -58,6 +58,9 @@
             last-user (last @users-search)
             loading? (:graphql/loading? last-user)
             has-more? (-> last-user :search-users :has-next-page)]
+
+        (log/debug "#curators" {:c (count lazy-curators)})
+
         [app-layout
          {:meta {:title "MemeFactory - Curators Leaderboard"
                  :description "The most prolific challengers and voters on MemeFactory. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
@@ -76,14 +79,22 @@
                            {:key "challenger-total-earned" :value "by total challenges earnings"}
                            {:key "voter-total-earned" :value "by total votes earnings"}]}])]
             [:div.scroll-area
-             [:div.curators
-              (if (and (empty? lazy-curators)
-                       (not loading?))
-                [no-items-found]
+             (if (and (empty? lazy-curators)
+                      (not loading?))
+               [no-items-found]
+               [infinite-scroll {:class "curators"
+                                 :element-height 420
+                                 :loading? loading?
+                                 :has-more? has-more?
+                                 :loading-spinner-delegate (fn []
+                                                             [:div.spinner-container [spinner/spin]])
+                                 :load-fn #(let [{:keys [:end-cursor]} (:search-users last-user)]
+                                             (lazy-search-users end-cursor))}
+
                 (when-not (:graphql/loading? (first @users-search))
                   (->> lazy-curators
                        (map-indexed
-                         (fn [idx curator]
+                        (fn [idx curator]
                           ^{:key (:user/address curator)}
                           [:div.curator {:class (when (= @(subscribe [::accounts-subs/active-account]) (:user/address curator)) "account-tile")}
                            [:p.number (str "#" (inc idx))]
@@ -108,12 +119,6 @@
 
                            [:p "Earned: " [:span (ui-utils/format-dank (:user/voter-total-earned curator))]]
                            [:p.total-earnings "Total Earnings: " [:span (ui-utils/format-dank (web3/from-wei (:user/curator-total-earned curator) :ether))]]]))
-                       doall)))
-              (when loading?
-               [:div.spinner-container [spinner/spin]])]
-             [infinite-scroll {:loading? loading?
-                               :has-more? has-more?
-                               :infinite-load-threshold 0
-                               :debounce-interval 200
-                               :load-fn #(let [{:keys [:end-cursor]} (:search-users last-user)]
-                                           (lazy-search-users end-cursor))}]]]]]]))))
+                       doall))
+
+                ])]]]]]))))

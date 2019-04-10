@@ -30,8 +30,6 @@
    [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.components.general :refer [nav-anchor]]))
 
-;; (def page-size 6)
-
 (defn header []
   (let [active-account (subscribe [::accounts-subs/active-account])]
     (fn []

@@ -16,7 +16,7 @@
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.general :refer [nav-anchor]]))
 
-(def page-size 3)
+(def page-size 6)
 
 (defn build-collectors-query [{:keys [order-by after]}]
   [:search-users
@@ -114,11 +114,10 @@
                                  :element-height 420
                                  :loading? loading?
                                  :has-more? has-more?
-                                 ;; :infinite-load-threshold 0
-                                 ;; :debounce-interval 200
+                                 :loading-spinner-delegate (fn []
+                                                             [:div.spinner-container [spinner/spin]])
                                  :load-fn #(let [{:keys [:end-cursor]} (:search-users last-user)]
                                              (re-search-users end-cursor))}
-
                 (when-not (:graphql/loading? (first @users-search))
                   (doall
                    (map

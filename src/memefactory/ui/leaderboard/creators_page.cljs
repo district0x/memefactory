@@ -18,7 +18,7 @@
    [memefactory.ui.components.general :refer [nav-anchor]]
    [cljs-web3.core :as web3]))
 
-(def page-size 3)
+(def page-size 6)
 
 (defn build-creators-query [{:keys [order-by after]}]
   [:search-users
@@ -92,6 +92,8 @@
                          :element-height 420
                          :loading? loading?
                          :has-more? has-more?
+                         :loading-spinner-delegate (fn []
+                                                     [:div.spinner-container [spinner/spin]])
                          :load-fn #(let [{:keys [:end-cursor]} (:search-users last-user)]
                                      (re-search-users end-cursor))}
         (when-not (:graphql/loading? (first @users-search))
