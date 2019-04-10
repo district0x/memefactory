@@ -291,6 +291,9 @@
                      :background-repeat "no-repeat"
                      :background-image "url(/assets/icons/arrow-white-right.svg)"}]]]]
 
+   [:.remove-purple-footer
+    {:background (str overlay-background " !important")}]
+
    [:.meme-placeholder
     {:grid-area :fill
      :display :flex
