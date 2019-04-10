@@ -18,13 +18,13 @@
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [taoensso.timbre :as log]
+   [taoensso.timbre :as log :refer [spy]]
    [district.ui.router.events :as router-events]
    [memefactory.ui.components.panels :refer [no-items-found]]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [memefactory.ui.components.general :refer [nav-anchor]]))
 
-(def page-size 3)
+(def page-size 6)
 
 (defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]}]
   (let [{:keys [:order-by :order-dir]} data]
@@ -176,55 +176,55 @@
           [:span.period-ended (str period-label " period ended.")]
           [action-child entry])]])))
 
+(defn meme-tiles [meme-search re-search {:keys [:include-challenger-info? :action-child]}]
+  (let [all-memes (->> @meme-search
+                       (mapcat (fn [r] (-> r :search-memes :items)))
+                       (remove #(nil? (:reg-entry/address %))))
+        loading? (:graphql/loading? (last @meme-search))
+        has-more? (-> (last @meme-search) :search-memes :has-next-page)]
+    [:div.scroll-area
+     (if (and (empty? all-memes)
+              (not loading?))
+       [no-items-found]
+       [infinite-scroll {:class "memes"
+                         :element-height 503
+                         :elements-in-row 1
+                         :loading? loading?
+                         :has-more? has-more?
+                         :loading-spinner-delegate (fn []
+                                                     [:div.spinner-container [spinner/spin]])
+                         :load-fn #(let [{:keys [:end-cursor]} (:search-memes (last @meme-search))]
+                                     (re-search end-cursor))}
+        ;;when-not loading?
+        (doall
+         (for [{:keys [:reg-entry/address] :as meme} all-memes]
+           ^{:key address} [challenge {:entry meme
+                                       :include-challenger-info? include-challenger-info?
+                                       :action-child action-child}]))])]))
+
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
   (let [form-data (r/atom {:order-by (-> sort-options first :key)
-                           :order-dir (-> sort-options first :dir (or :desc))})]
-    (fn [{:keys [include-challenger-info? query-params action-child active-account key]}]
-      (let [params {:data @form-data
-                    :include-challenger-info? include-challenger-info?
-                    :query-params query-params
-                    :active-account active-account}
-            re-search (fn [after]
-                        (dispatch [:district.ui.graphql.events/query
-                                   {:query {:queries [(build-challenge-query (assoc params :after after))]}
-                                    :id {:params params :key key}}]))
-            meme-search (subscribe [::gql/query {:queries [(build-challenge-query params)]}
-                                    {:id {:params params :key key}}])
-            all-memes (->> @meme-search
-                           (mapcat (fn [r] (-> r :search-memes :items)))
-                           (remove #(nil? (:reg-entry/address %))))
-            loading? (:graphql/loading? (last @meme-search))
-            has-more? (-> (last @meme-search) :search-memes :has-next-page)]
+                           :order-dir (-> sort-options first :dir (or :desc))})
 
-        (log/debug "All Rendering here" all-memes ::challenge-list)
-        (log/debug "All memes" {:memes (map :reg-entry/address all-memes)} ::challenge-list)
+        params {:data @form-data
+                :include-challenger-info? include-challenger-info?
+                :query-params query-params
+                :active-account active-account}
 
-        [:div.challenges.panel
-         [:div.controls
-          [select-input {:form-data form-data
-                         :class :white-select
-                         :id :order-by
-                         :options sort-options
-                         :on-change #(re-search nil)}]]
-         [:div.scroll-area
-          [:div.memes
-           (if (and (empty? all-memes)
-                    (not loading?))
-             [:div.no-items
-              [no-items-found]]
-             (when-not loading?
-               (doall
-                (for [{:keys [:reg-entry/address] :as meme} all-memes]
-                  ^{:key address}
-                  [challenge {:entry meme
-                              :include-challenger-info? include-challenger-info?
-                              :action-child action-child}]))))
-           (when loading?
-             [:div.challenge
-              [:div.spinner-container [spinner/spin]]])]
-          [infinite-scroll {:loading? loading?
-                            :has-more? has-more?
-                            :infinite-load-threshold 0
-                            :debounce-interval 200
-                            :load-fn (let [{:keys [:end-cursor]} (:search-memes (last @meme-search))]
-                                       (re-search end-cursor))}]]]))))
+        meme-search (subscribe [::gql/query {:queries [(build-challenge-query params)]}
+                                {:id {:params params :key key}}])
+
+        re-search (fn [after]
+                    (dispatch [:district.ui.graphql.events/query
+                               {:query {:queries [(build-challenge-query (assoc params :after after))]}
+                                :id {:params params :key key}}]))]
+
+    [:div.challenges.panel
+     [:div.controls
+      [select-input {:form-data form-data
+                     :class :white-select
+                     :id :order-by
+                     :options sort-options
+                     :on-change #(re-search nil)}]]
+     [meme-tiles meme-search re-search {:include-challenger-info? include-challenger-info?
+                                        :action-child action-child}]]))

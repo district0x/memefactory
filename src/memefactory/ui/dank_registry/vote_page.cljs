@@ -30,7 +30,7 @@
    [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.components.general :refer [nav-anchor]]))
 
-(def page-size 12)
+;; (def page-size 6)
 
 (defn header []
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -64,8 +64,7 @@
                                                                               [:challenge/vote {:vote/voter @active-account}
                                                                                [:vote/option
                                                                                 :vote/amount]]]))]]}])]
-    (log/debug "@response" @response)
-
+    ;; (log/debug "@response" @response)
     (if (:graphql/loading? @response)
       [spinner/spin]
       (if-let [meme-voting (:meme @response)]
@@ -75,11 +74,8 @@
               {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total :challenge/vote]} meme-voting
               {:keys [:vote/option :vote/amount]
                :or {option "voteOption_noVote"}} vote
-              option (graphql-utils/gql-name->kw (spy option))]
-
-          (log/debug "vote" {:v vote :o option} ::collect-reward-action)
-
-
+              option (graphql-utils/gql-name->kw option)]
+          ;; (log/debug "vote" {:v vote :o option} ::collect-reward-action)
           (if (and (zero? votes-for)
                    (zero? votes-against))
             [:div.collect-reward
@@ -237,7 +233,7 @@
            [:div.no-reveal-info "You haven't voted"])]))))
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
-  (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)
+  ;; (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)
   (case  (graphql-utils/gql-name->kw status)
     :reg-entry.status/commit-period [vote-action meme]
     :reg-entry.status/reveal-period [reveal-action meme]
@@ -247,33 +243,32 @@
 
 (defmethod page :route.dank-registry/vote []
   (let [account @(subscribe [::accounts-subs/active-account])]
-
-    (log/debug ":route.dank-registry/vote" account)
-
-    [app-layout
-     {:meta {:title "MemeFactory - Vote"
-             :description "View challenges and vote to earn more DANK. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
-     [:div.dank-registry-vote-page
-      [:section.vote-header
-       [header]]
-      [:section.challenges
-       [tabbed-pane
-        [{:title "Open Challenges"
-          :content [challenge-list {:include-challenger-info? true
-                                    :query-params {:statuses [:reg-entry.status/commit-period
-                                                              :reg-entry.status/reveal-period]}
-                                    :active-account account
-                                    :action-child reveal-vote-action
-                                    :key :vote-page/open
-                                    :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
-                                                   {:key "commit-period-end" :value "Commit period end" :dir :asc}]}]}
-         {:title "Resolved Challenges"
-          :content [challenge-list {:include-challenger-info? true
-                                    :query-params {:statuses [:reg-entry.status/blacklisted
-                                                              :reg-entry.status/whitelisted]
-                                                   :challenged true}
-                                    :active-account account
-                                    :action-child collect-reward-action
-                                    :key :vote-page/resolved
-                                    :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
-                                                   {:key "reveal-period-end" :value "Reveal period end" :dir :asc}]}]}]]]]]))
+    ;; (log/debug ":route.dank-registry/vote" account)
+    (fn []
+      [app-layout
+       {:meta {:title "MemeFactory - Vote"
+               :description "View challenges and vote to earn more DANK. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
+       [:div.dank-registry-vote-page
+        [:section.vote-header
+         [header]]
+        [:section.challenges
+         [tabbed-pane
+          [{:title "Open Challenges"
+            :content [challenge-list {:include-challenger-info? true
+                                      :query-params {:statuses [:reg-entry.status/commit-period
+                                                                :reg-entry.status/reveal-period]}
+                                      :active-account account
+                                      :action-child reveal-vote-action
+                                      :key :vote-page/open
+                                      :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
+                                                     {:key "commit-period-end" :value "Commit period end" :dir :asc}]}]}
+           {:title "Resolved Challenges"
+            :content [challenge-list {:include-challenger-info? true
+                                      :query-params {:statuses [:reg-entry.status/blacklisted
+                                                                :reg-entry.status/whitelisted]
+                                                     :challenged true}
+                                      :active-account account
+                                      :action-child collect-reward-action
+                                      :key :vote-page/resolved
+                                      :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
+                                                     {:key "reveal-period-end" :value "Reveal period end" :dir :asc}]}]}]]]]])))
