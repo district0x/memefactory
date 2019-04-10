@@ -47,7 +47,7 @@
      [tiles/flippable-tile
       {:front [tiles/meme-image image-hash]
        :back [:div.meme-card.back
-              [:div.overlay
+              [:div.overlay.remove-purple-footer
                [:div.logo
                 [:img {:src "/assets/icons/mf-logo.svg"}]]
 
@@ -78,10 +78,10 @@
                                         total-created-challenges
                                         (if (pos? total-created-challenges) (/ (* 100 total-created-challenges-success) total-created-challenges) 0))]]]
                [:hr]
-               [:div.description {:style {:color "#f25e5e"}} comment]]]}]
+               [:div.description comment]]]}]
      [nav-anchor {:route :route.meme-detail/index
                   :params {:address address}}
-      [:div.input
+      [:div.footer
        [:div.title (-> meme :meme/title)]]]]))
 
 
