@@ -14,11 +14,11 @@
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [taoensso.timbre :as log]
+   [taoensso.timbre :as log :refer [spy]]
    [clojure.string :as str]
    [memefactory.ui.components.panels :refer [no-items-found]]))
 
-(def page-size 3)
+(def page-size 6)
 
 (defn build-tiles-query [{:keys [:search-term :search-tags :order-by :order-dir :only-cheapest?]} after]
   [:search-meme-auctions
@@ -58,28 +58,22 @@
   (let [all-auctions (->> @auctions-search
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))
         loading? (:graphql/loading? (last @auctions-search))
-        has-more? (-> (last @auctions-search) :search-meme-auctions :has-next-page)]
+        has-more? (-> (spy (last @auctions-search)) :search-meme-auctions :has-next-page)]
     (log/debug "#auctions" {:auctions (count (map :meme-auction/address all-auctions))})
     [:div.scroll-area
-     [:div.tiles
-      (if (and (empty? all-auctions)
-               (not loading?))
-        [no-items-found]
-        (when-not loading?
-          (doall
-           (for [{:keys [:meme-auction/address] :as auc} all-auctions]
-             ^{:key address}
-             [tiles/auction-tile {} auc]))))
-      (when loading?
-        [:div.spinner-container [spinner/spin]])]
-     [infinite-scroll {:loading? loading?
-                       :has-more? has-more?
-                       :infinite-load-threshold 0
-                       :debounce-interval 200
-                       :load-fn #(let [{:keys [:end-cursor]} (:search-meme-auctions (last @auctions-search))]
-                                   (dispatch [:district.ui.graphql.events/query
-                                              {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                               :id @form-data}]))}]]))
+     (if (and (empty? all-auctions)
+              (not loading?))
+       [no-items-found]
+       [infinite-scroll {:class "tiles"
+                         :loading? loading?
+                         :has-more? has-more?
+                         :load-fn #(let [{:keys [:end-cursor]} (:search-meme-auctions (last @auctions-search))]
+                                     (dispatch [:district.ui.graphql.events/query
+                                                {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                 :id @form-data}]))}
+        (doall
+         (for [{:keys [:meme-auction/address] :as auc} all-auctions]
+           ^{:key address} [tiles/auction-tile {} auc]))])]))
 
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])
