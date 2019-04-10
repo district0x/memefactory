@@ -264,7 +264,7 @@
                         :reg-entry/address address}
              form]]))])))
 
-(defmethod panel :collected [_ state loading-first? loading-last?]
+(defmethod panel :collected [_ state {:keys [loading-first? loading-last?]}]
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
     (if (and (empty? state)
@@ -291,7 +291,7 @@
                                                                                  :meme-auction/token-count token-count
                                                                                  :meme-auction/token-ids token-ids}]
                                                            [tiles/meme-back-tile meme])
-                                                   :flippable-classes (when active-user-page? 
+                                                   :flippable-classes (when active-user-page?
                                                                         #{"meme-image" "cancel" "info" "create-offering"})}]
                             [nav-anchor {:route :route.meme-detail/index
                                          :params {:address address}
@@ -381,7 +381,7 @@
                        (str "Max " max-amount)
                        "All cards issued")]]))))
 
-(defmethod panel :created [_ state loading-first? loading-last?]
+(defmethod panel :created [_ state {:keys [loading-first? loading-last?]}]
 
   (log/debug _ state)
 
@@ -479,7 +479,7 @@
     (when-not (:graphql/loading? @query)
       [:div.total "Total " (get-in @query [:search-memes :total-count])])))
 
-(defmethod panel :curated [_ state loading-first? loading-last?]
+(defmethod panel :curated [_ state {:keys [loading-first? loading-last?]}]
   (if (and (empty? state)
            (not loading-last?))
     [no-items-found]
@@ -594,7 +594,7 @@
     (let [total (get-in @query [:search-meme-auctions :total-count])]
       [:div.total (str "Total " total)])))
 
-(defmethod panel :sold [_ state loading-first? loading-last?]
+(defmethod panel :sold [_ state {:keys [loading-first? loading-last?]}]
 
   ;; (log/debug _ state)
 
@@ -652,7 +652,7 @@
 
   (log/debug "build-query" {:user user-address})
 
-  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
+  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged? :option-filters]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner user-address
                                          :first first}
@@ -740,7 +740,11 @@
                                               {:order-by (build-order-by :meme-auctions :started-on)
                                                :order-dir :desc}
                                               (when search-tags
-                                                {:tags search-tags}))
+                                                {:tags search-tags})
+                                              (when (#{:only-lowest-number :only-cheapest} option-filters)
+                                                {:group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
+                                                                 :only-cheapest :meme-auctions.group-by/cheapest}
+                                                                option-filters)}))
                  [:total-count
                   :end-cursor
                   :has-next-page
@@ -817,7 +821,9 @@
 
       [:div.scroll-area
        [:div.inner-panel
-        [panel tab state (:graphql/loading? (first @query-subs)) (:graphql/loading? (last @query-subs))]
+        [panel tab state {:loading-first? (:graphql/loading? (first @query-subs))
+                          :loading-last? (:graphql/loading? (last @query-subs))
+                          :form-data form-data}]
         (when (:graphql/loading? (last @query-subs))
           [:div.spinner-container [spinner/spin]])
       [infinite-scroll {:load-fn (fn []
@@ -827,7 +833,7 @@
                                          (dispatch [::gql-events/query
                                                     {:query {:queries (build-query tab {:user-address user-address
                                                                                         :prefix prefix
-                                                                                        :form-data form-data
+                                                                                        :form-data @form-data
                                                                                         :first scroll-interval
                                                                                         :after end-cursor})}
                                                      :id query-id}])))))}]]]))
@@ -938,7 +944,8 @@
             order-by? (-> query :order-by nil? not)
             form-data (r/atom {:term (:term query)
                                :voted? true
-                               :challenged? true})]
+                               :challenged? true
+                               :option-filters :only-lowest-number})]
         [app-layout/app-layout
          {:meta {:title (if url-account
                           (str "MemeFactory - Memefolio " user-account)

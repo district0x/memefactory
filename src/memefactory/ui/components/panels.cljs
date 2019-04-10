@@ -12,7 +12,7 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [taoensso.timbre :as log]
             [clojure.string :as str]
-            ))
+            [memefactory.ui.components.search :refer [auctions-option-filters]]))
 
 (defmulti panel (fn [tab & opts] tab))
 
@@ -20,11 +20,12 @@
   [:div.no-items-found {:class (str/join " " extra-classes)}
    "No items found"])
 
-(defmethod panel :selling [_ state loading-first? loading-last?]
-
-   (log/debug _ state)
+(defmethod panel :selling [_ state {:keys [loading-first? loading-last? form-data]}]
 
   [:div.selling-panel
+   [inputs/radio-group {:id :option-filters
+                        :form-data form-data
+                        :options auctions-option-filters}]
    [:div.tiles
     (if (and (empty? state)
              (not loading-last?))

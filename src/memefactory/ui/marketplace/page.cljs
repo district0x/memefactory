@@ -7,7 +7,7 @@
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-   [memefactory.ui.components.search :refer [search-tools]]
+   [memefactory.ui.components.search :refer [search-tools auctions-option-filters]]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.marketplace.events :as mk-events]
    [memefactory.ui.components.spinner :as spinner]
@@ -141,9 +141,7 @@
                                            {:key "random" :value "Random"}]
                           :search-result-count search-total-count
                           :on-check-filter-change re-search
-                          :option-filters [{:key :only-lowest-number :label "Show only the lowest card number of meme"}
-                                           {:key :only-cheapest      :label "Show only the cheapest card of meme"}
-                                           {:key :all-cards          :label "All cards"}]
+                          :option-filters auctions-option-filters
                           }]
            [:div.search-results
             [marketplace-tiles form-data auctions-search]]]]]))))

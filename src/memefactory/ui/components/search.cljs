@@ -19,6 +19,9 @@
 (defn chip-render [c]
   [:span c])
 
+(def auctions-option-filters [{:key :only-lowest-number :label "Show only the lowest card number of meme"}
+                              {:key :only-cheapest      :label "Show only the cheapest card of meme"}
+                              {:key :all-cards          :label "All cards"}])
 (defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filters
                             on-selected-tags-change on-search-change on-select-change option-filters option-filters-id]}]
 

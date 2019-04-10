@@ -518,6 +518,13 @@
                        :padding-top (em 7)}]
      [:h2.title {:padding-top (em 1)}]
      [:.selling-panel
+      [:.radio {:display :inline-block
+                :margin-left (px 10)}
+       (for-media-max :tablet
+                      [:& {:display :block}])
+       [:label {:margin-left (px 8)
+                :font-size (px 12)}]]
+      [:.help-block {:display :none}]
       [:.meme-card
        [:.overlay {:background overlay-background-footer}]
        [:.selling-tile-back {:height "100%"

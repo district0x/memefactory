@@ -233,6 +233,12 @@
      {:box-shadow :unset}]
     [:.meme-card [:a {:color :white}]]
     [:.selling-panel
+     [:.radio {:display :inline-block
+                :margin-left (px 10)}
+       (for-media-max :tablet
+                      [:& {:display :block}])
+       [:label {:margin-left (px 8)
+                :font-size (px 12)}]]
      [:.meme-card
       [:.overlay {:background overlay-background-footer}]]]
     [:.spinner-container {:width (px 900)

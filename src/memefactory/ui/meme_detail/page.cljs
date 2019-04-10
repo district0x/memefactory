@@ -40,7 +40,8 @@
    [goog.string :as gstring]
    [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.dank-registry.vote-page :as vote-page]
-   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]))
+   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
+   [memefactory.ui.components.search :refer [auctions-option-filters]]))
 
 (def scroll-interval 5)
 
@@ -117,56 +118,67 @@
                                             "active-address"))}
        address]]]))
 
-(defn related-memes-component [state loading-first? loading-last?]
-  (panel :selling state loading-first? loading-last?))
+(defn related-memes-component [state loading-first? loading-last? form-data]
+  (panel :selling state {:loading-first? loading-first?
+                         :loading-last? loading-last?
+                         :form-data form-data}))
 
 (defn related-memes-container [address tags]
-  (let [build-query (fn [{:keys [:first :after]}]
-                      [[:search-meme-auctions {:tags-or tags
-                                               :after (str after)
-                                               :first first
-                                               :non-for-meme address
-                                               :statuses [:meme-auction.status/active]
-                                               :group-by :meme-auctions.group-by/cheapest}
-                        [:total-count
-                         :end-cursor
-                         :has-next-page
-                         [:items [:meme-auction/address
-                                  :meme-auction/status
-                                  :meme-auction/start-price
-                                  :meme-auction/end-price
-                                  :meme-auction/bought-for
-                                  :meme-auction/duration
-                                  :meme-auction/started-on
-                                  :meme-auction/description
-                                  [:meme-auction/seller [:user/address]]
-                                  [:meme-auction/meme-token
-                                   [:meme-token/number
-                                    [:meme-token/meme
-                                     [:reg-entry/address
-                                      :meme/title
-                                      :meme/number
-                                      :meme/image-hash
-                                      :meme/meta-hash
-                                      :meme/total-minted]]]]]]]]])
-        response (subscribe [::gql/query {:queries (build-query {:after 0
-                                                                 :first scroll-interval})}
-                             {:id address}])
-        state (->> @response
-                   (mapcat (fn [q] (get-in q [:search-meme-auctions :items]))))]
+  (let [form-data (r/atom {:option-filters :only-lowest-number})
+        option-filters (ratom/reaction (:option-filters @form-data))]
+    (fn [address tags]
+      (let [build-query (fn [{:keys [:first :after]}]
+                          [[:search-meme-auctions (cond-> {:tags-or tags
+                                                           :after (str after)
+                                                           :first first
+                                                           :non-for-meme address
+                                                           :statuses [:meme-auction.status/active]}
+                                                    (#{:only-lowest-number :only-cheapest} @option-filters)
+                                                    (assoc :group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
+                                                                           :only-cheapest :meme-auctions.group-by/cheapest}
+                                                                          @option-filters)))
+                            [:total-count
+                             :end-cursor
+                             :has-next-page
+                             [:items [:meme-auction/address
+                                      :meme-auction/status
+                                      :meme-auction/start-price
+                                      :meme-auction/end-price
+                                      :meme-auction/bought-for
+                                      :meme-auction/duration
+                                      :meme-auction/started-on
+                                      :meme-auction/description
+                                      [:meme-auction/seller [:user/address]]
+                                      [:meme-auction/meme-token
+                                       [:meme-token/number
+                                        [:meme-token/meme
+                                         [:reg-entry/address
+                                          :meme/title
+                                          :meme/number
+                                          :meme/image-hash
+                                          :meme/meta-hash
+                                          :meme/total-minted]]]]]]]]])
+            response (subscribe [::gql/query {:queries (build-query {:after 0
+                                                                     :first scroll-interval})}
+                                 {:id [address @option-filters]}])
+            state (->> @response
+                       (mapcat (fn [q] (get-in q [:search-meme-auctions :items]))))]
 
 
-
-    [:div.scroll-area
-     [related-memes-component state (:graphql/loading? (first @response)) (:graphql/loading? (last @response))]
-     [infinite-scroll {:load-fn (fn []
-                                  (when-not (:graphql/loading? (last @response))
-                                    (let [{:keys [:has-next-page :end-cursor]} (:search-meme-auctions (last @response))]
-                                      (when has-next-page
-                                        (dispatch [::gql-events/query
-                                                   {:query {:queries (build-query {:first scroll-interval
-                                                                                   :after (or end-cursor 0)})}
-                                                    :id address}])))))}]]))
+        [:div.scroll-area
+         [related-memes-component
+          state
+          (:graphql/loading? (first @response))
+          (:graphql/loading? (last @response))
+          form-data]
+         [infinite-scroll {:load-fn (fn []
+                                      (when-not (:graphql/loading? (last @response))
+                                        (let [{:keys [:has-next-page :end-cursor]} (:search-meme-auctions (last @response))]
+                                          (when has-next-page
+                                            (dispatch [::gql-events/query
+                                                       {:query {:queries (build-query {:first scroll-interval
+                                                                                       :after (or end-cursor 0)})}
+                                                        :id address}])))))}]]))))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
