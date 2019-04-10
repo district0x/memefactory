@@ -236,7 +236,8 @@
      [:.radio {:display :inline-block
                 :margin-left (px 10)}
        (for-media-max :tablet
-                      [:& {:display :block}])
+                      [:& {:display :block
+                           :margin-left (px 20)}])
        [:label {:margin-left (px 8)
                 :font-size (px 12)}]]
      [:.meme-card

@@ -16,7 +16,7 @@
                             icon]}]
   [:&
    [:div.search-form
-    (for-media-max :tablet
+    (for-media-max :computer
                    [:&
                     {:background-image :none
                      :background-color (color :meme-panel-bg)}])
@@ -31,7 +31,7 @@
      :padding-bottom (em 1)}
     [:.header :h2
      (font :bungee)
-     (for-media-max :tablet
+     (for-media-max :computer
                     [:&
                      {:font-size (px 19)}])
      {:white-space :nowrap
@@ -52,7 +52,7 @@
       :padding-left (px 5)
       :padding-right (px 5)}]
     [:.icon
-     (for-media-max :tablet
+     (for-media-max :computer
                     [:&
                      {:margin-right :auto
                       :margin-left :auto
@@ -88,7 +88,7 @@
        "'. checkbox .'\n")
       :grid-column-gap (em 2)
       :color (c/color :section-subcaption)}
-     (for-media-max :tablet
+     (for-media-max :computer
                     [:& {:grid-template-rows "3em 3em 4em 6em"
                          :grid-template-columns "100%"
                          :grid-template-areas
@@ -140,19 +140,19 @@
        :justify-self :end
        :width (px 573)
        :display :flex}
-      (for-media-max :tablet
+      (for-media-max :computer
                      [:& {:justify-self :unset
                           :width :unset}])
       [:.radio {:display :inline-block
                 :margin-left (px 10)}
-       (for-media-max :tablet
+       (for-media-max :computer
                       [:& {:display :block
                            :margin-left 0}])
        [:label {:margin-left (px 8)
                 :font-size (px 12)}]]
       [:.help-block {:display :none}]]]]
    [:.search-form
-    (for-media-max :tablet
+    (for-media-max :computer
                    [:.more {:background-color (c/color :new-meme-icon-bg)}])
     [:.icon {:background-color (c/color color)
              :background-image (str "url('" icon "')")}]
