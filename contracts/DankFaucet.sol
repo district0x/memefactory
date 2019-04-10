@@ -1,12 +1,13 @@
 pragma solidity ^0.4.24;
 import "./oraclize/ethereum-api/oraclizeAPI.sol";
 import "./DankToken.sol";
+import "./auth/DSAuth.sol";
 
 /***
  * A Faucet for getting initial DANK tokens. Provide a phone number,
  * reveive a one-time allotment of DANK.
  ***/
-contract DankFaucet is usingOraclize {
+contract DankFaucet is usingOraclize, DSAuth {
 
   DankToken public constant dankToken = DankToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
 
@@ -37,6 +38,9 @@ contract DankFaucet is usingOraclize {
 
   // An event for communicating the id from Oraclize and a message.
   event OraclizeCall(bytes32 id, string msg);
+
+  // An event fired when a person's allotment is reset by the faucet.
+  event DankReset(bytes32 hashedPhoneNumber, uint amount);
 
   /**
    * Sets the initial allotment of DANK tokens, the number of tokens
@@ -104,4 +108,20 @@ contract DankFaucet is usingOraclize {
    * Simple function to allow for adding ETH to the contract.
    */
   function sendEth() public payable { }
+
+  /**
+   * Allow the owner to reset the DANK we've allocated to a phone number.
+   */
+  function resetAllocatedDankForPhoneNumber(bytes32 hashedPhoneNumber, uint dank) auth {
+    uint dankInWei = (dank * 1000000000000000000);
+    allocatedDank[hashedPhoneNumber] = dankInWei;
+    emit DankReset(hashedPhoneNumber, dank);
+  }
+
+  /**
+   * Allow the owner to reset the limits on the amount distributed by the faucet.
+   */
+  function resetAllotment(uint initialDank) auth {
+    allotment = initialDank;
+  }
 }
