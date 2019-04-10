@@ -67,11 +67,11 @@
        :margin-top (em 0.6)
        :margin-right (em 0.7)}]]]
    [:.tx-log.open
-    {:width (px account-balance-width)
-     :transform "scaleY(1)"}]
+    {:transform "scaleY(1)"}]
 
    [:.tx-log
     {:grid-area :tx-log
+     :width (px account-balance-width)
      :z-index 99
      :transform "scaleY(0)"
      :will-change :transform
