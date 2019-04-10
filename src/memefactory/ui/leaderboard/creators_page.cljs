@@ -90,12 +90,10 @@
        [no-items-found]
        [infinite-scroll {:class "creators"
                          :element-height 420
-                         :elements-in-row 3
                          :loading? loading?
                          :has-more? has-more?
                          :load-fn #(let [{:keys [:end-cursor]} (:search-users last-user)]
                                      (re-search-users end-cursor))}
-
         (when-not (:graphql/loading? (first @users-search))
           (doall
            (map
@@ -103,9 +101,7 @@
               ^{:key (:user/address creator)}
               [creator-tile creator num])
             all-creators
-            (iterate inc 1))))
-
-        ])]))
+            (iterate inc 1))))])]))
 
 (defmethod page :route.leaderboard/creators []
   (let [form-data (r/atom {:order-by "total-earned"})]
