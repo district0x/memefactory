@@ -45,60 +45,61 @@
     [:.scroll-area
      {:width "100%"}
      [:.collectors
-      {:display :flex
-       :min-height (em 33)
-       :margin-right (em 2)
-       :margin-left (em 2)
-       :justify-content :left
-       :flex-wrap :wrap}
-      (for-media-max :large [:& {:justify-content :center}])
-      [:.user-tile
-       {:min-width (em 18)}
-       [:&.account-tile {:background-color (color :light-green)}]
-       [:ul {:line-height (em 2)}]
-       ["> *"
-        {:display :block
-         :margin-bottom (em 0.5)
-         :list-style :none
-         :padding-left 0
-         :margin-top 0}
-        [:&.number
+      [">*"
+       {:display :flex
+        :min-height (em 33)
+        :margin-right (em 2)
+        :margin-left (em 2)
+        :justify-content :left
+        :flex-wrap :wrap}
+       (for-media-max :large [:& {:justify-content :center}])
+       [:.user-tile
+        {:min-width (em 18)}
+        [:&.account-tile {:background-color (color :light-green)}]
+        [:ul {:line-height (em 2)}]
+        ["> *"
+         {:display :block
+          :margin-bottom (em 0.5)
+          :list-style :none
+          :padding-left 0
+          :margin-top 0}
+         [:&.number
+          {:color (color :purple)
+           :margin-top (em 3)
+           :font-size (em 3)}
+          (font :bungee)]
+         ]
+        [:.user-address
+         {:font-weight :bold
+          :cursor :pointer
+          :font-size (px 13)
+          :margin-top (em 2.5)
+          :margin-bottom (em 2.5)
+          :color (color :deep-purple)
+          :overflow "hidden"
+          :text-overflow "ellipsis"
+          :width "100%"}]
+        [:h4
+         (font :bungee)
          {:color (color :purple)
-          :margin-top (em 3)
-          :font-size (em 3)}
-         (font :bungee)]
-        ]
-       [:.user-address
-        {:font-weight :bold
-         :cursor :pointer
-         :font-size (px 13)
-         :margin-top (em 2.5)
-         :margin-bottom (em 2.5)
-         :color (color :deep-purple)
-         :overflow "hidden"
-         :text-overflow "ellipsis"
-         :width "100%"}]
-       [:h4
-        (font :bungee)
-        {:color (color :purple)
-         :margin-top (em 2)
-         :font-size (em 1)}]
-       [:li
-        {:font-weight :bold
-         :color (color :section-subcaption)}
-        [:label {:margin-right (em 0.3)}]
-        [:span
-         {:font-weight :normal}]]
+          :margin-top (em 2)
+          :font-size (em 1)}]
+        [:li
+         {:font-weight :bold
+          :color (color :section-subcaption)}
+         [:label {:margin-right (em 0.3)}]
+         [:span
+          {:font-weight :normal}]]
 
-       {:width (em 20)
-        :display :block
-        :height (em 30)
-        :margin (em 1)
-        :border-radius "1em"
-        :padding (em 1)
-        :vertical-align :middle
-        :text-align :center
-        :background-color (color :curator-card-bg)}]]
+        {:width (em 20)
+         :display :block
+         :height (em 30)
+         :margin (em 1)
+         :border-radius "1em"
+         :padding (em 1)
+         :vertical-align :middle
+         :text-align :center
+         :background-color (color :curator-card-bg)}]]]
      (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
 
      ]

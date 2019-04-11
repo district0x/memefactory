@@ -17,7 +17,7 @@
    [taoensso.timbre :as log]
    [memefactory.ui.components.panels :refer [no-items-found]]))
 
-(def page-size 12)
+(def page-size 6)
 
 (defn build-tiles-query [after {:keys [order-by]}]
   [:search-memes
@@ -48,31 +48,28 @@
                                 {:id @form-data}])
         all-memes (->> @meme-search
                        (mapcat (fn [r] (-> r :search-memes :items))))
-        last-meme (last @meme-search)]
-
-    (if (and (empty? all-memes)
-             (not (:graphql/loading? last-meme)))
-      [no-items-found]
-      [:div.scroll-area
-       [:div.tiles
+        last-meme (last @meme-search)
+        loading? (:graphql/loading? last-meme)
+        has-more? (-> (last @meme-search) :search-memes :has-next-page)]
+    [:div.scroll-area
+     (if (and (empty? all-memes)
+              (not loading?))
+       [no-items-found]
+       [infinite-scroll {:class "tiles"
+                         :loading? loading?
+                         :has-more? has-more?
+                         :loading-spinner-delegate (fn []
+                                                     [:div.spinner-container [spinner/spin]])
+                         ;; :infinite-load-threshold 0
+                         ;; :debounce-interval 200
+                         :load-fn #(let [{:keys [:end-cursor] :as r} (:search-memes (last @meme-search))]
+                                     (dispatch [:district.ui.graphql.events/query
+                                                {:query {:queries [(build-tiles-query end-cursor @form-data)]}
+                                                 :id :dankest}]))}
         (when-not (:graphql/loading? (first @meme-search))
           (doall
            (for [{:keys [:reg-entry/address] :as meme} all-memes]
-             ^{:key address}
-             [tiles/meme-tile meme])))
-        (when (:graphql/loading? last-meme)
-          [:div.spinner-container [spinner/spin]])]
-
-       [infinite-scroll {:load-fn (fn []
-                                    (when-not (:graphql/loading? @meme-search)
-                                      (let [ {:keys [has-next-page end-cursor] :as r} (:search-memes (last @meme-search))]
-
-                                        (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
-
-                                        (when has-next-page
-                                          (dispatch [:district.ui.graphql.events/query
-                                                     {:query {:queries [(build-tiles-query end-cursor @form-data)]}
-                                                      :id :dankest}])))))}]])))
+             ^{:key address} [tiles/meme-tile meme])))])]))
 
 (defmethod page :route.leaderboard/dankest []
   (let [active-page (subscribe [::router-subs/active-page])

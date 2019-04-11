@@ -44,63 +44,17 @@
     [:.scroll-area
      {:width "100%"}
      [:.creators
-      {:display :flex
-       :min-height (em 33)
-       :margin-right (em 2)
-       :margin-left (em 2)
-       :justify-content :left
-       :flex-wrap :wrap}
-      (for-media-max :large [:& {:justify-content :center}])
-      [:.user-tile
-       {:min-width (em 18)
-        :width (em 20)
-        :display :block
-        :height (em 30)
-        :margin (em 1)
-        :border-radius "1em"
-        :padding (em 1)
-        :vertical-align :middle
-        :text-align :center
-        :background-color (color :curator-card-bg)}
-       [:a {:color (color :menu-text)}]
-       (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
-       [:ul {:line-height (em 2)}
-        [:.best-sale {:cursor :pointer
-                      :font-weight :normal}]]
-       ["> *"
-        {:display :block
-         :margin-bottom (em 0.5)
-         :list-style :none
-         :padding-left 0
-         :margin-top 0}
-        [:&.number
-         {:color (color :purple)
-          :margin-top (em 3)
-          :font-size (em 3)}
-         (font :bungee)]
-        ]
-       [:.user-address
-        {:font-weight :bold
-         :color (color :deep-purple)
-         :cursor :pointer
-         :font-size (px 13)
-         :overflow "hidden"
-         :text-overflow "ellipsis"
-         :width "100%"
-         :margin-top (em 2.3)
-         :margin-bottom (em 1.7)}]
-       [:h4
-        (font :bungee)
-        {:color (color :purple)
-         :margin-top (em 2)
-         :font-size (em 1)}]
-       [:li
-        {:font-weight :bold
-         :color (color :section-subcaption)}
-        [:label {:margin-right (em 0.3)}]
-        [:span
-         {:font-weight :normal}]]
-       #_{:width (em 20)
+      [">*"
+        {:display :flex
+         :min-height (em 33)
+         :margin-right (em 2)
+         :margin-left (em 2)
+         :justify-content :left
+         :flex-wrap :wrap}
+        (for-media-max :large [:& {:justify-content :center}])
+        [:.user-tile
+         {:min-width (em 18)
+          :width (em 20)
           :display :block
           :height (em 30)
           :margin (em 1)
@@ -109,7 +63,54 @@
           :vertical-align :middle
           :text-align :center
           :background-color (color :curator-card-bg)}
-       [:&.account-tile {:background-color (color :light-green)}]]]]
+         [:a {:color (color :menu-text)}]
+         (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
+         [:ul {:line-height (em 2)}
+          [:.best-sale {:cursor :pointer
+                        :font-weight :normal}]]
+         ["> *"
+          {:display :block
+           :margin-bottom (em 0.5)
+           :list-style :none
+           :padding-left 0
+           :margin-top 0}
+          [:&.number
+           {:color (color :purple)
+            :margin-top (em 3)
+            :font-size (em 3)}
+           (font :bungee)]
+          ]
+         [:.user-address
+          {:font-weight :bold
+           :color (color :deep-purple)
+           :cursor :pointer
+           :font-size (px 13)
+           :overflow "hidden"
+           :text-overflow "ellipsis"
+           :width "100%"
+           :margin-top (em 2.3)
+           :margin-bottom (em 1.7)}]
+         [:h4
+          (font :bungee)
+          {:color (color :purple)
+           :margin-top (em 2)
+           :font-size (em 1)}]
+         [:li
+          {:font-weight :bold
+           :color (color :section-subcaption)}
+          [:label {:margin-right (em 0.3)}]
+          [:span
+           {:font-weight :normal}]]
+         #_{:width (em 20)
+            :display :block
+            :height (em 30)
+            :margin (em 1)
+            :border-radius "1em"
+            :padding (em 1)
+            :vertical-align :middle
+            :text-align :center
+            :background-color (color :curator-card-bg)}
+         [:&.account-tile {:background-color (color :light-green)}]]]]]
     [:div.order
      {:position :absolute
       :display :block

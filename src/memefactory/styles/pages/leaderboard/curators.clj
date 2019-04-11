@@ -45,59 +45,60 @@
     [:.scroll-area
      {:width "100%"}
      [:.curators
-      {:display :flex
-       :min-height (em 33)
-       :margin-right (em 2)
-       :margin-left (em 2)
-       :justify-content :left
-       :flex-wrap :wrap}
-      (for-media-max :large [:& {:justify-content :center}])
-      [:.curator
-       {:min-width (em 18)
-        :padding-top (em 2)
-        :padding-left (em 1)
-        :padding-right (em 1)}
-       (for-media-max :tablet
-                      [:&
-                       {:margin-left (em 0)
-                        :margin-right (em 0)}])
-       ["> *"
-        {:display :block
-         :margin-bottom (em 0.4)
-         :margin-top 0}
-        [:&.number
+      [">*"
+       {:display :flex
+        :min-height (em 33)
+        :margin-right (em 2)
+        :margin-left (em 2)
+        :justify-content :left
+        :flex-wrap :wrap}
+       (for-media-max :large [:& {:justify-content :center}])
+       [:.curator
+        {:min-width (em 18)
+         :padding-top (em 2)
+         :padding-left (em 1)
+         :padding-right (em 1)}
+        (for-media-max :tablet
+                       [:&
+                        {:margin-left (em 0)
+                         :margin-right (em 0)}])
+        ["> *"
+         {:display :block
+          :margin-bottom (em 0.4)
+          :margin-top 0}
+         [:&.number
+          {:color (color :purple)
+           :font-size (em 3)}
+          (font :bungee)]
+         ]
+        [:h3.address
+         {:font-weight :bold
+          :cursor :pointer
+          :font-size (px 13)
+          :overflow "hidden"
+          :text-overflow "ellipsis"
+          :color (color :deep-purple)
+          :width "100%"}]
+        [:h4
+         (font :bungee)
          {:color (color :purple)
-          :font-size (em 3)}
-         (font :bungee)]
-        ]
-       [:h3.address
-        {:font-weight :bold
-         :cursor :pointer
-         :font-size (px 13)
-         :overflow "hidden"
-         :text-overflow "ellipsis"
-         :color (color :deep-purple)
-         :width "100%"}]
-       [:h4
-        (font :bungee)
-        {:color (color :purple)
-         :margin-top (em 2)
-         :font-size (em 1)}]
-       [:p
-        {:font-weight :bold
-         :color (color :section-subcaption)}
-        [:span
-         {:font-weight :normal}]]
+          :margin-top (em 2)
+          :font-size (em 1)}]
+        [:p
+         {:font-weight :bold
+          :color (color :section-subcaption)}
+         [:span
+          {:font-weight :normal}]]
 
 
-       {:width (em 20)
-        :display :block
-        :height (em 30)
-        :margin (em 1)
-        :border-radius "1em"
-        :vertical-align :middle
-        :text-align :center
-        :background-color (color :curator-card-bg)}
-       [:&.account-tile {:background-color (color :light-green)}]
-       (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
-       ]]]]])
+        {:width (em 20)
+         :display :block
+         :height (em 30)
+         :margin (em 1)
+         :border-radius "1em"
+         :vertical-align :middle
+         :text-align :center
+         :background-color (color :curator-card-bg)}
+        [:&.account-tile {:background-color (color :light-green)}]
+        (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
+        ]]]]]])

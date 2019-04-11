@@ -1,5 +1,6 @@
 (ns memefactory.ui.marketplace.page
   (:require
+   [clojure.string :as str]
    [district.ui.component.form.input :refer [select-input text-input]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
@@ -7,18 +8,19 @@
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.search :refer [search-tools auctions-option-filters]]
+   [memefactory.ui.components.search :refer [search-tools]]
+   [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.marketplace.events :as mk-events]
-   [memefactory.ui.components.spinner :as spinner]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [taoensso.timbre :as log]
-   [clojure.string :as str]
-   [memefactory.ui.components.panels :refer [no-items-found]]))
+   [taoensso.timbre :as log :refer [spy]]
+   ))
 
-(def page-size 12)
+(def page-size 6)
 
 (defn build-tiles-query [{:keys [:search-term :search-tags :order-by :order-dir :option-filters]} after]
   [:search-meme-auctions
@@ -69,39 +71,29 @@
 
 (defn marketplace-tiles [form-data auctions-search]
   (let [all-auctions (->> @auctions-search
-                          (mapcat (fn [r] (-> r :search-meme-auctions :items))))]
-    (log/debug "All auctions" {:auctions (map :meme-auction/address all-auctions)})
+                          (mapcat (fn [r] (-> r :search-meme-auctions :items))))
+        loading? (:graphql/loading? (last @auctions-search))
+        has-more? (-> (spy (last @auctions-search)) :search-meme-auctions :has-next-page)]
+    (log/debug "#auctions" {:auctions (count (map :meme-auction/address all-auctions))})
     [:div.scroll-area
-     [:div.tiles
-
-      (if (and (empty? all-auctions)
-               (not (:graphql/loading? (last @auctions-search))))
-        [no-items-found]
-        (when-not (:graphql/loading? (first @auctions-search))
-          (doall
-           (for [{:keys [:meme-auction/address] :as auc} all-auctions]
-             ^{:key address}
-             [tiles/auction-tile
-              {:show-cards-left? (contains? #{:only-cheapest :only-lowest-number} (:option-filters @form-data))}
-              auc]))))
-      (when (:graphql/loading? (last @auctions-search))
-        [:div.spinner-container [spinner/spin]])]
-
-     [infinite-scroll {:load-fn (fn []
-                                  (when-not (:graphql/loading? @auctions-search)
-                                    (let [ {:keys [has-next-page end-cursor] :as r} (:search-meme-auctions (last @auctions-search))]
-
-                                      (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor})
-
-                                      (when has-next-page
-                                        (dispatch [:district.ui.graphql.events/query
-                                                   {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                    :id @form-data}])))))}]]))
+     (if (and (empty? all-auctions)
+              (not loading?))
+       [no-items-found]
+       [infinite-scroll {:class "tiles"
+                         :loading? loading?
+                         :has-more? has-more?
+                         :load-fn #(let [{:keys [:end-cursor]} (:search-meme-auctions (last @auctions-search))]
+                                     (dispatch [:district.ui.graphql.events/query
+                                                {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                 :id @form-data}]))}
+        (doall
+         (for [{:keys [:meme-auction/address] :as auc} all-auctions]
+           ^{:key address} [tiles/auction-tile {:show-cards-left? (contains? #{:only-cheapest :only-lowest-number} (:option-filters @form-data))} auc]))])]))
 
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
-                    (log/debug "Starting with " (:term query))
+                    #_(log/debug "Starting with " (:term query))
                     (r/atom {:search-term (:term query)
                              :option-filters (if-let [opt (:option-filter query)]
                                                (keyword opt)
@@ -118,8 +110,8 @@
                                    {:query {:queries [(build-tiles-query @form-data nil)]}
                                     :id @form-data}]))
             auctions-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
-                                    {:id @form-data
-                                     :disable-fetch? false}])
+                                        {:id @form-data
+                                         :disable-fetch? false}])
             search-total-count (-> @auctions-search first :search-meme-auctions :total-count)]
         [app-layout
          {:meta {:title "MemeFactory - Marketplace"

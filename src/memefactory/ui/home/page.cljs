@@ -1,22 +1,21 @@
 (ns memefactory.ui.home.page
   (:require
-   [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
-   [memefactory.ui.marketplace.events :as mk-events]
-   [memefactory.ui.components.app-layout :refer [app-layout]]
-   [re-frame.core :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [memefactory.ui.components.tiles :as tiles]
-   [print.foo :refer [look] :include-macros true]
    [district.format :as format]
    [district.time :as time]
-   [memefactory.ui.utils :as utils]
+   [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
    [district.ui.router.events :as router-events]
-   [memefactory.ui.components.challenge-list :refer [current-period-ends]]
-   [memefactory.ui.components.spinner :as spinner]
    [goog.string :as gstring]
+   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.challenge-list :refer [current-period-ends]]
+   [memefactory.ui.components.general :refer [nav-anchor]]
    [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+   [memefactory.ui.components.spinner :as spinner]
+   [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.marketplace.events :as mk-events]
+   [memefactory.ui.utils :as utils]
+   [re-frame.core :refer [subscribe dispatch]]
+   [reagent.core :as r]))
 
 (defn take-max-multiple-of [n xs]
   (if (< (count xs) n)
@@ -32,53 +31,44 @@
        [no-items-found]
        (if loading?
          [:div.spinner-container [spinner/spin]]
-         (doall
-         (for [{:keys [:meme-auction/address] :as auc} auctions]
-           (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
-             [tiles/auction-tile {:key address
-                                  :show-cards-left? true}
-              auc])))))]))
+         [:div (doall
+                (for [{:keys [:meme-auction/address] :as auc} auctions]
+                  (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
+                    [tiles/auction-tile {:key address
+                                         :show-cards-left? true} auc])))]))]))
 
 (defn trending-vote-tile [{:keys [:reg-entry/address :meme/image-hash :reg-entry/creator :challenge/commit-period-end
                                   :challenge/challenger :challenge/comment] :as meme}]
 
   (let [{:keys [:user/total-created-challenges-success :user/total-created-challenges]} challenger]
     [:div.compact-tile
-     [tiles/flippable-tile
-      {:front [tiles/meme-image image-hash]
-       :back [:div.meme-card.back
-              [:div.overlay.remove-purple-footer
-               [:div.logo
-                [:img {:src "/assets/icons/mf-logo.svg"}]]
-
-               [nav-anchor {:route :route.meme-detail/index
-                            :params {:address address}
-                            :class "details-button"}
-                [:span "View Details"]]
-
-               [:ul.meme-data
-                [:li [:label "Creator:"]
-                 [nav-anchor {:route :route.memefolio/index
-                              :params {:address (:user/address creator)}
-                              :query {:tab :created}}
-                  (:user/address creator)]]
-                [:li [:label "Voting period ends in: "]
-                 [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                 (utils/gql-date->date commit-period-end))
-                            format/format-time-units)]]
-                [:li [:label "Challenger :"]
-                 [nav-anchor {:route :route.memefolio/index
-                              :params {:address (:user/address challenger)}
-                              :query {:tab :curated}}
-                  (:user/address creator)
-                  (-> challenger :user/address)]]
-                [:li [:label "Challenger success rate:"]
-                 [:span (gstring/format "%d/%d (%d%%)"
-                                        total-created-challenges-success
-                                        total-created-challenges
-                                        (if (pos? total-created-challenges) (/ (* 100 total-created-challenges-success) total-created-challenges) 0))]]]
-               [:hr]
-               [:div.description comment]]]}]
+    [tiles/flippable-tile {:front [tiles/meme-image image-hash]
+                           :back [:div.meme-card.back
+                                  [:div.overlay
+                                   [:div.info
+                                    [:ul.meme-data
+                                     [:li [:label "Creator:"]
+                                      [nav-anchor {:route :route.memefolio/index
+                                                   :params {:address (:user/address creator)}
+                                                   :query {:tab :created}}
+                                       (:user/address creator)]]
+                                     [:li [:label "Voting period ends in: "]
+                                      [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                      (utils/gql-date->date commit-period-end))
+                                                 format/format-time-units)]]
+                                     [:li [:label "Challenger :"]
+                                      [nav-anchor {:route :route.memefolio/index
+                                                   :params {:address (:user/address challenger)}
+                                                   :query {:tab :curated}}
+                                       (:user/address creator)
+                                       (-> challenger :user/address)]]
+                                     [:li [:label "Challenger success rate:"]
+                                      [:span (gstring/format "%d/%d (%d%%)"
+                                                             total-created-challenges-success
+                                                             total-created-challenges
+                                                             (if (pos? total-created-challenges) (/ (* 100 total-created-challenges-success) total-created-challenges) 0))]]]
+                                    [:hr]
+                                    [:p.comment comment]]]]}]
      [nav-anchor {:route :route.meme-detail/index
                   :params {:address address}}
       [:div.footer
@@ -121,7 +111,7 @@
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/started-on
     :order-dir :desc
-    :group-by :meme-auctions.group-by/lowest-card-number
+    :group-by :meme-auctions.group-by/cheapest
     :statuses [:meme-auction.status/active]
     :first 6}
    [[:items auction-node-graph]]])
@@ -130,7 +120,7 @@
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/meme-total-minted
     :statuses [:meme-auction.status/active]
-    :group-by :meme-auctions.group-by/lowest-card-number
+    :group-by :meme-auctions.group-by/cheapest
     :order-dir :asc
     :first 6}
    [[:items auction-node-graph]]])
@@ -139,7 +129,7 @@
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/random
     :statuses [:meme-auction.status/active]
-    :group-by :meme-auctions.group-by/lowest-card-number
+    :group-by :meme-auctions.group-by/cheapest
     :first 6}
    [[:items auction-node-graph]]])
 

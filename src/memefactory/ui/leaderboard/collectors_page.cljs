@@ -16,7 +16,7 @@
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.general :refer [nav-anchor]]))
 
-(def page-size 12)
+(def page-size 6)
 
 (defn build-collectors-query [{:keys [order-by after]}]
   [:search-users
@@ -84,9 +84,11 @@
                                                        [:total-memes-count
                                                         :total-tokens-count]]]}])
             all-collectors (mapcat #(get-in % [:search-users :items]) @users-search)
-            last-user (last @users-search)]
+            last-user (last @users-search)
+            loading? (:graphql/loading? last-user)
+            has-more? (-> last-user :search-users :has-next-page)]
 
-        (log/debug "All collectors" {:colectors all-collectors} :route.leaderboard/collectors)
+        (log/debug "#collectors" {:c (count all-collectors)})
 
         [app-layout
          {:meta {:title "MemeFactory - Collectors Leaderboard"
@@ -105,10 +107,17 @@
                  :options [{:key "total-collected-memes" :value "by unique memes"}
                            {:key "total-collected-token-ids" :value "by total cards"}]}])]
             [:div.scroll-area
-             [:div.collectors
-              (if (and (empty? all-collectors)
-                       (not (:graphql/loading? last-user)))
-                [no-items-found]
+             (if (and (empty? all-collectors)
+                      (not loading?))
+               [no-items-found]
+               [infinite-scroll {:class "collectors"
+                                 :element-height 420
+                                 :loading? loading?
+                                 :has-more? has-more?
+                                 :loading-spinner-delegate (fn []
+                                                             [:div.spinner-container [spinner/spin]])
+                                 :load-fn #(let [{:keys [:end-cursor]} (:search-users last-user)]
+                                             (re-search-users end-cursor))}
                 (when-not (:graphql/loading? (first @users-search))
                   (doall
                    (map
@@ -116,15 +125,4 @@
                       ^{:key (:user/address collector)}
                       [collectors-tile collector (:overall-stats @totals) num])
                     all-collectors
-                    (iterate inc 1)))))
-              (when (:graphql/loading? last-user)
-               [:div.spinner-container [spinner/spin]])]
-
-             [infinite-scroll {:load-fn (fn []
-                                          (when-not (:graphql/loading? last-user)
-                                            (let [{:keys [has-next-page end-cursor]} (:search-users last-user)]
-
-                                              (log/debug "Scrolled to load more" {:h has-next-page :e end-cursor} :route.leaderboard/collectors)
-
-                                              (when has-next-page
-                                                (re-search-users end-cursor)))))}]]]]]]))))
+                    (iterate inc 1))))])]]]]]))))

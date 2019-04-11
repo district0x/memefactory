@@ -158,7 +158,7 @@
         coinbase-appstore-link (subscribe [::mf-subs/mobile-coinbase-appstore-link])]
     (fn [{:keys [:search-atom :meta]}
          & children]
-      [:div.app-container
+      [:div.app-container {:id "app-container"}
        [meta-tags/meta-tags meta {:id "image" :name "og:image" :content (str (-> @root-url :config :ui :root-url) "/assets/images/1_OInGI_RrVwH6uF3OcqJuwQ.jpg")}]
        [:div.app-menu
         {:class (when-not @drawer-open? "closed")}
