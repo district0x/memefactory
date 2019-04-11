@@ -66,7 +66,7 @@
     {:items result
      :total-count total-count
      :end-cursor (str last-idx)
-     :has-next-page (not= last-idx total-count)}))
+     :has-next-page (< (inc last-idx) total-count)}))
 
 (defn meme-query-resolver [_ {:keys [:reg-entry/address] :as args}]
   (db/get {:select [:*]
@@ -299,10 +299,11 @@
                       )
              last-idx (cond-> (count result)
                         page-start-idx (+ page-start-idx))]
+
          {:items result
           :total-count total-count
           :end-cursor last-idx
-          :has-next-page (not= last-idx total-count)})
+          :has-next-page (< (inc last-idx) total-count)})
 
        ;; everything SQL
        (paged-query query page-size page-start-idx)))))
