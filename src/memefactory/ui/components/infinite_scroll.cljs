@@ -19,6 +19,9 @@
      :bottom? (<= page-height (+ window-height scroll-position))
      :to-bottom (- page-height (+ window-height scroll-position))}))
 
+(defn preload-batch-size [factor]
+  (js-invoke js/Infinite "containerHeightScaleFactor" factor))
+
 (defn infinite-scroll [{:keys [:class
                                :use-window-as-scroll-container
                                :element-height
@@ -56,6 +59,7 @@
                                                                                                                    pos))
                                                                (-> js/window (.scrollBy 0 (- 0 element-height))))))
                                           :time-scroll-state-lasts-for-after-user-scrolls 1000
+                                          :preload-batch-size (preload-batch-size 2)
                                           :on-infinite-load (fn []
                                                               (when (and has-more?
                                                                          (not loading?))
