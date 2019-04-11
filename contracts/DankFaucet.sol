@@ -44,7 +44,7 @@ contract DankFaucet is usingOraclize, DSAuth {
 
   /**
    * Sets the initial allotment of DANK tokens, the number of tokens
-   * a person gets for initially singing up. That allotment can
+   * a person gets for initially singing up. Expects DANK values in wei.
    */
   constructor(uint initialDank) public {
     allotment = initialDank;
@@ -81,12 +81,11 @@ contract DankFaucet is usingOraclize, DSAuth {
     else {
         PhoneNumberRequest storage phoneNumberRequest = phoneNumberRequests[queryId];
         uint previouslyAllocatedDank = allocatedDank[phoneNumberRequest.hashedPhoneNumber];
-        uint allotmentInWei = (allotment * 1000000000000000000);
 
-        if ((previouslyAllocatedDank <= 0) && (dankToken.balanceOf(address(this)) >= allotmentInWei)) {
-          bool dankTransfered = dankToken.transfer(phoneNumberRequest.sender, allotmentInWei);
+        if ((previouslyAllocatedDank <= 0) && (dankToken.balanceOf(address(this)) >= allotment)) {
+          bool dankTransfered = dankToken.transfer(phoneNumberRequest.sender, allotment);
           if (dankTransfered) {
-            allocatedDank[phoneNumberRequest.hashedPhoneNumber] = allotmentInWei;
+            allocatedDank[phoneNumberRequest.hashedPhoneNumber] = allotment;
             emit DankEvent(phoneNumberRequest.hashedPhoneNumber, dankTransfered, "DANK transfered");
           }
         }
