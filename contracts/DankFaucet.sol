@@ -40,7 +40,7 @@ contract DankFaucet is usingOraclize, DSAuth {
   event OraclizeCall(bytes32 id, string msg);
 
   // An event fired when a person's allotment is reset by the faucet.
-  event DankReset(bytes32 hashedPhoneNumber, uint amount);
+  event DankReset(bytes32 hashedPhoneNumber);
 
   /**
    * Sets the initial allotment of DANK tokens, the number of tokens
@@ -112,10 +112,9 @@ contract DankFaucet is usingOraclize, DSAuth {
   /**
    * Allow the owner to reset the DANK we've allocated to a phone number.
    */
-  function resetAllocatedDankForPhoneNumber(bytes32 hashedPhoneNumber, uint dank) auth {
-    uint dankInWei = (dank * 1000000000000000000);
-    allocatedDank[hashedPhoneNumber] = dankInWei;
-    emit DankReset(hashedPhoneNumber, dank);
+  function resetAllocatedDankForPhoneNumber(bytes32 hashedPhoneNumber) auth {
+    delete allocatedDank[hashedPhoneNumber];
+    emit DankReset(hashedPhoneNumber);
   }
 
   /**
