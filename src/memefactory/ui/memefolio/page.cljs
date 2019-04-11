@@ -835,7 +835,6 @@
       {:state state :query-key k :loading-first? loading-first? :loading-more? loading? :has-more? has-more?
        :re-search #(re-search end-cursor)}]]))
 
-
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
                     {:keys [:user-address :url-address?]} :user-account}]
   (let [tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])

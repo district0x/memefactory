@@ -11,7 +11,6 @@
    [district.ui.component.form.input :as inputs]
    [district.ui.component.page :refer [page]]
    [district.ui.component.tx-button :as tx-button]
-   [bignumber.core :as bn]
    [district.ui.graphql.events :as gql-events]
    [district.ui.graphql.subs :as gql]
    [district.ui.now.subs :as now-subs]
@@ -20,27 +19,25 @@
    [district.ui.web3-account-balances.subs :as account-balances-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [goog.string :as gstring]
    [memefactory.shared.utils :as shared-utils :refer [not-nil?]]
    [memefactory.ui.components.app-layout :as app-layout]
+   [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.components.charts :as charts]
-   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
    [memefactory.ui.components.panels :refer [panel]]
+   [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.contract.meme-factory :as meme-factory]
    [memefactory.ui.contract.registry-entry :as registry-entry]
+   [memefactory.ui.dank-registry.vote-page :as vote-page]
    [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.spec :as spec]
    [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
-   [memefactory.ui.components.spinner :as spinner]
-   [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [taoensso.timbre :as log]
-   [goog.string :as gstring]
-   [memefactory.ui.components.buttons :as buttons]
-   [memefactory.ui.dank-registry.vote-page :as vote-page]
-   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]))
+   [taoensso.timbre :as log]))
 
 (def scroll-interval 3)
 
@@ -117,9 +114,6 @@
                                             "active-address"))}
        address]]]))
 
-(defn related-memes-component [state loading-first? loading-last?]
-  (panel :selling state loading-first? loading-last?))
-
 (defn related-memes-container [address tags]
   (let [build-query (fn [{:keys [:first :after]}]
                       [[:search-meme-auctions {:tags-or tags
@@ -154,19 +148,18 @@
                              {:id address}])
         state (->> @response
                    (mapcat (fn [q] (get-in q [:search-meme-auctions :items]))))
-        loading? (:graphql/loading? (last @response))
-        has-more? (-> (last @response) :search-meme-auctions :has-next-page)]
+        loading-first? (:graphql/loading? (first @response))
+        last-sub (last @response)
+        loading? (:graphql/loading? last-sub)
+        has-more? (-> last-sub :search-meme-auctions :has-next-page)]
     [:div.scroll-area
-     [related-memes-component state (:graphql/loading? (first @response)) loading?]
-     [infinite-scroll {:loading? loading?
-                       :has-more? has-more?
-                       :infinite-load-threshold 0
-                       :debounce-interval 200
-                       :load-fn #(let [{:keys [:end-cursor]} (:search-meme-auctions (last @response))]
-                                   (dispatch [::gql-events/query
-                                              {:query {:queries (build-query {:first scroll-interval
-                                                                              :after (or end-cursor 0)})}
-                                               :id address}]))}]]))
+     [panel :selling
+      {:state state :query-key :search-meme-auctions :loading-first? loading-first? :loading-more? loading? :has-more? has-more?
+       :re-search #(let [{:keys [:end-cursor]} (:search-meme-auctions last-sub)]
+                     (dispatch [::gql-events/query
+                                {:query {:queries (build-query {:first scroll-interval
+                                                                :after (or end-cursor 0)})}
+                                 :id address}]))}]]))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
@@ -187,7 +180,6 @@
                                                           [:meme-token/token-id
                                                            :meme-token/number]]]]]]]}])
             all-auctions (-> @query :meme :meme/meme-auctions)]
-
         [:div
          [:h1.title "Marketplace history"]
          (if (:graphql/loading? @query)
@@ -287,7 +279,7 @@
 
          [:li (str period-label " period ends in ")
           [:div (-> time-remaining
-                     format/format-time-units)]])
+                    format/format-time-units)]])
        [:li ""])
 
      [:div.lorem text]]))
@@ -410,9 +402,9 @@
                                                                              :reg-entry/address (:reg-entry/address meme)
                                                                              :vote/option :vote.option/vote-for
                                                                              :vote/amount (-> @form-data
-                                                                                            :vote/amount-for
-                                                                                            js/parseInt
-                                                                                            (web3/to-wei :ether))
+                                                                                              :vote/amount-for
+                                                                                              js/parseInt
+                                                                                              (web3/to-wei :ether))
                                                                              :meme/title title}])}
             (if @tx-success?
               "Voted"
@@ -440,9 +432,9 @@
                                                                              :reg-entry/address (:reg-entry/address meme)
                                                                              :vote/option :vote.option/vote-against
                                                                              :vote/amount (-> @form-data
-                                                                                            :vote/amount-against
-                                                                                            js/parseInt
-                                                                                            (web3/to-wei :ether))
+                                                                                              :vote/amount-against
+                                                                                              js/parseInt
+                                                                                              (web3/to-wei :ether))
                                                                              :meme/title title}])}
             (if @tx-success?
               "Voted"
@@ -533,8 +525,6 @@
         ;; nil when it's really still just loading.
         meme-not-loaded? (or (not status)
                              (and meme-sub (:graphql/loading? @meme-sub)))]
-
-    (log/debug "Query sub:" @(subscribe [::gql/query (build-meme-query address active-account)]))
     [app-layout/app-layout
      {:meta {:title (str "MemeFactory - " title)
              :description (str "Details of meme " title ". " "MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets.")}}

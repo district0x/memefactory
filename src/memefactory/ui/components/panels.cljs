@@ -22,7 +22,6 @@
 
 (defmethod panel :selling [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
   (log/debug _ {:c (count state)})
-  ;;:div.selling-panel
   (if (and (empty? state)
            (not loading-first?))
     [no-items-found]
