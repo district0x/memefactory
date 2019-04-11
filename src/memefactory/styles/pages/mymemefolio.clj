@@ -228,20 +228,11 @@
      :background-color (color :meme-panel-bg)
      :border-radius "0 0 1em 1em"
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
-
+    [:&.selling :&.sold
+     {:border-radius "1em 1em 1em 1em"}]
     [:.tiles
      {:box-shadow :unset}]
     [:.meme-card [:a {:color :white}]]
-    [:.selling-panel
-     [:.radio {:display :inline-block
-                :margin-left (px 10)}
-       (for-media-max :tablet
-                      [:& {:display :block
-                           :margin-left (px 20)}])
-       [:label {:margin-left (px 8)
-                :font-size (px 12)}]]
-     [:.meme-card
-      [:.overlay {:background overlay-background-footer}]]]
     [:.spinner-container {:width (px 900)
                           :height (px 500)}
      [:.spinner-outer {:margin-left :auto

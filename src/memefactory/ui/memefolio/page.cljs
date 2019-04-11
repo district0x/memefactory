@@ -920,6 +920,7 @@
         [:div.rank
          [rank tab user-address]])]
      [:div.panel
+      {:class (name tab)}
       [scrolling-container tab {:user-address user-address :form-data form-data :prefix prefix}]]]))
 
 (defmethod page :route.memefolio/index []
