@@ -34,7 +34,7 @@
       :padding-bottom (em 2)
       :background-color (color :meme-panel-bg)
       :border-radius "1em 1em 1em 1em"}
-     (for-media-max :tablet
+     (for-media-max :computer
                    [:&
                     {:margin-right (em 0)
                      :margin-left (em 0)}])
@@ -42,13 +42,14 @@
       [:.overlay {:background overlay-background-footer}]]
      [:.spinner-container {:width (px 900)
                            :height (px 500)}
+     (for-media-max :computer
+                   [:&
+                    {:width (px 290)}])
       [:.spinner-outer {:margin-left :auto
                         :margin-right :auto
                         :padding-top (em 12)}]]
      [:.footer
-      [:.token-id {:display :inline-block}]
-      [:.number-minted {:margin-left (em 0.4)
-                        :font-size (em 0.8)}]]
+      [:.token-id {:display :inline-block}]]
      #_[:.container
         [:.meme-card.front
          {:backface-visibility :visible}]]

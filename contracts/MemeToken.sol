@@ -5,10 +5,7 @@ import "./Registry.sol";
 import "./auth/DSAuth.sol";
 
 /**
- * @title Token of a Meme. Contract is deployed with each Meme submission.
- *
- * @dev Full copy of this contract is NOT deployed with each submission in order to save gas. Only forwarder contracts
- * pointing into single intance of it.
+ * @title Token of a Meme. Single ERC721 instance represents all memes/cards
  */
 
 contract MemeToken is ERC721Token {

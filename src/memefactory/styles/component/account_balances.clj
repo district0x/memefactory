@@ -71,6 +71,7 @@
 
    [:.tx-log
     {:grid-area :tx-log
+     :width (px account-balance-width)
      :z-index 99
      :transform "scaleY(0)"
      :will-change :transform
@@ -95,7 +96,7 @@
       :box-shadow "0 0 50px 20px rgba(0, 0, 0, 0.04)"
       :position :relative}
      [:.settings
-      {:padding "10px 25px"
+      {:padding (em 1.01)
        :border-bottom (str "1px solid #b2bacb")}
       [:.ui.checkbox
        [:label

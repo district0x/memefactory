@@ -144,10 +144,7 @@
          :margin-right (em 1)
          :margin-top (em 1)}
         [:&.marketplace {:background-color (color :purple)
-                         :color (color :white)}
-         (for-media-max :tablet
-                        [:&
-                         {:display :none}])]
+                         :color (color :white)}]
         [:&.memefolio {:background-color (color :pink)
                        :color (color :white)}]]]]]]
    [:section.history
@@ -521,10 +518,9 @@
                        :padding-top (em 7)}]
      [:h2.title {:padding-top (em 1)}]
      [:.selling-panel
+      [:.help-block {:display :none}]
       [:.meme-card
-       [:.overlay {:background overlay-background-footer}]
-       [:.selling-tile-back {:height "100%"
-                             :background-color (color :violet)}
+       [:.selling-tile-back
         (button-tile-back)]]]
 
      [:.scroll-area

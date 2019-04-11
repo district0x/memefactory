@@ -43,6 +43,7 @@
       first: Int,
       after: String,
       nonForMeme: String
+      forMeme: String
     ): MemeAuctionList
 
     searchTags(first: Int, after: String): TagList
@@ -154,6 +155,7 @@
 
   enum MemeAuctionsGroupBy {
     memeAuctions_groupBy_cheapest
+    memeAuctions_groupBy_lowestCardNumber
   }
 
   enum ParamChangesOrderBy {

@@ -23,7 +23,9 @@
    [memefactory.shared.utils :as shared-utils :refer [not-nil?]]
    [memefactory.ui.components.app-layout :as app-layout]
    [memefactory.ui.components.buttons :as buttons]
+   [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.components.charts :as charts]
+   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
    [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
    [memefactory.ui.components.panels :refer [panel]]
    [memefactory.ui.components.spinner :as spinner]
@@ -31,15 +33,17 @@
    [memefactory.ui.contract.meme-factory :as meme-factory]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.dank-registry.vote-page :as vote-page]
+   [memefactory.ui.dank-registry.vote-page :as vote-page]
    [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.spec :as spec]
    [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [taoensso.timbre :as log]))
+   [taoensso.timbre :as log]
+   ))
 
-(def scroll-interval 3)
+(def scroll-interval 6)
 
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm Z"))
 
@@ -115,13 +119,18 @@
        address]]]))
 
 (defn related-memes-container [address tags]
-  (let [build-query (fn [{:keys [:first :after]}]
-                      [[:search-meme-auctions {:tags-or tags
-                                               :after (str after)
-                                               :first first
-                                               :non-for-meme address
-                                               :statuses [:meme-auction.status/active]
-                                               :group-by :meme-auctions.group-by/cheapest}
+  (let [form-data (r/atom {:option-filters :only-lowest-number})
+        option-filters (ratom/reaction (:option-filters @form-data))
+        build-query (fn [{:keys [:first :after]}]
+                      [[:search-meme-auctions (cond-> {:tags-or tags
+                                                       :after (str after)
+                                                       :first first
+                                                       :non-for-meme address
+                                                       :statuses [:meme-auction.status/active]}
+                                                (#{:only-lowest-number :only-cheapest} @option-filters)
+                                                (assoc :group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
+                                                                       :only-cheapest :meme-auctions.group-by/cheapest}
+                                                                      @option-filters)))
                         [:total-count
                          :end-cursor
                          :has-next-page
@@ -155,6 +164,7 @@
     [:div.scroll-area
      [panel :selling
       {:state state :query-key :search-meme-auctions :loading-first? loading-first? :loading-more? loading? :has-more? has-more?
+       :form-data form-data ;;:options auctions-option-filters
        :re-search #(let [{:keys [:end-cursor]} (:search-meme-auctions last-sub)]
                      (dispatch [::gql-events/query
                                 {:query {:queries (build-query {:first scroll-interval

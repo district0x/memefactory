@@ -58,14 +58,13 @@ contract Meme is RegistryEntry {
 
   /**
    * @dev Transfers deposit to deposit collector
-   * Must be callable only for whitelisted unchallenged registry entries
+   * Must be callable only for whitelisted registry entries
    */
   function transferDeposit()
     external
     notEmergency
     onlyWhitelisted
   {
-    require(!challenge.wasChallenged());
     require(registryToken.transfer(districtConfig.depositCollector(), deposit));
 
   }

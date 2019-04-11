@@ -660,7 +660,7 @@
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))
 
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
-  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
+  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged? :option-filters]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner user-address
                                          :first first}
@@ -748,7 +748,11 @@
                                               {:order-by (build-order-by :meme-auctions :started-on)
                                                :order-dir :desc}
                                               (when search-tags
-                                                {:tags search-tags}))
+                                                {:tags search-tags})
+                                              (when (#{:only-lowest-number :only-cheapest} option-filters)
+                                                {:group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
+                                                                 :only-cheapest :meme-auctions.group-by/cheapest}
+                                                                option-filters)}))
                  [:total-count
                   :end-cursor
                   :has-next-page
@@ -833,7 +837,8 @@
     [:div.scroll-area
      [panel tab
       {:state state :query-key k :loading-first? loading-first? :loading-more? loading? :has-more? has-more?
-       :re-search #(re-search end-cursor)}]]))
+       :re-search #(re-search end-cursor)
+       :form-data form-data}]]))
 
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
                     {:keys [:user-address :url-address?]} :user-account}]
@@ -926,7 +931,6 @@
                             [true _] active-account
                             [false _] url-account
                             [true true] nil)]
-    #_(log/debug "index" {:user user-account :url url-account :active active-account})
     (when user-account
       (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
                          :memes
@@ -935,7 +939,8 @@
             order-by? (-> query :order-by nil? not)
             form-data (r/atom {:term (:term query)
                                :voted? true
-                               :challenged? true})]
+                               :challenged? true
+                               :option-filters :only-lowest-number})]
         [app-layout/app-layout
          {:meta {:title (if url-account
                           (str "MemeFactory - Memefolio " user-account)

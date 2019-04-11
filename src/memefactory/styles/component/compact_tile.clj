@@ -291,6 +291,9 @@
                      :background-repeat "no-repeat"
                      :background-image "url(/assets/icons/arrow-white-right.svg)"}]]]]
 
+   [:.remove-purple-footer
+    {:background (str overlay-background " !important")}]
+
    [:.meme-placeholder
     {:grid-area :fill
      :display :flex
@@ -326,7 +329,8 @@
      :bottom 0
      :cursor :pointer
      :line-height (em 1.2)
-     :font-size (em 0.9)}
+     :font-size (em 0.9)
+     :color (color :menu-text)}
 
     [:.token-id :.title {:display :inline-block}]
 
@@ -340,11 +344,12 @@
               :font-weight :bold
               :cursor :pointer}]
 
-    [:.number-minted {:margin-top (em 0.3)}]
+    [:.number-minted :.cards-left
+     {:margin-top (em 0.2)}]
 
     [:.price
      (font :bungee)
-     {:margin-top (em 0.3)}]]]
+     {:margin-top (em 0.2)}]]]
 
   [:.image-tape-container
    {:overflow :hidden

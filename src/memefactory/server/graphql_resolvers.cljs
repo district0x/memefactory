@@ -224,14 +224,16 @@
 
 ;; If testing this by hand remember params like statuses should be string and not keywords
 ;; like (search-meme-auctions-query-resolver nil {:statuses [(enum :meme-auction.status/active)]})
-(defn search-meme-auctions-query-resolver [_ {:keys [:title :non-for-meme :tags :tags-or :order-by :order-dir :group-by :statuses :seller :first :after] :as args}]
+(defn search-meme-auctions-query-resolver [_ {:keys [:title :non-for-meme :for-meme
+                                                     :tags :tags-or :order-by :order-dir :group-by
+                                                     :statuses :seller :first :after] :as args}]
   (log/info "search-meme-auctions-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          now (utils/now-in-seconds)
          page-start-idx (when after (js/parseInt after))
          page-size first
-         query (cond-> {:select [:ma.* :m.reg-entry/address :m.meme/total-minted]
+         query (cond-> {:select [:ma.* :m.reg-entry/address :m.meme/total-minted :m.meme/number :mt.meme-token/number]
                         :modifiers [:distinct]
                         :from [[:meme-auctions :ma]]
                         :join [[:meme-tokens :mt] [:= :mt.meme-token/token-id :ma.meme-auction/token-id]
@@ -248,6 +250,7 @@
                                                            [:= :mtts.reg-entry/address :m.reg-entry/address]
                                                            [:in :mtts.tag/name tags]]}])
                  non-for-meme (sqlh/merge-where [:not= :m.reg-entry/address non-for-meme])
+                 for-meme     (sqlh/merge-where [:= :m.reg-entry/address for-meme])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
@@ -257,25 +260,22 @@
                                                            :meme-auctions.order-by/random     (sql/call :random)}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
-                                                     (or (keyword order-dir) :asc)]])
-
-                 (and group-by
-                      (not (= (graphql-utils/gql-name->kw group-by)
-                              :meme-auctions.group-by/cheapest)))     (merge {:group-by [:m.reg-entry/address]}))]
+                                                     (or (keyword order-dir) :asc)]]))]
 
      ;; for this two is hard to do in sql since current price is calculated so for now doing it in Clojure
      (if (or (and order-by (= (graphql-utils/gql-name->kw order-by) :meme-auctions.order-by/price))
-             (and group-by (= (graphql-utils/gql-name->kw group-by) :meme-auctions.group-by/cheapest)))
+             (and group-by (#{:meme-auctions.group-by/cheapest :meme-auctions.group-by/lowest-card-number}
+                            (graphql-utils/gql-name->kw group-by))))
 
        ;; group-by and order-by current price and pagination in Clojure
        (let [total-count (count (db/all query))
              result (cond->> (db/all query)
 
                       ;; grouping cheapest
-                      (and group-by
-                           (= (graphql-utils/gql-name->kw group-by)
-                              :meme-auctions.group-by/cheapest))
-                      (squash-by-min :reg-entry/address #(shared-utils/calculate-meme-auction-price % now))
+                      group-by
+                      (squash-by-min :reg-entry/address (get {:meme-auctions.group-by/cheapest           (juxt #(shared-utils/calculate-meme-auction-price % now) :meme-token/number)
+                                                              :meme-auctions.group-by/lowest-card-number #(:meme-token/number %)}
+                                                             (graphql-utils/gql-name->kw group-by)))
 
                       ;; ordering
                       order-by

@@ -39,7 +39,7 @@
 
 (defn- event-target-classlist [event]
   (-> (aget event "target" "className")
-      (str/split #"\ +")))      
+      (str/split #"\ +")))
 
 (defn- event-target-has-class? [event class]
   (let [classlist (set (event-target-classlist event))]
@@ -63,7 +63,7 @@
       [:div.flippable-tile.initial-fade-in-delay
        {:class [(when @flipped? "flipped") " "
                 (when (or android-device? ios-device?) "mobile")]}
-                    
+
        [:div.flippable-tile-front {:on-click handle-click} front]
        [:div.flippable-tile-back {:on-click handle-click} back]])))
 
@@ -135,12 +135,18 @@
                                                                                 :value price}]))}
               (if @buy-tx-success? "Bought" "Buy")])]]]))))
 
-(defn auction-tile [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
+(defn auction-tile [{:keys [show-cards-left?] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]
   (let [now (subscribe [:district.ui.now.subs/now])]
     (fn [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
       (let [price (shared-utils/calculate-meme-auction-price (-> meme-auction
                                                                  (update :meme-auction/started-on #(.getTime (ui-utils/gql-date->date %))))
-                                                             (.getTime @now))]
+                                                             (.getTime @now))
+            meme-auctions (when show-cards-left? (subscribe [::gql/query {:queries [[:search-meme-auctions
+                                                                                     {:statuses [:meme-auction.status/active]
+                                                                                      :for-meme (-> meme-token
+                                                                                                    :meme-token/meme
+                                                                                                    :reg-entry/address)}
+                                                                                     [[:items [:meme-auction/address]]]]]}]))]
         [:div.compact-tile
          [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
                           :back [auction-back-tile opts meme-auction]}]
@@ -150,9 +156,14 @@
           [:div.footer
            [:div.token-id (str "#"(-> meme-token :meme-token/meme :meme/number))]
            [:div.title (-> meme-token :meme-token/meme :meme/title)]
-           [:div.number-minted (str (:meme-token/number meme-token)
+           [:div.number-minted (str "card #" (:meme-token/number meme-token)
                                     "/"
                                     (-> meme-token :meme-token/meme :meme/total-minted))]
+           (when show-cards-left?
+             [:div.cards-left (str (format/pluralize
+                                     (-> @meme-auctions :search-meme-auctions :items count)
+                                     "card")
+                                   " left")])
            [:div.price (format-price price)]]]]))))
 
 (defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number :meme/total-trade-volume :meme/average-price :meme/highest-single-sale] :as meme}]

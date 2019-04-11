@@ -7,6 +7,7 @@
             [memefactory.styles.component.main-content :as main-content]
             [memefactory.styles.component.compact-tile :as compact-tile]
             [memefactory.styles.component.form :as form]
+            [memefactory.styles.component.selling-panel :as selling-panel]
             [memefactory.styles.component.spinner :as spinner]
             [memefactory.styles.component.account-balances :as account-balances]
             [memefactory.styles.container.tiles :as tiles]
@@ -46,4 +47,5 @@
   page.get-dank/core
   page.about/core
   page.how-it-works/core
-  challenge-list/core)
+  challenge-list/core
+  selling-panel/core)
