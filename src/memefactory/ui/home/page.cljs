@@ -1,22 +1,21 @@
 (ns memefactory.ui.home.page
   (:require
-   [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
-   [memefactory.ui.marketplace.events :as mk-events]
-   [memefactory.ui.components.app-layout :refer [app-layout]]
-   [re-frame.core :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [memefactory.ui.components.tiles :as tiles]
-   [print.foo :refer [look] :include-macros true]
    [district.format :as format]
    [district.time :as time]
-   [memefactory.ui.utils :as utils]
+   [district.ui.component.page :refer [page]]
+   [district.ui.graphql.subs :as gql]
    [district.ui.router.events :as router-events]
-   [memefactory.ui.components.challenge-list :refer [current-period-ends]]
-   [memefactory.ui.components.spinner :as spinner]
    [goog.string :as gstring]
+   [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.challenge-list :refer [current-period-ends]]
+   [memefactory.ui.components.general :refer [nav-anchor]]
    [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+   [memefactory.ui.components.spinner :as spinner]
+   [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.marketplace.events :as mk-events]
+   [memefactory.ui.utils :as utils]
+   [re-frame.core :refer [subscribe dispatch]]
+   [reagent.core :as r]))
 
 (defn take-max-multiple-of [n xs]
   (if (< (count xs) n)
@@ -32,11 +31,11 @@
        [no-items-found]
        (if loading?
          [:div.spinner-container [spinner/spin]]
-         (doall
-         (for [{:keys [:meme-auction/address] :as auc} auctions]
-           (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
-             [tiles/auction-tile {:key address
-                                  :on-buy-click #()} auc])))))]))
+         [:div (doall
+                (for [{:keys [:meme-auction/address] :as auc} auctions]
+                  (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
+                    [tiles/auction-tile {:key address
+                                         :on-buy-click #()} auc])))]))]))
 
 (defn trending-vote-tile [{:keys [:reg-entry/address :meme/image-hash :reg-entry/creator :challenge/commit-period-end
                                   :challenge/challenger :challenge/comment] :as meme}]
