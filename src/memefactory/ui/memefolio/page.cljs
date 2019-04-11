@@ -34,7 +34,7 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [taoensso.timbre :as log]
+   [taoensso.timbre :as log :refer [spy]]
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.general :refer [nav-anchor]]))
 
@@ -264,13 +264,17 @@
                         :reg-entry/address address}
              form]]))])))
 
-(defmethod panel :collected [_ state loading-first? loading-last?]
+(defmethod panel :collected [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
+    (log/debug _ {:c (count state)})
     (if (and (empty? state)
-             (not loading-last?))
+             (not loading-first?))
       [no-items-found]
-      [:div.tiles
+      [infinite-scroll {:class "tiles"
+                        :loading? loading-more?
+                        :has-more? has-more?
+                        :load-fn re-search}
        (when-not loading-first?
          (doall (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/image-hash :meme/number
                                   :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
@@ -291,7 +295,7 @@
                                                                                  :meme-auction/token-count token-count
                                                                                  :meme-auction/token-ids token-ids}]
                                                            [tiles/meme-back-tile meme])
-                                                   :flippable-classes (when active-user-page? 
+                                                   :flippable-classes (when active-user-page?
                                                                         #{"meme-image" "cancel" "info" "create-offering"})}]
                             [nav-anchor {:route :route.meme-detail/index
                                          :params {:address address}
@@ -300,7 +304,9 @@
                              [:div.title (str "#" number " " title)]
                              (when (and token-count total-supply)
                                [:div.number-minted (str "Owning " token-count " out of " total-supply)])]])))
-                     state)))])))
+                     state)))
+
+       ])))
 
 (defmethod rank :collected [_ active-account]
   (let [query (if active-account
@@ -381,16 +387,17 @@
                        (str "Max " max-amount)
                        "All cards issued")]]))))
 
-(defmethod panel :created [_ state loading-first? loading-last?]
-
-  #_(log/debug _ state)
-
+(defmethod panel :created [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
+    (log/debug _ {:c (count state)})
     (if (and (empty? state)
-             (not loading-last?))
+             (not loading-first?))
       [no-items-found]
-      [:div.tiles
+      [infinite-scroll {:class "tiles"
+                        :loading? loading-more?
+                        :has-more? has-more?
+                        :load-fn re-search}
        (when-not loading-first?
          (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
                                   :meme/title :meme/total-supply :meme/total-minted
@@ -479,11 +486,15 @@
     (when-not (:graphql/loading? @query)
       [:div.total "Total " (get-in @query [:search-memes :total-count])])))
 
-(defmethod panel :curated [_ state loading-first? loading-last?]
+(defmethod panel :curated [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
+  (log/debug _ {:c (count state)})
   (if (and (empty? state)
-           (not loading-last?))
+           (not loading-first?))
     [no-items-found]
-    [:div.tiles
+    [infinite-scroll {:class "tiles"
+                      :loading? loading-more?
+                      :has-more? has-more?
+                      :load-fn re-search}
      (when-not loading-first?
        (doall
         (map (fn [{:keys [:reg-entry/address :reg-entry/status
@@ -594,64 +605,61 @@
     (let [total (get-in @query [:search-meme-auctions :total-count])]
       [:div.total (str "Total " total)])))
 
-(defmethod panel :sold [_ state loading-first? loading-last?]
+(defmethod panel :sold [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
+  (log/debug _ {:c (count state)})
+  (if (and (empty? state)
+           (not loading-first?))
+    [no-items-found]
+    [infinite-scroll {:class "tiles"
+                      :loading? loading-more?
+                      :has-more? has-more?
+                      :load-fn re-search}
+     (when-not loading-first?
+       (doall
+        (map (fn [{:keys [:meme-auction/address :meme-auction/bought-for]
+                   {:keys [:meme-token/number]
+                    {:keys [:meme/title :meme/total-minted] :as meme} :meme-token/meme :as meme-token} :meme-auction/meme-token
+                   :as meme-auction}]
+               [:div.compact-tile {:key address}
+                [tiles/flippable-tile {:front [tiles/meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
+                                       :back [:div.meme-card
+                                              [:div.overlay
+                                               [:div.logo
+                                                [:img {:src "/assets/icons/mf-logo.svg"}]]
+                                               [nav-anchor {:route :route.meme-detail/index
+                                                            :params {:address (:reg-entry/address meme)}
+                                                            :query nil
+                                                            :class "details-button"}
+                                                [:span "View Details"]]
+                                               [:ul.meme-data
+                                                [:li [:label "Buyer:"]
 
-  ;; (log/debug _ state)
-
-  [:div.sold-panel
-   (if (and (empty? state)
-            (not loading-last?))
-     [no-items-found]
-     [:div.tiles
-      (when-not loading-first?
-        (doall
-         (map (fn [{:keys [:meme-auction/address :meme-auction/bought-for]
-                    {:keys [:meme-token/number]
-                     {:keys [:meme/title :meme/total-minted] :as meme} :meme-token/meme :as meme-token} :meme-auction/meme-token
-                    :as meme-auction}]
-                [:div.compact-tile {:key address}
-                 [tiles/flippable-tile {:front [tiles/meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
-                                        :back [:div.meme-card
-                                               [:div.overlay
-                                                [:div.logo
-                                                 [:img {:src "/assets/icons/mf-logo.svg"}]]
-                                                [nav-anchor {:route :route.meme-detail/index
-                                                             :params {:address (:reg-entry/address meme)}
-                                                             :query nil
-                                                             :class "details-button"}
-                                                 [:span "View Details"]]
-                                                [:ul.meme-data
-                                                 [:li [:label "Buyer:"]
-
-                                                  [nav-anchor {:route :route.memefolio/index
-                                                               :params {:address (:user/address (:meme-auction/buyer meme-auction))}
-                                                               :query {:tab :collected}}
-                                                   (:user/address (:meme-auction/buyer meme-auction))]]
-                                                 [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
-                                                 [:li [:label "Bought:"] [:span  (let [time-ago (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
-                                                                                                                 (t/date-time @(subscribe [::now-subs/now])))]
-                                                                                   time-ago)]]]
-                                                [:hr]
-                                                [:p.description (:meme-auction/description meme-auction)]]]}]
+                                                 [nav-anchor {:route :route.memefolio/index
+                                                              :params {:address (:user/address (:meme-auction/buyer meme-auction))}
+                                                              :query {:tab :collected}}
+                                                  (:user/address (:meme-auction/buyer meme-auction))]]
+                                                [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
+                                                [:li [:label "Bought:"] [:span  (let [time-ago (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
+                                                                                                                (t/date-time @(subscribe [::now-subs/now])))]
+                                                                                  time-ago)]]]
+                                               [:hr]
+                                               [:p.description (:meme-auction/description meme-auction)]]]}]
 
 
-                 [nav-anchor {:route :route.meme-detail/index
-                              :params {:address (-> meme-token :meme-token/meme :reg-entry/address) }
-                              :query nil
-                              :class "footer"}
-                  [:div.token-id (str "#" number)]
-                  [:div.title title]
-                  [:div.number-minted (str number "/" total-minted)]
-                  [:div.price (ui-utils/format-price bought-for)]]])
-              state)))])])
+                [nav-anchor {:route :route.meme-detail/index
+                             :params {:address (-> meme-token :meme-token/meme :reg-entry/address) }
+                             :query nil
+                             :class "footer"}
+                 [:div.token-id (str "#" number)]
+                 [:div.title title]
+                 [:div.number-minted (str number "/" total-minted)]
+                 [:div.price (ui-utils/format-price bought-for)]]])
+             state)))]))
 
 (defn- build-order-by [prefix order-by]
   (keyword (str (cljs.core/name prefix) ".order-by") order-by))
 
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
-
-  #_(log/debug "build-query" {:user user-address})
-
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged?]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner user-address
@@ -794,42 +802,38 @@
                             :meme/total-minted]]]]]]]]])))
 
 (defn scrolling-container [tab {:keys [:user-address :form-data :prefix]}]
-    (let [query (build-query tab {:user-address user-address
-                                  :prefix prefix
-                                  :form-data @form-data
-                                  :first page-size})
-          query-id (merge @form-data {:tab tab :user-address user-address})
-          query-subs (subscribe [::gql/query {:queries query}
-                                 {:id query-id}])
-          k (case prefix
-              :memes :search-memes
-              :meme-auctions :search-meme-auctions)
-          state (mapcat (fn [q] (get-in q [k :items])) @query-subs)
-          loading? (:graphql/loading? (last @query-subs))
-          has-more? (:has-next-page (k (last @query-subs)))]
+  (let [query (build-query tab {:user-address user-address
+                                :prefix prefix
+                                :form-data @form-data
+                                :first page-size})
+        query-id (merge @form-data {:tab tab :user-address user-address})
+        query-sub (subscribe [::gql/query {:queries query}
+                              {:id query-id}])
+        k (case prefix
+                    :memes :search-memes
+                    :meme-auctions :search-meme-auctions)
+        re-search (fn [after]
+                    (dispatch [::gql-events/query
+                               {:query {:queries (build-query tab {:user-address user-address
+                                                                   :prefix prefix
+                                                                   :form-data form-data
+                                                                   :first page-size
+                                                                   :after after})}
+                                :id query-id}]))
 
-      (log/debug "#memes" {:c (count (map #(get-in % [(case prefix
-                                                        :memes :reg-entry/address
-                                                        :meme-auctions :meme-auction/address)])
-                                          state))})
+        state (mapcat (fn [q] (get-in q [k :items])) @query-sub)
+        loading-first? (:graphql/loading? (first @query-sub))
+        last-sub (last @query-sub)
+        loading? (:graphql/loading? last-sub)
+        has-more? (-> last-sub k :has-next-page)
+        end-cursor (-> last-sub k :end-cursor)]
 
-      [:div.scroll-area
-       [:div.inner-panel
-        [panel tab state (:graphql/loading? (first @query-subs)) loading?]
-        (when loading?
-          [:div.spinner-container [spinner/spin]])
-        [infinite-scroll {:loading? loading?
-                          :has-more? has-more?
-                          :infinite-load-threshold 0
-                          :debounce-interval 200
-                          :load-fn #(let [{:keys [:end-cursor]} (k (last @query-subs))]
-                                      (dispatch [::gql-events/query
-                                                 {:query {:queries (build-query tab {:user-address user-address
-                                                                                     :prefix prefix
-                                                                                     :form-data form-data
-                                                                                     :first page-size
-                                                                                     :after end-cursor})}
-                                                  :id query-id}]))}]]]))
+    (log/debug "#memes" {:c (count state)})
+
+    [:div.scroll-area
+     [panel tab
+      {:state state :query-key k :loading-first? loading-first? :loading-more? loading? :has-more? has-more?
+       :re-search #(re-search end-cursor)}]]))
 
 
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
@@ -842,9 +846,6 @@
                                                                   :first page-size
                                                                   :after 0})}
                                :id (merge @form-data {:tab tab})}])]
-
-  #_(log/debug "tabbed-pane" {:user user-address})
-
     [:div.tabbed-pane
      [:section.search-form
       [search/search-tools (merge {:title (if url-address?
@@ -926,9 +927,7 @@
                             [true _] active-account
                             [false _] url-account
                             [true true] nil)]
-
     #_(log/debug "index" {:user user-account :url url-account :active active-account})
-
     (when user-account
       (let [prefix (cond (contains? #{:collected :created :curated} active-tab)
                          :memes

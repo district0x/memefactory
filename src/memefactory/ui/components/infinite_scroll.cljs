@@ -24,7 +24,6 @@
                                :element-height
                                :container-height
                                :elements-in-row
-                               ;; :infinite-load-threshold
                                :loading-spinner-delegate
                                :load-fn
                                :loading?
@@ -34,12 +33,10 @@
                              element-height 435
                              elements-in-row 3
                              container-height (-> js/window .-innerHeight)
-                             ;; infinite-load-threshold 50
                              loading-spinner-delegate (fn []
                                                         [:div.loading-spinner-delegate
                                                          "Loading..." ])}
                         :as props} & [children]]
-  ;;:div
   (let [row-height (if @(subscribe [::w-size-subs/mobile?])
                      element-height
                      (quot element-height elements-in-row))]
@@ -60,6 +57,8 @@
                                                                (-> js/window (.scrollBy 0 (- 0 element-height))))))
                                           :time-scroll-state-lasts-for-after-user-scrolls 1000
                                           :on-infinite-load (fn []
-                                                              (when (not loading?)
+                                                              (when (and has-more?
+                                                                         (not loading?))
+                                                                (log/debug "loading more")
                                                                 (load-fn)))})]
           children)))
