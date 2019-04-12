@@ -111,7 +111,7 @@
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/started-on
     :order-dir :desc
-    :group-by :meme-auctions.group-by/cheapest
+    :group-by :meme-auctions.group-by/lowest-card-number
     :statuses [:meme-auction.status/active]
     :first 6}
    [[:items auction-node-graph]]])
@@ -120,7 +120,7 @@
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/meme-total-minted
     :statuses [:meme-auction.status/active]
-    :group-by :meme-auctions.group-by/cheapest
+    :group-by :meme-auctions.group-by/lowest-card-number
     :order-dir :asc
     :first 6}
    [[:items auction-node-graph]]])
@@ -129,7 +129,7 @@
   [:search-meme-auctions
    {:order-by :meme-auctions.order-by/random
     :statuses [:meme-auction.status/active]
-    :group-by :meme-auctions.group-by/cheapest
+    :group-by :meme-auctions.group-by/lowest-card-number
     :first 6}
    [[:items auction-node-graph]]])
 
