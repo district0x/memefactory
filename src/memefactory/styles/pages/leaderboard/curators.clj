@@ -87,6 +87,8 @@
         [:p
          {:font-weight :bold
           :color (color :section-subcaption)}
+         [:&.total-earnings
+          {:margin-top (em 2)}]
          [:span
           {:font-weight :normal}]]
 

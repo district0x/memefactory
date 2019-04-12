@@ -118,7 +118,7 @@
                               [:span success-votes "/" total-votes " (" (format/format-percentage success-votes total-votes) ")"])]
 
                            [:p "Earned: " [:span (ui-utils/format-dank (:user/voter-total-earned curator))]]
-                           [:p.total-earnings "Total Earnings: " [:span (ui-utils/format-dank (web3/from-wei (:user/curator-total-earned curator) :ether))]]]))
+                           [:p.total-earnings "Total Earnings: " [:span (ui-utils/format-dank (:user/curator-total-earned curator))]]]))
                        doall))
 
                 ])]]]]]))))
