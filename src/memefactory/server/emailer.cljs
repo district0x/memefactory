@@ -93,6 +93,8 @@
   [{:keys [from to title
            meme-url meme-image-url
            button-url
+           buyer-address
+           price
            on-success on-error
            template-id
            api-key
@@ -101,7 +103,9 @@
                :to to
                :subject (str title " was sold!")
                :content (templates/meme-auction-bought-email-body {:meme/title title
-                                                                   :meme-url meme-url})
+                                                                   :meme-url meme-url
+                                                                   :buyer-address buyer-address
+                                                                   :price price})
                :substitutions {:header (str title " was sold!")
                                :button-title "My Memefolio"
                                :button-href button-url
@@ -131,6 +135,8 @@
                      :title title
                      :meme-url meme-url
                      :meme-image-url meme-image-url
+                     :buyer-address buyer
+                     :price price
                      :button-url button-url
                      :on-success #(log/info "Success sending auction bought email"
                                             {:to to :meme-auction meme-auction :meme-title title}

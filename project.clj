@@ -62,7 +62,6 @@
                  [district0x/re-frame-ipfs-fx "0.0.2"]
                  [funcool/bide "1.6.1-SNAPSHOT"] ;; version with fix for duplicated query params
                  [garden "1.3.5"]
-                 [hiccups "0.3.0"]
                  [medley "1.0.0"]
                  [mount "0.1.12"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
