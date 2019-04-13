@@ -20,10 +20,11 @@
     (str "Your meme " link " was just challenged. Hurry, you have "
          (str/lower-case time-remaining) " to visit the website and vote to keep your meme in the Dank Registry!")))
 
-(defn meme-auction-bought-email-body [{:keys [:price :meme/title :meme-url :buyer-address]}]
-  (let [link (format-link meme-url title)
+(defn meme-auction-bought-email-body [{:keys [:price :meme/title :meme-url :buyer-address :buyer-url]}]
+  (let [buyer-link (format-link buyer-url buyer-address)
+        link (format-link meme-url title)
         price (format-token-amount price)]
-    (str "Your offering of " link " was sold for " price " ETH by " buyer-address)))
+    (str "Your offering of " link " was sold for " price " ETH by " buyer-link)))
 
 (defn vote-reward-claimed-email-body [{:keys [:amount :meme/title :meme-url :vote/option]}]
   (let [link (format-link meme-url title)
