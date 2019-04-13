@@ -94,6 +94,7 @@
            meme-url meme-image-url
            button-url
            buyer-address
+           buyer-url
            price
            on-success on-error
            template-id
@@ -105,6 +106,7 @@
                :content (templates/meme-auction-bought-email-body {:meme/title title
                                                                    :meme-url meme-url
                                                                    :buyer-address buyer-address
+                                                                   :buyer-url buyer-url
                                                                    :price price})
                :substitutions {:header (str title " was sold!")
                                :button-title "My Memefolio"
@@ -123,6 +125,7 @@
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
         meme-image-url (str ipfs-gateway-url image-hash)
+        buyer-url (str root-url "/memefolio/" buyer)
         meme-url (str root-url "/memefolio/?tab=sold")
         button-url (str root-url "/meme-detail/" registry-entry)]
     (promise-> (district0x-emails/get-email {:district0x-emails/address seller})
@@ -136,6 +139,7 @@
                      :meme-url meme-url
                      :meme-image-url meme-image-url
                      :buyer-address buyer
+                     :buyer-url buyer-url
                      :price price
                      :button-url button-url
                      :on-success #(log/info "Success sending auction bought email"
