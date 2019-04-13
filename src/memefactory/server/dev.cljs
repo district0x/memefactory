@@ -143,9 +143,9 @@
     (-> (mount/start #'memefactory.server.db/memefactory-db
                      #'memefactory.server.syncer/syncer
                      #'district.server.smart-contracts/smart-contracts)
-        (log/info "Finished syncing database" ))))
+        (log/info "Finished syncing database"))))
 
-(defn -main [& _]
+(defn start []
   (-> (mount/with-args
         {:config {:default {:logging {:level "info"
                                       :console? true}
@@ -161,9 +161,9 @@
                                       :path "/graphql"
                                       :graphiql true}
 
-                            :web3 {:url "http://localhost:8549"
-                                   ;; :url "http://qa.district0x.io:8545"
-                                   }
+                            :web3 {:url "http://localhost:8549"}
+                            ;; :url "http://qa.district0x.io:8545"
+                            
                             :ipfs {:host "http://127.0.0.1:5001"
                                    :endpoint "/api/v0"
                                    :gateway "http://127.0.0.1:8080/ipfs"}
@@ -177,12 +177,24 @@
                             :emailer {:private-key "PLACEHOLDER"
                                       :api-key "PLACEHOLDER"
                                       :template-id "PLACEHOLDER"
-                                      :from "district0x@district0x.io"
+                                      :from "noreply@memefactory.io"
                                       :print-mode? true}
                             :syncer {:read-events-from-cache? false}}}})
       (mount/start)
-      (#(log/warn "Started" {:components %
-                             :config @config}))))
+      (as-> $ (log/warn "Started" {:components $
+                                   :config @config}))))
+
+(defn stop []
+  (mount/stop))
+
+(defn restart []
+  (stop)
+  (start))
+
+(defn -main [& args]
+  (when-not (= (last args) "--nostart")
+    (log/debug "Mounting... (Pass the argument --nostart to prevent mounting on start)")
+    (start)))
 
 (set! *main-cli-fn* -main)
 
