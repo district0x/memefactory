@@ -16,7 +16,10 @@ pom.xml.asc
 /figwheel_server.log
 /memefactory.iml
 /.node-xmlhttprequest-sync-*
-/resources/public/css/
+/resources/public/css/main.css
+/resources/public/css/semantic.css
+/resources/public/css/semantic.min.css
+/resources/public/css/themes/
 /resources/semantic/dist/
 /npm-debug.log
 /config.edn
@@ -27,5 +30,5 @@ memefactory-tests/
 /browser-tests/
 /src/name_bazaar/server/repl.cljs
 /smart-contracts-tests/
-resources/public/js/
+resources/public/js/compiled/
 resources/public/contracts/build/

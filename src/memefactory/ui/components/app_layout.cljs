@@ -31,11 +31,14 @@
                       :route :route.dank-registry/browse
                       :class :dankregistry
                       :children [{:text "Submit"
-                                  :route :route.dank-registry/submit}
+                                  :route :route.dank-registry/submit
+                                  :class "dank-registry-submit"}
                                  {:text "Vote"
-                                  :route :route.dank-registry/vote}
+                                  :route :route.dank-registry/vote
+                                  :class "dank-registry-vote"}
                                  {:text "Challenge"
-                                  :route :route.dank-registry/challenge}
+                                  :route :route.dank-registry/challenge
+                                  :class "dank-registry-challenge"}
                                  {:text "Browse"
                                   :route :route.dank-registry/browse}]}
                      {:text "Leaderboard"
@@ -69,6 +72,8 @@
                       :route :route.get-dank/index
                       :class :faucet
                       :needs-account? true}])
+
+
 
 (defn search-form [form-data]
   [:div.search
@@ -139,7 +144,8 @@
                                       (when-not (and needs-account? (not active-account))
                                         {:route route
                                          :params params
-                                         :query query}))
+                                         :query query
+                                         :class (when class (name class))}))
                           text]]
                         (when children
                           [app-menu children active-page (inc depth)])])

@@ -15,7 +15,8 @@
    [memefactory.ui.marketplace.events :as mk-events]
    [memefactory.ui.utils :as utils]
    [re-frame.core :refer [subscribe dispatch]]
-   [reagent.core :as r]))
+   [reagent.core :as r]
+   [memefactory.ui.home.tutorial :refer [tutorial-button]]))
 
 (defn take-max-multiple-of [n xs]
   (if (< (count xs) n)
@@ -152,6 +153,8 @@
              :challenge/commit-period-end
              :challenge/comment]]]])
 
+
+
 (defmethod page :route/home []
   (let [search-atom (r/atom {:term ""})
         new-on-market (subscribe [::gql/query {:queries [new-on-marketplace-query]}])
@@ -165,6 +168,7 @@
         :search-atom search-atom}
        [:div.home
         [:p.inspired "A decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."]
+        [tutorial-button]
         [:section.meme-highlights
          [:div.new-on-marketplace
           [:div.icon]

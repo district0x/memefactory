@@ -50,6 +50,7 @@
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
    [re-frisk.core :refer [enable-re-frisk!]]
+   [cljsjs.jquery]
    ))
 
 (def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
