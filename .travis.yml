@@ -16,6 +16,7 @@ notifications:
     rooms:
     - district0x:53vhalUfg0MitsQwzjP5PWdd#travis-ci
 before_install:
+- nvm use 11.0.0
 - npm install -g truffle@4.1.14
 - npm install -g ganache-cli
 - sudo wget --no-check-certificate -P /bin https://github.com/ethereum/solidity/releases/download/v0.4.24/solc-static-linux
