@@ -40,7 +40,7 @@
                             :web3 {:url "localhost:8545"}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
-                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}  
+                            :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
                             :web3-watcher {:on-online (fn []
                                                         (log/warn "Ethereum node went online again" ::web3-watcher)
                                                         (mount/stop #'memefactory.server.db/memefactory-db)

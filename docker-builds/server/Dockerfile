@@ -1,43 +1,25 @@
-FROM district0x/base:latest
+FROM node:11.14.0-stretch
 MAINTAINER "Filip Bielejec" <filip@district0x.io>
 
 # Python dependencies
-RUN apt-get -y --allow-releaseinfo-change update
-RUN apt-get -y install libffi-dev libssl-dev
-RUN apt-get -y install python-pip
-RUN pip install cryptography --force-reinstall
-RUN pip install base58
-
-# fix for the checksum problem
-# see https://stackoverflow.com/questions/47545940/npm-err-code-eintegrity-npm-5-3-0
-RUN npm config set package-lock false
+RUN apt-get update -y \
+    && apt-get install --no-install-recommends -y \
+    -q python-pip python-setuptools
+RUN pip install cryptography base58
 
 # ENV variables
 ENV CONFIG /configs/meme.config.qa.edn
 
-# get source code
-COPY . /memefactory
+# get compiled JS
+COPY server /memefactory/server
+COPY node_modules /memefactory/node_modules
+COPY resources /memefactory/resources
+
+### --- DEBUG
+# RUN ls memefactory/
+# RUN ls memefactory/server/
 
 WORKDIR memefactory
-
-# add smart_contracts.cljs with ropsten addresses
-# COPY docker-builds/shared/smart_contracts.cljs /src/memefactory/shared/smart_contracts.cljs
-#RUN rm src/memefactory/shared/smart_contracts.cljs \
-#    && mv docker-builds/shared/smart_contracts.cljs src/memefactory/shared/smart_contracts.cljs
-
-# confirm contract addresses
-RUN cat src/memefactory/shared/smart_contracts.cljs
-
-# build server
-RUN lein deps
-RUN lein npm install
-RUN lein solc once
-RUN lein cljsbuild once "server"
-
-# expose to host
-# VOLUME /configs
-# VOLUME /logs
-# EXPOSE 6300
 
 ENTRYPOINT ["node", "server/memefactory.js"]
 CMD ["--max-old-space-size=2048"]
