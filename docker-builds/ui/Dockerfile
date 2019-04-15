@@ -1,13 +1,9 @@
-FROM district0x/base:latest
+FROM debian:stretch-slim
 MAINTAINER "Filip Bielejec" <filip@district0x.io>
 
-# ENV variables
-ENV MEMEFACTORY_ENV=qa
-
-# install nginx
 RUN apt-get update -y \
     && apt-get install --no-install-recommends -y \
-    -q nginx
+    -q wget nginx
 
 # replace nginx config
 COPY docker-builds/ui/nginx.conf /etc/nginx/nginx.conf
@@ -28,25 +24,12 @@ RUN wget --no-check-certificate -O X0X.html https://raw.githubusercontent.com/di
 # setup static server
 RUN ln -s -f /etc/nginx/sites-available/memefactory.io /etc/nginx/sites-enabled/memefactory.io
 
-# get source code
-COPY . /memefactory
+# get compiled JS
+COPY resources/public /memefactory/resources/public/
 
-WORKDIR memefactory
-
-# add smart_contracts.cljs with ropsten addresses
-# COPY docker-builds/shared/smart_contracts.cljs /src/memefactory/shared/smart_contracts.cljs
-#RUN rm src/memefactory/shared/smart_contracts.cljs \
-#    && mv docker-builds/shared/smart_contracts.cljs src/memefactory/shared/smart_contracts.cljs
-
-# confirm contract addresses
-RUN cat src/memefactory/shared/smart_contracts.cljs
-
-# build ui
-RUN lein deps
-RUN lein npm install
-RUN lein garden once
-RUN lein solc once
-RUN env MEMEFACTORY_ENV=qa lein cljsbuild once "ui"
+#--- DEBUG
+#RUN ls /memefactory
+#RUN ls /memefactory/resources/public
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
