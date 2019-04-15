@@ -80,6 +80,7 @@
               (not loading?))
        [no-items-found]
        [infinite-scroll {:class "tiles"
+                         :fire-tutorial-next-on-items? true
                          :loading? loading?
                          :has-more? has-more?
                          :load-fn #(let [{:keys [:end-cursor]} (:search-meme-auctions (last @auctions-search))]

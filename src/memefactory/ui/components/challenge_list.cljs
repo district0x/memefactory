@@ -187,6 +187,7 @@
               (not loading?))
        [no-items-found]
        [infinite-scroll {:class "memes"
+                         :fire-tutorial-next-on-items? true
                          :element-height 503
                          :elements-in-row 1
                          :loading? loading?

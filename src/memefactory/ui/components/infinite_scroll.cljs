@@ -30,7 +30,8 @@
                                :loading-spinner-delegate
                                :load-fn
                                :loading?
-                               :has-more?]
+                               :has-more?
+                               :fire-tutorial-next-on-items?]
                         :or {class "infinite-scroll"
                              use-window-as-scroll-container true
                              element-height 435
@@ -38,7 +39,8 @@
                              container-height (-> js/window .-innerHeight)
                              loading-spinner-delegate (fn []
                                                         [:div.loading-spinner-delegate
-                                                         "Loading..." ])}
+                                                         "Loading..." ])
+                             :fire-tutorial-next-on-items? false}
                         :as props} & [children]]
 
   (let [tutorial-next-fired? (atom false)]
@@ -47,7 +49,8 @@
                          element-height
                          (quot element-height elements-in-row))]
 
-        (when (and (not @tutorial-next-fired?)
+        (when (and fire-tutorial-next-on-items?
+                   (not @tutorial-next-fired?)
                    (.-enjoy-hint-tutorial js/window)
                    (pos? (count children)))
           (.trigger (.-enjoy-hint-tutorial js/window) "next")
