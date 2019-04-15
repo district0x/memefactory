@@ -1,4 +1,4 @@
-FROM node:11.14.0-stretch
+FROM node:11.0.0-stretch
 MAINTAINER "Filip Bielejec" <filip@district0x.io>
 
 # Python dependencies
