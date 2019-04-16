@@ -42,6 +42,8 @@
    :ipfs {:host "http://qa.district0x.io:5001" :endpoint "/api/v0"}
    :router {:html5? true}})
 
+(def qa-dev-config (assoc-in qa-config [:router :html5?] false))
+
 (def production-config
   {:logging {:level :warn
              :console? false
@@ -61,8 +63,9 @@
 (def config-map
   (condp = (get-environment)
     "prod" production-config
-    "qa"   qa-config
-    "dev"  development-config))
+    "qa" qa-config
+    "qa-dev" qa-dev-config
+    "dev" development-config))
 
 (defn start []
   (re-frame/dispatch [::load-memefactory-db-params (-> config-map :graphql :url)]))
