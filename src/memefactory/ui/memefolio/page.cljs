@@ -40,7 +40,7 @@
 
 (def default-tab :collected)
 
-(def page-size 3)
+(def page-size 6)
 
 (defmulti rank (fn [tab & opts] tab))
 
@@ -273,6 +273,8 @@
       [no-items-found]
       [infinite-scroll {:class "tiles"
                         :loading? loading-more?
+                        :loading-spinner-delegate (fn []
+                                                    [:div.spinner-container [spinner/spin]])
                         :has-more? has-more?
                         :load-fn re-search}
        (when-not loading-first?
@@ -397,6 +399,8 @@
       [infinite-scroll {:class "tiles"
                         :loading? loading-more?
                         :has-more? has-more?
+                        :loading-spinner-delegate (fn []
+                                                    [:div.spinner-container [spinner/spin]])
                         :load-fn re-search}
        (when-not loading-first?
          (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
@@ -494,6 +498,8 @@
     [infinite-scroll {:class "tiles"
                       :loading? loading-more?
                       :has-more? has-more?
+                      :loading-spinner-delegate (fn []
+                                                  [:div.spinner-container [spinner/spin]])
                       :load-fn re-search}
      (when-not loading-first?
        (doall
@@ -547,8 +553,8 @@
          [:div.label "CHALLENGES:"]
          [:div [:b "Success Rate:"]
           (when (and total-created-challenges-success total-created-challenges)
-              (str total-created-challenges-success "/" total-created-challenges
-                    " (" (format/format-percentage total-created-challenges-success total-created-challenges)  ")"))]
+            (str total-created-challenges-success "/" total-created-challenges
+                 " (" (format/format-percentage total-created-challenges-success total-created-challenges)  ")"))]
          [:div [:b "Earned:"]
           (when challenger-total-earned
             (ui-utils/format-dank challenger-total-earned))]]
@@ -613,6 +619,8 @@
     [infinite-scroll {:class "tiles"
                       :loading? loading-more?
                       :has-more? has-more?
+                      :loading-spinner-delegate (fn []
+                                                  [:div.spinner-container [spinner/spin]])
                       :load-fn re-search}
      (when-not loading-first?
        (doall
@@ -712,9 +720,7 @@
                            :meme/total-supply
                            :reg-entry/status]]]]]
       :curated [[:search-memes (merge {:curator user-address
-                                       :first (if (or challenged? voted?)
-                                                first
-                                                0)}
+                                       :first first}
                                       (cond
                                         (and voted? challenged?) {:curator user-address}
                                         voted?                   {:voter user-address}
@@ -814,8 +820,8 @@
         query-sub (subscribe [::gql/query {:queries query}
                               {:id query-id}])
         k (case prefix
-                    :memes :search-memes
-                    :meme-auctions :search-meme-auctions)
+            :memes :search-memes
+            :meme-auctions :search-meme-auctions)
         re-search (fn [after]
                     (dispatch [::gql-events/query
                                {:query {:queries (build-query tab {:user-address user-address
@@ -832,7 +838,7 @@
         has-more? (-> last-sub k :has-next-page)
         end-cursor (-> last-sub k :end-cursor)]
 
-    (log/debug "#memes" {:c (count state)})
+    ;; (log/debug "#memes" {:c (count state)})
 
     [:div.scroll-area
      [panel tab
