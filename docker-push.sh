@@ -64,7 +64,7 @@ images=(
 
 for i in "${images[@]}"; do
   (
-     build $i    
+    build $i
     push $i
   )
 
