@@ -268,8 +268,7 @@
                             (graphql-utils/gql-name->kw group-by))))
 
        ;; group-by and order-by current price and pagination in Clojure
-       (let [total-count (count (db/all query))
-             result (cond->> (db/all query)
+       (let [result (cond->> (db/all query)
 
                       ;; grouping cheapest
                       group-by
@@ -295,8 +294,8 @@
 
                       ;; pagination
                       page-start-idx (drop page-start-idx)
-                      page-size (take page-size)
-                      )
+                      page-size (take page-size))
+             total-count (count result)
              last-idx (cond-> (count result)
                         page-start-idx (+ page-start-idx))]
 
