@@ -60,12 +60,10 @@
                          :has-more? has-more?
                          :loading-spinner-delegate (fn []
                                                      [:div.spinner-container [spinner/spin]])
-                         ;; :infinite-load-threshold 0
-                         ;; :debounce-interval 200
                          :load-fn #(let [{:keys [:end-cursor] :as r} (:search-memes (last @meme-search))]
                                      (dispatch [:district.ui.graphql.events/query
                                                 {:query {:queries [(build-tiles-query end-cursor @form-data)]}
-                                                 :id :dankest}]))}
+                                                 :id @form-data}]))}
         (when-not (:graphql/loading? (first @meme-search))
           (doall
            (for [{:keys [:reg-entry/address] :as meme} all-memes]
