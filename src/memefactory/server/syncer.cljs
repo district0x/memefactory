@@ -3,6 +3,7 @@
    [bignumber.core :as bn]
    [camel-snake-kebab.core :as cs :include-macros true]
    [cljs-ipfs-api.files :as ipfs-files]
+   [cljs-node-io.core :as io :refer [slurp spit]]
    [cljs-solidity-sha3.core :refer [solidity-sha3]]
    [cljs-web3.core :as web3]
    [cljs-web3.eth :as web3-eth]
@@ -33,8 +34,7 @@
    [memefactory.shared.smart-contracts :as sc]
    [mount.core :as mount :refer [defstate]]
    [print.foo :refer [look] :include-macros true]
-   [taoensso.timbre :as log]
-   [cljs-node-io.core :as io :refer [slurp spit]])
+   [taoensso.timbre :as log])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 ;; this HACK is because mount doesn't support async, so mount start will return
@@ -97,35 +97,6 @@
     (log/info (str "Scheduling meme-number-assigner for meme " address " in " seconds " seconds"))
     (js/setTimeout (partial meme-number-assigner address)
                    (* 1000 seconds))))
-
-
-(defn get-ipfs-meta [meta-hash]
-  (js/Promise.
-   (fn [resolve reject]
-     (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-ipfs-meta)
-     (ipfs-files/fget (str "/ipfs/" meta-hash)
-                      {:req-opts {:compress false}}
-                      (fn [err content]
-                        (cond
-                          err
-                          (let [err-txt "Error when retrieving metadata from ipfs"]
-                            (log/error err-txt (merge {:meta-hash meta-hash
-                                                       :connection @ipfs/ipfs
-                                                       :error err})
-                                       ::get-ipfs-meta)
-                            (reject (str err-txt " : " err)))
-
-                          (empty? content)
-                          (let [err-txt "Empty ipfs content"]
-                            (log/error err-txt {:meta-hash meta-hash
-                                                :connection @ipfs/ipfs} ::get-ipfs-meta)
-                            (reject err-txt))
-
-                          :else (-> (re-find #".+(\{.+\})" content)
-                                    second
-                                    js/JSON.parse
-                                    (js->clj :keywordize-keys true)
-                                    resolve)))))))
 
 (defn- last-block-number []
   (web3-eth/block-number @web3))
@@ -193,7 +164,7 @@
                                  :meme/image-hash ""))
 
          (let [{:keys [:meme/meta-hash]} meme]
-           (promise-> (get-ipfs-meta meta-hash)
+           (promise-> (server-utils/get-ipfs-meta @ipfs/ipfs meta-hash)
                       (fn [meme-meta]
                         (let [{:keys [title image-hash search-tags comment]} meme-meta]
                           (db/update-meme! {:reg-entry/address registry-entry
@@ -245,7 +216,7 @@
     (db/update-registry-entry! (merge registry-entry
                                       challenge
                                       {:challenge/created-on timestamp}))
-    (promise-> (get-ipfs-meta (:challenge/meta-hash challenge))
+    (promise-> (server-utils/get-ipfs-meta @ipfs/ipfs (:challenge/meta-hash challenge))
                (fn [challenge-meta]
                  (db/update-registry-entry! (merge registry-entry
                                                    {:challenge/comment (:comment challenge-meta)}))))))

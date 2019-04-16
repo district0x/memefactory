@@ -130,14 +130,16 @@
              :css-dirs ["resources/public/css"]
              :repl-eval-timeout 120000}
 
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "resources/public/contracts/build" "resources/public/css/main.css" "target" "server" "dev-server" "memefactory-tests"]
+  :clean-targets ^{:protect false} ["resources/public/js/compiled" "resources/public/contracts/build" "resources/public/css/main.css" "target" "server" "dev-server" "memefactory-tests" "dev-pinner" "pinner"]
 
   :aliases {"clean-prod-server" ["shell" "rm" "-rf" "server"]
+            "clean-prod-pinner" ["shell" "rm" "-rf" "pinner"]
             "watch-semantic" ["shell" "./semantic.sh" "watch"]
             "build-semantic" ["shell" "./semantic.sh" "build-css"]
             "build-prod-server" ["do" ["clean-prod-server"] ["cljsbuild" "once" "server"]]
             "build-prod-ui" ["do" ["clean"] ["cljsbuild" "once" "ui"]]
-            "build-prod" ["pdo" ["build-prod-server"] ["build-prod-ui"] ["build-css"]]
+            "build-prod" ["pdo" ["build-prod-server"] ["build-prod-ui"] ["build-css"] ["build-prod-pinner"]]
+            "build-prod-pinner" ["do" ["clean-prod-pinner"] ["cljsbuild" "once" "pinner"]]
             "build-tests" ["cljsbuild" "once" "server-tests"]
             "test" ["doo" "node" "server-tests"]
             "test-doo" ["doo" "node" "server-tests"]}
@@ -207,4 +209,21 @@
                                    :target :nodejs,
                                    :optimizations :none,
                                    :verbose false
-                                   :source-map true}}]})
+                                   :source-map true}}
+                       {:id "dev-pinner"
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
+                        :figwheel {:on-jsload "memefactory.server.pinner/on-jsload"}
+                        :compiler {:main "memefactory.server.pinner"
+                                   :output-to "dev-pinner/pinner.js"
+                                   :output-dir "dev-pinner"
+                                   :target :nodejs,
+                                   :optimizations :none
+                                   :source-map true}}
+                       {:id "pinner"
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
+                        :compiler {:main "memefactory.server.pinner"
+                                   :output-to "pinner/pinner.js"
+                                   :output-dir "pinner"
+                                   :target :nodejs
+                                   :optimizations :simple
+                                   :pretty-print false}}]})
