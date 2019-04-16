@@ -153,10 +153,11 @@
                                       :meme/meta-hash
                                       :meme/total-minted]]]]]]]]])]
     (fn [address tags]
-      (let [response (subscribe [::gql/query {:queries (build-query {:after 0
+      (let [query-id [address @form-data]
+            response (subscribe [::gql/query {:queries (build-query {:after 0
                                                                      :first scroll-interval
                                                                      :options (:option-filters @form-data)})}
-                                 {:id [address @form-data]}])
+                                 {:id query-id}])
 
             state (->> @response
                        (mapcat (fn [q] (get-in q [:search-meme-auctions :items]))))
@@ -177,7 +178,7 @@
                                     {:query {:queries (build-query {:first scroll-interval
                                                                     :after (or end-cursor 0)
                                                                     :options (:option-filters @form-data)})}
-                                     :id address}]))}]]))))
+                                     :id query-id}]))}]]))))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
