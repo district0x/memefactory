@@ -15,8 +15,7 @@
      :flex-wrap :wrap
      :justify-content :left
      :padding-left (em 2.5)
-     :padding-right (em 2.5)
-     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
+     :padding-right (em 2.5)}
     (for-media-max :large [:& {:justify-content :center}])
     [">*"
      {

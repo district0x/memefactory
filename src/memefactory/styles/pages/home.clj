@@ -77,7 +77,8 @@
    [:.meme-highlights
     {:margin-top (em 2)
      :border-radius "1em 1em 1em 1em"
-     :overflow :hidden}
+     :overflow :hidden
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
     [:>div
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
