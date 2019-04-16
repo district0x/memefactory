@@ -60,7 +60,7 @@
         {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
-        meme-url (str root-url "/meme-detail/" registry-entry)
+        meme-url (str root-url "meme-detail/" registry-entry)
         [unit value] (time/time-remaining-biggest-unit (t/now)
                                                        (-> commit-period-end time/epoch->long time-coerce/from-long))
         time-remaining (format/format-time-units {unit value})
@@ -125,9 +125,9 @@
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
         meme-image-url (str ipfs-gateway-url image-hash)
-        buyer-url (str root-url "/memefolio/" buyer)
-        meme-url (str root-url "/memefolio/?tab=sold")
-        button-url (str root-url "/meme-detail/" registry-entry)]
+        buyer-url (str root-url "memefolio/" buyer)
+        meme-url (str root-url "memefolio/?tab=sold")
+        button-url (str root-url "meme-detail/" registry-entry)]
     (promise-> (district0x-emails/get-email {:district0x-emails/address seller})
                #(validate-email %)
                (fn [to]
@@ -190,8 +190,8 @@
         {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer ])
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
-        meme-url (str root-url "/memefolio/?tab=curated")
-        button-url (str root-url "/meme-detail/" registry-entry)
+        meme-url (str root-url "memefolio/?tab=curated")
+        button-url (str root-url "meme-detail/" registry-entry)
         meme-image-url (str ipfs-gateway-url image-hash)]
     (promise-> (district0x-emails/get-email {:district0x-emails/address voter})
                #(validate-email %)
@@ -252,9 +252,9 @@
         {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
-        meme-url (str root-url "/meme-detail/" registry-entry)
+        meme-url (str root-url "meme-detail/" registry-entry)
         meme-image-url (str ipfs-gateway-url image-hash)
-        button-url (str root-url "/memefolio/?tab=curated")]
+        button-url (str root-url "memefolio/?tab=curated")]
     (promise-> (district0x-emails/get-email {:district0x-emails/address challenger})
                #(validate-email %)
                (fn [to]
