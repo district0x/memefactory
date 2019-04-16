@@ -1,7 +1,7 @@
 (ns memefactory.ui.home.tutorial)
 
 (defn with-background [text]
-  (str "<p style=\"background: rgba(100,100,100,0.8); padding:10px;\">"
+  (str "<p style=\"background: rgba(100,100,100,0.8); padding:15px; border-radius:30px;\">"
        text
        "</p>"))
 
@@ -27,7 +27,7 @@
    #_18 {"next .challenge:first>.action>.challenge-controls>button" "At any point during the challenge period, you may challenge a meme you don't like by matching and risking the DANK the meme creator used to submit the meme." :showSkip false}
    #_19 {"next div.dank-registry-vote" "New challenges move to the vote page. When voting concludes, rewards from complete challenges can be claimed from the \"Resolved Challenges\" tab on the vote page, or in your Memefolio." :showSkip false}
    #_20 {"click div.dank-registry-submit" "The final major feature of Meme Factory is, of course, creating memes. This is done with DANK on the \"Submit\" page." :showSkip false}
-   #_21 {"next .image-panel" "To create a meme, find or create an appropriate image file. It's important to submit a meme with a vertical 2:3 aspect ratio, and less than 1.5MB. Most common image formats are accepted. If you need tips for creating memes, click <a href=\"/how-it-works\">here</>" :showSkip false}
+   #_21 {"next .image-panel" "To create a meme, find or create an appropriate image file. It's important to submit a meme with a vertical 2:3 aspect ratio, and less than 1.5MB. Most common image formats are accepted. For more tips on creating memes, see \"How It Works\" page." :showSkip false}
    #_22 {"next .form-panel" (with-background "Submissions require names, and tags to index them for searching. Be creative, but also descriptive here. You must also choose a number of individual cards to mint and issue for sale. You can leave a comment to provide any other information you think challengers or voters might need.") :showSkip false}
    #_23 {"next div.dank-registry-challenge" "Memes that are submitted move to the Challenge phase. Any creations of yours can always be found in the \"Created\" tab of the \"My Memefolio\" page, where you can issue accepted memes for sale." :showSkip false}
    #_24 {"next div.my-settings" "The settings page allows you to link your email address in order to sign up for notifications. This will provide updates on any memes you've created, challenged, or voted for." :showSkip false}

@@ -64,12 +64,13 @@
     (button {:background-color :purple
              :color :white
              :width (em 10)
-             :height (em 2.8)})
+             :height (em 2.8)
+             :line-height (em 3)})
     (for-media-max :large
                    [:& {:display :none}])
     {:margin-left :auto
      :margin-right :auto}
-    [:img {:margin-left (px 20)
+    [:img {:margin-left (px 10)
            :width (px 22)}]]
    [:.meme-card
     [:.overlay {:background overlay-background-footer}]]
