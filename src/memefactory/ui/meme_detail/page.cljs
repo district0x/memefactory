@@ -172,7 +172,7 @@
                                     {:query {:queries (build-query {:first scroll-interval
                                                                     :after (or end-cursor 0)
                                                                     :options (:option-filters @form-data)})}
-                                     :id address}]))}]]))))
+                                     :id [address @form-data] #_address}]))}]]))))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
