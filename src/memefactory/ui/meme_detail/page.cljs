@@ -121,6 +121,7 @@
 (defn related-memes-container [address tags]
   (let [form-data (r/atom {:option-filters :only-lowest-number})
         build-query (fn [{:keys [:first :after :options] :as args}]
+                      (log/debug "build-query" args ::related-memes-container)
                       [[:search-meme-auctions (cond-> {:tags-or tags
                                                        :after (str after)
                                                        :first first
@@ -165,14 +166,18 @@
             has-more? (-> last-sub :search-meme-auctions :has-next-page)]
         [:div.scroll-area
          [panel :selling
-          {:state state :query-key :search-meme-auctions :loading-first? loading-first? :loading-more? loading? :has-more? has-more?
+          {:state state
+           :query-key :search-meme-auctions
+           :loading-first? loading-first?
+           :loading-more? loading?
+           :has-more? has-more?
            :form-data form-data
            :re-search #(let [{:keys [:end-cursor]} (:search-meme-auctions last-sub)]
                          (dispatch [::gql-events/query
                                     {:query {:queries (build-query {:first scroll-interval
                                                                     :after (or end-cursor 0)
                                                                     :options (:option-filters @form-data)})}
-                                     :id [address @form-data] #_address}]))}]]))))
+                                     :id address}]))}]]))))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
