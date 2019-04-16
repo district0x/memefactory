@@ -83,6 +83,8 @@
                          :fire-tutorial-next-on-items? true
                          :loading? loading?
                          :has-more? has-more?
+                         :loading-spinner-delegate (fn []
+                                                     [:div.spinner-container [spinner/spin]])
                          :load-fn #(let [{:keys [:end-cursor]} (:search-meme-auctions (last @auctions-search))]
                                      (dispatch [:district.ui.graphql.events/query
                                                 {:query {:queries [(build-tiles-query @form-data end-cursor)]}
