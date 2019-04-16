@@ -32,3 +32,5 @@ memefactory-tests/
 /smart-contracts-tests/
 resources/public/js/compiled/
 resources/public/contracts/build/
+dev-pinner
+pinner
