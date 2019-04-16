@@ -3,32 +3,37 @@
 #--- FUNCTIONS
 
 function build {
-  NAME=$1
-  TAG=$(git log -1 --pretty=%h)
-  IMG=$NAME:$TAG
-  LATEST=$NAME:latest
-  SERVICE=$(echo $NAME | cut -d "-" -f 2)
+  {
+    NAME=$1
+    TAG=$(git log -1 --pretty=%h)
+    IMG=$NAME:$TAG
+    LATEST=$NAME:latest
+    SERVICE=$(echo $NAME | cut -d "-" -f 2)
 
-  echo "=============================="
-  echo  "["$SERVICE"]" "Buidling: " $IMG
-  echo "=============================="
+    echo "=============================="
+    echo  "["$SERVICE"] Buidling: "$IMG""
+    echo "=============================="
 
-  case $SERVICE in
-    "ui")
-      lein garden once
-      env MEMEFACTORY_ENV=qa lein cljsbuild once "ui"
-      ;;
-    "server")
-      lein cljsbuild once "server"
-      ;;
-    *)
-      echo "ERROR: don't know what to do with SERVICE: "$SERVICE""
-      exit 1
-      ;;
-  esac
+    case $SERVICE in
+      "ui")
+        lein garden once
+        env MEMEFACTORY_ENV=qa lein cljsbuild once "ui"
+        ;;
+      "server")
+        lein cljsbuild once "server"
+        ;;
+      *)
+        echo "ERROR: don't know what to do with SERVICE: "$SERVICE""
+        exit 1
+        ;;
+    esac
 
-  docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
-  docker tag $IMG $LATEST
+    docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
+    docker tag $IMG $LATEST
+  } || {
+    echo "EXCEPTION WHEN BUIDLING "$IMG""
+    exit 1
+  }
 }
 
 function push {
@@ -59,17 +64,10 @@ images=(
 
 for i in "${images[@]}"; do
   (
-    build $i
+     build $i    
     push $i
-  )&
-
-  # wait for all spawned sub-processes to finish
-  wait
+  )
 
 done # END: i loop
-
-echo "=============================="
-echo "DONE"
-echo "=============================="
 
 exit $?
