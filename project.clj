@@ -19,7 +19,7 @@
                  [com.taoensso/timbre "4.10.0"]
                  [day8.re-frame/http-fx "0.1.6"]
                  [district0x/bignumber "1.0.3"]
-                 [district0x/cljs-ipfs-native "0.0.6"]
+                 [district0x/cljs-ipfs-native "1.0.1"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.3"]
                  [district0x/district-encryption "1.0.1"]
@@ -128,14 +128,16 @@
              :css-dirs ["resources/public/css"]
              :repl-eval-timeout 120000}
 
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "resources/public/contracts/build" "resources/public/css/main.css" "target" "server" "dev-server" "memefactory-tests"]
+  :clean-targets ^{:protect false} ["resources/public/js/compiled" "resources/public/contracts/build" "resources/public/css/main.css" "target" "server" "dev-server" "memefactory-tests" "dev-pinner" "pinner"]
 
   :aliases {"clean-prod-server" ["shell" "rm" "-rf" "server"]
+            "clean-prod-pinner" ["shell" "rm" "-rf" "pinner"]
             "watch-semantic" ["shell" "./semantic.sh" "watch"]
             "build-semantic" ["shell" "./semantic.sh" "build-css"]
             "build-prod-server" ["do" ["clean-prod-server"] ["cljsbuild" "once" "server"]]
             "build-prod-ui" ["do" ["clean"] ["cljsbuild" "once" "ui"]]
-            "build-prod" ["pdo" ["build-prod-server"] ["build-prod-ui"] ["build-css"]]
+            "build-prod" ["pdo" ["build-prod-server"] ["build-prod-ui"] ["build-css"] ["build-prod-pinner"]]
+            "build-prod-pinner" ["do" ["clean-prod-pinner"] ["cljsbuild" "once" "pinner"]]
             "build-tests" ["cljsbuild" "once" "server-tests"]
             "test" ["doo" "node" "server-tests"]
             "test-doo" ["doo" "node" "server-tests"]}
@@ -205,4 +207,21 @@
                                    :target :nodejs,
                                    :optimizations :none,
                                    :verbose false
-                                   :source-map true}}]})
+                                   :source-map true}}
+                       {:id "dev-pinner"
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
+                        :figwheel {:on-jsload "memefactory.server.pinner/on-jsload"}
+                        :compiler {:main "memefactory.server.pinner"
+                                   :output-to "dev-pinner/pinner.js"
+                                   :output-dir "dev-pinner"
+                                   :target :nodejs,
+                                   :optimizations :none
+                                   :source-map true}}
+                       {:id "pinner"
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
+                        :compiler {:main "memefactory.server.pinner"
+                                   :output-to "pinner/pinner.js"
+                                   :output-dir "pinner"
+                                   :target :nodejs
+                                   :optimizations :simple
+                                   :pretty-print false}}]})
