@@ -196,11 +196,13 @@
                                                      [:div.spinner-container [spinner/spin]])
                          :load-fn #(let [{:keys [:end-cursor]} (:search-memes (last @meme-search))]
                                      (re-search end-cursor))}
-        (doall
-         (for [{:keys [:reg-entry/address] :as meme} all-memes]
-           ^{:key address} [challenge {:entry meme
-                                       :include-challenger-info? include-challenger-info?
-                                       :action-child action-child}]))])]))
+
+        (when-not (:graphql/loading? (first @meme-search))
+          (doall
+           (for [{:keys [:reg-entry/address] :as meme} all-memes]
+             ^{:key address} [challenge {:entry meme
+                                         :include-challenger-info? include-challenger-info?
+                                         :action-child action-child}])))])]))
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
   (let [form-data (r/atom {:order-by (-> sort-options first :key)
