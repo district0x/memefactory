@@ -16,7 +16,9 @@
 
 (defstyles core
   [:.home
-   [:.spinner-container {:width (px 900)
+   [:.no-items-found {:text-align :center
+                      :display :block}]
+   [:.spinner-container {:width "100%"
                          :height (px 500)}
     [:.spinner-outer {:margin-left :auto
                       :margin-right :auto
