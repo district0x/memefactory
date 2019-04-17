@@ -196,7 +196,6 @@
                                                      [:div.spinner-container [spinner/spin]])
                          :load-fn #(let [{:keys [:end-cursor]} (:search-memes (last @meme-search))]
                                      (re-search end-cursor))}
-        ;;when-not loading?
         (doall
          (for [{:keys [:reg-entry/address] :as meme} all-memes]
            ^{:key address} [challenge {:entry meme
