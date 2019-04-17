@@ -1,18 +1,24 @@
 (ns memefactory.styles.component.challenge-list
   (:require
+   [clojure.string :as s]
    [garden.def :refer [defstyles]]
    [garden.stylesheet :refer [at-media]]
-   [clojure.string :as s]
+   [garden.units :refer [px em pt]]
    [memefactory.styles.base.colors :refer [color]]
+   [memefactory.styles.base.fonts :refer [font]]
+   [memefactory.styles.base.fonts :refer [font]]
    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-   [memefactory.styles.base.fonts :refer [font]]
-   [memefactory.styles.base.fonts :refer [font]]
-   [memefactory.styles.component.buttons :refer [button tag]]
-   [garden.units :refer [px em pt]]))
-
+   [memefactory.styles.component.buttons :refer [button tag]]))
 
 (defstyles core
   [:.challenges.panel
+   [:.scroll-area
+    { :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+     :border-radius "1em 1em 1em 1em"
+     :overflow :hidden
+     :background-color (color :meme-panel-bg)
+     :margin-top (em 2)
+     :padding-top (em 1)}]
    [:.spinner-container {:width (px 900)
                          :height (px 500)}
     [:.spinner-outer {:margin-left :auto
