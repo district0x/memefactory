@@ -106,7 +106,9 @@
            [:li [:label "Current Price:"] [:span (format-price price)]]
            [:li [:label "Start Price:"] [:span (format-price (:meme-auction/start-price meme-auction))]]
            [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]
-           [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]]
+           (let [{:keys [hours minutes days]} remaining]
+             (when-not (= hours minutes days 0)
+               [:li [:label "End Price in:"] [:span (format/format-time-units remaining)]]))]
           [:hr]
           [:div.description {:title description} description]
           [:div.input
