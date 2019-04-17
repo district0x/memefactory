@@ -211,9 +211,7 @@
   (sql/call ;; TODO: can we remove aliases here?
    :case
    [:not= :ma.meme-auction/canceled-on nil]                                       (enum :meme-auction.status/canceled)
-   [:and
-    [:<= now [:+ :ma.meme-auction/started-on :ma.meme-auction/duration]]
-    [:= :ma.meme-auction/bought-on nil]]                                          (enum :meme-auction.status/active)
+   [:= :ma.meme-auction/bought-on nil]                                            (enum :meme-auction.status/active)
    :else                                                                          (enum :meme-auction.status/done)))
 
 (defn squash-by-min [k f coll]
@@ -727,7 +725,7 @@
     (not (nil? canceled-on))
     (enum :meme-auction.status/canceled)
 
-    (and (nil? bought-on) (< (utils/now-in-seconds) (+ started-on duration)))
+    (nil? bought-on)
     (enum :meme-auction.status/active)
 
     :else (enum :meme-auction.status/done)))
