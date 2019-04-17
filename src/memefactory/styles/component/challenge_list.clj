@@ -13,11 +13,7 @@
 (defstyles core
   [:.challenges.panel
    [:.scroll-area
-    { :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-     :border-radius "1em 1em 1em 1em"
-     :overflow :hidden
-     :background-color (color :meme-panel-bg)
-     :margin-top (em 2)
+    {:margin-top (em 2)
      :padding-top (em 1)}]
    [:.spinner-container {:width (px 900)
                          :height (px 500)}
@@ -55,8 +51,8 @@
      :grid-gap (em 2)
      :background-color :white
      :margin-bottom (em 1.5)
-     :border-radius (em 0.6)
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+     :border-radius "1em 1em 1em 1em"
      :padding (em 2.4)}
     [:a.address {:margin-left (px 3)}]
     (for-media-max :computer
