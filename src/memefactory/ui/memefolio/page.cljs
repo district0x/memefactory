@@ -42,6 +42,30 @@
 
 (def page-size 6)
 
+(def collected-created-order
+  [{:key :memes.order-by/created-on :value "Newest" :order-dir :desc}
+   {:key :memes.order-by/number :value "Registry Number" :order-dir :asc}
+   {:key :memes.order-by/total-trade-volume :value "Trade Volume" :order-dir :desc}
+   {:key :memes.order-by/total-minted :value "Issued Cards" :order-dir :asc}])
+
+(def curated-order
+  [{:key :memes.order-by/created-on :value "Newest" :order-dir :desc}
+   {:key :memes.order-by/reveal-period-end :value "Recently Revealed" :order-dir :asc}
+   {:key :memes.order-by/commit-period-end :value "Recently Commited" :order-dir :asc}
+   {:key :memes.order-by/challenge-period-end :value "Recently challenged" :order-dir :asc}])
+
+(def selling-sold-order
+  [{:key :meme-auctions.order-by/started-on :value "Newest" :order-dir :desc}
+   {:key :meme-auctions.order-by/meme-registry-number :value "Registry Number" :order-dir :asc}
+   {:key :meme-auctions.order-by/meme-total-minted :value "Rarest" :order-dir :asc}
+   {:key :meme-auctions.order-by/price-asc :value "Cheapest" :order-dir :asc}
+   {:key :meme-auctions.order-by/price-desc :value "Most Expensive" :order-dir :desc}])
+
+(defn order-dir-from-key-name [key order-vec]
+  (some #(when (= (-> % :key name keyword) (keyword key))
+           (:order-dir %))
+        order-vec))
+
 (defmulti rank (fn [tab & opts] tab))
 
 (defmulti total (fn [tab & opts] tab))
@@ -665,7 +689,15 @@
              state)))]))
 
 (defn- build-order-by [prefix order-by]
-  (keyword (str (cljs.core/name prefix) ".order-by") order-by))
+  (keyword (str
+            (cljs.core/name prefix)
+            ".order-by")
+           ;; HACK: this nasty hack is because our select form component doesn't support two options with the same key
+           ;; for auctions we want to sort by price asc and desc, so we create price-asc and price-desc
+           ;; and remove it here
+           (if (str/starts-with? (name order-by) "price")
+             "price"
+             (name order-by))))
 
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged? :option-filters]} form-data]
@@ -676,8 +708,8 @@
                                           {:after (str after)})
                                         (when term
                                           {:title term})
-                                        {:order-by (build-order-by :memes :created-on)
-                                         :order-dir :desc}
+                                        {:order-by (build-order-by :memes (or order-by :created-on))
+                                         :order-dir (or (order-dir-from-key-name order-by collected-created-order) :desc)}
                                         (when search-tags
                                           {:tags search-tags}))
                    [:total-count
@@ -704,8 +736,8 @@
                                         {:after (str after)})
                                       (when term
                                         {:title term})
-                                      {:order-by (build-order-by :memes :created-on)
-                                       :order-dir :desc}
+                                      {:order-by (build-order-by :memes (or order-by :created-on))
+                                       :order-dir (or (order-dir-from-key-name order-by collected-created-order) :desc)}
                                       (when search-tags
                                         {:tags search-tags}))
                  [:total-count
@@ -729,8 +761,8 @@
                                         {:after (str after)})
                                       (when term
                                         {:title term})
-                                      {:order-by (build-order-by :memes :created-on)
-                                       :order-dir :desc}
+                                      {:order-by (build-order-by :memes (or order-by :created-on))
+                                       :order-dir (or (order-dir-from-key-name order-by curated-order) :desc)}
                                       (when search-tags
                                         {:tags search-tags}))
                  [:total-count
@@ -751,8 +783,8 @@
                                                 {:after (str after)})
                                               (when term
                                                 {:title term})
-                                              {:order-by (build-order-by :meme-auctions :started-on)
-                                               :order-dir :desc}
+                                              {:order-by (build-order-by :meme-auctions (or order-by :started-on))
+                                               :order-dir (or (order-dir-from-key-name order-by selling-sold-order) :desc)}
                                               (when search-tags
                                                 {:tags search-tags})
                                               (when (#{:only-lowest-number :only-cheapest} option-filters)
@@ -787,8 +819,8 @@
                                              {:after (str after)})
                                            (when term
                                              {:title term})
-                                           {:order-by (build-order-by :meme-auctions :started-on)
-                                            :order-dir :desc}
+                                           {:order-by (build-order-by :meme-auctions (or order-by :started-on))
+                                            :order-dir (or (order-dir-from-key-name order-by selling-sold-order) :desc)}
                                            (when search-tags
                                              {:tags search-tags}))
               [:total-count
@@ -874,29 +906,20 @@
                                                                       :title "Copy shareable URL to clipboard"
                                                                       :src "/assets/icons/link.svg"}])])
                                    :form-data form-data
-                                   :on-selected-tags-change re-search
-                                   :on-search-change re-search
-                                   :on-check-filter-change re-search
-                                   :on-select-change re-search
+                                   ;; :on-selected-tags-change re-search
+                                   ;; :on-search-change re-search
+                                   ;; :on-check-filter-change re-search
+                                   ;; :on-select-change re-search
                                    :tags (->> @tags :search-tags :items (mapv :tag/name))
                                    :selected-tags-id :search-tags
                                    :search-id :term
                                    :sub-title (if url-address?
                                                 (str "User stats and current holdings for account " user-address)
                                                 "A personal history of all memes bought, sold, created, and owned")
-                                   :select-options (case prefix
-                                                     :memes [{:key :memes.order-by/created-on :value "Newest"}
-                                                             {:key :memes.order-by/reveal-period-end :value "Recently Revealed"}
-                                                             {:key :memes.order-by/commit-period-end :value "Recently Commited"}
-                                                             {:key :memes.order-by/challenge-period-end :value "Recently challenged"}
-                                                             {:key :memes.order-by/total-trade-volume :value "Trade Volume"}
-                                                             {:key :memes.order-by/number :value "Number"}
-                                                             {:key :memes.order-by/total-minted :value "Total Minted"}]
-
-                                                     :meme-auctions [{:key :meme-auctions.order-by/started-on :value "Newest"}
-                                                                     {:key :meme-auctions.order-by/meme-total-minted :value "Rarest"}
-                                                                     {:key :meme-auctions.order-by/price :value "Cheapest"}
-                                                                     {:key :meme-auctions.order-by/random :value "Random"}])}
+                                   :select-options (cond
+                                                     (#{:collected :created} tab) collected-created-order
+                                                     (#{:curated}            tab) curated-order
+                                                     (#{:selling :sold}      tab) selling-sold-order)}
                                   (when (= :curated tab)
                                     {:check-filters [{:label "Voted"
                                                       :id :voted?}

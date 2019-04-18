@@ -133,6 +133,7 @@
     memeAuctions_orderBy_boughtOn
     memeAuctions_orderBy_tokenId
     memeAuctions_orderBy_memeTotalMinted
+    memeAuctions_orderBy_memeRegistryNumber
     memeAuctions_orderBy_random
   }
 

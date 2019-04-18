@@ -256,6 +256,7 @@
                                                            :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
                                                            :meme-auctions.order-by/token-id   :ma.meme-auction/token-id
                                                            :meme-auctions.order-by/meme-total-minted :m.meme/total-minted
+                                                           :meme-auctions.order-by/meme-registry-number :m.meme/number
                                                            :meme-auctions.order-by/random     (sql/call :random)}
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
