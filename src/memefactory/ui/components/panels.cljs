@@ -11,6 +11,7 @@
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.infinite-scroll :as infinite-scroll]
    [memefactory.ui.components.search :as search]
+   [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.contract.meme-auction :as meme-auction]
    [taoensso.timbre :as log]
@@ -25,7 +26,6 @@
 (defmethod panel :selling [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search
                                      :form-data ]}]
   (log/debug _ {:c (count state)})
-
   [:div.selling-panel
    [inputs/radio-group {:id :option-filters
                         :form-data form-data
@@ -36,6 +36,8 @@
      [infinite-scroll/infinite-scroll {:class "tiles"
                                        :loading? loading-more?
                                        :has-more? has-more?
+                                       :loading-spinner-delegate (fn []
+                                                                   [:div.spinner-container [spinner/spin]])
                                        :load-fn re-search}
       (when-not loading-first?
         (doall

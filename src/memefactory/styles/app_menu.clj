@@ -49,8 +49,8 @@
    [:.menu-content
     [:.mf-logo
      {:cursor :pointer
-      :padding-top (em 3)
-      :padding-bottom (em 1)
+      :padding-top (em 2.3)
+      :padding-bottom (em 1.7)
       :padding-left (em 1.7)
       :padding-right (em 1.7)
       :display :grid

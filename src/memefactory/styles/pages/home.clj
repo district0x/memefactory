@@ -16,7 +16,9 @@
 
 (defstyles core
   [:.home
-   [:.spinner-container {:width (px 900)
+   [:.no-items-found {:text-align :center
+                      :display :block}]
+   [:.spinner-container {:width "100%"
                          :height (px 500)}
     [:.spinner-outer {:margin-left :auto
                       :margin-right :auto
@@ -77,7 +79,8 @@
    [:.meme-highlights
     {:margin-top (em 2)
      :border-radius "1em 1em 1em 1em"
-     :overflow :hidden}
+     :overflow :hidden
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
     [:>div
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"

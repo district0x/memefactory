@@ -40,7 +40,7 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [taoensso.timbre :as log]
+   [taoensso.timbre :as log :refer [spy]]
    ))
 
 (def scroll-interval 6)
@@ -120,17 +120,17 @@
 
 (defn related-memes-container [address tags]
   (let [form-data (r/atom {:option-filters :only-lowest-number})
-        option-filters (ratom/reaction (:option-filters @form-data))
-        build-query (fn [{:keys [:first :after]}]
+        build-query (fn [{:keys [:first :after :options] :as args}]
+                      (log/debug "build-query" args ::related-memes-container)
                       [[:search-meme-auctions (cond-> {:tags-or tags
                                                        :after (str after)
                                                        :first first
                                                        :non-for-meme address
                                                        :statuses [:meme-auction.status/active]}
-                                                (#{:only-lowest-number :only-cheapest} @option-filters)
+                                                (#{:only-lowest-number :only-cheapest} options)
                                                 (assoc :group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
                                                                        :only-cheapest :meme-auctions.group-by/cheapest}
-                                                                      @option-filters)))
+                                                                      options)))
                         [:total-count
                          :end-cursor
                          :has-next-page
@@ -151,25 +151,34 @@
                                       :meme/number
                                       :meme/image-hash
                                       :meme/meta-hash
-                                      :meme/total-minted]]]]]]]]])
-        response (subscribe [::gql/query {:queries (build-query {:after 0
-                                                                 :first scroll-interval})}
-                             {:id address}])
-        state (->> @response
-                   (mapcat (fn [q] (get-in q [:search-meme-auctions :items]))))
-        loading-first? (:graphql/loading? (first @response))
-        last-sub (last @response)
-        loading? (:graphql/loading? last-sub)
-        has-more? (-> last-sub :search-meme-auctions :has-next-page)]
-    [:div.scroll-area
-     [panel :selling
-      {:state state :query-key :search-meme-auctions :loading-first? loading-first? :loading-more? loading? :has-more? has-more?
-       :form-data form-data ;;:options auctions-option-filters
-       :re-search #(let [{:keys [:end-cursor]} (:search-meme-auctions last-sub)]
-                     (dispatch [::gql-events/query
-                                {:query {:queries (build-query {:first scroll-interval
-                                                                :after (or end-cursor 0)})}
-                                 :id address}]))}]]))
+                                      :meme/total-minted]]]]]]]]])]
+    (fn [address tags]
+      (let [query-id [address @form-data]
+            response (subscribe [::gql/query {:queries (build-query {:after 0
+                                                                     :first scroll-interval
+                                                                     :options (:option-filters @form-data)})}
+                                 {:id query-id}])
+
+            state (->> @response
+                       (mapcat (fn [q] (get-in q [:search-meme-auctions :items]))))
+            loading-first? (:graphql/loading? (first @response))
+            last-sub (last @response)
+            loading? (:graphql/loading? last-sub)
+            has-more? (-> last-sub :search-meme-auctions :has-next-page)]
+        [:div.scroll-area
+         [panel :selling
+          {:state state
+           :query-key :search-meme-auctions
+           :loading-first? loading-first?
+           :loading-more? loading?
+           :has-more? has-more?
+           :form-data form-data
+           :re-search #(let [{:keys [:end-cursor]} (:search-meme-auctions last-sub)]
+                         (dispatch [::gql-events/query
+                                    {:query {:queries (build-query {:first scroll-interval
+                                                                    :after (or end-cursor 0)
+                                                                    :options (:option-filters @form-data)})}
+                                     :id query-id}]))}]]))))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])

@@ -1,4 +1,7 @@
-(ns memefactory.ui.home.tutorial)
+(ns memefactory.ui.home.tutorial
+  (:require
+    [district.ui.web3-accounts.subs :as accounts-subs]
+    [re-frame.core :as re-frame]))
 
 (defn with-background [text]
   (str "<p style=\"background: rgba(100,100,100,0.8); padding:15px; border-radius:30px;\">"
@@ -35,10 +38,13 @@
    ])
 
 (defn tutorial-button []
-  [:div.tutorial-button {:on-click (fn []
-                                     (set! (.-enjoy-hint-tutorial js/window)  (js/EnjoyHint.))
-                                     (doto (.-enjoy-hint-tutorial js/window)
-                                       (.set (clj->js steps))
-                                       (.run)))}
-   [:div "Guide Me"]
-   [:img {:src "/assets/icons/guide-me-button-icon.svg"}]])
+  (let [active-account (re-frame/subscribe [::accounts-subs/active-account])]
+    (fn []
+      (when @active-account
+        [:div.tutorial-button {:on-click (fn []
+                                           (set! (.-enjoy-hint-tutorial js/window) (js/EnjoyHint.))
+                                           (doto (.-enjoy-hint-tutorial js/window)
+                                             (.set (clj->js steps))
+                                             (.run)))}
+         [:div "Guide Me"]
+         [:img {:src "/assets/icons/guide-me-button-icon.svg"}]]))))

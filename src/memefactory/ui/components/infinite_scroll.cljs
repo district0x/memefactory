@@ -22,30 +22,27 @@
 (defn preload-batch-size [factor]
   (js-invoke js/Infinite "containerHeightScaleFactor" factor))
 
-(defn infinite-scroll [{:keys [:class
-                               :use-window-as-scroll-container
-                               :element-height
-                               :container-height
-                               :elements-in-row
-                               :loading-spinner-delegate
-                               :load-fn
-                               :loading?
-                               :has-more?
-                               :fire-tutorial-next-on-items?]
-                        :or {class "infinite-scroll"
-                             use-window-as-scroll-container true
-                             element-height 435
-                             elements-in-row 3
-                             container-height (-> js/window .-innerHeight)
-                             loading-spinner-delegate (fn []
-                                                        [:div.loading-spinner-delegate
-                                                         "Loading..." ])
-                             :fire-tutorial-next-on-items? false}
-                        :as props} & [children]]
-
+(defn infinite-scroll [props & [children]]
   (let [tutorial-next-fired? (atom false)]
     (fn [props & [children]]
-      (let [row-height (if @(subscribe [::w-size-subs/mobile?])
+      (let [{:keys [:class
+                    :use-window-as-scroll-container
+                    :element-height
+                    :container-height
+                    :elements-in-row
+                    :loading-spinner-delegate
+                    :load-fn
+                    :loading?
+                    :has-more?
+                    :fire-tutorial-next-on-items?]
+             :or {class "infinite-scroll"
+                  use-window-as-scroll-container true
+                  element-height 435
+                  elements-in-row 3
+                  container-height (-> js/window .-innerHeight)
+                  loading-spinner-delegate (fn [] [:div.loading-spinner "Loading..."])
+                  fire-tutorial-next-on-items? false}} props
+            row-height (if @(subscribe [::w-size-subs/mobile?])
                          element-height
                          (quot element-height elements-in-row))]
 
@@ -62,7 +59,8 @@
                                               :infinite-load-begin-edge-offset row-height
                                               :use-window-as-scroll-container use-window-as-scroll-container
                                               :container-height container-height
-                                              :loading-spinner-delegate loading-spinner-delegate
+                                              :loading-spinner-delegate (when loading?
+                                                                          (r/as-element (loading-spinner-delegate)))
                                               :is-infinite-loading loading?
                                               :handle-scroll (fn [evt]
                                                                (let [{:keys [:to-bottom :page-height] :as pos} (get-position "app-container")]

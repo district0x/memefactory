@@ -196,12 +196,13 @@
                                                      [:div.spinner-container [spinner/spin]])
                          :load-fn #(let [{:keys [:end-cursor]} (:search-memes (last @meme-search))]
                                      (re-search end-cursor))}
-        ;;when-not loading?
-        (doall
-         (for [{:keys [:reg-entry/address] :as meme} all-memes]
-           ^{:key address} [challenge {:entry meme
-                                       :include-challenger-info? include-challenger-info?
-                                       :action-child action-child}]))])]))
+
+        (when-not (:graphql/loading? (first @meme-search))
+          (doall
+           (for [{:keys [:reg-entry/address] :as meme} all-memes]
+             ^{:key address} [challenge {:entry meme
+                                         :include-challenger-info? include-challenger-info?
+                                         :action-child action-child}])))])]))
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
   (let [form-data (r/atom {:order-by (-> sort-options first :key)
@@ -219,13 +220,13 @@
                     (dispatch [:district.ui.graphql.events/query
                                {:query {:queries [(build-challenge-query (assoc params :after after))]}
                                 :id {:params params :key key}}]))]
-
-    [:div.challenges.panel
-     [:div.controls
-      [select-input {:form-data form-data
-                     :class :white-select
-                     :id :order-by
-                     :options sort-options
-                     :on-change #(re-search nil)}]]
-     [meme-tiles meme-search re-search {:include-challenger-info? include-challenger-info?
-                                        :action-child action-child}]]))
+    (fn []
+      [:div.challenges.panel
+       [:div.controls
+        [select-input {:form-data form-data
+                       :class :white-select
+                       :id :order-by
+                       :options sort-options
+                       :on-change #(re-search nil)}]]
+       [meme-tiles meme-search re-search {:include-challenger-info? include-challenger-info?
+                                          :action-child action-child}]])))
