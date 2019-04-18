@@ -1085,7 +1085,7 @@
                       :payload (clojure.string/trim-newline stdout)}))))
         (.catch (fn [ex]
                   (log/error "Error calling python" {:error ex})
-                  {:error ex
+                  {:success false
                    :payload (.getMessage ex)}))))
   #_(catch :default ex
       ;; We'll get here if there's an issue calling python
