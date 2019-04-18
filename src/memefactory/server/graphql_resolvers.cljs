@@ -1090,7 +1090,7 @@
   #_(catch :default ex
       ;; We'll get here if there's an issue calling python
       (log/error "Error calling python" {:error ex})
-      {:error ex
+      {:success false
        :payload (.getMessage ex)}))
 
 (defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
