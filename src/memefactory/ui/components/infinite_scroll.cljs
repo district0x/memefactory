@@ -69,7 +69,7 @@
                                                                    (log/debug "stuck at bottom, autoscrolling!" (merge props
                                                                                                                        pos))
                                                                    (-> js/window (.scrollBy 0 (- 0 element-height))))))
-                                              :time-scroll-state-lasts-for-after-user-scrolls 1000
+                                              :time-scroll-state-lasts-for-after-user-scrolls 100
                                               :preload-batch-size (preload-batch-size 2)
                                               :on-infinite-load (fn []
                                                                   (when (and has-more?
