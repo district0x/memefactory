@@ -2,27 +2,28 @@
   (:require [ajax.core :refer [GET POST]]
             [bignumber.core :as bn]
             [cljs-time.core :as t]
+            [cljs-web3.async.eth :as web3-eth-async]
             [cljs-web3.core :as web3-core]
             [cljs-web3.eth :as web3-eth]
-            [cljs-web3.async.eth :as web3-eth-async]
             [cljs.core.match :refer-macros [match]]
             [cljs.nodejs :as nodejs]
             [clojure.string :as str]
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
-            [memefactory.server.db :as mf-db]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :as web3]
+            [district.shared.error-handling :refer [try-catch-throw try-catch]]
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
-            [memefactory.shared.contract.registry-entry :as registry-entry]
-            [print.foo :refer [look] :include-macros true]
-            [taoensso.timbre :as log]
-            [district.shared.error-handling :refer [try-catch-throw]]
+            [memefactory.server.db :as mf-db]
+            [memefactory.server.macros :refer [promise->]]
             [memefactory.server.ranks-cache :as ranks-cache]
             [memefactory.server.utils :as utils]
-            [memefactory.shared.utils :as shared-utils]))
+            [memefactory.shared.contract.registry-entry :as registry-entry]
+            [memefactory.shared.utils :as shared-utils]
+            [print.foo :refer [look] :include-macros true]
+            [taoensso.timbre :as log]))
 
 (def enum graphql-utils/kw->gql-name)
 
@@ -1010,86 +1011,87 @@
 
 (defn send-verification-code-resolver
   [_ {:keys [country-code phone-number] :as args}]
-  (try-catch-throw
-   (let [options (clj->js
-                  {:url "https://api.authy.com/protected/json/phones/verification/start"
-                   :method "POST"
-                   :headers {"X-Authy-API-Key" (:twilio-api-key @config)}
-                   :json true
-                   :body {"via" "sms"
-                          "phone_number" phone-number
-                          "country_code" country-code}})]
-     (log/info (str "Sending verification code to " country-code phone-number))
-     (-> (request-promise options)
-         (.then
-          (fn [response]
-            (let [twilio-response (js->clj response)
-                  success (get twilio-response "success")
-                  graphql-response {:id (get twilio-response "uuid")
-                                    :success success
-                                    :status (get twilio-response "status")
-                                    :msg (get twilio-response "message")}]
-              (log/info "Twilio resp:" twilio-response)
-              (log/info "Type of success:" (type success))
-              (if (not success)
-                (throw (js/Error. "Error calling phone verification API:"
-                                  graphql-response))
-                graphql-response))))))))
+  (let [options (clj->js
+                 {:url "https://api.authy.com/protected/json/phones/verification/start"
+                  :method "POST"
+                  :headers {"X-Authy-API-Key" (:twilio-api-key @config)}
+                  :json true
+                  :body {"via" "sms"
+                         "phone_number" phone-number
+                         "country_code" country-code}})]
+    (log/info (str "Sending verification code to " country-code phone-number) options)
+    (promise-> (request-promise options)
+               (fn [response]
+                 (let [twilio-response (js->clj response)
+                       success (get twilio-response "success")
+                       graphql-response {:id (get twilio-response "uuid")
+                                         :success success
+                                         :status (get twilio-response "status")
+                                         :msg (get twilio-response "message")}]
+                   (log/info "Twilio resp:" twilio-response)
+                   (log/info "Type of success:" (type success))
+                   (if-not success
+                     (throw (js/Error. "Error calling phone verification API:"
+                                       graphql-response))
+                     graphql-response))))))
 
 (def exec-promise (.promisify util (aget child-process "exec")))
 
 (defn encrypt-verification-payload-resolver
   [_ {:keys [country-code phone-number verification-code] :as args}]
-  (try
-    ;; Build Oraclize call
-    (let [encryption-script "./scripts/encrypted_queries_tools.py"
-          oraclize-public-key "044992e9473b7d90ca54d2886c7addd14a61109af202f1c95e218b0c99eb060c7134c4ae46345d0383ac996185762f04997d6fd6c393c86e4325c469741e64eca9"
-          json-payload (->> (clj->js {:json {:via "sms"
-                                             :phone_number phone-number
-                                             :country_code country-code
-                                             :verification_code verification-code}
-                                      :headers {:content-type "application/json"
-                                                "X-Authy-API-Key" (:twilio-api-key @config)}})
-                            (.stringify js/JSON))
-          full-encryption-command (str "python "
-                                       encryption-script
-                                       " -p "
-                                       oraclize-public-key
-                                       " -e "
-                                       \' json-payload \')]
-      (log/debug full-encryption-command)
+  ;; Build Oraclize call
+  (let [encryption-script "./resources/scripts/encrypted_queries_tools.py"
+        oraclize-public-key (:oraclize-public-key @config)
+        json-payload (->> (clj->js {:json {:via "sms"
+                                           :phone_number phone-number
+                                           :country_code country-code
+                                           :verification_code verification-code}
+                                    :headers {:content-type "application/json"
+                                              "X-Authy-API-Key" (:twilio-api-key @config)}})
+                          (.stringify js/JSON))
+        full-encryption-command (str "python "
+                                     encryption-script
+                                     " -p "
+                                     oraclize-public-key
+                                     " -e "
+                                     \' json-payload \')]
+    (log/debug full-encryption-command)
 
-      ;; Shell out
-      ;; Run the Python script to encrypt the payload
-      (-> (exec-promise full-encryption-command)
-          (.then (fn [result]
-                   (let [python-result (js->clj result)]
-                     (log/debug "python encryption result:" python-result)
-                     (let [stdout (get python-result "stdout")
-                           stderr (get python-result "stderr")]
+    ;; Shell out
+    ;; Run the Python script to encrypt the payload
+    (-> (exec-promise full-encryption-command)
+        (.then (fn [result]
+                 (let [python-result (js->clj result)]
+                   (log/debug "python encryption result:" python-result)
+                   (let [stdout (get python-result "stdout")
+                         stderr (get python-result "stderr")]
 
-                       ;; Return the encrypted payload
-                       ;; (if (clojure.string/blank? stderr)
-                       ;;   (do
-                       ;;     {:success true
-                       ;;      :payload (clojure.string/trim-newline stdout)})
+                     ;; Return the encrypted payload
+                     ;; (if (clojure.string/blank? stderr)
+                     ;;   (do
+                     ;;     {:success true
+                     ;;      :payload (clojure.string/trim-newline stdout)})
 
-                       ;;   (do
-                       ;;     {:success false
-                       ;;      :payload stderr}))
+                     ;;   (do
+                     ;;     {:success false
+                     ;;      :payload stderr}))
 
-                       ;; Who needs error handling? Apparently we don't. With the
-                       ;; latest version of the Python (both 2 and 3) encryption
-                       ;; library it spits a warning out to stderr for using the
-                       ;; encode_point() function. Until Oraclize upgrades the
-                       ;; encrypted_queries_tools.py script we're rollin' dirty.
-                       {:success true
-                            :payload (clojure.string/trim-newline stdout)}))))))
-    (catch js/Error ex
+                     ;; Who needs error handling? Apparently we don't. With the
+                     ;; latest version of the Python (both 2 and 3) encryption
+                     ;; library it spits a warning out to stderr for using the
+                     ;; encode_point() function. Until Oraclize upgrades the
+                     ;; encrypted_queries_tools.py script we're rollin' dirty.
+                     {:success true
+                      :payload (clojure.string/trim-newline stdout)}))))
+        (.catch (fn [ex]
+                  (log/error "Error calling python" {:error ex})
+                  {:error ex
+                   :payload (.getMessage ex)}))))
+  #_(catch :default ex
       ;; We'll get here if there's an issue calling python
-      (log/error "Error calling python:" ex)
-      {:success false
-       :payload (.getMessage ex)})))
+      (log/error "Error calling python" {:error ex})
+      {:error ex
+       :payload (.getMessage ex)}))
 
 (defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
 
