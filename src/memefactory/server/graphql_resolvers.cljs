@@ -291,16 +291,16 @@
 
                       ;; random is a special ordering case because we can't call sort-by for it
                       (and order-by (= (graphql-utils/gql-name->kw order-by) :meme-auctions.order-by/random))
-                      (shuffle)
+                      (shuffle))
+              total-count (count result)
+             paged-result (cond->> result
+                            ;; pagination
+                            page-start-idx (drop page-start-idx)
+                            page-size (take page-size))
+             last-idx (cond-> (count paged-result)
+                         page-start-idx (+ page-start-idx))]
 
-                      ;; pagination
-                      page-start-idx (drop page-start-idx)
-                      page-size (take page-size))
-             total-count (count result)
-             last-idx (cond-> (count result)
-                        page-start-idx (+ page-start-idx))]
-
-         {:items result
+         {:items paged-result
           :total-count total-count
           :end-cursor last-idx
           :has-next-page (< (inc last-idx) total-count)})
