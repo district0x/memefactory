@@ -6,6 +6,7 @@
    [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router-subs]
    [memefactory.shared.utils :as shared-utils]
+   [memefactory.ui.utils :as ui-utils]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [no-items-found]]
@@ -22,6 +23,13 @@
 
 (def page-size 6)
 
+(def auctions-order [{:key "started-on" :value "Newest" :order-dir :desc}
+                     {:key "meme-registry-number" :value "Registry Number" :order-dir :asc}
+                     {:key "meme-total-minted" :value "Rarest" :order-dir :asc}
+                     {:key "price-asc" :value "Cheapest" :order-dir :asc}
+                     {:key "price-desc" :value "Most Expensive" :order-dir :desc}
+                     {:key "random" :value "Random"}])
+
 (defn build-tiles-query [{:keys [:search-term :search-tags :order-by :order-dir :option-filters]} after]
   [:search-meme-auctions
    (cond-> {:first page-size
@@ -36,14 +44,8 @@
      (assoc :after after)
 
      order-by
-     (assoc :order-by (keyword "meme-auctions.order-by" order-by))
-
-     order-dir
-     (assoc :order-dir (get {"started-on" :desc
-                             "meme-total-minted" :asc
-                             "price" :asc}
-                            order-by
-                            :desc))
+     (assoc :order-by (ui-utils/build-order-by :meme-auctions (or order-by :started-on))
+            :order-dir (or (ui-utils/order-dir-from-key-name order-by auctions-order) :desc))
 
      (#{:only-lowest-number :only-cheapest} option-filters)
      (assoc :group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
@@ -130,10 +132,7 @@
                           ;;                  :id :only-cheapest?}]
                           :title "Marketplace"
                           :sub-title "Buy and Sell memes"
-                          :select-options [{:key "started-on" :value "Newest"}
-                                           {:key "meme-total-minted" :value "Rarest"}
-                                           {:key "price" :value "Cheapest"}
-                                           {:key "random" :value "Random"}]
+                          :select-options auctions-order
                           :search-result-count search-total-count
                           :on-check-filter-change re-search
                           :option-filters auctions-option-filters

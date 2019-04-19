@@ -282,6 +282,7 @@
                                      :meme-auctions.order-by/bought-on          :meme-auction/bought-on
                                      :meme-auctions.order-by/token-id           :meme-auction/token-id
                                      :meme-auctions.order-by/meme-total-minted  :meme/total-minted
+                                     :meme-auctions.order-by/meme-registry-number :meme/number
                                      :meme-auctions.order-by/price              #(shared-utils/calculate-meme-auction-price % now)}
                                     (graphql-utils/gql-name->kw order-by)
                                     :meme-auction/started-on)

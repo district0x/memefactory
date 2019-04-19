@@ -141,8 +141,8 @@
   (let [now (subscribe [:district.ui.now.subs/now])]
     (fn [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
       (let [price (shared-utils/calculate-meme-auction-price (-> meme-auction
-                                                                 (update :meme-auction/started-on #(.getTime (ui-utils/gql-date->date %))))
-                                                             (.getTime @now))
+                                                                 (update :meme-auction/started-on #(quot (.getTime (ui-utils/gql-date->date %)) 1000)))
+                                                             (quot (.getTime @now) 1000))
             meme-auctions (when show-cards-left? (subscribe [::gql/query {:queries [[:search-meme-auctions
                                                                                      {:statuses [:meme-auction.status/active]
                                                                                       :for-meme (-> meme-token

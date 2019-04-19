@@ -5,7 +5,8 @@
     [cljs-time.coerce :as time-coerce]
     [cljs-web3.core :as web3]
     [district.format :as format]
-    [district.ui.router.utils :as router-utils]))
+    [district.ui.router.utils :as router-utils]
+    [clojure.string :as str]))
 
 (defn gql-date->date
   "parse GraphQL Date type as JS Date object ready to be formatted"
@@ -31,3 +32,19 @@
     (.select el)
     (js/document.execCommand "copy")
     (js/document.body.removeChild el)))
+
+(defn order-dir-from-key-name [key order-vec]
+  (some #(when (= (-> % :key name keyword) (keyword key))
+           (:order-dir %))
+        order-vec))
+
+(defn build-order-by [prefix order-by]
+  (keyword (str
+            (cljs.core/name prefix)
+            ".order-by")
+           ;; HACK: this nasty hack is because our select form component doesn't support two options with the same key
+           ;; for auctions we want to sort by price asc and desc, so we create price-asc and price-desc
+           ;; and remove it here
+           (if (str/starts-with? (name order-by) "price")
+             "price"
+             (name order-by))))

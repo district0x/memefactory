@@ -61,11 +61,6 @@
    {:key :meme-auctions.order-by/price-asc :value "Cheapest" :order-dir :asc}
    {:key :meme-auctions.order-by/price-desc :value "Most Expensive" :order-dir :desc}])
 
-(defn order-dir-from-key-name [key order-vec]
-  (some #(when (= (-> % :key name keyword) (keyword key))
-           (:order-dir %))
-        order-vec))
-
 (defmulti rank (fn [tab & opts] tab))
 
 (defmulti total (fn [tab & opts] tab))
@@ -688,17 +683,6 @@
                  [:div.price (ui-utils/format-price bought-for)]]])
              state)))]))
 
-(defn- build-order-by [prefix order-by]
-  (keyword (str
-            (cljs.core/name prefix)
-            ".order-by")
-           ;; HACK: this nasty hack is because our select form component doesn't support two options with the same key
-           ;; for auctions we want to sort by price asc and desc, so we create price-asc and price-desc
-           ;; and remove it here
-           (if (str/starts-with? (name order-by) "price")
-             "price"
-             (name order-by))))
-
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged? :option-filters]} form-data]
     (case tab
@@ -708,8 +692,8 @@
                                           {:after (str after)})
                                         (when term
                                           {:title term})
-                                        {:order-by (build-order-by :memes (or order-by :created-on))
-                                         :order-dir (or (order-dir-from-key-name order-by collected-created-order) :desc)}
+                                        {:order-by (ui-utils/build-order-by :memes (or order-by :created-on))
+                                         :order-dir (or (ui-utils/order-dir-from-key-name order-by collected-created-order) :desc)}
                                         (when search-tags
                                           {:tags search-tags}))
                    [:total-count
@@ -736,8 +720,8 @@
                                         {:after (str after)})
                                       (when term
                                         {:title term})
-                                      {:order-by (build-order-by :memes (or order-by :created-on))
-                                       :order-dir (or (order-dir-from-key-name order-by collected-created-order) :desc)}
+                                      {:order-by (ui-utils/build-order-by :memes (or order-by :created-on))
+                                       :order-dir (or (ui-utils/order-dir-from-key-name order-by collected-created-order) :desc)}
                                       (when search-tags
                                         {:tags search-tags}))
                  [:total-count
@@ -761,8 +745,8 @@
                                         {:after (str after)})
                                       (when term
                                         {:title term})
-                                      {:order-by (build-order-by :memes (or order-by :created-on))
-                                       :order-dir (or (order-dir-from-key-name order-by curated-order) :desc)}
+                                      {:order-by (ui-utils/build-order-by :memes (or order-by :created-on))
+                                       :order-dir (or (ui-utils/order-dir-from-key-name order-by curated-order) :desc)}
                                       (when search-tags
                                         {:tags search-tags}))
                  [:total-count
@@ -783,8 +767,8 @@
                                                 {:after (str after)})
                                               (when term
                                                 {:title term})
-                                              {:order-by (build-order-by :meme-auctions (or order-by :started-on))
-                                               :order-dir (or (order-dir-from-key-name order-by selling-sold-order) :desc)}
+                                              {:order-by (ui-utils/build-order-by :meme-auctions (or order-by :started-on))
+                                               :order-dir (or (ui-utils/order-dir-from-key-name order-by selling-sold-order) :desc)}
                                               (when search-tags
                                                 {:tags search-tags})
                                               (when (#{:only-lowest-number :only-cheapest} option-filters)
@@ -819,8 +803,8 @@
                                              {:after (str after)})
                                            (when term
                                              {:title term})
-                                           {:order-by (build-order-by :meme-auctions (or order-by :started-on))
-                                            :order-dir (or (order-dir-from-key-name order-by selling-sold-order) :desc)}
+                                           {:order-by (ui-utils/build-order-by :meme-auctions (or order-by :started-on))
+                                            :order-dir (or (ui-utils/order-dir-from-key-name order-by selling-sold-order) :desc)}
                                            (when search-tags
                                              {:tags search-tags}))
               [:total-count
