@@ -23,14 +23,6 @@
     "server-tests")
   (figwheel-sidecar.repl-api/cljs-repl "server-tests"))
 
-(defn start-pinner! []
-  (figwheel-sidecar.repl-api/start-figwheel!
-    (-> (figwheel-sidecar.config/fetch-config)
-        (assoc-in [:data :figwheel-options :server-port] 4577)
-        (assoc-in [:data :figwheel-options :nrepl-port]  7779))
-    "dev-pinner")
-  (figwheel-sidecar.repl-api/cljs-repl "dev-pinner"))
-
 (comment
   (start-ui!)
   (start-server!)
