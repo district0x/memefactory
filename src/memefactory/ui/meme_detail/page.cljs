@@ -41,6 +41,7 @@
    [reagent.core :as r]
    [reagent.ratom :as ratom]
    [taoensso.timbre :as log :refer [spy]]
+   [memefactory.ui.components.search :as search]
    ))
 
 (def scroll-interval 6)
@@ -120,21 +121,17 @@
 
 (defn related-memes-container [address tags]
   (let [form-data (r/atom {:option-filters :only-lowest-number})
-        build-query (fn [{:keys [:first :after :options] :as args}]
+        build-query (fn [{:keys [:options] :as args}]
                       (log/debug "build-query" args ::related-memes-container)
                       [[:search-meme-auctions (cond-> {:tags-or tags
-                                                       :after (str after)
-                                                       :first first
+                                                       :first 16
                                                        :non-for-meme address
                                                        :statuses [:meme-auction.status/active]}
                                                 (#{:only-lowest-number :only-cheapest} options)
                                                 (assoc :group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
                                                                        :only-cheapest :meme-auctions.group-by/cheapest}
                                                                       options)))
-                        [:total-count
-                         :end-cursor
-                         :has-next-page
-                         [:items [:meme-auction/address
+                        [[:items [:meme-auction/address
                                   :meme-auction/status
                                   :meme-auction/start-price
                                   :meme-auction/end-price
@@ -154,31 +151,28 @@
                                       :meme/total-minted]]]]]]]]])]
     (fn [address tags]
       (let [query-id [address @form-data]
-            response (subscribe [::gql/query {:queries (build-query {:after 0
-                                                                     :first scroll-interval
-                                                                     :options (:option-filters @form-data)})}
-                                 {:id query-id}])
+            response (subscribe [::gql/query {:queries (build-query {:options (:option-filters @form-data)})}])
 
-            state (->> @response
-                       (mapcat (fn [q] (get-in q [:search-meme-auctions :items]))))
-            loading-first? (:graphql/loading? (first @response))
-            last-sub (last @response)
-            loading? (:graphql/loading? last-sub)
-            has-more? (-> last-sub :search-meme-auctions :has-next-page)]
-        [:div.scroll-area
-         [panel :selling
-          {:state state
-           :query-key :search-meme-auctions
-           :loading-first? loading-first?
-           :loading-more? loading?
-           :has-more? has-more?
-           :form-data form-data
-           :re-search #(let [{:keys [:end-cursor]} (:search-meme-auctions last-sub)]
-                         (dispatch [::gql-events/query
-                                    {:query {:queries (build-query {:first scroll-interval
-                                                                    :after (or end-cursor 0)
-                                                                    :options (:option-filters @form-data)})}
-                                     :id query-id}]))}]]))))
+            state (-> @response :search-meme-auctions :items)
+            loading? (:graphql/loading? @response)]
+        [:div.selling-panel
+         [inputs/radio-group {:id :option-filters
+                              :form-data form-data
+                              :options search/auctions-option-filters}]
+         (if (and (empty? state)
+                  (not loading?))
+           [:div.no-items-found "No items found"]
+           [:div.scroll-area
+            [:div.tiles
+             [:div
+              (if loading?
+                [spinner/spin]
+                (doall
+                 (map (fn [{:keys [:meme-auction/address :meme-auction/meme-token] :as meme-auction}]
+                        ^{:key address}
+                        [tiles/auction-tile {:show-cards-left? (contains? #{:only-cheapest :only-lowest-number} (:option-filters @form-data))}
+                         meme-auction])
+                      state)))]]])]))))
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
