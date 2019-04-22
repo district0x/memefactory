@@ -31,8 +31,9 @@
                  [district0x/district-server-graphql "1.0.15"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.0.12"]
+                 [district0x/district-server-smart-contracts "1.0.14"]
                  [district0x/district-server-web3 "1.0.1"]
+                 [district0x/district-server-web3-events "1.0.0"]
                  [district0x/district-server-web3-watcher "1.0.2"]
                  [district0x/district-time "1.0.0"]
                  [district0x/district-ui-component-active-account "1.0.1"]
@@ -91,7 +92,6 @@
                        ["@sentry/node" "4.2.1"]
                        [chalk "2.3.0"]
                        [cors "2.8.4"]
-                       [deasync "0.1.11"]
                        [eccjs "0.3.1"]
                        [express "4.15.3"]
                        [express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
@@ -102,7 +102,6 @@
                        [is-ipfs "0.4.8"]
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]
-                       [deasync "0.1.11"]
                        [request-promise "4.2.2"]
                        ;; this isn't required directly by memefactory but  0.6.1 is broken and
                        ;; district0x/district-server-web3 needs [ganache-core "2.0.2"]   who also needs "ethereumjs-wallet": "~0.6.0"
@@ -128,7 +127,7 @@
              :css-dirs ["resources/public/css"]
              :repl-eval-timeout 120000}
 
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "resources/public/contracts/build" "resources/public/css/main.css" "target" "server" "dev-server" "memefactory-tests" "dev-pinner" "pinner"]
+  :clean-targets ^{:protect false} ["resources/public/js/compiled" "resources/public/contracts/build" "resources/public/css/main.css" "target" "server" "dev-server" "memefactory-tests"]
 
   :aliases {"clean-prod-server" ["shell" "rm" "-rf" "server"]
             "clean-prod-pinner" ["shell" "rm" "-rf" "pinner"]
@@ -207,21 +206,4 @@
                                    :target :nodejs,
                                    :optimizations :none,
                                    :verbose false
-                                   :source-map true}}
-                       {:id "dev-pinner"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
-                        :figwheel {:on-jsload "memefactory.server.pinner/on-jsload"}
-                        :compiler {:main "memefactory.server.pinner"
-                                   :output-to "dev-pinner/pinner.js"
-                                   :output-dir "dev-pinner"
-                                   :target :nodejs,
-                                   :optimizations :none
-                                   :source-map true}}
-                       {:id "pinner"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
-                        :compiler {:main "memefactory.server.pinner"
-                                   :output-to "pinner/pinner.js"
-                                   :output-dir "pinner"
-                                   :target :nodejs
-                                   :optimizations :simple
-                                   :pretty-print false}}]})
+                                   :source-map true}}]})

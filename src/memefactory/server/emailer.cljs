@@ -1,25 +1,24 @@
 (ns memefactory.server.emailer
   (:require
-   [cljs-time.coerce :as time-coerce]
-   [cljs-time.core :as t]
-   [cljs-web3.core :as web3]
-   [memefactory.server.macros :refer [promise->]]
-   [cljs-web3.eth :as web3-eth]
-   [district.encryption :as encryption]
-   [district.format :as format]
-   [district.sendgrid :refer [send-email]]
-   [district.server.config :as config]
-   [district.shared.error-handling :refer [try-catch try-catch-throw]]
-   [district.time :as time]
-   [goog.format.EmailAddress :as email-address]
-   [memefactory.server.contract.district0x-emails :as district0x-emails]
-   [memefactory.server.contract.meme-auction-factory :as meme-auction-factory]
-   [memefactory.server.contract.registry :as registry]
-   [memefactory.server.db :as db]
-   [memefactory.server.emailer.templates :as templates]
-   [memefactory.server.macros :refer [promise->]]
-   [memefactory.server.utils :as server-utils]
-   [taoensso.timbre :as log :refer [spy]]))
+    [cljs-time.coerce :as time-coerce]
+    [cljs-time.core :as t]
+    [district.encryption :as encryption]
+    [district.format :as format]
+    [district.sendgrid :refer [send-email]]
+    [district.server.config :as config]
+    [district.server.config :refer [config]]
+    [district.server.logging]
+    [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
+    [district.shared.error-handling :refer [try-catch try-catch-throw]]
+    [district.time :as time]
+    [goog.format.EmailAddress :as email-address]
+    [memefactory.server.contract.district0x-emails :as district0x-emails]
+    [memefactory.server.db :as db]
+    [memefactory.server.emailer.templates :as templates]
+    [memefactory.server.macros :refer [promise->]]
+    [mount.core :as mount :refer [defstate]]
+    [taoensso.timbre :as log]))
+
 
 (defn validate-email [base64-encrypted-email]
   (when-not (empty? base64-encrypted-email)
@@ -53,6 +52,7 @@
     :template-id template-id
     :api-key api-key
     :print-mode? print-mode?}))
+
 
 (defn send-challenge-created-email [{:keys [:registry-entry :challenger :commit-period-end
                                             :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
@@ -279,3 +279,29 @@
                        :api-key api-key
                        :print-mode? print-mode?}))
                    (log/warn "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email))))))
+
+
+(defn- dispatcher [callback]
+  (fn [_ {:keys [:latest-event? :args]}]
+    (when latest-event?
+      (callback args))))
+
+
+(defn start [opts]
+  (let [callback-ids
+        [(register-callback! :meme-registry/challenge-created-event (dispatcher send-challenge-created-email))
+         (register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher send-auction-bought-email))
+         (register-callback! :meme-registry/vote-reward-claimed-event (dispatcher send-vote-reward-claimed-email))
+         (register-callback! :meme-registry/challenge-reward-claimed-event (dispatcher send-challenge-reward-claimed-email))]]
+    (assoc opts :callback-ids callback-ids)))
+
+
+(defn stop [emailer]
+  (unregister-callbacks! (:callback-ids @emailer)))
+
+
+(defstate emailer
+  :start (start (merge (:pinner @config)
+                       (:pinner (mount/args))))
+  :stop (stop emailer))
+

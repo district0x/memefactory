@@ -1,42 +1,47 @@
 (ns memefactory.server.dev
-  (:require [ajax.core :as http]
-            [bignumber.core :as bn]
-            [camel-snake-kebab.core :as cs :include-macros true]
-            [cljs-time.core :as t]
-            [cljs-web3.core :as web3-core]
-            [cljs-web3.eth :as web3-eth]
-            [cljs-web3.evm :as web3-evm]
-            [cljs.nodejs :as nodejs]
-            [cljs.pprint :as pprint]
-            [clojure.pprint :refer [print-table]]
-            [clojure.string :as str]
-            [district.graphql-utils :as graphql-utils]
-            [district.server.config :refer [config]]
-            [district.server.db :as db]
-            [district.server.graphql :as graphql]
-            [district.server.graphql.utils :as utils]
-            [district.server.logging :refer [logging]]
-            [district.server.middleware.logging :refer [logging-middlewares]]
-            [district.server.smart-contracts]
-            [district.server.web3 :refer [web3]]
-            [goog.date.Date]
-            [graphql-query.core :refer [graphql-query]]
-            [memefactory.server.contract.dank-token :as dank-token]
-            [memefactory.server.contract.eternal-db :as eternal-db]
-            [memefactory.server.contract.registry-entry :as registry-entry]
-            [memefactory.server.db]
-            [memefactory.server.generator :as generator]
-            [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
-            [memefactory.server.ipfs]
-            [memefactory.server.macros :refer [defer]]
-            [memefactory.server.macros :refer [promise->]]
-            [memefactory.server.ranks-cache]
-            [memefactory.server.syncer :as syncer]
-            [memefactory.server.utils :as server-utils]
-            [memefactory.shared.graphql-schema :refer [graphql-schema]]
-            [memefactory.shared.smart-contracts]
-            [mount.core :as mount]
-            [taoensso.timbre :as log]))
+  (:require
+    [ajax.core :as http]
+    [bignumber.core :as bn]
+    [camel-snake-kebab.core :as cs :include-macros true]
+    [cljs-time.core :as t]
+    [cljs-web3.core :as web3-core]
+    [cljs-web3.eth :as web3-eth]
+    [cljs-web3.evm :as web3-evm]
+    [cljs.nodejs :as nodejs]
+    [cljs.pprint :as pprint]
+    [clojure.pprint :refer [print-table]]
+    [clojure.string :as str]
+    [district.graphql-utils :as graphql-utils]
+    [district.server.config :refer [config]]
+    [district.server.db :as db]
+    [district.server.graphql :as graphql]
+    [district.server.graphql.utils :as utils]
+    [district.server.logging :refer [logging]]
+    [district.server.middleware.logging :refer [logging-middlewares]]
+    [district.server.smart-contracts]
+    [district.server.web3 :refer [web3]]
+    [district.server.web3-events]
+    [goog.date.Date]
+    [graphql-query.core :refer [graphql-query]]
+    [memefactory.server.constants :as constants]
+    [memefactory.server.contract.dank-token :as dank-token]
+    [memefactory.server.contract.eternal-db :as eternal-db]
+    [memefactory.server.contract.registry-entry :as registry-entry]
+    [memefactory.server.db]
+    [memefactory.server.emailer]
+    [memefactory.server.generator]
+    [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
+    [memefactory.server.ipfs]
+    [memefactory.server.macros :refer [defer]]
+    [memefactory.server.macros :refer [promise->]]
+    [memefactory.server.pinner]
+    [memefactory.server.ranks-cache]
+    [memefactory.server.syncer :as syncer]
+    [memefactory.server.utils :as server-utils]
+    [memefactory.shared.graphql-schema :refer [graphql-schema]]
+    [memefactory.shared.smart-contracts]
+    [mount.core :as mount]
+    [taoensso.timbre :as log]))
 
 (nodejs/enable-util-print!)
 
@@ -138,18 +143,19 @@
   (log/warn "Syncing internal database, please be patient..." ::resync)
   (defer
     (mount/stop #'memefactory.server.db/memefactory-db
+                #'district.server.web3-events/web3-events
                 #'memefactory.server.syncer/syncer
                 #'district.server.smart-contracts/smart-contracts)
     (-> (mount/start #'memefactory.server.db/memefactory-db
+                     #'district.server.web3-events/web3-events
                      #'memefactory.server.syncer/syncer
                      #'district.server.smart-contracts/smart-contracts)
-        (log/info "Finished syncing database"))))
+      (log/info "Finished syncing database"))))
 
 (defn start []
   (-> (mount/with-args
         {:config {:default {:logging {:level "info"
                                       :console? true}
-                            :web3-tx-log {:open-on-tx-hash? true}
                             :time-source :blockchain
                             :graphql {:port 6300
                                       :middlewares [logging-middlewares]
@@ -160,10 +166,7 @@
                                       :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
                                       :graphiql true}
-
                             :web3 {:url "http://localhost:8549"}
-                            ;; :url "http://qa.district0x.io:8545"
-                            
                             :ipfs {:host "http://127.0.0.1:5001"
                                    :endpoint "/api/v0"
                                    :gateway "http://127.0.0.1:8080/ipfs"}
@@ -178,11 +181,11 @@
                                       :api-key "PLACEHOLDER"
                                       :template-id "PLACEHOLDER"
                                       :from "noreply@memefactory.io"
-                                      :print-mode? true}
-                            :syncer {:read-events-from-cache? false}}}})
-      (mount/start)
-      (as-> $ (log/warn "Started" {:components $
-                                   :config @config}))))
+                                      :print-mode? true}}}
+         :web3-events {:events constants/web3-events}})
+    (mount/start)
+    (as-> $ (log/warn "Started" {:components $
+                                 :config @config}))))
 
 (defn stop []
   (mount/stop))

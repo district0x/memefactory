@@ -83,6 +83,7 @@ contract ParamChange is RegistryEntry {
     db.setUIntValue(sha3(key), value);
     appliedOn = now;
 
+    registry.fireParamChangeAppliedEvent(version);
   }
 
 }

@@ -9,11 +9,15 @@
    [district.server.logging]
    [district.server.middleware.logging :refer [logging-middlewares]]
    [district.server.web3 :refer [web3]]
+   [district.server.web3-events]
    [district.server.web3-watcher]
+   [memefactory.server.constants :as constants]
    [memefactory.server.db]
+   [memefactory.server.emailer]
    [memefactory.server.generator]
    [memefactory.server.graphql-resolvers :refer [resolvers-map]]
    [memefactory.server.ipfs]
+   [memefactory.server.pinner]
    [memefactory.server.ranks-cache]
    [memefactory.server.sigterm]
    [memefactory.server.syncer]
@@ -56,7 +60,8 @@
                             :sigterm {:on-sigterm (fn [args]
                                                     (log/warn "Received SIGTERM signal. Exiting" {:args args})
                                                     (mount/stop)
-                                                    (.exit nodejs/process 0))}}}})
+                                                    (.exit nodejs/process 0))}}}
+         :web3-events {:events constants/web3-events}})
       (mount/start)
       (#(log/warn "Started" {:components %
                              :config @config}))))
