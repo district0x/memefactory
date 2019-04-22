@@ -569,7 +569,8 @@ module.exports = function(deployer, network, accounts) {
                                                          edn.kw(":address"), paramChangeFactory.address]),
 
            edn.kw(":param-change-registry-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
-                                                              edn.kw(":address"), paramChangeRegistryForwarder.address]),
+                                                              edn.kw(":address"), paramChangeRegistryForwarder.address,
+                                                              edn.kw(":forwards-to"), edn.kw(":param-change-registry")]),
 
            edn.kw(":meme-factory"), new edn.Map([edn.kw(":name"), "MemeFactory",
                                                  edn.kw(":address"), memeFactory.address]),
@@ -587,10 +588,12 @@ module.exports = function(deployer, network, accounts) {
                                          edn.kw(":address"), meme.address]),
 
            edn.kw(":meme-registry-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
-                                                      edn.kw(":address"), memeRegistryForwarder.address]),
+                                                      edn.kw(":address"), memeRegistryForwarder.address,
+                                                      edn.kw(":forwards-to"), edn.kw(":meme-registry")]),
 
            edn.kw(":meme-auction-factory-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
-                                                             edn.kw(":address"), memeAuctionFactoryForwarder.address]),
+                                                             edn.kw(":address"), memeAuctionFactoryForwarder.address,
+                                                             edn.kw(":forwards-to"), edn.kw(":meme-auction-factory")]),
 
            edn.kw(":district0x-emails"), new edn.Map([edn.kw(":name"), "District0xEmails",
                                                       edn.kw(":address"), district0xEmails.address]),

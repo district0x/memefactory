@@ -35,6 +35,7 @@ contract Registry is DSAuth {
   event ChallengeRewardClaimedEvent(address registryEntry, uint version, address challenger, uint amount);
 
   event ParamChangeConstructedEvent(address registryEntry, uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd);
+  event ParamChangeAppliedEvent(address registryEntry, uint version);
 
   EternalDb public db;
   bool private wasConstructed;
@@ -173,6 +174,13 @@ contract Registry is DSAuth {
   onlyRegistryEntry
   {
     emit ParamChangeConstructedEvent(msg.sender, version, creator, db, key, value, deposit, challengePeriodEnd);
+  }
+
+  function fireParamChangeAppliedEvent(uint version)
+  public
+  onlyRegistryEntry
+  {
+    emit ParamChangeAppliedEvent(msg.sender, version);
   }
 
   /**
