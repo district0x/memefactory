@@ -132,18 +132,6 @@ ganache-cli -p 8549
 lein test-dev
 ```
 
-Start IPFS pinner: 
-```bash
-# in separate terminal
-ipfs daemon --writable
-# in separate terminal
-ganache-cli -p 8549 -l 8000000 -d -m district0x
-# in separate terminal
-lein repl
-(start-pinner!)
-node dev-pinner/pinner.js
-```
-
 ### Docker builds
 CI deploys the so-called nightly builds on every succesfull commit to the `master` branch.
 These builds target our QA (ropsten) environment, where a `watchtower` service watches and re-deploys images tagged as `latest`.
