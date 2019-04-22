@@ -332,7 +332,7 @@
      :font-size (em 0.9)
      :color (color :menu-text)}
 
-    [:.token-id :.title {:display :inline-block}]
+    [:.token-id :.title :.meme-number {:display :inline-block}]
 
     [:.token-id {:padding-right (em 0.3)}]
 

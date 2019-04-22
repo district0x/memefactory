@@ -677,7 +677,7 @@
                              :params {:address (-> meme-token :meme-token/meme :reg-entry/address) }
                              :query nil
                              :class "footer"}
-                 [:div.token-id (str "#" number)]
+                 [:div.meme-number (str "#" (:meme/number meme))]
                  [:div.title title]
                  [:div.number-minted (str number "/" total-minted)]
                  [:div.price (ui-utils/format-price bought-for)]]])
@@ -825,6 +825,7 @@
                             :meme/title
                             :meme/image-hash
                             :meme/meta-hash
+                            :meme/number
                             :meme/total-minted]]]]]]]]])))
 
 (defn scrolling-container [tab {:keys [:user-address :form-data :prefix]}]
