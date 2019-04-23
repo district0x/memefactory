@@ -1,18 +1,18 @@
 (ns memefactory.ui.dank-registry.browse-page
-  (:require [district.ui.component.page :refer [page]]
-            [district.ui.graphql.subs :as gql]
-            [district.ui.router.subs :as router-subs]
-            [memefactory.shared.utils :as shared-utils]
-            [memefactory.ui.components.app-layout :refer [app-layout]]
-            [memefactory.ui.components.infinite-scroll :as infinite-scroll]
-            [memefactory.ui.components.search :refer [search-tools]]
-            [memefactory.ui.components.tiles :as tiles]
-            [memefactory.ui.dank-registry.events :as mk-events]
-            [memefactory.ui.components.spinner :as spinner]
-            [re-frame.core :refer [subscribe dispatch]]
-            [reagent.core :as r]
-            [taoensso.timbre :as log :refer [spy]]
-            [memefactory.ui.components.panels :refer [no-items-found]]))
+  (:require
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.router.subs :as router-subs]
+    [memefactory.ui.components.app-layout :refer [app-layout]]
+    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+    [memefactory.ui.components.panels :refer [no-items-found]]
+    [memefactory.ui.components.search :refer [search-tools]]
+    [memefactory.ui.components.spinner :as spinner]
+    [memefactory.ui.components.tiles :as tiles]
+    [memefactory.ui.dank-registry.events]
+    [re-frame.core :refer [subscribe dispatch]]
+    [reagent.core :as r]
+    [taoensso.timbre :as log :refer [spy]]))
 
 (def page-size 6)
 
@@ -44,31 +44,31 @@
              [:reg-entry/creator [:user/address
                                   :user/creator-rank]]]]]])
 
+
 (defn dank-registry-tiles [form-data meme-search]
   (let [all-memes (->> @meme-search
-                       (mapcat (fn [r] (-> r :search-memes :items))))
+                    (mapcat (fn [r] (-> r :search-memes :items))))
         last-meme (last @meme-search)
-        no-memes? (empty? all-memes)
         loading? (:graphql/loading? last-meme)
         has-more? (-> last-meme :search-memes :has-next-page)]
-    ;; (log/debug "#memes" {:c (count all-memes)})
     [:div.scroll-area
      (if (and (empty? all-memes)
               (not loading?))
        [no-items-found]
-       [infinite-scroll/infinite-scroll {:class "tiles"
-                                         :loading? loading?
-                                         :has-more? has-more?
-                                         :loading-spinner-delegate (fn []
-                                                                     [:div.spinner-container [spinner/spin]])
-                                         :load-fn #(let [{:keys [:end-cursor]} (:search-memes last-meme)]
-                                                     (dispatch [:district.ui.graphql.events/query
-                                                                {:query {:queries [(build-tiles-query @form-data end-cursor)]}
-                                                                 :id @form-data}]))}
+       [infinite-scroll {:class "tiles"
+                         :loading? loading?
+                         :has-more? has-more?
+                         :loading-spinner-delegate (fn []
+                                                     [:div.spinner-container [spinner/spin]])
+                         :load-fn #(let [{:keys [:end-cursor]} (:search-memes last-meme)]
+                                     (dispatch [:district.ui.graphql.events/query
+                                                {:query {:queries [(build-tiles-query @form-data end-cursor)]}
+                                                 :id @form-data}]))}
         (when-not (:graphql/loading? (first @meme-search))
           (doall
-           (for [{:keys [:reg-entry/address] :as meme} all-memes]
-             ^{:key address} [tiles/meme-tile meme])))])]))
+            (for [{:keys [:reg-entry/address] :as meme} all-memes]
+              ^{:key address} [tiles/meme-tile meme])))])]))
+
 
 (defmethod page :route.dank-registry/browse []
   (let [active-page (subscribe [::router-subs/active-page])
@@ -83,8 +83,7 @@
                                    {:query {:queries [(build-tiles-query @form-data nil)]}}]))
             meme-search (subscribe [::gql/query {:queries [(build-tiles-query @form-data nil)]}
                                     {:id @form-data
-                                     :disable-fetch? false}])
-            search-total-count (-> @meme-search first :search-memes :total-count)]
+                                     :disable-fetch? false}])]
         [app-layout
          {:meta {:title "MemeFactory - Dank Registry"
                  :description "Browse all memes ever minted. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
@@ -97,9 +96,9 @@
                          :sub-title "Browse all memes ever minted"
                          :on-selected-tags-change re-search
                          ;; TODO: Fix this hack, we need a way of passing a select more info
-                         :select-options (->> [{:key "number-desc"             :value "Newest"}
+                         :select-options (->> [{:key "number-desc" :value "Newest"}
                                                {:key "total-trade-volume" :value "Total trade volume"}
-                                               {:key "number-asc"             :value "Registry Number"}])
+                                               {:key "number-asc" :value "Registry Number"}])
                          :on-search-change re-search
                          :on-check-filter-change re-search
                          :on-select-change re-search}]

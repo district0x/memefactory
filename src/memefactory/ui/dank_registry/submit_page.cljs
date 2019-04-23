@@ -1,25 +1,22 @@
 (ns memefactory.ui.dank-registry.submit-page
   (:require
    [cljs-web3.core :as web3]
-   [district.format :as format]
+   [clojure.string :as str]
+   [district.parsers :as parsers]
    [district.ui.component.form.input :refer [index-by-type file-drag-input with-label chip-input text-input int-input]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
-   [district.ui.router.events :as router-events]
    [district.ui.web3-account-balances.subs :as balance-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.general :refer [nav-anchor dank-with-logo]]
    [memefactory.ui.components.tiles :refer [meme-image]]
    [memefactory.ui.dank-registry.events :as dr-events]
-   [re-frame.core :as re-frame]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [taoensso.timbre :as log :refer [spy]]
-   [clojure.string :as str]
-   [memefactory.ui.components.general :refer [dank-with-logo]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+   [taoensso.timbre :as log :refer [spy]]))
 
 (defn header []
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -36,6 +33,7 @@
            [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
            [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]]))))
 
+
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
   (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         form-data (r/atom {:issuance 1})
@@ -51,7 +49,7 @@
                                      (assoc-in [:file-info :error] "No file selected")
 
                                      (not (try
-                                            (let [issuance (js/parseInt issuance)]
+                                            (let [issuance (parsers/parse-int issuance)]
                                               (and (< 0 issuance) (<= issuance max-issuance)))
                                             (catch js/Error e nil)))
                                      (assoc-in [:issuance :error] (str "Issuance should be a number between 1 and " max-issuance))
@@ -137,7 +135,9 @@
            [text-input {:form-data form-data
                         :errors errors
                         :id :issuance
-                        :dom-id :issuance}]
+                        :dom-id :issuance
+                        :type :number
+                        :min 1}]
            {:form-data form-data
             :id :issuance
             :for :issuance}]
@@ -161,6 +161,7 @@
            [dank-with-logo (web3/from-wei deposit :ether)]]
           (when (< @account-balance deposit)
             [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])]]]])))
+
 
 (defmethod page :route.dank-registry/submit []
   (let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]

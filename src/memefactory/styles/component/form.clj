@@ -70,7 +70,7 @@
    [:.autocomplete-input
     {:display :inline
      :width "100%"}
-    ["input[type=text]"
+    ["input[type=text]" "input[type=number]"
      {:line-height (em 0.9)
       :padding-top (em 1.3)
       :padding-bottom (em 0.7)}]
@@ -106,7 +106,7 @@
    [:&.has-hint
     [:.help-block
      {:color (color :menu-text)}]]
-   ["input[type=text]"
+   ["input[type=text]" "input[type=number]"
     {:box-sizing :border-box
      :border :none
      :color (color :menu-text)
@@ -117,7 +117,7 @@
     [:&:focus {:outline "none"}]
     [:&:focus+.help-block:before
      {:transform "scale(1)"}]]
-   ["input[type=\"text\"]:disabled"
+   ["input[type=\"text\"]:disabled" "input[type=\"number\"]:disabled"
     {:background-color :transparent}]
 
    [:.help-block
@@ -131,7 +131,7 @@
      :border-color (color :grey)}
     [:&:before
      {:content "''"
-      :background-color :dodgerblue
+      :background-color (color :purple)
       :display :inline-block
       :height (px 2)
       :left (em 0)

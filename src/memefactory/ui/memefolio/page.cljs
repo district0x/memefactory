@@ -1,42 +1,39 @@
 (ns memefactory.ui.memefolio.page
   (:require
-   [cljs-time.core :as t]
-   [bignumber.core :as bn]
-   [cljs-web3.core :as web3]
-   [cljs.core.match :refer-macros [match]]
-   [clojure.data :as data]
-   [clojure.string :as str]
-   [district.format :as format]
-   [district.graphql-utils :as graphql-utils]
-   [memefactory.ui.utils :refer [copy-to-clipboard]]
-   [district.time :as time]
-   [district.ui.component.form.input :as inputs]
-   [district.ui.component.page :refer [page]]
-   [district.ui.component.tx-button :as tx-button]
-   [district.ui.graphql.events :as gql-events]
-   [district.ui.graphql.subs :as gql]
-   [district.ui.now.subs :as now-subs]
-   [district.ui.router.events :as router-events]
-   [district.ui.router.subs :as router-subs]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   [district.ui.web3-tx-id.subs :as tx-id-subs]
-   [memefactory.shared.utils :as shared-utils]
-   [memefactory.ui.utils :as ui-utils]
-   [memefactory.ui.components.app-layout :as app-layout]
-   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-   [memefactory.ui.components.panels :refer [panel]]
-   [memefactory.ui.components.search :as search]
-   [memefactory.ui.components.tiles :as tiles]
-   [memefactory.ui.contract.meme :as meme]
-   [memefactory.ui.contract.meme-token :as meme-token]
-   [memefactory.ui.components.spinner :as spinner]
-   [print.foo :refer [look] :include-macros true]
-   [re-frame.core :as re-frame :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [reagent.ratom :as ratom]
-   [taoensso.timbre :as log :refer [spy]]
-   [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+    [bignumber.core :as bn]
+    [cljs-time.core :as t]
+    [cljs-web3.core :as web3]
+    [cljs.core.match :refer-macros [match]]
+    [clojure.string :as str]
+    [district.format :as format]
+    [district.graphql-utils :as graphql-utils]
+    [district.parsers :as parsers]
+    [district.ui.component.form.input :as inputs]
+    [district.ui.component.page :refer [page]]
+    [district.ui.component.tx-button :as tx-button]
+    [district.ui.graphql.events :as gql-events]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.now.subs :as now-subs]
+    [district.ui.router.subs :as router-subs]
+    [district.ui.web3-accounts.subs :as accounts-subs]
+    [district.ui.web3-tx-id.subs :as tx-id-subs]
+    [memefactory.shared.utils :as shared-utils]
+    [memefactory.ui.components.app-layout :as app-layout]
+    [memefactory.ui.components.general :refer [nav-anchor]]
+    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+    [memefactory.ui.components.panels :refer [panel no-items-found]]
+    [memefactory.ui.components.search :as search]
+    [memefactory.ui.components.spinner :as spinner]
+    [memefactory.ui.components.tiles :as tiles]
+    [memefactory.ui.contract.meme :as meme]
+    [memefactory.ui.contract.meme-token :as meme-token]
+    [memefactory.ui.utils :as ui-utils]
+    [memefactory.ui.utils :refer [copy-to-clipboard]]
+    [print.foo :refer [look] :include-macros true]
+    [re-frame.core :as re-frame :refer [subscribe dispatch]]
+    [reagent.core :as r]
+    [reagent.ratom :as ratom]
+    [taoensso.timbre :as log :refer [spy]]))
 
 (def default-tab :collected)
 
@@ -80,12 +77,12 @@
         form-data (r/atom {:send/amount 1
                            :send/address ""})
         errors (ratom/reaction (let []
-                                 {:local  {:send/amount (cond-> {:hint (str "Max " (count @token-ids))}
-                                                          (and (not (< 0 (js/parseInt (:send/amount @form-data)) (inc (count @token-ids))))
-                                                               (pos? (count @token-ids)))
-                                                          (assoc :error (str "Should be between 1 and " (count @token-ids))))
-                                           :send/address (when-not (web3/address? (:send/address @form-data))
-                                                           {:error "Invalid address format"})}}))
+                                 {:local {:send/amount (cond-> {:hint (str "Max " (count @token-ids))}
+                                                         (and (not (< 0 (parsers/parse-int (:send/amount @form-data)) (inc (count @token-ids))))
+                                                              (pos? (count @token-ids)))
+                                                         (assoc :error (str "Should be between 1 and " (count @token-ids))))
+                                          :send/address (when-not (web3/address? (:send/address @form-data))
+                                                          {:error "Invalid address format"})}}))
         critical-errors (ratom/reaction (inputs/index-by-type @errors :error))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-token/safe-transfer-from-multi tx-id}])]
     (fn [{:keys [:meme/title
@@ -98,7 +95,9 @@
                             :errors errors
                             :id :send/amount
                             :on-click #(.stopPropagation %)
-                            :dom-id (str address :send/amount)}]
+                            :dom-id (str address :send/amount)
+                            :type :number
+                            :min 1}]
         {:form-data form-data
          :id :send/amount
          :for (str address :send/amount)}]
@@ -150,10 +149,10 @@
                            :meme-auction/description ""})
 
         errors (ratom/reaction (let [{:keys [:meme-auction/start-price :meme-auction/end-price :meme-auction/description]} @form-data
-                                     sp (js/parseFloat start-price)
-                                     ep ( js/parseFloat end-price)]
+                                     sp (parsers/parse-float start-price)
+                                     ep (parsers/parse-float end-price)]
                                  {:local {:meme-auction/amount (cond-> {:hint (str "Max " (count @token-ids))}
-                                                                 (and (not (< 0 (js/parseInt (:meme-auction/amount @form-data)) (inc (count @token-ids))))
+                                                                 (and (not (< 0 (parsers/parse-int (:meme-auction/amount @form-data)) (inc (count @token-ids))))
                                                                       (pos? (count @token-ids)))
                                                                  (assoc :error (str "Should be between 1 and " (count @token-ids))))
                                           :meme-auction/start-price (when (not (pos? sp))
@@ -163,13 +162,13 @@
                                                                     {:error "End price should be lower than start price"})
                                           ;; HACK ALERT
                                           ;; TODO: this durations should be specified in days and not in seconds at param level
-                                          :meme-auction/duration (let [duration (js/parseInt (:meme-auction/duration @form-data))
+                                          :meme-auction/duration (let [duration (parsers/parse-int (:meme-auction/duration @form-data))
                                                                        max-duration (-> max-auction-duration
-                                                                                        shared-utils/seconds->days
-                                                                                        int)
+                                                                                      shared-utils/seconds->days
+                                                                                      int)
                                                                        min-duration (let [md (-> min-auction-duration
-                                                                                                 shared-utils/seconds->days
-                                                                                                 int)]
+                                                                                               shared-utils/seconds->days
+                                                                                               int)]
                                                                                       (if (zero? md) 1 md))]
                                                                    (cond-> {:hint (str "Max " max-duration)}
                                                                      (not (<= min-duration duration max-duration))
@@ -185,7 +184,9 @@
                             :errors errors
                             :id :meme-auction/amount
                             :on-click #(.stopPropagation %)
-                            :dom-id (str address :meme-auction/amount)}]
+                            :dom-id (str address :meme-auction/amount)
+                            :type :number
+                            :min 1}]
         {:form-data form-data
          :id :meme-auction/amount
          :for (str address :meme-auction/amount)}]
@@ -208,7 +209,8 @@
                              :errors errors
                              :id :meme-auction/end-price
                              :dom-id (str address :meme-auction/end-price)
-                             :on-click #(.stopPropagation %)}]
+                             :on-click #(.stopPropagation %)
+                             :type :number}]
          {:form-data form-data
           :for (str address :meme-auction/end-price)
           :id :meme-auction/end-price}]
@@ -220,7 +222,9 @@
                              :errors errors
                              :id :meme-auction/duration
                              :dom-id (str address :meme-auction/duration)
-                             :on-click #(.stopPropagation %)}]
+                             :on-click #(.stopPropagation %)
+                             :type :number
+                             :min 1}]
          {:form-data form-data
           :id :meme-auction/duration
           :for (str address :meme-auction/duration)}]

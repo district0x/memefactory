@@ -1,18 +1,12 @@
 (ns memefactory.ui.dank-registry.events
   (:require
+   [clojure.string :as str]
    [district.ui.logging.events :as logging]
-   [district.ui.notification.events :as notification-events]
-   [district.ui.smart-contracts.queries :as contract-queries]
-   [district.ui.web3-accounts.queries :as account-queries]
-   [district.ui.web3-tx.events :as tx-events]
-   [district0x.re-frame.ipfs-fx :as ipfs-fx]
    [memefactory.ui.contract.meme-factory :as meme-factory]
-   [memefactory.ui.contract.registry-entry :as registry-entry]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
-   [taoensso.timbre :as log]
-   [clojure.string :as str]
-   ))
+   [taoensso.timbre :as log]))
+
 
 (re-frame/reg-event-fx
  ::upload-meme
@@ -25,7 +19,8 @@
                                                                           :deposit deposit}
                            ::upload-meme]}}))
 
-(defn build-meme-meta-string [{:keys [title search-tags issuance comment] :as data} image-hash]
+
+(defn build-meme-meta-string [{:keys [title search-tags issuance comment]} image-hash]
   (-> {:title title
        :comment (str/trim (or comment ""))
        :search-tags search-tags
@@ -33,6 +28,7 @@
        :image-hash image-hash}
       clj->js
       js/JSON.stringify))
+
 
 (re-frame/reg-event-fx
  ::upload-meme-meta

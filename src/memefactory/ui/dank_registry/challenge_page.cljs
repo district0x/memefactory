@@ -1,32 +1,25 @@
 (ns memefactory.ui.dank-registry.challenge-page
   (:require
    [bignumber.core :as bn]
-   [cljs-time.core :as t]
    [cljs-time.extend]
+   [cljs-web3.core :as web3]
    [clojure.string :as str]
-   [district.format :as format]
-   [district.time :as time]
    [district.ui.component.form.input :refer [select-input with-label text-input pending-button]]
    [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
-   [district.ui.web3-tx-id.subs :as tx-id-subs]
    [district.ui.web3-account-balances.subs :as balance-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
-   [cljs-web3.core :as web3]
-   [goog.string :as gstring]
-   [memefactory.ui.events :as memefactory-events]
+   [district.ui.web3-tx-id.subs :as tx-id-subs]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
+   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.contract.registry-entry :as registry-entry]
-   [memefactory.ui.dank-registry.events :as dr-events]
-   [district.ui.router.events :as router-events]
+   [memefactory.ui.events :as memefactory-events]
    [print.foo :refer [look] :include-macros true]
-   [re-frame.core :as re-frame :refer [subscribe dispatch]]
+   [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [reagent.ratom :refer [reaction]]
-   [district.graphql-utils :as graphql-utils]
-   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]))
+   [reagent.ratom :refer [reaction]]))
+
 
 (defn header []
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -76,11 +69,12 @@
             [pending-button {:pending? @tx-pending?
                              :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))) (not @active-account))
                              :pending-text "Challenging ..."
-                             :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
-                                                                                       :reg-entry/address address
-                                                                                       :meme/title title
-                                                                                       :comment (:comment @form-data)
-                                                                                       :deposit dank-deposit}])}
+                             :on-click #(dispatch [::memefactory-events/add-challenge
+                                                   {:send-tx/id tx-id
+                                                    :reg-entry/address address
+                                                    :meme/title title
+                                                    :comment (:comment @form-data)
+                                                    :deposit dank-deposit}])}
              (if @tx-success?
                "Challenged"
                "Challenge")]
@@ -91,6 +85,7 @@
              :class [(when (not @active-account) "disabled")]} "Challenge"])
          (when (or (not @active-account) (bn/< @account-balance dank-deposit))
            [:div.not-enough-dank "You don't have enough DANK tokens to challenge this meme"])]))))
+
 
 (defmethod page :route.dank-registry/challenge []
   [app-layout

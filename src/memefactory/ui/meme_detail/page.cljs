@@ -1,50 +1,40 @@
 (ns memefactory.ui.meme-detail.page
   (:require
-   [bignumber.core :as bn]
-   [cljs-time.core :as t]
-   [cljs-time.format :as time-format]
-   [cljs-web3.core :as web3]
-   [cljs.core.match :refer-macros [match]]
-   [district.format :as format]
-   [district.graphql-utils :as graphql-utils]
-   [district.time :as time]
-   [district.ui.component.form.input :as inputs]
-   [district.ui.component.page :refer [page]]
-   [district.ui.component.tx-button :as tx-button]
-   [district.ui.graphql.events :as gql-events]
-   [district.ui.graphql.subs :as gql]
-   [district.ui.now.subs :as now-subs]
-   [district.ui.router.events :as router-events]
-   [district.ui.router.subs :as router-subs]
-   [district.ui.web3-account-balances.subs :as account-balances-subs]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   [district.ui.web3-tx-id.subs :as tx-id-subs]
-   [goog.string :as gstring]
-   [memefactory.shared.utils :as shared-utils :refer [not-nil?]]
-   [memefactory.ui.components.app-layout :as app-layout]
-   [memefactory.ui.components.buttons :as buttons]
-   [memefactory.ui.components.buttons :as buttons]
-   [memefactory.ui.components.charts :as charts]
-   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
-   [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
-   [memefactory.ui.components.panels :refer [panel]]
-   [memefactory.ui.components.spinner :as spinner]
-   [memefactory.ui.components.tiles :as tiles]
-   [memefactory.ui.contract.meme-factory :as meme-factory]
-   [memefactory.ui.contract.registry-entry :as registry-entry]
-   [memefactory.ui.dank-registry.vote-page :as vote-page]
-   [memefactory.ui.dank-registry.vote-page :as vote-page]
-   [memefactory.ui.events :as memefactory-events]
-   [memefactory.ui.spec :as spec]
-   [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
-   [re-frame.core :as re-frame :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [reagent.ratom :as ratom]
-   [taoensso.timbre :as log :refer [spy]]
-   [memefactory.ui.components.search :as search]
-   ))
-
-(def scroll-interval 6)
+    [bignumber.core :as bn]
+    [cljs-time.core :as t]
+    [cljs-time.format :as time-format]
+    [cljs-web3.core :as web3]
+    [cljs.core.match :refer-macros [match]]
+    [district.format :as format]
+    [district.graphql-utils :as graphql-utils]
+    [district.parsers :as parsers]
+    [district.time :as time]
+    [district.ui.component.form.input :as inputs]
+    [district.ui.component.page :refer [page]]
+    [district.ui.component.tx-button :as tx-button]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.now.subs :as now-subs]
+    [district.ui.router.subs :as router-subs]
+    [district.ui.web3-account-balances.subs :as account-balances-subs]
+    [district.ui.web3-accounts.subs :as accounts-subs]
+    [district.ui.web3-tx-id.subs :as tx-id-subs]
+    [goog.string :as gstring]
+    [memefactory.shared.utils :as shared-utils :refer [not-nil?]]
+    [memefactory.ui.components.app-layout :as app-layout]
+    [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
+    [memefactory.ui.components.panels :refer [panel]]
+    [memefactory.ui.components.search :as search]
+    [memefactory.ui.components.spinner :as spinner]
+    [memefactory.ui.components.tiles :as tiles]
+    [memefactory.ui.contract.registry-entry :as registry-entry]
+    [memefactory.ui.dank-registry.vote-page :as vote-page]
+    [memefactory.ui.events :as memefactory-events]
+    [memefactory.ui.spec :as spec]
+    [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
+    [re-frame.core :as re-frame :refer [subscribe dispatch]]
+    [reagent.core :as r]
+    [reagent.ratom :as ratom]
+    [taoensso.timbre :as log :refer [spy]]))
 
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm Z"))
 
@@ -93,6 +83,7 @@
                                         :vote/claimed-reward-on
                                         :vote/reclaimed-amount-on]]]))]]})
 
+
 (defn meme-creator-component [{:keys [:user/address :user/creator-rank :user/total-created-memes
                                       :user/total-created-memes-whitelisted] :as creator}]
   (let [query (subscribe [::gql/query
@@ -118,6 +109,7 @@
                    :class (str "address " (when (= address @(subscribe [::accounts-subs/active-account]))
                                             "active-address"))}
        address]]]))
+
 
 (defn related-memes-container [address tags]
   (let [form-data (r/atom {:option-filters :only-lowest-number})
@@ -173,6 +165,7 @@
                         [tiles/auction-tile {:show-cards-left? (contains? #{:only-cheapest :only-lowest-number} (:option-filters @form-data))}
                          meme-auction])
                       state)))]]])]))))
+
 
 (defn history-component [address]
   (let [now (subscribe [::now-subs/now])
@@ -241,11 +234,13 @@
                                                 (> (.getTime bought-date) (.getTime now-date)))
                                     (format/time-ago bought-date now-date)))]])))]]))]))))
 
+
 (defn challenge-header [created-on]
   (when created-on
     [:div.header
      [:h2.title
       (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]]))
+
 
 (defn challenger-component [{:keys [:challenge/comment :challenge/challenger] :as meme}]
   (let [{:keys [:user/challenger-rank :user/challenger-total-earned
@@ -265,6 +260,7 @@
                                             "active-address"))}
        (:user/address challenger)]]
      [:span.challenge-comment (str "\"" comment "\"")]]))
+
 
 (defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme} text]
   (let [status (graphql-utils/gql-name->kw status)
@@ -296,6 +292,7 @@
        [:li ""])
 
      [:div.lorem text]]))
+
 
 (defn challenge-meme-component [{:keys [:reg-entry/deposit :meme/title] :as meme} dank-deposit]
   (let [form-data (r/atom {:challenge/comment nil})
@@ -331,6 +328,7 @@
        (when (or (not @active-account) (bn/< @account-balance dank-deposit))
          [:div.not-enough-dank "You don't have enough DANK tokens to challenge this meme"])])))
 
+
 (defn remaining-time-component [to-time]
   (let [time-remaining (subscribe [::now-subs/time-remaining to-time])
         {:keys [:days :hours :minutes :seconds]} @time-remaining]
@@ -338,6 +336,7 @@
                                      (format/pluralize hours "hour") " "
                                      minutes " min. "
                                      seconds " sec.")]))
+
 
 (defn reveal-vote-component [{:keys [:challenge/reveal-period-end :challenge/vote :reg-entry/address :meme/title] :as meme}]
   (let [tx-id (str "reveal" address)
@@ -366,21 +365,22 @@
                   (not vote))
          [:div.no-reveal-info "Secret to reveal vote was not found in your browser"])])))
 
+
 (defn vote-component [{:keys [:challenge/commit-period-end :meme/title] :as meme}]
   (let [balance-dank (subscribe [::account-balances-subs/active-account-balance :DANK])
         active-account (subscribe [::accounts-subs/active-account])
         form-data (r/atom {:vote/amount-for nil
                            :vote/amount-against nil})
 
-        errors (ratom/reaction {:local (let [amount-for (-> @form-data :vote/amount-for js/parseInt)
-                                             amount-against (-> @form-data :vote/amount-against js/parseInt)
+        errors (ratom/reaction {:local (let [amount-for (-> @form-data :vote/amount-for parsers/parse-float)
+                                             amount-against (-> @form-data :vote/amount-against parsers/parse-float)
                                              balance (if (pos? @balance-dank) (web3/from-wei @balance-dank :ether) 0)]
                                          (cond-> {}
-                                           (or (not (spec/check ::spec/pos-int amount-for))
+                                           (or (not (pos? amount-for))
                                                (< balance amount-for))
                                            (assoc :vote/amount-for (str "Amount should be between 0 and " balance))
 
-                                           (or (not (spec/check ::spec/pos-int amount-against))
+                                           (or (not (pos? amount-against))
                                                (< balance amount-against))
                                            (assoc :vote/amount-against (str "Amount should be between 0 and " balance))))})
 
@@ -399,7 +399,9 @@
                                  :disabled disabled?
                                  :id :vote/amount-for
                                  :dom-id :vote/amount-for
-                                 :errors errors}]
+                                 :errors errors
+                                 :type :number
+                                 :min 0}]
              {:form-data form-data
               :for :vote/amount-for
               :id :vote/amount-for}]
@@ -416,7 +418,7 @@
                                                                              :vote/option :vote.option/vote-for
                                                                              :vote/amount (-> @form-data
                                                                                               :vote/amount-for
-                                                                                              js/parseInt
+                                                                                              parsers/parse-float
                                                                                               (web3/to-wei :ether))
                                                                              :meme/title title}])}
             (if @tx-success?
@@ -430,7 +432,9 @@
                                  :disabled disabled?
                                  :id :vote/amount-against
                                  :dom-id :vote/amount-against
-                                 :errors errors}]
+                                 :errors errors
+                                 :tpe :number
+                                 :min 0}]
              {:form-data form-data
               :for :vote/amount-against
               :id :vote/amount-against}]
@@ -445,9 +449,9 @@
                                                                              :reg-entry/address (:reg-entry/address meme)
                                                                              :vote/option :vote.option/vote-against
                                                                              :vote/amount (-> @form-data
-                                                                                              :vote/amount-against
-                                                                                              js/parseInt
-                                                                                              (web3/to-wei :ether))
+                                                                                            :vote/amount-against
+                                                                                            parsers/parse-float
+                                                                                            (web3/to-wei :ether))
                                                                              :meme/title title}])}
             (if @tx-success?
               "Voted"
@@ -458,11 +462,13 @@
             [:div "Token will be returned to you after revealing your vote."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
+
 (defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
                                                 [:reg-entry.status/challenge-period] :reg-entry.status/challenge-period
                                                 [:reg-entry.status/commit-period] :reg-entry.status/commit-period
                                                 [:reg-entry.status/reveal-period] :reg-entry.status/reveal-period)))
+
 
 (defmethod challenge-component :reg-entry.status/reveal-period
   [{:keys [:challenge/created-on :reg-entry/status :challenge/reveal-period-end] :as meme}]
@@ -477,6 +483,7 @@
                          (if-not (= 0 days hours minutes seconds)
                            [reveal-vote-component meme]
                            [:div "Reveal period ended."])]))]))
+
 
 (defmethod challenge-component :reg-entry.status/commit-period
   [{:keys [:challenge/created-on :reg-entry/status :challenge/commit-period-end] :as meme}]
@@ -493,6 +500,7 @@
                            [vote-component meme]
                            [:div "Commit period ended."])]))]))
 
+
 (defmethod challenge-component :reg-entry.status/challenge-period
   [{:keys [:challenge/created-on :reg-entry/status :reg-entry/challenge-period-end] :as meme}]
 
@@ -508,6 +516,7 @@
           [challenge-meme-component meme (:deposit params)]
           [:div "Challenge period ended."])]])))
 
+
 (defmethod challenge-component [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
   [{:keys [:challenge/created-on :reg-entry/status] :as meme}]
   [:div
@@ -519,6 +528,7 @@
        created-on (into [[status-component meme "This meme was challenged, and voting has concluded. Accepted memes are minted to the marketplace, while rejected ones can be resubmitted by the creator."]
                          [challenger-component meme]
                          [vote-page/collect-reward-action meme]])))])
+
 
 (defn details []
   (let [active-account @(subscribe [::accounts-subs/active-account])
@@ -622,6 +632,7 @@
           [spinner/spin]
           [related-memes-container address tags])]]]]))
 
+
 (defmethod page :route.meme-detail/index []
-  (r/create-class {:component-did-mount #(js/window.scrollTo 0 0)
-                   :reagent-render (fn [] [details])}))
+  (fn []
+    [details]))

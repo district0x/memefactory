@@ -4,7 +4,6 @@
    [district.time :as time]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
-   [district.ui.router.events :as router-events]
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.challenge-list :refer [current-period-ends]]
@@ -12,11 +11,10 @@
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles]
-   [memefactory.ui.marketplace.events :as mk-events]
+   [memefactory.ui.home.tutorial :refer [tutorial-button]]
    [memefactory.ui.utils :as utils]
    [re-frame.core :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [memefactory.ui.home.tutorial :refer [tutorial-button]]))
+   [reagent.core :as r]))
 
 (defn take-max-multiple-of [n xs]
   (if (< (count xs) n)

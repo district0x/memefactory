@@ -1,13 +1,11 @@
 (ns memefactory.ui.dank-registry.vote-page
   (:require
    [bignumber.core :as bn]
-   [cljs-time.core :as t]
    [cljs-time.extend]
    [cljs-web3.core :as web3]
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
-   [memefactory.ui.utils :as ui-utils]
-   [district.time :as time]
+   [district.parsers :as parsers]
    [district.ui.component.form.input :refer [select-input with-label text-input amount-input pending-button]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
@@ -15,20 +13,21 @@
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [goog.string :as gstring]
+   [district.format :as format]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
    [memefactory.ui.components.charts :as charts]
+   [memefactory.ui.components.general :refer [nav-anchor]]
    [memefactory.ui.components.panes :refer [tabbed-pane]]
-   [memefactory.ui.contract.registry-entry :as registry-entry]
-   [memefactory.ui.dank-registry.events :as dr-events]
    [memefactory.ui.components.spinner :as spinner]
-   [district.ui.router.events :as router-events]
-   [re-frame.core :as re-frame :refer [subscribe dispatch]]
+   [memefactory.ui.contract.registry-entry :as registry-entry]
+   [memefactory.ui.utils :as ui-utils]
+   [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [taoensso.timbre :as log :refer [spy]]
-   [memefactory.ui.components.buttons :as buttons]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+   [taoensso.timbre :as log :refer [spy]]))
+
 
 (defn header []
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -44,6 +43,7 @@
            [:span "Get Dank"]
            [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
            [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]]))))
+
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards] :as meme}]
   (let [active-account (subscribe [::accounts-subs/active-account])
@@ -66,9 +66,7 @@
     (if (:graphql/loading? @response)
       [spinner/spin]
       (if-let [meme-voting (:meme @response)]
-        (let [ch-reward-tx-id (str address "challenge-reward")
-              vote-reward-tx-id (str address "vote-reward")
-              {:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
+        (let [{:keys [:challenge/reward-amount :vote/reward-amount]} all-rewards
               {:keys [:challenge/votes-for :challenge/votes-against :challenge/votes-total :challenge/vote]} meme-voting
               {:keys [:vote/option :vote/amount]
                :or {option "voteOption_noVote"}} vote
@@ -84,19 +82,19 @@
              (into
               [:ul.vote-info
                [:li
-                (gstring/format "Voted Dank: %s (%d) "
+                (gstring/format "Voted Dank: %s (%f) "
                                 (format/format-percentage (or votes-for 0) votes-total)
-                                (web3/from-wei (or votes-for 0) :ether))]
+                                (format/format-number (bn/number (web3/from-wei (or votes-for 0) :ether))))]
                [:li
-                (gstring/format "Voted Stank: %s (%d) "
+                (gstring/format "Voted Stank: %s (%f) "
                                 (format/format-percentage (or votes-against 0) votes-total)
-                                (web3/from-wei (or votes-against 0) :ether))]
-               [:li (gstring/format "Total voted: %d" (web3/from-wei (or votes-total 0) :ether))]
+                                (format/format-number (bn/number (web3/from-wei (or votes-against 0) :ether))))]
+               [:li (gstring/format "Total voted: %f" (format/format-number (bn/number (web3/from-wei (or votes-total 0) :ether))))]
                (when-not (or (= option :vote-option/not-revealed)
                              (= option :vote-option/no-vote))
-                 [:li (str "You voted: " (gstring/format "%d for %s (%s)"
+                 [:li (str "You voted: " (gstring/format "%f for %s (%s)"
                                                          (if (pos? amount)
-                                                           (web3/from-wei amount :ether)
+                                                           (format/format-number (bn/number (web3/from-wei amount :ether)))
                                                            0)
                                                          (case option
                                                            :vote-option/vote-for "DANK"
@@ -121,6 +119,7 @@
 
              (when @active-account (buttons/reclaim-buttons @active-account meme-voting))]))))))
 
+
 (defn vote-action [{:keys [:reg-entry/address :challenge/vote :meme/title] :as meme}]
   (let [tx-id (str address "vote")
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
@@ -128,10 +127,10 @@
         form-data (r/atom {:amount-vote-for nil, :amount-vote-against nil})
         errors (reaction {:local (let [{:keys [amount-vote-for amount-vote-against]} @form-data]
                                    (cond-> {}
-                                     (not (try (< 0 (js/parseInt amount-vote-for)) (catch js/Error e nil)))
+                                     (not (pos? (parsers/parse-float amount-vote-for)))
                                      (assoc :amount-vote-for "Amount to vote for should be a positive number")
 
-                                     (not (try (< 0 (js/parseInt amount-vote-against)) (catch js/Error e nil)))
+                                     (not (pos? (parsers/parse-float amount-vote-against)))
                                      (assoc :amount-vote-against "Amount to vote against should be a positive number")))})
         active-account (subscribe [::accounts-subs/active-account])]
     (fn [{:keys [:reg-entry/address :challenge/vote] :as meme}]
@@ -148,7 +147,8 @@
                          :id :amount-vote-for
                          :disabled disabled?
                          :dom-id (str address :amount-vote-for)
-                         :errors errors}]
+                         :errors errors
+                         :type :number}]
             {:form-data form-data
              :for (str address :amount-vote-for)
              :id :amount-vote-for}]
@@ -157,14 +157,15 @@
                            :pending-text "Voting ..."
                            :disabled (or voted? (-> @errors :local :amount-vote-for) disabled?)
                            :on-click (fn []
-                                       (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                                            :reg-entry/address address
-                                                                                            :vote/option :vote.option/vote-for
-                                                                                            :vote/amount (-> @form-data
-                                                                                                             :amount-vote-for
-                                                                                                             js/parseInt
-                                                                                                             (web3/to-wei :ether))
-                                                                                            :meme/title title}]))}
+                                       (dispatch [::registry-entry/approve-and-commit-vote
+                                                  {:send-tx/id tx-id
+                                                   :reg-entry/address address
+                                                   :vote/option :vote.option/vote-for
+                                                   :vote/amount (-> @form-data
+                                                                  :amount-vote-for
+                                                                  parsers/parse-float
+                                                                  (web3/to-wei :ether))
+                                                   :meme/title title}]))}
            [:i.vote-dank]
            (if voted? "Voted ""Vote Dank")]]
          [:div.vote-stank
@@ -174,7 +175,8 @@
                          :id :amount-vote-against
                          :disabled disabled?
                          :dom-id (str address :amount-vote-against)
-                         :errors errors}]
+                         :errors errors
+                         :type :number}]
             {:form-data form-data
              :for (str address :amount-vote-against)
              :id :amount-vote-against}]
@@ -183,14 +185,15 @@
                            :pending-text "Voting ..."
                            :disabled (or voted? (-> @errors :local :amount-vote-against) disabled?)
                            :on-click (fn []
-                                       (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
-                                                                                            :reg-entry/address address
-                                                                                            :vote/option :vote.option/vote-against
-                                                                                            :meme/title title
-                                                                                            :vote/amount (-> @form-data
-                                                                                                             :amount-vote-against
-                                                                                                             js/parseInt
-                                                                                                             (web3/to-wei :ether))}]))}
+                                       (dispatch [::registry-entry/approve-and-commit-vote
+                                                  {:send-tx/id tx-id
+                                                   :reg-entry/address address
+                                                   :vote/option :vote.option/vote-against
+                                                   :meme/title title
+                                                   :vote/amount (-> @form-data
+                                                                  :amount-vote-against
+                                                                  parsers/parse-float
+                                                                  (web3/to-wei :ether))}]))}
            (if voted? "Voted" "Vote Stank")]]
          (if (bn/> account-balance 0)
            [:<>
@@ -198,6 +201,7 @@
                                                 (ui-utils/format-dank account-balance))]
             [:p.token-return  "Tokens will be returned to you after revealing your vote."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
+
 
 (defn reveal-action [{:keys [:challenge/vote :reg-entry/address :meme/title] :as meme}]
   (let [tx-id (str "reveal" address)
@@ -230,6 +234,7 @@
          (when (not vote)
            [:div.no-reveal-info "You haven't voted"])]))))
 
+
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
   ;; (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)
   (case  (graphql-utils/gql-name->kw status)
@@ -238,6 +243,7 @@
     ;; TODO we should't need this extra case, but this component is
     ;; being rendered with old subscription value
     [:div]))
+
 
 (defmethod page :route.dank-registry/vote []
   (let [account @(subscribe [::accounts-subs/active-account])]
