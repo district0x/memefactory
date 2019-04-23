@@ -1,11 +1,11 @@
 (ns memefactory.ui.components.account-balances
   (:require
-   [re-frame.core :as re]
-   [district.ui.component.active-account-balance :refer [active-account-balance] :as account-balances]
+   [district.ui.component.active-account-balance :refer [active-account-balance]]
    [district.ui.component.tx-log :refer [tx-log]]
    [district.ui.web3-tx-log.events :as tx-log-events]
    [district.ui.web3-tx-log.subs :as tx-log-subs]
-   [memefactory.ui.utils :as ui-utils]))
+   [memefactory.ui.utils :as ui-utils]
+   [re-frame.core :as re]))
 
 
 (defn account-balances [{:keys [with-tx-logs?]}]

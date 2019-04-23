@@ -1,13 +1,14 @@
 (ns memefactory.ui.memefolio.page
   (:require
-    [bignumber.core :as bn]
     [cljs-time.core :as t]
     [cljs-web3.core :as web3]
     [cljs.core.match :refer-macros [match]]
     [clojure.string :as str]
+    [district.cljs-utils :as cljs-utils]
     [district.format :as format]
-    [district.graphql-utils :as graphql-utils]
+    [district.graphql-utils :as gql-utils]
     [district.parsers :as parsers]
+    [district.time :as time]
     [district.ui.component.form.input :as inputs]
     [district.ui.component.page :refer [page]]
     [district.ui.component.tx-button :as tx-button]
@@ -17,8 +18,7 @@
     [district.ui.router.subs :as router-subs]
     [district.ui.web3-accounts.subs :as accounts-subs]
     [district.ui.web3-tx-id.subs :as tx-id-subs]
-    [memefactory.shared.utils :as shared-utils]
-    [memefactory.ui.components.app-layout :as app-layout]
+    [memefactory.ui.components.app-layout :refer [app-layout]]
     [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
     [memefactory.ui.components.panels :refer [panel no-items-found]]
@@ -27,8 +27,7 @@
     [memefactory.ui.components.tiles :as tiles]
     [memefactory.ui.contract.meme :as meme]
     [memefactory.ui.contract.meme-token :as meme-token]
-    [memefactory.ui.utils :as ui-utils]
-    [memefactory.ui.utils :refer [copy-to-clipboard]]
+    [memefactory.ui.utils :as ui-utils :refer [copy-to-clipboard!]]
     [print.foo :refer [look] :include-macros true]
     [re-frame.core :as re-frame :refer [subscribe dispatch]]
     [reagent.core :as r]
@@ -62,9 +61,8 @@
 
 (defmulti total (fn [tab & opts] tab))
 
-(defn send-form [{:keys [:meme/title
-                         :meme-auction/token-count
-                         :reg-entry/address] :as meme}
+
+(defn send-form [{:keys [:meme/title :meme-auction/token-count :reg-entry/address] :as meme}
                  send-sell-atom]
   (let [tx-id (str (random-uuid))
         active-account @(subscribe [::accounts-subs/active-account])
@@ -122,18 +120,19 @@
                               :pending? @tx-pending?
                               :pending-text "Sending..."
                               :on-click (fn []
-                                          (dispatch [::meme-token/safe-transfer-from-multi (merge @form-data
-                                                                                                  {:send-tx/id tx-id
-                                                                                                   :meme/title title
-                                                                                                   :reg-entry/address address
-                                                                                                   :meme-auction/token-ids (->> @token-ids
-                                                                                                                                (take (int (:send/amount @form-data)))
-                                                                                                                                (map int))})]))}
+                                          (dispatch [::meme-token/safe-transfer-from-multi
+                                                     (merge @form-data
+                                                            {:send-tx/id tx-id
+                                                             :meme/title title
+                                                             :reg-entry/address address
+                                                             :meme-auction/token-ids
+                                                             (->> @token-ids
+                                                               (take (int (:send/amount @form-data)))
+                                                               (map int))})]))}
          "Send"]]])))
 
-(defn sell-form [{:keys [:meme/title
-                         :meme-auction/token-count
-                         :reg-entry/address] :as meme}
+
+(defn sell-form [{:keys [:meme/title :meme-auction/token-count :reg-entry/address] :as meme}
                  {:keys [min-auction-duration max-auction-duration] :as params}
                  send-sell-atom]
   (let [tx-id (str (random-uuid))
@@ -164,10 +163,10 @@
                                           ;; TODO: this durations should be specified in days and not in seconds at param level
                                           :meme-auction/duration (let [duration (parsers/parse-int (:meme-auction/duration @form-data))
                                                                        max-duration (-> max-auction-duration
-                                                                                      shared-utils/seconds->days
+                                                                                      time/seconds->days
                                                                                       int)
                                                                        min-duration (let [md (-> min-auction-duration
-                                                                                               shared-utils/seconds->days
+                                                                                               time/seconds->days
                                                                                                int)]
                                                                                       (if (zero? md) 1 md))]
                                                                    (cond-> {:hint (str "Max " max-duration)}
@@ -249,7 +248,7 @@
                               :pending-text "Creating..."
                               :on-click (fn []
                                           (dispatch [::meme-token/transfer-multi-and-start-auction (merge (-> @form-data
-                                                                                                              (update :meme-auction/duration shared-utils/days->seconds))
+                                                                                                              (update :meme-auction/duration time/days->seconds))
                                                                                                           {:send-tx/id tx-id
                                                                                                            :meme/title title
                                                                                                            :reg-entry/address address
@@ -259,6 +258,7 @@
          "Create Offering"]]
        [:div.send-tokens {:on-click #(reset! send-sell-atom :send)}
         "Send to a Friend"]])))
+
 
 (defn collected-tile-back [{:keys [:meme/number :meme/title :meme-auction/token-count :meme-auction/token-ids :reg-entry/address]}]
   (let [params (subscribe [:memefactory.ui.config/memefactory-db-params])
@@ -287,6 +287,7 @@
                         :reg-entry/address address}
              form]]))])))
 
+
 (defmethod panel :collected [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
@@ -306,7 +307,7 @@
                        (when address
                          (let [token-ids (map :meme-token/token-id owned-meme-tokens)
                                token-count (->> token-ids
-                                                (filter shared-utils/not-nil?)
+                                                (filter cljs-utils/not-nil?)
                                                 count)
                                active-user-page? (or (empty? url-address) (= url-address active-account))]
                            [:div.compact-tile {:key address}
@@ -329,9 +330,8 @@
                              [:div.title (str "#" number " " title)]
                              (when (and token-count total-supply)
                                [:div.number-minted (str "Owning " token-count " out of " total-supply)])]])))
-                     state)))
+                     state)))])))
 
-       ])))
 
 (defmethod rank :collected [_ active-account]
   (let [query (if active-account
@@ -375,11 +375,13 @@
           [:span (str (ui-utils/format-price bought-for))]
           [:span "None"])]])))
 
+
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
                                                   [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       [:div.total "Total "  (get-in @query [:search-memes :total-count])])))
+
 
 (defn issue-form [{:keys [:meme/title :reg-entry/address :meme/total-supply :meme/total-minted]}]
   (let [tx-id (str (random-uuid))
@@ -412,6 +414,7 @@
                        (str "Max " max-amount)
                        "All cards issued")]]))))
 
+
 (defmethod panel :created [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         active-account @(subscribe [::accounts-subs/active-account])]
@@ -430,7 +433,7 @@
                                   :meme/title :meme/total-supply :meme/total-minted
                                   :reg-entry/status] :as meme}]
                        (when address
-                         (let [status (graphql-utils/gql-name->kw (or status :undefined))
+                         (let [status (gql-utils/gql-name->kw (or status :undefined))
                                rejected? (= status :reg-entry.status/blacklisted)]
                            ^{:key address} [:div.compact-tile
                                             [:div.container
@@ -455,6 +458,7 @@
                                                            :meme/total-supply total-supply
                                                            :meme/total-minted total-minted}])])))
                      state)))])))
+
 
 (defmethod rank :created [_ active-account]
   (let [query (if active-account
@@ -506,12 +510,14 @@
                " (#" number " " title ")")
           "None")]])))
 
+
 (defmethod total :created [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:creator active-account}
                                       [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       [:div.total "Total " (get-in @query [:search-memes :total-count])])))
+
 
 (defmethod panel :curated [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
   (log/debug _ {:c (count state)})
@@ -531,7 +537,7 @@
                           :meme/title :challenge/vote] :as meme}]
                (when address
                  (let [{:keys [:vote/option]} vote
-                       status (graphql-utils/gql-name->kw (or status :undefined))
+                       status (gql-utils/gql-name->kw (or status :undefined))
                        rejected? (= status :reg-entry.status/blacklisted)]
                    ^{:key address}
                    [:div.compact-tile
@@ -545,15 +551,16 @@
                      [:div.title [:b (str (when number (str "#" number " ")) title)]]
                      [:div.vote-option
                       (cond
-                        (= option (graphql-utils/kw->gql-name :vote-option/not-revealed))
+                        (= option (gql-utils/kw->gql-name :vote-option/not-revealed))
                         [:label.not-revealed "Vote - Unrevealed"]
 
-                        (= option (graphql-utils/kw->gql-name :vote-option/vote-for))
+                        (= option (gql-utils/kw->gql-name :vote-option/vote-for))
                         [:label.vote-dank "Voted Dank"]
 
-                        (= option (graphql-utils/kw->gql-name :vote-option/vote-against))
+                        (= option (gql-utils/kw->gql-name :vote-option/vote-against))
                         [:label.vote-stank "Voted Stank"])]]])))
              state)))]))
+
 
 (defmethod rank :curated [_ active-account]
   (let [query (subscribe [::gql/query
@@ -596,12 +603,14 @@
           (when (and challenger-total-earned voter-total-earned)
             (ui-utils/format-dank (+ challenger-total-earned voter-total-earned)))]]]])))
 
+
 (defmethod total :collected [_ active-account]
   (let [query (subscribe [::gql/query {:queries [[:search-memes {:owner active-account}
                                                   [:total-count]]]}])]
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-memes :total-count])]
         [:div.total "Total " total]))))
+
 
 (defmethod total :created [_ active-account]
   (let [query (subscribe [::gql/query
@@ -611,6 +620,7 @@
       (let [total (get-in @query [:search-memes :total-count])]
         [:div.total "Total " total]))))
 
+
 (defmethod total :curated [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-memes {:curator active-account}
@@ -618,6 +628,7 @@
     (when-not (:graphql/loading? @query)
       (let [total (get-in @query [:search-memes :total-count])]
         [:div.total "Total " total]))))
+
 
 (defmethod total :selling [_ active-account]
   (let [query (subscribe [::gql/query
@@ -627,12 +638,14 @@
       (let [total (get-in @query [:search-meme-auctions :total-count])]
         [:div.total "Total " total]))))
 
+
 (defmethod total :sold [_ active-account]
   (let [query (subscribe [::gql/query
                           {:queries [[:search-meme-auctions {:seller active-account :statuses [:meme-auction.status/done]}
                                       [:total-count]]]}])]
     (let [total (get-in @query [:search-meme-auctions :total-count])]
       [:div.total (str "Total " total)])))
+
 
 (defmethod panel :sold [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
   (log/debug _ {:c (count state)})
@@ -670,9 +683,9 @@
                                                               :query {:tab :collected}}
                                                   (:user/address (:meme-auction/buyer meme-auction))]]
                                                 [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
-                                                [:li [:label "Bought:"] [:span  (let [time-ago (format/time-ago (ui-utils/gql-date->date (:meme-auction/bought-on meme-auction))
-                                                                                                                (t/date-time @(subscribe [::now-subs/now])))]
-                                                                                  time-ago)]]]
+                                                [:li [:label "Bought:"] [:span (let [time-ago (format/time-ago (gql-utils/gql-date->date (:meme-auction/bought-on meme-auction))
+                                                                                                               (t/date-time @(subscribe [::now-subs/now])))]
+                                                                                 time-ago)]]]
                                                [:hr]
                                                [:p.description (:meme-auction/description meme-auction)]]]}]
 
@@ -686,6 +699,7 @@
                  [:div.number-minted (str number "/" total-minted)]
                  [:div.price (ui-utils/format-price bought-for)]]])
              state)))]))
+
 
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
   (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged? :option-filters]} form-data]
@@ -832,6 +846,7 @@
                             :meme/number
                             :meme/total-minted]]]]]]]]])))
 
+
 (defn scrolling-container [tab {:keys [:user-address :form-data :prefix]}]
   (let [query (build-query tab {:user-address user-address
                                 :prefix prefix
@@ -867,16 +882,10 @@
        :re-search #(re-search end-cursor)
        :form-data form-data}]]))
 
+
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
                     {:keys [:user-address :url-address?]} :user-account}]
-  (let [tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
-        re-search #(dispatch [::gql-events/query
-                              {:query {:queries (build-query tab {:user-address user-address
-                                                                  :prefix prefix
-                                                                  :form-data @form-data
-                                                                  :first page-size
-                                                                  :after 0})}
-                               :id (merge @form-data {:tab tab})}])]
+  (let [tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     [:div.tabbed-pane
      [:section.search-form
       [search/search-tools (merge {:title (if url-address?
@@ -889,7 +898,7 @@
                                                                     [:img.copy
                                                                      {:on-click
                                                                       (fn []
-                                                                        (copy-to-clipboard user-link)
+                                                                        (copy-to-clipboard! user-link)
                                                                         (dispatch [:district.ui.notification.events/show
                                                                                    "Your Memefolio URL was copied to clipboard!"]))
                                                                       :title "Copy shareable URL to clipboard"
@@ -939,6 +948,7 @@
       {:class (name tab)}
       [scrolling-container tab {:user-address user-address :form-data form-data :prefix prefix}]]]))
 
+
 (defmethod page :route.memefolio/index []
   (let [{:keys [:query]} @(subscribe [::router-subs/active-page])
         active-tab (or (keyword (:tab query)) default-tab)
@@ -955,12 +965,11 @@
                          :memes
                          (contains? #{:selling :sold} active-tab)
                          :meme-auctions)
-            order-by? (-> query :order-by nil? not)
             form-data (r/atom {:term (:term query)
                                :voted? true
                                :challenged? true
                                :option-filters :only-lowest-number})]
-        [app-layout/app-layout
+        [app-layout
          {:meta {:title (if url-account
                           (str "MemeFactory - Memefolio " user-account)
                           "MemeFactory - My Memefolio")

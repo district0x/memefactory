@@ -1,15 +1,17 @@
 (ns memefactory.ui.my-settings.page
-  (:require [district.ui.component.form.input :refer [with-label text-input]]
-            [district.ui.component.page :refer [page]]
-            [district.ui.graphql.subs :as gql]
-            [district.ui.web3-accounts.subs :as accounts-subs]
-            [goog.format.EmailAddress :as email-address]
-            [memefactory.ui.components.app-layout :refer [app-layout]]
-            [memefactory.ui.contract.district0x-emails :as ms-events]
-            [re-frame.core :as re-frame]
-            [reagent.core :as r]
-            [reagent.ratom :refer [reaction]]
-            [taoensso.timbre :as log :refer [spy]]))
+  (:require
+    [district.ui.component.form.input :refer [with-label text-input]]
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.web3-accounts.subs :as accounts-subs]
+    [goog.format.EmailAddress :as email-address]
+    [memefactory.ui.components.app-layout :refer [app-layout]]
+    [memefactory.ui.contract.district0x-emails :as ms-events]
+    [re-frame.core :as re-frame]
+    [reagent.core :as r]
+    [reagent.ratom :refer [reaction]]
+    [taoensso.timbre :as log :refer [spy]]))
+
 
 (defn valid-email? [s & [{:keys [:allow-empty?]}]]
   (let [valid? (email-address/isValidAddress s)]
@@ -17,10 +19,9 @@
       (or (empty? s) valid?)
       valid?)))
 
+
 (defn my-settings []
-  (let [public-key-sub (re-frame/subscribe [::gql/query
-                                            {:queries [[:config
-                                                        [[:ui [:public-key]]]]]}])
+  (let [public-key-sub (re-frame/subscribe [::gql/query {:queries [[:config [[:ui [:public-key]]]]]}])
         active-account (re-frame/subscribe [::accounts-subs/active-account])
         form-data (r/atom {})
         errors (reaction {:local (cond-> {}
@@ -52,6 +53,7 @@
             {:on-click #(re-frame/dispatch [::ms-events/save-settings public-key @form-data])}
             {})
           "Save"]]))))
+
 
 (defmethod page :route.my-settings/index []
   [app-layout

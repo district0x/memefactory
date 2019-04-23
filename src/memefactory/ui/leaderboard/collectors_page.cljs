@@ -1,21 +1,19 @@
 (ns memefactory.ui.leaderboard.collectors-page
   (:require
-   [district.format :as format]
-   [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
    [district.ui.component.form.input :refer [select-input with-label]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
+   [district.ui.web3-accounts.subs :as accounts-subs]
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.general :refer [nav-anchor]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
+   [memefactory.ui.utils :refer [format-price format-dank]]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [taoensso.timbre :as log]
-   [district.ui.router.events :as router-events]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+   [taoensso.timbre :as log]))
 
 (def page-size 6)
 
@@ -39,8 +37,8 @@
                  [:meme-token/meme
                   [:meme/title]]]]]]]]]])
 
-(defn collectors-tile [{:keys [:user/address :user/largest-buy
-                               :user/total-collected-memes :user/total-collected-token-ids] :as collector}
+
+(defn collectors-tile [{:keys [:user/address :user/largest-buy :user/total-collected-memes :user/total-collected-token-ids] :as collector}
                        {:keys [:total-memes-count :total-tokens-count]}
                        num]
   (let [meme (-> largest-buy
@@ -69,6 +67,7 @@
                                                                   :meme-auction/meme-token
                                                                   :meme-token/number)
                                                               (:meme/title meme))]])]]))
+
 
 (defmethod page :route.leaderboard/collectors []
   (let [form-data (r/atom {:order-by "total-collected-token-ids"})]

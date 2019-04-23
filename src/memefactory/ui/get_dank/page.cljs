@@ -1,18 +1,14 @@
 (ns memefactory.ui.get-dank.page
   (:require
-   [reagent.core :as r]
-   [reagent.ratom :refer [reaction]]
-   [re-frame.core :refer [subscribe dispatch]]
+   [clojure.string :as str]
+   [district.ui.component.form.input :refer [index-by-type text-input with-label]]
    [district.ui.component.page :refer [page]]
    [memefactory.ui.components.app-layout :refer [app-layout]]
-   [memefactory.ui.get-dank.events :as dank-events]
    [memefactory.ui.components.spinner :as spinner]
-   [district.format :as format]
-   [district.ui.component.form.input :refer [index-by-type
-                                             text-input
-                                             with-label]]
-   [district.ui.graphql.subs :as gql]
-   [clojure.string :as str]
+   [memefactory.ui.get-dank.events :as dank-events]
+   [re-frame.core :refer [subscribe dispatch]]
+   [reagent.core :as r]
+   [reagent.ratom :refer [reaction]]
    [taoensso.timbre :as log]))
 
 (def verify-through-oracle-timeout 300000)

@@ -1,11 +1,12 @@
 (ns memefactory.ui.components.buttons
-  (:require [re-frame.core :refer [subscribe dispatch]]
-            [memefactory.ui.contract.registry-entry :as registry-entry]
-            [district.ui.web3-tx-id.subs :as tx-id-subs]
-            [district.ui.component.form.input :refer [pending-button]]
-            [district.graphql-utils :as graphql-utils]
-            [district.ui.graphql.subs :as gql]
-            [print.foo :refer [look] :include-macros true]))
+  (:require
+    [district.graphql-utils :as graphql-utils]
+    [district.ui.component.form.input :refer [pending-button]]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.web3-tx-id.subs :as tx-id-subs]
+    [memefactory.ui.contract.registry-entry :as registry-entry]
+    [print.foo :refer [look] :include-macros true]
+    [re-frame.core :refer [subscribe dispatch]]))
 
 
 (defn reclaim-buttons [active-account {:keys [:reg-entry/address :challenge/all-rewards :challenge/vote :challenge/vote-winning-vote-option :challenge/challenger :challenge/votes-against :challenge/votes-for] :as meme}]
@@ -29,10 +30,11 @@
                                          [:span "..."]]
                           :class "collect-amount"
                           :on-click (fn []
-                                      (dispatch [::registry-entry/claim-rewards {:send-tx/id rewards-tx-id
-                                                                                 :active-account active-account
-                                                                                 :reg-entry/address address
-                                                                                 :meme/title (:meme/title meme)}]))}
+                                      (dispatch [::registry-entry/claim-rewards
+                                                 {:send-tx/id rewards-tx-id
+                                                  :active-account active-account
+                                                  :reg-entry/address address
+                                                  :meme/title (:meme/title meme)}]))}
           (if @claim-rewards-tx-success?
             [:div.label
              [:span "Claimed"]
@@ -52,10 +54,11 @@
                                          [:span "..."]]
                           :class "collect-amount"
                           :on-click (fn []
-                                      (dispatch [::registry-entry/claim-vote-amount (look {:send-tx/id vote-amount-tx-id
-                                                                                           :active-account active-account
-                                                                                           :reg-entry/address address
-                                                                                           :meme/title (:meme/title meme)})]))}
+                                      (dispatch [::registry-entry/claim-vote-amount
+                                                 {:send-tx/id vote-amount-tx-id
+                                                  :active-account active-account
+                                                  :reg-entry/address address
+                                                  :meme/title (:meme/title meme)}]))}
 
           (if @claim-vote-amount-tx-success?
             [:div.label

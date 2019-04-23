@@ -1,25 +1,23 @@
 (ns memefactory.ui.components.tiles
-  (:require [cljs-time.core :as t]
-            [clojure.string :as str]
-            [district.format :as format]
-            [district.time :as time]
-            [district.ui.component.form.input :as inputs]
-            [district.ui.component.tx-button :as tx-button]
-            [district.ui.graphql.subs :as gql]
-            [district.ui.now.subs]
-            [district.ui.mobile.subs :as mobile-subs]
-            [district.ui.router.events :as router-events]
-            [district.ui.web3-accounts.subs :as accounts-subs]
-            [district.ui.web3-tx-id.subs :as tx-id-subs]
-            [memefactory.shared.utils :as shared-utils]
-            [memefactory.ui.contract.meme-auction :as meme-auction]
-            [memefactory.ui.utils :as ui-utils :refer [format-price]]
-            [re-frame.core :refer [subscribe dispatch]]
-            [reagent.core :as r]
-            [taoensso.timbre :as log :refer [spy]]
-            [clojure.set :as set]
-            [memefactory.ui.components.general :refer [nav-anchor]]
-            [cljs-web3.core :as web3]))
+  (:require
+    [cljs-time.core :as t]
+    [clojure.string :as str]
+    [district.format :as format]
+    [district.graphql-utils :as gql-utils]
+    [district.time :as time]
+    [district.ui.component.form.input :as inputs]
+    [district.ui.graphql.subs :as gql]
+    [district.ui.mobile.subs :as mobile-subs]
+    [district.ui.now.subs]
+    [district.ui.web3-tx-id.subs :as tx-id-subs]
+    [memefactory.shared.utils :as shared-utils]
+    [memefactory.ui.components.general :refer [nav-anchor]]
+    [memefactory.ui.contract.meme-auction :as meme-auction]
+    [memefactory.ui.utils :as ui-utils :refer [format-price]]
+    [re-frame.core :refer [subscribe dispatch]]
+    [reagent.core :as r]
+    [taoensso.timbre :as log :refer [spy]]))
+
 
 (defn meme-image [image-hash & [{:keys [rejected?] :as props}]]
   (let [props (dissoc props :rejected?)
@@ -37,16 +35,20 @@
         [:div.image-tape
          [:span "Stank"]]])]))
 
+
 (defn- event-target-classlist [event]
   (-> (aget event "target" "className")
       (str/split #"\ +")))
+
 
 (defn- event-target-has-class? [event class]
   (let [classlist (set (event-target-classlist event))]
     (contains? classlist class)))
 
+
 (defn- event-target-in-classlist? [event classlist]
   (some #(event-target-has-class? event %) classlist))
+
 
 (defn flippable-tile [{:keys [:front :back :flippable-classes]}]
   (let [flipped? (r/atom false)
@@ -67,11 +69,12 @@
        [:div.flippable-tile-front {:on-click handle-click} front]
        [:div.flippable-tile-back {:on-click handle-click} back]])))
 
+
 (defn auction-back-tile [opts meme-auction]
   (let [tx-id (str (:meme-auction/address meme-auction) "auction")
         active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
         now (subscribe [:district.ui.now.subs/now])
-        end-time (t/plus (ui-utils/gql-date->date (:meme-auction/started-on meme-auction))
+        end-time (t/plus (gql-utils/gql-date->date (:meme-auction/started-on meme-auction))
                          (t/seconds (:meme-auction/duration meme-auction)))
         buy-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/buy tx-id}])
         cancel-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/cancel tx-id}])
@@ -82,7 +85,7 @@
                                                end-time)
                           (dissoc :seconds))
             price (shared-utils/calculate-meme-auction-price (-> meme-auction
-                                                                 (update :meme-auction/started-on #(.getTime (ui-utils/gql-date->date %))))
+                                                                 (update :meme-auction/started-on #(.getTime (gql-utils/gql-date->date %))))
                                                              (.getTime @now))
             title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)
             seller-address (:user/address (:meme-auction/seller meme-auction))
@@ -137,11 +140,12 @@
                                                                                 :value price}]))}
               (if @buy-tx-success? "Bought" "Buy")])]]]))))
 
+
 (defn auction-tile [{:keys [show-cards-left?] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]
   (let [now (subscribe [:district.ui.now.subs/now])]
     (fn [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
       (let [price (shared-utils/calculate-meme-auction-price (-> meme-auction
-                                                                 (update :meme-auction/started-on #(quot (.getTime (ui-utils/gql-date->date %)) 1000)))
+                                                               (update :meme-auction/started-on #(quot (.getTime (gql-utils/gql-date->date %)) 1000)))
                                                              (quot (.getTime @now) 1000))
             meme-auctions (when show-cards-left? (subscribe [::gql/query {:queries [[:search-meme-auctions
                                                                                      {:statuses [:meme-auction.status/active]
@@ -168,6 +172,7 @@
                                    " left")])
            [:div.price (format-price price)]]]]))))
 
+
 (defn meme-back-tile [{:keys [:reg-entry/created-on :meme/total-minted :meme/number :meme/total-trade-volume :meme/average-price :meme/highest-single-sale] :as meme}]
   (let [creator-address (-> meme :reg-entry/creator :user/address)
         meme-address (-> meme :reg-entry/address)]
@@ -190,7 +195,7 @@
                      :title (str "Go to the Memefolio of " creator-address)}
          creator-address]]
        [:li [:label "Created:"]
-        (let [formated-time (-> (time/time-remaining (t/date-time (ui-utils/gql-date->date created-on)) (t/now))
+        (let [formated-time (-> (time/time-remaining (t/date-time (gql-utils/gql-date->date created-on)) (t/now))
                                 (dissoc :seconds)
                                 format/format-time-units)]
           (if-not (empty? formated-time)
@@ -201,6 +206,7 @@
        [:li [:label "Trade Volume:"] (ui-utils/format-price total-trade-volume)]
        [:li [:label "Average Price:"] (ui-utils/format-price average-price)]
        [:li [:label "Highest Single Sale:"] (ui-utils/format-price highest-single-sale)]]]]))
+
 
 (defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
   [:div.compact-tile

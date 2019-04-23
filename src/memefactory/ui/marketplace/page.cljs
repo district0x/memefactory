@@ -5,13 +5,13 @@
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router-subs]
-   [memefactory.ui.utils :as ui-utils]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.search :refer [search-tools auctions-option-filters]]
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.utils :as ui-utils]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -67,6 +67,7 @@
                  :meme/number
                  :meme/total-minted]]]]]]]])
 
+
 (defn marketplace-tiles [form-data auctions-search]
   (let [all-auctions (->> @auctions-search
                           (mapcat (fn [r] (-> r :search-meme-auctions :items))))
@@ -91,6 +92,7 @@
           (doall
             (for [{:keys [:meme-auction/address] :as auc} all-auctions]
               ^{:key address} [tiles/auction-tile {:show-cards-left? (contains? #{:only-cheapest :only-lowest-number} (:option-filters @form-data))} auc])))])]))
+
 
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])
@@ -135,6 +137,7 @@
                           :option-filters auctions-option-filters}]
            [:div.search-results
             [marketplace-tiles form-data auctions-search]]]]]))))
+
 
 (defmethod page :route.marketplace/index []
   [index-page])

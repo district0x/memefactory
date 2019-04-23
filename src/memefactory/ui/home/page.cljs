@@ -1,26 +1,27 @@
 (ns memefactory.ui.home.page
   (:require
-   [district.format :as format]
-   [district.time :as time]
-   [district.ui.component.page :refer [page]]
-   [district.ui.graphql.subs :as gql]
-   [goog.string :as gstring]
-   [memefactory.ui.components.app-layout :refer [app-layout]]
-   [memefactory.ui.components.challenge-list :refer [current-period-ends]]
-   [memefactory.ui.components.general :refer [nav-anchor]]
-   [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.spinner :as spinner]
-   [memefactory.ui.components.tiles :as tiles]
-   [memefactory.ui.home.tutorial :refer [tutorial-button]]
-   [memefactory.ui.utils :as utils]
-   [re-frame.core :refer [subscribe dispatch]]
-   [reagent.core :as r]))
+    [district.format :as format]
+    [district.graphql-utils :as gql-utils]
+    [district.time :as time]
+    [district.ui.component.page :refer [page]]
+    [district.ui.graphql.subs :as gql]
+    [goog.string :as gstring]
+    [memefactory.ui.components.app-layout :refer [app-layout]]
+    [memefactory.ui.components.challenge-list :refer [current-period-ends]]
+    [memefactory.ui.components.general :refer [nav-anchor]]
+    [memefactory.ui.components.panels :refer [no-items-found]]
+    [memefactory.ui.components.spinner :as spinner]
+    [memefactory.ui.components.tiles :as tiles]
+    [memefactory.ui.home.tutorial :refer [tutorial-button]]
+    [re-frame.core :refer [subscribe dispatch]]
+    [reagent.core :as r]))
 
 (defn take-max-multiple-of [n xs]
   (if (< (count xs) n)
     xs
     (->> (partition n xs)
          (apply concat))))
+
 
 (defn auctions-list [auctions loading?]
   (let [auctions (take-max-multiple-of 3 auctions)]
@@ -35,6 +36,7 @@
                   (let [title (-> auc :meme-auction/meme-token :meme-token/meme :meme/title)]
                     [tiles/auction-tile {:key address
                                          :show-cards-left? true} auc])))]))]))
+
 
 (defn trending-vote-tile [{:keys [:reg-entry/address :meme/image-hash :reg-entry/creator :challenge/commit-period-end
                                   :challenge/challenger :challenge/comment] :as meme}]
@@ -53,8 +55,8 @@
                                        (:user/address creator)]]
                                      [:li [:label "Voting period ends in: "]
                                       [:span (-> (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                      (utils/gql-date->date commit-period-end))
-                                                 format/format-time-units)]]
+                                                                      (gql-utils/gql-date->date commit-period-end))
+                                               format/format-time-units)]]
                                      [:li [:label "Challenger :"]
                                       [nav-anchor {:route :route.memefolio/index
                                                    :params {:address (:user/address challenger)}
@@ -150,7 +152,6 @@
              :challenge/votes-total
              :challenge/commit-period-end
              :challenge/comment]]]])
-
 
 
 (defmethod page :route/home []

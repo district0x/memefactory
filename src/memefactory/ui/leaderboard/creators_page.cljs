@@ -1,22 +1,20 @@
 (ns memefactory.ui.leaderboard.creators-page
   (:require
-   [district.format :as format]
+   [cljs-web3.core :as web3]
    [district.ui.component.form.input :refer [select-input with-label]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
+   [district.ui.web3-accounts.subs :as accounts-subs]
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.general :refer [nav-anchor]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-   [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
+   [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
+   [memefactory.ui.utils :refer [format-price format-dank]]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [taoensso.timbre :as log]
-   [district.ui.router.events :as router-events]
-   [district.ui.web3-accounts.subs :as accounts-subs]
-   [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.general :refer [nav-anchor]]
-   [cljs-web3.core :as web3]))
+   [taoensso.timbre :as log]))
 
 (def page-size 6)
 
@@ -41,6 +39,7 @@
                  [:meme-token/meme
                   [:meme/title
                    :reg-entry/address]]]]]]]]]])
+
 
 (defn creator-tile [{:keys [:user/address :user/creator-total-earned :user/total-created-memes
                             :user/total-created-memes-whitelisted :user/largest-sale] :as creator}
@@ -76,6 +75,7 @@
                               :meme-token/number)
                           (:meme/title meme))]])]]))
 
+
 (defn creators-tiles [users-search re-search-users]
   (let [all-creators (mapcat #(get-in % [:search-users :items]) @users-search)
         last-user (last @users-search)
@@ -89,7 +89,7 @@
               (not loading?))
        [no-items-found]
        [infinite-scroll {:class "creators"
-                         :element-height 420
+                         :element-height 420                ;; I see what you did there ;)
                          :loading? loading?
                          :has-more? has-more?
                          :loading-spinner-delegate (fn []
@@ -104,6 +104,7 @@
               [creator-tile creator num])
             all-creators
             (iterate inc 1))))])]))
+
 
 (defmethod page :route.leaderboard/creators []
   (let [form-data (r/atom {:order-by "total-earned"})]

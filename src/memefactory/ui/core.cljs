@@ -1,13 +1,13 @@
 (ns memefactory.ui.core
   (:require
-   [cljs.spec.alpha :as s]
-   [clojure.string :as str]
+   [cljsjs.jquery]
+   [district.cljs-utils :as cljs-utils]
    [district.ui.component.router :refer [router]]
    [district.ui.graphql]
    [district.ui.logging]
+   [district.ui.mobile]
    [district.ui.notification]
    [district.ui.now]
-   [district.ui.mobile]
    [district.ui.reagent-render]
    [district.ui.router-google-analytics]
    [district.ui.router]
@@ -24,7 +24,7 @@
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.routes :refer [routes]]
    [memefactory.shared.smart-contracts :refer [smart-contracts]]
-   [memefactory.shared.utils :as shared-utils]
+   [memefactory.ui.about.page]
    [memefactory.ui.config :as config]
    [memefactory.ui.config :refer [config-map]]
    [memefactory.ui.contract.registry-entry]
@@ -35,7 +35,6 @@
    [memefactory.ui.get-dank.page]
    [memefactory.ui.home.page]
    [memefactory.ui.how.page]
-   [memefactory.ui.about.page]
    [memefactory.ui.ipfs]
    [memefactory.ui.leaderboard.collectors-page]
    [memefactory.ui.leaderboard.creators-page]
@@ -49,9 +48,7 @@
    [mount.core :as mount]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
-   [re-frisk.core :refer [enable-re-frisk!]]
-   [cljsjs.jquery]
-   ))
+   [re-frisk.core :refer [enable-re-frisk!]]))
 
 (def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
 
@@ -59,6 +56,7 @@
   (when (:debug? @config/config)
     (enable-console-print!)
     (enable-re-frisk!)))
+
 
 (re-frame/reg-event-fx
  ::init
@@ -69,21 +67,23 @@
                :votes (:votes store)
                :memefactory.ui.get-dank.page/stage 1)}))
 
+
 (defn ^:export init []
   (dev-setup)
-  (let [full-config (shared-utils/deep-merge config-map
-                           {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)
-                                              :format :truffle-json}
-                            :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
-                            :web3-account-balances {:for-contracts [:ETH :DANK]}
-                            :web3-tx-log {:open-on-tx-hash? true}
-                            :reagent-render {:id "app"
-                                             :component-var #'router}
-                            :router {:routes routes
-                                     :default-route :route/home
-                                     :scroll-top? true}
-                            :notification {:default-show-duration 3000
-                                           :default-hide-duration 1000}})]
+  (let [full-config (cljs-utils/merge-in
+                      config-map
+                      {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)
+                                         :format :truffle-json}
+                       :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
+                       :web3-account-balances {:for-contracts [:ETH :DANK]}
+                       :web3-tx-log {:open-on-tx-hash? true}
+                       :reagent-render {:id "app"
+                                        :component-var #'router}
+                       :router {:routes routes
+                                :default-route :route/home
+                                :scroll-top? true}
+                       :notification {:default-show-duration 3000
+                                      :default-hide-duration 1000}})]
     (js/console.log "Entire config:" (clj->js full-config))
     (-> (mount/with-args full-config)
         (mount/start)))

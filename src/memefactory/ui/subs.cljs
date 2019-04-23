@@ -1,8 +1,8 @@
 (ns memefactory.ui.subs
   (:require
-   [re-frame.core :as re-frame]
    [district.ui.mobile.subs :as mobile-subs]
-   [memefactory.ui.mobile :as ui.mobile]))
+   [memefactory.ui.mobile :as ui.mobile]
+   [re-frame.core :as re-frame]))
 
 (re-frame/reg-sub
  ::menu-drawer-open?

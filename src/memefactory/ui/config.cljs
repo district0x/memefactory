@@ -5,7 +5,7 @@
    [district.ui.logging.events :as logging]
    [graphql-query.core :refer [graphql-query]]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
-   [mount.core :as mount :refer [defstate]]
+   [mount.core :refer [defstate]]
    [re-frame.core :as re-frame]
    [taoensso.timbre :as log])
   (:require-macros [memefactory.ui.utils :refer [get-environment]]))

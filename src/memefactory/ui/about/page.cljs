@@ -1,9 +1,12 @@
 (ns memefactory.ui.about.page
-  (:require [memefactory.ui.components.app-layout :refer [app-layout]]
-            [district.ui.component.page :refer [page]]))
+  (:require
+    [district.ui.component.page :refer [page]]
+    [memefactory.ui.components.app-layout :refer [app-layout]]))
+
 
 (defn a [href text]
   [:a {:href href :target :_blank} text])
+
 
 (defmethod page :route.about/index []
   [app-layout

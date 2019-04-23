@@ -1,17 +1,16 @@
 (ns memefactory.ui.contract.meme-token
-  (:require [cljs-web3.core :as web3]
-            [cljs-web3.eth :as web3-eth]
-            [cljs.spec.alpha :as s]
-            [district.ui.logging.events :as logging]
-            [district.ui.notification.events :as notification-events]
-            [district.ui.smart-contracts.queries :as contract-queries]
-            [district.ui.web3-accounts.queries :as account-queries]
-            [district.ui.web3-tx.events :as tx-events]
-            [district0x.re-frame.spec-interceptors :as spec-interceptors]
-            [goog.string :as gstring]
-            [print.foo :refer [look] :include-macros true]
-            [re-frame.core :as re-frame :refer [reg-event-fx]]
-            [district.ui.graphql.events :as gql-events]))
+  (:require
+    [cljs-web3.core :as web3]
+    [cljs-web3.eth :as web3-eth]
+    [district.ui.graphql.events :as gql-events]
+    [district.ui.logging.events :as logging]
+    [district.ui.notification.events :as notification-events]
+    [district.ui.smart-contracts.queries :as contract-queries]
+    [district.ui.web3-accounts.queries :as account-queries]
+    [district.ui.web3-tx.events :as tx-events]
+    [goog.string :as gstring]
+    [print.foo :refer [look] :include-macros true]
+    [re-frame.core :as re-frame :refer [reg-event-fx]]))
 
 (def interceptors [re-frame/trim-v])
 
@@ -39,14 +38,16 @@
                                                               :query {:tab "selling" :term title}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::transfer-multi]
                                                         [::notification-events/show (gstring/format "Offering for %s was successfully created" title)]
-                                                        [::gql-events/query {:query {:queries [[:meme {:reg-entry/address address}
-                                                                                                [:meme/total-supply
-                                                                                                 [:meme/owned-meme-tokens {:owner active-account}
-                                                                                                  [:meme-token/token-id]]]]]}}]]
+                                                        [::gql-events/query
+                                                         {:query {:queries [[:meme {:reg-entry/address address}
+                                                                             [:meme/total-supply
+                                                                              [:meme/owned-meme-tokens {:owner active-account}
+                                                                               [:meme-token/token-id]]]]]}}]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}
                                                     ::transfer-multi-and-start-auction]}]})))
+
 
 (reg-event-fx
  ::safe-transfer-from-multi
@@ -68,10 +69,11 @@
 
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::transfer-multi]
                                                         [::notification-events/show (gstring/format "%s tokens were successfully sent" title)]
-                                                        [::gql-events/query {:query {:queries [[:meme {:reg-entry/address (:reg-entry/address args)}
-                                                                                                [:meme/total-supply
-                                                                                                 [:meme/owned-meme-tokens {:owner active-account}
-                                                                                                  [:meme-token/token-id]]]]]}}]]
+                                                        [::gql-events/query
+                                                         {:query {:queries [[:meme {:reg-entry/address (:reg-entry/address args)}
+                                                                             [:meme/total-supply
+                                                                              [:meme/owned-meme-tokens {:owner active-account}
+                                                                               [:meme-token/token-id]]]]]}}]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args}

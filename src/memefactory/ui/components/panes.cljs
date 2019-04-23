@@ -1,9 +1,9 @@
 (ns memefactory.ui.components.panes
-  (:require [reagent.core :as r]
-            [re-frame.core :refer [subscribe dispatch]]
-            [district.ui.router.subs :as router-subs]
-            [district.ui.router.events :as router-events]
-            [memefactory.ui.components.general :refer [nav-anchor]]))
+  (:require
+    [district.ui.router.subs :as router-subs]
+    [memefactory.ui.components.general :refer [nav-anchor]]
+    [re-frame.core :refer [subscribe dispatch]]))
+
 
 (defn tabbed-pane [tabs]
   (let [page (subscribe [::router-subs/active-page])]

@@ -5,8 +5,9 @@
     [cljs-time.format :as time-format]
     [cljs-web3.core :as web3]
     [cljs.core.match :refer-macros [match]]
+    [district.cljs-utils :as cljs-utils]
     [district.format :as format]
-    [district.graphql-utils :as graphql-utils]
+    [district.graphql-utils :as gql-utils]
     [district.parsers :as parsers]
     [district.time :as time]
     [district.ui.component.form.input :as inputs]
@@ -19,8 +20,7 @@
     [district.ui.web3-accounts.subs :as accounts-subs]
     [district.ui.web3-tx-id.subs :as tx-id-subs]
     [goog.string :as gstring]
-    [memefactory.shared.utils :as shared-utils :refer [not-nil?]]
-    [memefactory.ui.components.app-layout :as app-layout]
+    [memefactory.ui.components.app-layout :refer [app-layout]]
     [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
     [memefactory.ui.components.panels :refer [panel]]
     [memefactory.ui.components.search :as search]
@@ -91,7 +91,7 @@
                                       [[:items [:meme-auction/start-price
                                                 :meme-auction/end-price
                                                 :meme-auction/bought-for]]]]]}])
-        creator-total-earned (web3/from-wei (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
+        creator-total-earned (web3/from-wei (reduce (fn [total-earned {:keys [:meme-auction/end-price]}]
                                                       (+ total-earned end-price))
                                                     0
                                                     (-> @query :search-meme-auctions :items))
@@ -229,7 +229,7 @@
                        (:user/address buyer)]]
                      [:td.end-price (format-price bought-for)]
                      [:td.time  (let [now-date (t/date-time @now)
-                                      bought-date (ui-utils/gql-date->date bought-on)]
+                                      bought-date (gql-utils/gql-date->date bought-on)]
                                   (when-not (or (empty? (str bought-on))
                                                 (> (.getTime bought-date) (.getTime now-date)))
                                     (format/time-ago bought-date now-date)))]])))]]))]))))
@@ -239,7 +239,7 @@
   (when created-on
     [:div.header
      [:h2.title
-      (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (ui-utils/gql-date->date created-on))))]]))
+      (str "This meme was challenged on " (time-format/unparse time-formatter (t/local-date-time (gql-utils/gql-date->date created-on))))]]))
 
 
 (defn challenger-component [{:keys [:challenge/comment :challenge/challenger] :as meme}]
@@ -263,14 +263,14 @@
 
 
 (defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme} text]
-  (let [status (graphql-utils/gql-name->kw status)
+  (let [status (gql-utils/gql-name->kw status)
         [period-label period-end] (case status
                                     :reg-entry.status/challenge-period ["Challenge" challenge-period-end]
                                     :reg-entry.status/commit-period    ["Voting" commit-period-end]
                                     :reg-entry.status/reveal-period    ["Reveal" reveal-period-end]
                                     nil)
         {:keys [days hours minutes seconds] :as time-remaining} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                                     (ui-utils/gql-date->date period-end))]
+                                                                                     (gql-utils/gql-date->date period-end))]
     [:ul.status
      [:li "Challenge status"
       [:div (case status
@@ -344,11 +344,11 @@
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/reveal-vote tx-id}])
         active-account @(subscribe [::accounts-subs/active-account])
         vote (get @(subscribe [:memefactory.ui.subs/votes active-account]) address)
-        vote-option (-> meme :challenge/vote :vote/option graphql-utils/gql-name->kw)]
+        vote-option (-> meme :challenge/vote :vote/option gql-utils/gql-name->kw)]
     (fn []
       [:div.reveal
        [:div "This meme has been challenged and voting has concluded. You can reveal any votes you made with the button below, before time runs out on the reveal period."]
-       [remaining-time-component (ui-utils/gql-date->date reveal-period-end)]
+       [remaining-time-component (gql-utils/gql-date->date reveal-period-end)]
        [tx-button/tx-button {:primary true
                              :disabled (or @tx-success? (not vote))
                              :pending? @tx-pending?
@@ -463,7 +463,7 @@
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 
-(defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status graphql-utils/gql-name->kw)]
+(defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status gql-utils/gql-name->kw)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
                                                 [:reg-entry.status/challenge-period] :reg-entry.status/challenge-period
                                                 [:reg-entry.status/commit-period] :reg-entry.status/commit-period
@@ -473,7 +473,7 @@
 (defmethod challenge-component :reg-entry.status/reveal-period
   [{:keys [:challenge/created-on :reg-entry/status :challenge/reveal-period-end] :as meme}]
   (let [{:keys [days hours minutes seconds]} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                  (ui-utils/gql-date->date reveal-period-end))]
+                                                                  (gql-utils/gql-date->date reveal-period-end))]
     [:div
      [:h1.title "Challenge"]
      (cond-> [:div.challenge-component-inner
@@ -489,7 +489,7 @@
   [{:keys [:challenge/created-on :reg-entry/status :challenge/commit-period-end] :as meme}]
 
   (let [{:keys [days hours minutes seconds]} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                  (ui-utils/gql-date->date commit-period-end))]
+                                                                  (gql-utils/gql-date->date commit-period-end))]
     [:div
      [:h1.title "Challenge"]
      (cond-> [:div.challenge-component-inner
@@ -505,7 +505,7 @@
   [{:keys [:challenge/created-on :reg-entry/status :reg-entry/challenge-period-end] :as meme}]
 
   (let [{:keys [days hours minutes seconds] :as tr} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                         (ui-utils/gql-date->date challenge-period-end))]
+                                                                         (gql-utils/gql-date->date challenge-period-end))]
     (when-let [params @(subscribe [:memefactory.ui.config/memefactory-db-params])]
       [:div
        [:h1.title "Challenge"]
@@ -540,7 +540,7 @@
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end]} meme
         token-count (->> owned-meme-tokens
                          (map :meme-token/token-id)
-                         (filter shared-utils/not-nil?)
+                         (filter cljs-utils/not-nil?)
                          count)
         tags (mapv :tag/name tags)
         ;; A bit of a hack checking the status here, should just rely upon
@@ -548,7 +548,7 @@
         ;; nil when it's really still just loading.
         meme-not-loaded? (or (not status)
                              (and meme-sub (:graphql/loading? @meme-sub)))]
-    [app-layout/app-layout
+    [app-layout
      {:meta {:title (str "MemeFactory - " title)
              :description (str "Details of meme " title ". " "MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets.")}}
      [:div.meme-detail-page
@@ -561,27 +561,27 @@
              [:div.meme-number {:key :meme-number} (str "#" number)])
 
            [:div.container {:key :container}
-            [tiles/meme-image image-hash {:rejected? (-> (graphql-utils/gql-name->kw status) (= :reg-entry.status/blacklisted))}]]
+            [tiles/meme-image image-hash {:rejected? (-> (gql-utils/gql-name->kw status) (= :reg-entry.status/blacklisted))}]]
 
            [:div.registry {:key :registry}
             [:h1 title]
-            [:div.status (case (graphql-utils/gql-name->kw status)
+            [:div.status (case (gql-utils/gql-name->kw status)
                            :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
                            :reg-entry.status/blacklisted [:label.rejected "Rejected from Registry"]
                            :reg-entry.status/challenge-period [:label.rejected "Open for Challenge"]
                            [:label.challenged "Challenged"])]
-            [:div.description (case (graphql-utils/gql-name->kw status)
+            [:div.description (case (gql-utils/gql-name->kw status)
                                 :reg-entry.status/whitelisted      "This meme has passed through the challenge phase and has been placed into the Dank Registry."
                                 :reg-entry.status/blacklisted      "This meme was challenged and lost. It's ineligible for the Dank Registry unless resubmitted."
                                 :reg-entry.status/challenge-period (gstring/format "This meme has been submitted to the Dank Registry, but is still open to be challenged. The challenge window closes in %s"
                                                                                    (format/format-time-units
                                                                                     (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                                                         (ui-utils/gql-date->date challenge-period-end))))
+                                                                                                         (gql-utils/gql-date->date challenge-period-end))))
                                 (gstring/format "This meme has had its status in the registry challenged. It will be either accepted or rejected when the vote and reveal phases conclude in %s"
                                                 (format/format-time-units
                                                  (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                      (ui-utils/gql-date->date reveal-period-end)))))]
-            [:div.text (str "Created " (let [days (:days (time/time-remaining (ui-utils/gql-date->date created-on)
+                                                                      (gql-utils/gql-date->date reveal-period-end)))))]
+            [:div.text (str "Created " (let [days (:days (time/time-remaining (gql-utils/gql-date->date created-on)
                                                                               @(subscribe [:district.ui.now.subs/now])))]
                                          (if (pos? days)
                                            (str (format/pluralize days "day") " ago")

@@ -8,8 +8,8 @@
    [district.ui.web3-tx.events :as tx-events]
    [goog.string :as gstring]
    [re-frame.core :as re-frame]
-   [taoensso.timbre :as log]
-   ))
+   [taoensso.timbre :as log]))
+
 
 (re-frame/reg-event-fx
  ::save-settings
@@ -37,6 +37,7 @@
                                                      :public-key public-key
                                                      :encrypted-email encrypted-email}
                                                     ::save-settings]}]})))
+
 
 (re-frame/reg-event-fx
  ::settings-saved

@@ -1,10 +1,11 @@
 (ns memefactory.ui.components.search
   (:require
+   [clojure.string :as str]
    [district.ui.component.form.input :refer [with-label select-input text-input checkbox-input with-label chip-input radio-group]]
    [print.foo :refer [look] :include-macros true]
-   [reagent.core :as r]
-   [clojure.string :as str])
+   [reagent.core :as r])
   (:require-macros [reagent.ratom :refer [reaction]]))
+
 
 (defn get-by-path
   ([doc path]
@@ -16,14 +17,16 @@
                    path))]
      (get-in doc n-path default))))
 
+
 (defn chip-render [c]
   [:span c])
 
+
 (def auctions-option-filters [{:key :only-lowest-number :label "Show only the lowest card number of meme"}
-                              {:key :only-cheapest      :label "Show only the cheapest card of meme"}
-                              {:key :all-cards          :label "All cards"}])
-(defn search-tools [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filters
-                            on-selected-tags-change on-search-change on-select-change option-filters option-filters-id]}]
+                              {:key :only-cheapest :label "Show only the cheapest card of meme"}
+                              {:key :all-cards :label "All cards"}])
+
+(defn search-tools [{:keys [form-data selected-tags-id search-id]}]
 
   (let [search-input-form-data (r/atom {search-id (get @form-data search-id)})
         chip-input-form-data (r/atom {selected-tags-id (get @form-data selected-tags-id)})]
@@ -47,8 +50,7 @@
                                            (swap! form-data assoc search-id input)
                                            (when on-search-change (on-search-change input))))))
                       :on-key-up (fn [e]
-                                   (let [key-code (-> e .-keyCode)
-                                         input (get @search-input-form-data search-id)]
+                                   (let [input (get @search-input-form-data search-id)]
                                      (when (str/blank? input)
                                        (swap! form-data assoc search-id input))))
                       ;; :placeholder "Name"

@@ -1,13 +1,10 @@
 (ns memefactory.ui.leaderboard.curators-page
   (:require
-   [cljs-web3.core :as web3]
    [district.format :as format]
    [district.ui.component.form.input :refer [select-input]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
-   [district.ui.router.events :as router-events]
    [district.ui.web3-accounts.subs :as accounts-subs]
-   [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.general :refer [dank-with-logo]]
    [memefactory.ui.components.general :refer [nav-anchor]]
@@ -42,6 +39,7 @@
              :user/voter-rank
              :user/curator-total-earned
              :user/curator-rank]]]])
+
 
 (defmethod page :route.leaderboard/curators []
   (let [form-data (r/atom {:order-by "curator-total-earned"})]
@@ -119,6 +117,4 @@
 
                            [:p "Earned: " [:span (ui-utils/format-dank (:user/voter-total-earned curator))]]
                            [:p.total-earnings "Total Earnings: " [:span (ui-utils/format-dank (:user/curator-total-earned curator))]]]))
-                       doall))
-
-                ])]]]]]))))
+                       doall))])]]]]]))))

@@ -1,21 +1,21 @@
 (ns memefactory.ui.get-dank.events
-  (:require [cljs-web3.core :as web3]
-            [cljs-web3.eth :as web3-eth]
-            [district.ui.logging.events :as logging]
-            [district.ui.notification.events :as notification-events]
-            [district.ui.smart-contracts.queries :as contract-queries]
-            [district.ui.web3-accounts.queries :as account-queries]
-            [district.ui.web3-tx.events :as tx-events]
-            [district0x.re-frame.web3-fx]
-            [memefactory.ui.config :refer [config-map]]
-            [memefactory.ui.contract.meme-factory :as meme-factory]
-            [print.foo :refer [look] :include-macros true]
-            [re-frame.core :as re-frame]
-            [day8.re-frame.http-fx]
-            [ajax.core :as ajax]
-            [goog.string :as gstring]
-            [graphql-query.core :refer [graphql-query]]
-            [taoensso.timbre :as log]))
+  (:require
+    [ajax.core :as ajax]
+    [cljs-web3.core :as web3]
+    [day8.re-frame.http-fx]
+    [district.ui.logging.events :as logging]
+    [district.ui.notification.events :as notification-events]
+    [district.ui.smart-contracts.queries :as contract-queries]
+    [district.ui.web3-accounts.queries :as account-queries]
+    [district.ui.web3-tx.events :as tx-events]
+    [district0x.re-frame.web3-fx]
+    [goog.string :as gstring]
+    [graphql-query.core :refer [graphql-query]]
+    [memefactory.ui.config :refer [config-map]]
+    [print.foo :refer [look] :include-macros true]
+    [re-frame.core :as re-frame]
+    [taoensso.timbre :as log]))
+
 
 (re-frame/reg-event-fx
  ::show-spinner
@@ -23,16 +23,19 @@
    {:db (assoc db
           ::spinner true)}))
 
+
 (re-frame/reg-event-fx
  ::hide-spinner
  (fn [{:keys [db]} [_ _]]
    {:db (assoc db
           ::spinner false)}))
 
+
 (re-frame/reg-event-fx
  ::stage
  (fn [{:keys [db]} [_ stage-number]]
    {:db (assoc db :memefactory.ui.get-dank.page/stage stage-number)}))
+
 
 (re-frame/reg-event-fx
  ::get-allocated-dank
@@ -44,6 +47,7 @@
                        :on-success [::send-dank-but-only-once data]
                        :on-error [::error]}]}}))
 
+
 (re-frame/reg-event-fx
  ::send-dank-but-only-once
  (fn [{:keys [db]} [_ {:keys [country-code phone-number] :as data} resp]]
@@ -54,6 +58,7 @@
        {:db db
         :dispatch [::notification-events/show
                    "DANK already acquired bawse"]}))))
+
 
 (re-frame/reg-event-fx
  ::send-verification-code
@@ -70,6 +75,7 @@
                    :on-success      [::verification-code-success]
                    :on-failure      [::verification-code-error]}})))
 
+
 (re-frame/reg-event-fx
  ::verification-code-success
  (fn [{:keys [db]} [_ {:keys [data]}]]
@@ -84,6 +90,7 @@
        {:db db
         :dispatch [:district.ui.notification.events/show
                    "Internal error verifying the phone number"]}))))
+
 
 (re-frame/reg-event-fx
  ::encrypt-verification-payload
@@ -100,6 +107,7 @@
                    :on-success      [::encrypt-payload-success data]
                    :on-failure      [::verification-code-error]}})))
 
+
 (re-frame/reg-event-fx
  ::encrypt-payload-success
  (fn [{:keys [db]} [_ {:keys [country-code phone-number verification-code] :as data} http-resp]]
@@ -107,6 +115,7 @@
    {:db (assoc db
           ::spinner true)
     :dispatch [::verify-and-acquire-dank data http-resp]}))
+
 
 (re-frame/reg-event-fx
  ::verify-and-acquire-dank
@@ -128,10 +137,10 @@
      (log/debug "oraclize-string:" oraclize-string)
      (when encrypted-payload
        {:dispatch
-        [::tx-events/send-tx {:instance (look (contract-queries/instance db :dank-faucet))
+        [::tx-events/send-tx {:instance (contract-queries/instance db :dank-faucet)
                               :fn :verify-and-acquire-dank
-                              :args (look [(-> phone-number web3/sha3)
-                                           oraclize-string])
+                              :args [(-> phone-number web3/sha3)
+                                     oraclize-string]
                               :tx-log {:name "Request DANK"}
                               :tx-opts {:from active-account}
                               :on-tx-success-n [[::hide-spinner]
@@ -143,11 +152,13 @@
                               :on-tx-error [::logging/error
                                             [::verify-and-acquire-dank]]}]}))))
 
+
 (re-frame/reg-event-db
  ::check-dank-error
  (fn [db [_ data]]
    (log/debug "Error checking for allocated DANK:" data)
    db))
+
 
 (re-frame/reg-event-db
  ::verification-code-error

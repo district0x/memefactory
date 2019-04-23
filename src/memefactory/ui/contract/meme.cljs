@@ -1,17 +1,14 @@
 (ns memefactory.ui.contract.meme
-  (:require [cljs-web3.core :as web3]
-            [cljs-web3.eth :as web3-eth]
-            [cljs.spec.alpha :as s]
-            [district.ui.logging.events :as logging]
-            [district.ui.notification.events :as notification-events]
-            [district.ui.smart-contracts.queries :as contract-queries]
-            [district.ui.web3-accounts.queries :as account-queries]
-            [district.ui.web3-tx.events :as tx-events]
-            [district0x.re-frame.spec-interceptors :as spec-interceptors]
-            [goog.string :as gstring]
-            [print.foo :refer [look] :include-macros true]
-            [re-frame.core :as re-frame :refer [reg-event-fx]]
-            [district.ui.graphql.events :as gql-events]))
+  (:require
+    [district.ui.graphql.events :as gql-events]
+    [district.ui.logging.events :as logging]
+    [district.ui.notification.events :as notification-events]
+    [district.ui.smart-contracts.queries :as contract-queries]
+    [district.ui.web3-accounts.queries :as account-queries]
+    [district.ui.web3-tx.events :as tx-events]
+    [goog.string :as gstring]
+    [print.foo :refer [look] :include-macros true]
+    [re-frame.core :as re-frame :refer [reg-event-fx]]))
 
 (def interceptors [re-frame/trim-v])
 

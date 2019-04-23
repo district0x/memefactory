@@ -2,7 +2,6 @@
   (:require
    [akiroz.re-frame.storage :as storage]
    [cljs-solidity-sha3.core :refer [solidity-sha3]]
-   [cljs-web3.core :as web3]
    [cljs-web3.eth :as web3-eth]
    [cljs.spec.alpha :as s]
    [district.cljs-utils :as cljs-utils]
@@ -11,7 +10,6 @@
    [district.ui.smart-contracts.queries :as contract-queries]
    [district.ui.web3-accounts.queries :as account-queries]
    [district.ui.web3-tx.events :as tx-events]
-   [district0x.re-frame.spec-interceptors :as spec-interceptors]
    [goog.string :as gstring]
    [memefactory.shared.contract.registry-entry :as reg-entry]
    [print.foo :refer [look] :include-macros true]
@@ -23,6 +21,7 @@
 (storage/reg-co-fx! :my-app         ;; local storage key
                     {:fx :store     ;; re-frame fx ID
                      :cofx :store}) ;; re-frame cofx ID
+
 
 (re-frame/reg-event-fx
  ::approve-and-create-challenge
@@ -52,14 +51,18 @@
                                                      :args args
                                                      :challenge-meta challenge-meta}
                                                     ::approve-and-create-challenge]}]})))
+
+
 (re-frame/reg-event-db
  ::challenge-success
  (fn [db _] db))
 
+
 (re-frame/reg-event-fx
  ::approve-and-commit-vote
  [(re-frame/inject-cofx :store)]
- (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option :meme/title] :as args} {:keys [Hash] :as challenge-meta}]]
+ (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option :meme/title] :as args}
+                          {:keys [Hash] :as challenge-meta}]]
    (let [tx-name (gstring/format "Vote %s for %s"
                                  (if (= option :vote.option/vote-against)
                                    "stank"
@@ -84,11 +87,12 @@
                                                :related-href {:name :route.meme-detail/index
                                                               :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::approve-and-commit-vote]
-                                                        [::notification-events/show (gstring/format "Successfully voted %s for %s"
-                                                                                                    (if (= option :vote.option/vote-against)
-                                                                                                                                    "stank"
-                                                                                                                                    "dank")
-                                                                                                    title)]]
+                                                        [::notification-events/show
+                                                         (gstring/format "Successfully voted %s for %s"
+                                                                         (if (= option :vote.option/vote-against)
+                                                                           "stank"
+                                                                           "dank")
+                                                                         title)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args
@@ -96,6 +100,7 @@
                                                     ::approve-and-commit-vote]}]
       :store (assoc-in store [:votes active-account address] {:option option :salt salt})
       :db (assoc-in db [:votes active-account address] {:option option :salt salt})})))
+
 
 (re-frame/reg-event-fx
  ::reveal-vote
@@ -124,6 +129,7 @@
                                                      :challenge-meta challenge-meta}
                                                     ::reveal-vote]}]})))
 
+
 (re-frame/reg-event-fx
  ::claim-rewards
  [interceptors]
@@ -144,6 +150,7 @@
                                                     {:user {:id active-account}
                                                      :args args}
                                                     ::claim-rewards]}]})))
+
 
 (re-frame/reg-event-fx
  ::claim-vote-amount

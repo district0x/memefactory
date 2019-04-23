@@ -1,21 +1,17 @@
 (ns memefactory.ui.leaderboard.dankest-page
   (:require
+   [district.ui.component.form.input :refer [select-input]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
-   [district.ui.router.subs :as router-subs]
-   [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.components.app-layout :refer [app-layout]]
-   [district.ui.component.form.input :refer [select-input]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
-   [memefactory.ui.components.search :refer [search-tools]]
    [memefactory.ui.components.tiles :as tiles]
-   [memefactory.ui.dank-registry.events :as mk-events]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [taoensso.timbre :as log]
-   [memefactory.ui.components.panels :refer [no-items-found]]))
+   [taoensso.timbre :as log]))
 
 (def page-size 6)
 
@@ -43,6 +39,7 @@
              :meme/average-price
              :meme/highest-single-sale]]]])
 
+
 (defn dankest-memes-tiles [form-data]
   (let [meme-search (subscribe [::gql/query {:queries [(build-tiles-query nil @form-data)]}
                                 {:id @form-data}])
@@ -69,9 +66,9 @@
            (for [{:keys [:reg-entry/address] :as meme} all-memes]
              ^{:key address} [tiles/meme-tile meme])))])]))
 
+
 (defmethod page :route.leaderboard/dankest []
-  (let [active-page (subscribe [::router-subs/active-page])
-        form-data (r/atom {:order-by "total-trade-volume"})]
+  (let [form-data (r/atom {:order-by "total-trade-volume"})]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory - Dankest Memes"

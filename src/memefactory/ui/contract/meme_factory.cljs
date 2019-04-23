@@ -9,8 +9,8 @@
    [district.ui.web3-tx.events :as tx-events]
    [goog.string :as gstring]
    [re-frame.core :as re-frame]
-   [taoensso.timbre :as log :refer [spy]]
-   ))
+   [taoensso.timbre :as log :refer [spy]]))
+
 
 (re-frame/reg-event-fx
  ::approve-and-create-meme
@@ -36,7 +36,9 @@
                                                               :query {:tab "created" :term (:title data)}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::create-meme]
                                                         [::notification-events/show (gstring/format "%s was successfully submitted" (:title data))]]
-                                      :on-tx-error [::logging/error (str tx-name " tx error") {:user {:id active-account}
-                                                                                               :deposit deposit
-                                                                                               :data data
-                                                                                               :meme-meta meme-meta} ::create-meme]}]})))
+                                      :on-tx-error [::logging/error
+                                                    (str tx-name " tx error")
+                                                    {:user {:id active-account}
+                                                     :deposit deposit
+                                                     :data data
+                                                     :meme-meta meme-meta} ::create-meme]}]})))

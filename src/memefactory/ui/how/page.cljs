@@ -1,13 +1,17 @@
 (ns memefactory.ui.how.page
-  (:require [memefactory.ui.components.app-layout :refer [app-layout]]
-            [district.ui.component.page :refer [page]]
-            [memefactory.ui.components.general :refer [nav-anchor]]))
+  (:require
+    [district.ui.component.page :refer [page]]
+    [memefactory.ui.components.app-layout :refer [app-layout]]
+    [memefactory.ui.components.general :refer [nav-anchor]]))
+
 
 (defn youtube-video [id]
   [:iframe.video {:width 560 :height 315 :src (str "https://www.youtube.com/embed/" id)}])
 
+
 (defn a [href text]
   [:a {:href href :target :_blank} text])
+
 
 (defmethod page :route.how-it-works/index []
   [app-layout

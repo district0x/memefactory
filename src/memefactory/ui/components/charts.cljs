@@ -1,6 +1,8 @@
 (ns memefactory.ui.components.charts
-  (:require [cljsjs.d3]
-            [reagent.core :as r]))
+  (:require
+    [cljsjs.d3]
+    [reagent.core :as r]))
+
 
 (defn donut-chart [{:keys [:reg-entry/address :challenge/votes-for :challenge/votes-against :challenge/votes-total]}]
   (r/create-class

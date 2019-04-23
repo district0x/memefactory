@@ -1,28 +1,23 @@
 (ns memefactory.ui.components.app-layout
   (:require
-    [cljs-web3.core :as web3]
-    [district.format :as format]
     [district.ui.component.active-account :refer [active-account]]
-    [district.ui.component.active-account-balance :refer [active-account-balance] :as account-balances]
-    [district.ui.component.form.input :as inputs :refer [text-input*]]
+    [district.ui.component.active-account-balance :refer [active-account-balance]]
+    [district.ui.component.form.input :refer [text-input*]]
     [district.ui.component.meta-tags :as meta-tags]
     [district.ui.component.notification :as notification]
     [district.ui.component.tx-log :refer [tx-log]]
-    [district.ui.mobile.subs :as mobile-subs]
     [district.ui.graphql.subs :as gql]
-    [district.ui.router.events :as router-events]
+    [district.ui.mobile.subs :as mobile-subs]
     [district.ui.router.subs :as router-subs]
     [district.ui.web3-accounts.subs :as accounts-subs]
-    [district.ui.web3-tx-log.events :as tx-log-events]
     [district.ui.web3-tx-log.subs :as tx-log-subs]
-    [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.components.account-balances :refer [account-balances]]
+    [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.subs :as mf-subs]
-    [memefactory.ui.utils :as mf-utils]
-    [memefactory.ui.utils :as ui-utils]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
     [taoensso.timbre :as log :refer [spy]]))
+
 
 (def nav-menu-items [{:text "Marketplace"
                       :route :route.marketplace/index
@@ -74,12 +69,12 @@
                       :needs-account? true}])
 
 
-
 (defn search-form [form-data]
   [:div.search
    [text-input* {:form-data form-data
                  :id :term}]
    [:div.go-button]])
+
 
 (defn app-bar-mobile [drawer-open?]
   (let [open? (r/atom nil)]
@@ -92,6 +87,7 @@
          {:on-click (fn [e]
                       (.stopPropagation e)
                       (swap! drawer-open? not))}]]])))
+
 
 (defn app-bar [{:keys [search-atom]}]
   (let [open? (r/atom nil)
@@ -111,8 +107,6 @@
         (when (seq @accounts)
           [account-balances {:with-tx-logs? true}])]])))
 
-(defn current-page? [a b]
-  (= a b))
 
 (defn district0x-banner []
   [:div.district0x-banner
@@ -122,6 +116,7 @@
     {:href "https://district0x.io"
      :target :_blank}
     "district0x Network"]])
+
 
 (defn app-menu
   ([items active-page] (app-menu items active-page 0))

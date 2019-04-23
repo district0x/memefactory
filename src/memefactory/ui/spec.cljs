@@ -6,7 +6,6 @@
 (s/def ::int integer?)
 (s/def ::pos pos?)
 
-(s/def ::pos-int (s/and ::int ::pos))
 (s/def ::challenge-comment (s/and ::str ::not-empty?))
 
 (defn check [type data]

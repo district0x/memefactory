@@ -83,9 +83,7 @@
         account-balance (subscribe [::balance-subs/active-account-balance :DANK])]
 
     (fn []
-
       (log/debug "@form-data" @form-data)
-
       [app-layout
        {:meta {:title "MemeFactory - Submit to Dank Registry"
                :description "Submit a new meme to the registry for consideration. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}

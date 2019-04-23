@@ -3,26 +3,22 @@
    [cljs-time.core :as t]
    [cljs-time.extend]
    [district.format :as format]
+   [district.graphql-utils :as gql-utils]
    [district.time :as time]
    [district.ui.component.form.input :refer [select-input with-label]]
    [district.ui.graphql.subs :as gql]
-   [goog.string :as gstring]
    [district.ui.now.subs]
-   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
-   [memefactory.ui.components.tiles :as tiles]
-   [memefactory.ui.components.tiles :refer [meme-image]]
-   [memefactory.ui.utils :as mf-utils]
-   [memefactory.ui.utils :as utils]
-   [memefactory.ui.components.spinner :as spinner]
-   [district.graphql-utils :as gql-utils]
-   [print.foo :refer [look] :include-macros true]
-   [re-frame.core :as re-frame :refer [subscribe dispatch]]
-   [reagent.core :as r]
-   [taoensso.timbre :as log :refer [spy]]
-   [district.ui.router.events :as router-events]
-   [memefactory.ui.components.panels :refer [no-items-found]]
    [district.ui.web3-accounts.subs :as accounts-subs]
-   [memefactory.ui.components.general :refer [nav-anchor]]))
+   [goog.string :as gstring]
+   [memefactory.ui.components.general :refer [nav-anchor]]
+   [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
+   [memefactory.ui.components.panels :refer [no-items-found]]
+   [memefactory.ui.components.spinner :as spinner]
+   [memefactory.ui.components.tiles :as tiles :refer [meme-image]]
+   [print.foo :refer [look] :include-macros true]
+   [re-frame.core :refer [subscribe dispatch]]
+   [reagent.core :as r]
+   [taoensso.timbre :as log :refer [spy]]))
 
 (def page-size 6)
 
@@ -66,6 +62,7 @@
                                        [:challenge/reward-amount
                                         :vote/reward-amount]]]))]]]))
 
+
 (defn creator-info [user]
   [:ol {:class :creator}
    [:li "Rank: " [:span (if-let [rank (:user/creator-rank user)] (str "#" rank) "N/A")]]
@@ -82,6 +79,7 @@
                  :class (str "address " (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
                                           "active-address"))}
      (-> user :user/address)]]])
+
 
 (defn challenger-info [user]
   [:ol {:class :challenger}
@@ -100,16 +98,17 @@
                                           "active-address"))}
      (-> user :user/address)]]])
 
-(defn current-period-ends [label end-date]
 
+(defn current-period-ends [label end-date]
   (let [{:keys [days hours minutes seconds] :as time-remaining} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                                     (utils/gql-date->date end-date))]
+                                                                                     (gql-utils/gql-date->date end-date))]
     (if (= 0 days hours minutes seconds)
       [:li (str label " period ended.")]
 
       [:li (str label " period ends in: ")
        [:span (-> time-remaining
-                  format/format-time-units)]])))
+                format/format-time-units)]])))
+
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child]}]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
@@ -123,7 +122,7 @@
                                       :reg-entry.status/reveal-period    ["Reveal" reveal-period-end]
                                       nil)
           {:keys [days hours minutes seconds] :as time-remaining} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                                       (utils/gql-date->date period-end))]
+                                                                                       (gql-utils/gql-date->date period-end))]
       [:div.challenge
        (cond-> [:div.info
                 [nav-anchor {:route :route.meme-detail/index
@@ -132,13 +131,15 @@
                  [:h2 title]]
 
                 [:ol.meme
-                 [:li "Created: " [:span (let [formated-time (-> (time/time-remaining (t/date-time (utils/gql-date->date created-on)) (t/now))
+                 [:li "Created: "
+                  [:span (let [formated-time (-> (time/time-remaining (t/date-time (gql-utils/gql-date->date created-on))
+                                                                      (t/now))
 
-                                                                 (dissoc :seconds)
-                                                                 format/format-time-units)]
-                                           (if-not (empty? formated-time)
-                                             (str formated-time " ago")
-                                             "less than a minute ago"))]]
+                                               (dissoc :seconds)
+                                               format/format-time-units)]
+                           (if-not (empty? formated-time)
+                             (str formated-time " ago")
+                             "less than a minute ago"))]]
 
 
                  (if period-end
@@ -175,6 +176,7 @@
                  (not (#{:reg-entry.status/whitelisted :reg-entry.status/blacklisted} status)))
           [:span.period-ended (str period-label " period ended.")]
           [action-child entry])]])))
+
 
 (defn meme-tiles [meme-search re-search {:keys [:include-challenger-info? :action-child]}]
   (let [all-memes (->> @meme-search
