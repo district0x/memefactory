@@ -1,6 +1,7 @@
 (ns memefactory.ui.leaderboard.collectors-page
   (:require
    [district.format :as format]
+   [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
    [district.ui.component.form.input :refer [select-input with-label]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
@@ -38,11 +39,11 @@
                  [:meme-token/meme
                   [:meme/title]]]]]]]]]])
 
-(defn collectors-tile [{:keys [:user/address :user/largest-sale
+(defn collectors-tile [{:keys [:user/address :user/largest-buy
                                :user/total-collected-memes :user/total-collected-token-ids] :as collector}
                        {:keys [:total-memes-count :total-tokens-count]}
                        num]
-  (let [meme (-> largest-sale
+  (let [meme (-> largest-buy
                  :meme-auction/meme-token
                  :meme-token/meme)]
     [:div.user-tile {:class (when (= @(subscribe [::accounts-subs/active-account]) address) "account-tile")}
@@ -62,9 +63,9 @@
                                                               total-collected-token-ids
                                                               total-tokens-count)]]
       (when (:meme/title meme)
-        [:li "Largest Buy: " [:span.best-sale (gstring/format "%f ETH (#%d %s)"
-                                                              (-> largest-sale :meme-auction/bought-for)
-                                                              (-> largest-sale
+        [:li "Largest Buy: " [:span.best-sale (gstring/format "%f (#%d %s)"
+                                                              (format-price (-> largest-buy :meme-auction/bought-for))
+                                                              (-> largest-buy
                                                                   :meme-auction/meme-token
                                                                   :meme-token/number)
                                                               (:meme/title meme))]])]]))
