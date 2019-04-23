@@ -24,7 +24,8 @@
              :url "http://localhost:6300/graphql"}
    :ipfs {:host "http://127.0.0.1:5001"
           :endpoint "/api/v0"}
-   :router {:html5? false}})
+   :router {:html5? false}
+   :router-google-analytics {:enabled? false}})
 
 (def qa-config
   {:logging {:level :warn
@@ -40,7 +41,8 @@
    :graphql {:schema graphql-schema
              :url "http://qa.district0x.io:6300/graphql"}
    :ipfs {:host "http://qa.district0x.io:5001" :endpoint "/api/v0"}
-   :router {:html5? true}})
+   :router {:html5? true}
+   :router-google-analytics {:enabled? false}})
 
 (def qa-dev-config (assoc-in qa-config [:router :html5?] false))
 
@@ -58,7 +60,8 @@
    :graphql {:schema graphql-schema
              :url "http://memefactory.io:6300/graphql"}
    :ipfs {:host "http://memefactory.io:5001" :endpoint "/api/v0"}
-   :router {:html5? true}})
+   :router {:html5? true}
+   :router-google-analytics {:enabled? true}})
 
 (def config-map
   (condp = (get-environment)

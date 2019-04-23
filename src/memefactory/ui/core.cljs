@@ -82,7 +82,6 @@
                             :router {:routes routes
                                      :default-route :route/home
                                      :scroll-top? true}
-                            :router-google-analytics {:enabled? nil #_(not debug?)}
                             :notification {:default-show-duration 3000
                                            :default-hide-duration 1000}})]
     (js/console.log "Entire config:" (clj->js full-config))
