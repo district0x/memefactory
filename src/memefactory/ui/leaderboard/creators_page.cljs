@@ -107,7 +107,7 @@
 
 
 (defmethod page :route.leaderboard/creators []
-  (let [form-data (r/atom {:order-by "total-earned"})]
+  (let [form-data (r/atom {:order-by "total-created-memes-whitelisted"})]
     (fn []
       (let [order-by (keyword "users.order-by" (:order-by @form-data))
             re-search-users (fn [after]
@@ -134,5 +134,5 @@
                  :id :order-by
                  :options [{:key "total-earned" :value "by earnings"}
                            {:key "best-single-card-sale" :value "by single card sale"}
-                           {:key "total-created-memes-whitelisted" :value "by created memes"}]}])]
+                           {:key "total-created-memes-whitelisted" :value "by memes in registry"}]}])]
             [creators-tiles users-search re-search-users]]]]]))))

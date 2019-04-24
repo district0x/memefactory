@@ -932,8 +932,8 @@
 (defn creator-rank []
   (let [users-whitelisted-memes (->> (db/all {:select [:re.reg-entry/creator [(sql/call :count :*) :count] [(reg-entry-status-sql-clause (utils/now-in-seconds)) :status]]
                                               :from [[:reg-entries :re]]
-                                              :group-by [:status]
-                                              :having [:= :status (graphql-utils/kw->gql-name :reg-entry.status/whitelisted)]})
+                                              :where [:= :status (graphql-utils/kw->gql-name :reg-entry.status/whitelisted)]
+                                              :group-by [:re.reg-entry/creator]})
                                      (map (fn [{:keys [:reg-entry/creator :count]}] [creator count]))
                                      (into {}))]
     (->> (all-users)
