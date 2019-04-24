@@ -35,7 +35,9 @@
                [:meme-auction/meme-token
                 [:meme-token/number
                  [:meme-token/meme
-                  [:meme/title]]]]]]]]]])
+                  [:meme/title
+                   :meme/number
+                   :reg-entry/address]]]]]]]]]])
 
 
 (defn collectors-tile [{:keys [:user/address :user/largest-buy :user/total-collected-memes :user/total-collected-token-ids] :as collector}
@@ -61,12 +63,13 @@
                                                               total-collected-token-ids
                                                               total-tokens-count)]]
       (when (:meme/title meme)
-        [:li "Largest Buy: " [:span.best-sale (gstring/format "%f (#%d %s)"
-                                                              (format-price (-> largest-buy :meme-auction/bought-for))
-                                                              (-> largest-buy
-                                                                  :meme-auction/meme-token
-                                                                  :meme-token/number)
-                                                              (:meme/title meme))]])]]))
+        [:li "Largest Buy: " [nav-anchor {:route :route.meme-detail/index
+                                          :params {:address (:reg-entry/address meme)}
+                                          :query nil}
+                              [:span.best-sale (gstring/format "%f (#%d %s)"
+                                                               (format-price (-> largest-buy :meme-auction/bought-for))
+                                                               (:meme/number meme)
+                                                               (:meme/title meme))]]])]]))
 
 
 (defmethod page :route.leaderboard/collectors []

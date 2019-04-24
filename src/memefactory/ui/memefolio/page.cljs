@@ -18,6 +18,7 @@
     [district.ui.router.subs :as router-subs]
     [district.ui.web3-accounts.subs :as accounts-subs]
     [district.ui.web3-tx-id.subs :as tx-id-subs]
+    [goog.string :as gstring]
     [memefactory.ui.components.app-layout :refer [app-layout]]
     [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
@@ -346,6 +347,8 @@
                                                               [:meme-token/token-id
                                                                [:meme-token/meme
                                                                 [:meme/title
+                                                                 :reg-entry/address
+                                                                 :meme/number
                                                                  :meme/image-hash
                                                                  :meme/total-minted]]]]]]]]
                                        [:search-memes [:total-count]]
@@ -372,7 +375,13 @@
        [:div.var
         [:b "Largest buy: "]
         (if (and bought-for token-id title)
-          [:span (str (ui-utils/format-price bought-for))]
+          [nav-anchor {:route :route.meme-detail/index
+                       :params {:address (:reg-entry/address meme)}
+                       :query nil}
+           [:span (gstring/format "%f (#%d %s)"
+                                  (ui-utils/format-price bought-for)
+                                  (:meme/number meme)
+                                  (:meme/title meme))]]
           [:span "None"])]])))
 
 

@@ -197,6 +197,7 @@
        :font-size (px 12)
        :display :flex
        :white-space :nowrap}
+      [:a {:color (color :menu-text)}]
       [">b"
        {:padding-right (em 0.3)}]]
      [:.curator

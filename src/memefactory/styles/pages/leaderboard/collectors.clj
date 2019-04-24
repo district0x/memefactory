@@ -56,7 +56,8 @@
        [:.user-tile
         {:min-width (em 18)}
         [:&.account-tile {:background-color (color :light-green)}]
-        [:ul {:line-height (em 2)}]
+        [:ul {:line-height (em 2)}
+         [:a {:color (color :menu-text)}]]
         ["> *"
          {:display :block
           :margin-bottom (em 0.5)
