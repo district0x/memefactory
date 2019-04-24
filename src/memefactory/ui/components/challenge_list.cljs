@@ -208,27 +208,25 @@
 
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
   (let [form-data (r/atom {:order-by (-> sort-options first :key)
-                           :order-dir (-> sort-options first :dir (or :desc))})
+                           :order-dir (-> sort-options first :dir (or :desc))})]
+    (fn [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
+      (let [params {:data @form-data
+                    :include-challenger-info? include-challenger-info?
+                    :query-params query-params
+                    :active-account active-account}
 
-        params {:data @form-data
-                :include-challenger-info? include-challenger-info?
-                :query-params query-params
-                :active-account active-account}
+            meme-search (subscribe [::gql/query {:queries [(build-challenge-query params)]}
+                                    {:id {:params params :key key}}])
 
-        meme-search (subscribe [::gql/query {:queries [(build-challenge-query params)]}
-                                {:id {:params params :key key}}])
-
-        re-search (fn [after]
-                    (dispatch [:district.ui.graphql.events/query
-                               {:query {:queries [(build-challenge-query (assoc params :after after))]}
-                                :id {:params params :key key}}]))]
-    (fn []
-      [:div.challenges.panel
-       [:div.controls
-        [select-input {:form-data form-data
-                       :class :white-select
-                       :id :order-by
-                       :options sort-options
-                       :on-change #(re-search nil)}]]
-       [meme-tiles meme-search re-search {:include-challenger-info? include-challenger-info?
-                                          :action-child action-child}]])))
+            re-search (fn [after]
+                        (dispatch [:district.ui.graphql.events/query
+                                   {:query {:queries [(build-challenge-query (assoc params :after after))]}
+                                    :id {:params params :key key}}]))]
+        [:div.challenges.panel
+        [:div.controls
+         [select-input {:form-data form-data
+                        :class :white-select
+                        :id :order-by
+                        :options sort-options}]]
+        [meme-tiles meme-search re-search {:include-challenger-info? include-challenger-info?
+                                           :action-child action-child}]]))))
