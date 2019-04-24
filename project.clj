@@ -43,6 +43,7 @@
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
                  [district0x/district-ui-graphql "1.0.9"]
+                 [district0x/district-ui-ipfs "1.0.0"]
                  [district0x/district-ui-logging "1.0.4"]
                  [district0x/district-ui-mobile "1.0.0"]
                  [district0x/district-ui-notification "1.0.1"]
