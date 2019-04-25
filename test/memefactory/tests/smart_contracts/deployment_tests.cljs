@@ -21,7 +21,7 @@
             [memefactory.server.contract.registry :as registry]
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.server.macros :refer [promise->]]
-            [memefactory.shared.smart-contracts :refer [smart-contracts]]
+            [memefactory.shared.smart-contracts-dev :refer [smart-contracts]]
             [memefactory.tests.smart-contracts.utils :refer [now create-before-fixture after-fixture]]
             [print.foo :include-macros true]))
 

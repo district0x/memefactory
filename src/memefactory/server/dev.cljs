@@ -39,9 +39,12 @@
     [memefactory.server.syncer :as syncer]
     [memefactory.server.utils :as server-utils]
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
-    [memefactory.shared.smart-contracts]
+    [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
+    [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
+    [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
     [mount.core :as mount]
-    [taoensso.timbre :as log]))
+    [taoensso.timbre :as log])
+  (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
 (nodejs/enable-util-print!)
 
@@ -152,6 +155,15 @@
                      #'district.server.smart-contracts/smart-contracts)
       (log/info "Finished syncing database"))))
 
+
+(def contracts-var
+  (condp = (get-environment)
+    "prod" #'smart-contracts-prod/smart-contracts
+    "qa" #'smart-contracts-qa/smart-contracts
+    "qa-dev" #'smart-contracts-qa/smart-contracts
+    "dev" #'smart-contracts-dev/smart-contracts))
+
+
 (defn start []
   (-> (mount/with-args
         {:config {:default {:logging {:level "info"
@@ -170,7 +182,7 @@
                             :ipfs {:host "http://127.0.0.1:5001"
                                    :endpoint "/api/v0"
                                    :gateway "http://127.0.0.1:8080/ipfs"}
-                            :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
+                            :smart-contracts {:contracts-var contracts-var}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
                             :ui {:public-key "PLACEHOLDER"
                                  :root-url "http://0.0.0.0:4598/#/"}
