@@ -38,7 +38,11 @@ env:
 services:
   - docker
 deploy:
-  provider: script
-  script: bash docker-push.sh
-  on:
-    branch: master
+  - provider: script
+    script: bash docker-push.sh qa
+    on:
+      branch: master
+  - provider: script
+    script: bash docker-push.sh production
+    on:
+      branch: production
