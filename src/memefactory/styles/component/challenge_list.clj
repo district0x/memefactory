@@ -13,9 +13,12 @@
 (defstyles core
   [:.challenges.panel
    [:.scroll-area
-    {:margin-top (em 2)
+    {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+     :border-radius "1em 1em 1em 1em"
+     :overflow :hidden
+     :background-color (color :meme-panel-bg)
      :padding-top (em 1)}]
-   [:.spinner-container {:width (px 900)
+   [:.spinner-container {:width "100%"
                          :height (px 500)}
     [:.spinner-outer {:margin-left :auto
                       :margin-right :auto
