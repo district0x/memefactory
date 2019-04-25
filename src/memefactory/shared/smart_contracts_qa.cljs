@@ -1,4 +1,4 @@
-(ns memefactory.shared.smart-contracts)
+(ns memefactory.shared.smart-contracts-qa)
 
 (def smart-contracts
   {:district-config

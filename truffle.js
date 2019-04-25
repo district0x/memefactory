@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  smart_contracts_path: __dirname + '/src/memefactory/shared/smart_contracts.cljs',
+  smart_contracts_path: __dirname + '/src/memefactory/shared/smart_contracts_dev.cljs',
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
   parameters : {
     memeRegistryDb : {challengePeriodDuration : 600, // seconds

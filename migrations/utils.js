@@ -41,7 +41,7 @@ const utils = {
   },
 
   smartContractsTemplate: (map) => {
-    return `(ns memefactory.shared.smart-contracts)
+    return `(ns memefactory.shared.smart-contracts-dev)
 
   (def smart-contracts
     ${map})

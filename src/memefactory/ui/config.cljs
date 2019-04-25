@@ -5,16 +5,23 @@
    [district.ui.logging.events :as logging]
    [graphql-query.core :refer [graphql-query]]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
+   [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
+   [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
+   [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
    [mount.core :refer [defstate]]
    [re-frame.core :as re-frame]
    [taoensso.timbre :as log])
-  (:require-macros [memefactory.ui.utils :refer [get-environment]]))
+  (:require-macros [memefactory.shared.utils :refer [get-environment]]))
+
+(def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
 
 (def development-config
   {:debug? true
    :logging {:level :debug
              :console? true}
    :time-source :js-date
+   :smart-contracts {:contracts (apply dissoc smart-contracts-dev/smart-contracts skipped-contracts)}
+   :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK])}
    :web3 {:url "http://localhost:8549"}
    :web3-tx-log {:disable-using-localstorage? true
                  :open-on-tx-hash? true
@@ -33,6 +40,8 @@
              :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"
                       :environment "QA"}}
    :time-source :js-date
+   :smart-contracts {:contracts (apply dissoc smart-contracts-qa/smart-contracts skipped-contracts)}
+   :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK])}
    :web3 {:url "http://qa.district0x.io:8545"}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
@@ -52,6 +61,8 @@
              :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"
                       :environment "PRODUCTION"}}
    :time-source :js-date
+   :smart-contracts {:contracts (apply dissoc smart-contracts-prod/smart-contracts skipped-contracts)}
+   :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK])}
    :web3 {:url "http://memefactory.io:8545"}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true

@@ -1,4 +1,4 @@
-(ns memefactory.ui.utils)
+(ns memefactory.shared.utils)
 
 (defmacro get-environment []
   (let [env (or (System/getenv "MEMEFACTORY_ENV") "dev")]

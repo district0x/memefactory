@@ -24,7 +24,6 @@
    [memefactory.shared.contract.registry-entry]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.routes :refer [routes]]
-   [memefactory.shared.smart-contracts :refer [smart-contracts]]
    [memefactory.ui.about.page]
    [memefactory.ui.config :as config]
    [memefactory.ui.config :refer [config-map]]
@@ -72,9 +71,7 @@
   (dev-setup)
   (let [full-config (cljs-utils/merge-in
                       config-map
-                      {:smart-contracts {:contracts (apply dissoc smart-contracts skipped-contracts)
-                                         :format :truffle-json}
-                       :web3-balances {:contracts (select-keys smart-contracts [:DANK])}
+                      {:smart-contracts {:format :truffle-json}
                        :web3-account-balances {:for-contracts [:ETH :DANK]}
                        :web3-tx-log {:open-on-tx-hash? true}
                        :reagent-render {:id "app"

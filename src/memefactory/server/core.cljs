@@ -22,11 +22,21 @@
    [memefactory.server.sigterm]
    [memefactory.server.syncer]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
-   [memefactory.shared.smart-contracts]
+   [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
+   [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
+   [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
    [mount.core :as mount]
-   [taoensso.timbre :as log]))
+   [taoensso.timbre :as log])
+  (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
 (nodejs/enable-util-print!)
+
+(def contracts-var
+  (condp = (get-environment)
+    "prod" #'smart-contracts-prod/smart-contracts
+    "qa" #'smart-contracts-qa/smart-contracts
+    "qa-dev" #'smart-contracts-qa/smart-contracts
+    "dev" #'smart-contracts-dev/smart-contracts))
 
 (defn -main [& _]
   (-> (mount/with-args
@@ -43,7 +53,7 @@
                                       :graphiql false}
                             :web3 {:url "localhost:8545"}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
-                            :smart-contracts {:contracts-var #'memefactory.shared.smart-contracts/smart-contracts}
+                            :smart-contracts {:contracts-var contracts-var}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
                             :web3-watcher {:on-online (fn []
                                                         (log/warn "Ethereum node went online again" ::web3-watcher)

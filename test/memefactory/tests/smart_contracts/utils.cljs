@@ -6,7 +6,7 @@
    [cljs-web3.eth :as web3-eth]
    [cljs.test :refer-macros [deftest is testing run-tests use-fixtures async]]
    [district.server.web3 :refer [web3]]
-   [memefactory.shared.smart-contracts :refer [smart-contracts]]
+   [memefactory.shared.smart-contracts-dev :refer [smart-contracts]]
    [district.server.smart-contracts :refer [instance]]
    [mount.core :as mount]
    [cljs.core.async :as async :refer-macros [go]]))
