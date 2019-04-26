@@ -12,12 +12,6 @@
 
 (defstyles core
   [:.challenges.panel
-   [:.scroll-area
-    {:box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
-     :border-radius "1em 1em 1em 1em"
-     :overflow :hidden
-     :background-color (color :meme-panel-bg)
-     :padding-top (em 1)}]
    [:.spinner-container {:width "100%"
                          :height (px 500)}
     [:.spinner-outer {:margin-left :auto
@@ -43,10 +37,10 @@
                      :padding-top (em 1)
                      :width "100% !important"
                      :top (em -1)}])]
-   [:.no-items {:height (em 41)
-                :background-color :white
-                :border-radius (em 0.6)
-                :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}]
+   [:.no-items-found :.spinner-container
+    {:background-color :white
+     :border-radius (em 0.6)
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}]
    [:.challenge
     {:display :grid
      :grid-template "'info image action'"
