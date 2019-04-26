@@ -51,7 +51,7 @@
                                       :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
                                       :graphiql false}
-                            :web3 {:url "localhost:8545"}
+                            :web3 {:url "http://localhost:8545"}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var contracts-var}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}

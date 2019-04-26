@@ -42,14 +42,15 @@
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-qa/smart-contracts skipped-contracts)}
    :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK])}
-   :web3 {:url "http://qa.district0x.io:8545"}
+   :web3 {:url "http://ropsten.district0x.io"}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
                  :etherscan-url "https://ropsten.etherscan.io"}
    :graphql {:schema graphql-schema
-             :url "http://qa.district0x.io:6300/graphql"}
-   :ipfs {:host "http://qa.district0x.io:5001" :endpoint "/api/v0"}
+             :url "http://api.memefactory.qa.district0x.io/graphql"}
+   :ipfs {:host "http://ipfs.qa.district0x.io/api"
+          :endpoint "/api/v0"}
    :router {:html5? true}
    :router-google-analytics {:enabled? false}})
 
@@ -63,14 +64,15 @@
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-prod/smart-contracts skipped-contracts)}
    :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK])}
-   :web3 {:url "http://memefactory.io:8545"}
+   :web3 {:url "https://mainnet.district0x.io"}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
                  :etherscan-url "https://etherscan.io"}
    :graphql {:schema graphql-schema
-             :url "http://memefactory.io:6300/graphql"}
-   :ipfs {:host "http://memefactory.io:5001" :endpoint "/api/v0"}
+             :url "https://api.memefactory.io/graphql"}
+   :ipfs {:host "https://ipfs.district0x.io/api"
+          :endpoint "/api/v0"}
    :router {:html5? true}
    :router-google-analytics {:enabled? true}})
 
