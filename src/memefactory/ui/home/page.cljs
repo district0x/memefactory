@@ -76,10 +76,7 @@
                                     [:hr]
                                     [:div.description comment]
                                     [:div.input
-                                     [nav-anchor {:route :route.meme-detail/index
-                                                  :params {:address address}
-                                                  :query nil
-                                                  :class "details-button"}
+                                     [nav-anchor {:route :route.dank-registry/vote}
                                       [:button.vote "Vote"]]]]]}]
      [nav-anchor {:route :route.meme-detail/index
                   :params {:address address}}

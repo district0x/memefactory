@@ -147,8 +147,8 @@
                      [:li (str period-label " period ended.")]
 
                      [:li (str period-label " period ends in: ")
-                      [:span (-> time-remaining
-                                 format/format-time-units)]])
+                      [:span.time-remaining (-> time-remaining
+                                              format/format-time-units)]])
                    [:li ""])
                  [:li "Issued: " [:span total-supply]]]
                 [:h3 "Creator"]
@@ -157,17 +157,17 @@
                   [:p.meme-comment (str "\"" (:meme/comment entry) "\"")])]
          include-challenger-info? (into [[:h3.challenger "Challenger"]
                                          [challenger-info challenger]])
-         true                     (into [[:span.challenge-comment (when-not (empty? comment)
-                                                                    (str "\""comment "\""))]
-                                         [:ol.tags
-                                          (for [{:keys [:tag/name]} tags]
-                                            [nav-anchor {:route :route.marketplace/index
-                                                         :params nil
-                                                         :query {:search-tags [name]}
-                                                         :class "tag"
-                                                         :key name}
-                                             [:li.tag {:key name}
-                                              name]])]]))
+         true (into [[:span.challenge-comment (when-not (empty? comment)
+                                                (str "\"" comment "\""))]
+                     [:ol.tags
+                      (for [{:keys [:tag/name]} tags]
+                        [nav-anchor {:route :route.marketplace/index
+                                     :params nil
+                                     :query {:search-tags [name]}
+                                     :class "tag"
+                                     :key name}
+                         [:li.tag {:key name}
+                          name]])]]))
 
        [:div.meme-tile
         [tiles/meme-image image-hash {:rejected? (= status :reg-entry.status/blacklisted)}]]
