@@ -194,12 +194,12 @@
       :width (px card-width)
       :color (color :meme-info-text)
       :grid-template-areas "
-                '.           .           details-button'
-                'logo        logo        logo'
-                'data        data        data'
-                'hard-rule   hard-rule   hard-rule'
-                'description description description'
-                'input       input       input'"
+                'numbers-info .           details-button'
+                'logo         logo        logo'
+                'data         data        data'
+                'hard-rule    hard-rule   hard-rule'
+                'description  description description'
+                'input        input       input'"
       :grid-template-rows "40px 60px 165px 0.8em 1fr 87px"
       :grid-template-columns "1fr 1fr 1fr"
       :background overlay-background}
@@ -219,6 +219,17 @@
       {:font-size (em 0.9)
        :text-decoration :underline
        :color :white}]]
+
+    [:.numbers-info
+     (font :bungee)
+     {:color (color :yellow)
+      :padding-top (px 15)
+      :margin-left (px -18)
+      :grid-area :numbers-info}
+     [:.registry-number
+      {:font-size (em 1.2)}]
+     [:.card-number
+      {:font-size (em 0.9)}]]
 
     [:.meme-data
      {:grid-area :data
@@ -281,15 +292,16 @@
                :color :light-light-grey
                :width (em 9)
                :height (em 3)})
-      [:&.buy:after {:content "' '"
-                     :height (em 1)
-                     :width (em 1)
-                     :display :inline-block
-                     :background-position "0 0.3em"
-                     :margin-left (em 1)
-                     :background-size "1em, 1em"
-                     :background-repeat "no-repeat"
-                     :background-image "url(/assets/icons/arrow-white-right.svg)"}]]]]
+      [:&.buy:after :&.vote:after
+       {:content "' '"
+        :height (em 1)
+        :width (em 1)
+        :display :inline-block
+        :background-position "0 0.17em"
+        :margin-left (em 0.7)
+        :background-size "1em, 1em"
+        :background-repeat "no-repeat"
+        :background-image "url(/assets/icons/arrow-white-right.svg)"}]]]]
 
    [:.remove-purple-footer
     {:background (str overlay-background " !important")}]

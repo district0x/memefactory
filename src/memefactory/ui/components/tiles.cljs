@@ -10,6 +10,7 @@
     [district.ui.mobile.subs :as mobile-subs]
     [district.ui.now.subs]
     [district.ui.web3-tx-id.subs :as tx-id-subs]
+    [goog.string :as gstring]
     [memefactory.shared.utils :as shared-utils]
     [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.contract.meme-auction :as meme-auction]
@@ -70,6 +71,28 @@
        [:div.flippable-tile-back {:on-click handle-click} back]])))
 
 
+(defn numbers-info [{:keys [:meme/number :meme/total-minted] :as args}]
+  (let [token-number (:meme-token/number args)]
+    [:div.numbers-info
+     (when number
+       [:div.registry-number "#" number])
+     (when (and token-number total-minted)
+       [:div.card-number (gstring/padNumber token-number (count (str total-minted))) "/" total-minted])]))
+
+
+(defn view-details-link [{:keys [:address]}]
+  [nav-anchor {:route :route.meme-detail/index
+               :params {:address address}
+               :query nil
+               :class "details-button"}
+   [:span "View Details"]])
+
+
+(defn logo []
+  [:div.logo
+   [:img {:src "/assets/icons/mf-logo.svg"}]])
+
+
 (defn auction-back-tile [opts meme-auction]
   (let [tx-id (str (:meme-auction/address meme-auction) "auction")
         active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
@@ -80,25 +103,30 @@
         cancel-tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme-auction/cancel tx-id}])
         buy-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme-auction/buy tx-id}])
         cancel-tx-success? (subscribe [::tx-id-subs/tx-success? {:meme-auction/cancel tx-id}])]
-    (fn [opts {:keys [:meme-auction/description] :as meme-auction}]
+    (fn [_ {:keys [:meme-auction/description] :as meme-auction}]
       (let [remaining (-> (time/time-remaining (t/date-time @now)
                                                end-time)
                           (dissoc :seconds))
             price (shared-utils/calculate-meme-auction-price (-> meme-auction
                                                                  (update :meme-auction/started-on #(.getTime (gql-utils/gql-date->date %))))
                                                              (.getTime @now))
-            title (-> meme-auction :meme-auction/meme-token :meme-token/meme :meme/title)
+            meme-token (:meme-auction/meme-token meme-auction)
+            meme (:meme-token/meme meme-token)
+            title (-> meme-token :meme-token/meme :meme/title)
             seller-address (:user/address (:meme-auction/seller meme-auction))
             meme-address (-> meme-auction :meme-auction/meme-token :meme-token/meme :reg-entry/address)]
         [:div.meme-card
          [:div.overlay
-          [:div.logo
-           [:img {:src "/assets/icons/mf-logo.svg"}]]
 
-          [nav-anchor {:route :route.meme-detail/index
-                       :params {:address meme-address}
-                       :class "details-button"}
-           [:span "View Details"]]
+          [numbers-info {:meme/number (:meme/number meme)
+                         :meme-token/number (:meme-token/number meme-token)
+                         :meme/total-minted (:meme/total-minted meme)}]
+
+          [logo]
+
+          [view-details-link
+           {:address meme-address}]
+
           [:ul.meme-data
            [:li [:label "Seller:"]
             [nav-anchor {:route :route.memefolio/index
@@ -160,7 +188,7 @@
          [nav-anchor {:route :route.meme-detail/index
                       :params {:address (-> meme-token :meme-token/meme :reg-entry/address)}}
           [:div.footer
-           [:div.token-id (str "#"(-> meme-token :meme-token/meme :meme/number))]
+           [:div.token-id (str "#" (-> meme-token :meme-token/meme :meme/number))]
            [:div.title (-> meme-token :meme-token/meme :meme/title)]
            [:div.number-minted (str "card #" (:meme-token/number meme-token)
                                     "/"
@@ -178,12 +206,15 @@
         meme-address (-> meme :reg-entry/address)]
     [:div.meme-card
      [:div.overlay
-      [:div.logo
-       [:img {:src "/assets/icons/mf-logo.svg"}]]
-      [nav-anchor {:route :route.meme-detail/index
-                   :params {:address meme-address}
-                   :class "details-button"}
-       [:span "View Details"]]
+
+      [numbers-info {:meme/number number
+                     :meme/total-minted total-minted}]
+
+      [logo]
+
+      [view-details-link
+       {:address meme-address}]
+
       [:ul.meme-data
        (when number
          [:li [:label "Registry Number:"]

@@ -43,10 +43,15 @@
 
   (let [{:keys [:user/total-created-challenges-success :user/total-created-challenges]} challenger]
     [:div.compact-tile
-    [tiles/flippable-tile {:front [tiles/meme-image image-hash]
-                           :back [:div.meme-card.back
-                                  [:div.overlay
-                                   [:div.info
+     [tiles/flippable-tile {:front [tiles/meme-image image-hash]
+                            :back [:div.meme-card.back
+                                   [:div.overlay
+
+                                    [tiles/logo]
+
+                                    [tiles/view-details-link
+                                     {:address address}]
+
                                     [:ul.meme-data
                                      [:li [:label "Creator:"]
                                       [nav-anchor {:route :route.memefolio/index
@@ -69,7 +74,13 @@
                                                              total-created-challenges
                                                              (if (pos? total-created-challenges) (/ (* 100 total-created-challenges-success) total-created-challenges) 0))]]]
                                     [:hr]
-                                    [:p.comment comment]]]]}]
+                                    [:div.description comment]
+                                    [:div.input
+                                     [nav-anchor {:route :route.meme-detail/index
+                                                  :params {:address address}
+                                                  :query nil
+                                                  :class "details-button"}
+                                      [:button.vote "Vote"]]]]]}]
      [nav-anchor {:route :route.meme-detail/index
                   :params {:address address}}
       [:div.footer
@@ -85,12 +96,10 @@
        [:div.no-items-found empty-msg]
        (if loading?
          [:div.spinner-container [spinner/spin]]
-         (doall
-          (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
-            ^{:key address}
-            ;;:div.tile-wrapper
-            [trending-vote-tile m]
-            #_[:div.votes-total (str "Vote amount "(or votes-total 0))]))))]))
+         [:div (doall
+                 (for [{:keys [:reg-entry/address :challenge/votes-total] :as m} memes]
+                   ^{:key address}
+                   [trending-vote-tile m]))]))]))
 
 (def auction-node-graph [:meme-auction/address
                          :meme-auction/start-price

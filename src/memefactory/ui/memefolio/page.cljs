@@ -677,13 +677,17 @@
                 [tiles/flippable-tile {:front [tiles/meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
                                        :back [:div.meme-card
                                               [:div.overlay
-                                               [:div.logo
-                                                [:img {:src "/assets/icons/mf-logo.svg"}]]
-                                               [nav-anchor {:route :route.meme-detail/index
-                                                            :params {:address (:reg-entry/address meme)}
-                                                            :query nil
-                                                            :class "details-button"}
-                                                [:span "View Details"]]
+
+                                               [tiles/numbers-info
+                                                {:meme/number (:meme/number meme)
+                                                 :meme-token/number (:meme-token/number meme-token)
+                                                 :meme/total-minted (:meme/total-minted meme)}]
+
+                                               [tiles/logo]
+
+                                               [tiles/view-details-link
+                                                {:address (:reg-entry/address meme)}]
+
                                                [:ul.meme-data
                                                 [:li [:label "Buyer:"]
 
