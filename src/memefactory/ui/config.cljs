@@ -30,7 +30,8 @@
    :graphql {:schema graphql-schema
              :url "http://localhost:6300/graphql"}
    :ipfs {:host "http://127.0.0.1:5001"
-          :endpoint "/api/v0"}
+          :endpoint "/api/v0"
+          :gateway "http://127.0.0.1:8080/ipfs"}
    :router {:html5? false}
    :router-google-analytics {:enabled? false}})
 
@@ -50,7 +51,8 @@
    :graphql {:schema graphql-schema
              :url "http://api.memefactory.qa.district0x.io/graphql"}
    :ipfs {:host "http://ipfs.qa.district0x.io/api"
-          :endpoint "/api/v0"}
+          :endpoint "/api/v0"
+          :gateway "http://ipfs.qa.district0x.io/gateway/ipfs"}
    :router {:html5? true}
    :router-google-analytics {:enabled? false}})
 
@@ -72,7 +74,8 @@
    :graphql {:schema graphql-schema
              :url "https://api.memefactory.io/graphql"}
    :ipfs {:host "https://ipfs.district0x.io/api"
-          :endpoint "/api/v0"}
+          :endpoint "/api/v0"
+          :gateway "http://ipfs.district0x.io/gateway/ipfs"}
    :router {:html5? true}
    :router-google-analytics {:enabled? true}})
 

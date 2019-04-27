@@ -7,6 +7,7 @@
     [district.time :as time]
     [district.ui.component.form.input :as inputs]
     [district.ui.graphql.subs :as gql]
+    [district.ui.ipfs.subs :as ipfs-subs]
     [district.ui.mobile.subs :as mobile-subs]
     [district.ui.now.subs]
     [district.ui.web3-tx-id.subs :as tx-id-subs]
@@ -20,21 +21,20 @@
     [taoensso.timbre :as log :refer [spy]]))
 
 
-(defn meme-image [image-hash & [{:keys [rejected?] :as props}]]
-  (let [props (dissoc props :rejected?)
-        url (-> @(subscribe [::gql/query
-                             {:queries [[:config
-                                         [[:ipfs [:gateway]]]]]}])
-                :config :ipfs :gateway)]
-    [:div.meme-card
-     props
-     (if (and url (not-empty image-hash))
-       [:img.meme-image.initial-fade-in-delay {:src (str (format/ensure-trailing-slash url) image-hash)}]
-       [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])
-     (when rejected?
-       [:div.image-tape-container.initial-fade-in-delay
-        [:div.image-tape
-         [:span "Stank"]]])]))
+(defn meme-image [& _]
+  (let [ipfs (subscribe [::ipfs-subs/ipfs])]
+    (fn [image-hash & [{:keys [rejected?] :as props}]]
+      (let [props (dissoc props :rejected?)
+            url (:gateway @ipfs)]
+        [:div.meme-card
+         props
+         (if (and url (not-empty image-hash))
+           [:img.meme-image.initial-fade-in-delay {:src (str (format/ensure-trailing-slash url) image-hash)}]
+           [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])
+         (when rejected?
+           [:div.image-tape-container.initial-fade-in-delay
+            [:div.image-tape
+             [:span "Stank"]]])]))))
 
 
 (defn- event-target-classlist [event]
