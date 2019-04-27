@@ -8,7 +8,7 @@
     [cljs-web3.eth :as web3-eth]
     [district.server.config :refer [config]]
     [district.server.web3 :refer [web3]]
-    [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
+    [district.server.web3-events :refer [register-callback! unregister-callbacks! register-after-past-events-dispatched-callback!]]
     [district.shared.error-handling :refer [try-catch]]
     [memefactory.server.db :as db]
     [memefactory.server.generator]
@@ -44,7 +44,7 @@
 (defn assign-next-number! [address]
   (let [current-meme-number (db/current-meme-number)]
     (db/assign-meme-number! address (inc current-meme-number))
-    (log/info (str "Meme" address " got number " (inc current-meme-number) " assigned."))))
+    (log/info (str "Meme " address " got number " (inc current-meme-number) " assigned."))))
 
 
 (defn meme-number-assigner [address]
@@ -369,6 +369,29 @@
       (->> (callback err)))))
 
 
+(defn- assign-meme-registry-numbers! []
+  ;; if there are any memes with unasigned numbers but still assignable
+  ;; start the number assigners
+  (let [assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period
+                                                     :reg-entry.status/commit-period
+                                                     :reg-entry.status/reveal-period}
+                                                   (reg-entry-status (server-utils/now-in-seconds) %))
+                                       (db/all-reg-entries))
+        whitelisted-reg-entries (filter #(= :reg-entry.status/whitelisted (reg-entry-status (server-utils/now-in-seconds) %))
+                                        (db/all-reg-entries))]
+
+    ;; add numbers to all whitelisteds
+    (doseq [{:keys [:reg-entry/address]} whitelisted-reg-entries]
+      (assign-next-number! address))
+
+    ;; schedule meme number assigners for all memes that need it
+    (doseq [{:keys [:reg-entry/address :reg-entry/challenge-period-end :challenge/reveal-period-end]} assignable-reg-entries]
+      (schedule-meme-number-assigner address (inc (- (if (> challenge-period-end (server-utils/now-in-seconds))
+                                                       challenge-period-end
+                                                       reveal-period-end)
+                                                     (server-utils/now-in-seconds)))))))
+
+
 (defn start [opts]
   (when-not (:disabled? opts)
 
@@ -377,7 +400,6 @@
 
     (when-not (= ::db/started @db/memefactory-db)
       (throw (js/Error. "Database module has not started")))
-
 
     (let [event-callbacks
           {:param-change-db/eternal-db-event eternal-db-event
@@ -399,28 +421,10 @@
           callback-ids (doseq [[event-key callback] event-callbacks]
                          (register-callback! event-key (dispatcher callback)))]
 
-      (apply-blacklist-patches!)
 
-      ;; if there are any memes with unasigned numbers but still assignable
-      ;; start the number assigners
-      (let [assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period
-                                                         :reg-entry.status/commit-period
-                                                         :reg-entry.status/reveal-period}
-                                                       (reg-entry-status (server-utils/now-in-seconds) %))
-                                           (db/all-reg-entries))
-            whitelisted-reg-entries (filter #(= :reg-entry.status/whitelisted (reg-entry-status (server-utils/now-in-seconds) %))
-                                            (db/all-reg-entries))]
-
-        ;; add numbers to all whitelisteds
-        (doseq [{:keys [:reg-entry/address]} whitelisted-reg-entries]
-          (assign-next-number! address))
-
-        ;; schedule meme number assigners for all memes that need it
-        (doseq [{:keys [:reg-entry/address :reg-entry/challenge-period-end :challenge/reveal-period-end]} assignable-reg-entries]
-          (schedule-meme-number-assigner address (inc (- (if (> challenge-period-end (server-utils/now-in-seconds))
-                                                           challenge-period-end
-                                                           reveal-period-end)
-                                                         (server-utils/now-in-seconds))))))
+      (register-after-past-events-dispatched-callback! (fn []
+                                                         (apply-blacklist-patches!)
+                                                         (assign-meme-registry-numbers!)))
 
       (assoc opts :callback-ids callback-ids))))
 
