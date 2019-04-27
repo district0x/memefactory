@@ -484,15 +484,15 @@
                                                               :meme-auction/end-price
                                                               :meme-auction/bought-for
                                                               [:meme-auction/meme-token
-                                                               [:meme-token/number
-                                                                [:meme-token/meme
+                                                               [[:meme-token/meme
                                                                  [:meme/title
+                                                                  :meme/number
                                                                   :reg-entry/address]]]]]]]]]}])
                 (ratom/reaction {:graphql/loading? true}))]
     (let [{:keys [:user/total-created-memes :user/total-created-memes-whitelisted :user/creator-rank :user/largest-sale]} (-> @query :user)
           {:keys [:meme-auction/meme-token]} largest-sale
-          {:keys [:meme-token/number :meme-token/meme]} meme-token
-          {:keys [:meme/title]} meme
+          {:keys [:meme-token/meme]} meme-token
+          {:keys [:meme/title :meme/number]} meme
           meme-auctions (-> @query :search-meme-auctions :items)
           creator-total-earned (when meme-auctions
                                  (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
