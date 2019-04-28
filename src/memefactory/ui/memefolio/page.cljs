@@ -312,8 +312,8 @@
                                                 count)
                                active-user-page? (or (empty? url-address) (= url-address active-account))]
                            [:div.compact-tile {:key address}
-                            [tiles/flippable-tile {:front (tiles/meme-image image-hash
-                                                                            {:class "collected-tile-front"})
+                            [tiles/flippable-tile {:front [tiles/meme-image image-hash
+                                                           {:class "collected-tile-front"}]
                                                    :back (if active-user-page?
                                                            [collected-tile-back {:meme/number number
                                                                                  :meme/title title
