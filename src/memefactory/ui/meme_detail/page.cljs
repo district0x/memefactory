@@ -116,7 +116,7 @@
         build-query (fn [{:keys [:options] :as args}]
                       (log/debug "build-query" args ::related-memes-container)
                       [[:search-meme-auctions (cond-> {:tags-or tags
-                                                       :first 16
+                                                       :first 18
                                                        :non-for-meme address
                                                        :statuses [:meme-auction.status/active]}
                                                 (#{:only-lowest-number :only-cheapest} options)
