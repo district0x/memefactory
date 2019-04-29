@@ -31,7 +31,7 @@ module.exports = {
       gasPrice: 2e10, // 20 gwei, default for ganache
       network_id: '*'
     },
-    ropsten: {
+    parity: {
       host: 'localhost',
       port: 8545,
       gas: 8e6,
