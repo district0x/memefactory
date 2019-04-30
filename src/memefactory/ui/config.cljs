@@ -43,16 +43,16 @@
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-qa/smart-contracts skipped-contracts)}
    :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK])}
-   :web3 {:url "http://ropsten.district0x.io"}
+   :web3 {:url "https://ropsten.district0x.io"}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
                  :etherscan-url "https://ropsten.etherscan.io"}
    :graphql {:schema graphql-schema
-             :url "http://api.memefactory.qa.district0x.io/graphql"}
-   :ipfs {:host "http://ipfs.qa.district0x.io/api"
+             :url "https://api.memefactory.qa.district0x.io/graphql"}
+   :ipfs {:host "https://ipfs.qa.district0x.io/api"
           :endpoint "/api/v0"
-          :gateway "http://ipfs.qa.district0x.io/gateway/ipfs"}
+          :gateway "https://ipfs.qa.district0x.io/gateway/ipfs"}
    :router {:html5? true}
    :router-google-analytics {:enabled? false}})
 
@@ -75,7 +75,7 @@
              :url "https://api.memefactory.io/graphql"}
    :ipfs {:host "https://ipfs.district0x.io/api"
           :endpoint "/api/v0"
-          :gateway "http://ipfs.district0x.io/gateway/ipfs"}
+          :gateway "https://ipfs.district0x.io/gateway/ipfs"}
    :router {:html5? true}
    :router-google-analytics {:enabled? true}})
 
