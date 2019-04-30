@@ -55,15 +55,15 @@
         [:a.metamask-wallet {:href "https://metamask.io/" :target :_blank} [:img {:src "/assets/images/how-it-works/metamask.png"}]]
         [:a.coinbase-wallet {:href "https://wallet.coinbase.com/" :target :_blank} [:img {:src "/assets/images/how-it-works/getCoinbaseWallet.svg"}]]]
        ;; [VIDEO - setting up MetaMask]
-       [youtube-video "EoqF_3txiiI"]
+       [youtube-video "Sc8J98m6SZE"]
 
        ;; [VIDEO - setting up Coinbase Wallet]
-       [youtube-video "EoqF_3txiiI"]
+       [youtube-video "D9tARxVzlL4"]
 
        [:h2.title.secondary "Browsing memes"]
 
        ;; [VIDEO - Browsing and searching]
-       [youtube-video "EoqF_3txiiI"]
+       [youtube-video "NuUCxE7z_mA"]
 
        [:p "Browsing Memes is simple. Navigate to the list of memes for sale by clicking on the “District Registry” or “Browse” buttons on the left-hand menu. This will take you to the "
         [nav-anchor {:route :route.dank-registry/browse} "master registry list"]
@@ -76,7 +76,7 @@
        [:h2.title.secondary "Buying memes"]
 
        ;; [VIDEO - Buying memes]
-       [youtube-video "EoqF_3txiiI"]
+       [youtube-video "KCSGVKQDep8"]
 
        [:p "Buying memes can be done by navigating to the "
         [nav-anchor {:route :route.marketplace/index} "Marketplace"]
@@ -89,7 +89,7 @@
        [:h2.title.secondary "Getting DANK"]
 
        ;; [VIDEO - DANK Faucet]
-       [youtube-video "EoqF_3txiiI"]
+       [youtube-video "uA8T_CzX1EY"]
 
        [:p "DANK is a brand new "
         [a "https://education.district0x.io/general-topics/understanding-ethereum/what-is-an-erc20-token/"
@@ -113,7 +113,7 @@
        [:h2.title.secondary "Voting"]
 
        ;; [VIDEO - Voting]
-       [youtube-video "EoqF_3txiiI"]
+       [youtube-video "tG_7I9l0gbQ"]
 
        [:p "With some DANK in hand, any Meme Factory user can begin voting on new meme submissions. Voting costs nothing, but winning votes will result in a small DANK reward. This means by always using your available DANK to vote, you will naturally accrue more DANK over time, and have more voting power to decide the outcome of each and every vote. "]
 
@@ -144,7 +144,7 @@
        [:h2.title.secondary "Challenging"]
 
        ;; [Video - Challenging]
-       [youtube-video "EoqF_3txiiI"]
+       [youtube-video "h3EYDMWsOfQ"]
 
        [:p "Challenging new memes entering the registry is a higher-risk, higher-reward means of earning DANK. Challenging a meme initiates a voting period, as described above. However, unlike simply voting for or against a meme where you can only gain DANK, starting a challenge requires the challenger to actually risk the same amount of DANK as the meme creator put forward to submit the meme. If the vote goes against the challenger, and the meme is accepted into the registry, the challenger will lose their DANK."]
 
@@ -167,7 +167,7 @@
        [:h2.title.secondary "Submitting Memes"]
 
        ;;[VIDEO - Submitting memes]
-       [youtube-video "EoqF_3txiiI"]
+       [youtube-video "ztZg3n6SWhg"]
 
        [:p "The first step to submitting a popular meme is to create an image worth sharing. Meme Factory currently does not have the tools to support image creation, but we’ve written a guide for using the most popular external tools to create Meme Factory compatible images."]
 
