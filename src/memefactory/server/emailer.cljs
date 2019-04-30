@@ -118,16 +118,16 @@
                :api-key api-key
                :print-mode? print-mode?}))
 
-(defn send-auction-bought-email [{:keys [:registry-entry :meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
+(defn send-auction-bought-email [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (let [{:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
-        {:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme-by-auction-address address)
+        {:keys [:reg-entry/address :meme/title :meme/image-hash]} (db/get-meme-by-auction-address address)
         {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
         meme-image-url (str ipfs-gateway-url image-hash)
         buyer-url (str root-url "memefolio/" buyer)
-        meme-url (str root-url "memefolio/?tab=sold")
-        button-url (str root-url "meme-detail/" registry-entry)]
+        meme-url (str root-url "meme-detail/" address)
+        button-url (str root-url "memefolio/?tab=sold")]
     (promise-> (district0x-emails/get-email {:district0x-emails/address seller})
                #(validate-email %)
                (fn [to]
@@ -190,8 +190,8 @@
         {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer ])
         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
-        meme-url (str root-url "memefolio/?tab=curated")
-        button-url (str root-url "meme-detail/" registry-entry)
+        button-url (str root-url "memefolio/?tab=curated")
+        meme-url (str root-url "meme-detail/" registry-entry)
         meme-image-url (str ipfs-gateway-url image-hash)]
     (promise-> (district0x-emails/get-email {:district0x-emails/address voter})
                #(validate-email %)
