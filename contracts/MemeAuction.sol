@@ -199,4 +199,20 @@ contract MemeAuction is ERC721Receiver {
   function() public payable {
     buy();
   }
+
+  function load() external constant returns (address,
+                                             uint,
+                                             uint,
+                                             uint,
+                                             uint,
+                                             uint,
+                                             string){
+    return(seller,
+           tokenId,
+           startPrice,
+           endPrice,
+           duration,
+           startedOn,
+           description);
+  }
 }

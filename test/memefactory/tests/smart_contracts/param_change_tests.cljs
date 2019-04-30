@@ -14,7 +14,7 @@
             [memefactory.tests.smart-contracts.utils :as test-utils]
             [print.foo :include-macros true :refer [look]]))
 
-#_(use-fixtures 
+#_(use-fixtures
   :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
                                                     :use-n-account-as-deposit-collector 3
                                                     :meme-auction-cut 10})
@@ -27,7 +27,7 @@
 ;; ParamChange ;;
 ;;;;;;;;;;;;;;;;;
 
-(deftest approve-and-create-param-change-test  
+#_(deftest approve-and-create-param-change-test
   (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
         [deposit challenge-period-duration]
         (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
@@ -42,27 +42,27 @@
                            :args
                            :registry-entry)
         change-entry (param-change/load-param-change registry-entry)]
-    
+
     (testing "Can create param change registry"
       (is tx-hash))
-    
+
     (testing "Properties should be good after creating param change"
       (is (= (:param-change/db change-entry) (contract-address :meme-registry-db)))
-      (is (= (:param-change/key change-entry) "deposit")) 
-      (is (= (bn/number (:param-change/value-type change-entry)) 0)) 
+      (is (= (:param-change/key change-entry) "deposit"))
+      (is (= (bn/number (:param-change/value-type change-entry)) 0))
       (is (= (:param-change/value change-entry) (js/parseInt (web3/to-wei 800 :ether)))))
-    
+
     (testing "Can create challenge under valid condidtions"
       (is (registry-entry/approve-and-create-challenge registry-entry
                                                        {:amount deposit}
                                                        {:from challenger-addr})))))
 
-(deftest apply-param-change-test 
+#_(deftest apply-param-change-test
   (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
         [deposit challenge-period-duration]
         (->> (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration])
              (map bn/number))
-     
+
         registry-entry (-> (param-change-factory/approve-and-create-param-change
                             {:db (contract-address :meme-registry-db)
                              :key :deposit
@@ -82,7 +82,7 @@
                                  :args
                                  :registry-entry)
         change-entry (param-change/load-param-change registry-entry)]
-    
+
     (testing "Cannot be applied when not whitelisted"
       ;; it will not be whitelisted because we are still in challenge period
       (is (thrown? js/Error
@@ -92,7 +92,7 @@
 
     (testing "Param change can be applied under valid conditions"
       (param-change-registry/apply-param-change registry-entry {:from creator-addr}))
-    
+
     (testing "Properties after applying param change should be good"
       (let [[new-deposit-val] (->> (eternal-db/get-uint-values :meme-registry-db [:deposit])
                                    (map bn/number))]
@@ -101,7 +101,7 @@
     (testing "Param change cannot be applied twice"
       (is (thrown? js/Error
                    (param-change-registry/apply-param-change registry-entry {:from creator-addr}))))
-    
+
     (testing "Param change cannot be applied if original value is not current value"
       (is (thrown? js/Error
                    (param-change-registry/apply-param-change other-registry-entry {:from creator-addr}))))
@@ -114,4 +114,3 @@
                      :value 101
                      :amount deposit}
                     {:from creator-addr}))))))
-

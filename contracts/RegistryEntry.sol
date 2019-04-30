@@ -276,4 +276,39 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(address(this).call(_data));
   }
 
+  function load() external constant returns (uint,
+                                             address,
+                                             uint,
+                                             address,
+                                             uint,
+                                             uint,
+                                             uint,
+                                             uint,
+                                             bytes,
+                                             uint){
+    return (deposit,
+            creator,
+            version,
+            challenge.challenger,
+            challenge.voteQuorum,
+            challenge.commitPeriodEnd,
+            challenge.revealPeriodEnd,
+            challenge.rewardPool,
+            challenge.metaHash,
+            challenge.claimedRewardOn);
+  }
+
+  function loadVote(address voter) external constant returns (bytes32,
+                                                              uint,
+                                                              uint,
+                                                              uint,
+                                                              uint,
+                                                              uint){
+    return(challenge.vote[voter].secretHash,
+           uint(challenge.vote[voter].option),
+           challenge.vote[voter].amount,
+           challenge.vote[voter].revealedOn,
+           challenge.vote[voter].claimedRewardOn,
+           challenge.vote[voter].reclaimedVoteAmountOn);
+  }
 }

@@ -2,6 +2,7 @@
   (:require
     [district.server.smart-contracts :refer [contract-call instance]]
     [memefactory.shared.contract.meme-auction :refer [parse-load-meme-auction]]
+    [memefactory.server.macros :refer [promise->]]
     [cljs-web3.eth :as web3-eth]))
 
 (defn buy [contract-addr & [{:keys [:from :value :gas] :as opts}]]
@@ -10,8 +11,12 @@
 (defn cancel [contract-addr & [opts]]
   (contract-call [:meme-auction contract-addr] :cancel [] (merge {:gas 500000} opts)))
 
-(defn start-auction-data [{:keys [:start-price :end-price :duration :description]}]
+(defn start-auction-data [{:keys [:start-price :end-price :duration :description] :as args}]
   (web3-eth/contract-get-data (instance :meme-auction) :start-auction start-price end-price duration description))
 
 (defn current-price [contract-address]
   (contract-call [:meme-auction contract-address] :current-price))
+
+(defn load-meme-auction [contract-addr]
+  (promise-> (contract-call [:meme-auction contract-addr] :load)
+             #(parse-load-meme-auction contract-addr %)))

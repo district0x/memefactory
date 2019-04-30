@@ -12,22 +12,16 @@
    3 :reg-entry.status/blacklisted
    4 :reg-entry.status/whitelisted})
 
-(def load-registry-entry-keys [:reg-entry/version
-                               :reg-entry/status
+(def load-registry-entry-keys [:reg-entry/deposit
                                :reg-entry/creator
-                               :reg-entry/deposit
-                               :reg-entry/challenge-period-end])
-
-(def load-registry-entry-challenge-keys [:reg-entry/challenge-period-end
-                                         :challenge/challenger
-                                         :challenge/reward-pool
-                                         :challenge/meta-hash
-                                         :challenge/commit-period-end
-                                         :challenge/reveal-period-end
-                                         :challenge/votes-for
-                                         :challenge/votes-against
-                                         :challenge/claimed-reward-on
-                                         :challenge/vote-quorum])
+                               :reg-entry/version
+                               :challenge/challenger
+                               :challenge/vote-quorum
+                               :challenge/commit-period-end
+                               :challenge/reveal-period-end
+                               :challenge/reward-pool
+                               :challenge/meta-hash
+                               :challenge/claimed-reward-on])
 
 (def vote-props [:vote/secret-hash
                  :vote/option
@@ -46,30 +40,19 @@
 (defn parse-status [status]
   (statuses (bn/number status)))
 
-(defn parse-load-registry-entry [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]]
+(defn parse-load-registry-entry [reg-entry-addr registry-entry & [{:keys []}]]
   (when registry-entry
     (let [registry-entry (zipmap load-registry-entry-keys registry-entry)]
       (-> registry-entry
         (assoc :reg-entry/address reg-entry-addr)
         (update :reg-entry/version bn/number)
         (update :reg-entry/deposit wei->eth-number)
-        (update :reg-entry/status parse-status)
-        (update :reg-entry/challenge-period-end (constantly (shared-utils/parse-uint-date (:reg-entry/challenge-period-end registry-entry) parse-dates?)))))))
+        (update :challenge/commit-period-end bn/number)
+        (update :challenge/reveal-period-end bn/number)
+        (update :challenge/reward-pool bn/number)
+        (update :challenge/meta-hash web3/to-ascii)
+        (update :challenge/claimed-reward-on bn/number)))))
 
-(defn parse-load-registry-entry-challenge [reg-entry-addr registry-entry & [{:keys [:parse-dates?]}]] 
-  (when registry-entry
-    (let [registry-entry (zipmap load-registry-entry-challenge-keys registry-entry)]
-      (-> registry-entry
-          (update :reg-entry/challenge-period-end (constantly (shared-utils/parse-uint-date (:reg-entry/challenge-period-end registry-entry) parse-dates?)))
-          (update :challenge/challenger #(when-not (empty-address? %) %))
-          (update :challenge/reward-pool wei->eth-number)
-          (update :challenge/meta-hash #(when-not (empty-address? %) (web3/to-ascii %)))
-          (update :challenge/commit-period-end (constantly (shared-utils/parse-uint-date (:challenge/commit-period-end registry-entry) parse-dates?)))
-          (update :challenge/reveal-period-end (constantly (shared-utils/parse-uint-date (:challenge/reveal-period-end registry-entry) parse-dates?)))
-          (update :challenge/votes-for bn/number)
-          (update :challenge/vote-quorum bn/number)
-          (update :challenge/votes-against bn/number)
-          (update :challenge/claimed-reward-on (constantly (shared-utils/parse-uint-date (:challenge/claimed-reward-on registry-entry) parse-dates?)))))))
 
 (defn parse-vote-option [vote-option]
   (vote-options (bn/number vote-option)))

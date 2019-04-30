@@ -95,4 +95,14 @@ contract Meme is RegistryEntry {
                                  totalMinted);
   }
 
+  function loadMeme() external constant returns (bytes,
+                                                 uint,
+                                                 uint,
+                                                 uint){
+    return(metaHash,
+           totalSupply,
+           totalMinted,
+           tokenIdStart);
+  }
+
 }

@@ -108,7 +108,7 @@
    :else (enum :reg-entry.status/whitelisted)))
 
 (defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :challenged :order-by :order-dir :owner :creator :curator :challenger :voter :first :after] :as args}]
-  (log/info "search-memes-query-resolver" args)
+  (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          page-start-idx (when after (js/parseInt after))
@@ -226,7 +226,7 @@
 (defn search-meme-auctions-query-resolver [_ {:keys [:title :non-for-meme :for-meme
                                                      :tags :tags-or :order-by :order-dir :group-by
                                                      :statuses :seller :first :after] :as args}]
-  (log/info "search-meme-auctions-query-resolver" args)
+  (log/debug "search-meme-auctions-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          now (utils/now-in-seconds)

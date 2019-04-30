@@ -10,7 +10,7 @@
   (contract-call :meme-token token-id :token-uri))
 
 (defn owner-of [token-id]
-  (contract-call :meme-token :owner-of token-id))
+  (contract-call :meme-token :owner-of [token-id]))
 
 (defn safe-transfer-from-multi [{:keys [:from :to :token-ids :data]} & [opts]]
   (contract-call :meme-token :safe-transfer-from-multi [from to token-ids data] (merge {:gas 6000000} opts)))
