@@ -9,7 +9,7 @@ RUN apt-get update -y \
 COPY docker-builds/ui/nginx.conf /etc/nginx/nginx.conf
 
 # add digest auth file
-COPY docker-builds/ui/memefactory.passwd /etc/nginx/memefactory.passwd
+# COPY docker-builds/ui/memefactory.passwd /etc/nginx/memefactory.passwd
 
 # replace default server
 COPY docker-builds/ui/default /etc/nginx/sites-available/default

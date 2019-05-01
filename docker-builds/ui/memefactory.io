@@ -2,8 +2,8 @@ server {
 
   listen 80 default_server;
 
-  auth_basic "Restricted Content";
-  auth_basic_user_file /etc/nginx/memefactory.passwd;
+#  auth_basic "Restricted Content";
+#  auth_basic_user_file /etc/nginx/memefactory.passwd;
 
   root /memefactory/resources/public/;
   index index.html;
