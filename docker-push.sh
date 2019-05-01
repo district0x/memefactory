@@ -40,7 +40,7 @@ function build {
         # qa images are tagged as `latest`
         docker tag $IMG $NAME:latest
         ;;
-      "production")
+      "prod")
         # prod images are tagged as `release`
         docker tag $IMG $NAME:release
         ;;
