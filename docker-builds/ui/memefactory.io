@@ -1,7 +1,6 @@
 server {
 
   listen 80 default_server;
-#  server_name localhost ec2-52-42-54-97.us-west-2.compute.amazonaws.com memefactory.qa.district0x.io;
 
   auth_basic "Restricted Content";
   auth_basic_user_file /etc/nginx/memefactory.passwd;
