@@ -8,7 +8,7 @@ RUN apt-get update -y \
 RUN pip install cryptography base58
 
 # ENV variables
-ENV CONFIG /configs/meme.config.qa.edn
+ENV CONFIG /configs/meme.config.edn
 
 # get compiled JS
 COPY server /memefactory/server
