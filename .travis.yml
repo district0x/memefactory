@@ -43,6 +43,6 @@ deploy:
     on:
       branch: master
   - provider: script
-    script: bash docker-push.sh production
+    script: bash docker-push.sh prod
     on:
       branch: production
