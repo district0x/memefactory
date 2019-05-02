@@ -41,7 +41,6 @@
 (defn start-and-run-tests []
   (async/go
     ((test-utils/create-before-fixture))
-    (log/info "Finished redploying contracts" ::deploy-contracts-and-run-tests)
     (log/info "Transfering dank to accounts" ::deploy-contracts-and-run-tests)
     (doseq [acc (web3-eth/accounts @web3)]
         (<? (dank-token/transfer {:to acc :amount "1000e18"} {:gas 200000})))
@@ -61,7 +60,7 @@
 
      )))
 
-(defn deploy-contracts-and-run-tests
+#_(defn deploy-contracts-and-run-tests
   "Redeploy smart contracts with truffle"
   []
   (log/warn "Redeploying contracts, please be patient..." ::redeploy)
@@ -73,5 +72,5 @@
                        (js/setTimeout #(start-and-run-tests) 5000))))))
 
 (cljs-promises.async/extend-promises-as-pair-channels!)
-(deploy-contracts-and-run-tests)
-#_(start-and-run-tests)
+#_(deploy-contracts-and-run-tests)
+(start-and-run-tests)
