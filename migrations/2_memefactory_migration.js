@@ -432,7 +432,7 @@ module.exports = function(deployer, network, accounts) {
     })
     .then ((instance) => {
       linkBytecode(DankFaucet, dankTokenPlaceholder, instance.address);
-      return deployer.deploy(DankFaucet, 420, Object.assign(opts, {gas: 4000000}));
+      return deployer.deploy(DankFaucet, 2000000000000000000000, Object.assign(opts, {gas: 4000000}));
     })
     .then (() => {
       return DankToken.deployed ();
