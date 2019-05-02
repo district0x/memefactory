@@ -92,7 +92,7 @@
 ;; MutableForwarder ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(deftest mutable-forwarder-test
+#_(deftest mutable-forwarder-test
   (test/async
    done
    (async/go
