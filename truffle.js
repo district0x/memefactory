@@ -4,19 +4,19 @@ module.exports = {
   smart_contracts_path: __dirname + '/src/memefactory/shared/smart_contracts_dev.cljs',
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
   parameters : {
-    memeRegistryDb : {challengePeriodDuration : 600, // seconds
-                      commitPeriodDuration : 600, // seconds
-                      revealPeriodDuration : 600, // seconds
-                      deposit : 1e18, // 1e18 = 1 DANK
+    memeRegistryDb : {challengePeriodDuration : 86400, // seconds
+                      commitPeriodDuration : 86400, // seconds
+                      revealPeriodDuration : 86400, // seconds
+                      deposit : 100e18, // 1e18 = 1 DANK
                       challengeDispensation : 50, // percent
                       voteQuorum : 50, // percent
-                      maxTotalSupply : 10, // int
-                      maxAuctionDuration : 1.21e6 // seconds
+                      maxTotalSupply : 100, // int
+                      maxAuctionDuration : (* 30 86400) // seconds
                      },
-    paramChangeRegistryDb : {challengePeriodDuration : 600, // seconds
-                             commitPeriodDuration : 600, // seconds
-                             revealPeriodDuration : 600, // seconds
-                             deposit : 1e18, // 1e18 = 1 DANK
+    paramChangeRegistryDb : {challengePeriodDuration : 86400, // seconds
+                             commitPeriodDuration : 86400, // seconds
+                             revealPeriodDuration : 86400, // seconds
+                             deposit : 2000e18, // 1e18 = 1 DANK
                              challengeDispensation : 50, // percent
                              voteQuorum : 50 // percent
                             },
