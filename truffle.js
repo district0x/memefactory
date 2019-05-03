@@ -16,7 +16,7 @@ module.exports = {
     paramChangeRegistryDb : {challengePeriodDuration : 86400, // seconds
                              commitPeriodDuration : 86400, // seconds
                              revealPeriodDuration : 86400, // seconds
-                             deposit : 2000e18, // 1e18 = 1 DANK
+                             deposit : 1000000000e18, // 1e18 = 1 DANK
                              challengeDispensation : 50, // percent
                              voteQuorum : 50 // percent
                             },
