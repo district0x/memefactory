@@ -11,7 +11,7 @@ module.exports = {
                       challengeDispensation : 50, // percent
                       voteQuorum : 50, // percent
                       maxTotalSupply : 100, // int
-                      maxAuctionDuration : (* 30 86400) // seconds
+                      maxAuctionDuration : (30 * 86400) // seconds
                      },
     paramChangeRegistryDb : {challengePeriodDuration : 86400, // seconds
                              commitPeriodDuration : 86400, // seconds
@@ -21,7 +21,7 @@ module.exports = {
                              voteQuorum : 50 // percent
                             },
     dankFaucet : {dank : 5000000e18, // how much DANK contract holds, 1e18 = 1 DANK
-                  eth : 2e18, // ETH, 1e18 = 1ETH
+                  eth : 0.2e18, // ETH, 1e18 = 1ETH
                   allotment : 2000e18  // how much DANK faucet sends, 1e18 = 1 DANK
                  }},
   networks: {

@@ -473,7 +473,7 @@ module.exports = function(deployer, network, accounts) {
     })
     .then (([dankToken, dankFaucet]) => {
         return Promise.all ([dankToken.transfer (dankFaucet.address, parameters.dankFaucet.dank, Object.assign(opts, {gas: 200000})),
-                             dankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: parameters.dankFaucet.eth, "ether"}))]);
+                             dankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: parameters.dankFaucet.eth}))]);
     })
     .then (() => {
         return Promise.all ([DankToken.deployed(), DankFaucet.deployed()]);
