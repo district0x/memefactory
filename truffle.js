@@ -29,14 +29,14 @@ module.exports = {
       host: 'localhost',
       port: 8549,
       gas: 8e6, // gas limit
-      gasPrice: 2e10, // 20 gwei, default for ganache
+      gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
     },
     parity: {
       host: 'localhost',
       port: 8545,
       gas: 8e6,
-      gasPrice: 4e9, // 4 gwei
+      gasPrice: 10e9, // 4 gwei
       network_id: '*'
     }
   }
