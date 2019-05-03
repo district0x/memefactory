@@ -75,7 +75,7 @@ const memeAuctionFactoryPlaceholder = "daffdaffdaffdaffdaffdaffdaffdaffdaffdaff"
  * This migration deploys whole MemeFactory smart contract suite
  *
  * Usage:
- * truffle migrate --network=ganache/parity --reset --f 1 --to 2
+ * truffle migrate --network ganache/parity --reset --f 1 --to 2
  */
 module.exports = function(deployer, network, accounts) {
 

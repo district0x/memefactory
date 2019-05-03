@@ -2,9 +2,6 @@ server {
 
   listen 80 default_server;
 
-#  auth_basic "Restricted Content";
-#  auth_basic_user_file /etc/nginx/memefactory.passwd;
-
   root /memefactory/resources/public/;
   index index.html;
 
@@ -15,7 +12,7 @@ server {
     try_files $uri $uri/index.html /index.html;
   }
 
-  location ~ /(contracts|images|js|css|fonts)(.*)$ {
+  location ~ /(contracts|images|assets|js|css|fonts)(.*)$ {
     expires 1h;
     add_header Cache-Control "public";
     rewrite /(contracts|images|js|css|fonts)(.*) /$1$2 break;

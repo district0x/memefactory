@@ -7,7 +7,7 @@ const DankToken = artifacts.require("DankTokenCp");
  * This migration transfers DANK to the last ganache account for development purposes
  *
  * Usage:
- * truffle migrate --network=ganache/parity --reset --f 3 --to 3
+ * truffle migrate --network ganache/parity --reset --f 3 --to 3
  */
 module.exports = function(deployer, network, accounts) {
 
