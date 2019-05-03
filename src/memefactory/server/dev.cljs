@@ -66,7 +66,7 @@
   "Redeploy smart contracts with truffle"
   []
   (log/warn "Redeploying contracts, please be patient..." ::redeploy)
-  (let [child (spawn "truffle migrate --network ganache --f 2 --to 3--reset" (clj->js {:stdio "inherit" :shell true}))]
+  (let [child (spawn "truffle migrate --network ganache --f 2 --to 3 --reset" (clj->js {:stdio "inherit" :shell true}))]
     (-> child
         (.on "disconnect" (fn []
                             (log/warn "Parent process has disconnected" ::redeploy)))
