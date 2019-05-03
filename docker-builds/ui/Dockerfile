@@ -8,9 +8,6 @@ RUN apt-get update -y \
 # replace nginx config
 COPY docker-builds/ui/nginx.conf /etc/nginx/nginx.conf
 
-# add digest auth file
-# COPY docker-builds/ui/memefactory.passwd /etc/nginx/memefactory.passwd
-
 # replace default server
 COPY docker-builds/ui/default /etc/nginx/sites-available/default
 
@@ -26,10 +23,6 @@ RUN ln -s -f /etc/nginx/sites-available/memefactory.io /etc/nginx/sites-enabled/
 
 # get compiled JS
 COPY resources/public /memefactory/resources/public/
-
-#--- DEBUG
-#RUN ls /memefactory
-#RUN ls /memefactory/resources/public
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
