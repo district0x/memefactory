@@ -49,7 +49,7 @@
    [re-frame.core :as re-frame]
    [re-frisk.core :refer [enable-re-frisk!]]))
 
-(def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
+;; (def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
 
 (defn dev-setup []
   (when (:debug? @config/config)

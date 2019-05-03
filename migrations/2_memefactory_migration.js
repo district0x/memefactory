@@ -71,6 +71,12 @@ const districtConfigPlaceholder = "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd";
 const memeTokenPlaceholder = "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb";
 const memeAuctionFactoryPlaceholder = "daffdaffdaffdaffdaffdaffdaffdaffdaffdaff";
 
+/**
+ * This migration deploys whole MemeFactory smart contract suite
+ *
+ * Usage:
+ * truffle migrate --network=ganache/parity --reset --f 1 --to 2
+ */
 module.exports = function(deployer, network, accounts) {
 
   const address = accounts [0];
@@ -432,32 +438,32 @@ module.exports = function(deployer, network, accounts) {
     })
     .then ((instance) => {
       linkBytecode(DankFaucet, dankTokenPlaceholder, instance.address);
-      return deployer.deploy(DankFaucet, 2000000000000000000000, Object.assign(opts, {gas: 4000000}));
+      return deployer.deploy(DankFaucet, parameters.dankFaucet.allotment, Object.assign(opts, {gas: 4000000}));
     })
-    .then (() => {
-      return DankToken.deployed ();
-    })
-    .then ((instance) => {
-      return instance.transfer (last(accounts), 15e21, Object.assign(opts, {gas: 200000}));
-    })
-    .then (() => {
-      return DankToken.deployed ();
-    })
-    .then ((instance) => {
-      return [instance.balanceOf (address),
-              instance.balanceOf (last(accounts))];
-    })
-    .then (promises =>  Promise.all (promises))
-    .then ( (
-      [balance1,
-       balance2]) => {
-         console.log ("@@@ DANK balance of:", address, balance1);
-         console.log ("@@@ DANK balance of:", last(accounts), balance2);
-       })
-    .then (() => {
-      return Promise.all ([DankToken.deployed (),
-                           MemeFactory.deployed ()])
-    })
+    // .then (() => {
+    //   return DankToken.deployed ();
+    // })
+    // .then ((instance) => {
+    //   return instance.transfer (last(accounts), 15e21, Object.assign(opts, {gas: 200000}));
+    // })
+    // .then (() => {
+    //   return DankToken.deployed ();
+    // })
+    // .then ((instance) => {
+    //   return [instance.balanceOf (address),
+    //           instance.balanceOf (last(accounts))];
+    // })
+    // .then (promises =>  Promise.all (promises))
+    // .then ( (
+    //   [balance1,
+    //    balance2]) => {
+    //      console.log ("@@@ DANK balance of:", address, balance1);
+    //      console.log ("@@@ DANK balance of:", last(accounts), balance2);
+    //    })
+    // .then (() => {
+    //   return Promise.all ([DankToken.deployed (),
+    //                        MemeFactory.deployed ()])
+    // })
     // .then ((
     //   [dankToken,
     //    memeFactory]) => {
@@ -473,7 +479,7 @@ module.exports = function(deployer, network, accounts) {
     })
     .then (([dankToken, dankFaucet]) => {
         return Promise.all ([dankToken.transfer (dankFaucet.address, parameters.dankFaucet.dank, Object.assign(opts, {gas: 200000})),
-                             dankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: web3.toWei(parameters.dankFaucet.eth, "ether")}))]);
+                             dankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: parameters.dankFaucet.eth}))]);
     })
     .then (() => {
         return Promise.all ([DankToken.deployed(), DankFaucet.deployed()]);
