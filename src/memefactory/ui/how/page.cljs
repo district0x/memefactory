@@ -6,7 +6,8 @@
 
 
 (defn youtube-video [id]
-  [:iframe.video {:width 560 :height 315 :src (str "https://www.youtube.com/embed/" id)}])
+  ;; :width 560 :height 315
+  [:iframe.video {:src (str "https://www.youtube.com/embed/" id)}])
 
 
 (defn a [href text]

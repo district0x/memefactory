@@ -21,7 +21,12 @@
       :margin-right :auto
       :display :block
       :margin-bottom (px 25)
-      :margin-top (px 25)}]]
+      :margin-top (px 25)
+      :width (px 560)
+      :height (px 315)}
+     (for-media-max :tablet
+                    [:& {:width "100%"
+                         :height :unset}])]]
    [:.how-it-works
     (panel-with-icon {:url "/assets/icons/how-it-works2.svg"
                       :color "#202ca1"})
