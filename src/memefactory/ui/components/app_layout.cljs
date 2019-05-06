@@ -63,6 +63,10 @@
                       :route :route.about/index
                       :class :about
                       :needs-account? false}
+                     {:text "Get DANK"
+                      :route :route.get-dank/index
+                      :class :faucet
+                      :needs-account? true}
                      {:text "Privacy Policy"
                       :route :route.privacy-policy/index
                       :class :privacy-policy
@@ -70,11 +74,7 @@
                      {:text "Terms of Use"
                       :route :route.terms/index
                       :class :terms
-                      :needs-account? false}
-                     {:text "Get DANK"
-                      :route :route.get-dank/index
-                      :class :faucet
-                      :needs-account? true}])
+                      :needs-account? false}])
 
 
 (defn search-form [form-data]
