@@ -67,6 +67,10 @@
                       :route :route.privacy-policy/index
                       :class :privacy-policy
                       :needs-account? false}
+                     {:text "Terms of Use"
+                      :route :route.terms/index
+                      :class :terms
+                      :needs-account? false}
                      {:text "Get DANK"
                       :route :route.get-dank/index
                       :class :faucet

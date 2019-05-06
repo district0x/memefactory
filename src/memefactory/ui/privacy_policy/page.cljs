@@ -61,7 +61,7 @@
       [:p [:b "Business Operations."] " We use data to develop aggregate analyses and business intelligence that enable us to operate, protect, make informed decisions, and report on the performance of our business."]
       [:p [:b "Improving Advertising."] " We may use your data to improve our advertising, primarily in an effort to prevent targeting you with advertisement that are not relevant to you."]
       [:p [:b "Sending Periodic Emails."] " We may use your data to send you periodic marketing emails. "]
-      [:p [:b "Generally."] " We use data to respond to enquiries and requests relating to the Services, to create and administer your account, and to provide us with information and access to resources that you have requested from us. We also use data for general business purposes, including, among other things, to improve customer service, to help us improve the content and functionality of the Services, to better understand our users, to protect against wrongdoing, to enforce our Terms of Use, and to generally manage our business."]
+      [:p [:b "Generally."] " We use data to respond to enquiries and requests relating to the Services, to create and administer your account, and to provide us with information and access to resources that you have requested from us. We also use data for general business purposes, including, among other things, to improve customer service, to help us improve the content and functionality of the Services, to better understand our users, to protect against wrongdoing, to enforce our " [nav-anchor {:route :route.terms/index} "Terms of use"] ", and to generally manage our business."]
       [:p [:b "Communications."] " We use data we collect to communicate with you, to personalize our communications with you, and to allow you to communicate with others through our website. "]
 
       [:h2.title.secondary "How do we share your information?"]
@@ -76,7 +76,7 @@
       [:p "(4) operate and maintain the security or integrity of our Game, including to prevent or stop an attack on our computer systems or networks;"]
       [:p "(5) protect our rights, interests, or property, and the rights, interests, or property of third parties;"]
       [:p "(6) prevent or investigate possible wrongdoing in connection with the Services; or"]
-      [:p "(7) enforce our Terms of Use."]
+      [:p "(7) enforce our " [nav-anchor {:route :route.terms/index} "Terms of use"] "."]
       [:p "We may use and share aggregated non-personal information with third parties for marketing, advertising, and analytics purposes. We do not sell or trade your personal information to third parties."]
 
       [:h2.title.secondary "Where do we keep personal data?"]

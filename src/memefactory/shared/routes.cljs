@@ -18,4 +18,6 @@
              ["/my-settings" :route.my-settings/index]
              ["/about" :route.about/index]
              ["/how-it-works" :route.how-it-works/index]
-             ["/privacy-policy" :route.privacy-policy/index]])
+             ["/privacy-policy" :route.privacy-policy/index]
+             ["/terms-of-use" :route.terms/index]
+             ])

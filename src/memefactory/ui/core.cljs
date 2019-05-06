@@ -26,6 +26,7 @@
    [memefactory.shared.routes :refer [routes]]
    [memefactory.ui.about.page]
    [memefactory.ui.privacy-policy.page]
+   [memefactory.ui.terms.page]
    [memefactory.ui.config :as config]
    [memefactory.ui.config :refer [config-map]]
    [memefactory.ui.contract.registry-entry]
