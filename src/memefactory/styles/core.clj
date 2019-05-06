@@ -22,6 +22,7 @@
             [memefactory.styles.pages.my-settings :as page.my-settings]
             [memefactory.styles.pages.get-dank :as page.get-dank]
             [memefactory.styles.pages.about :as page.about]
+            [memefactory.styles.pages.privacy-policy :as page.privacy-policy]
             [memefactory.styles.pages.how-it-works :as page.how-it-works]
             [memefactory.styles.component.challenge-list :as challenge-list]))
 
@@ -46,6 +47,7 @@
   page.my-settings/core
   page.get-dank/core
   page.about/core
+  page.privacy-policy/core
   page.how-it-works/core
   challenge-list/core
   selling-panel/core)

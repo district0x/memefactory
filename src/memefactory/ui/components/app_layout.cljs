@@ -63,6 +63,10 @@
                       :route :route.about/index
                       :class :about
                       :needs-account? false}
+                     {:text "Privacy Policy"
+                      :route :route.privacy-policy/index
+                      :class :privacy-policy
+                      :needs-account? false}
                      {:text "Get DANK"
                       :route :route.get-dank/index
                       :class :faucet

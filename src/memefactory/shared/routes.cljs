@@ -17,4 +17,5 @@
              ["/get-dank" :route.get-dank/index]
              ["/my-settings" :route.my-settings/index]
              ["/about" :route.about/index]
-             ["/how-it-works" :route.how-it-works/index]])
+             ["/how-it-works" :route.how-it-works/index]
+             ["/privacy-policy" :route.privacy-policy/index]])
