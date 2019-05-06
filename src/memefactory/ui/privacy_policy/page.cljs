@@ -1,7 +1,8 @@
 (ns memefactory.ui.privacy-policy.page
   (:require
     [district.ui.component.page :refer [page]]
-    [memefactory.ui.components.app-layout :refer [app-layout]]))
+    [memefactory.ui.components.app-layout :refer [app-layout]]
+    [memefactory.ui.components.general :refer [nav-anchor]]))
 
 
 (defn a [href text]
