@@ -16,11 +16,11 @@
     (panel-with-icon {:url "/assets/icons/dank-logo.svg"
                       :color :purple})
 
-    [:h2.title 
+    [:h2.title
      {:padding-left (em 2)
       :padding-right (em 2)}]
 
-    [:h3.title 
+    [:h3.title
      {:white-space :normal
       :padding-left (em 2)
       :padding-right (em 2)}]
@@ -31,7 +31,7 @@
 
     [:.body
      {:min-height (em 13)}
-     [:.form 
+     [:.form
       {:display :flex
        :flex-direction :row
        :font-size (px 14)
@@ -46,9 +46,12 @@
       [:.country-code {:width (em 6.1)}]
       (for-media-max :tablet
                      [:&
-                      {:flex-direction :column}])]]
-    
-    
+                      {:flex-direction :column}])]
+     [:p {:margin-top (px 55)
+          :margin-left (px 20)
+          :margin-right (px 20)}]]
+
+
 
     [:.footer
      (get-dank-button)

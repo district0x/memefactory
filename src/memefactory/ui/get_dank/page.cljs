@@ -9,9 +9,13 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [taoensso.timbre :as log]))
+   [taoensso.timbre :as log]
+   [memefactory.ui.components.general :refer [nav-anchor]]))
 
 (def verify-through-oracle-timeout 300000)
+
+(defn a [href text]
+  [:a {:href href :target :_blank} text])
 
 (defmethod page :route.get-dank/index []
   (let [form-data (r/atom {})
@@ -78,7 +82,16 @@
                                           :id :verification-code})]
                       {:form-data form-data
                        :for :verification-code
-                       :id :verification-code}]])))]
+                       :id :verification-code}]])))
+            [:p "The phone number provided is never stored or retained. We use the service "
+             [a "https://provable.xyz/" "Oracalize"]
+             " (now called Provable) to pass your phone number to "
+             [a "https://www.twilio.com/" "Twilio"]
+             ", a well-known api for SMS-based verifications. You can view Twilio's privacy policy "
+             [a "https://www.twilio.com/legal/privacy" "here"]
+             " and our privacy policy "
+             [nav-anchor {:route :route.privacy-policy/index} "here."]]]
+
            (when-not show-spinner?
              [:button.footer
               {:on-click (fn []
