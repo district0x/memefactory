@@ -10,7 +10,8 @@
     [re-frame.core :as re-frame]
     [reagent.core :as r]
     [reagent.ratom :refer [reaction]]
-    [taoensso.timbre :as log :refer [spy]]))
+    [taoensso.timbre :as log :refer [spy]]
+    [memefactory.ui.components.general :refer [nav-anchor]]))
 
 
 (defn valid-email? [s & [{:keys [:allow-empty?]}]]
@@ -46,7 +47,8 @@
              :for :email}]
            (when (not-empty (:email @settings))
              [:div.alert "You already associated " (:email @settings) " with your Ethereum address"])
-           [:p "Email associated with your address will be encrypted and stored on a public blockchain. Only our email server will be able to decrypt it. We'll use it to send you notifications about your activity."]]]
+           [:p "The email associated with your address will be encrypted and stored on a public blockchain. Only our email server will be able to decrypt it. We'll use it to send you automatic notifications about your activity, as well as important website updates. You can unsubscribe at any time by saving a blank email address above. You can view our privacy policy " [nav-anchor {:route :route.privacy-policy/index} "here."]]
+           [:p "We use the service " [:a {:href "https://sendgrid.com"} "Sendgrid"] " to generate these emails. You can also always unsubscribe from this service by opting out through their provided links at the bottom of every email. You can view their privacy policy " [:a {:href "https://sendgrid.com/policies/privacy/" } "here."]]]]
          [:div.footer
 
           (if (empty? (:local @errors))
