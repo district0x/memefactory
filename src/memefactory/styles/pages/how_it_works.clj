@@ -16,7 +16,7 @@
    [:.panel {:margin-bottom (em 2)}]
    [:.body {:font-size (px 15)
             :padding (em 2)}
-    [:iframe :img
+    [:iframe :img.how
      {:margin-left :auto
       :margin-right :auto
       :display :block
