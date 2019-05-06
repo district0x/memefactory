@@ -1,7 +1,7 @@
 const {last, copy, linkBytecode, smartContractsTemplate} = require ("./utils.js");
 const fs = require('fs');
 const edn = require("jsedn");
-const {contracts_build_directory, smart_contracts_path, parameters} = require ('../truffle.js');
+const {env, contracts_build_directory, smart_contracts_path, parameters} = require ('../truffle.js');
 
 copy ("DSGuard", "DSGuardCp", contracts_build_directory);
 const DSGuard = artifacts.require("DSGuardCp");
@@ -473,7 +473,7 @@ module.exports = function(deployer, network, accounts) {
            ]));
 
          console.log (smartContracts);
-         fs.writeFileSync(smart_contracts_path, smartContractsTemplate (smartContracts));
+         fs.writeFileSync(smart_contracts_path, smartContractsTemplate (smartContracts, env));
        })
     .catch(console.error);
 

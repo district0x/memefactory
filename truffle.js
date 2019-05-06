@@ -58,6 +58,7 @@ let parameters = {
 parameters.dev = parameters.qa;
 
 module.exports = {
+  env: MEMEFACTORY_ENV,
   smart_contracts_path: __dirname + smartContractsPaths [MEMEFACTORY_ENV],
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
   parameters : parameters [MEMEFACTORY_ENV],
