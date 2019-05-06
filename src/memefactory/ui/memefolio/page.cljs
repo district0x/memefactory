@@ -96,7 +96,8 @@
                             :on-click #(.stopPropagation %)
                             :dom-id (str address :send/amount)
                             :type :number
-                            :min 1}]
+                            :min 1
+                            :max (count @token-ids)}]
         {:form-data form-data
          :id :send/amount
          :for (str address :send/amount)}]
@@ -128,8 +129,9 @@
                                                              :reg-entry/address address
                                                              :meme-auction/token-ids
                                                              (->> @token-ids
-                                                               (take (int (:send/amount @form-data)))
-                                                               (map int))})]))}
+                                                               (map int)
+                                                               sort
+                                                               (take (parsers/parse-int (:meme-auction/amount @form-data))))})]))}
          "Send"]]])))
 
 
@@ -186,7 +188,8 @@
                             :on-click #(.stopPropagation %)
                             :dom-id (str address :meme-auction/amount)
                             :type :number
-                            :min 1}]
+                            :min 1
+                            :max (count @token-ids)}]
         {:form-data form-data
          :id :meme-auction/amount
          :for (str address :meme-auction/amount)}]
@@ -248,14 +251,16 @@
                               :pending? @tx-pending?
                               :pending-text "Creating..."
                               :on-click (fn []
-                                          (dispatch [::meme-token/transfer-multi-and-start-auction (merge (-> @form-data
-                                                                                                              (update :meme-auction/duration time/days->seconds))
-                                                                                                          {:send-tx/id tx-id
-                                                                                                           :meme/title title
-                                                                                                           :reg-entry/address address
-                                                                                                           :meme-auction/token-ids (->> @token-ids
-                                                                                                                                        (take (int (:meme-auction/amount @form-data)))
-                                                                                                                                        (map int))})]))}
+                                          (dispatch [::meme-token/transfer-multi-and-start-auction
+                                                     (merge (-> @form-data
+                                                              (update :meme-auction/duration time/days->seconds))
+                                                            {:send-tx/id tx-id
+                                                             :meme/title title
+                                                             :reg-entry/address address
+                                                             :meme-auction/token-ids (->> @token-ids
+                                                                                       (map int)
+                                                                                       sort
+                                                                                       (take (parsers/parse-int (:meme-auction/amount @form-data))))})]))}
          "Create Offering"]]
        [:div.send-tokens {:on-click #(reset! send-sell-atom :send)}
         "Send to a Friend"]])))
