@@ -1,66 +1,46 @@
 (ns memefactory.shared.smart-contracts-prod)
 
 (def smart-contracts
-  {:district-config
-   {:name "DistrictConfig"
-    :address "0x0000000000000000000000000000000000000000"}
-   :ds-guard
-   {:name "DSGuard"
-    :address "0x0000000000000000000000000000000000000000"}
-   :param-change-registry
-   {:name "ParamChangeRegistry"
-    :address "0x0000000000000000000000000000000000000000"}
-   :param-change-registry-db
-   {:name "EternalDb"
-    :address "0x0000000000000000000000000000000000000000"}
-   :meme-registry-db
-   {:name "EternalDb"
-    :address "0x0000000000000000000000000000000000000000"}
-   :param-change
-   {:name "ParamChange"
-    :address "0x0000000000000000000000000000000000000000"}
-   :minime-token-factory
-   {:name "MiniMeTokenFactory"
-    :address "0x0000000000000000000000000000000000000000"}
-   :meme-auction-factory
-   {:name "MemeAuctionFactory"
-    :address "0x0000000000000000000000000000000000000000"}
-   :meme-auction
-   {:name "MemeAuction"
-    :address "0x0000000000000000000000000000000000000000"}
-   :param-change-factory
-   {:name "ParamChangeFactory"
-    :address "0x0000000000000000000000000000000000000000"}
-   :param-change-registry-fwd
-   {:name "MutableForwarder"
-    :address "0x0000000000000000000000000000000000000000"
-    :forwards-to :param-change-registry}
-   :meme-factory
-   {:name "MemeFactory"
-    :address "0x0000000000000000000000000000000000000000"}
-   :meme-token
-   {:name "MemeToken"
-    :address "0x0000000000000000000000000000000000000000"}
-   :DANK
-   {:name "DankToken"
-    :address "0x0000000000000000000000000000000000000000"}
-   :meme-registry
-   {:name "Registry"
-    :address "0x0000000000000000000000000000000000000000"}
-   :meme
-   {:name "Meme"
-    :address "0x0000000000000000000000000000000000000000"}
-   :meme-registry-fwd
-   {:name "MutableForwarder"
-    :address "0x0000000000000000000000000000000000000000"
-    :forwards-to :meme-registry}
-   :meme-auction-factory-fwd
-   {:name "MutableForwarder"
-    :address "0x0000000000000000000000000000000000000000"
-    :forwards-to :meme-auction-factory}
-   :district0x-emails
-   {:name "District0xEmails"
-    :address "0x0000000000000000000000000000000000000000"}
-   :dank-faucet
-   {:name "DankFaucet"
-    :address "0x0000000000000000000000000000000000000000"}})
+  {:district-config {:name "DistrictConfig",
+                     :address "0xa556982a156d3cdeac639a951cab46cf49232bd6"},
+   :dank-faucet {:name "DankFaucet",
+                 :address "0xec5f140ac35c5fa6bafac8610f78a47e14cea2ac"},
+   :ds-guard {:name "DSGuard",
+              :address "0x055a19e7fca3568679df6b6979bdb4ce3dfddec5"},
+   :param-change-registry {:name "ParamChangeRegistry",
+                           :address "0xd5556ddf99fe2c57e2474f758000df299914ba86"},
+   :param-change-registry-db {:name "EternalDb",
+                              :address "0x475bbe7104ef34739422aceaa88adaedd0f38691"},
+   :meme-registry-db {:name "EternalDb",
+                      :address "0x05dc9a386e3fcd74d7a5d99f4fcd7df74ec9c85a"},
+   :param-change {:name "ParamChange",
+                  :address "0xaca88bbdedede5e8b385773760a5ef3847c3254a"},
+   :minime-token-factory {:name "MiniMeTokenFactory",
+                          :address "0x331eaf7ed8a7f574aea67236b5ba00c268b94408"},
+   :meme-auction-factory {:name "MemeAuctionFactory",
+                          :address "0x6d2b26315bd46642d8cd3b61dd7a0679de4b4282"},
+   :meme-auction {:name "MemeAuction",
+                  :address "0x1ed810891cfebec7b23b338ec480d8fb61e117c2"},
+   :param-change-factory {:name "ParamChangeFactory",
+                          :address "0x712ed9ab3344300bee3c35745b7cf29aa6801406"},
+   :param-change-registry-fwd {:name "MutableForwarder",
+                               :address "0xd6bbc67a5ae4afc172c1b5785ad77afd54e8ae9d",
+                               :forwards-to :param-change-registry},
+   :meme-factory {:name "MemeFactory",
+                  :address "0x50d84883a3b3d3a85bc97ead86d42e5fc91013f8"},
+   :meme-token {:name "MemeToken",
+                :address "0x5d1913b40463e9bbe7695a7538c30a25ac4be9d2"},
+   :DANK {:name "DankToken",
+          :address "0x121f6f8093780d90f6b70030b2a2b67baa5e32c0"},
+   :meme-registry {:name "Registry",
+                   :address "0x0066bd1e8fdea89e45c08c507d91c98d32183105"},
+   :meme {:name "Meme",
+          :address "0x8bb0f7a62aef5e131141f126e3f787b4ab765629"},
+   :meme-registry-fwd {:name "MutableForwarder",
+                       :address "0x11f3e171d7c2207778acfc04cad99e48f8e0ba5c",
+                       :forwards-to :meme-registry},
+   :district0x-emails {:name "District0xEmails",
+                       :address "0x3a07e7e9bd2ec1d47a9505a800d4c4e0dc4fe98d"},
+   :meme-auction-factory-fwd {:name "MutableForwarder",
+                              :address "0x588c1832b7b318d818ecefa33f9dfa51b72a9933",
+                              :forwards-to :meme-auction-factory}})

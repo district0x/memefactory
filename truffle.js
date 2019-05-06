@@ -65,15 +65,15 @@ module.exports = {
     ganache: {
       host: 'localhost',
       port: 8549,
-      gas: 8e6, // gas limit
+      gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
     },
     parity: {
       host: 'localhost',
       port: 8545,
-      gas: 8e6,
-      gasPrice: 10e9, // 4 gwei
+      gas: 6e6,
+      gasPrice: 6e9, // 6 gwei
       network_id: '*'
     }
   }
