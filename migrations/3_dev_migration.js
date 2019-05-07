@@ -21,21 +21,13 @@ module.exports = function(deployer, network, accounts) {
   });
 
   deployer
-    .then (() => {
-      return DankToken.deployed ();
-    })
-    .then ((instance) => {
-      return instance.transfer (last(accounts), 15e21, Object.assign(opts, {gas: 200000}));
-    })
-    .then (() => {
-      return DankToken.deployed ();
-    })
-    .then ((instance) => {
-      return [instance.balanceOf (address),
-              instance.balanceOf (last(accounts))];
-    })
-    .then (promises =>  Promise.all (promises))
-    .then ( (
+    .then (() => DankToken.deployed ())
+    .then ((instance) => instance.transfer (last(accounts), 15e21, Object.assign(opts, {gas: 200000})))
+    .then (() => DankToken.deployed ())
+    .then ((instance) => [instance.balanceOf (address),
+                          instance.balanceOf (last(accounts))])
+    .then (promises => Promise.all (promises))
+    .then ((
       [balance1,
        balance2]) => {
          console.log ("@@@ DANK balance of:", address, balance1);
