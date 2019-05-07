@@ -262,7 +262,6 @@ module.exports = function(deployer, network, accounts) {
        memeRegistryForwarder,
        memeRegistryDb]) => // allow :meme-registry-fwd to make changes into :meme-registry-db
            dSGuard.permit(memeRegistryForwarder.address, memeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
-
     .then (() => Promise.all ([DSGuard.deployed (),
                                ParamChangeRegistryForwarder.deployed (),
                                MemeRegistryDb.deployed ()]))
