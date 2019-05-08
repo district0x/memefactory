@@ -53,7 +53,7 @@
                  [district0x/district-ui-router "1.0.5"]
                  [district0x/district-ui-router-google-analytics "1.0.1"]
                  [district0x/district-ui-smart-contracts "1.0.6"]
-                 [district0x/district-ui-web3 "1.2.0"]
+                 [district0x/district-ui-web3 "1.3.0-SNAPSHOT"]
                  [district0x/district-ui-web3-account-balances "1.0.2"]
                  [district0x/district-ui-web3-accounts "1.0.5"]
                  [district0x/district-ui-web3-balances "1.0.2"]
