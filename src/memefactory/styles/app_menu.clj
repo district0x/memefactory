@@ -116,7 +116,9 @@
                    [:leaderboard "leaderboard"]
                    [:memefolio "mymemefolio"]
                    [:my-settings "mysettings"]
-                   [:faucet "dank-logo"]]]
+                   [:faucet "dank-logo"]
+                   [:privacy-policy "privacy-policy"]
+                   [:terms "terms-of-use"]]]
         (mapv (fn [[cls img]]
                 [(keyword (str "&." (name cls)))
                  [:a:before

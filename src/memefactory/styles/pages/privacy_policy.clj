@@ -17,8 +17,8 @@
    [:.body {:font-size (px 15)
             :padding (em 2)}]
    [:.privacy-policy
-    (panel-with-icon {:url "/assets/icons/about2.svg"
-                      :color "#93bfd4"})
+    (panel-with-icon {:url "/assets/icons/privacy-policy2.svg"
+                      :color "#d9da6b"})
     [:&
      [:h2.title
-      {:color "#05d36e"}]]]])
+      {:color "#7ab5e2"}]]]])

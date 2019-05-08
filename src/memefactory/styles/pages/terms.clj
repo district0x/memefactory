@@ -17,8 +17,8 @@
    [:.body {:font-size (px 15)
             :padding (em 2)}]
    [:.terms
-    (panel-with-icon {:url "/assets/icons/about2.svg"
-                      :color "#93bfd4"})
+    (panel-with-icon {:url "/assets/icons/terms-of-use2.svg"
+                      :color "#c3e4f3"})
     [:&
      [:h2.title
-      {:color "#05d36e"}]]]])
+      {:color "#fa9456"}]]]])
