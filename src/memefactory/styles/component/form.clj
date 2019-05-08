@@ -174,5 +174,7 @@
      :font-size (px 12)
      :color (color :menu-text)
      :background-position "right 1.5em center"
-     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}]]
+     :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
+    (for-media-max :tablet
+                   [:& {:margin-right :unset}])]]
   )
