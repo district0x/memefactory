@@ -67,7 +67,7 @@
     {:items result
      :total-count total-count
      :end-cursor (str last-idx)
-     :has-next-page (< (inc last-idx) total-count)}))
+     :has-next-page (< last-idx total-count)}))
 
 (defn meme-query-resolver [_ {:keys [:reg-entry/address] :as args}]
   (db/get {:select [:*]
