@@ -99,17 +99,6 @@
      (-> user :user/address)]]])
 
 
-(defn current-period-ends [label end-date]
-  (let [{:keys [days hours minutes seconds] :as time-remaining} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                                     (gql-utils/gql-date->date end-date))]
-    (if (= 0 days hours minutes seconds)
-      [:li (str label " period ended.")]
-
-      [:li (str label " period ends in: ")
-       [:span (-> time-remaining
-                format/format-time-units)]])))
-
-
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child]}]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
@@ -136,7 +125,7 @@
                                                                       (t/now))
 
                                                (dissoc :seconds)
-                                               format/format-time-units)]
+                                               (format/format-time-units {:short? true}))]
                            (if-not (empty? formated-time)
                              (str formated-time " ago")
                              "less than a minute ago"))]]
@@ -148,7 +137,7 @@
 
                      [:li (str period-label " period ends in: ")
                       [:span.time-remaining (-> time-remaining
-                                              format/format-time-units)]])
+                                              (format/format-time-units {:short? true}))]])
                    [:li ""])
                  [:li "Issued: " [:span total-supply]]]
                 [:h3 "Creator"]

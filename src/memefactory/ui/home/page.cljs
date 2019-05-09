@@ -7,7 +7,6 @@
     [district.ui.graphql.subs :as gql]
     [goog.string :as gstring]
     [memefactory.ui.components.app-layout :refer [app-layout]]
-    [memefactory.ui.components.challenge-list :refer [current-period-ends]]
     [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.components.panels :refer [no-items-found]]
     [memefactory.ui.components.spinner :as spinner]
