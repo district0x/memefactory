@@ -18,17 +18,18 @@
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [taoensso.timbre :as log :refer [spy]]))
+   [taoensso.timbre :as log :refer [spy]]
+   [memefactory.ui.utils :as ui-utils]))
 
 (def page-size 6)
 
-(defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]}]
-  (let [{:keys [:order-by :order-dir]} data]
+(defn build-challenge-query [{:keys [data after include-challenger-info? query-params active-account]} sort-options]
+  (let [{:keys [:order-by]} data]
     [:search-memes
      (cond-> (merge {:first page-size} query-params)
        after (assoc :after after)
-       order-by (assoc :order-by (keyword "memes.order-by" order-by))
-       order-dir (assoc :order-dir (keyword order-dir)))
+       order-by (assoc :order-by (keyword "memes.order-by" order-by)
+                       :order-dir (or (ui-utils/order-dir-from-key-name order-by sort-options) :desc)))
      [:total-count
       :end-cursor
       :has-next-page
@@ -204,18 +205,18 @@
                     :query-params query-params
                     :active-account active-account}
 
-            meme-search (subscribe [::gql/query {:queries [(build-challenge-query params)]}
+            meme-search (subscribe [::gql/query {:queries [(build-challenge-query params sort-options)]}
                                     {:id {:params params :key key}}])
 
             re-search (fn [after]
                         (dispatch [:district.ui.graphql.events/query
-                                   {:query {:queries [(build-challenge-query (assoc params :after after))]}
+                                   {:query {:queries [(build-challenge-query (assoc params :after after) sort-options)]}
                                     :id {:params params :key key}}]))]
         [:div.challenges.panel
-        [:div.controls
-         [select-input {:form-data form-data
-                        :class :white-select
-                        :id :order-by
-                        :options sort-options}]]
-        [meme-tiles meme-search re-search {:include-challenger-info? include-challenger-info?
-                                           :action-child action-child}]]))))
+         [:div.controls
+          [select-input {:form-data form-data
+                         :class :white-select
+                         :id :order-by
+                         :options sort-options}]]
+         [meme-tiles meme-search re-search {:include-challenger-info? include-challenger-info?
+                                            :action-child action-child}]]))))
