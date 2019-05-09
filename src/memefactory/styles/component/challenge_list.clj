@@ -81,7 +81,8 @@
        {:margin-top (em 2)}
        [:li
         (tag)]]
-      [:li {:display :flex}
+      [:li {:display :flex
+            :white-space :nowrap}
        [:span {:overflow :hidden
                :white-space :nowrap
                :text-overflow :ellipsis
