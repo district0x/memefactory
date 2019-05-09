@@ -264,8 +264,8 @@
                                       :active-account account
                                       :action-child reveal-vote-action
                                       :key :vote-page/open
-                                      :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
-                                                     {:key "commit-period-end" :value "Commit period end" :dir :asc}]}]}
+                                      :sort-options [{:key "created-on"        :value "Newest" :order-dir :desc}
+                                                     {:key "commit-period-end" :value "Oldest" :order-dir :asc}]}]}
            {:title "Resolved Challenges"
             :content [challenge-list {:include-challenger-info? true
                                       :query-params {:statuses [:reg-entry.status/blacklisted
@@ -274,5 +274,5 @@
                                       :active-account account
                                       :action-child collect-reward-action
                                       :key :vote-page/resolved
-                                      :sort-options [{:key "created-on"        :value "Newest"            :dir :desc}
-                                                     {:key "reveal-period-end" :value "Reveal period end" :dir :asc}]}]}]]]]])))
+                                      :sort-options [{:key "created-on"        :value "Newest" :order-dir :desc}
+                                                     {:key "reveal-period-end" :value "Oldest" :order-dir :asc}]}]}]]]]])))

@@ -98,5 +98,5 @@
                      :query-params {:statuses [:reg-entry.status/challenge-period]}
                      :action-child open-challenge-action
                      :key :challenge-page
-                     :sort-options [{:key "created-on" :value "Newest"}
-                                    {:key "challenge-period-end" :value "Challenge period end"}]}]]])
+                     :sort-options [{:key "created-on"           :value "Newest" :order-dir :desc}
+                                    {:key "challenge-period-end" :value "Oldest" :order-dir :asc}]}]]])
