@@ -31,6 +31,8 @@
        'tx-log       tx-log'"
     :height "100%"
     :width (px account-balance-width)
+    :margin-right (em 1.01)
+
     :background-color (color :ticker-background)}
    [:.dank-section
     (merge
