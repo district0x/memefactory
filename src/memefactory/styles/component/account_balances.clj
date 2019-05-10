@@ -67,7 +67,7 @@
       :display :flex
       :justify-content :center}
      account-section-style)
-    [:&.app-bar-width account-section-app-bar-style]
+
     [:.eth-logo
      {:grid-area :logo
       :display :flex
