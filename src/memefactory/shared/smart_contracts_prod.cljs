@@ -40,7 +40,7 @@
                        :address "0xe278b85a36f6b370347d69fb4744947e2965c058",
                        :forwards-to :meme-registry},
    :district0x-emails {:name "District0xEmails",
-                       :address "0x179fadd977206604a89961c77830dedca04ccd0b"},
+                       :address "0x5065ef0724b76421aeaafa87ba752d6c5d5499b5"},
    :meme-auction-factory-fwd {:name "MutableForwarder",
                               :address "0xb47c930fa2cce89d0a92925733ae65f72ae8914e",
                               :forwards-to :meme-auction-factory}})
