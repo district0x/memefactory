@@ -34,10 +34,10 @@
                :align-items :center
                :justify-content :space-evenly}
      [:.metamask-wallet
-      (for-media-max :tablet
+      #_(for-media-max :tablet
                      [:& {:display :none}])
       [:img {:width (px 130)}]]
      [:.coinbase-wallet
-      (for-media-min :tablet
+      #_(for-media-min :tablet
                      [:& {:display :none}])
       [:img {:width (px 130)}]]]]])
