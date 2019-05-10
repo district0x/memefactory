@@ -8,10 +8,23 @@
    [re-frame.core :as re]))
 
 
-(defn account-balances [{:keys [with-tx-logs?]}]
+(defn account-balances
+  "Account Balances (with transactions) Component
+
+  # Optional Arguments
+
+  with-tx-logs? -- Determines whether to include the transactions log
+  drop-down [default: false]
+
+  app-bar-width? -- Determines whether to make the component slightly wider
+  for situations when it's in the app-bar [default: false]
+
+  "
+  [{:keys [with-tx-logs? app-bar-width?]}]
   (let [tx-log-open? (re/subscribe [::tx-log-subs/open?])]
     (fn []
       [:div.accounts
+       {:class (when app-bar-width? "app-bar-width")}
        [:div.dank-section
         {:on-click (when with-tx-logs? #(re/dispatch [::tx-log-events/set-open (not @tx-log-open?)]))}
         [:div.dank-logo
