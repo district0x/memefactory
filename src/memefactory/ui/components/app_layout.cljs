@@ -113,7 +113,7 @@
                        (dispatch [:district.ui.router.events/navigate :route/how-it-works])
                        (dispatch [:district0x.transaction-log/set-open (not @open?)])))}
         (when (seq @accounts)
-          [account-balances {:with-tx-logs? true}])]])))
+          [account-balances {:with-tx-logs? true :app-bar-width? true}])]])))
 
 
 (defn district0x-banner []

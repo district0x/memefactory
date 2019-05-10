@@ -13,6 +13,9 @@
 (def bar-height 50) ;; px
 (def account-balance-width 270) ;; px
 
+;; Alternative width for when account balances component is placed in
+;; the app-bar
+(def account-balance-app-bar-width 320) ;; px
 
 (def account-section-style
   {:display :grid
@@ -23,6 +26,11 @@
    :width (px (/ account-balance-width 2))})
 
 
+(def account-section-app-bar-style
+  (assoc account-section-style
+         :width (px (/ account-balance-app-bar-width 2))))
+
+
 (defstyles core
   [:.accounts
    {:display :grid
@@ -31,9 +39,8 @@
        'tx-log       tx-log'"
     :height "100%"
     :width (px account-balance-width)
-    :margin-right (em 1.01)
-
     :background-color (color :ticker-background)}
+
    [:.dank-section
     (merge
      {:grid-area :dank-section
@@ -44,6 +51,7 @@
       :display :flex
       :justify-content :center}
      account-section-style)
+
     [:.dank-logo
      {:grid-area :logo
       :display :flex
@@ -59,6 +67,7 @@
       :display :flex
       :justify-content :center}
      account-section-style)
+    [:&.app-bar-width account-section-app-bar-style]
     [:.eth-logo
      {:grid-area :logo
       :display :flex
@@ -230,4 +239,10 @@
       :text-overflow :ellipsis}]
     [:.token-code
      {:white-space :nowrap
-      :color (color :ticker-token-color)}]]])
+      :color (color :ticker-token-color)}]]
+
+   [:&.app-bar-width
+    {:width (px account-balance-app-bar-width)}
+    [:.dank-section account-section-app-bar-style]
+    [:.eth-section account-section-app-bar-style]
+    [:.tx-log {:width (px account-balance-app-bar-width)}]]])
