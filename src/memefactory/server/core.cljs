@@ -10,7 +10,7 @@
    [district.server.middleware.logging :refer [logging-middlewares]]
    [district.server.web3 :refer [web3]]
    [district.server.web3-events]
-   [district.server.web3-watcher]
+   [goog.functions :as gfun]
    [memefactory.server.constants :as constants]
    [memefactory.server.db]
    [memefactory.server.emailer]
@@ -38,6 +38,23 @@
     "qa-dev" #'smart-contracts-qa/smart-contracts
     "dev" #'smart-contracts-dev/smart-contracts))
 
+
+(defn restart-syncing-modules [err evt]
+  (log/error "Error in event callback, restarting syncing modules"
+             {:err err :event evt}
+             ::web3-events-on-erorr)
+  (js/setTimeout                                            ;; some extra time for parity to put itself together after error
+    (fn []
+      (mount/stop #'memefactory.server.db/memefactory-db
+                  #'district.server.web3-events/web3-events)
+      (mount/start #'district.server.web3-events/web3-events
+                   #'memefactory.server.db/memefactory-db
+                   #'memefactory.server.syncer/syncer
+                   #'memefactory.server.pinner/pinner
+                   #'memefactory.server.emailer/emailer)
+      10000)))
+
+
 (defn -main [& _]
   (-> (mount/with-args
         {:config {:default {:logging {:console? false}
@@ -55,14 +72,6 @@
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var contracts-var}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
-                            :web3-watcher {:on-online (fn []
-                                                        (log/warn "Ethereum node went online again" ::web3-watcher)
-                                                        (mount/stop #'memefactory.server.db/memefactory-db)
-                                                        (mount/start #'memefactory.server.db/memefactory-db
-                                                                     #'memefactory.server.syncer/syncer))
-                                           :on-offline (fn []
-                                                         (log/warn "Ethereum node went offline" ::web3-watcher)
-                                                         (mount/stop #'memefactory.server.syncer/syncer))}
                             :ui {:public-key "PLACEHOLDER"
                                  :root-url "https://memefactory.io"}
                             :twilio-api-key "PLACEHOLDER"
@@ -71,7 +80,9 @@
                                                     (log/warn "Received SIGTERM signal. Exiting" {:args args})
                                                     (mount/stop)
                                                     (.exit nodejs/process 0))}}}
-         :web3-events {:events constants/web3-events}})
+         :web3-events {:events constants/web3-events
+                       ;; to prevent loopback of death, can be called only once per 2 minutes
+                       :on-error (gfun/throttle restart-syncing-modules 120000)}})
       (mount/start)
       (#(log/warn "Started" {:components %
                              :config @config}))))
