@@ -14,7 +14,7 @@
    #_2  {"click .compact-tile:first>div" "Memes exist as provably rare tokens on the blockchain, and work a lot like digital trading cards. Click to flip over!" :showSkip false}
    #_3  {"next .compact-tile:first>div" "Memes are minted, auctioned, and sold on Meme Factory for Ethereum. Each meme has a fixed supply, and is provably rare. Once issued, no more will ever be made, and only the original supply can be traded and re-traded." :showSkip false}
    #_4  {"next .compact-tile:first>div>.flippable-tile-back>div>div>div>button" "If you find a meme you like listed for sale, simply click the buy button then submit and confirm the Ethereum transaction. Once purchased memes are yours to keep, sell, move, or trade away forever." :showSkip false}
-   #_5  {"click div.memefolio" "At it's core, Meme Factory is a decentralized marketplace for collectible memes." :showSkip false}
+   #_5  {"click div.memefolio" "Any memes you own will appear in your Memefolio." :showSkip false}
    #_6  {"next .memefolio-page" (with-background "Your Memefolio contains your current collection of memes as well as a complete history of memes you've bought and sold.") :showSkip false}
    #_7  {"next section.tabs" "Meme Factory gives you the power not only to buy and sell on the marketplace, but control what enters the marketplace. You can <i>create</i> memes, and these memes are <i>curated</i> through a process of challenges and votes." :showSkip false}
    #_8  {"click div.faucet" "In order to start curating, you need a special token for the job, called DANK." :showSkip false}
