@@ -264,8 +264,9 @@
                                       :active-account account
                                       :action-child reveal-vote-action
                                       :key :vote-page/open
-                                      :sort-options [{:key "created-on"        :value "Newest" :order-dir :desc}
-                                                     {:key "commit-period-end" :value "Oldest" :order-dir :asc}]}]}
+                                      ;; HACK : key should be created-on but our select doesn't support two equal keys
+                                      :sort-options [{:key "commit-period-end-desc" :value "Newest" :order-dir :desc}
+                                                     {:key "commit-period-end-asc"  :value "Oldest" :order-dir :asc}]}]}
            {:title "Resolved Challenges"
             :content [challenge-list {:include-challenger-info? true
                                       :query-params {:statuses [:reg-entry.status/blacklisted
@@ -274,5 +275,6 @@
                                       :active-account account
                                       :action-child collect-reward-action
                                       :key :vote-page/resolved
-                                      :sort-options [{:key "created-on"        :value "Newest" :order-dir :desc}
-                                                     {:key "reveal-period-end" :value "Oldest" :order-dir :asc}]}]}]]]]])))
+                                      ;; HACK : key should be created-on but our select doesn't support two equal keys
+                                      :sort-options [{:key "reveal-period-end-desc" :value "Newest" :order-dir :desc}
+                                                     {:key "reveal-period-end-asc"  :value "Oldest" :order-dir :asc}]}]}]]]]])))

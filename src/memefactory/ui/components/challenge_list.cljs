@@ -19,7 +19,8 @@
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log :refer [spy]]
-   [memefactory.ui.utils :as ui-utils]))
+   [memefactory.ui.utils :as ui-utils]
+   [clojure.string :as str]))
 
 (def page-size 6)
 
@@ -28,7 +29,9 @@
     [:search-memes
      (cond-> (merge {:first page-size} query-params)
        after (assoc :after after)
-       order-by (assoc :order-by (keyword "memes.order-by" order-by)
+       order-by (assoc :order-by (keyword "memes.order-by" (-> order-by
+                                                               (str/replace "-desc" "")
+                                                               (str/replace "-asc" "")))
                        :order-dir (or (ui-utils/order-dir-from-key-name order-by sort-options) :desc)))
      [:total-count
       :end-cursor

@@ -98,5 +98,6 @@
                      :query-params {:statuses [:reg-entry.status/challenge-period]}
                      :action-child open-challenge-action
                      :key :challenge-page
-                     :sort-options [{:key "created-on"           :value "Newest" :order-dir :desc}
-                                    {:key "challenge-period-end" :value "Oldest" :order-dir :asc}]}]]])
+                     ;; HACK : key should be created-on but our select doesn't support two equal keys
+                     :sort-options [{:key "challenge-period-end-desc" :value "Newest" :order-dir :desc}
+                                    {:key "challenge-period-end-asc" :value "Oldest" :order-dir :asc}]}]]])
