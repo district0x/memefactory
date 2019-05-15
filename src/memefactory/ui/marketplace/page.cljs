@@ -19,8 +19,8 @@
 
 (def page-size 6)
 
-(def auctions-order [{:key "started-on" :value "Newest" :order-dir :desc}
-                     {:key "meme-registry-number" :value "Registry Number" :order-dir :asc}
+(def auctions-order [{:key "meme-registry-number" :value "Registry Number" :order-dir :asc}
+                     {:key "started-on" :value "Newest" :order-dir :desc}
                      {:key "meme-total-minted" :value "Rarest" :order-dir :asc}
                      {:key "price-asc" :value "Cheapest" :order-dir :asc}
                      {:key "price-desc" :value "Most Expensive" :order-dir :desc}
@@ -104,8 +104,8 @@
                                                :only-lowest-number)
                              :search-tags (when-let [tags (:search-tags query)]
                                             (str/split tags #","))
-                             :order-by (or (:order-by query) "started-on")
-                             :order-dir (or (:order-dir query) "desc")
+                             :order-by (or (:order-by query) "meme-registry-number")
+                             :order-dir (or (:order-dir query) "asc")
                              :only-cheapest? true}))
         all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
     (fn []
