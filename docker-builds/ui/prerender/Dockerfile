@@ -9,5 +9,6 @@ COPY resources/public /wwwroot
 
 # setup redirects
 ADD docker-builds/ui/prerender/_redirects /wwwroot/_redirects
+ADD docker-builds/ui/prerender/_redirects /app/_redirects
 
 EXPOSE 9000
