@@ -5,6 +5,6 @@ MAINTAINER "Filip Bielejec" <filip@district0x.io>
 COPY resources/public /wwwroot
 
 # setup redirects
-ADD docker-builds/ui/_redirects /wwwroot/_redirects
+ADD docker-builds/ui/prerender/_redirects /wwwroot/_redirects
 
 EXPOSE 9000
