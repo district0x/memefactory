@@ -141,7 +141,7 @@ contract DankFaucet is usingOraclize, DSAuth {
   }
 
   /**
-   * Allow the owner to withdraw DANK in this contract
+   * Allow the owner to withdraw ETH in this contract
    */
   function withdrawEth() auth {
     msg.sender.transfer(address(this).balance);
