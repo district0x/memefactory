@@ -124,23 +124,16 @@
    (log/debug "in verify-and-acquire-dank data:" data)
    (log/debug "in verify-and-acquire-dank http-resp:" http-resp)
    (let [active-account (account-queries/active-account db)
-         encrypted-payload (get-in http-resp [:data :encryptVerificationPayload :payload])
-         oraclize-string (str "[computation] "
-                              "['QmdKK319Veha83h6AYgQqhx9YRsJ9MJE7y33oCXyZ4MqHE', "
-                              "'GET', "
-                              "'https://api.authy.com/protected/json/phones/verification/check', "
-                              "'${[decrypt] "
-                              encrypted-payload
-                              "}']")]
+         encrypted-payload (get-in http-resp [:data :encryptVerificationPayload :payload])]
      (log/debug "country-code:" country-code "phone-number" phone-number "verification-code" verification-code)
      (log/debug "encrypted-payload:" encrypted-payload)
-     (log/debug "oraclize-string:" oraclize-string)
+
      (when encrypted-payload
        {:dispatch
         [::tx-events/send-tx {:instance (contract-queries/instance db :dank-faucet)
                               :fn :verify-and-acquire-dank
                               :args [(-> phone-number web3/sha3)
-                                     oraclize-string]
+                                     encrypted-payload]
                               :tx-log {:name "Request DANK"}
                               :tx-opts {:from active-account}
                               :on-tx-success-n [[::hide-spinner]
