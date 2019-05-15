@@ -6,18 +6,36 @@ BUILD_ENV=$1
 
 #--- FUNCTIONS
 
+function tag {
+  BUILD_ENV=$1
+
+  case $BUILD_ENV in
+    "qa")
+      echo latest
+      ;;
+    "prod")
+      echo release
+      ;;
+    *)
+      echo "ERROR: don't know what to do with BUILD_ENV: "$BUILD_ENV""
+      exit 1
+      ;;
+  esac
+}
+
 function build {
   {
     NAME=$1
     BUILD_ENV=$2
-    TAG=$(git log -1 --pretty=%h)
-    IMG=$NAME:$TAG
+    VERSION=$(git log -1 --pretty=%h)
+    TAG=$(tag $BUILD_ENV)
+    IMG=$NAME:$VERSION
 
     SERVICE=$(echo $NAME | cut -d "-" -f 2)
 
-    echo "============================================="
-    echo  "["$BUILD_ENV"] ["$SERVICE"] Buidling: "$IMG""
-    echo "============================================="
+    echo "============================================================="
+    echo  "["$BUILD_ENV"] ["$SERVICE"] Buidling: "$IMG" with tag "$TAG""
+    echo "============================================================="
 
     case $SERVICE in
       "ui")
@@ -39,22 +57,7 @@ function build {
       docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
     fi
 
-    case $BUILD_ENV in
-      "qa")
-        # qa images are tagged as `latest`
-        echo "["$BUILD_ENV"] ["$SERVICE"] tagging as latest: "$IMG""
-        docker tag $IMG $NAME:latest
-        ;;
-      "prod")
-        # prod images are tagged as `release`
-        echo "["$BUILD_ENV"] ["$SERVICE"] tagging as release: "$IMG""
-        docker tag $IMG $NAME:release
-        ;;
-      *)
-        echo "ERROR: don't know what to do with BUILD_ENV: "$BUILD_ENV""
-        exit 1
-        ;;
-    esac
+    docker tag $IMG $NAME:$TAG
 
   } || {
     echo "EXCEPTION WHEN BUIDLING "$IMG""
@@ -64,8 +67,14 @@ function build {
 
 function push {
   NAME=$1
-  echo "Pushing: " $NAME
-  docker push $NAME
+  BUILD_ENV=$2
+  TAG=$(tag $BUILD_ENV)
+
+  echo "============================================================="
+  echo  "Pushing "$NAME" : "$TAG" "
+  echo "============================================================="
+
+  docker push $NAME:$TAG
 }
 
 function login {
@@ -91,7 +100,7 @@ images=(
 for i in "${images[@]}"; do
   (
     build $i $BUILD_ENV
-#    push $i
+    push $i $BUILD_ENV
   )
 
 done # END: i loop
