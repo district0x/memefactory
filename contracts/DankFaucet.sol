@@ -2,12 +2,14 @@ pragma solidity ^0.4.24;
 import "./oraclize/ethereum-api/oraclizeAPI.sol";
 import "./DankToken.sol";
 import "./auth/DSAuth.sol";
+import "./utils/strings.sol";
 
 /***
  * A Faucet for getting initial DANK tokens. Provide a phone number,
  * reveive a one-time allotment of DANK.
  ***/
 contract DankFaucet is usingOraclize, DSAuth {
+  using strings for *;
 
   DankToken public constant dankToken = DankToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
 
@@ -59,11 +61,11 @@ contract DankFaucet is usingOraclize, DSAuth {
    * second half of the phone number verification API. If their phone number checks out it
    * transfers them an allotment of Dank that was set by the constructor.
    */
-  function verifyAndAcquireDank(bytes32 hashedPhoneNumber, string oraclizeQuery) public {
+  function verifyAndAcquireDank(bytes32 hashedPhoneNumber, string encryptedPayload) public {
     if (oraclize_getPrice("URL") > address(this).balance) {
       emit NotEnoughETH("Oraclize query for phone number verification was NOT sent, add more ETH.", oraclize_getPrice("URL"));
     } else {
-      bytes32 queryId = oraclize_query("nested", oraclizeQuery);
+      bytes32 queryId = oraclize_query("nested", getOraclizeQuery(encryptedPayload));
       phoneNumberRequests[queryId] = PhoneNumberRequest(msg.sender, hashedPhoneNumber);
     }
   }
@@ -95,6 +97,14 @@ contract DankFaucet is usingOraclize, DSAuth {
     }
   }
 
+  function getOraclizeQuery(string payload) constant returns(string) {
+    var parts = new strings.slice[](3);
+    parts[0] = "[computation] ['QmdKK319Veha83h6AYgQqhx9YRsJ9MJE7y33oCXyZ4MqHE', 'GET', 'https://api.authy.com/protected/json/phones/verification/check', '${[decrypt] ".toSlice();
+    parts[1] = payload.toSlice();
+    parts[2] = "}']".toSlice();
+    return "".toSlice().join(parts);
+  }
+
   /**
    * Returns the amount of ETH this contract has available. ETH is used to pay for
    * having Oraclize call the external API for validating phone numbers.
@@ -121,5 +131,19 @@ contract DankFaucet is usingOraclize, DSAuth {
    */
   function resetAllotment(uint initialDank) auth {
     allotment = initialDank;
+  }
+
+  /**
+   * Allow the owner to withdraw DANK in this contract
+   */
+  function withdrawDank() auth {
+    dankToken.transfer(msg.sender, dankToken.balanceOf(this));
+  }
+
+  /**
+   * Allow the owner to withdraw DANK in this contract
+   */
+  function withdrawEth() auth {
+    msg.sender.transfer(address(this).balance);
   }
 }
