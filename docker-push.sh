@@ -33,14 +33,18 @@ function build {
         ;;
     esac
 
-    docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
+#    docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
 
     case $BUILD_ENV in
       "qa")
+        # TODO : temporary untill prerendering is solved
+        docker build -t $IMG -f docker-builds/$SERVICE/prerender/Dockerfile .
         # qa images are tagged as `latest`
         docker tag $IMG $NAME:latest
         ;;
       "prod")
+        # TODO : temporary untill prerendering is solved
+        docker build -t $IMG -f docker-builds/$SERVICE/legacy/Dockerfile .
         # prod images are tagged as `release`
         docker tag $IMG $NAME:release
         ;;
@@ -75,10 +79,10 @@ function before {
 #--- EXECUTE
 
 before
-login
+#login
 
 images=(
-  district0x/memefactory-server
+#  district0x/memefactory-server
   district0x/memefactory-ui
 )
 
