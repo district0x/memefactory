@@ -423,6 +423,7 @@
 
 
       (register-after-past-events-dispatched-callback! (fn []
+                                                         (log/info "Syncing past events finished" ::start)
                                                          (apply-blacklist-patches!)
                                                          (assign-meme-registry-numbers!)))
 
