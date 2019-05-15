@@ -15,6 +15,7 @@
    [district.ui.smart-contracts]
    [district.ui.web3-account-balances]
    [district.ui.web3-accounts]
+   [district.ui.web3-accounts.events]
    [district.ui.web3-balances]
    [district.ui.web3-tx-id]
    [district.ui.web3-tx-log]
@@ -45,6 +46,7 @@
    [memefactory.ui.meme-detail.page]
    [memefactory.ui.memefolio.page]
    [memefactory.ui.my-settings.page]
+   [memefactory.ui.my-settings.events]
    [memefactory.ui.subs]
    [mount.core :as mount]
    [print.foo :refer [look] :include-macros true]
@@ -68,21 +70,32 @@
                :votes (:votes store)
                :memefactory.ui.get-dank.page/stage 1)}))
 
+;; This is fired whenever the system has a new account.
+;; Could be a user chainging its account on metamask or
+;; when the account is loaded the first time.
+;; When we are sure we have an account we can load user emails
+;; settings.
+(re-frame/reg-event-fx
+ :district.ui.web3-accounts.events/active-account-changed
+ (fn [_ [_ {:keys [new]}]]
+   (when new
+     {:dispatch [:memefactory.ui.my-settings.events/load-email-settings
+                 {:address new}]})))
 
 (defn ^:export init []
   (dev-setup)
   (let [full-config (cljs-utils/merge-in
-                      config-map
-                      {:smart-contracts {:format :truffle-json}
-                       :web3-account-balances {:for-contracts [:ETH :DANK]}
-                       :web3-tx-log {:open-on-tx-hash? true}
-                       :reagent-render {:id "app"
-                                        :component-var #'router}
-                       :router {:routes routes
-                                :default-route :route/home
-                                :scroll-top? true}
-                       :notification {:default-show-duration 3000
-                                      :default-hide-duration 1000}})]
+                     config-map
+                     {:smart-contracts {:format :truffle-json}
+                      :web3-account-balances {:for-contracts [:ETH :DANK]}
+                      :web3-tx-log {:open-on-tx-hash? true}
+                      :reagent-render {:id "app"
+                                       :component-var #'router}
+                      :router {:routes routes
+                               :default-route :route/home
+                               :scroll-top? true}
+                      :notification {:default-show-duration 3000
+                                     :default-hide-duration 1000}})]
     (js/console.log "Entire config:" (clj->js full-config))
     (-> (mount/with-args full-config)
         (mount/start)))
