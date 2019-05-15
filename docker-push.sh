@@ -33,7 +33,7 @@ function build {
         ;;
     esac
 
-    if [[ $SERVICE == "ui"  && $BUILD_ENV == "qa" ]]; then
+    if [[ $SERVICE == "ui" && $BUILD_ENV == "qa" ]]; then
       docker build -t $IMG -f docker-builds/$SERVICE/prerender/Dockerfile .
     else
       docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
@@ -42,10 +42,12 @@ function build {
     case $BUILD_ENV in
       "qa")
         # qa images are tagged as `latest`
+        echo "["$BUILD_ENV"] ["$SERVICE"] tagging as latest: "$IMG""
         docker tag $IMG $NAME:latest
         ;;
       "prod")
         # prod images are tagged as `release`
+        echo "["$BUILD_ENV"] ["$SERVICE"] tagging as release: "$IMG""
         docker tag $IMG $NAME:release
         ;;
       *)
@@ -82,14 +84,14 @@ before
 login
 
 images=(
-  #  district0x/memefactory-server
+  district0x/memefactory-server
   district0x/memefactory-ui
 )
 
 for i in "${images[@]}"; do
   (
     build $i $BUILD_ENV
-    push $i
+#    push $i
   )
 
 done # END: i loop
