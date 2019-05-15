@@ -7,6 +7,7 @@
     [goog.format.EmailAddress :as email-address]
     [memefactory.ui.components.app-layout :refer [app-layout]]
     [memefactory.ui.contract.district0x-emails :as ms-events]
+    [memefactory.ui.my-settings.events :as my-settings-events]
     [re-frame.core :as re-frame]
     [reagent.core :as r]
     [reagent.ratom :refer [reaction]]
@@ -23,13 +24,13 @@
 
 (defn my-settings []
   (let [public-key-sub (re-frame/subscribe [::gql/query {:queries [[:config [[:ui [:public-key]]]]]}])
-        active-account (re-frame/subscribe [::accounts-subs/active-account])
         form-data (r/atom {})
         errors (reaction {:local (cond-> {}
                                    (not (valid-email? (or (:email @form-data) "")))
                                    (assoc-in [:email :error] "Invalid email format"))})]
     (fn []
       (let [public-key (-> @public-key-sub :config :ui :public-key)
+            active-account (re-frame/subscribe [::accounts-subs/active-account])
             settings (re-frame/subscribe [:memefactory.ui.subs/settings @active-account])]
         [:div.my-settings-box
          [:div.icon]
@@ -45,8 +46,8 @@
             {:form-data form-data
              :id :email
              :for :email}]
-           (when (not-empty (:email @settings))
-             [:div.alert "You already associated " (:email @settings) " with your Ethereum address"])
+           (when (not-empty (:encrypted-email @settings))
+             [:div.alert "You already associated an email with your Ethereum address"])
            [:p "The email associated with your address will be encrypted and stored on a public blockchain. Only our email server will be able to decrypt it. We'll use it to send you automatic notifications about your activity, as well as important website updates. You can unsubscribe at any time by saving a blank email address above. You can view our privacy policy " [nav-anchor {:route :route.privacy-policy/index} "here."]]
            [:p "We use the service " [:a {:href "https://sendgrid.com"} "Sendgrid"] " to generate these emails. You can also always unsubscribe from this service by opting out through their provided links at the bottom of every email. You can view their privacy policy " [:a {:href "https://sendgrid.com/policies/privacy/" } "here."]]]]
          [:div.footer
