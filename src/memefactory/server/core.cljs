@@ -10,6 +10,7 @@
    [district.server.middleware.logging :refer [logging-middlewares]]
    [district.server.web3 :refer [web3]]
    [district.server.web3-events]
+   [district.server.web3-watcher]
    [goog.functions :as gfun]
    [memefactory.server.constants :as constants]
    [memefactory.server.db]
@@ -39,22 +40,6 @@
     "dev" #'smart-contracts-dev/smart-contracts))
 
 
-(defn restart-syncing-modules [err evt]
-  (log/error "Error in event callback, restarting syncing modules"
-             {:err err :event evt}
-             ::web3-events-on-erorr)
-  (js/setTimeout                                            ;; some extra time for parity to put itself together after error
-    (fn []
-      (mount/stop #'memefactory.server.db/memefactory-db
-                  #'district.server.web3-events/web3-events)
-      (mount/start #'district.server.web3-events/web3-events
-                   #'memefactory.server.db/memefactory-db
-                   #'memefactory.server.syncer/syncer
-                   #'memefactory.server.pinner/pinner
-                   #'memefactory.server.emailer/emailer)
-      10000)))
-
-
 (defn -main [& _]
   (-> (mount/with-args
         {:config {:default {:logging {:console? false}
@@ -80,9 +65,23 @@
                                                     (log/warn "Received SIGTERM signal. Exiting" {:args args})
                                                     (mount/stop)
                                                     (.exit nodejs/process 0))}}}
-         :web3-events {:events constants/web3-events
-                       ;; to prevent loopback of death, can be called only once per 2 minutes
-                       :on-error (gfun/throttle restart-syncing-modules 120000)}})
+         :web3-watcher {:interval 3000
+                        :confirmations 3
+                        :on-offline (fn []
+                                      (log/error "Ethereum node went offline, stopping syncing modules" ::web3-watcher)
+                                      (mount/stop #'memefactory.server.db/memefactory-db
+                                                  #'district.server.web3-events/web3-events
+                                                  #'memefactory.server.syncer/syncer
+                                                  #'memefactory.server.pinner/pinner
+                                                  #'memefactory.server.emailer/emailer))
+                        :on-online (fn []
+                                     (log/warn "Ethereum node went online again, starting syncing modules" ::web3-watcher)
+                                     (mount/start #'memefactory.server.db/memefactory-db
+                                                  #'district.server.web3-events/web3-events
+                                                  #'memefactory.server.syncer/syncer
+                                                  #'memefactory.server.pinner/pinner
+                                                  #'memefactory.server.emailer/emailer))}
+         :web3-events {:events constants/web3-events}})
       (mount/start)
       (#(log/warn "Started" {:components %
                              :config @config}))))

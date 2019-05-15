@@ -35,6 +35,7 @@
                  [district0x/district-server-smart-contracts "1.0.14"]
                  [district0x/district-server-web3 "1.0.1"]
                  [district0x/district-server-web3-events "1.0.3"]
+                 [district0x/district-server-web3-watcher "1.0.3"]
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
                  [district0x/district-ui-component-active-account-balance "1.0.1"]
