@@ -94,7 +94,7 @@ before
 login
 
 images=(
-  #  district0x/memefactory-server
+  district0x/memefactory-server
   district0x/memefactory-ui
 )
 
