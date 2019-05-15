@@ -23,19 +23,6 @@ function build {
       "ui")
         lein garden once
         env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "ui"
-
-        # TODO : temporary before prerendering is resolved
-        if [ $BUILD_ENV == "qa" ]; then
-          echo "["$BUILD_ENV"] ["$SERVICE"] Building prerender image"
-          docker build -t $IMG -f docker-builds/$SERVICE/prerender/Dockerfile .
-        elif [ $BUILD_ENV == "prod" ]; then
-          echo "["$BUILD_ENV"] ["$SERVICE"] Building legacy image"
-          docker build -t $IMG -f docker-builds/$SERVICE/legacy/Dockerfile .
-        else
-          echo "ERROR: don't know what to do with BUILD_ENV: "$BUILD_ENV" and SERVICE: "$SERVICE""
-          exit 1
-        fi
-
         ;;
       "server")
         env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "server"
@@ -46,18 +33,19 @@ function build {
         ;;
     esac
 
-    # TODO : temporary before prerendering is resolved
-    # docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
+    if [[ $SERVICE == "ui"  && $BUILD_ENV == "qa" ]]; then
+      docker build -t $IMG -f docker-builds/$SERVICE/prerender/Dockerfile .
+    else
+      docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
+    fi
 
     case $BUILD_ENV in
       "qa")
         # qa images are tagged as `latest`
-        echo "["$BUILD_ENV"] ["$SERVICE"] tagging image as :latest"
         docker tag $IMG $NAME:latest
         ;;
       "prod")
         # prod images are tagged as `release`
-        echo "["$BUILD_ENV"] ["$SERVICE"] tagging image as :release"
         docker tag $IMG $NAME:release
         ;;
       *)
@@ -94,7 +82,7 @@ before
 login
 
 images=(
-  district0x/memefactory-server
+  #  district0x/memefactory-server
   district0x/memefactory-ui
 )
 
