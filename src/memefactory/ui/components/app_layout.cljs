@@ -74,6 +74,14 @@
                      {:text "Terms of Use"
                       :route :route.terms/index
                       :class :terms
+                      :needs-account? false}
+                     {:text "Discord"
+                      :url "https://discord.gg/rJvBEyV"
+                      :class :discord
+                      :needs-account? false}
+                     {:text "Telegram"
+                      :url "https://t.me/district0x"
+                      :class :telegram
                       :needs-account? false}])
 
 
@@ -136,20 +144,25 @@
         [account-balances {:with-tx-logs? false}])
       [:ul.node {:key (str depth)}
        (doall
-        (map-indexed (fn [idx {:keys [:text :route :params :query :class :children :needs-account?]}]
+        (map-indexed (fn [idx {:keys [:text :route :params :query :class :url :children :needs-account?]}]
                        [:li.node-content {:key (str depth "-" idx)}
                         [:div.item
                          {:class (str (when class (name class))
                                       (when (= active-page route) " active")
                                       (when (and needs-account? (not active-account)) " disabled"))}
-                         [nav-anchor (merge
-                                      {:disabled true}
-                                      (when-not (and needs-account? (not active-account))
-                                        {:route route
-                                         :params params
-                                         :query query
-                                         :class (when class (name class))}))
-                          text]]
+                         (if url
+                           [:a {:href url
+                                :target :_blank
+                                :class (when class (name class))}
+                            text]
+                           [nav-anchor (merge
+                                         {:disabled true}
+                                         (when-not (and needs-account? (not active-account))
+                                           {:route route
+                                            :params params
+                                            :query query
+                                            :class (when class (name class))}))
+                            text])]
                         (when children
                           [app-menu children active-page (inc depth)])])
                      items))]])))

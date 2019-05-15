@@ -118,7 +118,9 @@
                    [:my-settings "mysettings"]
                    [:faucet "dank-logo"]
                    [:privacy-policy "privacy-policy"]
-                   [:terms "terms-of-use"]]]
+                   [:terms "terms-of-use"]
+                   [:discord "discord"]
+                   [:telegram "telegram"]]]
         (mapv (fn [[cls img]]
                 [(keyword (str "&." (name cls)))
                  [:a:before
