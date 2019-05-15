@@ -1,2 +1,2 @@
-/foo/bar www.google.com 200
+/foo/bar https://google.com/:splat 200!
 /* /index.html 200
