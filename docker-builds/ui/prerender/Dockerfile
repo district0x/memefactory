@@ -1,6 +1,9 @@
 FROM prerendercloud/webserver:latest
 MAINTAINER "Filip Bielejec" <filip@district0x.io>
 
+# for debugging
+RUN apt-get install --no-install-recommends -y -q nano
+
 # get compiled JS
 COPY resources/public /wwwroot
 
