@@ -147,12 +147,7 @@
      {:z-index 9000
       :grid-area "fill"
       :animation-name :flipping-front-facing}
-     default-animation-style)
-    
-    ;; Prevent the tile from running the animation on initial load
-    [:&.initial-load
-     {:animation-name :none
-      :transform "rotateY(0deg);"}]]
+     default-animation-style)]
 
    ;; Back of flippable card styling
    [:.flippable-tile-back
@@ -163,12 +158,7 @@
       :animation-name :flipping-back-not-facing
       :-webkit-backface-visibility :hidden
       :backface-visibility :hidden}
-     default-animation-style)
-
-    ;; Prevent the tile from running the animation on initial load
-    [:&.initial-load
-     {:animation-name :none
-      :transform "rotateY(180deg);"}]]]
+     default-animation-style)]]
 
   ;; Main Animation for flipping
   [:.flippable-tile.flipped
