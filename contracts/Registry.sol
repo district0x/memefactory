@@ -51,6 +51,7 @@ contract Registry is DSAuth {
   external
   {
     require(address(_db) != 0x0, "Registry: Address can't be 0x0");
+    require(!wasConstructed);
 
     db = _db;
     wasConstructed = true;
