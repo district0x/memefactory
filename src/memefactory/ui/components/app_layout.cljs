@@ -67,14 +67,6 @@
                       :route :route.get-dank/index
                       :class :faucet
                       :needs-account? true}
-                     {:text "Privacy Policy"
-                      :route :route.privacy-policy/index
-                      :class :privacy-policy
-                      :needs-account? false}
-                     {:text "Terms of Use"
-                      :route :route.terms/index
-                      :class :terms
-                      :needs-account? false}
                      {:text "Discord"
                       :url "https://discord.gg/rJvBEyV"
                       :class :discord
@@ -82,6 +74,14 @@
                      {:text "Telegram"
                       :url "https://t.me/district0x"
                       :class :telegram
+                      :needs-account? false}
+                     {:text "Privacy Policy"
+                      :route :route.privacy-policy/index
+                      :class :privacy-policy
+                      :needs-account? false}
+                     {:text "Terms of Use"
+                      :route :route.terms/index
+                      :class :terms
                       :needs-account? false}])
 
 
