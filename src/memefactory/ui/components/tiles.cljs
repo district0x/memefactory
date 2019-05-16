@@ -93,10 +93,10 @@
    [:img {:src "/assets/icons/mf-logo.svg"}]])
 
 
-(defn- calculate-meme-auction-price [meme-auction now]  
-  (shared-utils/calculate-meme-auction-price  
-   (-> meme-auction  
-       (update :meme-auction/started-on #(quot (.getTime (gql-utils/gql-date->date %)) 1000)))  
+(defn- calculate-meme-auction-price [meme-auction now]
+  (shared-utils/calculate-meme-auction-price
+   (-> meme-auction
+       (update :meme-auction/started-on #(quot (.getTime (gql-utils/gql-date->date %)) 1000)))
    (quot (.getTime now) 1000)))
 
 
