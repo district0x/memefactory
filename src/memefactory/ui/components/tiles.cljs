@@ -93,6 +93,13 @@
    [:img {:src "/assets/icons/mf-logo.svg"}]])
 
 
+(defn- calculate-meme-auction-price [meme-auction now]  
+  (shared-utils/calculate-meme-auction-price  
+   (-> meme-auction  
+       (update :meme-auction/started-on #(quot (.getTime (gql-utils/gql-date->date %)) 1000)))  
+   (quot (.getTime now) 1000)))
+
+
 (defn auction-back-tile [opts meme-auction]
   (let [tx-id (str (:meme-auction/address meme-auction) "auction")
         active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
@@ -107,7 +114,7 @@
       (let [remaining (-> (time/time-remaining (t/date-time @now)
                                                end-time)
                           (dissoc :seconds))
-            price (shared-utils/calculate-meme-auction-price meme-auction @now)
+            price (calculate-meme-auction-price meme-auction @now)
             meme-token (:meme-auction/meme-token meme-auction)
             meme (:meme-token/meme meme-token)
             title (-> meme-token :meme-token/meme :meme/title)
@@ -170,9 +177,7 @@
 (defn auction-tile [{:keys [show-cards-left?] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]
   (let [now (subscribe [:district.ui.now.subs/now])]
     (fn [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
-      (let [price (shared-utils/calculate-meme-auction-price (-> meme-auction
-                                                               (update :meme-auction/started-on #(quot (.getTime (gql-utils/gql-date->date %)) 1000)))
-                                                             (quot (.getTime @now) 1000))
+      (let [price (calculate-meme-auction-price meme-auction @now)
             meme-auctions (when show-cards-left? (subscribe [::gql/query {:queries [[:search-meme-auctions
                                                                                      {:statuses [:meme-auction.status/active]
                                                                                       :for-meme (-> meme-token
@@ -193,8 +198,8 @@
                                     (-> meme-token :meme-token/meme :meme/total-minted))]
            (when show-cards-left?
              [:div.cards-left (str (format/pluralize
-                                     (-> @meme-auctions :search-meme-auctions :items count)
-                                     "card")
+                                    (-> @meme-auctions :search-meme-auctions :items count)
+                                    "card")
                                    " left")])
            [:div.price (format-price price)]]]]))))
 
