@@ -6,11 +6,12 @@
     [print.foo :refer [look] :include-macros true])
   (:import [goog.async Debouncer]))
 
+;; started-on, duration and now are expected in seconds
 (defn calculate-meme-auction-price [{:keys [:meme-auction/start-price
                                             :meme-auction/end-price
                                             :meme-auction/duration
                                             :meme-auction/started-on] :as auction} now]
-  (let [seconds-passed (quot (- now started-on) 1000)
+  (let [seconds-passed (- now started-on)
         total-price-change (- start-price end-price)
         current-price-change (quot (* total-price-change seconds-passed) duration)]
     (if (<= duration seconds-passed)

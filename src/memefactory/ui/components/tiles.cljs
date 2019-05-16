@@ -124,6 +124,7 @@
                                                end-time)
                           (dissoc :seconds))
             price (calculate-meme-auction-price meme-auction @now)
+
             meme-token (:meme-auction/meme-token meme-auction)
             meme (:meme-token/meme meme-token)
             title (-> meme-token :meme-token/meme :meme/title)
