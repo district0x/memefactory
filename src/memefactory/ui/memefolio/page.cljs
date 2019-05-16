@@ -139,6 +139,7 @@
                  {:keys [min-auction-duration max-auction-duration] :as params}
                  send-sell-atom]
   (let [tx-id (str (random-uuid))
+        max-supported-in-a-tx 10
         active-account @(subscribe [::accounts-subs/active-account])
         meme-sub (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
                                                      [[:meme/owned-meme-tokens {:owner active-account}
@@ -152,11 +153,12 @@
 
         errors (ratom/reaction (let [{:keys [:meme-auction/start-price :meme-auction/end-price :meme-auction/description]} @form-data
                                      sp (parsers/parse-float start-price)
-                                     ep (parsers/parse-float end-price)]
-                                 {:local {:meme-auction/amount (cond-> {:hint (str "Max " (count @token-ids))}
-                                                                 (and (not (< 0 (parsers/parse-int (:meme-auction/amount @form-data)) (inc (count @token-ids))))
-                                                                      (pos? (count @token-ids)))
-                                                                 (assoc :error (str "Should be between 1 and " (count @token-ids))))
+                                     ep (parsers/parse-float end-price)
+                                     max-amount (min (count @token-ids) max-supported-in-a-tx)]
+                                 {:local {:meme-auction/amount (cond-> {:hint (str "Max " max-amount)}
+                                                                 (and (not (< 0 (parsers/parse-int (:meme-auction/amount @form-data)) (inc max-amount)))
+                                                                      (pos? max-amount))
+                                                                 (assoc :error (str "Should be between 1 and " max-amount)))
                                           :meme-auction/start-price (when (not (pos? sp))
                                                                       "Start price should contain a positive value")
                                           :meme-auction/end-price (when (or (not (pos? ep))
@@ -189,7 +191,7 @@
                             :dom-id (str address :meme-auction/amount)
                             :type :number
                             :min 1
-                            :max (count @token-ids)}]
+                            :max (min (count @token-ids) max-supported-in-a-tx)}]
         {:form-data form-data
          :id :meme-auction/amount
          :for (str address :meme-auction/amount)}]
@@ -246,7 +248,7 @@
         [:button.cancel "Cancel"]
         [tx-button/tx-button {:primary true
                               :disabled (boolean (or (not-empty @critical-errors)
-                                                     (not (pos? (count @token-ids)))))
+                                                     (not (< 0 (:meme-auction/amount @form-data) (inc (min (count @token-ids) max-supported-in-a-tx))))))
                               :class "create-offering"
                               :pending? @tx-pending?
                               :pending-text "Creating..."
@@ -399,7 +401,8 @@
 
 (defn issue-form [{:keys [:meme/title :reg-entry/address :meme/total-supply :meme/total-minted]}]
   (let [tx-id (str (random-uuid))
-        max-amount (- total-supply total-minted)
+        max-supported-in-a-tx 40
+        max-amount (min (- total-supply total-minted) max-supported-in-a-tx)
         form-data (r/atom {:meme/amount max-amount}) ;; TODO fix how can we refresh this when component updated
         errors (ratom/reaction {:local (let [{:keys [:amount]} @form-data]
                                          (when (and (not (js/isNaN amount))
@@ -408,25 +411,26 @@
                                            {:meme/amount {:error (str "Amount should be an integer, and smaller than " max-amount)}}))})
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:meme/mint tx-id}])]
     (fn [{:keys [:meme/title :reg-entry/address :meme/total-supply :meme/total-minted]}]
-      (let [max-amount (- total-supply total-minted)]
+      (let [max-amount (min (- total-supply total-minted) max-supported-in-a-tx)]
         [:div.issue-form
-         [:div.field
-          [inputs/int-input {:form-data form-data
-                             :errors errors
-                             :id :meme/amount}]
-          [tx-button/tx-button {:primary true
-                                :disabled (not (pos? max-amount))
-                                :pending? @tx-pending?
-                                :pending-text "Issuing"
-                                :on-click (fn []
-                                            (dispatch [::meme/mint (merge @form-data
-                                                                          {:meme/title title
-                                                                           :reg-entry/address address
-                                                                           :send-tx/id tx-id})]))}
-           "Issue"]]
-         [:div.label (if (pos? max-amount)
-                       (str "Max " max-amount)
-                       "All cards issued")]]))))
+        [:div.field
+         [inputs/int-input {:form-data form-data
+                            :errors errors
+                            :id :meme/amount}]
+         [tx-button/tx-button {:primary true
+                               :disabled (or (not (pos? max-amount))
+                                             (not (< 0 (:meme/amount @form-data) (inc max-amount))))
+                               :pending? @tx-pending?
+                               :pending-text "Issuing"
+                               :on-click (fn []
+                                           (dispatch [::meme/mint (merge @form-data
+                                                                         {:meme/title title
+                                                                          :reg-entry/address address
+                                                                          :send-tx/id tx-id})]))}
+          "Issue"]]
+        [:div.label (if (pos? max-amount)
+                      (str "Max " max-amount)
+                      "All cards issued")]]))))
 
 
 (defmethod panel :created [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
