@@ -53,7 +53,7 @@ contract DankFaucet is usingOraclize, DSAuth {
 
     // Comment out this line when deploying to production
     // See: https://github.com/oraclize/ethereum-bridge
-    OAR = OraclizeAddrResolverI(0xd0a6D832Ea2949B87165B2e8CE7119013c835295);
+    //OAR = OraclizeAddrResolverI(0xd0a6D832Ea2949B87165B2e8CE7119013c835295);
   }
 
   /**
