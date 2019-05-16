@@ -63,4 +63,4 @@
     :address "0x3e6e8cdac0abab167644811b331594a500e8df7f"}
    :dank-faucet
    {:name "DankFaucet"
-    :address "0xe26342c1eb2205a9f07711cd3733d934c6794206"}})
+    :address "0x3182564B0aaB918C1B2994B004cE1B35572A7af0"}})
