@@ -114,7 +114,7 @@
                       (not loading?))
                [no-items-found]
                [infinite-scroll {:class "collectors"
-                                 :element-height 420
+                                 :element-height 448
                                  :loading? loading?
                                  :has-more? has-more?
                                  :loading-spinner-delegate (fn []

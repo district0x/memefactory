@@ -39,14 +39,12 @@
                     :fire-tutorial-next-on-items?]
              :or {class "infinite-scroll"
                   use-window-as-scroll-container true
-                  element-height 435
-                  elements-in-row 3
+                  element-height 490
+                  elements-in-row (if @(subscribe [::w-size-subs/mobile?]) 1 3)
                   container-height (-> js/window .-innerHeight)
                   loading-spinner-delegate (fn [] [:div.loading-spinner "Loading..."])
                   fire-tutorial-next-on-items? false}} props
-            row-height (if @(subscribe [::w-size-subs/mobile?])
-                         element-height
-                         (quot element-height elements-in-row))]
+                  row-height element-height]
 
         (when (and fire-tutorial-next-on-items?
                    (not @tutorial-next-fired?)
@@ -80,4 +78,8 @@
                                                  (not loading?))
                                         (log/debug "loading more")
                                         (load-fn)))})]
-              children)))))
+              (if (and (< 1 elements-in-row)
+                       (pos? (count children)))
+                (->> (partition-all elements-in-row children)
+                  (map #(into [:div.compact-tile-container %])))
+                children))))))

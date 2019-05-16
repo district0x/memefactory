@@ -17,9 +17,6 @@
      :padding-left (em 2.5)
      :padding-right (em 2.5)}
     (for-media-max :large [:& {:justify-content :center}])
-    [">*"
-     {
-      :margin-right (em 1)
-      ;;:flex "1 0 calc(26% - 1em)"
-      }
+    [:.compact-tile
+     {:margin-right (em 1)}
      (for-media-max :tablet [:& {:margin-right 0}])]]])

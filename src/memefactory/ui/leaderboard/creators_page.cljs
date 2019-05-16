@@ -89,7 +89,7 @@
               (not loading?))
        [no-items-found]
        [infinite-scroll {:class "creators"
-                         :element-height 420                ;; I see what you did there ;)
+                         :element-height 448
                          :loading? loading?
                          :has-more? has-more?
                          :loading-spinner-delegate (fn []

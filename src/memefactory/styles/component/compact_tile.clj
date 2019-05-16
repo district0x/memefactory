@@ -327,6 +327,10 @@
      no-select-style
      no-drag-style)]]
 
+  [:.compact-tile-container
+   {:display :flex
+    :width "100%"}]
+
   [:.compact-tile
    {:background (color :meme-panel-bg)
     :width (px card-width)
