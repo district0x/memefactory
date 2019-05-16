@@ -53,7 +53,7 @@ contract DankFaucet is usingOraclize, DSAuth {
 
     // Comment out this line when deploying to production
     // See: https://github.com/oraclize/ethereum-bridge
-    //OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+    OAR = OraclizeAddrResolverI(0xd0a6D832Ea2949B87165B2e8CE7119013c835295);
   }
 
   /**
@@ -81,6 +81,10 @@ contract DankFaucet is usingOraclize, DSAuth {
         revert("The sender's address does not match Oraclize's address.");
     }
     else {
+      if (!result.toSlice().contains("\"success\":true".toSlice())) {
+        revert("Wrong verification code");
+      }
+      else {
         PhoneNumberRequest storage phoneNumberRequest = phoneNumberRequests[queryId];
         uint previouslyAllocatedDank = allocatedDank[phoneNumberRequest.hashedPhoneNumber];
 
@@ -94,6 +98,7 @@ contract DankFaucet is usingOraclize, DSAuth {
         else {
           emit DankEvent(phoneNumberRequest.hashedPhoneNumber, false, "DANK already allocated.");
         }
+      }
     }
   }
 
