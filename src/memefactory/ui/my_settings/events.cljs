@@ -28,12 +28,11 @@
    {:db
     (assoc-in db [:settings address :encrypted-email] encrypted-email)}))
 
+
 (re-frame/reg-event-fx
  ::error-loading-encrypted-email
- (fn [{:keys [db]} [_ :data]]
+ (fn [{:keys [db]} [_ data]]
    {:db db
-    :dispatch-n [[:district.ui.notification.events/show
-                  "Error loading your encrypted email"]
-                 [::logging/error "Error loading user encrypted email"
+    :dispatch-n [[::logging/error "Error loading user encrypted email"
                   data
                   ::error-loading-encrypted-email]]}))
