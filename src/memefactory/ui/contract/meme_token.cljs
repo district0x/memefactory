@@ -57,10 +57,10 @@
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-token)
                                       :fn :safe-transfer-from-multi
-                                      :args (look [active-account
-                                                   address
-                                                   token-ids
-                                                   nil])
+                                      :args [active-account
+                                             address
+                                             token-ids
+                                             nil]
                                       :tx-opts {:from active-account}
                                       :tx-id {:meme-token/safe-transfer-from-multi id}
                                       :tx-log {:name tx-name

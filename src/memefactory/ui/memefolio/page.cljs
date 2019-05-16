@@ -131,7 +131,7 @@
                                                              (->> @token-ids
                                                                (map int)
                                                                sort
-                                                               (take (parsers/parse-int (:meme-auction/amount @form-data))))})]))}
+                                                               (take (parsers/parse-int (:send/amount @form-data))))})]))}
          "Send"]]])))
 
 
