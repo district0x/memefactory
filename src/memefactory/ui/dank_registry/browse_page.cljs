@@ -96,9 +96,9 @@
                          :sub-title "Browse all memes ever minted"
                          :on-selected-tags-change re-search
                          ;; TODO: Fix this hack, we need a way of passing a select more info
-                         :select-options (->> [{:key "number-desc" :value "Newest"}
-                                               {:key "total-trade-volume" :value "Total trade volume"}
-                                               {:key "number-asc" :value "Registry Number"}])
+                         :select-options (->> [{:key "number-asc" :value "Registry Number"}
+                                               {:key "number-desc" :value "Newest"}
+                                               {:key "total-trade-volume" :value "Total trade volume"}])
                          :on-search-change re-search
                          :on-check-filter-change re-search
                          :on-select-change re-search}]
