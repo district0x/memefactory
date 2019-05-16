@@ -29,10 +29,10 @@
         [:div.meme-card
          props
          (if (and url (not-empty image-hash))
-           [:img.meme-image.initial-fade-in-delay {:src (str (format/ensure-trailing-slash url) image-hash)}]
-           [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])
+           [:img.meme-image {:src (str (format/ensure-trailing-slash url) image-hash)}]
+           [:div.meme-placeholder [:img {:src "/assets/icons/mememouth.png"}]])
          (when rejected?
-           [:div.image-tape-container.initial-fade-in-delay
+           [:div.image-tape-container
             [:div.image-tape
              [:span "Stank"]]])]))))
 
@@ -52,8 +52,11 @@
 
 
 (defn flippable-tile [{:keys [:front :back :flippable-classes]}]
-  (let [flipped? (r/atom false)
-        flip #(swap! flipped? not)
+  (let [initial-load? (r/atom true)
+        flipped? (r/atom false)
+        flip (fn []
+               (reset! initial-load? false)
+               (swap! flipped? not))
         handle-click
         (if-not flippable-classes
           flip
@@ -63,12 +66,18 @@
         android-device? @(subscribe [::mobile-subs/android?])
         ios-device? @(subscribe [::mobile-subs/ios?])]
     (fn [{:keys [:front :back]}]
-      [:div.flippable-tile.initial-fade-in-delay
+      [:div.flippable-tile
        {:class [(when @flipped? "flipped") " "
                 (when (or android-device? ios-device?) "mobile")]}
 
-       [:div.flippable-tile-front {:on-click handle-click} front]
-       [:div.flippable-tile-back {:on-click handle-click} back]])))
+       [:div.flippable-tile-front
+        {:class (when @initial-load? "initial-load")
+         :on-click handle-click}
+        front]
+       [:div.flippable-tile-back
+        {:class (when @initial-load? "initial-load")
+         :on-click handle-click}
+        back]])))
 
 
 (defn numbers-info [{:keys [:meme/number :meme/total-minted] :as args}]
