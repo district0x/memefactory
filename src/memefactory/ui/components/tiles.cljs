@@ -29,10 +29,10 @@
         [:div.meme-card
          props
          (if (and url (not-empty image-hash))
-           [:img.meme-image {:src (str (format/ensure-trailing-slash url) image-hash)}]
-           [:div.meme-placeholder [:img {:src "/assets/icons/mememouth.png"}]])
+           [:img.meme-image.initial-fade-in-delay {:src (str (format/ensure-trailing-slash url) image-hash)}]
+           [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])
          (when rejected?
-           [:div.image-tape-container
+           [:div.image-tape-container.initial-fade-in-delay
             [:div.image-tape
              [:span "Stank"]]])]))))
 
@@ -52,11 +52,8 @@
 
 
 (defn flippable-tile [{:keys [:front :back :flippable-classes]}]
-  (let [initial-load? (r/atom true)
-        flipped? (r/atom false)
-        flip (fn []
-               (reset! initial-load? false)
-               (swap! flipped? not))
+  (let [flipped? (r/atom false)
+        flip #(swap! flipped? not)
         handle-click
         (if-not flippable-classes
           flip
@@ -66,18 +63,12 @@
         android-device? @(subscribe [::mobile-subs/android?])
         ios-device? @(subscribe [::mobile-subs/ios?])]
     (fn [{:keys [:front :back]}]
-      [:div.flippable-tile
+      [:div.flippable-tile.initial-fade-in-delay
        {:class [(when @flipped? "flipped") " "
                 (when (or android-device? ios-device?) "mobile")]}
 
-       [:div.flippable-tile-front
-        {:class (when @initial-load? "initial-load")
-         :on-click handle-click}
-        front]
-       [:div.flippable-tile-back
-        {:class (when @initial-load? "initial-load")
-         :on-click handle-click}
-        back]])))
+       [:div.flippable-tile-front {:on-click handle-click} front]
+       [:div.flippable-tile-back {:on-click handle-click} back]])))
 
 
 (defn numbers-info [{:keys [:meme/number :meme/total-minted] :as args}]
@@ -102,13 +93,6 @@
    [:img {:src "/assets/icons/mf-logo.svg"}]])
 
 
-(defn- calculate-meme-auction-price [meme-auction now]
-  (shared-utils/calculate-meme-auction-price
-    (-> meme-auction
-      (update :meme-auction/started-on #(quot (.getTime (gql-utils/gql-date->date %)) 1000)))
-    (quot (.getTime now) 1000)))
-
-
 (defn auction-back-tile [opts meme-auction]
   (let [tx-id (str (:meme-auction/address meme-auction) "auction")
         active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
@@ -123,8 +107,7 @@
       (let [remaining (-> (time/time-remaining (t/date-time @now)
                                                end-time)
                           (dissoc :seconds))
-            price (calculate-meme-auction-price meme-auction @now)
-
+            price (shared-utils/calculate-meme-auction-price meme-auction @now)
             meme-token (:meme-auction/meme-token meme-auction)
             meme (:meme-token/meme meme-token)
             title (-> meme-token :meme-token/meme :meme/title)
@@ -187,7 +170,9 @@
 (defn auction-tile [{:keys [show-cards-left?] :as opts} {:keys [:meme-auction/meme-token] :as meme-auction}]
   (let [now (subscribe [:district.ui.now.subs/now])]
     (fn [opts {:keys [:meme-auction/meme-token] :as meme-auction}]
-      (let [price (calculate-meme-auction-price meme-auction @now)
+      (let [price (shared-utils/calculate-meme-auction-price (-> meme-auction
+                                                               (update :meme-auction/started-on #(quot (.getTime (gql-utils/gql-date->date %)) 1000)))
+                                                             (quot (.getTime @now) 1000))
             meme-auctions (when show-cards-left? (subscribe [::gql/query {:queries [[:search-meme-auctions
                                                                                      {:statuses [:meme-auction.status/active]
                                                                                       :for-meme (-> meme-token
