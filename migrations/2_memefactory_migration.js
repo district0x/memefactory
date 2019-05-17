@@ -14,7 +14,6 @@ const DankToken = artifacts.require("DankTokenCp");
 
 copy ("DistrictConfig", "DistrictConfigCp", contracts_build_directory);
 const DistrictConfig = artifacts.require("DistrictConfigCp");
-
 copy ("District0xEmails", "District0xEmailsCp", contracts_build_directory);
 const District0xEmails = artifacts.require ("District0xEmailsCp");
 
@@ -72,7 +71,7 @@ const memeTokenPlaceholder = "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb";
 const memeAuctionFactoryPlaceholder = "daffdaffdaffdaffdaffdaffdaffdaffdaffdaff";
 
 /**
- * This migration deploys whole MemeFactory smart contract suite
+ * This migration deploys the MemeFactory smart contract suite
  *
  * Usage:
  * truffle migrate --network ganache/parity --reset --f 1 --to 2
@@ -349,6 +348,14 @@ module.exports = function(deployer, network, accounts) {
     .then (() => Promise.all ([DankToken.deployed(), DankFaucet.deployed()]))
     .then (([dankToken, dankFaucet]) => Promise.all ([dankToken.transfer (dankFaucet.address, parameters.dankFaucet.dank, Object.assign(opts, {gas: 200000})),
                                                       dankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: parameters.dankFaucet.eth}))]))
+    .then (() => Promise.all ([DankFaucet.deployed(), DSGuard.deployed()]))
+    .then (([dankFaucet, dSGuard]) => Promise.all ([dankFaucet.setAuthority(dSGuard.address, Object.assign(opts, {gas: 200000, value: 0})),
+                                                    dankFaucet]))
+    .then (([tx,
+             dankFaucet
+            ]) => dankFaucet.authority ())
+    .then ((authority) => console.log ("@@@ DankFaucet authority: ", authority))
+
     .then (() => Promise.all ([DankToken.deployed(), DankFaucet.deployed()]))
     .then (([dankToken, dankFaucet]) => Promise.all ([dankToken.balanceOf (dankFaucet.address),
                                                       dankFaucet.getBalance ()]))
@@ -358,28 +365,27 @@ module.exports = function(deployer, network, accounts) {
          console.log ("@@@ DANK balance of DankFaucet:", dankBalance);
          console.log ("@@@ ETH balance of DankFaucet:", ethBalance);
        })
-
-  deployer.then ( () => [
-    DSGuard.deployed (),
-    MiniMeTokenFactory.deployed (),
-    DankToken.deployed (),
-    DistrictConfig.deployed (),
-    MemeRegistryDb.deployed (),
-    ParamChangeRegistryDb.deployed (),
-    MemeRegistry.deployed (),
-    ParamChangeRegistry.deployed (),
-    MemeRegistryForwarder.deployed (),
-    ParamChangeRegistryForwarder.deployed (),
-    MemeToken.deployed (),
-    Meme.deployed (),
-    ParamChange.deployed (),
-    MemeFactory.deployed (),
-    ParamChangeFactory.deployed (),
-    MemeAuctionFactoryForwarder.deployed (),
-    MemeAuctionFactory.deployed (),
-    MemeAuction.deployed (),
-    District0xEmails.deployed (),
-    DankFaucet.deployed ()])
+    .then ( () => [
+      DSGuard.deployed (),
+      MiniMeTokenFactory.deployed (),
+      DankToken.deployed (),
+      DistrictConfig.deployed (),
+      MemeRegistryDb.deployed (),
+      ParamChangeRegistryDb.deployed (),
+      MemeRegistry.deployed (),
+      ParamChangeRegistry.deployed (),
+      MemeRegistryForwarder.deployed (),
+      ParamChangeRegistryForwarder.deployed (),
+      MemeToken.deployed (),
+      Meme.deployed (),
+      ParamChange.deployed (),
+      MemeFactory.deployed (),
+      ParamChangeFactory.deployed (),
+      MemeAuctionFactoryForwarder.deployed (),
+      MemeAuctionFactory.deployed (),
+      MemeAuction.deployed (),
+      District0xEmails.deployed (),
+      DankFaucet.deployed ()])
     .then ((promises) => Promise.all(promises))
     .then ((
       [dSGuard,
@@ -402,7 +408,7 @@ module.exports = function(deployer, network, accounts) {
        memeAuction,
        district0xEmails,
        dankFaucet]) => {
-         
+
          var smartContracts = edn.encode(
            new edn.Map([
 
