@@ -1040,24 +1040,42 @@
 (def exec-promise (.promisify util (aget child-process "exec")))
 
 (defn encrypt-verification-payload-resolver
-  [_ {:keys [country-code phone-number verification-code] :as args}]
+  [_ {:keys [country-code phone-number verification-code]}]
   ;; Build Oraclize call
-  (let [encryption-script "./resources/scripts/encrypted_queries_tools.py"
-        oraclize-public-key (:oraclize-public-key @config)
-        json-payload (->> (clj->js {:json {:via "sms"
-                                           :phone_number phone-number
-                                           :country_code country-code
-                                           :verification_code verification-code}
-                                    :headers {:content-type "application/json"
-                                              "X-Authy-API-Key" (:twilio-api-key @config)}})
-                          (.stringify js/JSON))
-        full-encryption-command (str "python "
-                                     encryption-script
-                                     " -p "
-                                     oraclize-public-key
-                                     " -e "
-                                     \' json-payload \')]
-    (log/debug full-encryption-command)
+
+  (cond
+    (not (re-matches #"[0-9\+]{2,6}" (str country-code)))
+    (do
+      (log/warn (str "Invalid country code: " country-code) ::faucet-invalid-input)
+      {:success false :payload "Invalid country code"})
+
+    (not (re-matches #"[0-9]{5,15}" (str phone-number)))
+    (do
+      (log/warn (str "Invalid phone number: " phone-number) ::faucet-invalid-input)
+      {:success false :payload "Invalid phone number"})
+
+    (not (re-matches #"[0-9]{5,15}" (str verification-code)))
+    (do
+      (log/warn (str "Invalid verification code format: " verification-code) ::faucet-invalid-input)
+      {:success false :payload "Invalid verification code format"})
+
+    :else
+    (let [encryption-script "./resources/scripts/encrypted_queries_tools.py"
+          oraclize-public-key (:oraclize-public-key @config)
+          json-payload (->> (clj->js {:json {:via "sms"
+                                             :phone_number phone-number
+                                             :country_code country-code
+                                             :verification_code verification-code}
+                                      :headers {:content-type "application/json"
+                                                "X-Authy-API-Key" (:twilio-api-key @config)}})
+                         (.stringify js/JSON))
+          full-encryption-command (str "python "
+                                       encryption-script
+                                       " -p "
+                                       oraclize-public-key
+                                       " -e "
+                                       \' json-payload \')]
+      (log/debug full-encryption-command)
 
     ;; Shell out
     ;; Run the Python script to encrypt the payload
@@ -1088,12 +1106,7 @@
         (.catch (fn [ex]
                   (log/error "Error calling python" {:error ex})
                   {:success false
-                   :payload (.getMessage ex)}))))
-  #_(catch :default ex
-      ;; We'll get here if there's an issue calling python
-      (log/error "Error calling python" {:error ex})
-      {:success false
-       :payload (.getMessage ex)}))
+                   :payload (.getMessage ex)})))))
 
 (defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
 
