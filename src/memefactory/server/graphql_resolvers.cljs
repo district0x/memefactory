@@ -1077,9 +1077,9 @@
                                        \' json-payload \')]
       (log/debug full-encryption-command)
 
-    ;; Shell out
-    ;; Run the Python script to encrypt the payload
-    (-> (exec-promise full-encryption-command)
+      ;; Shell out
+      ;; Run the Python script to encrypt the payload
+      (-> (exec-promise full-encryption-command)
         (.then (fn [result]
                  (let [python-result (js->clj result)]
                    (log/debug "python encryption result:" python-result)
@@ -1106,7 +1106,7 @@
         (.catch (fn [ex]
                   (log/error "Error calling python" {:error ex})
                   {:success false
-                   :payload (.getMessage ex)})))))
+                   :payload (.getMessage ex)}))))))
 
 (defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
 
