@@ -1054,7 +1054,7 @@
       (log/warn (str "Invalid phone number: " phone-number) ::faucet-invalid-input)
       {:success false :payload "Invalid phone number"})
 
-    (not (re-matches #"[0-9]{5,15}" (str verification-code)))
+    (not (re-matches #"[0-9]{4,4}" (str verification-code)))
     (do
       (log/warn (str "Invalid verification code format: " verification-code) ::faucet-invalid-input)
       {:success false :payload "Invalid verification code format"})
