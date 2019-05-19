@@ -2,6 +2,7 @@
   (:require
    [cljs-time.core :as t]
    [cljs-time.extend]
+   [clojure.string :as str]
    [district.format :as format]
    [district.graphql-utils :as gql-utils]
    [district.time :as time]
@@ -15,12 +16,11 @@
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles :refer [meme-image]]
+   [memefactory.ui.utils :as ui-utils]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
-   [taoensso.timbre :as log :refer [spy]]
-   [memefactory.ui.utils :as ui-utils]
-   [clojure.string :as str]))
+   [taoensso.timbre :as log :refer [spy]]))
 
 (def page-size 6)
 
@@ -171,7 +171,7 @@
           [action-child entry])]])))
 
 
-(defn meme-tiles [meme-search re-search {:keys [:include-challenger-info? :action-child]}]
+(defn meme-tiles [meme-search re-search {:keys [:include-challenger-info? :action-child :element-height]}]
   (let [all-memes (->> @meme-search
                        (mapcat (fn [r] (-> r :search-memes :items)))
                        (remove #(nil? (:reg-entry/address %))))
@@ -183,7 +183,7 @@
        [no-items-found]
        [infinite-scroll {:class "memes"
                          :fire-tutorial-next-on-items? true
-                         :element-height 503
+                         :element-height element-height
                          :elements-in-row 1
                          :loading? loading?
                          :has-more? has-more?
@@ -202,7 +202,7 @@
 (defn challenge-list [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
   (let [form-data (r/atom {:order-by (-> sort-options first :key)
                            :order-dir (-> sort-options first :dir (or :desc))})]
-    (fn [{:keys [include-challenger-info? query-params action-child active-account key sort-options]}]
+    (fn [{:keys [include-challenger-info? query-params action-child active-account key sort-options element-height]}]
       (let [params {:data @form-data
                     :include-challenger-info? include-challenger-info?
                     :query-params query-params
@@ -222,4 +222,5 @@
                          :id :order-by
                          :options sort-options}]]
          [meme-tiles meme-search re-search {:include-challenger-info? include-challenger-info?
-                                            :action-child action-child}]]))))
+                                            :action-child action-child
+                                            :element-height element-height}]]))))

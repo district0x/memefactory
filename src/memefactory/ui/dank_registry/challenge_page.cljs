@@ -9,6 +9,7 @@
    [district.ui.web3-account-balances.subs :as balance-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [district.ui.window-size.subs :as w-size-subs]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
    [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
@@ -97,6 +98,7 @@
     [challenge-list {:include-challenger-info? false
                      :query-params {:statuses [:reg-entry.status/challenge-period]}
                      :action-child open-challenge-action
+                     :element-height (if @(subscribe [::w-size-subs/mobile?]) 985.73 523.19)
                      :key :challenge-page
                      ;; HACK : key should be created-on but our select doesn't support two equal keys
                      :sort-options [{:key "challenge-period-end-desc" :value "Newest" :order-dir :desc}

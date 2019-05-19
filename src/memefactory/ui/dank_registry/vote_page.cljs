@@ -12,8 +12,8 @@
    [district.ui.web3-account-balances.subs :as balance-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
+   [district.ui.window-size.subs :as w-size-subs]
    [goog.string :as gstring]
-   [district.format :as format]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
@@ -263,6 +263,7 @@
                                                                 :reg-entry.status/reveal-period]}
                                       :active-account account
                                       :action-child reveal-vote-action
+                                      :element-height (if @(subscribe [::w-size-subs/mobile?]) 1193.55 523.19)
                                       :key :vote-page/open
                                       ;; HACK : key should be created-on but our select doesn't support two equal keys
                                       :sort-options [{:key "commit-period-end-desc" :value "Newest" :order-dir :desc}
@@ -274,6 +275,7 @@
                                                      :challenged true}
                                       :active-account account
                                       :action-child collect-reward-action
+                                      :element-height (if @(subscribe [::w-size-subs/mobile?]) 1136.92 523.19)
                                       :key :vote-page/resolved
                                       ;; HACK : key should be created-on but our select doesn't support two equal keys
                                       :sort-options [{:key "reveal-period-end-desc" :value "Newest" :order-dir :desc}
