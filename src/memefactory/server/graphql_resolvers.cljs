@@ -1049,7 +1049,7 @@
       (log/warn (str "Invalid country code: " country-code) ::faucet-invalid-input)
       {:success false :payload "Invalid country code"})
 
-    (not (re-matches #"[0-9]{5,15}" (str phone-number)))
+    (not (re-matches #"[0-9\-]{5,18}" (str phone-number)))
     (do
       (log/warn (str "Invalid phone number: " phone-number) ::faucet-invalid-input)
       {:success false :payload "Invalid phone number"})
