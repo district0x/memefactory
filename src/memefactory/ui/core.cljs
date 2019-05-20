@@ -14,8 +14,8 @@
    [district.ui.router]
    [district.ui.smart-contracts]
    [district.ui.web3-account-balances]
+   [district.ui.web3-accounts.events :as web3-accounts-events]
    [district.ui.web3-accounts]
-   [district.ui.web3-accounts.events]
    [district.ui.web3-balances]
    [district.ui.web3-tx-id]
    [district.ui.web3-tx-log]
@@ -26,8 +26,6 @@
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.routes :refer [routes]]
    [memefactory.ui.about.page]
-   [memefactory.ui.privacy-policy.page]
-   [memefactory.ui.terms.page]
    [memefactory.ui.config :as config]
    [memefactory.ui.config :refer [config-map]]
    [memefactory.ui.contract.registry-entry]
@@ -45,42 +43,42 @@
    [memefactory.ui.marketplace.page]
    [memefactory.ui.meme-detail.page]
    [memefactory.ui.memefolio.page]
+   [memefactory.ui.my-settings.events :as my-settings-events]
    [memefactory.ui.my-settings.page]
-   [memefactory.ui.my-settings.events]
+   [memefactory.ui.privacy-policy.page]
    [memefactory.ui.subs]
+   [memefactory.ui.terms.page]
    [mount.core :as mount]
-   [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
-   [re-frisk.core :refer [enable-re-frisk!]]))
+   [re-frisk.core :refer [enable-re-frisk!]]
+   [taoensso.timbre :as log]
+   ))
 
-;; (def skipped-contracts [:ds-guard :param-change-registry-db :meme-registry-db :minime-token-factory])
+(def interceptors [re-frame/trim-v])
 
 (defn dev-setup []
   (when (:debug? @config/config)
     (enable-console-print!)
     (enable-re-frisk!)))
 
+(re-frame/reg-event-db
+ ::init-defaults
+ interceptors
+ (fn [db [store]]
+   (-> db
+       (assoc :settings (:settings store))
+       (assoc :votes (:votes store))
+       (assoc :memefactory.ui.get-dank.page/stage 1))))
 
 (re-frame/reg-event-fx
  ::init
  [(re-frame/inject-cofx :store)]
  (fn [{:keys [db store]}]
-   {:db (assoc db
-               :settings (:settings store)
-               :votes (:votes store)
-               :memefactory.ui.get-dank.page/stage 1)}))
-
-;; This is fired whenever the system has a new account.
-;; Could be a user chainging its account on metamask or
-;; when the account is loaded the first time.
-;; When we are sure we have an account we can load user emails
-;; settings.
-(re-frame/reg-event-fx
- :district.ui.web3-accounts.events/active-account-changed
- (fn [_ [_ {:keys [new]}]]
-   (when new
-     {:dispatch [:memefactory.ui.my-settings.events/load-email-settings
-                 {:address new}]})))
+   (log/debug "Localstore content" store ::init)
+   {:async-flow {:first-dispatch [::init-defaults store]
+                 :rules [{:when :seen?
+                          :events [::web3-accounts-events/active-account-changed]
+                          :dispatch [::my-settings-events/load-email-settings]}]}}))
 
 (defn ^:export init []
   (dev-setup)
@@ -99,5 +97,4 @@
     (js/console.log "Entire config:" (clj->js full-config))
     (-> (mount/with-args full-config)
         (mount/start)))
-
   (re-frame/dispatch-sync [::init]))
