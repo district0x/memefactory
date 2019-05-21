@@ -593,12 +593,6 @@
      (when challenger
        sql-query))))
 
-(defn reg-entry->votes-total-resolver [{:keys [:reg-entry/address] :as reg-entry}]
-  (log/debug "challenge->votes-total-resolver args" reg-entry)
-  (-> (db/get {:select [[(sql/call :total :v.vote/amount) :total-votes]]
-               :from [[:votes :v]]
-               :where [:= :v.reg-entry/address address]})
-      :total-votes))
 
 (defn vote->reward-resolver [{:keys [:reg-entry/address :vote/option] :as vote}]
   (log/debug "vote->reward-resolver args" vote)
@@ -1149,7 +1143,6 @@
           :challenge/vote-winning-vote-option reg-entry->vote-winning-vote-option-resolver
           :challenge/all-rewards reg-entry->all-rewards-resolver
           :challenge/challenger reg-entry->challenger
-          :challenge/votes-total reg-entry->votes-total-resolver
           :challenge/vote reg-entry->vote-resolver
           :meme/owned-meme-tokens meme->owned-meme-tokens
           :meme/tags meme->tags
@@ -1167,7 +1160,6 @@
    :ParamChange {:reg-entry/status reg-entry->status-resolver
                  :reg-entry/creator reg-entry->creator-resolver
                  :challenge/challenger reg-entry->challenger
-                 :challenge/votes-total reg-entry->votes-total-resolver
                  :challenge/vote reg-entry->vote-resolver
                  :param-change/original-value param-change->original-value-resolver}
    :ParamChangeList {:items param-change-list->items-resolver}

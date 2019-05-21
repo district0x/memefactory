@@ -211,15 +211,21 @@
       (let [vote (merge (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :reg-entry/address :vote/amount])
                         {:vote/option (bn/number option)
                          :vote/revealed-on timestamp})
-            re (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/votes-against :challenge/votes-for])]
+            re (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/votes-against :challenge/votes-for :challenge/votes-total])]
         (db/update-registry-entry! (cond-> {:reg-entry/address registry-entry
                                             :reg-entry/version version}
-                                     (= (vote-options (:vote/option vote))
-                                        :vote.option/vote-against) (assoc :challenge/votes-against (+ (or (:challenge/votes-against re) 0)
-                                                                                                      (:vote/amount vote)))
-                                     (= (vote-options (:vote/option vote))
-                                        :vote.option/vote-for) (assoc :challenge/votes-for (+ (or (:challenge/votes-for re) 0)
-                                                                                              (:vote/amount vote)))))
+
+                                     true
+                                     (assoc :challenge/votes-total (+ (or (:challenge/votes-total re) 0)
+                                                                      (:vote/amount vote)))
+
+                                     (= (vote-options (:vote/option vote)) :vote.option/vote-against)
+                                     (assoc :challenge/votes-against (+ (or (:challenge/votes-against re) 0)
+                                                                        (:vote/amount vote)))
+
+                                     (= (vote-options (:vote/option vote)) :vote.option/vote-for)
+                                     (assoc :challenge/votes-for (+ (or (:challenge/votes-for re) 0)
+                                                                    (:vote/amount vote)))))
         (db/update-user! {:user/address voter})
         (db/update-vote! vote)))))
 
