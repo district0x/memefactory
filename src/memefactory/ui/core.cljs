@@ -12,6 +12,7 @@
    [district.ui.reagent-render]
    [district.ui.router-google-analytics]
    [district.ui.router]
+   [district.ui.smart-contracts.events :as contracts-events]
    [district.ui.smart-contracts]
    [district.ui.web3-account-balances]
    [district.ui.web3-accounts.events :as web3-accounts-events]
@@ -76,8 +77,9 @@
  (fn [{:keys [db store]}]
    (log/debug "Localstore content" store ::init)
    {:async-flow {:first-dispatch [::init-defaults store]
-                 :rules [{:when :seen?
-                          :events [::web3-accounts-events/active-account-changed]
+                 :rules [{:when :seen-all-of?
+                          :events [::web3-accounts-events/active-account-changed
+                                   ::contracts-events/contracts-loaded]
                           :dispatch [::my-settings-events/load-email-settings]}]}}))
 
 (defn ^:export init []
