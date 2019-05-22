@@ -87,7 +87,7 @@
                               :template-id template-id
                               :api-key api-key
                               :print-mode? print-mode?}))
-                          (log/warn "No email found for challenged meme creator" {:event ev :meme meme} ::send-challenge-created-email))))))
+                          (log/info "No email found for challenged meme creator" {:event ev :meme meme} ::send-challenge-created-email))))))
 
 (defn send-auction-bought-email-handler
   [{:keys [from to title
@@ -151,7 +151,7 @@
                      :template-id template-id
                      :api-key api-key
                      :print-mode? print-mode?})
-                   (log/warn "No email found for meme auction seller" {:event ev :meme-auction meme-auction} ::send-auction-bought-email))))))
+                   (log/info "No email found for meme auction seller" {:event ev :meme-auction meme-auction} ::send-auction-bought-email))))))
 
 (defn send-vote-reward-claimed-email-handler
   [{:keys [to from
@@ -217,7 +217,7 @@
                        :api-key api-key
                        :print-mode? print-mode?})
                      (log/info "Sending vote reward received email" ev ::send-vote-reward-claimed-email))
-                   (log/warn "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email))))))
+                   (log/info "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email))))))
 
 (defn send-challenge-reward-claimed-email-handler
   [{:keys [to from
@@ -278,7 +278,7 @@
                        :template-id template-id
                        :api-key api-key
                        :print-mode? print-mode?}))
-                   (log/warn "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email))))))
+                   (log/info "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email))))))
 
 
 (defn- dispatcher [callback]
@@ -304,4 +304,3 @@
   :start (start (merge (:pinner @config)
                        (:pinner (mount/args))))
   :stop (stop emailer))
-
