@@ -218,12 +218,10 @@ contract RegistryEntry is ApproveAndCallFallBack {
        !challenge.isChallengeRewardClaimed() &&
        !challenge.isWinningOptionVoteFor() &&
        challenge.challenger == _user){
+      uint challengeReward = challenge.challengeReward(deposit);
 
-      registryToken.transfer(challenge.challenger, challenge.challengeReward(deposit));
-
-      registry.fireChallengeRewardClaimedEvent(version,
-                                               challenge.challenger,
-                                               challenge.challengeReward(deposit));
+      registryToken.transfer(challenge.challenger, challengeReward);
+      registry.fireChallengeRewardClaimedEvent(version, challenge.challenger, challengeReward);
     }
 
     // Votes reward

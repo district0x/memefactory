@@ -195,7 +195,7 @@ library RegistryEntryLib {
     internal
     constant
     returns (uint) {
-    return deposit.sub(self.rewardPool);
+    return deposit.add(deposit.sub(self.rewardPool));
   }
 
   /**
