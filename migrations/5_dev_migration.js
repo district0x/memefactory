@@ -3,17 +3,20 @@ const {contracts_build_directory, smart_contracts_path, parameters} = require ('
 
 const MEMEFACTORY_ENV = process.env.MEMEFACTORY_ENV || "dev";
 
-const OldMemeFactory = artifacts.require("MemeFactoryCp");
-const OldParamChangeFactory = artifacts.require("ParamChangeFactoryCp");
-const OldParamChange = artifacts.require("ParamChangeCp");
+// existing contracts
+const OldMemeFactory = artifacts.require("MemeFactory");
+const OldDistrictConfig = artifacts.require("DistrictConfig");
+const OldParamChangeFactory = artifacts.require("ParamChangeFactory");
 
+copy ("Registry", "MemeRegistry", contracts_build_directory);
 const MemeRegistry = artifacts.require("MemeRegistry");
-const ParamChangeRegistry = artifacts.require("ParamChangeRegistry");
+
+copy ("MutableForwarder", "ParamChangeRegistryForwarder", contracts_build_directory);
 const ParamChangeRegistryForwarder = artifacts.require("ParamChangeRegistryForwarder");
 
-const MemeToken = artifacts.require("MemeTokenCp");
-const DankToken = artifacts.require("DankTokenCp");
-const DistrictConfig = artifacts.require("DistrictConfigCp");
+const ParamChangeRegistry = artifacts.require("ParamChangeRegistry");
+
+// redeployed contracts
 
 copy ("MemeFactory", "MemeFactoryCp", contracts_build_directory);
 const MemeFactory = artifacts.require("MemeFactoryCp");
@@ -33,76 +36,6 @@ const forwarderTargetPlaceholder = "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef";
 const districtConfigPlaceholder = "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd";
 const memeTokenPlaceholder = "dabbdabbdabbdabbdabbdabbdabbdabbdabbdabb";
 
-
-function getOldMemeFactory() {
-  var contract;
-  switch(MEMEFACTORY_ENV) {
-    case "prod":
-      contract = MemeFactory.at("0x01cb025ec5d7907e33b357bccae6260e9adbd32a");
-      break;
-    case "qa":
-      contract = MemeFactory.at("0x1c4144670e895384d7f0a3ae2e4aec2833c1fbf8");
-      break;
-    default:
-      contract = OldMemeFactory.deployed();
-  }
-  return contract;
-}
-
-function getOldParamChangeFactory() {
-  var contract;
-  switch(MEMEFACTORY_ENV) {
-    case "prod":
-      contract = ParamChangeFactory.at("0x179921d3a4b673581c68b21631aa7573b651d4e5");
-      break;
-    case "qa":
-      contract = ParamChangeFactory.at("0x6446ae75abdef8ff35a20e49499c0f54e278f067");
-      break;
-    default:
-      contract = OldParamChangeFactory.deployed();
-  }
-  return contract;
-}
-
-function getDistrictConfig() {
-  var contract;
-  switch(MEMEFACTORY_ENV) {
-    case "prod":
-      contract = DistrictConfig.at("0xc3f953d1d9c0117f0988a16f2eda8641467e0b6d");
-      break;
-    case "qa":
-      contract = DistrictConfig.at("0xc0631861f334e80e960da6317f8b66a122b32e71");
-      break;
-    default:
-      contract = DistrictConfig.deployed();
-  }
-  return contract;
-}
-
-function getParamChangeRegistryForwarder(paramChangeRegistryAddress) {
-  var contract;
-  switch(MEMEFACTORY_ENV) {
-    case "prod":
-      contract = ParamChangeRegistryForwarder.at("0x942b6b83b654761b13fba7b230b9283ddec08f2c");
-      break;
-    case "qa":
-      contract = ParamChangeRegistryForwarder("0x5091c87601b085d5abb477a534bcac80fd11896e");
-      break;
-    default:
-    
-    // This is hack, because originally we had bug in out deployment migration.
-    // We didn't assign to ParamChangeFactory.registry address of ParamChangeRegistryForwarder,
-    // but original ParamChangeRegistry contract address.
-    // https://github.com/district0x/memefactory/blob/8c961070086f7e5f860310c016d55d6843bcf01a/migrations/2_memefactory_migration.js#L199
-    // Therefore wanna get here ParamChangeRegistryForwarder address, but first we must linkBytecode again,
-    // so truffle can find it within blockchain.
-        
-    linkBytecode(ParamChangeRegistryForwarder, forwarderTargetPlaceholder, paramChangeRegistryAddress);
-    contract = ParamChangeRegistryForwarder.deployed();
-  }
-  return contract;
-}
-
 /**
  * This migration updates Meme and ParamChange Contracts
  *
@@ -115,6 +48,31 @@ module.exports = function(deployer, network, accounts) {
   const gas = 4e6;
   const opts = {gas: gas, from: address, gasPrice: 10e9};
 
+  // IMPORTANT : adjust these addresses :
+  const deployedMemeFactoryAddress = {
+    "dev": "0x9c176f70828ca1de41d31e5f4fa137c4c4743dae",
+    "prod" : "0x01cb025ec5d7907e33b357bccae6260e9adbd32a",
+    "qa" : "0x1c4144670e895384d7f0a3ae2e4aec2833c1fbf8"
+  };
+
+  const deployedDistrictConfigAddress = {
+    "dev" : "0xf446f195ec4ad452f79f95ccb27cfa5dd6cb9e97",
+    "prod": "0xc3f953d1d9c0117f0988a16f2eda8641467e0b6d",
+    "qa" : "0xc0631861f334e80e960da6317f8b66a122b32e71"
+  };
+
+  const deployedParamChangeFactoryAddress = {
+    "dev" : "0x9909f7dc7c04dace5d376334fa6afac0e919477b",
+    "prod" : "0x179921d3a4b673581c68b21631aa7573b651d4e5",
+    "qa": "0x6446ae75abdef8ff35a20e49499c0f54e278f067"
+  };
+
+  const deployedParamChangeRegistryForwarderAddress = {
+    "dev" : "0x2f94d13d398e615798b5fe2c4b5d55425b23feb7",
+    "prod" : "0x942b6b83b654761b13fba7b230b9283ddec08f2c",
+    "qa" : "0x5091c87601b085d5abb477a534bcac80fd11896e"
+  };
+
   deployer.then (() => {
     console.log ("@@@ using Web3 version:", web3.version.api);
     console.log ("@@@ MEMEFACTORY_ENV: ", MEMEFACTORY_ENV);
@@ -122,13 +80,13 @@ module.exports = function(deployer, network, accounts) {
   });
 
   deployer
-    .then(() => getOldMemeFactory())
+    .then(() => OldMemeFactory.at(deployedMemeFactoryAddress [MEMEFACTORY_ENV]))
     .then((oldMemeFactory) => {
       return Promise.all([
-         oldMemeFactory.registry(),
-         oldMemeFactory.registryToken(),
-         oldMemeFactory.memeToken(),
-         getDistrictConfig(),
+        oldMemeFactory.registry(),
+        oldMemeFactory.registryToken(),
+        oldMemeFactory.memeToken(),
+        OldDistrictConfig.at(deployedDistrictConfigAddress[MEMEFACTORY_ENV])
       ])
     })
     .then(([memeRegistryAddress, dankTokenAddress, memeTokenAddress, districtConfig]) => {
@@ -145,10 +103,10 @@ module.exports = function(deployer, network, accounts) {
       var meme = deployer.deploy(Meme, Object.assign(opts, {gas: 6721975}));
 
       return Promise.all([
-         meme,
-         memeRegistryAddress,
-         dankTokenAddress,
-         memeTokenAddress
+        meme,
+        memeRegistryAddress,
+        dankTokenAddress,
+        memeTokenAddress
       ])
     })
     .then(([meme, memeRegistryAddress, dankTokenAddress, memeTokenAddress]) => {
@@ -158,37 +116,31 @@ module.exports = function(deployer, network, accounts) {
       var memeFactory = deployer.deploy(MemeFactory, memeRegistryAddress, dankTokenAddress, memeTokenAddress);
 
       return Promise.all([
-         memeFactory,
-         getOldMemeFactory(),
-         MemeRegistry.at(memeRegistryAddress)
+        memeFactory,
+        OldMemeFactory.at(deployedMemeFactoryAddress[MEMEFACTORY_ENV]),
+        MemeRegistry.at(memeRegistryAddress)
       ]);
     })
     .then(([memeFactory, oldMemeFactory, memeRegistry]) => {
       console.log("@@@ New MemeFactory: ", memeFactory.address);
 
       return Promise.all([
-         memeRegistry.setFactory(memeFactory.address, true, Object.assign(opts, {gas: 100000})),
-         memeRegistry.setFactory(oldMemeFactory.address, false, Object.assign(opts, {gas: 100000}))
+        memeRegistry.setFactory(memeFactory.address, true, Object.assign(opts, {gas: 100000})),
+        memeRegistry.setFactory(oldMemeFactory.address, false, Object.assign(opts, {gas: 100000}))
       ]);
     })
-    
-    // Param Change
 
+  // Param Change
 
-    .then(() => getOldParamChangeFactory())
-    .then((oldParamChangeFactory) => {
-      return Promise.all([
-         oldParamChangeFactory.registry(),
-         oldParamChangeFactory.registryToken()
-      ])
-    })
-    .then(([paramChangeRegistryAddress, dankTokenAddress]) => {
-
-    return Promise.all([
-       getParamChangeRegistryForwarder(paramChangeRegistryAddress),
-       dankTokenAddress
-      ]);
-    })
+    .then(() => OldParamChangeFactory.at(deployedParamChangeFactoryAddress[MEMEFACTORY_ENV]))
+    .then((oldParamChangeFactory) => Promise.all([
+      oldParamChangeFactory.registry(),
+      oldParamChangeFactory.registryToken()
+    ]))
+    .then(([paramChangeRegistryAddress, dankTokenAddress]) => Promise.all([
+      ParamChangeRegistryForwarder.at (deployedParamChangeRegistryForwarderAddress[MEMEFACTORY_ENV]),
+      dankTokenAddress
+    ]))
     .then(([paramChangeRegistryForwarder, dankTokenAddress]) => {
       console.log("@@@ ParamChangeRegistryForwarder: ", paramChangeRegistryForwarder.address);
       console.log("@@@ DankToken: ", dankTokenAddress);
@@ -197,11 +149,11 @@ module.exports = function(deployer, network, accounts) {
       linkBytecode(ParamChange, dankTokenPlaceholder, dankTokenAddress);
 
       var paramChange = deployer.deploy(ParamChange, Object.assign(opts, {gas: 6000000}));
-    
+
       return Promise.all([
-         paramChange,
-         paramChangeRegistryForwarder,
-         dankTokenAddress
+        paramChange,
+        paramChangeRegistryForwarder,
+        dankTokenAddress
       ])
     })
     .then(([paramChange, paramChangeRegistryForwarder, dankTokenAddress]) => {
@@ -209,22 +161,20 @@ module.exports = function(deployer, network, accounts) {
 
       linkBytecode(ParamChangeFactory, forwarderTargetPlaceholder, paramChange.address);
       var paramChangeFactory = deployer.deploy(ParamChangeFactory, paramChangeRegistryForwarder.address, dankTokenAddress);
-    
+
       return Promise.all([
-         paramChangeFactory,
-         getOldParamChangeFactory(),
-         ParamChangeRegistry.at(paramChangeRegistryForwarder.address)
+        paramChangeFactory,
+        OldParamChangeFactory.at(deployedParamChangeFactoryAddress[MEMEFACTORY_ENV]),
+        ParamChangeRegistry.at(paramChangeRegistryForwarder.address)
       ]);
     })
     .then(([paramChangeFactory, oldParamChangeFactory, paramChangeRegistry]) => {
       console.log("@@@ New ParamChangeFactory: ", paramChangeFactory.address);
 
       return Promise.all([
-         paramChangeRegistry.setFactory(paramChangeFactory.address, true, Object.assign(opts, {gas: 100000})),
-         paramChangeRegistry.setFactory(oldParamChangeFactory.address, false, Object.assign(opts, {gas: 100000}))
+        paramChangeRegistry.setFactory(paramChangeFactory.address, true, Object.assign(opts, {gas: 100000})),
+        paramChangeRegistry.setFactory(oldParamChangeFactory.address, false, Object.assign(opts, {gas: 100000}))
       ]);
     })
-    .then (() => {
-      console.log ("Done");
-    })
+    .then (() => console.log ("Done"))
 }
