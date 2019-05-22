@@ -35,7 +35,7 @@
    (if (or (not encrypted-email)
            (string/blank? encrypted-email))
      (do
-       (log/warn "No encrypted email found for user" {:user {:id address}
+       (log/info "No encrypted email found for user" {:user {:id address}
                                                       :encrypted-email encrypted-email})
        db)
      (do (log/info "Loaded user encrypted email" {:user {:id address}
