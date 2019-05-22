@@ -188,15 +188,15 @@ module.exports = function(deployer, network, accounts) {
        })
     .then (() => {
       return Promise.all ([ParamChange.deployed (),
-                           ParamChangeRegistry.deployed (),
+                           ParamChangeRegistryForwarder.deployed (),
                            DankToken.deployed ()]);
     })
     .then ((
       [paramChange,
-       paramChangeRegistry,
+       paramChangeRegistryForwarder,
        dankToken]) => {
          linkBytecode(ParamChangeFactory, forwarderTargetPlaceholder, paramChange.address);
-         return deployer.deploy (ParamChangeFactory, paramChangeRegistry.address, dankToken.address,
+         return deployer.deploy (ParamChangeFactory, paramChangeRegistryForwarder.address, dankToken.address,
                                  Object.assign(opts, {gas: gas}));
        })
     .then (() => MemeRegistryDb.deployed ())

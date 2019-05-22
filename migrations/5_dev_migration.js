@@ -52,7 +52,7 @@ module.exports = function(deployer, network, accounts) {
   const deployedMemeFactoryAddress = {
     "dev": "0x9c176f70828ca1de41d31e5f4fa137c4c4743dae",
     "prod" : "0x01cb025ec5d7907e33b357bccae6260e9adbd32a",
-    "qa" : "0x1c4144670e895384d7f0a3ae2e4aec2833c1fbf8"
+    "qa" : "0xdbddeb4d3d2d276286f82cfd5846835db91451d2"
   };
 
   const deployedDistrictConfigAddress = {
@@ -80,6 +80,12 @@ module.exports = function(deployer, network, accounts) {
   });
 
   deployer
+    .then (() => {
+      console.log ("@@@ using MemeFactory at: ", deployedMemeFactoryAddress [MEMEFACTORY_ENV]);
+      console.log ("@@@ using DistrictConfig at: ", deployedDistrictConfigAddress [MEMEFACTORY_ENV]);
+      console.log ("@@@ using ParamChangeFactory at: ", deployedParamChangeFactoryAddress [MEMEFACTORY_ENV]);
+      console.log ("@@@ using ParamChangeRegistryForwarder at: ", deployedParamChangeRegistryForwarderAddress [MEMEFACTORY_ENV]);
+    })
     .then(() => OldMemeFactory.at(deployedMemeFactoryAddress [MEMEFACTORY_ENV]))
     .then((oldMemeFactory) => {
       return Promise.all([

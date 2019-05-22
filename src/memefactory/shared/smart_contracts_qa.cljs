@@ -18,7 +18,7 @@
     :address "0x4450bcc33af0b93362fff45e957092b3d5371fe5"}
    :param-change
    {:name "ParamChange"
-    :address "0xd5bb58cb0b26200238e2f0036968cb0e8875f278"}
+    :address "0x2904c4f7d455eee25d66ed6d7109404c6b200070"}
    :minime-token-factory
    {:name "MiniMeTokenFactory"
     :address "0xa0a24fcac66bf51b2366686916e248c13a5641b1"}
@@ -30,14 +30,14 @@
     :address "0x57d3bd03852f7f7c40778b433f307e5d653379b9"}
    :param-change-factory
    {:name "ParamChangeFactory"
-    :address "0x6446ae75abdef8ff35a20e49499c0f54e278f067"}
+    :address "0x6d7caf67ade2e3ee597d461a5700a2cca3c75060"}
    :param-change-registry-fwd
    {:name "MutableForwarder"
     :address "0x5091c87601b085d5abb477a534bcac80fd11896e"
     :forwards-to :param-change-registry}
    :meme-factory
    {:name "MemeFactory"
-    :address "0xdbddeb4d3d2d276286f82cfd5846835db91451d2"}
+    :address "0x000a07c9b6dee152b6f74cfb4374df151e784ba3"}
    :meme-token
    {:name "MemeToken"
     :address "0xed6c2bc38762a25ef9d2c3ea2aea417eba12f9b1"}
@@ -49,7 +49,7 @@
     :address "0xc709ef0d5a4161bb644d52107e9d1eb06fbf986e"}
    :meme
    {:name "Meme"
-    :address "0x397b7e7152fb32d2c98826f182a15899aff5dc9c"}
+    :address "0xee0274e59d2ed2b77062eb090625f708a51c3e45"}
    :meme-registry-fwd
    {:name "MutableForwarder"
     :address "0x4bc9e58e3dc6eb4dfdb783554bb2341ba160657b"
