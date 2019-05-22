@@ -30,6 +30,7 @@
    [:challenge/created-on :unsigned :integer default-nil]
    [:challenge/voting-token address default-nil]
    [:challenge/reward-pool :unsigned :BIG :INT default-nil]
+   [:challenge/reward-amount :unsigned :BIG :INT default-nil]
    [:challenge/meta-hash ipfs-hash default-nil]
    [:challenge/comment :varchar default-nil]
    [:challenge/commit-period-end :unsigned :integer default-nil]

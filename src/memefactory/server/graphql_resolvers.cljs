@@ -559,7 +559,7 @@
                                        (not claimed-reward-on))
                                    (= challenger (:user/address args))
                                    (= :vote.option/vote-against (reg-entry-winning-vote-option reg-entry)))
-                            (- deposit reward-pool)
+                            (+ deposit (- deposit reward-pool))
                             0)
         voter-amount (let [{:keys [:vote/option :vote/amount :vote/claimed-reward-on] :as v}
                            (db/get {:select [:vote/option :vote/amount :vote/claimed-reward-on]
