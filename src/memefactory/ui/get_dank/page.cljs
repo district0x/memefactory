@@ -57,7 +57,8 @@
                                           :errors errors
                                           :id :country-code
                                           :dom-id :country-code
-                                          :class "country-code"})]
+                                          :class "country-code"
+                                          :type :number})]
                       {:form-data form-data
                        :for :country-code
                        :id :country-code}]
@@ -68,7 +69,8 @@
                                           :key :phone-number
                                           :id :phone-number
                                           :dom-id :phone-number
-                                          :class "phone"})]
+                                          :class "phone"
+                                          :type :number})]
                       {:form-data form-data
                        :for :phone-number
                        :id :phone-number}]]
@@ -79,7 +81,8 @@
                                           :errors errors
                                           :key :verification-code
                                           :dom-id :verification-code
-                                          :id :verification-code})]
+                                          :id :verification-code
+                                          :type :number})]
                       {:form-data form-data
                        :for :verification-code
                        :id :verification-code}]])))
