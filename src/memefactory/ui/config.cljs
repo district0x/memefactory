@@ -23,6 +23,7 @@
    :smart-contracts {:contracts (apply dissoc smart-contracts-dev/smart-contracts skipped-contracts)}
    :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK])}
    :web3 {:url "http://localhost:8549"}
+   :web3-tx {:disable-loading-recommended-gas-prices? true}
    :web3-tx-log {:disable-using-localstorage? true
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]

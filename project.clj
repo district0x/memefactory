@@ -57,7 +57,7 @@
                  [district0x/district-ui-web3-account-balances "1.0.2"]
                  [district0x/district-ui-web3-accounts "1.0.6"]
                  [district0x/district-ui-web3-balances "1.0.2"]
-                 [district0x/district-ui-web3-tx "1.0.9"]
+                 [district0x/district-ui-web3-tx "1.0.10"]
                  [district0x/district-ui-web3-tx-id "1.0.1"]
                  [district0x/district-ui-web3-tx-log "1.0.11"]
                  [district0x/district-ui-window-size "1.0.1"]
