@@ -504,8 +504,8 @@
           {:keys [:meme/title :meme/number]} meme
           meme-auctions (-> @query :search-meme-auctions :items)
           creator-total-earned (when meme-auctions
-                                 (reduce (fn [total-earned {:keys [:meme-auction/end-price] :as meme-auction}]
-                                           (+ total-earned end-price))
+                                 (reduce (fn [total-earned {:keys [:meme-auction/bought-for] :as meme-auction}]
+                                           (+ total-earned bought-for))
                                          0
                                          meme-auctions))]
       [:div.stats.created
