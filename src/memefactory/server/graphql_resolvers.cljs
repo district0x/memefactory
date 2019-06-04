@@ -162,7 +162,7 @@
                  owner        (sqlh/merge-where [:= :tokens.meme-token/owner owner])
                  statuses-set (sqlh/merge-where [:in (reg-entry-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:memes.order-by/reveal-period-end    :re.challenge/reveal-period-end
-                                                           :memes.order-by/commited-period-end  :re.challenge/commit-period-end
+                                                           :memes.order-by/commit-period-end  :re.challenge/commit-period-end
                                                            :memes.order-by/challenge-period-end :re.reg-entry/challenge-period-end
                                                            :memes.order-by/total-trade-volume   :memes.meme/total-trade-volume
                                                            :memes.order-by/created-on           :re.reg-entry/created-on
