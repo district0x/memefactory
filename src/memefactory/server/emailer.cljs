@@ -282,7 +282,7 @@
 
 
 (defn- dispatcher [callback]
-  (fn [_ {:keys [:latest-event? :args]}]
+  (fn [_ {:keys [:latest-event? :args] :as ev}]
     (when latest-event?
       (callback args))))
 
