@@ -134,6 +134,11 @@
    [:user/best-single-card-sale :BIG :INT default-zero]
    [(sql/call :primary-key :user/address)]])
 
+(def twitter-media-columns
+  [[:reg-entry/address address not-nil]
+   [:twitter/media-id :varchar not-nil]
+   [(sql/call :primary-key :reg-entry/address)]])
+
 (def registry-entry-column-names (map first registry-entries-columns))
 (def meme-column-names (filter keyword? (map first memes-columns)))
 (def meme-tokens-column-names (filter keyword? (map first meme-tokens-columns)))
@@ -146,6 +151,7 @@
 (def votes-column-names (map first votes-columns))
 (def tags-column-names (map first tags-columns))
 (def user-column-names (filter keyword? (map first user-columns)))
+(def twitter-media-column-names (filter keyword? (map first twitter-media-columns)))
 
 (defn- index-name [col-name]
   (keyword (namespace col-name) (str (name col-name) "-index")))
@@ -181,6 +187,9 @@
   (db/run! {:create-table [:users]
             :with-columns [user-columns]})
 
+  (db/run! {:create-table [:twitter-media]
+            :with-columns [twitter-media-columns]})
+
   (db/run! {:create-table [:initial-params]
             :with-columns [initial-params-columns]})
 
@@ -202,6 +211,7 @@
   (db/run! {:drop-table [:param-changes]})
   (db/run! {:drop-table [:reg-entries]})
   (db/run! {:drop-table [:users]})
+  (db/run! {:drop-table [:twitter-media]})
   (db/run! {:drop-table [:initial-params]}))
 
 (defn create-insert-fn [table-name column-names & [{:keys [:insert-or-replace?]}]]
@@ -397,3 +407,21 @@
 (defn all-reg-entries []
   (db/all {:select [:re.*]
            :from [[:reg-entries :re]]}))
+
+(defn save-meme-media-id! [registry-entry media-id]
+  (db/run! {:insert-into :twitter-media
+            :columns [:reg-entry/address :twitter/media-id]
+            :values [[registry-entry media-id]]}))
+
+(defn get-meme-media-id [registry-entry]
+  (-> (db/get {:select [:twitter/media-id]
+               :from [[:twitter-media :tm]]
+               :where [:= :tm.reg-entry/address registry-entry]})
+      :twitter/media-id))
+
+(defn get-meme-by-token-id [token-id]
+  (db/get {:select [:m.* :mt.*]
+           :from [[:meme-tokens :mt]]
+           :join [[:memes :m]
+                  [:= :mt.reg-entry/address :m.reg-entry/address] ]
+           :where [:= :mt.meme-token/token-id token-id]}))

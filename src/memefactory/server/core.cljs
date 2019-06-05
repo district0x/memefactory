@@ -22,6 +22,8 @@
    [memefactory.server.ranks-cache]
    [memefactory.server.sigterm]
    [memefactory.server.syncer]
+   [memefactory.server.twitter-bot]
+   [memefactory.server.conversion-rates]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
    [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
@@ -64,7 +66,11 @@
                             :sigterm {:on-sigterm (fn [args]
                                                     (log/warn "Received SIGTERM signal. Exiting" {:args args})
                                                     (mount/stop)
-                                                    (.exit nodejs/process 0))}}}
+                                                    (.exit nodejs/process 0))}
+                            :twitter-bot {:consumer-key "PLACEHOLDER"
+                                          :consumer-secret "PLACEHOLDER"
+                                          :access-token-key "PLACEHOLDER"
+                                          :access-token-secret "PLACEHOLDER"}}}
          :web3-watcher {:interval 3000
                         :confirmations 3
                         :on-offline (fn []

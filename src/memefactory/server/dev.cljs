@@ -37,6 +37,8 @@
     [memefactory.server.pinner]
     [memefactory.server.ranks-cache]
     [memefactory.server.syncer :as syncer]
+    [memefactory.server.twitter-bot]
+    [memefactory.server.conversion-rates]
     [memefactory.server.utils :as server-utils]
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
     [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
@@ -193,7 +195,12 @@
                                       :api-key "PLACEHOLDER"
                                       :template-id "PLACEHOLDER"
                                       :from "noreply@memefactory.io"
-                                      :print-mode? true}}}
+                                      :print-mode? true}
+                            :twitter-bot {:consumer-key "PLACEHOLDER"
+                                          :consumer-secret "PLACEHOLDER"
+                                          :access-token-key "PLACEHOLDER"
+                                          :access-token-secret "PLACEHOLDER"
+                                          :just-log-tweet? false}}}
          :web3-events {:events constants/web3-events}})
     (mount/start)
     (as-> $ (log/warn "Started" {:components $

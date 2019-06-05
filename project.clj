@@ -19,7 +19,7 @@
                  [com.taoensso/timbre "4.10.0"]
                  [day8.re-frame/http-fx "0.1.6"]
                  [district0x/bignumber "1.0.3"]
-                 [district0x/cljs-ipfs-native "1.0.1"]
+                 [district0x/cljs-ipfs-native "1.0.2"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
@@ -114,7 +114,10 @@
                        ;; https://github.com/ethereumjs/ethereumjs-wallet/issues/64
                        [ethereumjs-wallet "0.6.0"]
                        ;; truffle script deps
-                       [jsedn "0.4.1"]]}
+                       [jsedn "0.4.1"]
+                       ;; for twitter bot
+                       [twitter "1.7.1"]
+                       [tar-fs "2.0.0"]]}
 
   :solc {:src-path "contracts/"
          :build-path "resources/public/contracts/build/"

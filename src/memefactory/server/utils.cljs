@@ -69,3 +69,23 @@
                                    js/JSON.parse
                                    (js->clj :keywordize-keys true)
                                    resolve)))))))
+
+(defn get-ipfs-binary-file [file-hash]
+  (js/Promise.
+   (fn [resolve reject]
+     (log/info (str "Downloading: " "/ipfs/" file-hash) ::get-ipfs-file)
+     (ipfs-files/fget (str "/ipfs/" file-hash)
+                      {:req-opts {:compress false
+                                  :archive :false}
+                       :binary? true}
+                      (fn [err content]
+
+                        (cond
+                          err
+                          (let [err-txt "Error when retrieving file from ipfs"]
+                            (log/error err-txt (merge {:file-hash file-hash
+                                                       :error err})
+                                       ::get-ipfs-file)
+                            (reject (str err-txt " : " err)))
+
+                          :else (resolve content)))))))
