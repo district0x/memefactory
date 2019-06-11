@@ -716,8 +716,7 @@
                              :params {:address (-> meme-token :meme-token/meme :reg-entry/address) }
                              :query nil
                              :class "footer"}
-                 [:div.meme-number (str "#" (:meme/number meme))]
-                 [:div.title title]
+                 [:div.title (str "#" (:meme/number meme) " " title)]
                  [:div.number-minted (str number "/" total-minted)]
                  [:div.price (ui-utils/format-price bought-for)]]])
              state)))]))
