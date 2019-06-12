@@ -384,26 +384,29 @@
      (when-not (empty? sql-query)
        sql-query))))
 
-(defn search-users-query-resolver [_ {:keys [:order-by :order-dir :first :after] :as args} _ document]
+(defn search-users-query-resolver [_ {:keys [:order-by :order-dir :first :after] :or {order-dir :asc} :as args} _ document]
   (log/debug "search-users-query-resolver args" args)
   (try-catch-throw
-   (let [now (utils/now-in-seconds)
-         order-by-clause (when order-by (get {:users.order-by/address :user/address
-                                              :users.order-by/voter-total-earned :user/voter-total-earned
-                                              :users.order-by/challenger-total-earned :user/challenger-total-earned
-                                              :users.order-by/curator-total-earned :user/curator-total-earned
-                                              :users.order-by/total-participated-votes-success :user/total-participated-votes-success
-                                              :users.order-by/total-participated-votes :user/total-participated-votes
-                                              :users.order-by/total-created-challenges-success :user/total-created-challenges-success
-                                              :users.order-by/total-created-challenges :user/total-created-challenges
-                                              :users.order-by/total-collected-memes :user/total-collected-memes
-                                              :users.order-by/total-collected-token-ids :user/total-collected-token-ids
-                                              :users.order-by/total-created-memes-whitelisted :user/total-created-memes-whitelisted
-                                              :users.order-by/total-created-memes :user/total-created-memes
-                                              :users.order-by/total-earned :user/total-earned
-                                              :users.order-by/best-single-card-sale :user/best-single-card-sale}
+   (let [order-dir (keyword order-dir)
+         now (utils/now-in-seconds)
+         order-by-clause (when order-by (get {:users.order-by/address [[:user/address order-dir]]
+                                              :users.order-by/voter-total-earned [[:user/voter-total-earned order-dir]]
+                                              :users.order-by/challenger-total-earned [[:user/challenger-total-earned order-dir]
+                                                                                       [:user/total-created-challenges-success order-dir]]
+                                              :users.order-by/curator-total-earned [[:user/curator-total-earned order-dir]
+                                                                                    [:user/total-participated-votes-success order-dir]]
+                                              :users.order-by/total-participated-votes-success [[:user/total-participated-votes-success order-dir]]
+                                              :users.order-by/total-participated-votes [[:user/total-participated-votes order-dir]]
+                                              :users.order-by/total-created-challenges-success [[:user/total-created-challenges-success order-dir]]
+                                              :users.order-by/total-created-challenges [[:user/total-created-challenges order-dir]]
+                                              :users.order-by/total-collected-memes [[:user/total-collected-memes order-dir]]
+                                              :users.order-by/total-collected-token-ids [[:user/total-collected-token-ids order-dir]]
+                                              :users.order-by/total-created-memes-whitelisted [[:user/total-created-memes-whitelisted order-dir]]
+                                              :users.order-by/total-created-memes [[:user/total-created-memes order-dir]]
+                                              :users.order-by/total-earned [[:user/total-earned order-dir]]
+                                              :users.order-by/best-single-card-sale [[:user/best-single-card-sale order-dir]]}
                                              (graphql-utils/gql-name->kw order-by)))
-         fields (conj (query-fields document :items) order-by-clause)
+         fields (into (query-fields document :items) (map clojure.core/first order-by-clause))
          select? #(contains? fields %)
          query (paged-query {:select (remove nil?
                                              [:*
@@ -462,7 +465,7 @@
                                                   :where [:= :reg-entries.reg-entry/creator :user/address]}
                                                  :user/total-created-memes])])
                              :from [:users]
-                             :order-by [[order-by-clause (or (keyword order-dir) :asc)]]}
+                             :order-by order-by-clause}
                             first
                             (when after
                               (js/parseInt after)))]
