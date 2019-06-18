@@ -88,7 +88,8 @@
                    (.then (fn [image-tar-file-content]
                             (.then (first-tar-obj image-tar-file-content)
                                    (fn [image-file-content]
-                                     (upload-file-to-twitter twitter-obj image-file-content)))))
+                                     (when-not just-log-tweet?
+                                       (upload-file-to-twitter twitter-obj image-file-content))))))
                    (.then (fn [media-id]
                             (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
                                   text (rand-nth [(gstring/format "Introducing '%s', The latest submission to vie for a place in the DANK registry. %s" title meme-detail-url)
