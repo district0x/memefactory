@@ -117,7 +117,10 @@
                        [jsedn "0.4.1"]
                        ;; for twitter bot
                        [twitter "1.7.1"]
-                       [tar-fs "2.0.0"]]}
+                       [tar-fs "2.0.0"]
+                       ;; for solidity sha3 function
+                       [web3-utils "1.0.0-beta.55"]
+                       ]}
 
   :solc {:src-path "contracts/"
          :build-path "resources/public/contracts/build/"

@@ -341,7 +341,7 @@
           records->values (zipmap records values)
           keys->values (->> #{"challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration" "deposit"
                               "challengeDispensation" "voteQuorum" "maxTotalSupply" "maxAuctionDuration"}
-                         (map (fn [k] (when-let [v (records->values (web3/sha3 k))] [k v])))
+                         (map (fn [k] (when-let [v (records->values (solidity-sha3 k))] [k v])))
                          (into {}))]
       (doseq [[k v] keys->values]
         (db/insert-initial-param! {:initial-param/key k

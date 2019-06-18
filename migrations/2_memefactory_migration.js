@@ -2,6 +2,7 @@ const {last, copy, linkBytecode, smartContractsTemplate} = require ("./utils.js"
 const fs = require('fs');
 const edn = require("jsedn");
 const {env, contracts_build_directory, smart_contracts_path, parameters} = require ('../truffle.js');
+const web3Utils = require('web3-utils');
 
 copy ("DSGuard", "DSGuardCp", contracts_build_directory);
 const DSGuard = artifacts.require("DSGuardCp");
@@ -207,7 +208,7 @@ module.exports = function(deployer, network, accounts) {
                                                   'challengeDispensation',
                                                   'voteQuorum',
                                                   'maxTotalSupply',
-                                                  'maxAuctionDuration'].map (web3.sha3),
+                                                  'maxAuctionDuration'].map((k) => {return web3Utils.soliditySha3(k);}),
                                                  [parameters.memeRegistryDb.challengePeriodDuration,
                                                   parameters.memeRegistryDb.commitPeriodDuration,
                                                   parameters.memeRegistryDb.revealPeriodDuration ,
@@ -218,7 +219,7 @@ module.exports = function(deployer, network, accounts) {
                                                   parameters.memeRegistryDb.maxAuctionDuration],
                                                  Object.assign(opts, {gas: 500000})))
     .then (() => MemeRegistryDb.deployed ())
-    .then (instance => instance.getUIntValue (web3.sha3 ("deposit")))
+    .then (instance => instance.getUIntValue (web3Utils.soliditySha3 ("deposit")))
     .then (res => console.log ("MemeRegistryDb/deposit:", res))
     .then (() => ParamChangeRegistryDb.deployed ())
     .then ((instance) => instance.setUIntValues (['challengePeriodDuration',
@@ -226,7 +227,7 @@ module.exports = function(deployer, network, accounts) {
                                                   'revealPeriodDuration',
                                                   'deposit',
                                                   'challengeDispensation',
-                                                  'voteQuorum'].map (web3.sha3),
+                                                  'voteQuorum'].map((k) => {return web3Utils.soliditySha3(k);}),
                                                  [parameters.paramChangeRegistryDb.challengePeriodDuration,
                                                   parameters.paramChangeRegistryDb.commitPeriodDuration,
                                                   parameters.paramChangeRegistryDb.revealPeriodDuration ,
