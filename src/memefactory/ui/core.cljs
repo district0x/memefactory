@@ -52,6 +52,7 @@
             [memefactory.ui.subs]
             [memefactory.ui.terms.page]
             [mount.core :as mount]
+            [memefactory.ui.param-change.page]
             [re-frame.core :as re-frame]
             [re-frisk.core :refer [enable-re-frisk!]]
             [taoensso.timbre :as log]))
