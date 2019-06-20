@@ -267,7 +267,8 @@
                                       :key :vote-page/open
                                       ;; HACK : key should be created-on but our select doesn't support two equal keys
                                       :sort-options [{:key "commit-period-end-desc" :value "Newest" :order-dir :desc}
-                                                     {:key "commit-period-end-asc"  :value "Oldest" :order-dir :asc}]}]}
+                                                     {:key "commit-period-end-asc"  :value "Oldest" :order-dir :asc}]}]
+            :route :route.dank-registry/vote}
            {:title "Resolved Challenges"
             :content [challenge-list {:include-challenger-info? true
                                       :query-params {:statuses [:reg-entry.status/blacklisted
@@ -279,4 +280,5 @@
                                       :key :vote-page/resolved
                                       ;; HACK : key should be created-on but our select doesn't support two equal keys
                                       :sort-options [{:key "reveal-period-end-desc" :value "Newest" :order-dir :desc}
-                                                     {:key "reveal-period-end-asc"  :value "Oldest" :order-dir :asc}]}]}]]]]])))
+                                                     {:key "reveal-period-end-asc"  :value "Oldest" :order-dir :asc}]}]
+            :route :route.dank-registry/vote}]]]]])))

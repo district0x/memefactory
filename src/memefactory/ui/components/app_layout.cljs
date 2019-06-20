@@ -55,6 +55,10 @@
                       :route :route.my-settings/index
                       :class :my-settings
                       :needs-account? true}
+                     {:text "Param Change"
+                      :route :route.param-change/index
+                      :class :param-change
+                      :needs-account? true}
                      {:text "How it Works"
                       :route :route.how-it-works/index
                       :class :how-it-works

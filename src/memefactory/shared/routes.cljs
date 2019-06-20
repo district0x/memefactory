@@ -19,5 +19,6 @@
              ["/about" :route.about/index]
              ["/how-it-works" :route.how-it-works/index]
              ["/privacy-policy" :route.privacy-policy/index]
+             ["/param-change" :route.param-change/index]
              ["/terms-of-use" :route.terms/index]
              ])
