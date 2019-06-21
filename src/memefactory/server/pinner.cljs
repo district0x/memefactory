@@ -8,12 +8,18 @@
     [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
     [goog.date.Date]
     [memefactory.server.ipfs :as ipfs]
-    [memefactory.server.macros :refer [promise->]]
+    [district.shared.async-helpers :refer [promise->]]
     [memefactory.server.utils :as server-utils]
     [mount.core :as mount :refer [defstate]]
     [print.foo :refer [look] :include-macros true]
     [taoensso.timbre :as log]))
 
+(defn- dispatcher [callback]
+  (fn [err event]
+    (js/Promise.
+     (fn [resolve reject]
+       (callback err event)
+       (resolve ::dispatched)))))
 
 (defn meme-constructed-event [err {:keys [:args]}]
   (let [{:keys [:meta-hash]} args
@@ -46,7 +52,9 @@
                          (fn [err]
                            (if err
                              (log/error (str "Pinning meme image hash failed " image-hash " " err) ::pin-image-hash)
-                             (log/info (str "Pinned meme image hash " image-hash) ::pin-image-hash))))))))))))
+                             (log/info (str "Pinned meme image hash " image-hash) ::pin-image-hash))))))))
+
+        ))))
 
 
 (defn challenge-created-event [err {:keys [:args]}]
@@ -70,8 +78,8 @@
 
 (defn start [opts]
   (when-not (:disabled? opts)
-    (register-callback! :meme-registry/meme-constructed-event meme-constructed-event ::meme-constructed-event)
-    (register-callback! :meme-registry/challenge-created-event challenge-created-event ::challenge-created-event))
+    (register-callback! :meme-registry/meme-constructed-event (dispatcher meme-constructed-event) ::meme-constructed-event)
+    (register-callback! :meme-registry/challenge-created-event (dispatcher challenge-created-event) ::challenge-created-event))
   opts)
 
 
@@ -84,4 +92,3 @@
   :start (start (merge (:pinner @config)
                        (:pinner (mount/args))))
   :stop (stop pinner))
-

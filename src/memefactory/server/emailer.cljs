@@ -9,13 +9,13 @@
     [district.server.config :refer [config]]
     [district.server.logging]
     [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
+    [district.shared.async-helpers :refer [promise->]]
     [district.shared.error-handling :refer [try-catch try-catch-throw]]
     [district.time :as time]
     [goog.format.EmailAddress :as email-address]
     [memefactory.server.contract.district0x-emails :as district0x-emails]
     [memefactory.server.db :as db]
     [memefactory.server.emailer.templates :as templates]
-    [memefactory.server.macros :refer [promise->]]
     [mount.core :as mount :refer [defstate]]
     [taoensso.timbre :as log]))
 

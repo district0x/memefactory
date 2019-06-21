@@ -1,5 +1,5 @@
 (ns memefactory.server.contract.param-change
-  (:require [memefactory.server.macros :refer [promise->]]
+  (:require [district.shared.async-helpers :refer [promise->]]
             [memefactory.shared.contract.param-change :refer [parse-load-param-change]]
             [district.server.smart-contracts :refer [contract-call instance contract-address]]))
 

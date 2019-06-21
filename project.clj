@@ -28,13 +28,19 @@
                  [district0x/district-parsers "1.0.0"]
                  [district0x/district-sendgrid "1.0.0"]
                  [district0x/district-server-config "1.0.1"]
-                 [district0x/district-server-db "1.0.3"]
                  [district0x/district-server-graphql "1.0.16"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.0.14"]
+
+                 ;; TODO
+                 [district0x/async-helpers "0.1.1"]
+                 [district0x/district-server-db "1.0.4"]
+                 [district0x/district-server-smart-contracts "1.0.15"]
+                 [district0x/district-server-web3-events "1.0.4"]
+                 ;; [honeysql "0.9.4"]
+                 ;; [nilenso/honeysql-postgres "0.2.5"]
+
                  [district0x/district-server-web3 "1.0.1"]
-                 [district0x/district-server-web3-events "1.0.3"]
                  [district0x/district-server-web3-watcher "1.0.3"]
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
@@ -81,7 +87,14 @@
 
   :exclusions [funcool/bide
                express-graphql
-               cljsjs/react-with-addons]
+               cljsjs/react-with-addons
+
+               ;; TODO
+               ;; district0x/district-server-db
+               ;; district0x/district-server-smart-contracts
+               ;; district0x/district-server-web3-events
+
+               ]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
@@ -94,12 +107,13 @@
             [lein-garden "0.3.0"]]
 
   :npm {:dependencies [#_[semantic-ui "2.2.14"]
-                       ;; needed until v0.6.13 is officially released
+                       ;; [better-sqlite3 "5.4.0"]
                        ["@sentry/node" "4.2.1"]
                        [chalk "2.3.0"]
                        [cors "2.8.4"]
                        [eccjs "0.3.1"]
                        [express "4.15.3"]
+                       ;; needed until v0.6.13 is officially released
                        [express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
                        [graphql "0.13.1"]
                        [graphql-fields "1.0.2"]
@@ -171,7 +185,7 @@
                                 :pretty-print? false}}]}
 
   :cljsbuild {:builds [{:id "dev-server"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared" #_"src/district/server"]
                         :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
                         :compiler {:main "memefactory.server.dev"
                                    :output-to "dev-server/memefactory.js"

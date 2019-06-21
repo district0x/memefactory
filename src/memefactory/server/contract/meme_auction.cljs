@@ -2,7 +2,7 @@
   (:require
     [district.server.smart-contracts :refer [contract-call instance]]
     [memefactory.shared.contract.meme-auction :refer [parse-load-meme-auction]]
-    [memefactory.server.macros :refer [promise->]]
+    [district.shared.async-helpers :refer [promise->]]
     [cljs-web3.eth :as web3-eth]))
 
 (defn buy [contract-addr & [{:keys [:from :value :gas] :as opts}]]

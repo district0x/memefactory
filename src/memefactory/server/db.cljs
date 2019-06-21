@@ -4,6 +4,7 @@
             [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
             [district.server.db.honeysql-extensions]
             [honeysql.core :as sql]
+            [honeysql-postgres.helpers :as psqlh]
             [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
             [medley.core :as medley]
             [mount.core :as mount :refer [defstate]]
@@ -12,6 +13,7 @@
 
 (declare start)
 (declare stop)
+
 (defstate ^{:on-reload :noop} memefactory-db
   :start (start (merge (:memefactory/db @config)
                        (:memefactory/db (mount/args))))
@@ -49,7 +51,7 @@
    [:meme/meta-hash ipfs-hash not-nil]
    [:meme/total-supply :unsigned :integer not-nil]
    [:meme/total-minted :unsigned :integer not-nil]
-   [:meme/token-id-start :unsigned :integer default-nil #_not-nil]
+   [:meme/token-id-start :unsigned :integer default-nil]
    [:meme/total-trade-volume :BIG :INT default-zero]
    [:meme/first-mint-on :unsigned :integer default-nil]
    [(sql/call :primary-key :reg-entry/address)]
@@ -125,9 +127,6 @@
 
 (def user-columns
   [[:user/address address not-nil]
-   ;[:user/creator-largest-sale address default-nil]
-   ;[:user/largest-sale address default-nil]
-   ;[:user/largest-buy address default-nil]
    [:user/voter-total-earned :BIG :INT default-zero]
    [:user/challenger-total-earned :BIG :INT default-zero]
    [:user/total-earned :BIG :INT default-zero]
@@ -138,6 +137,13 @@
   [[:reg-entry/address address not-nil]
    [:twitter/media-id :varchar not-nil]
    [(sql/call :primary-key :reg-entry/address)]])
+
+(def events-columns
+  [[:event/contract-key :varchar not-nil]
+   [:event/event-name :varchar not-nil]
+   [:event/last-log-index :integer not-nil]
+   [:event/last-block-number :integer not-nil]
+   [(sql/call :primary-key :event/contract-key :event/event-name)]])
 
 (def registry-entry-column-names (map first registry-entries-columns))
 (def meme-column-names (filter keyword? (map first memes-columns)))
@@ -152,67 +158,77 @@
 (def tags-column-names (map first tags-columns))
 (def user-column-names (filter keyword? (map first user-columns)))
 (def twitter-media-column-names (filter keyword? (map first twitter-media-columns)))
+(def events-column-names (filter keyword? (map first events-columns)))
 
 (defn- index-name [col-name]
   (keyword (namespace col-name) (str (name col-name) "-index")))
 
-(defn start [opts]
-  (db/run! {:create-table [:reg-entries]
-            :with-columns [registry-entries-columns]})
+(defn clean-db []
+  (db/run! (merge (psqlh/drop-table :if-exists
+                                    :reg-entries
+                                    :votes
+                                    :meme-auctions
+                                    :meme-tags
+                                    :tags
+                                    :meme-tokens
+                                    :meme-token-owners
+                                    :memes
+                                    :param-changes
+                                    :users
+                                    :initial-params
+                                    :twitter-media
+                                    :events)
+                  {:cascade true})))
 
-  (db/run! {:create-table [:memes]
-            :with-columns [memes-columns]})
+(defn start [{:keys [:resync?] :as opts}]
 
-  (db/run! {:create-table [:meme-tokens]
-            :with-columns [meme-tokens-columns]})
+  (when resync?
+      (clean-db))
 
-  (db/run! {:create-table [:meme-token-owners]
-            :with-columns [meme-token-owners-columns]})
+  (db/run! (-> (psqlh/create-table :reg-entries :if-not-exists)
+               (psqlh/with-columns registry-entries-columns)))
 
-  (db/run! {:create-table [:tags]
-            :with-columns [tags-columns]})
+  (db/run! (-> (psqlh/create-table :memes :if-not-exists)
+               (psqlh/with-columns memes-columns)))
 
-  (db/run! {:create-table [:meme-tags]
-            :with-columns [meme-tags-columns]})
+  (db/run! (-> (psqlh/create-table :meme-tokens :if-not-exists)
+               (psqlh/with-columns meme-tokens-columns)))
 
-  (db/run! {:create-table [:meme-auctions]
-            :with-columns [meme-auctions-columns]})
+  (db/run! (-> (psqlh/create-table :meme-token-owners :if-not-exists)
+               (psqlh/with-columns meme-token-owners-columns)))
 
-  (db/run! {:create-table [:param-changes]
-            :with-columns [param-changes-columns]})
+  (db/run! (-> (psqlh/create-table :tags :if-not-exists)
+               (psqlh/with-columns tags-columns)))
 
-  (db/run! {:create-table [:votes]
-            :with-columns [votes-columns]})
+  (db/run! (-> (psqlh/create-table :meme-tags :if-not-exists)
+               (psqlh/with-columns meme-tags-columns)))
 
-  (db/run! {:create-table [:users]
-            :with-columns [user-columns]})
+  (db/run! (-> (psqlh/create-table :meme-auctions :if-not-exists)
+               (psqlh/with-columns meme-auctions-columns)))
 
-  (db/run! {:create-table [:twitter-media]
-            :with-columns [twitter-media-columns]})
+  (db/run! (-> (psqlh/create-table :param-changes :if-not-exists)
+               (psqlh/with-columns param-changes-columns)))
 
-  (db/run! {:create-table [:initial-params]
-            :with-columns [initial-params-columns]})
+  (db/run! (-> (psqlh/create-table :votes :if-not-exists)
+               (psqlh/with-columns votes-columns)))
 
-  ::started
+  (db/run! (-> (psqlh/create-table :users :if-not-exists)
+               (psqlh/with-columns user-columns)))
+
+  (db/run! (-> (psqlh/create-table :initial-params :if-not-exists)
+               (psqlh/with-columns initial-params-columns)))
+
+  (db/run! (-> (psqlh/create-table :events :if-not-exists)
+               (psqlh/with-columns events-columns)))
 
   ;; TODO create indexes
   #_(doseq [column (rest registry-entry-column-names)]
-      (db/run! {:create-index (index-name column) :on [:offerings column]})))
+      (db/run! {:create-index (index-name column) :on [:offerings column]}))
 
+  ::started)
 
 (defn stop []
-  (db/run! {:drop-table [:votes]})
-  (db/run! {:drop-table [:meme-auctions]})
-  (db/run! {:drop-table [:meme-tags]})
-  (db/run! {:drop-table [:tags]})
-  (db/run! {:drop-table [:meme-tokens]})
-  (db/run! {:drop-table [:meme-token-owners]})
-  (db/run! {:drop-table [:memes]})
-  (db/run! {:drop-table [:param-changes]})
-  (db/run! {:drop-table [:reg-entries]})
-  (db/run! {:drop-table [:users]})
-  (db/run! {:drop-table [:twitter-media]})
-  (db/run! {:drop-table [:initial-params]}))
+  ::stopped)
 
 (defn create-insert-fn [table-name column-names & [{:keys [:insert-or-replace?]}]]
   (fn [item]
@@ -228,9 +244,9 @@
       (db/run! {:update table-name
                 :set item
                 :where (concat
-                         [:and]
-                         (for [id-key id-keys]
-                           [:= id-key (get item id-key)]))}))))
+                        [:and]
+                        (for [id-key id-keys]
+                          [:= id-key (get item id-key)]))}))))
 
 (defn create-get-fn [table-name id-keys]
   (let [id-keys (if (sequential? id-keys) id-keys [id-keys])]
@@ -238,37 +254,61 @@
       (cond-> (db/get {:select (if (sequential? fields) fields [fields])
                        :from [table-name]
                        :where (concat
-                                [:and]
-                                (for [id-key id-keys]
-                                  [:= id-key (get item id-key)]))})
+                               [:and]
+                               (for [id-key id-keys]
+                                 [:= id-key (get item id-key)]))})
         (keyword? fields) fields))))
+
+;; REG-ENTRIES
 
 (def insert-registry-entry! (create-insert-fn :reg-entries registry-entry-column-names))
 (def update-registry-entry! (create-update-fn :reg-entries registry-entry-column-names :reg-entry/address))
 (def get-registry-entry (create-get-fn :reg-entries :reg-entry/address))
 
+(defn all-reg-entries []
+  (db/all {:select [:re.*]
+           :from [[:reg-entries :re]]}))
+
+;; MEMES
+
 (def insert-meme! (create-insert-fn :memes (filter #(not= % :meme/number) meme-column-names)))
 (def update-meme! (create-update-fn :memes meme-column-names :reg-entry/address))
 
-(def insert-meme-auction! (create-insert-fn :meme-auctions meme-auctions-column-names))
-(def update-meme-auction! (create-update-fn :meme-auctions meme-auctions-column-names :meme-auction/address))
-
-(def insert-param-change! (create-insert-fn :param-changes param-change-column-names))
-(def update-param-change! (create-update-fn :param-changes param-change-column-names :reg-entry/address))
-
-(def get-vote (create-get-fn :votes [:reg-entry/address :vote/voter]))
-(def insert-vote! (create-insert-fn :votes votes-column-names))
-(def update-vote! (create-update-fn :votes votes-column-names [:reg-entry/address :vote/voter]))
-
-(def insert-initial-param! (create-insert-fn :initial-params initial-params-column-names))
-
-(defn get-initial-param [key db]
+(defn get-meme [address]
   (db/get {:select [:*]
-           :from [:initial-params]
-           :where [:and [:= :initial-param/key key]
-                   [:= :initial-param/db db]]}))
+           :from [[:reg-entries :re]]
+           :join [[:memes :m] [:= :re.reg-entry/address :m.reg-entry/address]]
+           :where [:= :m.reg-entry/address address]}))
 
-(def get-user (create-get-fn :users :user/address))
+(defn inc-meme-field! [address field & [amount]]
+  (db/run! {:update :memes
+            :set {field (sql/call :+ field (or amount 1))}
+            :where [:= :reg-entry/address address]}))
+
+(defn get-meme-by-token-id [token-id]
+  (db/get {:select [:m.* :mt.*]
+           :from [[:meme-tokens :mt]]
+           :join [[:memes :m]
+                  [:= :mt.reg-entry/address :m.reg-entry/address] ]
+           :where [:= :mt.meme-token/token-id token-id]}))
+
+(defn current-meme-number []
+  (-> (db/get {:select [[(sql/call :max :memes.meme/number) :max-number]]
+               :from [:memes]})
+      :max-number
+      (or 0)))
+
+(defn patch-forbidden-reg-entry-image! [address]
+  (db/run! {:update :memes
+            :set {:meme/image-hash "forbidden-image-hash"}
+            :where [:= :reg-entry/address address]}))
+
+(defn assign-meme-number! [address n]
+  (db/run! {:update :memes
+            :set {:meme/number n}
+            :where [:= :reg-entry/address address]}))
+
+;; MEME-TOKENS
 
 (defn insert-meme-tokens! [{:keys [:token-id-start :token-id-end :reg-entry/address]}]
   (let [max-token-number (-> (db/get {:select [[(sql/call :max :meme-tokens.meme-token/number) :max-number]]
@@ -285,96 +325,28 @@
                            token-number-range
                            token-id-range)})))
 
-(def insert-or-replace-meme-token-owner (create-insert-fn :meme-token-owners
-                                                          meme-token-owners-column-names
-                                                          {:insert-or-replace? true}))
+;; MEME-TOKEN-OWNERS
 
-(def insert-or-replace-param-change! (create-insert-fn :param-changes
-                                                       param-change-column-names
-                                                       {:insert-or-replace? true}))
+(defn upsert-meme-token-owner! [args]
+  (db/run! {:insert-into :meme-token-owners
+            :values [(select-keys args meme-token-owners-column-names)]
+            :upsert {:on-conflict [:meme-token/token_id]
+                     :do-update-set (keys args)}}))
 
-(defn initial-param-exists? [key db]
-  (boolean (seq (get-initial-param key db))))
+;; TAGS / MEME-TAGS
 
-(defn meme-auction-exists? [address]
-  (boolean (seq (db/get {:select [1]
-                         :from [:meme-auctions]
-                         :where [:= :meme-auction/address address]}))))
-
-(defn insert-or-update-meme-auction! [{:keys [:meme-auction/address] :as args}]
-  (if (meme-auction-exists? address)
-    (update-meme-auction! args)
-    (insert-meme-auction! args)))
-
-(defn meme-total-trade-volume [reg-entry-address]
-  (-> (db/get {:select [:meme/total-trade-volume]
-               :from [:memes]
-               :where [:= :reg-entry/address reg-entry-address]})
-    :meme/total-trade-volume))
-
-(defn update-meme-first-mint-on! [address first-mint-on]
-  (when-not (-> (db/get {:select [:meme/first-mint-on]
-                         :from [:memes]
-                         :where [:= :reg-entry/address address]})
-                :meme/first-mint-on)
-    (update-meme! {:reg-entry/address address
-                   :meme/first-mint-on first-mint-on})))
-
-(defn update-meme-token-id-start! [address token-id-start]
-  (update-meme! {:reg-entry/address address
-                 :meme/token-id-start token-id-start}))
-
-(defn update-meme-total-minted! [address total-minted]
-  (update-meme! {:reg-entry/address address
-                 :meme/total-minted total-minted}))
-
-(defn inc-meme-total-trade-volume! [{:keys [:reg-entry/address :amount]}]
-  (db/run! {:update :memes
-            :set {:meme/total-trade-volume (+ (meme-total-trade-volume address) amount)}
-            :where [:= :reg-entry/address address]}))
-
-
-(defn user-exists? [address]
-  (boolean (seq (get-user {:user/address address})
-                #_(db/get {:select [1]
-                           :from [:users]
-                           :where [:= :user/address user-address]}))))
-
-(defn tag-exists? [name]
-  (boolean (seq (db/get {:select [1]
-                         :from [:tags]
-                         :where [:= :tag/name name]}))))
-
-(defn tag-meme! [reg-entry-address tag-name]
-  (when-not (tag-exists? tag-name)
-    (db/run! {:insert-into :tags
-              :columns [:tag/name]
-              :values [[tag-name]]}))
-
+(defn tag-meme! [{:keys [:reg-entry/address :tag/name] :as args}]
+  (db/run! {:insert-into :tags
+            :values [(select-keys args tags-column-names)]
+            :upsert {:on-conflict [:tag/name]
+                     :do-nothing []}})
   (db/run! {:insert-into :meme-tags
-            :columns [:reg-entry/address :tag/name]
-            :values [[reg-entry-address tag-name]]}))
+            :values [(select-keys args meme-tags-column-names)]}))
 
-(defn update-user! [{:keys [:user/address] :as params}]
-  (when-not (user-exists? address)
-    (db/run! {:insert-into :users
-              :columns [:user/address]
-              :values [[address]]}))
-  (db/run! {:update :users
-            :set params
-            :where [:= :user/address address]}))
+;; MEME-AUCTIONS
 
-
-(defn inc-user-field! [user-address user-field & [amount]]
-  (update-user! {:user/address user-address
-                 user-field (+ (get-user {:user/address user-address} user-field)
-                               (or amount 1))}))
-
-(defn get-meme [address]
-  (db/get {:select [:*]
-           :from [[:reg-entries :re]]
-           :join [[:memes :m] [:= :re.reg-entry/address :m.reg-entry/address]]
-           :where [:= :m.reg-entry/address address]}))
+(def insert-meme-auction! (create-insert-fn :meme-auctions meme-auctions-column-names))
+(def update-meme-auction! (create-update-fn :meme-auctions meme-auctions-column-names :meme-auction/address))
 
 (defn get-meme-auction [auction-address]
   (db/get {:select [:*]
@@ -388,25 +360,49 @@
                   [:memes :m] [:= :mt.reg-entry/address :m.reg-entry/address]]
            :where [:= :ma.meme-auction/address auction-address]}))
 
-(defn patch-forbidden-reg-entry-image! [address]
-  (db/run! {:update :memes
-            :set {:meme/image-hash "forbidden-image-hash"}
-            :where [:= :reg-entry/address address]}))
+;; INITIAL-PARAMS
 
-(defn assign-meme-number! [address n]
-  (db/run! {:update :memes
-            :set {:meme/number n}
-            :where [:= :reg-entry/address address]}))
+(defn insert-initial-params! [rows]
+  (db/run! {:insert-into :initial-params
+            :values rows}))
 
-(defn current-meme-number []
-  (-> (db/get {:select [[(sql/call :max :memes.meme/number) :max-number]]
-               :from [:memes]})
-      :max-number
-      (or 0)))
+(defn get-initial-param [key db]
+  (db/get {:select [:*]
+           :from [:initial-params]
+           :where [:and [:= :initial-param/key key]
+                   [:= :initial-param/db db]]}))
 
-(defn all-reg-entries []
-  (db/all {:select [:re.*]
-           :from [[:reg-entries :re]]}))
+;; PARAM-CHANGES
+
+(def insert-param-change! (create-insert-fn :param-changes param-change-column-names))
+(def update-param-change! (create-update-fn :param-changes param-change-column-names :reg-entry/address))
+
+(def insert-or-replace-param-change! (create-insert-fn :param-changes
+                                                       param-change-column-names
+                                                       {:insert-or-replace? true}))
+
+;; VOTES
+
+(def insert-vote! (create-insert-fn :votes votes-column-names))
+(def update-vote! (create-update-fn :votes votes-column-names [:reg-entry/address :vote/voter]))
+(def get-vote (create-get-fn :votes [:reg-entry/address :vote/voter]))
+
+;; USERS
+
+(def get-user (create-get-fn :users :user/address))
+
+(defn upsert-user! [args]
+  (db/run! {:insert-into :users
+            :values [(select-keys args user-column-names)]
+            :upsert {:on-conflict [:user/address]
+                     :do-update-set (keys args)}}))
+
+(defn inc-user-field! [user-address user-field & [amount]]
+  (db/run! {:update :users
+            :set {user-field (sql/call :+ user-field (or amount 1))}
+            :where [:= :user/address user-address]}))
+
+;; TWITTER-MEDIA
 
 (defn save-meme-media-id! [registry-entry media-id]
   (db/run! {:insert-into :twitter-media
@@ -419,9 +415,13 @@
                :where [:= :tm.reg-entry/address registry-entry]})
       :twitter/media-id))
 
-(defn get-meme-by-token-id [token-id]
-  (db/get {:select [:m.* :mt.*]
-           :from [[:meme-tokens :mt]]
-           :join [[:memes :m]
-                  [:= :mt.reg-entry/address :m.reg-entry/address] ]
-           :where [:= :mt.meme-token/token-id token-id]}))
+;; EVENTS
+
+(def get-last-event (create-get-fn :events [:event/contract-key :event/event-name]))
+
+(defn upsert-event! [{:keys [:event/event-name :event/contract-key
+                             :event/last-log-index :event/last-block-number] :as args}]
+  (db/run! {:insert-into :events
+            :values [(select-keys args events-column-names)]
+            :upsert {:on-conflict [:event/event-name :event/contract-key]
+                     :do-update-set [:event/last-log-index :event/last-block-number]}}))
