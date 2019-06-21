@@ -35,12 +35,13 @@
 
 
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
-  (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
+  (let [deposit-value (:value deposit)
+        all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         form-data (r/atom {:issuance 1})
         max-tags-allowed 6
         errors (reaction {:local (let [{:keys [title issuance file-info]} @form-data
                                        entered-tag (get @form-data "txt-:search-tags")
-                                       max-issuance (or max-total-supply 1)]
+                                       max-issuance (or (:value max-total-supply) 1)]
                                    (cond-> {:issuance {:hint (str "Max " max-issuance)}}
                                      (str/blank? title)
                                      (assoc-in [:title :error] "Title cannot be empty")
@@ -151,12 +152,12 @@
           #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
           [:div.submit
            [:button {:on-click (fn []
-                                 (dispatch [::dr-events/upload-meme @form-data deposit])
+                                 (dispatch [::dr-events/upload-meme @form-data deposit-value])
                                  (reset! form-data {}))
                      :disabled (or (not (empty? @critical-errors))
-                                   (< @account-balance deposit))}
+                                   (< @account-balance deposit-value))}
             "Submit"]
-           [dank-with-logo (web3/from-wei deposit :ether)]]
+           [dank-with-logo (web3/from-wei deposit-value :ether)]]
           (when (< @account-balance deposit)
             [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])]]]])))
 

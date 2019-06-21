@@ -2,8 +2,13 @@
   (:require
     [bignumber.core :as bn]
     [cljs-web3.core :as web3]
+    [cljs-web3.eth :as web3-eth]
     [clojure.string :as str]
-    [district.format :as format]))
+    [district.format :as format]
+    [cljs-time.core :as t]
+    [memefactory.ui.config :refer [config]]
+    [district.ui.now.subs]
+    [reagent.ratom :refer [reaction]]))
 
 
 (defn format-price [price]
@@ -44,3 +49,9 @@
            (if (str/starts-with? (name order-by) "price")
              "price"
              (name order-by))))
+
+(defn now-in-seconds
+  "A reaction that returns time since epoch in seconds"
+  []
+  (let [now-subs (re-frame.core/subscribe [:district.ui.now.subs/now])]
+    (reaction (quot (.getTime @now-subs) 1000))))

@@ -168,11 +168,13 @@
                                           ;; TODO: this durations should be specified in days and not in seconds at param level
                                           :meme-auction/duration (let [duration (parsers/parse-int (:meme-auction/duration @form-data))
                                                                        max-duration (-> max-auction-duration
+                                                                                        :value
                                                                                       time/seconds->days
                                                                                       int)
                                                                        min-duration (let [md (-> min-auction-duration
-                                                                                               time/seconds->days
-                                                                                               int)]
+                                                                                                 :value
+                                                                                                 time/seconds->days
+                                                                                                 int)]
                                                                                       (if (zero? md) 1 md))]
                                                                    (cond-> {:hint (str "Max " max-duration)}
                                                                      (not (<= min-duration duration max-duration))

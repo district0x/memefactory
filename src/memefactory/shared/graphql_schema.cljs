@@ -49,11 +49,12 @@
     searchTags(first: Int, after: String): TagList
 
     paramChange(regEntry_address: ID!): ParamChange
-    searchParamChanges(key: String!,
-                       db: String!,
+    searchParamChanges(key: String,
+                       db: String,
                        orderBy: ParamChangesOrderBy,
                        orderDir: OrderDir,
                        groupBy: ParamChangesGroupBy,
+                       statuses: [RegEntryStatus],
                        first: Int,
                        after: String
     ): ParamChangeList
@@ -162,6 +163,7 @@
 
   enum ParamChangesOrderBy {
     paramChanges_orderBy_appliedOn
+    paramChanges_orderBy_createdOn
   }
 
    enum ParamChangesGroupBy {
@@ -361,6 +363,7 @@
     paramChange_value: Float
     paramChange_originalValue: Float
     paramChange_appliedOn: Date
+    paramChange_reason: String
   }
 
   type ParamChangeList {
@@ -446,6 +449,7 @@
     param_db: ID
     param_key: ID
     param_value: Float
+    param_setOn: Date
   }
 
   type OverallStats {
