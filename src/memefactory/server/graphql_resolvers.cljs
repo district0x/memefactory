@@ -327,52 +327,55 @@
      (log/debug "param-change query" sql-query)
      sql-query)))
 
-(defn search-param-changes-query-resolver [_ {:keys [:key :db :order-by :order-dir :group-by :first :after]
+(defn search-param-changes-query-resolver [_ {:keys [:key :db :order-by :order-dir :group-by :first :after :statuses]
                                               :or {order-dir :asc}
                                               :as args}]
-  (log/debug "search-param-changes args" args)
+  (log/info "search-param-changes args" args)
   (try-catch-throw
    ;; or enum address
    (let [db (if (contains? #{"memeRegistryDb" "paramChangeRegistryDb"} db)
               (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
               db)
+         statuses-set (when statuses (set statuses))
+         now (utils/now-in-seconds)
          param-changes-query (cond-> {:select [:*]
                                       :from [:param-changes]
-                                      :left-join [:reg-entries [:= :reg-entries.reg-entry/address :param-changes.reg-entry/address]]}
+                                      :left-join [[:reg-entries :re] [:= :re.reg-entry/address :param-changes.reg-entry/address]]}
 
                                key (sqlh/merge-where [:= key :param-changes.param-change/key])
 
                                db (sqlh/merge-where [:= db :param-changes.param-change/db])
+                               statuses-set (sqlh/merge-where [:in (reg-entry-status-sql-clause now) statuses-set])
+                               ;; What is this for?
+                               ;; order-by (sqlh/merge-where [:not= nil :param-changes.param-change/applied-on])
 
-                               order-by (sqlh/merge-where [:not= nil :param-changes.param-change/applied-on])
-
-                               order-by (sqlh/merge-order-by [[(get {:param-changes.order-by/applied-on :param-changes.param-change/applied-on}
+                               order-by (sqlh/merge-order-by [[(get {:param-changes.order-by/applied-on :param-changes.param-change/applied-on
+                                                                     :param-changes.order-by/created-on :re.reg-entry/created-on}
                                                                     (graphql-utils/gql-name->kw order-by))
-                                                               order-dir]])
+                                                               (keyword (or order-dir :desc))]])
 
                                group-by (merge {:group-by [(get {:param-changes.group-by/key :param-changes.param-change/key}
                                                                 (graphql-utils/gql-name->kw group-by))]}))
-
          param-changes-result (paged-query param-changes-query
                                            first
                                            (when after
-                                             (js/parseInt after)))]
-
-     (if-not (= 0 (:total-count param-changes-result))
-       param-changes-result
-       (do
-         (log/debug "No parameter changes could be retrieved. Querying for initial parameters")
-         (let [initial-params-query {:select [[:initial-params.initial-param/key :param-change/key]
-                                              [:initial-params.initial-param/db :param-change/db]
-                                              [:initial-params.initial-param/value :param-change/value]
-                                              [:initial-params.initial-param/set-on :param-change/applied-on]]
-                                     :from [:initial-params]
-                                     :where [:and [:= key :initial-params.initial-param/key]
-                                             [:= db :initial-params.initial-param/db]]}]
-           (paged-query initial-params-query
-                        first
-                        (when after
-                          (js/parseInt after)))))))))
+                                             (js/parseInt after)))
+         ret (if-not (= 0 (:total-count param-changes-result))
+               param-changes-result
+               (do
+                 (log/debug "No parameter changes could be retrieved. Querying for initial parameters")
+                 (let [initial-params-query {:select [[:initial-params.initial-param/key :param-change/key]
+                                                      [:initial-params.initial-param/db :param-change/db]
+                                                      [:initial-params.initial-param/value :param-change/value]
+                                                      [:initial-params.initial-param/set-on :param-change/applied-on]]
+                                             :from [:initial-params]
+                                             :where [:and [:= key :initial-params.initial-param/key]
+                                                     [:= db :initial-params.initial-param/db]]}]
+                   (paged-query initial-params-query
+                                first
+                                (when after
+                                  (js/parseInt after))))))]
+     ret)))
 
 (defn user-query-resolver [_ {:keys [:user/address] :as args} context debug]
   (log/debug "user args" args)
@@ -502,11 +505,23 @@
     ;; TODO Fix this for param changes when that is ready, for now we will only
     ;; load from INITIAL_PARAMS table
     (try-catch-throw
-     (let [sql-query (db/all {:select [[:initial-param/key :param/key]
-                                       [:initial-param/value :param/value] ]
-                              :from [[:initial-params :ips]]
-                              :where [:and [:= db :ips.initial-param/db]
-                                      [:in :ips.initial-param/key keys]]})]
+     (let [sql-query (db/all {:select [:*]
+                              :from [{:union [{:select [[:initial-param/key :param/key]
+                                                        [:initial-param/value :param/value]
+                                                        [:initial-param/set-on :param/set-on]
+                                                        [:initial-param/db :param/db]]
+                                               :from [[:initial-params :ips]]}
+                                              {:select [[:param-change/key :param/key]
+                                                        [:param-change/value :param/value]
+                                                        [:param-change/applied-on :param/set-on]
+                                                        [:param-change/db :param/db]]
+                                               :from [[:param-changes :pc]]}]}]
+                              :where [:and
+                                      [:= db :param/db]
+                                      [:in :param/key keys]
+                                      [:not= nil :param/set-on]]
+                              :group-by [:param/key]
+                              :having (sql/call :max :param/set-on)})]
        (log/debug "params-query-resolver" sql-query)
        sql-query))))
 
@@ -539,7 +554,7 @@
     [false _ _] (enum :vote-option/not-revealed)))
 
 (defn reg-entry->status-resolver [reg-entry]
-  (enum (reg-entry-status (utils/now-in-seconds) reg-entry)))
+  (enum (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)))
 
 (defn reg-entry->creator-resolver [{:keys [:reg-entry/creator] :as reg-entry}]
   (log/debug "reg-entry->creator-resolver args" reg-entry)
@@ -558,7 +573,7 @@
 
 (defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
   (log/debug "reg-entry->vote-winning-vote-option-resolver " {:reg-entry reg-entry :args args})
-  (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry))
+  (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry))
     (let [{:keys [:vote/option]} (db/get {:select [:vote/option]
                                           :from [:votes]
                                           :where [:and
@@ -591,7 +606,7 @@
                        (if (and (not claimed-reward-on)
                                 amount
                                 (= winning-option (registry-entry/vote-options option))
-                                (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry)))
+                                (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)))
                          (/ (* amount reward-pool) winning-amount)
                          0))]
     ;; TODO how to do about this?
@@ -612,7 +627,7 @@
 (defn vote->reward-resolver [{:keys [:reg-entry/address :vote/option] :as vote}]
   (log/debug "vote->reward-resolver args" vote)
   (try-catch-throw
-   (let [status (reg-entry-status (utils/now-in-seconds) (db/get {:select [:*]
+   (let [status (shared-utils/reg-entry-status (utils/now-in-seconds) (db/get {:select [:*]
                                                                   :from [:reg-entries]
                                                                   :where [:= address :reg-entry/address]}))
          {:keys [:challenge/reward-pool :votes/for :votes/against] :as sql-query} (db/get {:select [[{:select [:challenge/reward-pool]
@@ -785,7 +800,7 @@
                                   :join [:reg-entries [:= :reg-entries.reg-entry/address :memes.reg-entry/address]]
                                   :where [:= address :reg-entries.reg-entry/creator]}))]
          (log/debug "user->total-created-memes-whitelisted-resolver query" sql-query)
-         (count (filter (fn [e] (= :reg-entry.status/whitelisted (reg-entry-status (utils/now-in-seconds) e)))
+         (count (filter (fn [e] (= :reg-entry.status/whitelisted (shared-utils/reg-entry-status (utils/now-in-seconds) e)))
                         sql-query)))))))
 
 (defn user->creator-largest-sale-resolver
@@ -914,7 +929,7 @@
                               :where [:= address :votes.vote/voter]}))]
      (log/debug "user->total-participated-votes-success-resolver query" sql-query)
      (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
-               (let [ status (reg-entry-status (utils/now-in-seconds) reg-entry)]
+               (let [ status (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)]
                  (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
                          (and (= :reg-entry.status/blacklisted status) (= 2 option)))
                    (inc total)
@@ -1179,6 +1194,7 @@
    :ParamChange {:reg-entry/status reg-entry->status-resolver
                  :reg-entry/creator reg-entry->creator-resolver
                  :challenge/challenger reg-entry->challenger
+                 :challenge/all-rewards reg-entry->all-rewards-resolver
                  :challenge/vote reg-entry->vote-resolver
                  :param-change/original-value param-change->original-value-resolver}
    :ParamChangeList {:items param-change-list->items-resolver}

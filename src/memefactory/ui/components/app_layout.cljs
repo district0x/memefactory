@@ -35,7 +35,11 @@
                                   :route :route.dank-registry/challenge
                                   :class "dank-registry-challenge"}
                                  {:text "Browse"
-                                  :route :route.dank-registry/browse}]}
+                                  :route :route.dank-registry/browse}
+                                 {:text "Param Change"
+                                  :route :route.param-change/index
+                                  :class :param-change
+                                  :needs-account? true}]}
                      {:text "Leaderboard"
                       :route :route.leaderboard/dankest
                       :class :leaderboard
@@ -54,10 +58,6 @@
                      {:text "My Settings"
                       :route :route.my-settings/index
                       :class :my-settings
-                      :needs-account? true}
-                     {:text "Param Change"
-                      :route :route.param-change/index
-                      :class :param-change
                       :needs-account? true}
                      {:text "How it Works"
                       :route :route.how-it-works/index

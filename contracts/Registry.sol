@@ -34,7 +34,7 @@ contract Registry is DSAuth {
   event VoteRewardClaimedEvent(address registryEntry, uint version, address voter, uint amount);
   event ChallengeRewardClaimedEvent(address registryEntry, uint version, address challenger, uint amount);
 
-  event ParamChangeConstructedEvent(address registryEntry, uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd);
+  event ParamChangeConstructedEvent(address registryEntry, uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd, bytes metaHash);
   event ParamChangeAppliedEvent(address registryEntry, uint version);
 
   EternalDb public db;
@@ -170,11 +170,11 @@ contract Registry is DSAuth {
     emit ChallengeRewardClaimedEvent(msg.sender, version, challenger, amount);
   }
 
-  function fireParamChangeConstructedEvent(uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd)
+  function fireParamChangeConstructedEvent(uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd, bytes metaHash)
   public
   onlyRegistryEntry
   {
-    emit ParamChangeConstructedEvent(msg.sender, version, creator, db, key, value, deposit, challengePeriodEnd);
+    emit ParamChangeConstructedEvent(msg.sender, version, creator, db, key, value, deposit, challengePeriodEnd, metaHash);
   }
 
   function fireParamChangeAppliedEvent(uint version)

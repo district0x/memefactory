@@ -9,6 +9,7 @@
             [district.ui.mobile]
             [district.ui.notification]
             [district.ui.now]
+            [district.ui.web3-sync-now]
             [district.ui.reagent-render]
             [district.ui.router-google-analytics]
             [district.ui.router.events :as router-events]

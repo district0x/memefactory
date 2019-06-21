@@ -193,7 +193,12 @@
           :padding-right (px 30)
           :display :grid
           :grid-template-columns "50% 50%"}
-         (for-media-max :tablet [:& {:display :block}])]]
+         (for-media-max :tablet [:& {:display :block}])]
+        [:.section2 [:span {:overflow :hidden
+                            :display :inline-block}]
+         [:.address {:text-overflow :ellipsis
+                     :width "50%"}]
+         [:.challenger {:margin-top (px 10)}]]]
        [:.action
         {:border-left "1px solid"
          :padding (em 1)}

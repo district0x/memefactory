@@ -45,3 +45,16 @@
     (if (> (* 100 for) (* quorum (+ for against)))
       :vote.option/vote-for
       :vote.option/vote-against)))
+
+(defn reg-entry-status [now {:keys [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
+                                    :challenge/commit-period-end :challenge/commit-period-end
+                                    :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against] :as reg-entry}]
+  (cond
+    (and (< now challenge-period-end) (not challenger)) :reg-entry.status/challenge-period
+    (< now commit-period-end)                           :reg-entry.status/commit-period
+    (< now reveal-period-end)                           :reg-entry.status/reveal-period
+    (and (pos? reveal-period-end)
+         (> now reveal-period-end)) (if (< votes-against votes-for)
+                                      :reg-entry.status/whitelisted
+                                      :reg-entry.status/blacklisted)
+    :else :reg-entry.status/whitelisted))
