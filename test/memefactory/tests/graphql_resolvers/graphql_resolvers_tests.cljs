@@ -144,7 +144,7 @@
       (meme-db/insert-meme! m)
       (when-let [tags (:meme/tags m)]
         (doseq [t tags]
-          (meme-db/tag-meme! (:reg-entry/address m) t))))
+          (meme-db/tag-meme! {:reg-entry/address (:reg-entry/address m) :tag/name t}))))
 
     ;; Generate some votes
     (doseq [v votes]
