@@ -55,14 +55,14 @@
    [:meme/total-trade-volume :BIG :INT default-zero]
    [:meme/first-mint-on :unsigned :integer default-nil]
    [(sql/call :primary-key :reg-entry/address)]
-   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
+   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]])
 
 (def meme-tokens-columns
   [[:meme-token/token-id :unsigned :integer not-nil]
    [:meme-token/number :unsigned :integer not-nil]
    [:reg-entry/address address not-nil]
    [(sql/call :primary-key :meme-token/token-id)]
-   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]])
+   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]])
 
 (def meme-token-owners-columns
   [[:meme-token/token-id :unsigned :integer not-nil]
@@ -78,7 +78,7 @@
    [:tag/name :varchar not-nil]
    [(sql/call :primary-key :reg-entry/address :tag/name)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]
-   [(sql/call :foreign-key :tag/name) (sql/call :references :tags :tag/name)]])
+   [(sql/call :foreign-key :tag/name) (sql/call :references :tags :tag/name) (sql/raw "ON DELETE CASCADE")]])
 
 (def meme-auctions-columns
   [[:meme-auction/address address not-nil]
@@ -110,8 +110,7 @@
    [:param-change/initial-value :unsigned :integer not-nil]
    [:param-change/applied-on :unsigned :integer default-nil]
    [(sql/call :primary-key :reg-entry/address)]
-   [[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]
-   #_[[(sql/call :foreign-key :param-change/initial-value) (sql/call :references :initial-params :initial-param/value)]]])
+   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]])
 
 (def votes-columns
   [[:reg-entry/address address not-nil]
@@ -123,7 +122,7 @@
    [:vote/claimed-reward-on :unsigned :integer default-nil]
    [:vote/reclaimed-amount-on :unsigned :integer default-nil]
    [(sql/call :primary-key :vote/voter :reg-entry/address)]
-   [[(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]]])
+   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]])
 
 (def user-columns
   [[:user/address address not-nil]
@@ -164,26 +163,28 @@
   (keyword (namespace col-name) (str (name col-name) "-index")))
 
 (defn clean-db []
-  (db/run! (merge (psqlh/drop-table :if-exists
-                                    :reg-entries
-                                    :votes
-                                    :meme-auctions
-                                    :meme-tags
-                                    :tags
-                                    :meme-tokens
-                                    :meme-token-owners
-                                    :memes
-                                    :param-changes
-                                    :users
-                                    :initial-params
-                                    :twitter-media
-                                    :events)
-                  {:cascade true})))
+  (let [tables [:reg-entries
+                :votes
+                :meme-auctions
+                :meme-tags
+                :tags
+                :meme-tokens
+                :meme-token-owners
+                :memes
+                :param-changes
+                :users
+                :initial-params
+                :twitter-media
+                :events]
+        drop-table-if-exists (fn [t]
+                               (psqlh/drop-table :if-exists t))]
+    (map (fn [t] (db/run! (drop-table-if-exists t)))
+         tables)))
 
 (defn start [{:keys [:resync?] :as opts}]
 
   (when resync?
-      (clean-db))
+    (clean-db))
 
   (db/run! (-> (psqlh/create-table :reg-entries :if-not-exists)
                (psqlh/with-columns registry-entries-columns)))
