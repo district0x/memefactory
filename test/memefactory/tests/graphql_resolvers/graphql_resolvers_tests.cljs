@@ -160,9 +160,9 @@
     (doseq [{:keys [:meme-auction/buyer :meme-auction/token-id] :as a} auctions]
       (meme-db/insert-meme-auction! a)
       (when buyer
-        (meme-db/insert-or-replace-meme-token-owner {:meme-token/token-id token-id
-                                                     :meme-token/owner buyer
-                                                     :meme-token/transferred-on now})))
+        (meme-db/upsert-meme-token-owner! {:meme-token/token-id token-id
+                                           :meme-token/owner buyer
+                                           :meme-token/transferred-on now})))
 
     ;; Generate some param-changes
     (doseq [pc param-changes]
