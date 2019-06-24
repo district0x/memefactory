@@ -52,9 +52,7 @@
                          (fn [err]
                            (if err
                              (log/error (str "Pinning meme image hash failed " image-hash " " err) ::pin-image-hash)
-                             (log/info (str "Pinned meme image hash " image-hash) ::pin-image-hash))))))))
-
-        ))))
+                             (log/info (str "Pinned meme image hash " image-hash) ::pin-image-hash))))))))))))
 
 
 (defn challenge-created-event [err {:keys [:args]}]

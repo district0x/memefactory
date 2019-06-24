@@ -269,7 +269,6 @@
                                                                       (inc (bn/number token-end-id))))))
     (js/Promise.resolve previous)))
 
-;; TODO : reverts
 (defn start-auctions!
   "Create auctions for `token-ids` (by default all)."
   [{{:keys [:minted-token-ids :creator]} :meme
@@ -286,12 +285,12 @@
     :as arguments}]
   (if arguments
     (let [account (get-account from-account)]
-      (promise-> (meme-token/transfer-multi-and-start-auction (spy {:from account
-                                                                    :token-ids token-ids
-                                                                    :start-price (web3/to-wei start-price :ether)
-                                                                    :end-price (web3/to-wei end-price :ether)
-                                                                    :duration duration
-                                                                    :description description})
+      (promise-> (meme-token/transfer-multi-and-start-auction {:from account
+                                                               :token-ids token-ids
+                                                               :start-price (web3/to-wei start-price :ether)
+                                                               :end-price (web3/to-wei end-price :ether)
+                                                               :duration duration
+                                                               :description description}
                                                               {:from account})
                  #(wait-for-tx-receipt %)
                  #(map (fn [{{:keys [:meme-auction :token-id]} :args :as evt}]
@@ -366,11 +365,9 @@
 
                #(mint-meme-tokens! % mint-meme-tokens)
 
-               ;; TODO : revert
+               #(start-auctions! % start-auctions)
 
-               ;; #(start-auctions! % start-auctions)
-
-               ;; #(buy-auctions! % buy-auctions)
+               #(buy-auctions! % buy-auctions)
 
                #(log/info "Generate meme result" % ::generate-memes)
 

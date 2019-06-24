@@ -82,14 +82,7 @@
 
   :exclusions [funcool/bide
                express-graphql
-               cljsjs/react-with-addons
-
-               ;; TODO
-               ;; district0x/district-server-db
-               ;; district0x/district-server-smart-contracts
-               ;; district0x/district-server-web3-events
-
-               ]
+               cljsjs/react-with-addons]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
