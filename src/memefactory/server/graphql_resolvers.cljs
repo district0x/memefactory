@@ -17,7 +17,7 @@
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
             [memefactory.server.db :as mf-db]
-            [memefactory.server.macros :refer [promise->]]
+            [district.shared.async-helpers :refer [promise->]]
             [memefactory.server.ranks-cache :as ranks-cache]
             [memefactory.server.utils :as utils]
             [memefactory.shared.contract.registry-entry :as registry-entry]

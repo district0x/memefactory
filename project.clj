@@ -23,7 +23,7 @@
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
-                 [district0x/district-format "1.0.5"]
+                 [district0x/district-format "1.0.6"]
                  [district0x/district-graphql-utils "1.0.8"]
                  [district0x/district-parsers "1.0.0"]
                  [district0x/district-sendgrid "1.0.0"]

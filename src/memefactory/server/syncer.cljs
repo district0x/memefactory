@@ -12,6 +12,7 @@
    [district.shared.error-handling :refer [try-catch]]
    [memefactory.server.db :as db]
    [memefactory.server.generator]
+   [district.time :as time]
    [memefactory.server.graphql-resolvers :refer [reg-entry-status]]
    [memefactory.server.ipfs :as ipfs]
    [district.shared.async-helpers :refer [promise->]]
@@ -400,10 +401,11 @@
            :meme-auction-factory/meme-auction-buy-event meme-auction-buy-event
            :meme-auction-factory/meme-auction-canceled-event meme-auction-canceled-event
            :meme-token/transfer meme-token-transfer-event}
+          start-time (server-utils/now)
           callback-ids (doseq [[event-key callback] event-callbacks]
                          (register-callback! event-key (dispatcher callback)))]
       (register-after-past-events-dispatched-callback! (fn []
-                                                         (log/warn "Syncing past events finished" ::start)
+                                                         (log/warn "Syncing past events finished" (time/time-units (- (server-utils/now) start-time)) ::start)
                                                          (apply-blacklist-patches!)
                                                          (assign-meme-registry-numbers!)))
       (assoc opts :callback-ids callback-ids))))

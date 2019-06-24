@@ -17,7 +17,7 @@
    [memefactory.server.contract.district0x-emails :as district0x-emails]
    [memefactory.server.db :as db]
    [memefactory.server.emailer.templates :as templates]
-   [memefactory.server.macros :refer [promise->]]
+   [district.shared.async-helpers :refer [promise->]]
    [memefactory.server.utils :as server-utils]
    [memefactory.server.ipfs :as ipfs]
    [mount.core :as mount :refer [defstate]]
