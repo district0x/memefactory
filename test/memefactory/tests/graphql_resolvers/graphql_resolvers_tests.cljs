@@ -19,7 +19,6 @@
             [memefactory.server.syncer]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [mount.core :as mount]
-            [print.foo :include-macros true :refer [look]]
             [memefactory.server.utils :as server-utils]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -137,7 +136,7 @@
 
     ;; Generate some users
     (doseq [u all-users]
-      (meme-db/update-user! u))
+      (meme-db/upsert-user! u))
 
     ;; Generate some memes
     (doseq [m all-memes]

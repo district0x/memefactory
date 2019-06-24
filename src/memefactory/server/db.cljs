@@ -142,6 +142,7 @@
    [:event/event-name :varchar not-nil]
    [:event/last-log-index :integer not-nil]
    [:event/last-block-number :integer not-nil]
+   [:event/count :integer not-nil]
    [(sql/call :primary-key :event/contract-key :event/event-name)]])
 
 (def registry-entry-column-names (map first registry-entries-columns))
@@ -186,7 +187,7 @@
 
 (defn start [{:keys [:resync?] :as opts}]
   (when resync?
-    (log/info "DB component called with a resync flag. Cleaning db")
+    (log/info "Database module called with a resync flag. Cleaning db")
     (clean-db))
 
   (db/run! (-> (psqlh/create-table :reg-entries :if-not-exists)
@@ -428,4 +429,4 @@
   (db/run! {:insert-into :events
             :values [(select-keys args events-column-names)]
             :upsert {:on-conflict [:event/event-name :event/contract-key]
-                     :do-update-set [:event/last-log-index :event/last-block-number]}}))
+                     :do-update-set [:event/last-log-index :event/last-block-number :event/count]}}))

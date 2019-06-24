@@ -104,9 +104,6 @@
               :meme/total-minted 0}
         {:keys [:meme/meta-hash]} meme
         errors (meme-sanity-check meme)]
-
-    (log/debug "MEME-CONSTRUCTED-EVENT" meme)
-
     (if-not (empty? (:errors errors))
       (do
         (log/warn (str "Dropping smart contract event " (:event event))
@@ -144,8 +141,8 @@
 
 (defn param-change-applied-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp]} args]
-    (js/Promise.resolve (db/update-param-change! {:reg-entry/address registry-entry
-                                                  :param-change/applied-on timestamp}))))
+    (promise-> (js/Promise.resolve (db/update-param-change! {:reg-entry/address registry-entry
+                                                             :param-change/applied-on timestamp})))))
 
 
 (defn challenge-created-event [_ {:keys [:args]}]
@@ -159,9 +156,6 @@
                    :challenge/meta-hash (web3/to-ascii metahash)}
         registry-entry {:reg-entry/address registry-entry
                         :reg-entry/version version}]
-
-    ;; (log/debug "CHALLENGE-CREATED-EVENT" challenge)
-
     (promise-> (js/Promise.resolve (db/upsert-user! {:user/address challenger}))
                #(server-utils/get-ipfs-meta @ipfs/ipfs (:challenge/meta-hash challenge))
                #(db/update-registry-entry! (merge registry-entry
@@ -175,9 +169,6 @@
               :vote/voter voter
               :vote/amount (bn/number amount)
               :vote/option 0}]
-
-    ;; (log/debug "VOTE-COMMITTED-EVENT" vote)
-
     (promise-> (js/Promise.resolve (db/upsert-user! {:user/address voter}))
                #(db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
@@ -253,19 +244,19 @@
 
 (defn meme-auction-started-event [_ {:keys [:args]}]
   (let [{:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price :duration :description :started-on]} args]
-    (js/Promise.resolve (db/insert-meme-auction! {:meme-auction/address meme-auction
-                                                  :meme-auction/token-id (bn/number token-id)
-                                                  :meme-auction/seller seller
-                                                  :meme-auction/start-price (bn/number start-price)
-                                                  :meme-auction/end-price (bn/number end-price)
-                                                  :meme-auction/duration (bn/number duration)
-                                                  :meme-auction/description description
-                                                  :meme-auction/started-on (bn/number started-on)}))))
+    (promise-> (js/Promise.resolve (db/insert-meme-auction! {:meme-auction/address meme-auction
+                                                             :meme-auction/token-id (bn/number token-id)
+                                                             :meme-auction/seller seller
+                                                             :meme-auction/start-price (bn/number start-price)
+                                                             :meme-auction/end-price (bn/number end-price)
+                                                             :meme-auction/duration (bn/number duration)
+                                                             :meme-auction/description description
+                                                             :meme-auction/started-on (bn/number started-on)})))))
 
 (defn meme-auction-canceled-event [_ {:keys [:args]}]
   (let [{:keys [:meme-auction :timestamp :token-id]} args]
-    (js/Promise.resolve (db/update-meme-auction! {:meme-auction/address meme-auction
-                                                  :meme-auction/canceled-on timestamp}))))
+    (promise-> (js/Promise.resolve (db/update-meme-auction! {:meme-auction/address meme-auction
+                                                             :meme-auction/canceled-on timestamp})))))
 
 (defn meme-auction-buy-event [_ {:keys [:args]}]
   (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
@@ -306,7 +297,7 @@
                                   :initial-param/set-on timestamp}))
                      []
                      keys->values)]
-    (js/Promise.resolve (db/insert-initial-params! rows))))
+    (promise-> (js/Promise.resolve (db/insert-initial-params! rows)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of events handlers   ;;
@@ -330,10 +321,13 @@
                                                       (:timestamp (web3-eth/get-block @web3 (:block-number event))))))
                     (update-in [:args :version] bn/number))
           {:keys [:event/contract-key :event/event-name :event/block-number :event/log-index]} (get-event event)
-          {:keys [:event/last-block-number :event/last-log-index]
-           :or {last-block-number -1 last-log-index -1}} (db/get-last-event {:event/contract-key contract-key :event/event-name event-name} [:event/last-log-index :event/last-block-number])
+          {:keys [:event/last-block-number :event/last-log-index :event/count]
+           :or {last-block-number -1
+                last-log-index -1
+                count 0}} (db/get-last-event {:event/contract-key contract-key :event/event-name event-name} [:event/last-log-index :event/last-block-number :event/count])
           evt {:event/contract-key contract-key
                :event/event-name event-name
+               :event/count count
                :last-block-number last-block-number
                :last-log-index last-log-index
                :block-number block-number
@@ -347,6 +341,7 @@
              (promise-> (callback err event)
                         #(db/upsert-event! {:event/last-log-index log-index
                                             :event/last-block-number block-number
+                                            :event/count (inc count)
                                             :event/event-name event-name
                                             :event/contract-key contract-key})
                         #(resolve ::processed)))))
