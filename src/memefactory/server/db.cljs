@@ -422,10 +422,13 @@
 
 ;; EVENTS
 
+(defn all-events []
+  (db/all {:select [:*]
+           :from [:events]}))
+
 (def get-last-event (create-get-fn :events [:event/contract-key :event/event-name]))
 
-(defn upsert-event! [{:keys [:event/event-name :event/contract-key
-                             :event/last-log-index :event/last-block-number] :as args}]
+(defn upsert-event! [args]
   (db/run! {:insert-into :events
             :values [(select-keys args events-column-names)]
             :upsert {:on-conflict [:event/event-name :event/contract-key]
