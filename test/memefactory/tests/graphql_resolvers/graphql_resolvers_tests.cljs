@@ -13,6 +13,7 @@
             [district.server.middleware.logging :refer [logging-middlewares]]
             [district.server.web3 :refer [web3]]
             [honeysql.core :as sql]
+            [taoensso.timbre :as log :refer [spy]]
             [memefactory.server.db :as meme-db]
             [memefactory.server.generator]
             [memefactory.server.graphql-resolvers :as resolvers :refer [resolvers-map]]
@@ -439,20 +440,17 @@
                                                         :param-change/value]]]]]})
                :data :search-param-changes))))
 
-  (testing "Search params order-by abd group-by can be used to retrieve most recent parameter values"
-    (is (= {:total-count 1,
-            :end-cursor "1",
-            :items [#:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 3000}]}
-           (-> (graphql/run-query {:queries [[:search-param-changes {:key "deposit" :db "MEMEREGISTRYADDR"
-                                                                     :group-by :param-changes.group-by/key
-                                                                     :order-by :param-changes.order-by/applied-on
-                                                                     :order-dir :asc}
-                                              [:total-count
-                                               :end-cursor
-                                               [:items [:param-change/db
-                                                        :param-change/key
-                                                        :param-change/value]]]]]})
-               :data :search-param-changes)))))
+  (testing "Search params order-by can be used to retrieve most recent parameter values"
+    (is  (= #:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 3000}
+            (-> (graphql/run-query {:queries [[:search-param-changes {:key "deposit" :db "MEMEREGISTRYADDR"
+                                                                      :order-by :param-changes.order-by/applied-on
+                                                                      :order-dir :asc}
+                                               [:total-count
+                                                :end-cursor
+                                                [:items [:param-change/db
+                                                         :param-change/key
+                                                         :param-change/value]]]]]})
+                :data :search-param-changes :items last)))))
 
 (deftest user-test
   (testing "Test non existing user is nil"

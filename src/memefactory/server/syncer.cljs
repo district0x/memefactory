@@ -20,7 +20,6 @@
    [memefactory.server.utils :as server-utils]
    [memefactory.shared.contract.registry-entry :refer [vote-options]]
    [mount.core :as mount :refer [defstate]]
-   [print.foo :refer [look] :include-macros true]
    [taoensso.timbre :as log]))
 
 (declare start)
