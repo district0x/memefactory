@@ -18,6 +18,8 @@
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [day8.re-frame/http-fx "0.1.6"]
+                 [cljs-node-io "1.1.2"]
+                 [district0x/async-helpers "0.1.1"]
                  [district0x/bignumber "1.0.3"]
                  [district0x/cljs-ipfs-native "1.0.2"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
@@ -28,19 +30,13 @@
                  [district0x/district-parsers "1.0.0"]
                  [district0x/district-sendgrid "1.0.0"]
                  [district0x/district-server-config "1.0.1"]
+                 [district0x/district-server-db "1.0.4"]
                  [district0x/district-server-graphql "1.0.16"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-
-                 ;; TODO
-                 [district0x/async-helpers "0.1.1"]
-                 [district0x/district-server-db "1.0.4"]
                  [district0x/district-server-smart-contracts "1.0.15"]
-                 [district0x/district-server-web3-events "1.0.4"]
-                 ;; [honeysql "0.9.4"]
-                 ;; [nilenso/honeysql-postgres "0.2.5"]
-
                  [district0x/district-server-web3 "1.0.1"]
+                 [district0x/district-server-web3-events "1.0.4"]
                  [district0x/district-server-web3-watcher "1.0.3"]
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
@@ -79,7 +75,6 @@
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.10.5"]
-                 [cljs-node-io "1.1.2"]
 
                  ;; only for tests
                  [org.clojure/core.async "0.4.490"]
@@ -106,9 +101,8 @@
             [lein-pdo "0.1.1"]
             [lein-garden "0.3.0"]]
 
-  :npm {:dependencies [#_[semantic-ui "2.2.14"]
-                       ;; [better-sqlite3 "5.4.0"]
-                       ["@sentry/node" "4.2.1"]
+  :npm {:dependencies [["@sentry/node" "4.2.1"]
+                       [better-sqlite3 "5.4.0"]
                        [chalk "2.3.0"]
                        [cors "2.8.4"]
                        [eccjs "0.3.1"]
@@ -118,7 +112,6 @@
                        [graphql "0.13.1"]
                        [graphql-fields "1.0.2"]
                        [graphql-tools "3.0.1"]
-                       ;; [solc "0.4.20"]
                        [is-ipfs "0.4.8"]
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]
@@ -185,7 +178,7 @@
                                 :pretty-print? false}}]}
 
   :cljsbuild {:builds [{:id "dev-server"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared" #_"src/district/server"]
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
                         :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
                         :compiler {:main "memefactory.server.dev"
                                    :output-to "dev-server/memefactory.js"

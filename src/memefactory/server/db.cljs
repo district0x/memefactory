@@ -178,12 +178,15 @@
                 :events]
         drop-table-if-exists (fn [t]
                                (psqlh/drop-table :if-exists t))]
-    (map (fn [t] (db/run! (drop-table-if-exists t)))
-         tables)))
+    (doall
+     (map (fn [t]
+            (log/debug (str "Dropping table " t))
+            (db/run! (drop-table-if-exists t)))
+          tables))))
 
 (defn start [{:keys [:resync?] :as opts}]
-
   (when resync?
+    (log/info "DB component called with a resync flag. Cleaning db")
     (clean-db))
 
   (db/run! (-> (psqlh/create-table :reg-entries :if-not-exists)
