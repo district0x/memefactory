@@ -17,7 +17,7 @@
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
             [memefactory.server.db :as mf-db]
-            [memefactory.server.macros :refer [promise->]]
+            [district.shared.async-helpers :refer [promise->]]
             [memefactory.server.ranks-cache :as ranks-cache]
             [memefactory.server.utils :as utils]
             [memefactory.shared.contract.registry-entry :as registry-entry]
@@ -505,6 +505,13 @@
                                       [:in :ips.initial-param/key keys]]})]
        (log/debug "params-query-resolver" sql-query)
        sql-query))))
+
+(defn events-query-resolver [_ {:keys [:event-name :contract-key] :as args}]
+  (log/debug "events-query-resolver" args)
+  (try-catch-throw
+   (let [sql-query (mf-db/all-events)]
+       (log/debug "events-query-resolver" sql-query)
+       sql-query)))
 
 (defn overall-stats-resolver [_ _]
   {:total-memes-count (:count (db/get {:select [[(sql/call :count :*) :count]]
@@ -1135,7 +1142,8 @@
            :param param-query-resolver
            :params params-query-resolver
            :overall-stats overall-stats-resolver
-           :config config-query-resolver}
+           :config config-query-resolver
+           :events events-query-resolver}
    :Mutation {:send-verification-code send-verification-code-resolver
               :encrypt-verification-payload encrypt-verification-payload-resolver
               :blacklist-reg-entry blacklist-reg-entry-resolver}

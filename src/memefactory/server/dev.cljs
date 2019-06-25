@@ -27,13 +27,12 @@
     [memefactory.server.contract.dank-token :as dank-token]
     [memefactory.server.contract.eternal-db :as eternal-db]
     [memefactory.server.contract.registry-entry :as registry-entry]
-    [memefactory.server.db]
+    [memefactory.server.db :as memefactory-db]
     [memefactory.server.emailer]
-    [memefactory.server.generator]
+    [memefactory.server.generator :as generator]
     [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
     [memefactory.server.ipfs]
-    [memefactory.server.macros :refer [defer]]
-    [memefactory.server.macros :refer [promise->]]
+    [district.shared.async-helpers :refer [promise->]]
     [memefactory.server.pinner]
     [memefactory.server.ranks-cache]
     [memefactory.server.syncer :as syncer]
@@ -141,21 +140,19 @@
                       :buy-auctions [{:price 0.5
                                       :from-account 3}]})]
     (log/warn "Generating data, please be patient..." {:scenario scenario} ::generate-date)
-    (promise-> (memefactory.server.generator/generate-memes scenario)
+    (promise-> (generator/generate-memes scenario)
                #(log/info "Finished generating data" ::generate-data))))
 
 (defn resync []
   (log/warn "Syncing internal database, please be patient..." ::resync)
-  (defer
-    (mount/stop #'memefactory.server.db/memefactory-db
-                #'district.server.web3-events/web3-events
-                #'memefactory.server.syncer/syncer
-                #'district.server.smart-contracts/smart-contracts)
-    (-> (mount/start #'memefactory.server.db/memefactory-db
-                     #'district.server.web3-events/web3-events
-                     #'memefactory.server.syncer/syncer
-                     #'district.server.smart-contracts/smart-contracts)
-      (log/info "Finished syncing database"))))
+  (memefactory-db/clean-db)
+  (mount/stop #'district.server.web3-events/web3-events
+              #'memefactory.server.syncer/syncer
+              #'district.server.smart-contracts/smart-contracts)
+  (-> (mount/start #'district.server.web3-events/web3-events
+                   #'memefactory.server.syncer/syncer
+                   #'district.server.smart-contracts/smart-contracts)
+      (log/info "Finished syncing database")))
 
 
 (def contracts-var

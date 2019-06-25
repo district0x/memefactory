@@ -17,7 +17,7 @@
    [memefactory.server.contract.district0x-emails :as district0x-emails]
    [memefactory.server.db :as db]
    [memefactory.server.emailer.templates :as templates]
-   [memefactory.server.macros :refer [promise->]]
+   [district.shared.async-helpers :refer [promise->]]
    [memefactory.server.utils :as server-utils]
    [memefactory.server.ipfs :as ipfs]
    [mount.core :as mount :refer [defstate]]
@@ -56,7 +56,7 @@
                true     clj->js)
              (fn [error tw resp]
                (if error
-                 (js/console.error error ::tweet)
+                 (log/error "Error sending tweet" {:error error} ::tweet)
                  (log/debug (str "Twitted " text) ::tweet)))) )))
 
 ;; TODO: Figure out how to do this without going thru the filesystem

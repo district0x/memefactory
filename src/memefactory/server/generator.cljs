@@ -12,6 +12,7 @@
    [district.server.config :refer [config]]
    [district.server.smart-contracts :as smart-contracts :refer [smart-contracts contract-address contract-call instance wait-for-tx-receipt]]
    [district.server.web3 :refer [web3]]
+   [district.shared.async-helpers :refer [promise->]]
    [district.shared.error-handling :refer [try-catch]]
    [memefactory.server.contract.dank-token :as dank-token]
    [memefactory.server.contract.eternal-db :as eternal-db]
@@ -27,10 +28,8 @@
    [memefactory.server.contract.registry :as registry]
    [memefactory.server.contract.registry :as registry]
    [memefactory.server.contract.registry-entry :as registry-entry]
-   [memefactory.server.macros :refer [promise->]]
    [mount.core :as mount :refer [defstate]]
-   [print.foo :refer [look] :include-macros true]
-   [taoensso.timbre :as log]
+   [taoensso.timbre :refer [spy] :as log]
    ))
 
 (def fs (js/require "fs"))
@@ -242,44 +241,16 @@
   (promise-> (registry-entry/status registry-entry)
              #(assoc-in previous [:meme :status] %)))
 
-;; TODO: if args is just a boolean value, claim only winning votes (else tx will revert)
-(defn claim-vote-rewards! [{:keys [:votes]
-                            {:keys [:registry-entry]} :meme
-                            :as previous}
-                           args]
-  (if-let [args (cond
-                  ;; user supplied claims
-                  (sequential? args) args
-                  ;; default : claim all (revealed) votes
-                  args votes
-                  ;; skip this step
-                  :else nil)]
-    (promise-> (js/Promise.all
-                (for [index (range (count args))
-                      {:keys [:from-account]
-                       :as claim} args]
-                  (promise-> (registry-entry/claim-vote-reward registry-entry {:from (get-account from-account)})
-                             #(wait-for-tx-receipt %)
-                             ;; return with previous vote
-                             #(js/Promise.resolve (merge (nth votes index)
-                                                         {:index index
-                                                          :claim-vote-tx (:transaction-hash %)})))))
-               ;; TODO : dont overwrite all votes, assoc-in by index in :votes to keep unrevealed votes
-               #(assoc previous :votes (js->clj %)))
-    (js/Promise.resolve previous)))
-
-;; TODO: if args is just a boolean value, claim only if status is blacklisted (else tx will revert)
-(defn claim-challenge-reward! [{{:keys [:registry-entry :status]} :meme
-                                {:keys [:challenger-address]} :challenge
-                                :as previous}
-                               {:keys [:from-account]
-                                ;; default: challenger address
-                                :or {from-account challenger-address}
-                                :as args}]
+(defn claim-rewards! [{{:keys [:registry-entry]} :meme
+                       :as previous}
+                      args]
   (if args
-    (promise-> (registry-entry/claim-challenge-reward registry-entry {:from (get-account from-account)})
-               #(wait-for-tx-receipt %)
-               #(assoc-in previous [:challenge :claim-challenge-reward-tx] (:transaction-hash %)))
+    (promise-> (js/Promise.all
+                (map (fn [{:keys [:from-account]}]
+                       (promise-> (registry-entry/claim-rewards registry-entry {:from (get-account from-account)})
+                                  #(wait-for-tx-receipt %)))
+                     args))
+               #(assoc-in previous [:rewards :claim-reward-txs] (map :transaction-hash %)))
     (js/Promise.resolve previous)))
 
 (defn mint-meme-tokens! [{{:keys [:registry-entry :total-supply :creator]} :meme
@@ -361,9 +332,9 @@
                #(assoc previous :auctions (js->clj %)))
     (js/Promise.resolve previous)))
 
-;; TODO : claim challenge rewards (if challenge succesfull)
 (defn generate-memes [{:keys [:create-meme :challenge-meme :commit-votes
-                              :reveal-votes :claim-challenge-reward :claim-vote-rewards
+                              :reveal-votes
+                              :claim-rewards
                               :mint-meme-tokens :start-auctions :buy-auctions]
                        :as scenarios}]
   (let [account (first (web3-eth/accounts @web3))
@@ -384,15 +355,13 @@
 
                #(reveal-votes! % reveal-votes)
 
-               #(if (or claim-vote-rewards claim-challenge-reward)
+               #(if claim-rewards
                   (increase-time! % (inc (get-in % [:meme-registry-db-values :reveal-period-duration])))
                   (js/Promise.resolve %))
 
                #(set-meme-status! %)
 
-               #(claim-challenge-reward! % claim-challenge-reward)
-
-               #(claim-vote-rewards! % claim-vote-rewards)
+               #(claim-rewards! % claim-rewards)
 
                #(mint-meme-tokens! % mint-meme-tokens)
 

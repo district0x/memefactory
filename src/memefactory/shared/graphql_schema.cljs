@@ -69,6 +69,7 @@
     params(db: String!, keys: [String!]): [Parameter]
     overallStats : OverallStats
     config: Config
+    events: [Event]
   }
 
   type PhoneVerificationResponse {
@@ -466,6 +467,14 @@
     host: String
     endpoint: String
     gateway: String
+  }
+
+  type Event {
+    event_contractKey: String
+    event_eventName: String
+    event_count: Int
+    event_lastLogIndex: Int
+    event_lastBlockNumber: Int
   }
   "
   )
