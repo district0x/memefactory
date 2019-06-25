@@ -199,11 +199,6 @@
                                           :access-token-secret "PLACEHOLDER"
                                           :just-log-tweet? false}}}
          :web3-events {:events constants/web3-events}})
-       (mount/except [
-                      ;; #'memefactory.server.emailer/emailer
-                      ;; #'memefactory.server.pinner/pinner
-                      #'memefactory.server.twitter-bot/twitter-bot
-                      ])
     (mount/start)
     (as-> $ (log/warn "Started" {:components $
                                  :config @config}))))

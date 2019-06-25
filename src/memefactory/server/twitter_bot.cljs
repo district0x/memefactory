@@ -56,7 +56,7 @@
                true     clj->js)
              (fn [error tw resp]
                (if error
-                 (js/console.error error ::tweet)
+                 (log/error "Error sending tweet" {:error error} ::tweet)
                  (log/debug (str "Twitted " text) ::tweet)))) )))
 
 ;; TODO: Figure out how to do this without going thru the filesystem

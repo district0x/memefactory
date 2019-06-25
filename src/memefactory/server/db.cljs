@@ -223,6 +223,9 @@
   (db/run! (-> (psqlh/create-table :initial-params :if-not-exists)
                (psqlh/with-columns initial-params-columns)))
 
+  (db/run! (-> (psqlh/create-table :twitter-media :if-not-exists)
+               (psqlh/with-columns twitter-media-columns)))
+
   (db/run! (-> (psqlh/create-table :events :if-not-exists)
                (psqlh/with-columns events-columns)))
 
