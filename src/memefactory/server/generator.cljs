@@ -369,6 +369,4 @@
 
                #(buy-auctions! % buy-auctions)
 
-               #(log/info "Generate meme result" % ::generate-memes)
-
-               )))
+               #(log/info "Generate meme result" % ::generate-memes))))
