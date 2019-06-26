@@ -41,7 +41,7 @@
                             (reject error)
                             (resolve (.-media_id_string media))))))))
 
-(defn tweet [twitter-obj {:keys [text media-id] :as tweet} & [{:keys [just-log-tweet?]}]]
+(defn tweet [twitter-obj {:keys [text media-id] :as tweet} {:keys [just-log-tweet?]}]
 
   (if just-log-tweet?
     (log/info (str "Twitting " text " with media-id " media-id) ::tweet)
@@ -79,17 +79,26 @@
             (fn []
               (resolve (.readFileSync fs (str img-tmp-dir "/" (aget (.readdirSync fs img-tmp-dir) 0))))))))))
 
-(defn tweet-meme-submitted [twitter-obj just-log-tweet? {:keys [:registry-entry :timestamp :creator :meta-hash
+(defn ensure-media-uploaded [twitter-obj {:keys [image-hash registry-entry]} {:keys [just-log-tweet?]}]
+  (js/Promise.
+   (fn [resolve reject]
+     (if-let [media-id (db/get-meme-media-id registry-entry)]
+       (resolve media-id)
+       (let [ipfs-hash (or image-hash
+                           (:meme/image-hash (db/get-meme registry-entry)))]
+         (-> (server-utils/get-ipfs-binary-file ipfs-hash)
+             (.then (fn [image-tar-file-content]
+                      (when-not just-log-tweet?
+                        (.then (first-tar-obj image-tar-file-content)
+                               (fn [image-file-content]
+                                 (resolve (upload-file-to-twitter twitter-obj image-file-content)))))))))))))
+
+(defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :timestamp :creator :meta-hash
                                                                 :total-supply :version :deposit :challenge-period-end]
                                                          :as ev}]
   (-> (server-utils/get-ipfs-meta @ipfs/ipfs (web3/to-ascii meta-hash))
       (.then (fn [{:keys [title image-hash] :as meme-meta}]
-               (-> (server-utils/get-ipfs-binary-file (:image-hash meme-meta))
-                   (.then (fn [image-tar-file-content]
-                            (when-not just-log-tweet?
-                              (.then (first-tar-obj image-tar-file-content)
-                                     (fn [image-file-content]
-                                       (upload-file-to-twitter twitter-obj image-file-content))))))
+               (-> (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts)
                    (.then (fn [media-id]
                             (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
                                   text (rand-nth [(gstring/format "Introducing '%s', The latest submission to vie for a place in the DANK registry. %s" title meme-detail-url)
@@ -99,43 +108,44 @@
                               (tweet twitter-obj
                                      {:text text
                                       :media-id media-id}
-                                     just-log-tweet?)))))))))
+                                     opts)))))))))
 
-(defn tweet-meme-challenged [twitter-obj just-log-tweet? {:keys [:registry-entry :challenger :commit-period-end
-                                                                 :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
+(defn tweet-meme-challenged [twitter-obj opts {:keys [:registry-entry :challenger :commit-period-end
+                                                      :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
         title (:meme/title (db/get-meme registry-entry))
-        media-id (db/get-meme-media-id registry-entry)
         text (rand-nth [(gstring/format "A challenger appears... '%s' has had it's place in the DANK registry contested. DANK or STANK? %s" title meme-detail-url)
                         (gstring/format "%s has been challenged. DANK or STANK? Vote today %s" title meme-detail-url)])]
-    (tweet twitter-obj
-           {:text text
-            :media-id media-id}
-           just-log-tweet?)))
+    (-> (ensure-media-uploaded twitter-obj {:registry-entry registry-entry} opts)
+        (.then (fn [media-id]
+                 (tweet twitter-obj
+                        {:text text
+                         :media-id media-id}
+                        opts))))))
 
 ;; We need to watch out here tweet it just once, even if more cards of the same meme were offered at once.
 (def memes-offered-already-tweeted (atom #{}))
-(defn tweet-meme-offered [twitter-obj just-log-tweet? {:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price
+(defn tweet-meme-offered [twitter-obj opts {:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price
                                                               :duration :description :started-on :block-number] :as ev}]
   (log/info (str "EV " ev))
   (let [{:keys [:reg-entry/address :meme/title]} (db/get-meme-by-token-id (bn/number token-id))
         meme-and-block [address block-number]]
     (when-not (contains? @memes-offered-already-tweeted meme-and-block)
       (let [meme-detail-url (str "https://memefactory.io/meme-detail/" address)
-            media-id (db/get-meme-media-id address)
             text (rand-nth [(gstring/format "The exalted '%s' has been offered for sale. Get em while they last! %s" title meme-detail-url)
                             (gstring/format "Fresh off the factory lines, '%s' is up the latest sell offering on Meme Factory. Grab yours today! %s" title meme-detail-url)])]
-        (tweet twitter-obj
-               {:text text
-                :media-id media-id}
-               just-log-tweet?)
+        (-> (ensure-media-uploaded twitter-obj {:registry-entry address} opts)
+            (.then (fn [media-id]
+                     (tweet twitter-obj
+                            {:text text
+                             :media-id media-id}
+                            opts))))
         (swap! memes-offered-already-tweeted conj meme-and-block)))))
 
-(defn tweet-meme-auction-bought [twitter-obj just-log-tweet? {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
+(defn tweet-meme-auction-bought [twitter-obj opts {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (let [{:keys [:reg-entry/address :meme/title]} (-> meme-auction
                                                      db/get-meme-by-auction-address)
         meme-detail-url (str "https://memefactory.io/meme-detail/" address)
-        media-id (db/get-meme-media-id address)
         price-eth (bn/number (web3/from-wei price :ether))
         formatted-price-eth (format/format-eth  price-eth
                                                 {:max-fraction-digits 3
@@ -152,28 +162,29 @@
                                         formatted-price-eth
                                         formatted-price-dolar
                                         meme-detail-url)])]
-    (tweet twitter-obj
-           {:text text
-            :media-id media-id}
-           just-log-tweet?)))
+    (-> (ensure-media-uploaded twitter-obj {:registry-entry address} opts)
+        (.then (fn [media-id]
+                 (tweet twitter-obj
+                        {:text text
+                         :media-id media-id}
+                        opts))))))
 
-(defn- dispatcher [twitter-obj just-log-tweet? callback]
+(defn- dispatcher [twitter-obj opts callback]
   (fn [_ {:keys [:latest-event? :args :block-number] :as ev}]
     (when latest-event?
-      (callback twitter-obj just-log-tweet? (assoc args :block-number block-number)))))
+      (callback twitter-obj opts (assoc args :block-number block-number)))))
 
 
-(defn start [{:keys [consumer-key consumer-secret access-token-key access-token-secret just-log-tweet?]}]
+(defn start [{:keys [consumer-key consumer-secret access-token-key access-token-secret] :as opts}]
   (let [twitter-obj (Twitter. #js {:consumer_key consumer-key
                                    :consumer_secret consumer-secret
                                    :access_token_key access-token-key
-                                   :access_token_secret access-token-secret
-                                   })
+                                   :access_token_secret access-token-secret})
         callback-ids
-        [(register-callback! :meme-registry/meme-constructed-event (dispatcher twitter-obj just-log-tweet? tweet-meme-submitted))
-         (register-callback! :meme-registry/challenge-created-event (dispatcher twitter-obj just-log-tweet? tweet-meme-challenged))
-         (register-callback! :meme-auction-factory/meme-auction-started-event (dispatcher twitter-obj just-log-tweet? tweet-meme-offered))
-         (register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher twitter-obj just-log-tweet? tweet-meme-auction-bought))]]
+        [(register-callback! :meme-registry/meme-constructed-event (dispatcher twitter-obj opts tweet-meme-submitted))
+         (register-callback! :meme-registry/challenge-created-event (dispatcher twitter-obj opts tweet-meme-challenged))
+         (register-callback! :meme-auction-factory/meme-auction-started-event (dispatcher twitter-obj opts tweet-meme-offered))
+         (register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher twitter-obj opts tweet-meme-auction-bought))]]
     {:callback-ids callback-ids
      :twitter-obj twitter-obj}))
 
