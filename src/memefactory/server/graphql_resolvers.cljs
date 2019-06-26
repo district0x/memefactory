@@ -843,7 +843,7 @@
        (:user/total-collected-memes sql-query)))))
 
 (defn user->largest-buy-resolver [{:keys [:user/address] :as user}]
-  (log/info "user->largest-buy-resolver args" user)
+  (log/debug "user->largest-buy-resolver args" user)
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
                             :from [:meme-auctions]
@@ -853,7 +853,7 @@
                                           :meme-auctions.meme-auction/bought-for]
                                     [:= address :meme-auction/buyer]]})
          {:keys [:meme-auction/buyer]} sql-query]
-     (log/info "user->largest-buy-resolver query" sql-query)
+     (log/debug "user->largest-buy-resolver query" sql-query)
      (when buyer
        sql-query))))
 
