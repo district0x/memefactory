@@ -310,45 +310,60 @@
        (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
        (db/patch-forbidden-reg-entry-image! address)))))
 
+(defn- block-timestamp* [block-number]
+  (js/Promise.
+   (fn [resolve reject]
+     (web3-eth/get-block @web3 block-number false (fn [err {:keys [:timestamp] :as res}]
+                                                    (if err
+                                                      (reject err)
+                                                      (do
+                                                        (log/debug "cache miss for block-timestamp" {:block-number block-number :timestamp timestamp})
+                                                        (resolve timestamp))))))))
+
+(def block-timestamp
+  (memoize block-timestamp*))
+
 (defn- dispatcher [callback]
-  (fn [err event]
-    (let [event (-> event
-                    (update :event cs/->kebab-case)
-                    (update-in [:args :timestamp] (fn [timestamp]
-                                                    (if timestamp
-                                                      (bn/number timestamp)
-                                                      (:timestamp (web3-eth/get-block @web3 (:block-number event))))))
-                    (update-in [:args :version] bn/number))
-          {:keys [:event/contract-key :event/event-name :event/block-number :event/log-index]} (get-event event)
-          {:keys [:event/last-block-number :event/last-log-index :event/count]
-           :or {last-block-number -1
-                last-log-index -1
-                count 0}} (db/get-last-event {:event/contract-key contract-key :event/event-name event-name} [:event/last-log-index :event/last-block-number :event/count])
-          evt {:event/contract-key contract-key
-               :event/event-name event-name
-               :event/count count
-               :last-block-number last-block-number
-               :last-log-index last-log-index
-               :block-number block-number
-               :log-index log-index}]
-      (if (or (> block-number last-block-number)
-              (and (= block-number last-block-number) (> log-index last-log-index)))
-        (do
-          (js/Promise.
-           (fn [resolve reject]
-             (log/info "Handling new event" evt)
-             (promise-> (callback err event)
-                        #(db/upsert-event! {:event/last-log-index log-index
-                                            :event/last-block-number block-number
-                                            :event/count (inc count)
-                                            :event/event-name event-name
-                                            :event/contract-key contract-key})
-                        #(resolve ::processed)))))
-        (do
-          (js/Promise.
-           (fn [resolve reject]
-             (log/info "Skipping handling of a persisted event" evt)
-             (resolve ::skipped))))))))
+  (fn [err {:keys [:block-number] :as event}]
+    (promise-> (block-timestamp block-number)
+               (fn [block-timestamp]
+                 (let [event (-> event
+                                 (update :event cs/->kebab-case)
+                                 (update-in [:args :timestamp] (fn [timestamp]
+                                                                 (if timestamp
+                                                                   (bn/number timestamp)
+                                                                   block-timestamp)))
+                                 (update-in [:args :version] bn/number))
+                       {:keys [:event/contract-key :event/event-name :event/block-number :event/log-index]} (get-event event)
+                       {:keys [:event/last-block-number :event/last-log-index :event/count]
+                        :or {last-block-number -1
+                             last-log-index -1
+                             count 0}} (db/get-last-event {:event/contract-key contract-key :event/event-name event-name} [:event/last-log-index :event/last-block-number :event/count])
+                       evt {:event/contract-key contract-key
+                            :event/event-name event-name
+                            :event/count count
+                            :last-block-number last-block-number
+                            :last-log-index last-log-index
+                            :block-number block-number
+                            :log-index log-index}]
+                   (if (or (> block-number last-block-number)
+                           (and (= block-number last-block-number) (> log-index last-log-index)))
+                     (do
+                       (js/Promise.
+                        (fn [resolve reject]
+                          (log/info "Handling new event" evt)
+                          (promise-> (callback err event)
+                                     #(db/upsert-event! {:event/last-log-index log-index
+                                                         :event/last-block-number block-number
+                                                         :event/count (inc count)
+                                                         :event/event-name event-name
+                                                         :event/contract-key contract-key})
+                                     #(resolve ::processed)))))
+                     (do
+                       (js/Promise.
+                        (fn [resolve reject]
+                          (log/info "Skipping handling of a persisted event" evt)
+                          (resolve ::skipped))))))))))
 
 (defn- assign-meme-registry-numbers!
   "if there are any memes with unassigned numbers but still assignable start the number assigners"
