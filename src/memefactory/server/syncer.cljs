@@ -140,8 +140,8 @@
 
 (defn param-change-applied-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp]} args]
-    (promise-> (js/Promise.resolve (db/update-param-change! {:reg-entry/address registry-entry
-                                                             :param-change/applied-on timestamp})))))
+    (js/Promise.resolve (db/update-param-change! {:reg-entry/address registry-entry
+                                                  :param-change/applied-on timestamp}))))
 
 
 (defn challenge-created-event [_ {:keys [:args]}]
@@ -209,9 +209,9 @@
 
 (defn vote-amount-reclaimed-event [_ {:keys [:args]} ]
   (let [{:keys [:registry-entry :timestamp :version :voter :amount]} args]
-    (promise-> (js/Promise.resolve (db/update-vote! {:reg-entry/address registry-entry
-                                                     :vote/voter voter
-                                                     :vote/reclaimed-amount-on timestamp})))))
+    (js/Promise.resolve (db/update-vote! {:reg-entry/address registry-entry
+                                          :vote/voter voter
+                                          :vote/reclaimed-amount-on timestamp}))))
 
 (defn challenge-reward-claimed-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp :version :challenger :amount]} args]
@@ -243,19 +243,19 @@
 
 (defn meme-auction-started-event [_ {:keys [:args]}]
   (let [{:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price :duration :description :started-on]} args]
-    (promise-> (js/Promise.resolve (db/insert-meme-auction! {:meme-auction/address meme-auction
-                                                             :meme-auction/token-id (bn/number token-id)
-                                                             :meme-auction/seller seller
-                                                             :meme-auction/start-price (bn/number start-price)
-                                                             :meme-auction/end-price (bn/number end-price)
-                                                             :meme-auction/duration (bn/number duration)
-                                                             :meme-auction/description description
-                                                             :meme-auction/started-on (bn/number started-on)})))))
+    (js/Promise.resolve (db/insert-meme-auction! {:meme-auction/address meme-auction
+                                                  :meme-auction/token-id (bn/number token-id)
+                                                  :meme-auction/seller seller
+                                                  :meme-auction/start-price (bn/number start-price)
+                                                  :meme-auction/end-price (bn/number end-price)
+                                                  :meme-auction/duration (bn/number duration)
+                                                  :meme-auction/description description
+                                                  :meme-auction/started-on (bn/number started-on)}))))
 
 (defn meme-auction-canceled-event [_ {:keys [:args]}]
   (let [{:keys [:meme-auction :timestamp :token-id]} args]
-    (promise-> (js/Promise.resolve (db/update-meme-auction! {:meme-auction/address meme-auction
-                                                             :meme-auction/canceled-on timestamp})))))
+    (js/Promise.resolve (db/update-meme-auction! {:meme-auction/address meme-auction
+                                                  :meme-auction/canceled-on timestamp}))))
 
 (defn meme-auction-buy-event [_ {:keys [:args]}]
   (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
@@ -296,7 +296,7 @@
                                   :initial-param/set-on timestamp}))
                      []
                      keys->values)]
-    (promise-> (js/Promise.resolve (db/insert-initial-params! rows)))))
+    (js/Promise.resolve (db/insert-initial-params! rows))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of events handlers   ;;
@@ -325,8 +325,8 @@
 
 (defn- dispatcher [callback]
   (fn [err {:keys [:block-number] :as event}]
-    (promise-> (block-timestamp block-number)
-               (fn [block-timestamp]
+    (-> (block-timestamp block-number)
+        (.then (fn [block-timestamp]
                  (let [event (-> event
                                  (update :event cs/->kebab-case)
                                  (update-in [:args :timestamp] (fn [timestamp]
@@ -349,21 +349,21 @@
                    (if (or (> block-number last-block-number)
                            (and (= block-number last-block-number) (> log-index last-log-index)))
                      (do
-                       (js/Promise.
-                        (fn [resolve reject]
-                          (log/info "Handling new event" evt)
-                          (promise-> (callback err event)
-                                     #(db/upsert-event! {:event/last-log-index log-index
-                                                         :event/last-block-number block-number
-                                                         :event/count (inc count)
-                                                         :event/event-name event-name
-                                                         :event/contract-key contract-key})
-                                     #(resolve ::processed)))))
+                       (log/info "Handling new event" evt)
+                       (promise-> (callback err event)
+                                  #(db/upsert-event! {:event/last-log-index log-index
+                                                      :event/last-block-number block-number
+                                                      :event/count (inc count)
+                                                      :event/event-name event-name
+                                                      :event/contract-key contract-key})
+                                  (constantly ::processed)))
                      (do
-                       (js/Promise.
-                        (fn [resolve reject]
-                          (log/info "Skipping handling of a persisted event" evt)
-                          (resolve ::skipped))))))))))
+                       (log/info "Skipping handling of a persisted event" evt)
+                       (js/Promise.resolve ::skipped))))))
+        (.catch (fn [error]
+                  (log/error "Exception when handling event" {:error error
+                                                              :event event})
+                  (js/Promise.resolve ::error))))))
 
 (defn- assign-meme-registry-numbers!
   "if there are any memes with unassigned numbers but still assignable start the number assigners"
