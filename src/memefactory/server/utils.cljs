@@ -26,9 +26,8 @@
     (->> (.readFileSync fs file)
          .toString
          (read-string read-opts))
-    (catch js/Error e
-      (log/warn (str "Couldn't load edn file " file) ::load-edn-file)
-      nil)))
+    (catch :default e
+      (log/warn (str "Couldn't load edn file " file) {:error e} ::load-edn-file))))
 
 (defn save-to-edn-file [content file]
   (.writeFileSync fs file (pr-str content)))
@@ -41,37 +40,44 @@
 (defn delete-file [file-path]
   (try
     (.unlinkSync fs file-path)
-    (catch js/Error e
-      (log/debug (str "Couldn't delete file " file-path " because of " e)))))
+    (catch :default e
+      (log/error (str "Couldn't delete file " file-path ) {:error e}))))
 
+(defn- parse-meta [{:keys [:content :on-success :on-error]}]
+  (try
+    (-> (re-find #".+?(\{.+\})" content)
+        second
+        js/JSON.parse
+        (js->clj :keywordize-keys true)
+        on-success)
+    (catch :default e
+      (on-error e))))
 
 (defn get-ipfs-meta [conn meta-hash]
   (js/Promise.
-    (fn [resolve reject]
-      (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-ipfs-meta)
-      (ipfs-files/fget (str "/ipfs/" meta-hash)
-                       {:req-opts {:compress false}}
-                       (fn [err content]
-                         (cond
-                           err
-                           (let [err-txt "Error when retrieving metadata from ipfs"]
-                             (log/error err-txt (merge {:meta-hash meta-hash
-                                                        :connection conn
-                                                        :error err})
-                                        ::get-ipfs-meta)
-                             (reject (str err-txt " : " err)))
+   (fn [resolve reject]
+     (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-ipfs-meta)
+     (ipfs-files/fget (str "/ipfs/" meta-hash)
+                      {:req-opts {:compress false}}
+                      (fn [err content]
+                        (cond
+                          err
+                          (let [err-txt "Error when retrieving metadata from ipfs"]
+                            (log/error err-txt (merge {:meta-hash meta-hash
+                                                       :connection conn
+                                                       :error err})
+                                       ::get-ipfs-meta)
+                            (reject (str err-txt " : " err)))
 
-                           (empty? content)
-                           (let [err-txt "Empty ipfs content"]
-                             (log/error err-txt {:meta-hash meta-hash
-                                                 :connection conn} ::get-ipfs-meta)
-                             (reject err-txt))
+                          (empty? content)
+                          (let [err-txt "Empty ipfs content"]
+                            (log/error err-txt {:meta-hash meta-hash
+                                                :connection conn} ::get-ipfs-meta)
+                            (reject err-txt))
 
-                           :else (-> (re-find #".+(\{.+\})" content)
-                                   second
-                                   js/JSON.parse
-                                   (js->clj :keywordize-keys true)
-                                   resolve)))))))
+                          :else (parse-meta {:content content
+                                             :on-success resolve
+                                             :on-error reject})))))))
 
 (defn get-ipfs-binary-file [file-hash]
   (js/Promise.
