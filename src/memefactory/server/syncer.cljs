@@ -180,10 +180,10 @@
                                                                                        {:vote/option (bn/number option)
                                                                                         :vote/revealed-on timestamp})
                        {:keys [:challenge/votes-total :challenge/votes-against]} re
-                       amount (js/parseInt (or amount 0))
-                       votes-total (js/parseInt (or votes-total 0))
-                       votes-against (js/parseInt (or votes-against 0))
-                       votes-for (js/parseInt (or votes-for 0))]
+                       amount (bn/number (or amount 0))
+                       votes-total (bn/number (or votes-total 0))
+                       votes-against (bn/number (or votes-against 0))
+                       votes-for (bn/number (or votes-for 0))]
                    (promise-> (js/Promise.resolve (db/update-registry-entry! (cond-> {:reg-entry/address registry-entry
                                                                                       :reg-entry/version version}
 
