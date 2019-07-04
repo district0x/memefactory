@@ -8,6 +8,6 @@ RUN apt-get install --no-install-recommends -y -q nano
 COPY resources/public /wwwroot
 
 # setup redirects
-ADD docker-builds/ui/prerender/_redirects /app/_redirects
+ADD docker-builds/ui/_redirects /app/_redirects
 
 EXPOSE 9000
