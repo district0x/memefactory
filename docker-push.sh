@@ -51,12 +51,7 @@ function build {
         ;;
     esac
 
-    if [[ $SERVICE == "ui" && $BUILD_ENV == "qa" ]]; then
-      docker build -t $IMG -f docker-builds/$SERVICE/prerender/Dockerfile .
-    else
-      docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
-    fi
-
+    docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
     docker tag $IMG $NAME:$TAG
 
   } || {
