@@ -113,7 +113,7 @@
                  #(db/upsert-user! {:user/address creator})
                  #(server-utils/get-ipfs-meta @ipfs/ipfs meta-hash)
                  (fn [meme-meta]
-                   (let [{:keys [title image-hash search-tags comment]} meme-meta]
+                   (let [{:keys [:title :image-hash :search-tags :comment]} meme-meta]
                      (db/insert-meme! (merge meme {:reg-entry/address registry-entry
                                                    :meme/comment comment
                                                    :meme/image-hash image-hash
@@ -121,7 +121,7 @@
                      (schedule-meme-number-assigner registry-entry (inc (- (bn/number challenge-period-end)
                                                                            (server-utils/now-in-seconds))))
                      (when search-tags
-                       (for [t (into #{} search-tags)]
+                       (doseq [t (into #{} search-tags)]
                          (db/tag-meme! {:reg-entry/address registry-entry :tag/name t})))))))))
 
 (defn param-change-constructed-event [_ {:keys [:args] :as event}]
