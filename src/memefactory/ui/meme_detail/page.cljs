@@ -14,6 +14,7 @@
     [district.ui.component.page :refer [page]]
     [district.ui.component.tx-button :as tx-button]
     [district.ui.graphql.subs :as gql]
+    [district.ui.ipfs.subs :as ipfs-subs]
     [district.ui.now.subs :as now-subs]
     [district.ui.router.subs :as router-subs]
     [district.ui.web3-account-balances.subs :as account-balances-subs]
@@ -547,10 +548,14 @@
         ;; :graphql/loading?. Unfortunately this subscription sometimes returns
         ;; nil when it's really still just loading.
         meme-not-loaded? (or (not status)
-                             (and meme-sub (:graphql/loading? @meme-sub)))]
+                             (and meme-sub (:graphql/loading? @meme-sub)))
+        url (:gateway @(subscribe [::ipfs-subs/ipfs]))]
     [app-layout
      {:meta {:title (str "MemeFactory - " title)
-             :description (str "Details of meme " title ". " "MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets.")}}
+             :description (str "Details of meme " title ". " "MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets.")}
+      :tags [{:id "image"
+              :name "og:image"
+              :content (str (format/ensure-trailing-slash url) image-hash)}]}
      [:div.meme-detail-page
       [:section.meme-detail
        [:div.meme-info {:class (when meme-not-loaded? "loading")}
