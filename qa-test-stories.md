@@ -1,0 +1,133 @@
+## QA Test Stories
+Following user stories should be tested on QA before updates can be pushed into production.
+
+### User Story #1 - Successfull submission and trading
+- Go to My Settings page, fill out and submit your email.
+- Go to My Memefolio - Created and write down your rank and stats values for later comparison.
+- Go to Submit Page
+- Fill out submit form including tags and comment
+- After tx is confirmed, switch to different address.
+- Go to My Memefolio - Curated and write down your rank and stats values for later comparison.
+- Check Challenge page if your submission is correctly displayed there. Check title, issuance, tags, comment and creator's address.
+- Challenge your meme.
+- Check if you've received email notification about your meme being challenged. 
+- Check if text of the email is correct.
+- After tx is confirmed, go to Vote page and check if your challenge is displayed there. 
+- Check challenge comment, challenger's address. 
+- Vote Stank for the meme with random amount. 
+- Switch to different address and vote Dank with larger amount than you voted Stank. Vote
+with random floating-point number (e.g 10.46).
+- Wait until reveal period starts and then reveal all your votes.
+- Wait until reveal period ends and switch to Resolved Challenges tab.
+- Switch to address you voted Dank with. 
+- Check if all numbers related to voting are correct.
+- Claim your reward.
+- Check if your DANK balance was increased by the reward amount.  
+- Check if you've received email notification about reward amount. 
+- Check if text of the email is correct, including vote reward amount.
+- Switch to the address you voted Stank with.
+- Check if there's correctly no reward to claim.
+- Go to the detail page of the meme. 
+- Check if meme has correct in-registry status. 
+- Check if all information about challenge and voting are correct on the detail page.
+- Switch to address you submitted with. 
+- Go to My Memefolio - Created. 
+- Check if your meme is there with enabled Issue button and correct issuance amount. 
+- Issue all cards. 
+- After tx is confirmed, switch to My Memefolio - Collected. 
+- Offer several cards of your meme on marketplace, filling out sell form with random values.
+- Wait until tx is confirmed.
+- Go to My Memefolio - Selling and check if your meme is there.
+- Go to Marketplace page. 
+- Switch sorting to Newest and check if your meme is on first position. 
+- Switch to "All Cards" grouping option and check if you see all cards you've offered.
+- Cancel offering of 1 card. 
+- After tx is confirmed, check if offering was correctly cancelled.
+- Switch to different address.
+- Go to My Memefolio - Collected and write down your rank and stats values for later comparison.
+- Buy one or more cards of your meme.
+- Go to My Memefolio - Collected and check if previously written down values from My Memefolio - Collected were correctly updated.
+- Check if meme correctly appears in My Memefolio - Collected list. 
+- Go to Leaderboard - Collectors and check if rank and values match those from My Memefolio.
+- Check if you've received email notification about your meme being sold.
+- Check if text of the email is correct.
+- Switch to submitter's address, go to Memefolio - Created and check if previously written down values from My Memefolio - Created were correctly updated.
+- Go to Leaderboard - Creators and check if rank and values match those from My Memefolio.
+- Go to My Memefolio - Sold and check if sold memes correctly appear there.
+- Switch to challengers's address, go to Memefolio - Curated and check if previously written down values from My Memefolio - Curated were correctly updated.
+- Go to Leaderboard - Curators and check if rank and values match those from My Memefolio.
+- Go to detail page of the meme and check if Marketplace History correctly shows sold cards.
+- Go to Dank Registry - Browse and check if your meme is at the first position there.
+
+### User Story #2 - Unsuccessfull submission 
+- Go to My Memefolio - Created and write down your rank and stats values for later comparison.
+- Go to Submit Page
+- Fill out submit form including tags and comment
+- After tx is confirmed, switch to different address.
+- Go to My Memefolio - Curated and write down your rank and stats values for later comparison.
+- Go to Challenge page and open detail of your meme.
+- Check title, issuance, tags, comment and creator's address.
+- Challenge your meme from meme detail page.
+- After tx is confirmed, check challenge comment, challenger's address. 
+- On meme detail page, vote Stank for the meme with random amount.
+- Switch to different address and vote Dank with lower amount than you voted Stank.
+- Wait until reveal period starts and then reveal all your votes.
+- Wait until reveal period ends.
+- Switch to address you voted Stank with.
+- On meme detail page, check if all numbers related to voting are correct.
+- Claim your reward.
+- Check if your DANK balance was increased by the reward amount.
+- Switch to the address you voted Dank with.
+- Check if there's correctly no reward to claim.
+- Check if meme has correctly rejected status. 
+- Switch to submitter's address. 
+- Go to Memefolio - Created and check if previously written down values from My Memefolio - Created were correctly updated.
+- Go to Leaderboard - Creators and check if rank and values match those from My Memefolio.
+- Switch to challengers's address.
+- Go to Memefolio - Curated and check if previously written down values from My Memefolio - Curated were correctly updated.
+- Go to Leaderboard - Curators and check if rank and values match those from My Memefolio.
+- Go to Dank Registry - Browse and check if your meme is correctly not appearing there.
+
+### User Story #3 - Successfull submission without a challenge
+- Go to My Memefolio - Created and write down your rank and stats values for later comparison.
+- Go to Submit Page
+- Fill out submit form including tags and comment
+- After tx is confirmed, switch go to Dank Registry - Challenge page.
+- Wait until challenge period ends.
+- Open detail page of meme. 
+- Check title, issuance, tags, comment and creator's address.
+- Check if meme has correct in-registry status.
+- Go to Memefolio - Created and check if previously written down values from My Memefolio - Created were correctly updated.
+- Check if meme correctly appears in My Memefolio - Created list.
+- Go to Leaderboard - Creators and check if rank and values match those from My Memefolio.
+- Go to Dank Registry - Browse and check if your meme is at the first position there.
+- Send link to the meme detail page to yourself on Slack and check if preview works.
+
+### User Story #4 - Searching and sorting
+- Go to Marketplace page
+- Try to search by name and check resuls
+- Try to search by tags and check resuls
+- Try to switch to each grouping option and check results
+- Try to switch to each sorting option and check results
+- Go to Dank Registry - Vote page 
+- Try to switch to each sorting option and check results
+- Switch to Resolved Challenges tab
+- Try to switch to each sorting option and check results
+- Go to Dank Registry - Browse page
+- Try to search by name and check resuls
+- Try to search by tags and check resuls
+- Try to switch to each sorting option and check results
+- Go to Leaderboard - Dankest Memes page
+- Try to switch to each sorting option and check results
+- Go to Leaderboard - Creators page
+- Try to switch to each sorting option and check results
+- Go to Leaderboard - Collectors page
+- Try to switch to each sorting option and check results
+- Go to Leaderboard - Curators page
+- Try to switch to each sorting option and check results
+- Go to My Memefolio page
+- For each tab try searching by name
+- For each tab try searching by tags
+- For each tab try to switch to each sorting option and check results
+- Go to My Memefolio - Selling page
+- Try to switch to each grouping option and check results
