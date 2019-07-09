@@ -1,6 +1,9 @@
 FROM node:11-stretch-slim
 MAINTAINER "Filip Bielejec" <filip@district0x.io>
 
+# twitter-bot needs to be able to write here
+RUN mkdir /tmp/memefactory
+
 # Python dependencies
 RUN apt-get update -y \
     && apt-get install --no-install-recommends -y \
