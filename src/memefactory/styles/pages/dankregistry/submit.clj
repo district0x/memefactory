@@ -25,7 +25,6 @@
    [:.upload
     {:display :grid
      :grid-template-columns "50% 50%"
-     ;; :grid-column-gap (em 2)
      :padding-top (em 4)}
     (for-media-max :computer
                    [:&
@@ -60,8 +59,7 @@
                       {:margin-right 0}])
       [:img {:width (px compact-tile/card-width)
              :height (px compact-tile/card-height)}]
-      [:.input-group #_{ :margin-left :auto
-                        :margin-right :auto}
+      [:.input-group
        [:.dropzone {:width (px compact-tile/card-width)
                     :height (px compact-tile/card-height)}]
        [:.file-name {:display :none}]
@@ -80,8 +78,6 @@
       [:label.file-input-label
        {:margin-right :auto
         :margin-left :auto
-        ;; :padding-top (em 1)
-        ;; :padding-left (em 1.9)
         :margin-top (em 0.7)
         :font-size (px 12)}
        (button {:background-color :purple
@@ -89,14 +85,7 @@
                 :width (em 12)
                 :height (em 3.3)})]
       ["input[type=file]"
-       {:display :none}
-       #_{:right 0
-          :left (em 2)
-          :position :absolute
-          :margin-right :auto
-          :margin-left 0}
-       #_(button {:color :meme-buy-button})]]
-
+       {:display :none}]]
      [:&.form-panel
       {:margin-left (em 1)
        :padding-top (em 9)
@@ -110,10 +99,25 @@
                        :padding-left (em 2)
                        :padding-right (em 2)}])
       [:.chip-input
-       [:.autocomplete-input
-        ["input[type=text]"
-         ;; {:padding-top 0}
-         ]]]
+       [:.chips
+        {:display :flex
+         :flex-direction :row
+         :flex-wrap :wrap
+         :align-content :space-between
+         :width "100%" ;;(px 400)
+         }
+        [:.chip
+         {:display :flex
+          :align-items :center}]
+        [:.autocomplete-input
+         {:display :flex
+          :flex "1 1 auto"
+          :width (px 30)
+          ;; :background-color :lightgray
+          }
+         ["input[type=text]"
+          {:padding-top 0}]
+         [:.options {:border-style :none}]]]]
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:display :flex
                  :margin-top (em 1)
