@@ -86,7 +86,8 @@
   (dev-setup)
   (let [full-config (cljs-utils/merge-in
                      config-map
-                     {:smart-contracts {:format :truffle-json}
+                     {:smart-contracts {:format :truffle-json
+                                        :contracts-path "/contracts/build/"}
                       :web3-account-balances {:for-contracts [:ETH :DANK]}
                       :web3-tx-log {:open-on-tx-hash? true}
                       :reagent-render {:id "app"
