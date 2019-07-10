@@ -22,10 +22,9 @@
 
 
 (defn meme-image [& _]
-  (let [ipfs (subscribe [::ipfs-subs/ipfs])]
+  (let [url (:gateway @(subscribe [::ipfs-subs/ipfs]))]
     (fn [image-hash & [{:keys [rejected?] :as props}]]
-      (let [props (dissoc props :rejected?)
-            url (:gateway @ipfs)]
+      (let [props (dissoc props :rejected?)]
         [:div.meme-card
          props
          (if (and url (not-empty image-hash))
