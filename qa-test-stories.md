@@ -58,6 +58,7 @@ with random floating-point number (e.g 10.46).
 - Go to Leaderboard - Curators and check if rank and values match those from My Memefolio.
 - Go to detail page of the meme and check if Marketplace History correctly shows sold cards.
 - Go to Dank Registry - Browse and check if your meme is at the first position there.
+- Check if QA twitter account tweeted your actions
 
 ### User Story #2 - Unsuccessfull submission 
 - Go to My Memefolio - Created and write down your rank and stats values for later comparison.
