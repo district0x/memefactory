@@ -44,11 +44,11 @@
 (defn tweet [twitter-obj {:keys [text media-id] :as tweet} {:keys [just-log-tweet?]}]
 
   (if just-log-tweet?
-    (log/info (str "Twitting " text " with media-id " media-id) ::tweet)
+    (log/info "Fakely twitting " {:text text :media-id media-id} ::tweet)
 
     ;; really create a tweet
     (do
-      (log/info (str "Twitting now with media-id " media-id))
+      (log/info "Twitting " {:text text :media-id media-id} ::tweet)
       (.post twitter-obj
              "statuses/update"
              (cond-> {:status text}
@@ -57,7 +57,7 @@
              (fn [error tw resp]
                (if error
                  (log/error "Error sending tweet" {:error error} ::tweet)
-                 (log/debug (str "Twitted " text) ::tweet)))) )))
+                 (log/debug "Successfully twitted " {:text text :media-id media-id} ::tweet)))) )))
 
 ;; TODO: Figure out how to do this without going thru the filesystem
 ;; so it is less error prone
@@ -86,6 +86,7 @@
        (resolve media-id)
        (let [ipfs-hash (or image-hash
                            (:meme/image-hash (db/get-meme registry-entry)))]
+         (log/info "Uploading media " {:ipfs-hash ipfs-hash} ::ensure-media-uploaded)
          (-> (server-utils/get-ipfs-binary-file ipfs-hash)
              (.then (fn [image-tar-file-content]
                       (when-not just-log-tweet?
@@ -95,7 +96,8 @@
 
 (defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :timestamp :creator :meta-hash
                                                                 :total-supply :version :deposit :challenge-period-end]
-                                                         :as ev}]
+                                              :as ev}]
+  (log/debug "Twitter bot processing meme submitted event " ev ::tweet-meme-submitted)
   (-> (server-utils/get-ipfs-meta @ipfs/ipfs (web3/to-ascii meta-hash))
       (.then (fn [{:keys [title image-hash] :as meme-meta}]
                (-> (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts)
@@ -103,7 +105,7 @@
                             (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
                                   text (rand-nth [(gstring/format "Introducing '%s', The latest submission to vie for a place in the DANK registry. %s" title meme-detail-url)
                                                   (gstring/format "The newest entry to the DANK registry, meet '%s'. Will it pass the bar? %s" title meme-detail-url)])]
-                              (log/info (str "Media uploladed, we got media id " media-id))
+                              (log/info "Media uploladed, we got " {:media-id media-id} ::tweet-meme-submitted)
                               (when media-id (db/save-meme-media-id! registry-entry (str media-id)))
                               (tweet twitter-obj
                                      {:text text
@@ -112,6 +114,7 @@
 
 (defn tweet-meme-challenged [twitter-obj opts {:keys [:registry-entry :challenger :commit-period-end
                                                       :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
+  (log/debug "Twitter bot processing meme challenged event " ev ::tweet-meme-challenged)
   (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
         title (:meme/title (db/get-meme registry-entry))
         text (rand-nth [(gstring/format "A challenger appears... '%s' has had it's place in the DANK registry contested. DANK or STANK? %s" title meme-detail-url)
@@ -127,7 +130,7 @@
 (def memes-offered-already-tweeted (atom #{}))
 (defn tweet-meme-offered [twitter-obj opts {:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price
                                                               :duration :description :started-on :block-number] :as ev}]
-  (log/info (str "EV " ev))
+  (log/debug "Twitter bot processing meme offered event " ev ::tweet-meme-offered)
   (let [{:keys [:reg-entry/address :meme/title]} (db/get-meme-by-token-id (bn/number token-id))
         meme-and-block [address block-number]]
     (when-not (contains? @memes-offered-already-tweeted meme-and-block)
@@ -143,6 +146,7 @@
         (swap! memes-offered-already-tweeted conj meme-and-block)))))
 
 (defn tweet-meme-auction-bought [twitter-obj opts {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
+  (log/debug "Twitter bot processing auction bought event " ev ::tweet-meme-auction-bought)
   (let [{:keys [:reg-entry/address :meme/title]} (-> meme-auction
                                                      db/get-meme-by-auction-address)
         meme-detail-url (str "https://memefactory.io/meme-detail/" address)
