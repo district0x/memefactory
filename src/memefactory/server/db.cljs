@@ -273,9 +273,10 @@
 (def update-registry-entry! (create-update-fn :reg-entries registry-entry-column-names :reg-entry/address))
 (def get-registry-entry (create-get-fn :reg-entries :reg-entry/address))
 
-(defn all-reg-entries []
-  (db/all {:select [:re.*]
-           :from [[:reg-entries :re]]}))
+(defn all-meme-reg-entries []
+  (db/all {:select [:re.* :m.*]
+           :from [[:reg-entries :re]]
+           :join [[:memes :m] [:= :re.reg-entry/address :m.reg-entry/address]]}))
 
 ;; MEMES
 

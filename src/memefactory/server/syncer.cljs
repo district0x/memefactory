@@ -368,24 +368,36 @@
 (defn- assign-meme-registry-numbers!
   "if there are any memes with unassigned numbers but still assignable start the number assigners"
   []
-  (let [assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period
+  (let [now (server-utils/now-in-seconds)
+        assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period
                                                      :reg-entry.status/commit-period
                                                      :reg-entry.status/reveal-period}
-                                                   (reg-entry-status (server-utils/now-in-seconds) %))
-                                       (db/all-reg-entries))
-        whitelisted-reg-entries (filter #(= :reg-entry.status/whitelisted (reg-entry-status (server-utils/now-in-seconds) %))
-                                        (db/all-reg-entries))]
+                                                   (reg-entry-status now %))
+                                       (db/all-meme-reg-entries))
+        assignable-whitelisted-reg-entries (filter #(and (not (:meme/number %))
+                                                         (= :reg-entry.status/whitelisted (reg-entry-status now %)))
+                                                   (db/all-meme-reg-entries))]
 
-    ;; add numbers to all whitelisteds
-    (doseq [{:keys [:reg-entry/address]} whitelisted-reg-entries]
+    (log/info "Assigning numbers to whitelisted memes already on db "
+              {:count (count assignable-whitelisted-reg-entries)
+               :current-meme-number (db/current-meme-number)}
+              ::assign-meme-registry-numbers!)
+
+    ;; add numbers to all assignable whitelisteds
+    (doseq [{:keys [:reg-entry/address]} assignable-whitelisted-reg-entries]
       (assign-next-number! address))
+
+    (log/info "Schedulling number assigner to  memes already on db "
+              {:count (count assignable-reg-entries)
+               :current-meme-number (db/current-meme-number)}
+              ::assign-meme-registry-numbers!)
 
     ;; schedule meme number assigners for all memes that need it
     (doseq [{:keys [:reg-entry/address :reg-entry/challenge-period-end :challenge/reveal-period-end]} assignable-reg-entries]
-      (schedule-meme-number-assigner address (inc (- (if (> challenge-period-end (server-utils/now-in-seconds))
+      (schedule-meme-number-assigner address (inc (- (if (> challenge-period-end now)
                                                        challenge-period-end
                                                        reveal-period-end)
-                                                     (server-utils/now-in-seconds)))))))
+                                                     now))))))
 
 (defn start [opts]
   (when-not (:disabled? opts)
