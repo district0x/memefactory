@@ -84,7 +84,7 @@
     (< now commit-period-end)                           :reg-entry.status/commit-period
     (< now reveal-period-end)                           :reg-entry.status/reveal-period
     (and (pos? reveal-period-end)
-         (> now reveal-period-end)) (if (< votes-against votes-for)
+         (> now reveal-period-end)) (if (< votes-against votes-for) ;; TODO: this should be using quorum
                                       :reg-entry.status/whitelisted
                                       :reg-entry.status/blacklisted)
     :else :reg-entry.status/whitelisted))
@@ -100,7 +100,7 @@
    [:< now :re.challenge/reveal-period-end]                   (enum :reg-entry.status/reveal-period)
    [:and
     [:> :re.challenge/reveal-period-end 0]
-    [:> now :re.challenge/reveal-period-end]]  (sql/call :case
+    [:> now :re.challenge/reveal-period-end]]  (sql/call :case ;; TODO: this should be using quorum
                                                          [:< :re.challenge/votes-against :re.challenge/votes-for]
                                                          (enum :reg-entry.status/whitelisted)
 
@@ -108,7 +108,7 @@
    :else (enum :reg-entry.status/whitelisted)))
 
 (defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :challenged :order-by :order-dir :owner :creator :curator :challenger :voter :first :after] :as args}]
-  (log/debug "search-memes-query-resolver" args)
+  (log/info "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          page-start-idx (when after (js/parseInt after))
@@ -385,7 +385,7 @@
        sql-query))))
 
 (defn search-users-query-resolver [_ {:keys [:order-by :order-dir :first :after] :or {order-dir :asc} :as args} _ document]
-  (log/debug "search-users-query-resolver args" args)
+  (log/info "search-users-query-resolver args" args)
   (try-catch-throw
    (let [order-dir (keyword order-dir)
          now (utils/now-in-seconds)
@@ -417,8 +417,11 @@
                                                 [{:select [:%count.*]
                                                   :from [:votes]
                                                   :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
+                                                  ;; TODO: this should be using quorum
+                                                  ;; This doesn't look right, looks like it should be counting user option for a challenge
+                                                  ;; when that option is equal to the challenge winning result
                                                   :where [:and [:> now :reg-entries.challenge/reveal-period-end]
-                                                          [:> :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
+                                                          [:>= :reg-entries.challenge/votes-against :reg-entries.challenge/votes-for]
                                                           [:= :votes.vote/voter :users.user/address]]}
                                                  :user/total-participated-votes-success])
                                               (when (select? :user/total-participated-votes)
@@ -430,8 +433,9 @@
                                               (when (select? :user/total-created-challenges-success)
                                                 [{:select [:%count.* ]
                                                   :from [:reg-entries]
+                                                  ;; TODO: this should be using quorum
                                                   :where [:and [:> now :reg-entries.challenge/reveal-period-end]
-                                                          [:> :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
+                                                          [:>= :reg-entries.challenge/votes-against :reg-entries.challenge/votes-for]
                                                           [:= :reg-entries.challenge/challenger :users.user/address]]}
                                                  :user/total-created-challenges-success])
                                               (when (select? :user/total-created-challenges)
@@ -870,17 +874,20 @@
      (:user/total-created-challenges sql-query))))
 
 (defn user->total-created-challenges-success-resolver
-  [{:keys [:user/address] :as user}]
+  [{:keys [:user/address :user/total-created-challenges-success] :as user}]
   (log/debug "user->total-created-challenges-success-resolver args" user)
-  (try-catch-throw
-   (let [sql-query (when address
-                     (db/get {:select [[:%count.* :user/total-created-challenges-success]]
-                              :from [:reg-entries]
-                              :where [:and [:> (utils/now-in-seconds) :reg-entries.challenge/reveal-period-end]
-                                      [:< :reg-entries.challenge/votes-for :reg-entries.challenge/votes-against]
-                                      [:= address :reg-entries.challenge/challenger]]}))]
-     (log/debug "user->total-created-challenges-success-resolver query" sql-query)
-     (:user/total-created-challenges-success sql-query))))
+
+  (if (pos? total-created-challenges-success)
+    total-created-challenges-success
+    (try-catch-throw
+     (let [sql-query (when address
+                       (db/get {:select [[:%count.* :user/total-created-challenges-success]]
+                                :from [:reg-entries]
+                                :where [:and [:> (utils/now-in-seconds) :reg-entries.challenge/reveal-period-end]
+                                        [:>= :reg-entries.challenge/votes-against :reg-entries.challenge/votes-for]
+                                        [:= address :reg-entries.challenge/challenger]]}))]
+       (log/debug "user->total-created-challenges-success-resolver query" sql-query)
+       (:user/total-created-challenges-success sql-query)))))
 
 (defn user->total-participated-votes-resolver
   "Amount of different votes user participated in"
