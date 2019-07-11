@@ -515,7 +515,8 @@
 
 (defn overall-stats-resolver [_ _]
   {:total-memes-count (:count (db/get {:select [[(sql/call :count :*) :count]]
-                                       :from [:memes]}))
+                                       :from [[:memes :m]]
+                                       :where [:not= :m.meme/number nil]}))
    :total-tokens-count (:count (db/get {:select [[(sql/call :count :*) :count]]
                                         :from [:meme-tokens]}))})
 
