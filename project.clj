@@ -212,7 +212,7 @@
                                    :pseudo-names true}}
                        {:id "server-tests"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
-                        ;; :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
+                        :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
                         :compiler {:main "memefactory.tests.runner"
                                    :output-to "memefactory-tests/memefactory-server-tests.js",
                                    :output-dir "memefactory-tests",
