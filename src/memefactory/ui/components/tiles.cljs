@@ -93,12 +93,10 @@
 
 
 (defn- calculate-meme-auction-price [meme-auction now]
-  (let [price (shared-utils/calculate-meme-auction-price
-                (-> meme-auction
-                  (update :meme-auction/started-on #(quot (.getTime (gql-utils/gql-date->date %)) 1000)))
-                (quot (.getTime now) 1000))]
-    ;; Add little bit extra reserve, so the transaction doesn't revert
-    (+ price (* 0.0001 price))))
+  (shared-utils/calculate-meme-auction-price
+   (-> meme-auction
+       (update :meme-auction/started-on #(quot (.getTime (gql-utils/gql-date->date %)) 1000)))
+   (quot (.getTime now) 1000)))
 
 
 (defn auction-back-tile [opts meme-auction]
@@ -171,7 +169,8 @@
                                                  (dispatch [::meme-auction/buy {:send-tx/id tx-id
                                                                                 :meme-auction/address (:meme-auction/address meme-auction)
                                                                                 :meme/title title
-                                                                                :value price}]))}
+                                                                                ;; Add little bit extra reserve, so the transaction doesn't revert
+                                                                                :value (+ price (* 0.0001 price))}]))}
               (if @buy-tx-success? "Bought" "Buy")])]]]))))
 
 
