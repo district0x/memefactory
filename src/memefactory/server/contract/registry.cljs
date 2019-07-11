@@ -58,5 +58,11 @@
 (defn challenge-reward-claimed-event-in-tx [contract-key tx-hash & args]
   (apply contract-event-in-tx tx-hash contract-key :ChallengeRewardClaimedEvent args))
 
+(defn param-change-constructed-event-in-tx [contract-key tx-hash & args]
+  (apply contract-event-in-tx tx-hash contract-key :ParamChangeConstructedEvent args))
+
+(defn param-change-applied-event-in-tx [contract-key tx-hash & args]
+  (apply contract-event-in-tx tx-hash contract-key :ParamChangeAppliedEvent args))
+
 (defn is-factory? [contract-key factory]
   (contract-call contract-key :is-factory [factory]))

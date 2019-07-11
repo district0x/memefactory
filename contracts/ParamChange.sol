@@ -46,7 +46,7 @@ contract ParamChange is RegistryEntry {
   external
   {
     bytes32 record = sha3(_key);
-    require(RegistryEntryLib.isChangeAllowed(registry, record, _value));
+    require(RegistryEntryLib.isChangeAllowed(registry, record, _value), "Change is not allowed.");
 
     super.construct(_creator, _version);
 
@@ -89,6 +89,13 @@ contract ParamChange is RegistryEntry {
     appliedOn = now;
 
     registry.fireParamChangeAppliedEvent(version);
+  }
+
+  function loadParamChange() external constant returns (address,
+                                                        string,
+                                                        uint)
+  {
+    return (db, key, value);
   }
 
 }

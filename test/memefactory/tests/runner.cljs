@@ -24,6 +24,7 @@
             [cljs-promises.async :refer-macros [<?]]))
 
 (nodejs/enable-util-print!)
+
 (def child-process (nodejs/require "child_process"))
 (def spawn (aget child-process "spawn"))
 
@@ -48,19 +49,15 @@
     #_(doseq [acc (web3-eth/accounts @web3)]
       (println (str "Balance of " acc " is " (<? (dank-token/balance-of acc)))))
     (log/info "Running tests" ::deploy-contracts-and-run-tests)
-    (cljs.test/run-tests
+    #_(cljs.test/run-tests
      'memefactory.tests.graphql-resolvers.graphql-resolvers-tests
      'memefactory.tests.smart-contracts.registry-entry-tests
      'memefactory.tests.smart-contracts.meme-tests
      'memefactory.tests.smart-contracts.meme-auction-tests
      'memefactory.tests.smart-contracts.registry-tests
+     'memefactory.tests.smart-contracts.param-change-tests)))
 
-
-     #_'memefactory.tests.smart-contracts.param-change-tests
-
-     )))
-
-#_(defn deploy-contracts-and-run-tests
+(defn deploy-contracts-and-run-tests
   "Redeploy smart contracts with truffle"
   []
   (log/warn "Redeploying contracts, please be patient..." ::redeploy)

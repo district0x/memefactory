@@ -41,16 +41,16 @@
          active-account (account-queries/active-account db)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :param-change-factory)
                                                 :create-param-change
-                                                active-account
-                                                (contract-queries/contract-address db :meme-registry-db)
-                                                (gql-utils/kw->gql-name key)
-                                                value
-                                                Hash)]
+                                                (look active-account)
+                                                (look (contract-queries/contract-address db :meme-registry-db))
+                                                (look (gql-utils/kw->gql-name key))
+                                                (look value)
+                                                (look Hash))]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
-                                      :args [(contract-queries/contract-address db :param-change-factory)
-                                             deposit
-                                             extra-data]
+                                      :args (look [(contract-queries/contract-address db :param-change-factory)
+                                              deposit
+                                              (look extra-data)])
                                       :tx-opts {:from active-account}
                                       :tx-id {:meme/create-param-change tx-id}
                                       :tx-log {:name tx-name}
