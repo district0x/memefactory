@@ -41,25 +41,20 @@
      :display :block
      :border-top "0px"}]
    [:img {:width (px 200)}]]
+
   [:.chip-input
    {:display :flex
     :color (color :menu-text)}
-   [:ol.chips {:line-height (em 0.9)
-               :margin-bottom (em 0.3)
-               :padding-left 0
-               :display :flex}
-    [:li
-     ;; (font :filson)
-     {:list-style-type :none
-      :padding-right (em 1)
-      :border-width (px 1)
-      :border-radius "0.3em"
-      :margin-left (em 0.3)
-      :margin-right (em 0.3)
-      :border-style :solid
-      :border-color (color :grey)
-      :padding "0.4em 1em 0.4em 1em"
-      :background-color (color :search-input-bg)}
+   [:.chips {:margin-bottom (em 0.3)}
+    [:.chip {:padding-right (em 1)
+             :border-width (px 1)
+             :border-radius "0.3em"
+             :margin-left (em 0.3)
+             :margin-right (em 0.3)
+             :border-style :solid
+             :border-color (color :grey)
+             :padding "0.4em 1em 0.4em 1em"
+             :background-color (color :search-input-bg)}
      [:span
       ;;{:font-size (px 12)}
       [:&:last-child
