@@ -108,15 +108,16 @@
          }
         [:.chip
          {:display :flex
-          :align-items :center}]
+          :align-items :center
+          :margin-top (em 1)}]
         [:.autocomplete-input
          {:display :flex
           :flex "1 1 auto"
           :width (px 30)
           ;; :background-color :lightgray
           }
-         ["input[type=text]"
-          {:padding-top 0}]
+         #_["input[type=text]"
+            {:padding-top 0}]
          [:.options {:border-style :none}]]]]
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:display :flex
@@ -132,7 +133,6 @@
                  :color :white
                  :height (em 3.3)
                  :width (em 10)})]
-
        [:.dank-wrapper
         {:flex 0
          :margin-left (em 0.5)
