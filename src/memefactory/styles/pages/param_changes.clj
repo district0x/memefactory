@@ -193,7 +193,8 @@
           :padding-right (px 30)
           :display :grid
           :grid-template-columns "50% 50%"}
-         (for-media-max :tablet [:& {:display :block}])]
+         (for-media-max :tablet [:& {:display :block}])
+         [:.attr [:label {:margin-right (px 4)}]]]
         [:.section2 [:span {:overflow :hidden
                             :display :inline-block}]
          [:.address {:text-overflow :ellipsis

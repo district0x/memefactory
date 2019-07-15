@@ -1020,8 +1020,8 @@
   (get (ranks-cache/get-rank :collector-rank collector-rank)
        address))
 
-;; TODO: test
-(defn param-change->original-value-resolver [{:keys [:param-change/db :param-change/key] :as args}]
+;; TODO:
+#_(defn param-change->original-value-resolver [{:keys [:param-change/db :param-change/key] :as args}]
   (log/debug "param-change->original-value-resolver" args)
   (:param-change/value (second (db/all {:select [:param-change/value]
                                         :from [:param-changes]
@@ -1196,7 +1196,8 @@
                  :challenge/challenger reg-entry->challenger
                  :challenge/all-rewards reg-entry->all-rewards-resolver
                  :challenge/vote reg-entry->vote-resolver
-                 :param-change/original-value param-change->original-value-resolver}
+                 ;;:param-change/original-value param-change->original-value-resolver
+                 }
    :ParamChangeList {:items param-change-list->items-resolver}
    :User {:user/total-created-memes user->total-created-memes-resolver
           :user/total-created-memes-whitelisted user->total-created-memes-whitelisted-resolver

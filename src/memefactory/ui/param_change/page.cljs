@@ -81,15 +81,14 @@
 
 (defn change-submit-form []
   (let [meme-params (subscribe [:memefactory.ui.config/memefactory-db-params])
-        form-data (r/atom {})
+        form-data (r/atom {:param-change/key (ffirst param-info)})
         errors (ratom/reaction @form-data)
         tx-id (str "param-change-submission" (random-uuid))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::param-change/submit-param-change tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::param-change/submit-param-change tx-id}])
         active-account (subscribe [::accounts-subs/active-account])
         current-value (ratom/reaction (when @meme-params
-                                        (-> (get @meme-params (keyword (or (:param-change/key @form-data)
-                                                                           (ffirst param-info))))
+                                        (-> (get @meme-params (keyword (:param-change/key @form-data)))
                                             :value)))
         pc-params (subscribe [:memefactory.ui.config/param-change-db-params])]
     (fn []
@@ -280,9 +279,9 @@
          [:div "Tokens will be returned to you after revealing your vote."]]]))))
 
 (defn apply-change-action [{:keys [:reg-entry/address] :as param-change}]
-  (let [tx-id (str "reveal" (:reg-entry/address param-change))
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::param-change/apply-change tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {::param-change/apply-change tx-id}])]
+  (let [tx-id (str "apply" (:reg-entry/address param-change))
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {:param-change/apply-change tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:param-change/apply-change tx-id}])]
     [:div.apply-change-action
      [inputs/pending-button
       {:pending? @tx-pending?
@@ -336,13 +335,13 @@
                               :challenge/commit-period-end :challenge/reveal-period-end})
        (shared-utils/reg-entry-status now)))
 
-(defn proposed-change [{:keys [:reg-entry/creator :challenge/challenger :param-change/reason
+(defn proposed-change [{:keys [:reg-entry/creator :challenge/challenger :param-change/reason :param-change/key
                                :reg-entry/created-on :param-change/original-value :param-change/value
                                :challenge/comment :param-change/applied-on] :as pc} {:keys [action-child applied-mark]}]
   (let [now (ui-utils/now-in-seconds)]
     [:div.panel.proposed-change-panel
      ;; Only for debugging
-    #_[:b (str (param-change-status @now pc))]
+    #_[:b (str (param-change-status @now pc) " " @now)]
     #_(str (second-date-keys pc #{:reg-entry/created-on :reg-entry/challenge-period-end
                                 :challenge/commit-period-end :challenge/reveal-period-end}))
 
@@ -355,7 +354,7 @@
       [:h2.title "Proposed Change"]
       [:div.info-body
        [:div.section1
-        [:h4 "Meme Submit Deposit"]
+        [:h4 (:title (get param-info (gql-utils/gql-name->kw key)))]
         [:ul.submit-info
          [:li.attr [:label "Created:"] [:span (format-time created-on)]]
          [:li.attr [:label "Status:"] [:span
