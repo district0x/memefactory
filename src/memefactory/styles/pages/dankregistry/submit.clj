@@ -98,27 +98,6 @@
                        :padding-top (em 2)
                        :padding-left (em 2)
                        :padding-right (em 2)}])
-      [:.chip-input
-       [:.chips
-        {:display :flex
-         :flex-direction :row
-         :flex-wrap :wrap
-         :align-content :space-between
-         :width "100%" ;;(px 400)
-         }
-        [:.chip
-         {:display :flex
-          :align-items :center
-          :margin-top (em 1)}]
-        [:.autocomplete-input
-         {:display :flex
-          :flex "1 1 auto"
-          :width (px 30)
-          ;; :background-color :lightgray
-          }
-         #_["input[type=text]"
-            {:padding-top 0}]
-         [:.options {:border-style :none}]]]]
       [:.max-issuance {:font-size (em 0.8)}]
       [:.submit {:display :flex
                  :margin-top (em 1)

@@ -45,8 +45,16 @@
   [:.chip-input
    {:display :flex
     :color (color :menu-text)}
-   [:.chips {:margin-bottom (em 0.3)}
-    [:.chip {:padding-right (em 1)
+   [:.chips {:display :flex
+             :flex-direction :row
+             :flex-wrap :wrap
+             :align-content :space-between
+             :width "100%" ;;(px 400)
+             :margin-bottom (em 0.3)}
+    [:.chip {:display :flex
+             :align-items :center
+             :margin-top (em 1)
+             :padding-right (em 1)
              :border-width (px 1)
              :border-radius "0.3em"
              :margin-left (em 0.3)
@@ -56,15 +64,17 @@
              :padding "0.4em 1em 0.4em 1em"
              :background-color (color :search-input-bg)}
      [:span
-      ;;{:font-size (px 12)}
       [:&:last-child
        {:padding-right (em 0.4)
         :font-style :italic
         :display :none
         :padding-left (em 0.4)}]]]]
    [:.autocomplete-input
-    {:display :inline
-     :width "100%"}
+    {:display :flex
+     :flex "1 1 auto"
+     :width (px 30)
+     ;; :background-color :lightgray
+     }
     ["input[type=text]" "input[type=number]"
      {:line-height (em 0.9)
       :padding-top (em 1.3)
