@@ -50,9 +50,18 @@
   [:.meme-detail-page
    [:.spinner-outer {:margin-left :auto
                      :margin-right :auto}]
-
    [:.address (of-ellipsis)]
    [:section.meme-detail
+    [:.not-in-registry
+     {:color (transparentize (color :menu-text) 0.5)
+      :display :flex
+      :align-items :center
+      :justify-content :center
+      :background (color :meme-panel-bg)
+      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
+      :border-radius "1em 1em 1em 1em"
+      :min-height (px 480)
+      :padding (em 1.4)}]
     [:.meme-info
      {:background (color :meme-panel-bg)
       :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"
@@ -69,7 +78,6 @@
                     [:&
                      {:grid-template-columns "100%"
                       :margin-bottom (em 2)}])
-
      [:&.loading {:display :flex
                   :align-items :center
                   :justify-content :center}]
@@ -86,8 +94,7 @@
        :background-color (color :yellow)}
       (for-media-max :tablet
                      [:&
-                      {:left (em 2.5)}])
-      ]
+                      {:left (em 2.5)}])]
      [:.registry
       {:padding (em 1)}
       [:h1
@@ -97,8 +104,7 @@
       [:.status
        {:display :flex
         :line-height (em 1)
-        :margin-left (px -8)
-        }
+        :margin-left (px -8)}
        [:&:before
         {:content "''"
          :height (em 2.25)

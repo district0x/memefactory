@@ -1,41 +1,40 @@
 (ns memefactory.ui.meme-detail.page
-  (:require
-    [bignumber.core :as bn]
-    [cljs-time.core :as t]
-    [cljs-time.format :as time-format]
-    [cljs-web3.core :as web3]
-    [cljs.core.match :refer-macros [match]]
-    [district.cljs-utils :as cljs-utils]
-    [district.format :as format]
-    [district.graphql-utils :as gql-utils]
-    [district.parsers :as parsers]
-    [district.time :as time]
-    [district.ui.component.form.input :as inputs]
-    [district.ui.component.page :refer [page]]
-    [district.ui.component.tx-button :as tx-button]
-    [district.ui.graphql.subs :as gql]
-    [district.ui.ipfs.subs :as ipfs-subs]
-    [district.ui.now.subs :as now-subs]
-    [district.ui.router.subs :as router-subs]
-    [district.ui.web3-account-balances.subs :as account-balances-subs]
-    [district.ui.web3-accounts.subs :as accounts-subs]
-    [district.ui.web3-tx-id.subs :as tx-id-subs]
-    [goog.string :as gstring]
-    [memefactory.ui.components.app-layout :refer [app-layout]]
-    [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
-    [memefactory.ui.components.panels :refer [panel]]
-    [memefactory.ui.components.search :as search]
-    [memefactory.ui.components.spinner :as spinner]
-    [memefactory.ui.components.tiles :as tiles]
-    [memefactory.ui.contract.registry-entry :as registry-entry]
-    [memefactory.ui.dank-registry.vote-page :as vote-page]
-    [memefactory.ui.events :as memefactory-events]
-    [memefactory.ui.spec :as spec]
-    [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
-    [re-frame.core :as re-frame :refer [subscribe dispatch]]
-    [reagent.core :as r]
-    [reagent.ratom :as ratom]
-    [taoensso.timbre :as log :refer [spy]]))
+  (:require [bignumber.core :as bn]
+            [cljs-time.core :as t]
+            [cljs-time.format :as time-format]
+            [cljs-web3.core :as web3]
+            [cljs.core.match :refer-macros [match]]
+            [district.cljs-utils :as cljs-utils]
+            [district.format :as format]
+            [district.graphql-utils :as gql-utils]
+            [district.parsers :as parsers]
+            [district.time :as time]
+            [district.ui.component.form.input :as inputs]
+            [district.ui.component.page :refer [page]]
+            [district.ui.component.tx-button :as tx-button]
+            [district.ui.graphql.subs :as gql]
+            [district.ui.ipfs.subs :as ipfs-subs]
+            [district.ui.now.subs :as now-subs]
+            [district.ui.router.subs :as router-subs]
+            [district.ui.web3-account-balances.subs :as account-balances-subs]
+            [district.ui.web3-accounts.subs :as accounts-subs]
+            [district.ui.web3-tx-id.subs :as tx-id-subs]
+            [goog.string :as gstring]
+            [memefactory.ui.components.app-layout :refer [app-layout]]
+            [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
+            [memefactory.ui.components.panels :refer [panel]]
+            [memefactory.ui.components.search :as search]
+            [memefactory.ui.components.spinner :as spinner]
+            [memefactory.ui.components.tiles :as tiles]
+            [memefactory.ui.contract.registry-entry :as registry-entry]
+            [memefactory.ui.dank-registry.vote-page :as vote-page]
+            [memefactory.ui.events :as memefactory-events]
+            [memefactory.ui.spec :as spec]
+            [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
+            [re-frame.core :as re-frame :refer [subscribe dispatch]]
+            [reagent.core :as r]
+            [reagent.ratom :as ratom]
+            [taoensso.timbre :as log :refer [spy]]))
 
 (def time-formatter (time-format/formatter "EEEE, ddo MMMM, yyyy 'at' HH:mm Z"))
 
@@ -115,7 +114,6 @@
 (defn related-memes-container [address tags]
   (let [form-data (r/atom {:option-filters :only-lowest-number})
         build-query (fn [{:keys [:options] :as args}]
-                      (log/debug "build-query" args ::related-memes-container)
                       [[:search-meme-auctions (cond-> {:tags-or tags
                                                        :first 18
                                                        :non-for-meme address
@@ -191,7 +189,6 @@
          [:h1.title "Marketplace history"]
          (if (:graphql/loading? @query)
            [spinner/spin]
-
            (if (empty? all-auctions)
              [:div.not-traded-yet "This meme hasn't been traded yet"]
              [:table
@@ -281,7 +278,6 @@
               :reg-entry.status/commit-period "Commit vote period running"
               :reg-entry.status/reveal-period "Reveal vote period running"
               status)]]
-
      (if period-end
        (if (= 0 days hours minutes seconds)
          [:li (str period-label " period ends in ")
@@ -291,7 +287,6 @@
           [:div (-> time-remaining
                     format/format-time-units)]])
        [:li ""])
-
      [:div.lorem text]]))
 
 
@@ -450,9 +445,9 @@
                                                                              :reg-entry/address (:reg-entry/address meme)
                                                                              :vote/option :vote.option/vote-against
                                                                              :vote/amount (-> @form-data
-                                                                                            :vote/amount-against
-                                                                                            parsers/parse-float
-                                                                                            (web3/to-wei :ether))
+                                                                                              :vote/amount-against
+                                                                                              parsers/parse-float
+                                                                                              (web3/to-wei :ether))
                                                                              :meme/title title}])}
             (if @tx-success?
               "Voted"
@@ -530,7 +525,6 @@
                          [challenger-component meme]
                          [vote-page/collect-reward-action meme]])))])
 
-
 (defn details []
   (let [active-account @(subscribe [::accounts-subs/active-account])
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
@@ -547,85 +541,87 @@
         ;; A bit of a hack checking the status here, should just rely upon
         ;; :graphql/loading?. Unfortunately this subscription sometimes returns
         ;; nil when it's really still just loading.
-        meme-not-loaded? (or (not status)
-                             (and meme-sub (:graphql/loading? @meme-sub)))
+        not-loaded? (or (not status)
+                        (and meme-sub (:graphql/loading? @meme-sub)))
+        exists? (and (not not-loaded?) (:reg-entry/address meme))
         url (:gateway @(subscribe [::ipfs-subs/ipfs]))]
     [app-layout
      {:meta {:title (str "MemeFactory - " title)
-             :description (str "Details of meme " title ". " "MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets.")}
+             :description (str "Details of meme " title ". " "MemeFactory is a decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets.")}
       :tags [{:id "image"
               :name "og:image"
               :content (str (format/ensure-trailing-slash url) image-hash)}]}
      [:div.meme-detail-page
       [:section.meme-detail
-       [:div.meme-info {:class (when meme-not-loaded? "loading")}
-        (if meme-not-loaded?
-          [spinner/spin]
-          (list
-           (when number
-             [:div.meme-number {:key :meme-number} (str "#" number)])
-
-           [:div.container {:key :container}
-            [tiles/meme-image image-hash {:rejected? (-> (gql-utils/gql-name->kw status) (= :reg-entry.status/blacklisted))}]]
-
-           [:div.registry {:key :registry}
-            [:h1 title]
-            [:div.status (case (gql-utils/gql-name->kw status)
-                           :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
-                           :reg-entry.status/blacklisted [:label.rejected "Rejected from Registry"]
-                           :reg-entry.status/challenge-period [:label.rejected "Open for Challenge"]
-                           [:label.challenged "Challenged"])]
-            [:div.description (case (gql-utils/gql-name->kw status)
-                                :reg-entry.status/whitelisted      "This meme has passed through the challenge phase and has been placed into the Dank Registry."
-                                :reg-entry.status/blacklisted      "This meme was challenged and lost. It's ineligible for the Dank Registry unless resubmitted."
-                                :reg-entry.status/challenge-period (gstring/format "This meme has been submitted to the Dank Registry, but is still open to be challenged. The challenge window closes in %s"
-                                                                                   (format/format-time-units
-                                                                                    (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                                                         (gql-utils/gql-date->date challenge-period-end))))
-                                (gstring/format "This meme has had its status in the registry challenged. It will be either accepted or rejected when the vote and reveal phases conclude in %s"
-                                                (format/format-time-units
-                                                 (time/time-remaining @(subscribe [:district.ui.now.subs/now])
-                                                                      (gql-utils/gql-date->date reveal-period-end)))))]
-            [:div.text (str "Created " (let [days (:days (time/time-remaining (gql-utils/gql-date->date created-on)
-                                                                              @(subscribe [:district.ui.now.subs/now])))]
-                                         (if (pos? days)
-                                           (str (format/pluralize days "day") " ago")
-                                           "today")))]
-            [:div.text (gstring/format "You own %s out of %d"
-                                       (format/pluralize token-count "card")
-                                       total-supply)]
-            [meme-creator-component creator]
-            (when (seq (:meme/comment meme))
-              [:p.meme-comment (str "\"" (:meme/comment meme) "\"")])
-            [:div.tags
-             (for [tag-name tags]
-               [nav-anchor {:route :route.marketplace/index
-                            :params nil
-                            :query {:search-tags [tag-name]}
-                            :class "tag"
-                            :key tag-name}
-                tag-name])]
-            [:div.buttons
-             [nav-anchor {:route :route.marketplace/index
-                          :params nil
-                          :query {:term title :option-filter "all-cards"}
-                          :class "search marketplace"}
-              "Search On Marketplace"]
-
-             (when active-account
-               [nav-anchor {:route :route.memefolio/index
-                            :params nil
-                            :query {:term title}
-                            :class "search memefolio"}
-                "Search On Memefolio"])]]))]]
+       (if-not exists?
+         [:div.not-in-registry "This meme is not in the registry"]
+         [:div.meme-info {:class (when not-loaded? "loading")}
+          (if not-loaded?
+            [spinner/spin]
+            (list
+             (when number
+               [:div.meme-number {:key :meme-number} (str "#" number)])
+             ^{:key :container}
+             [tiles/meme-image image-hash {:rejected? (-> (gql-utils/gql-name->kw status) (= :reg-entry.status/blacklisted))}]
+             (if exists?
+               [:div.registry {:key :registry}
+                [:h1 title]
+                [:div.status (case (gql-utils/gql-name->kw status)
+                               :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
+                               :reg-entry.status/blacklisted [:label.rejected "Rejected from Registry"]
+                               :reg-entry.status/challenge-period [:label.rejected "Open for Challenge"]
+                               [:label.challenged "Challenged"])]
+                [:div.description (case (gql-utils/gql-name->kw status)
+                                    :reg-entry.status/whitelisted      "This meme has passed through the challenge phase and has been placed into the Dank Registry."
+                                    :reg-entry.status/blacklisted      "This meme was challenged and lost. It's ineligible for the Dank Registry unless resubmitted."
+                                    :reg-entry.status/challenge-period (gstring/format "This meme has been submitted to the Dank Registry, but is still open to be challenged. The challenge window closes in %s"
+                                                                                       (format/format-time-units
+                                                                                        (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                                                             (gql-utils/gql-date->date challenge-period-end))))
+                                    (gstring/format "This meme has had its status in the registry challenged. It will be either accepted or rejected when the vote and reveal phases conclude in %s"
+                                                    (format/format-time-units
+                                                     (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                          (gql-utils/gql-date->date reveal-period-end)))))]
+                [:div.text (str "Created " (let [days (:days (time/time-remaining (gql-utils/gql-date->date created-on)
+                                                                                  @(subscribe [:district.ui.now.subs/now])))]
+                                             (if (pos? days)
+                                               (str (format/pluralize days "day") " ago")
+                                               "today")))]
+                [:div.text (gstring/format "You own %s out of %d"
+                                           (format/pluralize token-count "card")
+                                           total-supply)]
+                [meme-creator-component creator]
+                (when (seq (:meme/comment meme))
+                  [:p.meme-comment (str "\"" (:meme/comment meme) "\"")])
+                [:div.tags
+                 (for [tag-name tags]
+                   [nav-anchor {:route :route.marketplace/index
+                                :params nil
+                                :query {:search-tags [tag-name]}
+                                :class "tag"
+                                :key tag-name}
+                    tag-name])]
+                [:div.buttons
+                 [nav-anchor {:route :route.marketplace/index
+                              :params nil
+                              :query {:term title :option-filter "all-cards"}
+                              :class "search marketplace"}
+                  "Search On Marketplace"]
+                 (when active-account
+                   [nav-anchor {:route :route.memefolio/index
+                                :params nil
+                                :query {:term title}
+                                :class "search memefolio"}
+                    "Search On Memefolio"])]]
+               )))])]
       [:section.history
        [:div.history-component
-        (if meme-not-loaded?
+        (if not-loaded?
           [spinner/spin]
           [history-component address])]]
       [:section.challenge
        [:div.challenge-component
-        (if meme-not-loaded?
+        (if not-loaded?
           [spinner/spin]
           [challenge-component meme])]]
       [:section.related
@@ -633,7 +629,7 @@
         [:div.icon]
         [:h2.title "RELATED MEMES ON MARKETPLACE"]
         [:h3.title "Similar memes for sale now"]
-        (if meme-not-loaded?
+        (if not-loaded?
           [spinner/spin]
           [related-memes-container address tags])]]]]))
 
