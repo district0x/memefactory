@@ -158,7 +158,7 @@
                                    (< @account-balance deposit-value))}
             "Submit"]
            [dank-with-logo (web3/from-wei deposit-value :ether)]]
-          (when (< @account-balance deposit)
+          (when (< @account-balance deposit-value)
             [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])]]]])))
 
 

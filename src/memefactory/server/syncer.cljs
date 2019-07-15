@@ -1,27 +1,27 @@
 (ns memefactory.server.syncer
   (:require
-    [bignumber.core :as bn]
-    [camel-snake-kebab.core :as cs :include-macros true]
-    [cljs-ipfs-api.files :as ipfs-files]
-    [cljs-solidity-sha3.core :refer [solidity-sha3]]
-    [cljs-web3.core :as web3]
-    [cljs-web3.eth :as web3-eth]
-    [district.server.config :refer [config]]
-    [district.server.web3 :refer [web3]]
-    [district.server.web3-events :refer [register-callback! unregister-callbacks! register-after-past-events-dispatched-callback!]]
-    [district.shared.error-handling :refer [try-catch]]
-    [memefactory.server.db :as db]
-    [memefactory.server.generator]
-    [memefactory.shared.utils :as shared-utils]
-    [memefactory.server.ipfs :as ipfs]
-    [memefactory.server.macros :refer [promise->]]
-    [memefactory.server.ranks-cache :as ranks-cache]
-    [memefactory.server.utils :as server-utils]
-    [memefactory.shared.contract.registry-entry :refer [vote-options]]
-    [mount.core :as mount :refer [defstate]]
-    [print.foo :refer [look] :include-macros true]
-    [taoensso.timbre :as log])
-  (:require-macros [cljs.core.async.macros :refer [go]]))
+   [bignumber.core :as bn]
+   [district.time :as time]
+   [camel-snake-kebab.core :as cs :include-macros true]
+   [cljs-ipfs-api.files :as ipfs-files]
+   [cljs-solidity-sha3.core :refer [solidity-sha3]]
+   [cljs-web3.core :as web3]
+   [cljs-web3.eth :as web3-eth]
+   [district.server.config :refer [config]]
+   [district.server.web3 :refer [web3]]
+   [district.server.web3-events :refer [register-callback! unregister-callbacks! register-after-past-events-dispatched-callback!]]
+   [district.shared.error-handling :refer [try-catch]]
+   [memefactory.server.db :as db]
+   [memefactory.server.generator]
+   [memefactory.shared.utils :as shared-utils]
+   [memefactory.server.ipfs :as ipfs]
+   [district.shared.async-helpers :refer [promise->]]
+   [memefactory.server.ranks-cache :as ranks-cache]
+   [memefactory.server.utils :as server-utils]
+   [memefactory.shared.contract.registry-entry :refer [vote-options]]
+   [mount.core :as mount :refer [defstate]]
+   [print.foo :refer [look] :include-macros true]
+   [taoensso.timbre :as log]))
 
 (declare start)
 (declare stop)
@@ -77,6 +77,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Event handlers   ;;
 ;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- add-registry-entry [registry-entry timestamp]
+  (db/insert-registry-entry! (merge registry-entry
+                                    {:reg-entry/created-on timestamp})))
 
 (defn meme-sanity-check [{:keys [:reg-entry/address
                                  :meme/meta-hash
@@ -136,7 +140,7 @@
                            :reg-entry/deposit (bn/number deposit)
                            :reg-entry/challenge-period-end (bn/number challenge-period-end)}
                           timestamp)
-      (promise-> (server-utils/get-ipfs-meta @ipfs/ipfs hash)
+      (promise-> (look (server-utils/get-ipfs-meta @ipfs/ipfs hash))
                  (fn [param-meta]
                    (let [{:keys [reason]} param-meta]
                      (db/insert-or-replace-param-change!
@@ -421,7 +425,7 @@
            :param-change-registry/challenge-created-event challenge-created-event
            :param-change-registry/vote-committed-event vote-committed-event
            :param-change-registry/vote-revealed-event vote-revealed-event
-           :param-change-registry/vote-amount-claimed-event vote-amount-claimed-event
+           :param-change-registry/vote-amount-claimed-event vote-amount-reclaimed-event
            :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
            :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
            :param-change-registry/param-change-applied-event param-change-applied-event
