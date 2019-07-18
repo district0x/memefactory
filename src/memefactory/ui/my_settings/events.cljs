@@ -18,15 +18,17 @@
 (re-frame/reg-event-fx
  ::load-email-settings
  (fn [{:keys [db]} _]
-   (let [active-account (account-queries/active-account db)]
-     {:web3/call {:web3 (:web3 db)
-                  :fns [{:instance (contract-queries/instance db :district0x-emails)
-                         :fn :get-email
-                         :args [active-account]
-                         :on-success [::encrypted-email-found active-account]
-                         :on-error [::logging/error "Error loading user encrypted email"
-                                    {:user {:id active-account}}
-                                    ::load-email-settings]}]}})))
+   (let [active-account (account-queries/active-account db)
+         instance (contract-queries/instance db :district0x-emails)]
+     (when (and active-account instance)
+       {:web3/call {:web3 (:web3 db)
+                    :fns [{:instance instance
+                           :fn :get-email
+                           :args [active-account]
+                           :on-success [::encrypted-email-found active-account]
+                           :on-error [::logging/error "Error loading user encrypted email"
+                                      {:user {:id active-account}}
+                                      ::load-email-settings]}]}}))))
 
 (re-frame/reg-event-db
  ::encrypted-email-found
