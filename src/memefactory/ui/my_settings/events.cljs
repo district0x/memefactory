@@ -18,9 +18,6 @@
  (fn [{:keys [db]} _]
    (let [active-account (account-queries/active-account db)
          instance (contract-queries/instance db :district0x-emails)]
-
-
-
      (when (and active-account instance)
        {:web3/call {:web3 (:web3 db)
                     :fns [{:instance instance
