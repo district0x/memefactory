@@ -48,83 +48,86 @@
                            :amount (str deposit)
                            :meta-hash "QmfWFPzyZRMV7w5NvXfSWeZtEAvsNKYZwuvwpgHD82NR28"}
                           {:from creator-addr}))
-            #_registry-entry #_(look (->> (registry/param-change-constructed-event-in-tx [:param-change-registry :param-change-registry-fwd] (look tx-hash))
-                                          look
-                                          :args
-                                          :registry-entry))
-            ;; change-entry (<? (param-change/load-param-change registry-entry))
-            ]
+            registry-entry (->> (registry/param-change-constructed-event-in-tx [:param-change-registry :param-change-registry-fwd] (look tx-hash))
+                                :args
+                                :registry-entry)
+             change-entry (<? (param-change/load-param-change registry-entry))]
 
-        #_(testing "Can create param change registry"
+        (testing "Can create param change registry"
             (is tx-hash))
 
-        #_(testing "Properties should be good after creating param change"
+        (testing "Properties should be good after creating param change"
             (is (= (:param-change/db change-entry) (contract-address :meme-registry-db)))
             (is (= (:param-change/key change-entry) "deposit"))
-            (is (= (:param-change/value change-entry) (js/parseInt (web3/to-wei 800 :ether)))))
+            (is (= (:param-change/value change-entry) (js/parseInt (web3/to-wei 2 :ether)))))
 
-        #_(testing "Can create challenge under valid condidtions"
-            (is (<? (registry-entry/approve-and-create-challenge registry-entry
-                                                                 {:amount deposit}
-                                                                 {:from challenger-addr}))))
+        (testing "Can create challenge under valid condidtions"
+          (is (<? (registry-entry/approve-and-create-challenge registry-entry
+                                                               {:amount deposit}
+                                                               {:from challenger-addr}))))
         (done))
 (catch js/Error e (js/console.error e))))))
 
-#_(deftest apply-param-change-test
+(deftest apply-param-change-test
 
   (test/async
    done
    (async/go
-    (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
-          [deposit challenge-period-duration]
-          (->> (<? (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration]))
-               (map bn/number))
 
-          registry-entry (->> (<? (param-change-factory/approve-and-create-param-change
-                                   {:db (contract-address :meme-registry-db)
-                                    :key :deposit
-                                    :value (web3/to-wei 800 :ether)
-                                    :amount deposit}
-                                   {:from creator-addr}))
-                              (registry/param-change-constructed-event-in-tx [:param-registry :param-registry-fwd])
-                              :args
-                              :registry-entry)
-          other-registry-entry (->> (<? (param-change-factory/approve-and-create-param-change
+     (try
+       (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
+             [deposit challenge-period-duration]
+             (->> (<? (eternal-db/get-uint-values :param-change-registry-db [:deposit :challenge-period-duration]))
+                  (map bn/number))
+             registry-entry-tx-hash (<? (param-change-factory/approve-and-create-param-change
                                          {:db (contract-address :meme-registry-db)
                                           :key :deposit
-                                          :value (web3/to-wei 500 :ether)
-                                          :amount deposit}
+                                          :value (web3/to-wei 800 :ether)
+                                          :amount (str deposit)}
                                          {:from creator-addr}))
-                                    (registry/param-change-constructed-event-in-tx [:param-registry :param-registry-fwd])
-                                    :args
-                                    :registry-entry)
-          change-entry (<? (param-change/load-param-change registry-entry))]
+             registry-entry (->> registry-entry-tx-hash
+                                 (registry/param-change-constructed-event-in-tx [:param-change-registry :param-change-registry-fwd])
+                                 :args
+                                 :registry-entry)
+             other-registry-entry-tx-hash (<? (param-change-factory/approve-and-create-param-change
+                                               {:db (contract-address :meme-registry-db)
+                                                :key :deposit
+                                                :value (web3/to-wei 500 :ether)
+                                                :amount deposit}
+                                               {:from creator-addr}))
+             other-registry-entry (->> other-registry-entry-tx-hash
+                                       (registry/param-change-constructed-event-in-tx [:param-change-registry :param-change-registry-fwd])
+                                       :args
+                                       :registry-entry)
+             change-entry (<? (param-change/load-param-change registry-entry))]
 
-      (testing "Cannot be applied when not whitelisted"
-        ;; it will not be whitelisted because we are still in challenge period
-        (is (<? (tx-error? (<? (param-change-registry/apply-param-change registry-entry {:from creator-addr}))))))
+         (testing "Cannot be applied when not whitelisted"
+             ;; it will not be whitelisted because we are still in challenge period
+           (is (<? (tx-error? (<? (param-change-registry/apply-param-change registry-entry {:from creator-addr}))))))
 
-      (<? (web3-evm/increase-time! @web3 [(inc challenge-period-duration)]))
+         (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
 
-      (testing "Param change can be applied under valid conditions"
-        (<? (param-change-registry/apply-param-change registry-entry {:from creator-addr})))
+         (testing "Param change can be applied under valid conditions"
+             (<? (param-change-registry/apply-param-change registry-entry {:from creator-addr})))
 
-      (testing "Properties after applying param change should be good"
-        (let [[new-deposit-val] (->> (<? (eternal-db/get-uint-values :meme-registry-db [:deposit]))
-                                     (map bn/number))]
-          (is (= new-deposit-val (js/parseInt (web3/to-wei 800 :ether))))))
+         (testing "Properties after applying param change should be good"
+           (let [[new-deposit-val] (->> (<? (eternal-db/get-uint-values :meme-registry-db [:deposit]))
+                                        (map bn/number))]
+             (is (= new-deposit-val (js/parseInt (web3/to-wei 800 :ether))))))
 
-      (testing "Param change cannot be applied twice"
-        (is (<? (tx-error? (<? (param-change-registry/apply-param-change registry-entry {:from creator-addr}))))))
+         (testing "Param change cannot be applied twice"
+           (is (<? (tx-error? (<? (param-change-registry/apply-param-change registry-entry {:from creator-addr}))))))
 
-      (testing "Param change cannot be applied if original value is not current value"
-        (is (<? (tx-error? (<? (param-change-registry/apply-param-change other-registry-entry {:from creator-addr}))))))
+         (testing "Param change cannot be applied if original value is not current value"
+           (is (<? (tx-error? (<? (param-change-registry/apply-param-change other-registry-entry {:from creator-addr}))))))
 
-      (testing "Invalid Param change cannot be created"
-        (is (<? (tx-error? (<? (param-change-factory/approve-and-create-param-change
-                                {:db (contract-address :meme-registry-db)
-                                 :key :challenge-dispensation
-                                 :value 101
-                                 :amount deposit}
-                                {:from creator-addr}))))))
-      (done)))))
+         (testing "Invalid Param change cannot be created"
+           (is (<? (tx-error?
+                    (<? (param-change-factory/approve-and-create-param-change
+                         {:db (contract-address :meme-registry-db)
+                          :key :challenge-dispensation
+                          :value 101
+                          :amount deposit}
+                         {:from creator-addr}))))))
+         (done))
+       (catch js/Error e (js/console.error e))))))
