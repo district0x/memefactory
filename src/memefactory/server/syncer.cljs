@@ -140,7 +140,7 @@
                            :reg-entry/deposit (bn/number deposit)
                            :reg-entry/challenge-period-end (bn/number challenge-period-end)}
                           timestamp)
-      (promise-> (look (server-utils/get-ipfs-meta @ipfs/ipfs hash))
+      (promise-> (server-utils/get-ipfs-meta @ipfs/ipfs hash)
                  (fn [param-meta]
                    (let [{:keys [reason]} param-meta]
                      (db/insert-or-replace-param-change!

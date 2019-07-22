@@ -29,7 +29,7 @@
    (log/info "Challenge meta created with hash" {:hash Hash} ::approve-and-create-challenge)
    (let [tx-name (gstring/format "Challenge %s" tx-description)
          active-account (account-queries/active-account db)
-         extra-data (web3-eth/contract-get-data (look (contract-queries/instance db type address))
+         extra-data (web3-eth/contract-get-data (contract-queries/instance db type address)
                                                 :create-challenge
                                                 active-account
                                                 Hash)]
