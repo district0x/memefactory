@@ -22,4 +22,4 @@
   (dank-token/approve-and-call {:spender (contract-address :param-change-factory)
                                 :amount amount
                                 :extra-data (create-param-change-data (merge {:creator (:from opts)} args))}
-                               (merge {:gas 700000} opts)))
+                               (merge {:gas 800000} opts)))

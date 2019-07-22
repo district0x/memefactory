@@ -126,7 +126,9 @@
                            :reg-entry/challenge-period-end (+ now (hours->seconds 1))
                            :param-change/db "MEMEREGISTRYADDR"
                            :param-change/key (get ["deposit" "challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration" "deposit"] i)
-                           :param-change/initial-value (case i
+                           :param-change/meta-hash (str "MHASH" i)
+                           :param-change/reason (str "Reason " i)
+                           :param-change/original-value (case i
                                                          0 (:initial-param/value (nth initial-params 0))
                                                          1 (:initial-param/value (nth initial-params 1))
                                                          2 (:initial-param/value (nth initial-params 2))
