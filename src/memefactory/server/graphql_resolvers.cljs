@@ -108,7 +108,7 @@
    :else (enum :reg-entry.status/whitelisted)))
 
 (defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :challenged :order-by :order-dir :owner :creator :curator :challenger :voter :first :after] :as args}]
-  (log/info "search-memes-query-resolver" args)
+  (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          page-start-idx (when after (js/parseInt after))
@@ -330,7 +330,7 @@
 (defn search-param-changes-query-resolver [_ {:keys [:key :db :order-by :order-dir :group-by :first :after :statuses]
                                               :or {order-dir :asc}
                                               :as args}]
-  (log/info "search-param-changes args" args)
+  (log/debug "search-param-changes args" args)
   (try-catch-throw
    ;; or enum address
    (let [db (if (contains? #{"memeRegistryDb" "paramChangeRegistryDb"} db)
@@ -388,7 +388,7 @@
        sql-query))))
 
 (defn search-users-query-resolver [_ {:keys [:order-by :order-dir :first :after] :or {order-dir :asc} :as args} _ document]
-  (log/info "search-users-query-resolver args" args)
+  (log/debug "search-users-query-resolver args" args)
   (try-catch-throw
    (let [order-dir (keyword order-dir)
          now (utils/now-in-seconds)
@@ -502,26 +502,8 @@
   (let [db (if (contains? #{"memeRegistryDb" "paramChangeRegistryDb"} db)
              (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
              db)]
-    ;; TODO Fix this for param changes when that is ready, for now we will only
-    ;; load from INITIAL_PARAMS table
     (try-catch-throw
-     (let [sql-query (db/all {:select [:*]
-                              :from [{:union [{:select [[:initial-param/key :param/key]
-                                                        [:initial-param/value :param/value]
-                                                        [:initial-param/set-on :param/set-on]
-                                                        [:initial-param/db :param/db]]
-                                               :from [[:initial-params :ips]]}
-                                              {:select [[:param-change/key :param/key]
-                                                        [:param-change/value :param/value]
-                                                        [:param-change/applied-on :param/set-on]
-                                                        [:param-change/db :param/db]]
-                                               :from [[:param-changes :pc]]}]}]
-                              :where [:and
-                                      [:= db :param/db]
-                                      [:in :param/key keys]
-                                      [:not= nil :param/set-on]]
-                              :group-by [:param/key]
-                              :having (sql/call :max :param/set-on)})]
+     (let [sql-query (db/all (mf-db/build-param-query keys db))]
        (log/debug "params-query-resolver" sql-query)
        sql-query))))
 
@@ -1195,9 +1177,7 @@
                  :reg-entry/creator reg-entry->creator-resolver
                  :challenge/challenger reg-entry->challenger
                  :challenge/all-rewards reg-entry->all-rewards-resolver
-                 :challenge/vote reg-entry->vote-resolver
-                 ;;:param-change/original-value param-change->original-value-resolver
-                 }
+                 :challenge/vote reg-entry->vote-resolver}
    :ParamChangeList {:items param-change-list->items-resolver}
    :User {:user/total-created-memes user->total-created-memes-resolver
           :user/total-created-memes-whitelisted user->total-created-memes-whitelisted-resolver

@@ -148,8 +148,7 @@
                        :param-change/db db
                        :param-change/key key
                        :param-change/value (bn/number value)
-                       ;; TODO: fix this, it is not correct, we should query params here for the previous value
-                       :param-change/original-value (:initial-param/value (db/get-initial-param key db))
+                       :param-change/original-value (:param/value (db/get-param key db))
                        :param-change/reason reason
                        :param-change/meta-hash hash})))))))
 
