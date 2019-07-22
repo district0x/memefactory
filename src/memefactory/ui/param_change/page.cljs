@@ -106,7 +106,6 @@
         [:div.form
          [:div.input-old
           [:div.current-value @current-value]
-          #_[:span.unit "Seconds"] ;; TODO: fix this
           [:div.label-under "Current Value"]]
 
          [:div.input-outer.input-new
@@ -115,7 +114,6 @@
                        :id :param-change/value
                        :dom-id :ftitle
                        :maxLength 60}]
-          #_[:span.unit "Seconds"] ;; TODO: fix this
           [:div.label-under "New Value"]]
 
          [:div.textarea

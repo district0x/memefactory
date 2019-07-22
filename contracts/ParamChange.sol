@@ -93,9 +93,10 @@ contract ParamChange is RegistryEntry {
 
   function loadParamChange() external constant returns (address,
                                                         string,
-                                                        uint)
+                                                        uint,
+                                                        bytes)
   {
-    return (db, key, value);
+    return (db, key, value, metaHash);
   }
 
 }
