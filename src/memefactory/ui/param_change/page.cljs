@@ -4,6 +4,7 @@
    [cljs-web3.core :as web3]
    [district.parsers :as parsers]
    [district.ui.component.page :refer [page]]
+   [district.ui.web3-account-balances.subs :as balance-subs]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.general :refer [nav-anchor]]
    [reagent.core :as r]
@@ -203,17 +204,18 @@
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])]
     (fn [param-change]
       (let [vote-fn (fn [option amount]
-                      (dispatch [::registry-entry/approve-and-commit-vote (look {:send-tx/id tx-id
-                                                                            :reg-entry/address (:reg-entry/address param-change)
-                                                                            :vote/option option
-                                                                            :vote/amount amount
-                                                                            :tx-description (->> (gql-utils/gql-name->kw (:param-change/key param-change))
-                                                                                                 (get param-info)
-                                                                                                 :title)
-                                                                                 :type :param-change
-                                                                                 :option-desc {:vote.option/vote-against "NO"
-                                                                                               :vote.option/vote-for     "YES"}})]))
-            address (:reg-entry/address param-change)]
+                      (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
+                                                                           :reg-entry/address (:reg-entry/address param-change)
+                                                                           :vote/option option
+                                                                           :vote/amount amount
+                                                                           :tx-description (->> (gql-utils/gql-name->kw (:param-change/key param-change))
+                                                                                                (get param-info)
+                                                                                                :title)
+                                                                           :type :param-change
+                                                                           :option-desc {:vote.option/vote-against "NO"
+                                                                                         :vote.option/vote-for     "YES"}}]))
+            address (:reg-entry/address param-change)
+            account-balance @(subscribe [::balance-subs/active-account-balance :DANK])]
         [:div.vote-action
 
         [:div.vote-ctrl.vote-yes
@@ -275,7 +277,8 @@
             "VOTE NO")]]
 
         [:div.info
-         [:div "You can vote with up to 1,123,455 DANK tokens."]
+         [:div (gstring/format "You can vote with up to %s tokens."
+                               (ui-utils/format-dank account-balance))]
          [:div "Tokens will be returned to you after revealing your vote."]]]))))
 
 (defn apply-change-action [{:keys [:reg-entry/address] :as param-change}]
@@ -303,12 +306,17 @@
                                        (format/format-number (bn/number (web3/from-wei (or n 0) :ether)))))
         active-account (subscribe [::accounts-subs/active-account])]
     [:div.claim-action
-    [charts/donut-chart voting]
-    [:ul
-     [:li [:label "Voted Yes:"] [:span (format-votes votes-for votes-total)]]
-     [:li [:label "Voted No:"] [:span (format-votes votes-against votes-total)]]
-     [:li [:label "Total Voted:"] [:span (format/format-number (bn/number (web3/from-wei (or votes-total 0) :ether)))]]
-     [:li [:label "You Voted:"] [:span "20 for No (5%)"]]]
+     [charts/donut-chart voting]
+     [:ul
+      [:li [:label "Voted Yes:"] [:span (format-votes votes-for votes-total)]]
+      [:li [:label "Voted No:"] [:span (format-votes votes-against votes-total)]]
+      [:li [:label "Total Voted:"] [:span (format/format-number (bn/number (web3/from-wei (or votes-total 0) :ether)))]]
+      [:li [:label "You Voted:"] [:span (gstring/format "%d for %s (%s)"
+                                                        (format/format-number (bn/number (web3/from-wei (or (:vote/amount vote) 0) :ether)))
+                                                        ({:vote-option/vote-for "Yes"
+                                                          :vote-option/vote-against "No"}
+                                                         (gql-utils/gql-name->kw (:vote/option vote)))
+                                                        (format/format-percentage (or (:vote/amount vote) 0) votes-total))]]]
      (when @active-account (buttons/reclaim-buttons @active-account voting))]))
 
 (defn format-time [gql-date]

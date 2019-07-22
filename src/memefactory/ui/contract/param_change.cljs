@@ -41,16 +41,16 @@
          active-account (account-queries/active-account db)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :param-change-factory)
                                                 :create-param-change
-                                                (look active-account)
-                                                (look (contract-queries/contract-address db :meme-registry-db))
-                                                (look (gql-utils/kw->gql-name key))
-                                                (look value)
-                                                (look Hash))]
+                                                active-account
+                                                (contract-queries/contract-address db :meme-registry-db)
+                                                (gql-utils/kw->gql-name key)
+                                                value
+                                                Hash)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
-                                      :args (look [(contract-queries/contract-address db :param-change-factory)
-                                              deposit
-                                              (look extra-data)])
+                                      :args [(contract-queries/contract-address db :param-change-factory)
+                                             deposit
+                                             extra-data]
                                       :tx-opts {:from active-account}
                                       :tx-id {:meme/create-param-change tx-id}
                                       :tx-log {:name tx-name}
@@ -73,9 +73,9 @@
    (let [tx-id id
          tx-name "Parameter change applied"
          active-account (account-queries/active-account db)]
-     {:dispatch [::tx-events/send-tx {:instance (look (contract-queries/instance db
-                                                                                 :param-change-registry
-                                                                                 (contract-queries/contract-address db :param-change-registry-fwd)))
+     {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db
+                                                                           :param-change-registry
+                                                                           (contract-queries/contract-address db :param-change-registry-fwd))
                                       :fn :apply-param-change
                                       :args [address]
                                       :tx-opts {:from active-account}
