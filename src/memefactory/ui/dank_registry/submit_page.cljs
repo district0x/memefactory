@@ -80,10 +80,10 @@
 
                                       ))})
         critical-errors (reaction (index-by-type @errors :error))
-        account-balance (subscribe [::balance-subs/active-account-balance :DANK])]
+        account-balance (subscribe [::balance-subs/active-account-balance :DANK])
+        active-account @(subscribe [::accounts-subs/active-account])]
 
     (fn []
-      (log/debug "@form-data" @form-data)
       [app-layout
        {:meta {:title "MemeFactory - Submit to Dank Registry"
                :description "Submit a new meme to the registry for consideration. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
@@ -98,15 +98,17 @@
                             :label "Upload a file"
                             :comment "Upload image with ratio 2:3 and size less than 1.5MB"
                             :file-accept-pred (fn [{:keys [name type size] :as props}]
-                                                (js/console.log "Veryfing acceptance of file of type : " type " and size : " size)
-                                                (and (#{"image/png" "image/gif" "image/jpeg"} type)
+                                                (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
+                                                ;; TODO : mp4s
+                                                (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "video/mp4"} type)
                                                      (< size 1500000)))
                             :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
                                                 (swap! form-data update-in [:file-info] dissoc :error)
-                                                (log/info (gstring/format "Accepted file %s %s %s" name type size) ::file-accepted))
+                                                (log/info "Accepted file" {:name name :type type :size size} ::file-accepted))
                             :on-file-rejected (fn [{:keys [name type size] :as props}]
+                                                ;; TODO :; accepted extesions
                                                 (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif or file selected with size less than 1.5 Mb"})
-                                                (log/warn (gstring/format "Rejected file %s %s %s" name type size) ::file-rejected))}]]
+                                                (log/warn "Rejected file" {:name name :type type :size size :user {:id active-account}} ::file-rejected))}]]
          [:div.form-panel
           [with-label "Title"
            [text-input {:form-data form-data

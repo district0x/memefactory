@@ -6,7 +6,6 @@
 
   :dependencies [[akiroz.re-frame/storage "0.1.2"]
                  [camel-snake-kebab "0.4.0"]
-                 [cljs-ajax "0.7.4"]
                  [cljs-web3 "0.19.0-0-10"]
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "4.12.0-0"]
@@ -21,7 +20,13 @@
                  [cljs-node-io "1.1.2"]
                  [district0x/async-helpers "0.1.1"]
                  [district0x/bignumber "1.0.3"]
-                 [district0x/cljs-ipfs-native "1.0.2"]
+
+                 ;; [cljs-ajax "0.8.0"]
+                 ;; [noencore "0.3.4"]
+                 ;; [cljs-http "0.1.46"]
+                 [district0x/cljs-ipfs-http-client "1.1.0"]
+                 [district0x/re-frame-ipfs-fx "1.0.0"]
+
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
@@ -65,7 +70,6 @@
                  [district0x/district-ui-window-size "1.0.1"]
                  [district0x/district-web3-utils "1.0.3"]
                  [district0x/error-handling "1.0.4"]
-                 [district0x/re-frame-ipfs-fx "0.0.2"]
                  [funcool/bide "1.6.1-SNAPSHOT"] ;; version with fix for duplicated query params
                  [garden "1.3.5"]
                  [medley "1.0.0"]
@@ -82,7 +86,13 @@
 
   :exclusions [funcool/bide
                express-graphql
-               cljsjs/react-with-addons]
+               cljsjs/react-with-addons
+
+               ;; cljs-http
+               cljs-ipfs-http-client
+               ;; district0x/re-frame-ipfs-fx
+
+               ]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
@@ -183,7 +193,8 @@
                                    :optimizations :none
                                    :source-map true}}
                        {:id "dev-ui"
-                        :source-paths ["src/memefactory/ui" "src/memefactory/shared"]
+                        :source-paths ["src/memefactory/ui" "src/memefactory/shared" ;;"src/district0x/re_frame" "src/cljs_ipfs_api" "src/cljs_http"
+                                       ]
                         :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
                         :compiler {:main "memefactory.ui.core"
                                    :output-to "resources/public/js/compiled/app.js"
