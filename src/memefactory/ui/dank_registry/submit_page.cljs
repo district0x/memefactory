@@ -99,14 +99,12 @@
                             :comment "Upload image with ratio 2:3 and size less than 1.5MB"
                             :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                 (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
-                                                ;; TODO : mp4s
-                                                (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "video/mp4"} type)
+                                                (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml"} type)
                                                      (< size 1500000)))
                             :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
                                                 (swap! form-data update-in [:file-info] dissoc :error)
                                                 (log/info "Accepted file" {:name name :type type :size size} ::file-accepted))
                             :on-file-rejected (fn [{:keys [name type size] :as props}]
-                                                ;; TODO :; accepted extesions
                                                 (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif or file selected with size less than 1.5 Mb"})
                                                 (log/warn "Rejected file" {:name name :type type :size size :user {:id active-account}} ::file-rejected))}]]
          [:div.form-panel
