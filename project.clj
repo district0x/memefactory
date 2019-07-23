@@ -20,13 +20,7 @@
                  [cljs-node-io "1.1.2"]
                  [district0x/async-helpers "0.1.1"]
                  [district0x/bignumber "1.0.3"]
-
-                 ;; [cljs-ajax "0.8.0"]
-                 ;; [noencore "0.3.4"]
-                 ;; [cljs-http "0.1.46"]
-                 [district0x/cljs-ipfs-http-client "1.1.0"]
-                 [district0x/re-frame-ipfs-fx "1.0.0"]
-
+                 [district0x/cljs-ipfs-http-client "1.0.1"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
@@ -70,6 +64,7 @@
                  [district0x/district-ui-window-size "1.0.1"]
                  [district0x/district-web3-utils "1.0.3"]
                  [district0x/error-handling "1.0.4"]
+                 [district0x/re-frame-ipfs-fx "1.1.0"]
                  [funcool/bide "1.6.1-SNAPSHOT"] ;; version with fix for duplicated query params
                  [garden "1.3.5"]
                  [medley "1.0.0"]
@@ -87,12 +82,7 @@
   :exclusions [funcool/bide
                express-graphql
                cljsjs/react-with-addons
-
-               ;; cljs-http
-               cljs-ipfs-http-client
-               ;; district0x/re-frame-ipfs-fx
-
-               ]
+               cljs-ipfs-http-client]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
@@ -193,8 +183,7 @@
                                    :optimizations :none
                                    :source-map true}}
                        {:id "dev-ui"
-                        :source-paths ["src/memefactory/ui" "src/memefactory/shared" ;;"src/district0x/re_frame" "src/cljs_ipfs_api" "src/cljs_http"
-                                       ]
+                        :source-paths ["src/memefactory/ui" "src/memefactory/shared"]
                         :figwheel {:on-jsload "district.ui.reagent-render/rerender"}
                         :compiler {:main "memefactory.ui.core"
                                    :output-to "resources/public/js/compiled/app.js"
