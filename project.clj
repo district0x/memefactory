@@ -81,8 +81,7 @@
 
   :exclusions [funcool/bide
                express-graphql
-               cljsjs/react-with-addons
-               cljs-ipfs-http-client]
+               cljsjs/react-with-addons]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
