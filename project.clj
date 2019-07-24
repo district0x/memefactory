@@ -121,6 +121,10 @@
                        [tar-fs "2.0.0"]
                        ;; for solidity sha3 function
                        [web3-utils "1.0.0-beta.55"]
+
+                       ;; For deploying to infura
+                       [truffle-hdwallet-provider "1.0.12"]
+                       [dotenv "8.0.0"]
                        ]}
 
   :solc {:src-path "contracts/"
