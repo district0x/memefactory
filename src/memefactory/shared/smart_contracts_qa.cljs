@@ -9,7 +9,7 @@
     :address "0xab4d684b2cc21ea99ee560a0f0d1490b09b09127"}
    :param-change-registry
    {:name "ParamChangeRegistry"
-    :address "0xf67ef1ddec28f63832c0cc0293f46ebee377f82e"}
+    :address "0xdf28474d1c0f5bccb8298d4b147faedbc9fd8070"}
    :param-change-registry-db
    {:name "EternalDb"
     :address "0x8e27158eb1177b01bb4f0303c2b21ca785a55352"}
@@ -18,7 +18,7 @@
     :address "0x4450bcc33af0b93362fff45e957092b3d5371fe5"}
    :param-change
    {:name "ParamChange"
-    :address "0x2904c4f7d455eee25d66ed6d7109404c6b200070"}
+    :address "0x3a81b7bd26a459564320d4e4da025ee1581fca15"}
    :minime-token-factory
    {:name "MiniMeTokenFactory"
     :address "0xa0a24fcac66bf51b2366686916e248c13a5641b1"}
@@ -30,7 +30,7 @@
     :address "0x57d3bd03852f7f7c40778b433f307e5d653379b9"}
    :param-change-factory
    {:name "ParamChangeFactory"
-    :address "0x6d7caf67ade2e3ee597d461a5700a2cca3c75060"}
+    :address "0x0af7f937aa5d4240299e927431f71eca43bffe85"}
    :param-change-registry-fwd
    {:name "MutableForwarder"
     :address "0x5091c87601b085d5abb477a534bcac80fd11896e"
