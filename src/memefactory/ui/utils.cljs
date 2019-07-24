@@ -1,10 +1,13 @@
 (ns memefactory.ui.utils
-  (:require
-    [bignumber.core :as bn]
-    [cljs-web3.core :as web3]
-    [clojure.string :as string]
-    [district.format :as format]))
-
+  (:require [bignumber.core :as bn]
+            [cljs-time.core :as t]
+            [cljs-web3.core :as web3]
+            [cljs-web3.eth :as web3-eth]
+            [clojure.string :as string]
+            [district.format :as format]
+            [district.ui.now.subs]
+            [memefactory.ui.config :refer [config]]
+            [reagent.ratom :refer [reaction]]))
 
 (defn format-price [price]
   (format/format-eth (bn/number (web3/from-wei price :ether)) {:max-fraction-digits 3
@@ -49,3 +52,9 @@
            (if (string/starts-with? (name order-by) "price")
              "price"
              (name order-by))))
+
+(defn now-in-seconds
+  "A reaction that returns time since epoch in seconds"
+  []
+  (let [now-subs (re-frame.core/subscribe [:district.ui.now.subs/now])]
+    (reaction (quot (.getTime @now-subs) 1000))))

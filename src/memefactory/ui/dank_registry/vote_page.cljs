@@ -165,7 +165,10 @@
                                                                   :amount-vote-for
                                                                   parsers/parse-float
                                                                   (web3/to-wei :ether))
-                                                   :meme/title title}]))}
+                                                   :tx-description title
+                                                   :option-desc {:vote.option/vote-against "stank"
+                                                                 :vote.option/vote-for     "dank"}
+                                                   :type :meme}]))}
            [:i.vote-dank]
            (if voted? "Voted ""Vote Dank")]]
          [:div.vote-stank
@@ -189,7 +192,10 @@
                                                   {:send-tx/id tx-id
                                                    :reg-entry/address address
                                                    :vote/option :vote.option/vote-against
-                                                   :meme/title title
+                                                   :tx-description title
+                                                   :type :meme
+                                                   :option-desc {:vote.option/vote-against "stank"
+                                                                 :vote.option/vote-for     "dank"}
                                                    :vote/amount (-> @form-data
                                                                   :amount-vote-against
                                                                   parsers/parse-float
@@ -223,7 +229,9 @@
                                        (dispatch [::registry-entry/reveal-vote
                                                   {:send-tx/id tx-id
                                                    :reg-entry/address address
-                                                   :meme/title title}
+                                                   :tx-description title
+                                                   :option-desc {:vote.option/vote-against "stank"
+                                                                 :vote.option/vote-for     "dank"}}
                                                   vote]))}
            (if @tx-success?
              "Revealed"
@@ -267,7 +275,8 @@
                                       :key :vote-page/open
                                       ;; HACK : key should be created-on but our select doesn't support two equal keys
                                       :sort-options [{:key "commit-period-end-desc" :value "Newest" :order-dir :desc}
-                                                     {:key "commit-period-end-asc"  :value "Oldest" :order-dir :asc}]}]}
+                                                     {:key "commit-period-end-asc"  :value "Oldest" :order-dir :asc}]}]
+            :route :route.dank-registry/vote}
            {:title "Resolved Challenges"
             :content [challenge-list {:include-challenger-info? true
                                       :query-params {:statuses [:reg-entry.status/blacklisted
@@ -279,4 +288,5 @@
                                       :key :vote-page/resolved
                                       ;; HACK : key should be created-on but our select doesn't support two equal keys
                                       :sort-options [{:key "reveal-period-end-desc" :value "Newest" :order-dir :desc}
-                                                     {:key "reveal-period-end-asc"  :value "Oldest" :order-dir :asc}]}]}]]]]])))
+                                                     {:key "reveal-period-end-asc"  :value "Oldest" :order-dir :asc}]}]
+            :route :route.dank-registry/vote}]]]]])))

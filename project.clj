@@ -46,10 +46,11 @@
                  [district0x/district-ui-component-tx-button "1.0.0"]
                  [district0x/district-ui-graphql "1.0.9"]
                  [district0x/district-ui-ipfs "1.0.0"]
-                 [district0x/district-ui-logging "1.0.4"]
+                 [district0x/district-ui-logging "1.1.0"]
                  [district0x/district-ui-mobile "1.0.0"]
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
+                 [district0x/district-ui-web3-sync-now "1.0.3-2"]
                  [district0x/district-ui-reagent-render "1.0.1"]
                  [district0x/district-ui-router "1.0.5"]
                  [district0x/district-ui-router-google-analytics "1.0.1"]
@@ -119,6 +120,10 @@
                        [tar-fs "2.0.0"]
                        ;; for solidity sha3 function
                        [web3-utils "1.0.0-beta.55"]
+
+                       ;; For deploying to infura
+                       [truffle-hdwallet-provider "1.0.12"]
+                       [dotenv "8.0.0"]
                        ]}
 
   :solc {:src-path "contracts/"
@@ -210,7 +215,7 @@
                                    :pseudo-names true}}
                        {:id "server-tests"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
-                        ;; :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
+                        :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
                         :compiler {:main "memefactory.tests.runner"
                                    :output-to "memefactory-tests/memefactory-server-tests.js",
                                    :output-dir "memefactory-tests",

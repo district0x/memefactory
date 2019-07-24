@@ -1,6 +1,7 @@
 (ns memefactory.server.syncer
   (:require
    [bignumber.core :as bn]
+   [district.time :as time]
    [camel-snake-kebab.core :as cs :include-macros true]
    [cljs-ipfs-api.files :as ipfs-files]
    [cljs-solidity-sha3.core :refer [solidity-sha3]]
@@ -12,14 +13,14 @@
    [district.shared.error-handling :refer [try-catch]]
    [memefactory.server.db :as db]
    [memefactory.server.generator]
-   [district.time :as time]
-   [memefactory.server.graphql-resolvers :refer [reg-entry-status]]
+   [memefactory.shared.utils :as shared-utils]
    [memefactory.server.ipfs :as ipfs]
    [district.shared.async-helpers :refer [promise->]]
    [memefactory.server.ranks-cache :as ranks-cache]
    [memefactory.server.utils :as server-utils]
    [memefactory.shared.contract.registry-entry :refer [vote-options]]
    [mount.core :as mount :refer [defstate]]
+   [print.foo :refer [look] :include-macros true]
    [taoensso.timbre :as log]))
 
 (declare start)
@@ -55,7 +56,7 @@
       (if (not challenger)
         (assign-next-number! address)
         (if (> (server-utils/now-in-seconds) reveal-period-end)
-          (when (= (reg-entry-status (server-utils/now-in-seconds) re)
+          (when (= (shared-utils/reg-entry-status (server-utils/now-in-seconds) re)
                    :reg-entry.status/whitelisted)
             (assign-next-number! address))
           (schedule-meme-number-assigner address (inc (- reveal-period-end (server-utils/now-in-seconds)))))))))
@@ -76,6 +77,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Event handlers   ;;
 ;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- add-registry-entry [registry-entry timestamp]
+  (db/insert-registry-entry! (merge registry-entry
+                                    {:reg-entry/created-on timestamp})))
 
 (defn meme-sanity-check [{:keys [:reg-entry/address
                                  :meme/meta-hash
@@ -124,25 +129,33 @@
                        (doseq [t (into #{} search-tags)]
                          (db/tag-meme! {:reg-entry/address registry-entry :tag/name t})))))))))
 
-(defn param-change-constructed-event [_ {:keys [:args] :as event}]
-  (let [{:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp]} args]
-    (promise-> (js/Promise.resolve (db/insert-registry-entry! {:reg-entry/address registry-entry
-                                                               :reg-entry/creator creator
-                                                               :reg-entry/version version
-                                                               :reg-entry/deposit (bn/number deposit)
-                                                               :reg-entry/challenge-period-end (bn/number challenge-period-end)
-                                                               :reg-entry/created-on timestamp}))
-               #(db/insert-or-replace-param-change! {:reg-entry/address registry-entry
-                                                     :param-change/db db
-                                                     :param-change/key key
-                                                     :param-change/value (bn/number value)
-                                                     :param-change/initial-value (:initial-param/value (db/get-initial-param key db))}))))
+(defn param-change-constructed-event [_ {:keys [:args]}]
+  (try-catch
+   (let [{:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp :meta-hash]} args
+         hash (web3/to-ascii meta-hash)]
+      (add-registry-entry {:reg-entry/address registry-entry
+                           :reg-entry/creator creator
+                           :reg-entry/version version
+                           :reg-entry/created-on timestamp
+                           :reg-entry/deposit (bn/number deposit)
+                           :reg-entry/challenge-period-end (bn/number challenge-period-end)}
+                          timestamp)
+      (promise-> (server-utils/get-ipfs-meta @ipfs/ipfs hash)
+                 (fn [param-meta]
+                   (let [{:keys [reason]} param-meta]
+                     (db/insert-or-replace-param-change!
+                      {:reg-entry/address registry-entry
+                       :param-change/db db
+                       :param-change/key key
+                       :param-change/value (bn/number value)
+                       :param-change/original-value (:param/value (db/get-param key db))
+                       :param-change/reason reason
+                       :param-change/meta-hash hash})))))))
 
 (defn param-change-applied-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp]} args]
     (js/Promise.resolve (db/update-param-change! {:reg-entry/address registry-entry
                                                   :param-change/applied-on timestamp}))))
-
 
 (defn challenge-created-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :challenger :commit-period-end
@@ -372,10 +385,10 @@
         assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period
                                                      :reg-entry.status/commit-period
                                                      :reg-entry.status/reveal-period}
-                                                   (reg-entry-status now %))
+                                                   (shared-utils/reg-entry-status now %))
                                        (db/all-meme-reg-entries))
         assignable-whitelisted-reg-entries (filter #(and (not (:meme/number %))
-                                                         (= :reg-entry.status/whitelisted (reg-entry-status now %)))
+                                                         (= :reg-entry.status/whitelisted (shared-utils/reg-entry-status now %)))
                                                    (db/all-meme-reg-entries))]
 
     (log/info "Assigning numbers to whitelisted memes already on db "
@@ -408,6 +421,12 @@
     (let [event-callbacks
           {:param-change-db/eternal-db-event eternal-db-event
            :param-change-registry/param-change-constructed-event param-change-constructed-event
+           :param-change-registry/challenge-created-event challenge-created-event
+           :param-change-registry/vote-committed-event vote-committed-event
+           :param-change-registry/vote-revealed-event vote-revealed-event
+           :param-change-registry/vote-amount-claimed-event vote-amount-reclaimed-event
+           :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
+           :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
            :param-change-registry/param-change-applied-event param-change-applied-event
            :meme-registry-db/eternal-db-event eternal-db-event
            :meme-registry/meme-constructed-event meme-constructed-event

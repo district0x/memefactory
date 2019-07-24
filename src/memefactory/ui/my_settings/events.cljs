@@ -7,6 +7,7 @@
             [district.ui.smart-contracts.queries :as contract-queries]
             [district.ui.web3-accounts.queries :as account-queries]
             [district.ui.web3-tx.events :as tx-events]
+            [district.ui.web3.queries :as web3-queries]
             [district0x.re-frame.web3-fx]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log :refer [spy]]))
@@ -19,7 +20,7 @@
    (let [active-account (account-queries/active-account db)
          instance (contract-queries/instance db :district0x-emails)]
      (when (and active-account instance)
-       {:web3/call {:web3 (:web3 db)
+       {:web3/call {:web3 (web3-queries/web3 db)
                     :fns [{:instance instance
                            :fn :get-email
                            :args [active-account]

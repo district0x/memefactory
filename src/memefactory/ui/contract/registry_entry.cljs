@@ -25,11 +25,11 @@
 
 (re-frame/reg-event-fx
  ::approve-and-create-challenge
- (fn [{:keys [db]} [_ {:keys [:reg-entry/address :meme/title :send-tx/id :deposit] :as args} {:keys [Hash] :as challenge-meta}]]
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :tx-description :send-tx/id :deposit :type] :as args} {:keys [Hash] :as challenge-meta}]]
    (log/info "Challenge meta created with hash" {:hash Hash} ::approve-and-create-challenge)
-   (let [tx-name (gstring/format "Challenge %s" title)
+   (let [tx-name (gstring/format "Challenge %s" tx-description)
          active-account (account-queries/active-account db)
-         extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
+         extra-data (web3-eth/contract-get-data (contract-queries/instance db type address)
                                                 :create-challenge
                                                 active-account
                                                 Hash)]
@@ -44,7 +44,7 @@
                                                :related-href {:name :route.meme-detail/index
                                                               :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::approve-and-create-challenge]
-                                                        [::notification-events/show (gstring/format "Challenge created for %s" title)]
+                                                        [::notification-events/show (gstring/format "Challenge created for %s" tx-description)]
                                                         [::challenge-success]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
@@ -61,13 +61,11 @@
 (re-frame/reg-event-fx
  ::approve-and-commit-vote
  [(re-frame/inject-cofx :store)]
- (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option :meme/title] :as args}
+ (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :vote/amount :vote/option :tx-description :option-desc] :as args}
                           {:keys [Hash] :as challenge-meta}]]
    (let [tx-name (gstring/format "Vote %s for %s"
-                                 (if (= option :vote.option/vote-against)
-                                   "stank"
-                                   "dank")
-                                 title)
+                                 (option-desc option)
+                                 tx-description)
          active-account (account-queries/active-account db)
          salt (cljs-utils/rand-str 5)
          secret-hash (solidity-sha3 (reg-entry/vote-option->num option) salt)
@@ -89,10 +87,8 @@
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::approve-and-commit-vote]
                                                         [::notification-events/show
                                                          (gstring/format "Successfully voted %s for %s"
-                                                                         (if (= option :vote.option/vote-against)
-                                                                           "stank"
-                                                                           "dank")
-                                                                         title)]]
+                                                                         (option-desc option)
+                                                                         tx-description)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args
@@ -105,8 +101,8 @@
 (re-frame/reg-event-fx
  ::reveal-vote
  [(re-frame/inject-cofx :store)]
- (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :meme/title] :as args} {:keys [Hash] :as challenge-meta}]]
-   (let [tx-name (gstring/format "Reveal vote for %s" title)
+ (fn [{:keys [db store]} [_ {:keys [:reg-entry/address :send-tx/id :tx-description :option-desc] :as args} {:keys [Hash] :as challenge-meta}]]
+   (let [tx-name (gstring/format "Reveal vote for %s" tx-description)
          active-account (account-queries/active-account db)
          {:keys [option salt]} (get-in store [:votes active-account address])]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
@@ -119,10 +115,8 @@
                                                               :params {:address address}}}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::reveal-vote]
                                                         [::notification-events/show (gstring/format "Successfully revealed %s for %s"
-                                                                                                    (if (= option :vote.option/vote-against)
-                                                                                                      "stank"
-                                                                                                      "dank")
-                                                                                                    title)]]
+                                                                                                    (option-desc option)
+                                                                                                    tx-description)]]
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args

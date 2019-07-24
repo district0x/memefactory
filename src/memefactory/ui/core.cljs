@@ -9,6 +9,7 @@
             [district.ui.mobile]
             [district.ui.notification]
             [district.ui.now]
+            [district.ui.web3-sync-now]
             [district.ui.reagent-render]
             [district.ui.router-google-analytics]
             [district.ui.router.events :as router-events]
@@ -52,6 +53,7 @@
             [memefactory.ui.subs]
             [memefactory.ui.terms.page]
             [mount.core :as mount]
+            [memefactory.ui.param-change.page]
             [re-frame.core :as re-frame]
             [re-frisk.core :refer [enable-re-frisk!]]
             [taoensso.timbre :as log]))

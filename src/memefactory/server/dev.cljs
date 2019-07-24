@@ -30,7 +30,7 @@
     [memefactory.server.db :as memefactory-db]
     [memefactory.server.emailer]
     [memefactory.server.generator :as generator]
-    [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
+    [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status-sql-clause]]
     [memefactory.server.ipfs]
     [district.shared.async-helpers :refer [promise->]]
     [memefactory.server.pinner]
@@ -39,6 +39,7 @@
     [memefactory.server.twitter-bot]
     [memefactory.server.conversion-rates]
     [memefactory.server.utils :as server-utils]
+    [memefactory.shared.utils :as shared-utils]
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
     [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
     [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
@@ -255,7 +256,7 @@
        (group-by :reg-entry/address)
        (map (fn [[address [r :as votes]]]
               {:address address
-               :server-status (name (reg-entry-status (server-utils/now-in-seconds) r))
+               :server-status (name (shared-utils/reg-entry-status (server-utils/now-in-seconds) r))
                :query-status (-> (db/get {:select [[(reg-entry-status-sql-clause (server-utils/now-in-seconds)) :status]]
                                           :from  [[:reg-entries :re]]
                                           :where [:= :re.reg-entry/address address]})
@@ -274,7 +275,7 @@
         entry (db/get {:select [:*]
                        :from [:reg-entries]
                        :where [:= :reg-entry/address re-address]})
-        current-status (reg-entry-status now entry)
+        current-status (shared-utils/reg-entry-status now entry)
         time-to-next (case current-status
                        :reg-entry.status/challenge-period (- (:reg-entry/challenge-period-end entry) now)
                        :reg-entry.status/commit-period    (- (:challenge/commit-period-end entry) now)

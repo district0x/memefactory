@@ -107,8 +107,10 @@
    [:param-change/db address not-nil]
    [:param-change/key :varchar not-nil]
    [:param-change/value :unsigned :integer not-nil]
-   [:param-change/initial-value :unsigned :integer not-nil]
+   [:param-change/original-value :unsigned :integer not-nil]
    [:param-change/applied-on :unsigned :integer default-nil]
+   [:param-change/meta-hash ipfs-hash not-nil]
+   [:param-change/reason :varchar not-nil]
    [(sql/call :primary-key :reg-entry/address)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]])
 
@@ -375,11 +377,27 @@
   (db/run! {:insert-into :initial-params
             :values rows}))
 
-(defn get-initial-param [key db]
-  (db/get {:select [:*]
-           :from [:initial-params]
-           :where [:and [:= :initial-param/key key]
-                   [:= :initial-param/db db]]}))
+(defn build-param-query [keys db]
+  {:select [:*]
+   :from [{:union [{:select [[:initial-param/key :param/key]
+                             [:initial-param/value :param/value]
+                             [:initial-param/set-on :param/set-on]
+                             [:initial-param/db :param/db]]
+                    :from [[:initial-params :ips]]}
+                   {:select [[:param-change/key :param/key]
+                             [:param-change/value :param/value]
+                             [:param-change/applied-on :param/set-on]
+                             [:param-change/db :param/db]]
+                    :from [[:param-changes :pc]]}]}]
+   :where [:and
+           [:= db :param/db]
+           [:in :param/key keys]
+           [:not= nil :param/set-on]]
+   :group-by [:param/key]
+   :having (sql/call :max :param/set-on)})
+
+(defn get-param [key db]
+  (db/get (build-param-query [key] db)))
 
 ;; PARAM-CHANGES
 

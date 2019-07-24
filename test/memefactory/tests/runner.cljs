@@ -24,6 +24,7 @@
             [cljs-promises.async :refer-macros [<?]]))
 
 (nodejs/enable-util-print!)
+
 (def child-process (nodejs/require "child_process"))
 (def spawn (aget child-process "spawn"))
 
@@ -44,8 +45,8 @@
     (log/info "Transfering dank to accounts" ::deploy-contracts-and-run-tests)
     (doseq [acc (web3-eth/accounts @web3)]
         (<? (dank-token/transfer {:to acc :amount "1000e18"} {:gas 200000})))
-    #_(log/info "Account balances now are " ::deploy-contracts-and-run-tests)
-    #_(doseq [acc (web3-eth/accounts @web3)]
+    (log/info "Account balances now are " ::deploy-contracts-and-run-tests)
+    (doseq [acc (web3-eth/accounts @web3)]
       (println (str "Balance of " acc " is " (<? (dank-token/balance-of acc)))))
     (log/info "Running tests" ::deploy-contracts-and-run-tests)
     (cljs.test/run-tests
@@ -54,13 +55,9 @@
      'memefactory.tests.smart-contracts.meme-tests
      'memefactory.tests.smart-contracts.meme-auction-tests
      'memefactory.tests.smart-contracts.registry-tests
+     'memefactory.tests.smart-contracts.param-change-tests)))
 
-
-     #_'memefactory.tests.smart-contracts.param-change-tests
-
-     )))
-
-#_(defn deploy-contracts-and-run-tests
+(defn deploy-contracts-and-run-tests
   "Redeploy smart contracts with truffle"
   []
   (log/warn "Redeploying contracts, please be patient..." ::redeploy)
@@ -72,5 +69,5 @@
                        (js/setTimeout #(start-and-run-tests) 5000))))))
 
 (cljs-promises.async/extend-promises-as-pair-channels!)
-#_(deploy-contracts-and-run-tests)
-(start-and-run-tests)
+(deploy-contracts-and-run-tests)
+#_(start-and-run-tests)
