@@ -116,7 +116,7 @@ node dev-server/memefactory.js
 
 Deploy smart contracts:
 ```bash
-truffle migrate --network ganache --reset
+truffle migrate --network ganache --reset --from 1 --to 3
 ```
 
 Start UI:
