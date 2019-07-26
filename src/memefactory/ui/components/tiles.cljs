@@ -1,6 +1,5 @@
 (ns memefactory.ui.components.tiles
   (:require [cljs-time.core :as t]
-            [cljs.core.match :refer-macros [match]]
             [clojure.string :as string]
             [district.format :as format]
             [district.graphql-utils :as gql-utils]
@@ -28,18 +27,22 @@
             src-url (str (format/ensure-trailing-slash url) image-hash)]
         [:div.meme-card
          props
-         (match [(nil? (and url (not-empty image-hash))) (string/includes? image-hash ".mp4")]
-                [false false] [:img.meme-image.initial-fade-in-delay {:src src-url}]
-                [false true] [:video {:controls false
-                                     :loop true
-                                     :autoPlay true
-                                     :muted true
-                                     :width 290
-                                     :height 435}
-                             [:source {:src src-url
-                                       :type "video/mp4"}]
-                             [:span "Your browser does not support video tags"]]
-                :else [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])
+         (cond
+           (string/includes? src-url ".mp4")
+           [:video {:controls false
+                    :loop true
+                    :autoPlay true
+                    :muted true
+                    :width 290
+                    :height 435}
+            [:source {:src src-url
+                      :type "video/mp4"}]
+            [:span "Your browser does not support video tags"]]
+
+           (not-empty src-url)
+           [:img.meme-image.initial-fade-in-delay {:src src-url}]
+
+           :else [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])
          (when rejected?
            [:div.image-tape-container.initial-fade-in-delay
             [:div.image-tape
