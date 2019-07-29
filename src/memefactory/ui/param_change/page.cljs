@@ -316,21 +316,24 @@
 
   (let [format-votes (fn [n tot]
                        (gstring/format "%s (%f)"
-                                       (format/format-percentage (or n 0) (or tot 0))
+                                       (if (pos? tot) (format/format-percentage (or n 0) tot) 0)
                                        (format/format-number (bn/number (web3/from-wei (or n 0) :ether)))))
         active-account (subscribe [::accounts-subs/active-account])]
     [:div.claim-action
-     [charts/donut-chart voting]
+     (when (pos? votes-total)
+       [charts/donut-chart voting])
      [:ul
       [:li [:label "Voted Yes:"] [:span (format-votes votes-for votes-total)]]
       [:li [:label "Voted No:"] [:span (format-votes votes-against votes-total)]]
       [:li [:label "Total Voted:"] [:span (format/format-number (bn/number (web3/from-wei (or votes-total 0) :ether)))]]
-      [:li [:label "You Voted:"] [:span (gstring/format "%d for %s (%s)"
-                                                        (format/format-number (bn/number (web3/from-wei (or (:vote/amount vote) 0) :ether)))
-                                                        ({:vote-option/vote-for "Yes"
-                                                          :vote-option/vote-against "No"}
-                                                         (gql-utils/gql-name->kw (:vote/option vote)))
-                                                        (format/format-percentage (or (:vote/amount vote) 0) (or votes-total 0)))]]]
+
+      (when (#{:vote-option/vote-for :vote-option/vote-against} (gql-utils/gql-name->kw (:vote/option vote)))
+        [:li [:label "You Voted:"] [:span (gstring/format "%d for %s (%s)"
+                                                          (format/format-number (bn/number (web3/from-wei (or (:vote/amount vote) 0) :ether)))
+                                                          ({:vote-option/vote-for "Yes"
+                                                            :vote-option/vote-against "No"}
+                                                           (gql-utils/gql-name->kw (:vote/option vote)))
+                                                          (format/format-percentage (or (:vote/amount vote) 0) votes-total))]])]
      (when @active-account (buttons/reclaim-buttons @active-account voting))]))
 
 (defn format-time [gql-date]
