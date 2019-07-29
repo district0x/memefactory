@@ -1,3 +1,4 @@
+-/server/
 -/dev-server
 -/memefactory-tests
 -/resources/public/js
@@ -14,5 +15,6 @@
 -/figwheel_server.log
 -/target
 -/node_modules
--/.cljs_node_repl
--/package-lock.json
+-.cljs_node_repl
+-package-lock.json
+-figwheel_server.log

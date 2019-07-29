@@ -77,13 +77,10 @@
                                       (assoc-in [:file-info] (:error file-info))
 
                                       (:error search-tags)
-                                      (assoc-in [:search-tags] (:error search-tags))
-
-                                      ))})
+                                      (assoc-in [:search-tags] (:error search-tags))))})
         critical-errors (reaction (index-by-type @errors :error))
         account-balance (subscribe [::balance-subs/active-account-balance :DANK])
         active-account @(subscribe [::accounts-subs/active-account])]
-
     (fn []
       [app-layout
        {:meta {:title "MemeFactory - Submit to Dank Registry"
@@ -100,13 +97,13 @@
                             :comment "Upload image with ratio 2:3 and size less than 1.5MB"
                             :file-accept-pred (fn [{:keys [name type size] :as props}]
                                                 (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
-                                                (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml"} type)
+                                                (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "video/mp4"} type)
                                                      (< size 1500000)))
                             :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
                                                 (swap! form-data update-in [:file-info] dissoc :error)
                                                 (log/info "Accepted file" {:name name :type type :size size} ::file-accepted))
                             :on-file-rejected (fn [{:keys [name type size] :as props}]
-                                                (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif or .svg file selected with size less than 1.5 Mb"})
+                                                (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif .svg or .mp4 file selected with size less than 1.5 Mb"})
                                                 (log/warn "Rejected file" {:name name :type type :size size :user {:id active-account}} ::file-rejected))}]]
          [:div.form-panel
           [with-label "Title"
