@@ -12,6 +12,7 @@ console.log("Using smart_contracts file ", smart_contracts_path);
 var smartContracts = readSmartContractsFile(smart_contracts_path);
 var dankTokenAddr = getSmartContractAddress(smartContracts, ":DANK");
 var paramChangeRegistryForwarderAddr = getSmartContractAddress(smartContracts, ":param-change-registry-fwd");
+var paramChangeRegistryDbAddr = getSmartContractAddress(smartContracts, ":param-change-registry-db");
 
 const forwarderTargetPlaceholder = "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef";
 const registryPlaceholder = "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed";
@@ -56,15 +57,27 @@ module.exports = function(deployer, network, accounts) {
   /////////////////////////////////////////////////////////////////////////////////////
   // Set ParamChangeRegistryForwarder to new location and deploy ParamChange Factory //
   /////////////////////////////////////////////////////////////////////////////////////
-    .then (([paramChangeRegInstance, paramChangeInstance]) => {
+    .then (async ([paramChangeRegInstance, paramChangeInstance]) => {
       var newParamChangeRegistryAddress = paramChangeRegInstance.address;
       var newParamChangeAddress = paramChangeInstance.address;
 
       var paramChangeRegFwdInstance = MutableForwarder.at(paramChangeRegistryForwarderAddr);
 
+      var targetBefore = ParamChangeRegistry.at(paramChangeRegistryForwarderAddr);
+      console.log("Target before", targetBefore.target());
       // Point to the ParamChangeRegistryForwarder to new location
-      paramChangeRegFwdInstance.setTarget(newParamChangeRegistryAddress);
+      await paramChangeRegFwdInstance.setTarget(newParamChangeRegistryAddress);
 
+      var target = ParamChangeRegistry.at(paramChangeRegistryForwarderAddr);
+
+      console.log("About to construct the registry");
+      console.log("DB addr", paramChangeRegistryDbAddr);
+      console.log("Forwarder instance ", paramChangeRegFwdInstance.address);
+      console.log("Is now pointing to  ", newParamChangeRegistryAddress);
+      console.log("Target after", target.target());
+      await target.construct (paramChangeRegistryDbAddr, Object.assign(opts, {gas: 800000}));
+
+      console.log("HERE we are!!!!");
       // Write the new addresses on the file
       setSmartContractAddress(smartContracts, ":param-change-registry", newParamChangeRegistryAddress);
       console.log("New ParamChangeRegistry address is ", newParamChangeRegistryAddress);
