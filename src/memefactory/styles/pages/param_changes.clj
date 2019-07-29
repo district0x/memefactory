@@ -109,16 +109,17 @@
      (for-media-max :tablet
                     [:&
                      {:display :block}])
+     [:span.param-unit {:margin-left (px -62)}]
      [:.input-old {:grid-area :input-old}
       [:.current-value {:color (color :grey)
                         :border-bottom "1px solid grey"
-                        :width "100%"
+                        :width "99%"
                         :padding-top (px 5)
                         :padding-bottom (px 5)
                         :display :inline-block}]]
      [:.input-new {:grid-area :input-new}
       [:.input-group {:display :inline-block
-                      :width "100%"
+                      :width "99%"
                       :border-bottom "1px solid grey"}]]
      [:.textarea {:grid-area :textarea}
       [:.input-group {:border-bottom :unset}

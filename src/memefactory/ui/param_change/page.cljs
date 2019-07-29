@@ -47,6 +47,16 @@
                  :deposit {:title "Meme Deposit" :description "Lorem ipsum dolor sit amet,..." :unit "DANK"}
                  :min-auction-duration {:title "Meme Auction Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}})
 
+(defn scale-param-change-value [k v]
+  (if (= k :deposit)
+    (web3/from-wei v :ether)
+    v))
+
+(defn unscale-param-change-value [k v]
+  (if (= k :deposit)
+    (web3/to-wei v :ether)
+    v))
+
 (defn parameter-table []
   (let [open? (r/atom true)
         params (subscribe [:memefactory.ui.config/memefactory-db-params])]
@@ -72,13 +82,14 @@
             [:td
              [:div
               [:div.param-h "Current Value"]
-              [:div.param-b (str value)]]]
+              [:div.param-b (str (scale-param-change-value p value) " " (:unit (param-info p)))]]]
             [:td
              [:div
               [:div.param-h "Last Change"]
               [:div.param-b (time-format/unparse (time-format/formatter "dd/MM/yyyy")
                                                  (t/local-date-time (gql-utils/gql-date->date set-on)))]]]
             [:td]])]]])))
+
 
 (defn change-submit-form []
   (let [meme-params (subscribe [:memefactory.ui.config/memefactory-db-params])
@@ -108,9 +119,7 @@
                                       param-info)}]
         [:div.form
          [:div.input-old
-          [:div.current-value (if (= @selected-param :deposit)
-                                (web3/from-wei @current-value :ether)
-                                @current-value)]
+          [:div.current-value (scale-param-change-value @selected-param @current-value)]
           [:span.param-unit @current-value-unit]
           [:div.label-under "Current Value"]]
 
@@ -141,9 +150,7 @@
                                                :reason (:param-change/comment @form-data)
                                                :key (or (:param-change/key @form-data)
                                                         (ffirst param-info))
-                                               :value (if (= @selected-param :deposit)
-                                                        (web3/to-wei (:param-change/value @form-data) :ether)
-                                                        (:param-change/value @form-data))
+                                               :value (unscale-param-change-value @selected-param (:param-change/value @form-data))
                                                :deposit (-> (get @pc-params :deposit) :value)}])}
         "Submit"]])))
 
@@ -389,8 +396,8 @@
 
                                            (#{:reg-entry.status/whitelisted} entry-status)
                                            "Change was accepted"))]]
-         [:li.attr [:label "Previous Value:"] [:span original-value]]
-         [:li.attr [:label "New Value:"] [:span value]]]]
+         [:li.attr [:label "Previous Value:"] [:span (scale-param-change-value (gql-utils/gql-name->kw key) original-value)]]
+         [:li.attr [:label "New Value:"] [:span (scale-param-change-value (gql-utils/gql-name->kw key) value)]]]]
        [:div.section2
         [:div.proposer
          [:h4 [:span "Proposer ("] [:span.address (:user/address creator)] [:span ")"]]
