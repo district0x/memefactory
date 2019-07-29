@@ -37,15 +37,15 @@
    [:div.body
     [:p "Lorem ipsum dolor sit ..."]]])
 
-(def param-info {:challenge-dispensation {:title "Meme Challenge Dispensation" :description "Lorem ipsum dolor sit amet,..."}
-                 :vote-quorum {:title "Meme Vote Quorum" :description "Lorem ipsum dolor sit amet,..."}
-                 :max-total-supply {:title "Meme Max Total Supply" :description "Lorem ipsum dolor sit amet,..."}
-                 :challenge-period-duration {:title "Meme Challenge Period Duration" :description "Lorem ipsum dolor sit amet,..."}
-                 :max-auction-duration {:title "Meme Max Auction Duration" :description "Lorem ipsum dolor sit amet,..."}
-                 :reveal-period-duration {:title "Meme Reveal Period Duration" :description "Lorem ipsum dolor sit amet,..."}
-                 :commit-period-duration {:title "Meme Commit Period Duration" :description "Lorem ipsum dolor sit amet,..."}
-                 :deposit {:title "Meme Deposit" :description "Lorem ipsum dolor sit amet,..."}
-                 :min-auction-duration {:title "Meme Auction Duration" :description "Lorem ipsum dolor sit amet,..."}})
+(def param-info {:challenge-dispensation {:title "Meme Challenge Dispensation" :description "Lorem ipsum dolor sit amet,..." :unit ""}
+                 :vote-quorum {:title "Meme Vote Quorum" :description "Lorem ipsum dolor sit amet,..." :unit ""}
+                 :max-total-supply {:title "Meme Max Total Supply" :description "Lorem ipsum dolor sit amet,..." :unit ""}
+                 :challenge-period-duration {:title "Meme Challenge Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :max-auction-duration {:title "Meme Max Auction Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :reveal-period-duration {:title "Meme Reveal Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :commit-period-duration {:title "Meme Commit Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :deposit {:title "Meme Deposit" :description "Lorem ipsum dolor sit amet,..." :unit "DANK"}
+                 :min-auction-duration {:title "Meme Auction Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}})
 
 (defn parameter-table []
   (let [open? (r/atom true)
@@ -88,9 +88,12 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::param-change/submit-param-change tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::param-change/submit-param-change tx-id}])
         active-account (subscribe [::accounts-subs/active-account])
+        selected-param (ratom/reaction (when @meme-params
+                                        (keyword (:param-change/key @form-data))))
         current-value (ratom/reaction (when @meme-params
-                                        (-> (get @meme-params (keyword (:param-change/key @form-data)))
-                                            :value)))
+                                        (-> (get @meme-params @selected-param) :value)))
+        current-value-unit (ratom/reaction (-> (get param-info @selected-param)
+                                               :unit))
         pc-params (subscribe [:memefactory.ui.config/param-change-db-params])]
     (fn []
       [:div.panel.change-submit-form
@@ -105,7 +108,10 @@
                                       param-info)}]
         [:div.form
          [:div.input-old
-          [:div.current-value @current-value]
+          [:div.current-value (if (= @selected-param :deposit)
+                                (web3/from-wei @current-value :ether)
+                                @current-value)]
+          [:span.param-unit @current-value-unit]
           [:div.label-under "Current Value"]]
 
          [:div.input-outer.input-new
@@ -114,6 +120,7 @@
                        :id :param-change/value
                        :dom-id :ftitle
                        :maxLength 60}]
+          [:span.param-unit @current-value-unit]
           [:div.label-under "New Value"]]
 
          [:div.textarea
@@ -134,7 +141,9 @@
                                                :reason (:param-change/comment @form-data)
                                                :key (or (:param-change/key @form-data)
                                                         (ffirst param-info))
-                                               :value (:param-change/value @form-data)
+                                               :value (if (= @selected-param :deposit)
+                                                        (web3/to-wei (:param-change/value @form-data) :ether)
+                                                        (:param-change/value @form-data))
                                                :deposit (-> (get @pc-params :deposit) :value)}])}
         "Submit"]])))
 
@@ -300,7 +309,7 @@
 
   (let [format-votes (fn [n tot]
                        (gstring/format "%s (%f)"
-                                       (format/format-percentage (or n 0) tot)
+                                       (format/format-percentage (or n 0) (or tot 0))
                                        (format/format-number (bn/number (web3/from-wei (or n 0) :ether)))))
         active-account (subscribe [::accounts-subs/active-account])]
     [:div.claim-action
@@ -314,7 +323,7 @@
                                                         ({:vote-option/vote-for "Yes"
                                                           :vote-option/vote-against "No"}
                                                          (gql-utils/gql-name->kw (:vote/option vote)))
-                                                        (format/format-percentage (or (:vote/amount vote) 0) votes-total))]]]
+                                                        (format/format-percentage (or (:vote/amount vote) 0) (or votes-total 0)))]]]
      (when @active-account (buttons/reclaim-buttons @active-account voting))]))
 
 (defn format-time [gql-date]
