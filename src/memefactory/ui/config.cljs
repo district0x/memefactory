@@ -13,7 +13,7 @@
    [taoensso.timbre :as log])
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
-(def skipped-contracts [:ds-guard :param-change-registry-db :minime-token-factory])
+(def skipped-contracts [:ds-guard :minime-token-factory])
 
 (def development-config
   {:debug? true
@@ -132,8 +132,7 @@
    (let [params-map (->> initial-params-result :data :params
                          (map (fn [entry] [(graphql-utils/gql-name->kw (:param_key entry)) {:value (:param_value entry)
                                                                                             :set-on (:param_setOn entry)}]))
-                         ;; limit hardcoded in MemeAuction.sol startAuction
-                         (into {:min-auction-duration 60}))]
+                         (into {}))]
      (log/debug "Initial parameters" params-map)
      (assoc db key (merge
                     params-map)))))
@@ -147,6 +146,15 @@
  ::param-change-db-params
  (fn [db _]
    (::param-change-db-params db)))
+
+(re-frame/reg-sub
+ ::all-params
+ (fn [db _]
+   (concat
+    (->> (::memefactory-db-params db)
+         (map (fn [[k pm]] (assoc pm :key (keyword "meme" k)))))
+    (->> (::param-change-db-params db)
+         (map (fn [[k pm]] (assoc pm :key (keyword "param-change" k))))))))
 
 (defstate config
   :start (start)

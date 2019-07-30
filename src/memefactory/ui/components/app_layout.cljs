@@ -36,7 +36,7 @@
                                   :class "dank-registry-challenge"}
                                  {:text "Browse"
                                   :route :route.dank-registry/browse}
-                                 {:text "Param Change"
+                                 {:text "Parameters"
                                   :route :route.param-change/index
                                   :class :param-change
                                   :needs-account? true}]}

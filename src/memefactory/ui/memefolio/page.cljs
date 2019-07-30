@@ -136,9 +136,10 @@
 
 
 (defn sell-form [{:keys [:meme/title :meme-auction/token-count :reg-entry/address] :as meme}
-                 {:keys [min-auction-duration max-auction-duration] :as params}
+                 {:keys [max-auction-duration] :as params}
                  send-sell-atom]
-  (let [tx-id (str (random-uuid))
+  (let [min-auction-duration 60 ;; limit hardcoded in MemeAuction.sol startAuction
+        tx-id (str (random-uuid))
         max-supported-in-a-tx 10
         active-account @(subscribe [::accounts-subs/active-account])
         meme-sub (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}

@@ -35,7 +35,7 @@
 
 (re-frame/reg-event-fx
  ::create-param-change
- (fn [{:keys [db]} [_ {:keys [:deposit :reason :key :value :send-tx/id] :as data} ipfs-response]]
+ (fn [{:keys [db]} [_ {:keys [:deposit :reason :key :value :send-tx/id :param-db] :as data} ipfs-response]]
    (log/info "Param change meta uploaded with hash" {:ipfs-response ipfs-response} ::create-param-change)
    (let [resp (utils/parse-ipfs-response ipfs-response)
          meta-hash (-> resp last :Hash)
@@ -45,7 +45,7 @@
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :param-change-factory)
                                                 :create-param-change
                                                 active-account
-                                                (contract-queries/contract-address db :meme-registry-db)
+                                                (contract-queries/contract-address db param-db)
                                                 (gql-utils/kw->gql-name key)
                                                 value
                                                 meta-hash)]

@@ -26,6 +26,7 @@
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.graphql.subs :as gql]
    [goog.string :as gstring]
+   [clojure.string :as str]
    [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [print.foo :refer [look] :include-macros true]))
@@ -37,30 +38,41 @@
    [:div.body
     [:p "Lorem ipsum dolor sit ..."]]])
 
-(def param-info {:challenge-dispensation {:title "Meme Challenge Dispensation" :description "Lorem ipsum dolor sit amet,..." :unit ""}
-                 :vote-quorum {:title "Meme Vote Quorum" :description "Lorem ipsum dolor sit amet,..." :unit ""}
-                 :max-total-supply {:title "Meme Max Total Supply" :description "Lorem ipsum dolor sit amet,..." :unit ""}
-                 :challenge-period-duration {:title "Meme Challenge Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :max-auction-duration {:title "Meme Max Auction Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :reveal-period-duration {:title "Meme Reveal Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :commit-period-duration {:title "Meme Commit Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :deposit {:title "Meme Deposit" :description "Lorem ipsum dolor sit amet,..." :unit "DANK"}
-                 :min-auction-duration {:title "Meme Auction Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}})
+(def param-info {:meme/challenge-dispensation {:title "Meme Challenge Dispensation" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
+                 :meme/vote-quorum {:title "Meme Vote Quorum" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
+                 :meme/max-total-supply {:title "Meme Max Total Supply" :description "Lorem ipsum dolor sit amet,..." :unit ""}
+                 :meme/challenge-period-duration {:title "Meme Challenge Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :meme/max-auction-duration {:title "Meme Max Auction Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :meme/reveal-period-duration {:title "Meme Reveal Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :meme/commit-period-duration {:title "Meme Commit Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :meme/deposit {:title "Meme Deposit" :description "Lorem ipsum dolor sit amet,..." :unit "DANK"}
+                 :param-change/challenge-dispensation {:title "Parameter Challenge Dispensation" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
+                 :param-change/vote-quorum {:title "Parameter Vote Quorum" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
+                 :param-change/challenge-period-duration {:title "Parameter Challenge Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :param-change/reveal-period-duration {:title "Parameter Reveal Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :param-change/commit-period-duration {:title "Parameter Commit Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
+                 :param-change/deposit {:title "Parameter Deposit" :description "Lorem ipsum dolor sit amet,..." :unit "DANK"}})
 
 (defn scale-param-change-value [k v]
-  (if (= k :deposit)
+  (if (#{:meme/deposit :param-change/deposit} k)
     (web3/from-wei v :ether)
     v))
 
 (defn unscale-param-change-value [k v]
-  (if (= k :deposit)
+  (if (#{:meme/deposit :param-change/deposit} k)
     (web3/to-wei v :ether)
     v))
 
+(defn param-split-keys [p]
+  ((juxt namespace name) (:key p)))
+
+(defn param-str-key->ns-key [str-key]
+  (when-not (str/blank? str-key)
+    (apply keyword (str/split str-key #","))))
+
 (defn parameter-table []
   (let [open? (r/atom true)
-        params (subscribe [:memefactory.ui.config/memefactory-db-params])]
-
+        all-params (subscribe [:memefactory.ui.config/all-params])]
     (fn []
       [:div.panel.param-table-panel {:class (if @open? "open" "closed")}
        [:table.param-table
@@ -72,17 +84,17 @@
           [:th [:div.collapse-icon {:on-click #(swap! open? not) ;; TODO: fix this on mobile, doesn't look good
                                     :class (when @open? "flipped")}]]]]
         [:tbody
-         (for [[p {:keys [value set-on]}] @params]
-           ^{:key (str p)}
+         (for [{:keys [key value set-on]} @all-params]
+           ^{:key (str key)}
            [:tr
             [:td
              [:div
-              [:div.param-title (:title (param-info p))]
-              [:div.param-b (:description (param-info p))]]]
+              [:div.param-title (:title (param-info key))]
+              [:div.param-b (:description (param-info key))]]]
             [:td
              [:div
               [:div.param-h "Current Value"]
-              [:div.param-b (str (scale-param-change-value p value) " " (:unit (param-info p)))]]]
+              [:div.param-b (str (scale-param-change-value key value) " " (:unit (param-info key)))]]]
             [:td
              [:div
               [:div.param-h "Last Change"]
@@ -92,19 +104,24 @@
 
 
 (defn change-submit-form []
-  (let [meme-params (subscribe [:memefactory.ui.config/memefactory-db-params])
-        form-data (r/atom {:param-change/key (ffirst param-info)})
+  (let [get-param (fn [k all-params]
+                    (some (fn [{:keys [key ptype] :as p}]
+                            (when (= key k)
+                              p))
+                     all-params))
+        all-params (subscribe [:memefactory.ui.config/all-params])
+
+        form-data (r/atom {:param-change/key nil})
         errors (ratom/reaction @form-data)
         tx-id (str "param-change-submission" (random-uuid))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::param-change/submit-param-change tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::param-change/submit-param-change tx-id}])
         active-account (subscribe [::accounts-subs/active-account])
-        selected-param (ratom/reaction (when @meme-params
-                                        (keyword (:param-change/key @form-data))))
-        current-value (ratom/reaction (when @meme-params
-                                        (-> (get @meme-params @selected-param) :value)))
-        current-value-unit (ratom/reaction (-> (get param-info @selected-param)
-                                               :unit))
+        selected-param (ratom/reaction (or (param-str-key->ns-key (:param-change/key @form-data))
+                                           (:key (first @all-params))))
+        current-value (ratom/reaction (when @all-params
+                                        (:value (get-param @selected-param @all-params))))
+        current-value-unit (ratom/reaction (:unit (get param-info @selected-param)))
         pc-params (subscribe [:memefactory.ui.config/param-change-db-params])]
     (fn []
       [:div.panel.change-submit-form
@@ -114,9 +131,9 @@
         [select-input {:form-data form-data
                        :id :param-change/key
                        :group-class :options
-                       :options (mapv (fn [[k {:keys [title]}]]
-                                        {:key k :value title})
-                                      param-info)}]
+                       :options (mapv (fn [{:keys [key] :as p}]
+                                        {:key (param-split-keys p) :value (:title (get param-info key))})
+                                      @all-params)}]
         [:div.form
          [:div.input-old
           [:div.current-value (scale-param-change-value @selected-param @current-value)]
@@ -148,8 +165,10 @@
                         :on-click #(dispatch [::param-change/upload-and-add-param-change
                                               {:send-tx/id tx-id
                                                :reason (:param-change/comment @form-data)
-                                               :key (or (:param-change/key @form-data)
-                                                        (ffirst param-info))
+                                               :param-db ({"meme" :meme-registry-db
+                                                           "param-change" :param-change-registry-db}
+                                                          (namespace @selected-param))
+                                               :key (name @selected-param)
                                                :value (unscale-param-change-value @selected-param (:param-change/value @form-data))
                                                :deposit (-> (get @pc-params :deposit) :value)}])}
         "Submit"]])))

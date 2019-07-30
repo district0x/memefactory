@@ -57,8 +57,8 @@
 
        [:.collapse-icon
         {:background-color :white
-         :background-position-x (px 8)
-         :background-size [(em 1) (em 1)]
+         :background-position-x (px 10)
+         :background-size [(em 0.8) (em 0.8)]
          :background-position-y :center
          :width (px 30)
          :height (px 30)
@@ -68,7 +68,8 @@
         [:&.flipped {:transform "scaleY(-1)"}]]]
       ]
      [:tbody
-      {:background :white}
+      {:background :white
+       :border "23px solid white"}
       [:&:before
        #_{:content "'@'"
           :display :block
@@ -109,7 +110,10 @@
      (for-media-max :tablet
                     [:&
                      {:display :block}])
-     [:span.param-unit {:margin-left (px -62)}]
+     [:span.param-unit {:margin-left (px -63)
+                        :display :inline-block
+                        :width (px 60)
+                        :text-align :right}]
      [:.input-old {:grid-area :input-old}
       [:.current-value {:color (color :grey)
                         :border-bottom "1px solid grey"
