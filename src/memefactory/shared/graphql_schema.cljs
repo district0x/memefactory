@@ -54,6 +54,7 @@
                        orderBy: ParamChangesOrderBy,
                        orderDir: OrderDir,
                        groupBy: ParamChangesGroupBy,
+                       removeApplied: Boolean,
                        statuses: [RegEntryStatus],
                        first: Int,
                        after: String

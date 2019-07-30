@@ -327,7 +327,7 @@
      (log/debug "param-change query" sql-query)
      sql-query)))
 
-(defn search-param-changes-query-resolver [_ {:keys [:key :db :order-by :order-dir :group-by :first :after :statuses]
+(defn search-param-changes-query-resolver [_ {:keys [:key :db :order-by :order-dir :group-by :first :after :statuses :remove-applied]
                                               :or {order-dir :asc}
                                               :as args}]
   (log/debug "search-param-changes args" args)
@@ -343,6 +343,8 @@
                                       :left-join [[:reg-entries :re] [:= :re.reg-entry/address :param-changes.reg-entry/address]]}
 
                                key (sqlh/merge-where [:= key :param-changes.param-change/key])
+
+                               remove-applied (sqlh/merge-where [:= nil :param-changes.param-change/applied-on])
 
                                db (sqlh/merge-where [:= db :param-changes.param-change/db])
                                statuses-set (sqlh/merge-where [:in (reg-entry-status-sql-clause now) statuses-set])

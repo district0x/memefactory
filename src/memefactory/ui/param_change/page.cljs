@@ -439,11 +439,12 @@
     (fn []
       (when @active-account
         (let [proposals-subs (subscribe [::gql/query {:queries [[:search-param-changes {:order-dir :desc
-                                                                                       :order-by :param-changes.order-by/created-on
-                                                                                       :statuses [:reg-entry.status/commit-period
-                                                                                                  :reg-entry.status/reveal-period
-                                                                                                  :reg-entry.status/challenge-period
-                                                                                                  :reg-entry.status/whitelisted]}
+                                                                                        :remove-applied true
+                                                                                        :order-by :param-changes.order-by/created-on
+                                                                                        :statuses [:reg-entry.status/commit-period
+                                                                                                   :reg-entry.status/reveal-period
+                                                                                                   :reg-entry.status/challenge-period
+                                                                                                   :reg-entry.status/whitelisted]}
                                                                 [[:items [:param-change/reason
                                                                           :param-change/key
                                                                           :param-change/db
@@ -465,27 +466,24 @@
                                                         ::registry-entry/challenge-success}}])
               now (ui-utils/now-in-seconds)
               param-db-keys-by-db @(subscribe [:memefactory.ui.config/param-db-keys-by-db])]
-         [:ul.proposal-list
-          (doall
-           (for [pc (-> @proposals-subs :search-param-changes :items)]
-             (let [pc (update pc :param-change/key
-                              (fn [k]
-                                (keyword ({:meme-registry-db "meme"
-                                           :param-change-registry-db "param-change"}
-                                          (param-db-keys-by-db (:param-change/db pc)))
-                                         (gql-utils/gql-name->kw k))))
-                   entry-status (param-change-status @now pc)]
-               ^{:key (:reg-entry/address pc)}
-               [:li [proposed-change
-                    pc
-                    {:action-child (cond
-                                     (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
-                                     (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
-                                     (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
-                                     (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc])
-                     :applied-mark (cond
-                                     (= entry-status :reg-entry.status/whitelisted) true
-                                     (= entry-status :reg-entry.status/blacklisted) false)}]])))])))))
+          [:ul.proposal-list
+           (doall
+            (for [pc (-> @proposals-subs :search-param-changes :items)]
+              (let [pc (update pc :param-change/key
+                               (fn [k]
+                                 (keyword ({:meme-registry-db "meme"
+                                            :param-change-registry-db "param-change"}
+                                           (param-db-keys-by-db (:param-change/db pc)))
+                                          (gql-utils/gql-name->kw k))))
+                    entry-status (param-change-status @now pc)]
+                ^{:key (:reg-entry/address pc)}
+                [:li [proposed-change
+                      pc
+                      {:action-child (cond
+                                       (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
+                                       (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
+                                       (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
+                                       (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc])}]])))])))))
 
 (defn resolved-proposals-list []
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -523,8 +521,6 @@
           [:ul.proposal-list
            (doall
             (for [pc (-> @proposals-subs :search-param-changes :items)]
-              ^{:key (:reg-entry/address pc)}
-
               (let [param-db-keys-by-db @(subscribe [:memefactory.ui.config/param-db-keys-by-db])
                     pc (update pc :param-change/key
                                (fn [k]
@@ -534,6 +530,7 @@
                                           (gql-utils/gql-name->kw k))))
                     now (ui-utils/now-in-seconds)
                     entry-status (param-change-status @now pc)]
+                ^{:key (:reg-entry/address pc)}
                 [:li [proposed-change pc {:action-child [claim-action pc]
                                           :applied-mark (cond
                                                           (= entry-status :reg-entry.status/whitelisted) true
