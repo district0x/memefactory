@@ -420,8 +420,10 @@
 
                                            (#{:reg-entry.status/whitelisted} entry-status)
                                            "Change was accepted"))]]
-         [:li.attr [:label "Previous Value:"] [:span (scale-param-change-value key original-value)]]
-         [:li.attr [:label "New Value:"] [:span (scale-param-change-value key value)]]]]
+         [:li.attr [:label "Previous Value:"] [:span (str (scale-param-change-value key original-value) " "
+                                                          (get-in param-info [key :unit]))]]
+         [:li.attr [:label "New Value:"] [:span (str (scale-param-change-value key value) " "
+                                                     (get-in param-info [key :unit]))]]]]
        [:div.section2
         [:div.proposer
          [:h4 [:span "Proposer ("] [:span.address (:user/address creator)] [:span ")"]]
