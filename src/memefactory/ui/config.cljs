@@ -103,7 +103,7 @@
                                                          (graphql-utils/kw->gql-name :challenge-dispensation)
                                                          (graphql-utils/kw->gql-name :challenge-period-duration)
                                                          (graphql-utils/kw->gql-name :deposit)]}
-                                         [:param/key :param/value :param/set-on]]]}
+                                         [:param/key :param/value :param/set-on :param/db]]]}
                              {:kw->gql-name graphql-utils/kw->gql-name})]
     {:http-xhrio {:method          :post
                   :uri             graphql-url
@@ -131,7 +131,8 @@
  (fn [db [_ key initial-params-result]]
    (let [params-map (->> initial-params-result :data :params
                          (map (fn [entry] [(graphql-utils/gql-name->kw (:param_key entry)) {:value (:param_value entry)
-                                                                                            :set-on (:param_setOn entry)}]))
+                                                                                            :set-on (:param_setOn entry)
+                                                                                            :db (:param_db entry)}]))
                          (into {}))]
      (log/debug "Initial parameters" params-map)
      (assoc db key (merge
@@ -155,6 +156,12 @@
          (map (fn [[k pm]] (assoc pm :key (keyword "meme" k)))))
     (->> (::param-change-db-params db)
          (map (fn [[k pm]] (assoc pm :key (keyword "param-change" k))))))))
+
+(re-frame/reg-sub
+ ::param-db-keys-by-db
+ (fn [db _]
+   {(-> (::param-change-db-params db) first second :db) :param-change-registry-db
+    (-> (::memefactory-db-params db) first second :db)  :meme-registry-db}))
 
 (defstate config
   :start (start)

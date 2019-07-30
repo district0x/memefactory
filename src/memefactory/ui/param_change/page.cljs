@@ -379,17 +379,21 @@
                               :challenge/commit-period-end :challenge/reveal-period-end})
        (shared-utils/reg-entry-status now)))
 
-(defn proposed-change [{:keys [:reg-entry/creator :challenge/challenger :param-change/reason :param-change/key
+(defn proposed-change [{:keys [:reg-entry/creator :challenge/challenger :param-change/reason :param-change/key :param-change/db
                                :reg-entry/created-on :param-change/original-value :param-change/value
                                :challenge/comment :param-change/applied-on] :as pc} {:keys [action-child applied-mark]}]
-  (let [now (ui-utils/now-in-seconds)]
+  (let [now (ui-utils/now-in-seconds)
+        param-db-keys-by-db @(subscribe [:memefactory.ui.config/param-db-keys-by-db])
+        key (keyword ({:meme-registry-db "meme"
+                       :param-change-registry-db "param-change"}
+                      (param-db-keys-by-db db))
+                     (gql-utils/gql-name->kw key))]
     [:div.panel.proposed-change-panel
      ;; Only for debugging
     #_[:b (str (param-change-status @now pc) " " @now)]
     #_(str (second-date-keys pc #{:reg-entry/created-on :reg-entry/challenge-period-end
                                 :challenge/commit-period-end :challenge/reveal-period-end}))
-
-    [:div.header
+     [:div.header
      (cond
        (true? applied-mark) [:div.icon.applied]
        (false? applied-mark) [:div.icon.not-applied])]
@@ -398,7 +402,7 @@
       [:h2.title "Proposed Change"]
       [:div.info-body
        [:div.section1
-        [:h4 (:title (get param-info (gql-utils/gql-name->kw key)))]
+        [:h4 (:title (get param-info key))]
         [:ul.submit-info
          [:li.attr [:label "Created:"] [:span (format-time created-on)]]
          [:li.attr [:label "Status:"] [:span
@@ -418,8 +422,8 @@
 
                                            (#{:reg-entry.status/whitelisted} entry-status)
                                            "Change was accepted"))]]
-         [:li.attr [:label "Previous Value:"] [:span (scale-param-change-value (gql-utils/gql-name->kw key) original-value)]]
-         [:li.attr [:label "New Value:"] [:span (scale-param-change-value (gql-utils/gql-name->kw key) value)]]]]
+         [:li.attr [:label "Previous Value:"] [:span (scale-param-change-value key original-value)]]
+         [:li.attr [:label "New Value:"] [:span (scale-param-change-value key value)]]]]
        [:div.section2
         [:div.proposer
          [:h4 [:span "Proposer ("] [:span.address (:user/address creator)] [:span ")"]]
@@ -442,6 +446,7 @@
                                                                                                   :reg-entry.status/whitelisted]}
                                                                 [[:items [:param-change/reason
                                                                           :param-change/key
+                                                                          :param-change/db
                                                                           :reg-entry/created-on
                                                                           :param-change/original-value
                                                                           :param-change/value
@@ -463,12 +468,14 @@
           (doall
            (for [pc (-> @proposals-subs :search-param-changes :items)]
              ^{:key (:reg-entry/address pc)}
-             [:li [proposed-change pc {:action-child (let [entry-status (param-change-status @now pc)]
-                                                       (cond
-                                                         (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
-                                                         (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
-                                                         (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
-                                                         (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc]))}]]))])))))
+             [:li [proposed-change
+                   pc
+                   {:action-child (let [entry-status (param-change-status @now pc)]
+                                    (cond
+                                      (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
+                                      (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
+                                      (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
+                                      (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc]))}]]))])))))
 
 (defn resolved-proposals-list []
   (let [active-account (subscribe [::accounts-subs/active-account])]
