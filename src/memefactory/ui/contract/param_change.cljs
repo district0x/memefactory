@@ -6,6 +6,7 @@
             [district.ui.web3-tx.events :as tx-events]
             [district.ui.notification.events :as notification-events]
             [district.ui.web3-accounts.queries :as account-queries]
+            [memefactory.ui.utils :as utils]
             [cljs-web3.eth :as web3-eth]
             [district.ui.smart-contracts.queries :as contract-queries]
             [print.foo :refer [look] :include-macros true]
@@ -34,9 +35,11 @@
 
 (re-frame/reg-event-fx
  ::create-param-change
- (fn [{:keys [db]} [_ {:keys [:deposit :reason :key :value :send-tx/id] :as data} {:keys [Name Hash Size] :as meme-meta}]]
-   (log/info "Param change meta uploaded with hash" {:hash Hash} ::create-param-change)
-   (let [tx-id id
+ (fn [{:keys [db]} [_ {:keys [:deposit :reason :key :value :send-tx/id] :as data} ipfs-response]]
+   (log/info "Param change meta uploaded with hash" {:ipfs-response ipfs-response} ::create-param-change)
+   (let [resp (utils/parse-ipfs-response ipfs-response)
+         meta-hash (-> resp last :Hash)
+         tx-id id
          tx-name "Parameter change submitted"
          active-account (account-queries/active-account db)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :param-change-factory)
@@ -45,7 +48,7 @@
                                                 (contract-queries/contract-address db :meme-registry-db)
                                                 (gql-utils/kw->gql-name key)
                                                 value
-                                                Hash)]
+                                                meta-hash)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args [(contract-queries/contract-address db :param-change-factory)
