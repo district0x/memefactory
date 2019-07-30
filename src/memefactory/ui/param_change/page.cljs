@@ -6,7 +6,7 @@
    [district.ui.component.page :refer [page]]
    [district.ui.web3-account-balances.subs :as balance-subs]
    [memefactory.ui.components.app-layout :refer [app-layout]]
-   [memefactory.ui.components.general :refer [nav-anchor]]
+   [memefactory.ui.components.general :refer [nav-anchor dank-with-logo]]
    [reagent.core :as r]
    [district.ui.component.form.input :as inputs :refer [select-input with-label text-input textarea-input pending-button]]
    [memefactory.ui.components.buttons :as buttons]
@@ -35,8 +35,7 @@
   [:div.header-box
    [:div.icon]
    [:h2.title "Parameters"]
-   [:div.body
-    [:p "Lorem ipsum dolor sit ..."]]])
+   [:h3.title "Lorem ipsum dolor sit ..."]])
 
 (def param-info {:meme/challenge-dispensation {:title "Meme Challenge Dispensation" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
                  :meme/vote-quorum {:title "Meme Vote Quorum" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
@@ -157,7 +156,7 @@
                            :maxLength 100
                            :id :param-change/comment
                            :on-click #(.stopPropagation %)}]
-          [:div.dank [:span.dank (ui-utils/format-dank (-> (get @pc-params :deposit) :value))]]]]]
+          [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value) :ether)]]]]]
        [pending-button {:pending? @tx-pending?
                         :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))) (not @active-account))
                         :class "footer"
@@ -171,13 +170,17 @@
                                                :key (name @selected-param)
                                                :value (unscale-param-change-value @selected-param (:param-change/value @form-data))
                                                :deposit (-> (get @pc-params :deposit) :value)}])}
-        "Submit"]])))
+        (if @tx-success?
+          "Submitted"
+          "Submit")]])))
 
 (defn challenge-action [{:keys [:reg-entry/address :param-change/key] :as args}]
   (let [form-data (r/atom {})
         errors (ratom/reaction @form-data)
         tx-id (str address "challenges")
-        pc-params (subscribe [:memefactory.ui.config/param-change-db-params])]
+        pc-params (subscribe [:memefactory.ui.config/param-change-db-params])
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::param-change/approve-and-create-challenge tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])]
     (fn [{:keys [:reg-entry/address :param-change/key] :as args}]
       [:div.challenge-action
        [:h4 "Challenge Explanation"]
@@ -189,14 +192,19 @@
                        :on-click #(.stopPropagation %)}]
       [:div.footer
        [:div.dank [:span.dank (ui-utils/format-dank (-> (get @pc-params :deposit) :value))] ]
-       [:button {:on-click #(dispatch [::memefactory-events/add-challenge
-                                       {:send-tx/id tx-id
-                                        :reg-entry/address address
-                                        :tx-description (:title (get param-info key))
-                                        :type :param-change
-                                        :comment (:param-change/comment @form-data)
-                                        :deposit (-> (get @pc-params :deposit) :value)}])}
-        "CHALLENGE"]]])))
+       [inputs/pending-button {:disabled @tx-success?
+                               :pending? @tx-pending?
+                               :pending-text "Challenging..."
+                               :on-click #(dispatch [::memefactory-events/add-challenge
+                                                     {:send-tx/id tx-id
+                                                      :reg-entry/address address
+                                                      :tx-description (:title (get param-info key))
+                                                      :type :param-change
+                                                      :comment (:param-change/comment @form-data)
+                                                      :deposit (-> (get @pc-params :deposit) :value)}])}
+        (if @tx-success?
+          "Challenged"
+          "Challenge")]]])))
 
 (defn reveal-action [param-change]
   (let [tx-id (str "reveal" (:reg-entry/address param-change))
@@ -333,8 +341,9 @@
                                        (format/format-number (bn/number (web3/from-wei (or n 0) :ether)))))
         active-account (subscribe [::accounts-subs/active-account])]
     [:div.claim-action
-     (when (pos? votes-total)
-       [charts/donut-chart voting])
+     (if (pos? votes-total)
+       [charts/donut-chart voting]
+       [:div "Nobody voted for this challenge"])
      [:ul
       [:li [:label "Voted Yes:"] [:span (format-votes votes-for votes-total)]]
       [:li [:label "Voted No:"] [:span (format-votes votes-against votes-total)]]
@@ -462,16 +471,19 @@
                                 (keyword ({:meme-registry-db "meme"
                                            :param-change-registry-db "param-change"}
                                           (param-db-keys-by-db (:param-change/db pc)))
-                                         (gql-utils/gql-name->kw k))))]
+                                         (gql-utils/gql-name->kw k))))
+                   entry-status (param-change-status @now pc)]
                ^{:key (:reg-entry/address pc)}
                [:li [proposed-change
                     pc
-                    {:action-child (let [entry-status (param-change-status @now pc)]
-                                     (cond
-                                       (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
-                                       (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
-                                       (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
-                                       (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc]))}]])))])))))
+                    {:action-child (cond
+                                     (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
+                                     (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
+                                     (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
+                                     (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc])
+                     :applied-mark (cond
+                                     (= entry-status :reg-entry.status/whitelisted) true
+                                     (= entry-status :reg-entry.status/blacklisted) false)}]])))])))))
 
 (defn resolved-proposals-list []
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -486,6 +498,7 @@
                                                                                    :reg-entry/created-on
                                                                                    :param-change/original-value
                                                                                    :param-change/value
+                                                                                   :param-change/db
                                                                                    :challenge/comment
                                                                                    [:challenge/challenger [:user/address]]
                                                                                    [:reg-entry/creator [:user/address]]
@@ -509,7 +522,20 @@
            (doall
             (for [pc (-> @proposals-subs :search-param-changes :items)]
               ^{:key (:reg-entry/address pc)}
-              [:li [proposed-change pc {:action-child [claim-action pc]}]]))])))))
+
+              (let [param-db-keys-by-db @(subscribe [:memefactory.ui.config/param-db-keys-by-db])
+                    pc (update pc :param-change/key
+                               (fn [k]
+                                 (keyword ({:meme-registry-db "meme"
+                                            :param-change-registry-db "param-change"}
+                                           (param-db-keys-by-db (:param-change/db pc)))
+                                          (gql-utils/gql-name->kw k))))
+                    now (ui-utils/now-in-seconds)
+                    entry-status (param-change-status @now pc)]
+                [:li [proposed-change pc {:action-child [claim-action pc]
+                                          :applied-mark (cond
+                                                          (= entry-status :reg-entry.status/whitelisted) true
+                                                          (= entry-status :reg-entry.status/blacklisted) false)}]])))])))))
 
 (defn change-proposals []
   [simple-tabbed-pane

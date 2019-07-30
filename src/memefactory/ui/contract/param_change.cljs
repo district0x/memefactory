@@ -55,7 +55,7 @@
                                              deposit
                                              extra-data]
                                       :tx-opts {:from active-account}
-                                      :tx-id {:meme/create-param-change tx-id}
+                                      :tx-id {::submit-param-change tx-id}
                                       :tx-log {:name tx-name}
                                       :on-tx-success-n [[::logging/info (str tx-name " tx success") ::create-param-change]
                                                         [::notification-events/show "Parameter change was successfully submitted" ]

@@ -16,13 +16,6 @@
   [:.param-change-page
    {:display :grid
     :grid-row-gap (px 50)}
-   [:h2 {:color (color :redish)
-          :text-transform :uppercase
-         :font-size (px 19)
-         :margin-bottom (px 0)}
-    (font :bungee)]
-   [:h3 {:font-size (px 14)
-         :margin-top (px 5)}]
 
    [:.panel {:box-shadow "0.3em 0.3em 0 0 rgba(0,0,0,0.05)"
              :border-radius (em 1)
@@ -38,7 +31,10 @@
                       :color (color :sky-blue)})
     [:&
      [:h2.title
-      {:color (color :redish)}]]]
+      {:color (color :redish)}]
+     [:h3.title
+      {:margin-bottom (px 15)}]]]
+
 
    [:.param-table-panel {:overflow :hidden}
     [:.param-table
@@ -186,7 +182,9 @@
                           :grid-template-columns "70% 30%"
                           :min-height (px 200)}
        (for-media-max :tablet [:& {:display :block}])
-       [:h4 {:font-weight :bold :margin-bottom (px 5)}]
+       [:h4 {:font-weight :bold
+             :margin-bottom (px 5)
+             :font-size (px 14)}]
        [:.info
         [:li {:margin-bottom (px 5)}]
         [:.comment {:font-style :italic}
