@@ -316,15 +316,17 @@
                                (ui-utils/format-dank account-balance))]
          [:div "Tokens will be returned to you after revealing your vote."]]]))))
 
-(defn apply-change-action [{:keys [:reg-entry/address] :as param-change}]
+(defn apply-change-action [{:keys [:reg-entry/address :reg-entry/creator] :as param-change}]
   (let [tx-id (str "apply" (:reg-entry/address param-change))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:param-change/apply-change tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:param-change/apply-change tx-id}])]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:param-change/apply-change tx-id}])
+        active-account (subscribe [::accounts-subs/active-account])]
     [:div.apply-change-action
      [inputs/pending-button
       {:pending? @tx-pending?
        :disabled (or @tx-pending?
-                     @tx-success?)
+                     @tx-success?
+                     (not= @active-account (:user/address creator)))
        :pending-text "Applying..."
        :on-click #(dispatch [::param-change/apply-param-change
                              {:send-tx/id tx-id
