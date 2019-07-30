@@ -14,6 +14,7 @@
    [memefactory.shared.contract.registry-entry :as reg-entry]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :as re-frame]
+   [memefactory.ui.utils :as utils]
    [taoensso.timbre :as log]))
 
 (def interceptors [re-frame/trim-v])
@@ -25,14 +26,16 @@
 
 (re-frame/reg-event-fx
  ::approve-and-create-challenge
- (fn [{:keys [db]} [_ {:keys [:reg-entry/address :tx-description :send-tx/id :deposit :type] :as args} {:keys [Hash] :as challenge-meta}]]
-   (log/info "Challenge meta created with hash" {:hash Hash} ::approve-and-create-challenge)
-   (let [tx-name (gstring/format "Challenge %s" tx-description)
+ (fn [{:keys [db]} [_ {:keys [:reg-entry/address :tx-description :send-tx/id :deposit :type] :as args} ipfs-response]]
+   (log/info "Challenge meta created with hash" {:ipfs-response ipfs-response} ::approve-and-create-challenge)
+   (let [resp (utils/parse-ipfs-response ipfs-response)
+         meta-hash (-> resp last :Hash)
+         tx-name (gstring/format "Challenge %s" tx-description)
          active-account (account-queries/active-account db)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db type address)
                                                 :create-challenge
                                                 active-account
-                                                Hash)]
+                                                meta-hash)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args [address
@@ -49,7 +52,7 @@
                                       :on-tx-error [::logging/error (str tx-name " tx error")
                                                     {:user {:id active-account}
                                                      :args args
-                                                     :challenge-meta challenge-meta}
+                                                     :ipfs-response ipfs-response}
                                                     ::approve-and-create-challenge]}]})))
 
 

@@ -192,9 +192,7 @@
        [:button {:on-click #(dispatch [::memefactory-events/add-challenge
                                        {:send-tx/id tx-id
                                         :reg-entry/address address
-                                        :tx-description (->> (gql-utils/gql-name->kw key)
-                                                             (get param-info)
-                                                             :title)
+                                        :tx-description (:title (get param-info key))
                                         :type :param-change
                                         :comment (:param-change/comment @form-data)
                                         :deposit (-> (get @pc-params :deposit) :value)}])}
@@ -216,9 +214,7 @@
                                      :on-click #(dispatch [::registry-entry/reveal-vote
                                                            {:send-tx/id tx-id
                                                             :reg-entry/address (:reg-entry/address param-change)
-                                                            :tx-description (->> (gql-utils/gql-name->kw (:param-change/key param-change))
-                                                                                 (get param-info)
-                                                                                 :title)
+                                                            :tx-description (:title (get param-info (:param-change/key param-change)))
                                                             :option-desc {:vote.option/vote-against "no"
                                                                           :vote.option/vote-for     "yes"}}
                                                            vote])}
@@ -241,9 +237,7 @@
                                                                            :reg-entry/address (:reg-entry/address param-change)
                                                                            :vote/option option
                                                                            :vote/amount amount
-                                                                           :tx-description (->> (gql-utils/gql-name->kw (:param-change/key param-change))
-                                                                                                (get param-info)
-                                                                                                :title)
+                                                                           :tx-description (:title (get param-info (:param-change/key param-change)))
                                                                            :type :param-change
                                                                            :option-desc {:vote.option/vote-against "NO"
                                                                                          :vote.option/vote-for     "YES"}}]))
@@ -382,12 +376,7 @@
 (defn proposed-change [{:keys [:reg-entry/creator :challenge/challenger :param-change/reason :param-change/key :param-change/db
                                :reg-entry/created-on :param-change/original-value :param-change/value
                                :challenge/comment :param-change/applied-on] :as pc} {:keys [action-child applied-mark]}]
-  (let [now (ui-utils/now-in-seconds)
-        param-db-keys-by-db @(subscribe [:memefactory.ui.config/param-db-keys-by-db])
-        key (keyword ({:meme-registry-db "meme"
-                       :param-change-registry-db "param-change"}
-                      (param-db-keys-by-db db))
-                     (gql-utils/gql-name->kw key))]
+  (let [now (ui-utils/now-in-seconds)]
     [:div.panel.proposed-change-panel
      ;; Only for debugging
     #_[:b (str (param-change-status @now pc) " " @now)]
@@ -463,19 +452,26 @@
                                                                            [:vote/option]]]]]]]}
                                          {:refetch-on #{::param-change/create-param-change-success
                                                         ::registry-entry/challenge-success}}])
-              now (ui-utils/now-in-seconds)]
+              now (ui-utils/now-in-seconds)
+              param-db-keys-by-db @(subscribe [:memefactory.ui.config/param-db-keys-by-db])]
          [:ul.proposal-list
           (doall
            (for [pc (-> @proposals-subs :search-param-changes :items)]
-             ^{:key (:reg-entry/address pc)}
-             [:li [proposed-change
-                   pc
-                   {:action-child (let [entry-status (param-change-status @now pc)]
-                                    (cond
-                                      (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
-                                      (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
-                                      (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
-                                      (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc]))}]]))])))))
+             (let [pc (update pc :param-change/key
+                              (fn [k]
+                                (keyword ({:meme-registry-db "meme"
+                                           :param-change-registry-db "param-change"}
+                                          (param-db-keys-by-db (:param-change/db pc)))
+                                         (gql-utils/gql-name->kw k))))]
+               ^{:key (:reg-entry/address pc)}
+               [:li [proposed-change
+                    pc
+                    {:action-child (let [entry-status (param-change-status @now pc)]
+                                     (cond
+                                       (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
+                                       (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
+                                       (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
+                                       (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc]))}]])))])))))
 
 (defn resolved-proposals-list []
   (let [active-account (subscribe [::accounts-subs/active-account])]
