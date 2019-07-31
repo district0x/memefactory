@@ -17,6 +17,15 @@
    {:display :grid
     :grid-row-gap (px 50)}
 
+    [:h2 {:color (color :redish)
+          :text-transform :uppercase
+         :font-size (px 19)
+         :margin-bottom (px 0)}
+     (font :bungee)]
+    [:h3 {:font-size (px 14)
+          :margin-top (px 7)
+          :color (color :menu-text)}]
+
    [:.panel {:box-shadow "0.3em 0.3em 0 0 rgba(0,0,0,0.05)"
              :border-radius (em 1)
              :background-color :white}
@@ -66,17 +75,16 @@
      [:tbody
       {:background :white
        :border "23px solid white"}
-      [:&:before
-       #_{:content "'@'"
-          :display :block
-          :line-height (px 20)
-          :text-indent (px -999999)}]
+      #_(for-media-max :tablet
+                     [:&
+                      {:border-left "80px solid white"}])
       ["tr:nth-child(odd)" {:background (color :light-light-grey)}]
       ["tr:not(:last-child)" {:border-bottom "1px solid lightgrey"}]
       [:tr
        (for-media-max :tablet
                       [:&
                        {:display :flex
+                        :padding-top (px 20)
                         :flex-direction :column}])
        [:td {:padding (px 15)}
         (for-media-max :tablet [:& {:padding-bottom (px 5)
@@ -126,7 +134,9 @@
        [:textarea {:resize :none
                    :padding (em 0.5)
                    :height (em 6)
-                   :width "100%"}]]
+                   :width "100%"
+                   :color (color :menu-text)
+                   :font-size (px 13)}]]
       [:label {:margin-bottom (px 5)
                :display :block}]
       [:.dank {:text-align :right}
@@ -150,10 +160,15 @@
     (tabs)]
 
    [:ul {:list-style :none :padding-left 0}]
-
+   [:.spinner-panel {:height (px 250)
+                     :display :flex
+                     :flex-direction :column
+                     :justify-content :center}
+    [:.spinner-outer {:margin-left :auto
+                      :margin-right :auto}]]
    [:.proposal-list
 
-    [:li {:margin-bottom (px 15)}
+    [:li {:margin-bottom (px 30)}
 
      [:.proposed-change-panel {}
       [:.header {:display :flex
@@ -181,10 +196,14 @@
                           :display :grid
                           :grid-template-columns "70% 30%"
                           :min-height (px 200)}
+       (for-media-max :computer [:& {:grid-template-columns "50% 50%"
+                                     :padding-right :unset}])
        (for-media-max :tablet [:& {:display :block}])
        [:h4 {:font-weight :bold
              :margin-bottom (px 5)
-             :font-size (px 14)}]
+             :font-size (px 14)}
+        (for-media-max :tablet [:& {:max-width (px 252)}])]
+       [:label {:margin-right (px 4)}]
        [:.info
         [:li {:margin-bottom (px 5)}]
         [:.comment {:font-style :italic}
@@ -196,42 +215,50 @@
           :padding-right (px 30)
           :display :grid
           :grid-template-columns "50% 50%"}
-         (for-media-max :tablet [:& {:display :block}])
-         [:.attr [:label {:margin-right (px 4)}]]]
+         (for-media-max :computer [:& {:display :block
+                                       :max-width (px 315)}])]
         [:.section2 [:span {:overflow :hidden
                             :display :inline-block}]
          [:.address {:text-overflow :ellipsis
-                     :width "50%"}]
+                     :width "30%"}]
          [:.challenger {:margin-top (px 10)}]]]
        [:.action
         {:border-left "1px solid"
-         :padding (em 1)}
+         :text-align :center
+         :padding-left (em 2)}
+        (for-media-max :computer [:& {:padding :unset}])
         (for-media-max :tablet [:& {:border-left :none}])]
 
+       [:.no-votes {:margin-top (px 62)}]
 
-       [:.challenge-action
+
+       [:.challenge-action {:text-align :left}
+        [:h4 {:margin-bottom (px 10)}]
         [:textarea {:resize :none
-                   :padding (em 0.5)
-                   :height (em 7)
-                    :width "100%"}]
+                    :padding (em 0.5)
+                    :height (em 9)
+                    :width "100%"
+                    :color (color :menu-text)}]
         [:.help-block {:display :none}]
         [:.footer {:display :flex
-                   :justify-content :space-evenly
-                   :align-items :center}
+                   :justify-content :space-between
+                   :align-items :center
+                   :margin-top (px 10)}
          [:button (button {:background-color :purple
                            :color :white
-                           :width (em 12)
-                           :height (em 3.3)})]
-         [:.dank {:display :inline-block}
-          [:.dank {:margin-right (px 5)}]]]]
-
-
+                           :width (em 9)
+                           :height (em 3)})]
+         [:.dank {:display :inline-block
+                  :margin-left (px 40)}]]]
 
        [:.reveal-action {:display :flex
                          :align-items :center
-                         :flex-flow :column}
+                         :flex-flow :column
+                         :height "100%"
+                         :padding-top (px 10)}
         [:.icon {:background-size [(em 6) (em 6)]
                  :background-position-y :center
+                 :background-position-x :center
                  :width (px 100)
                  :height (px 100)
                  :background-repeat :no-repeat
@@ -239,13 +266,13 @@
         [:button {:display :block}
          (button {:background-color :purple
                   :color :white
-                  :width (em 12)
-                  :height (em 3.3)})]]
+                  :width (em 13)
+                  :height (em 3)})]]
 
        [:.vote-action {:display :grid
                        :grid-template-rows "100px 100px 100px"
                        :text-align :center
-                       :max-width (px 200)
+                       :max-width (px 170)
                        :margin :auto}
         [:.vote-input {:display :grid
                        :height (px 30)
@@ -284,15 +311,17 @@
 
        [:.apply-change-action {:display :flex
                                :align-items :center
-                               :flex-flow :column}
+                               :flex-flow :column
+                               :height "100%"
+                               :justify-content :center}
         [:.info {:text-align :center
                  :margin-top (px 20)}]
         [:button
          {:margin-top (px 20)}
          (button {:background-color :purple
                   :color :white
-                  :width (em 12)
-                  :height (em 3.3)})]]
+                  :width (em 10)
+                  :height (em 3)})]]
 
 
        [:.claim-action {:display :flex
@@ -304,5 +333,5 @@
                :margin-bottom (px 2)}]]
         [:button (button {:background-color :purple
                           :color :white
-                          :width (em 12)
-                          :height (em 3.3)})]]]]]]])
+                          :width (em 14)
+                          :height (em 3)})]]]]]]])

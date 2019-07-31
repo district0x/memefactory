@@ -29,7 +29,8 @@
    [clojure.string :as str]
    [memefactory.ui.events :as memefactory-events]
    [memefactory.ui.contract.registry-entry :as registry-entry]
-   [print.foo :refer [look] :include-macros true]))
+   [print.foo :refer [look] :include-macros true]
+   [memefactory.ui.components.spinner :as spinner]))
 
 (defn header-box []
   [:div.header-box
@@ -179,7 +180,7 @@
         errors (ratom/reaction @form-data)
         tx-id (str address "challenges")
         pc-params (subscribe [:memefactory.ui.config/param-change-db-params])
-        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::param-change/approve-and-create-challenge tx-id}])
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-create-challenge tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-create-challenge tx-id}])]
     (fn [{:keys [:reg-entry/address :param-change/key] :as args}]
       [:div.challenge-action
@@ -191,7 +192,7 @@
                        :id :param-change/comment
                        :on-click #(.stopPropagation %)}]
       [:div.footer
-       [:div.dank [:span.dank (ui-utils/format-dank (-> (get @pc-params :deposit) :value))] ]
+       [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value) :ether)]]
        [inputs/pending-button {:disabled @tx-success?
                                :pending? @tx-pending?
                                :pending-text "Challenging..."
@@ -342,23 +343,24 @@
                                        (if (pos? tot) (format/format-percentage (or n 0) tot) 0)
                                        (format/format-number (bn/number (web3/from-wei (or n 0) :ether)))))
         active-account (subscribe [::accounts-subs/active-account])]
-    [:div.claim-action
-     (if (pos? votes-total)
-       [charts/donut-chart voting]
-       [:div "Nobody voted for this challenge"])
-     [:ul
-      [:li [:label "Voted Yes:"] [:span (format-votes votes-for votes-total)]]
-      [:li [:label "Voted No:"] [:span (format-votes votes-against votes-total)]]
-      [:li [:label "Total Voted:"] [:span (format/format-number (bn/number (web3/from-wei (or votes-total 0) :ether)))]]
 
-      (when (#{:vote-option/vote-for :vote-option/vote-against} (gql-utils/gql-name->kw (:vote/option vote)))
-        [:li [:label "You Voted:"] [:span (gstring/format "%d for %s (%s)"
-                                                          (format/format-number (bn/number (web3/from-wei (or (:vote/amount vote) 0) :ether)))
-                                                          ({:vote-option/vote-for "Yes"
-                                                            :vote-option/vote-against "No"}
-                                                           (gql-utils/gql-name->kw (:vote/option vote)))
-                                                          (format/format-percentage (or (:vote/amount vote) 0) votes-total))]])]
-     (when @active-account (buttons/reclaim-buttons @active-account voting))]))
+    (if (pos? votes-total)
+      [:div.claim-action
+       [charts/donut-chart voting]
+       [:ul
+        [:li [:label "Voted Yes:"] [:span (format-votes votes-for votes-total)]]
+        [:li [:label "Voted No:"] [:span (format-votes votes-against votes-total)]]
+        [:li [:label "Total Voted:"] [:span (format/format-number (bn/number (web3/from-wei (or votes-total 0) :ether)))]]
+
+        (when (#{:vote-option/vote-for :vote-option/vote-against} (gql-utils/gql-name->kw (:vote/option vote)))
+          [:li [:label "You Voted:"] [:span (gstring/format "%d for %s (%s)"
+                                                            (format/format-number (bn/number (web3/from-wei (or (:vote/amount vote) 0) :ether)))
+                                                            ({:vote-option/vote-for "Yes"
+                                                              :vote-option/vote-against "No"}
+                                                             (gql-utils/gql-name->kw (:vote/option vote)))
+                                                            (format/format-percentage (or (:vote/amount vote) 0) votes-total))]])]
+       (when @active-account (buttons/reclaim-buttons @active-account voting))]
+      [:div.no-votes "Nobody voted for this challenge"])))
 
 (defn format-time [gql-date]
   (let [formated-time (-> (time/time-remaining (t/date-time (gql-utils/gql-date->date gql-date))
@@ -385,9 +387,18 @@
        (shared-utils/reg-entry-status now)))
 
 (defn proposed-change [{:keys [:reg-entry/creator :challenge/challenger :param-change/reason :param-change/key :param-change/db
+                               :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end
                                :reg-entry/created-on :param-change/original-value :param-change/value
                                :challenge/comment :param-change/applied-on] :as pc} {:keys [action-child applied-mark]}]
-  (let [now (ui-utils/now-in-seconds)]
+  (let [now (ui-utils/now-in-seconds)
+        entry-status (param-change-status @now pc)
+        [period-label period-end] (case entry-status
+                                    :reg-entry.status/challenge-period ["Challenge" challenge-period-end]
+                                    :reg-entry.status/commit-period    ["Voting" commit-period-end]
+                                    :reg-entry.status/reveal-period    ["Reveal" reveal-period-end]
+                                    nil)
+        {:keys [days hours minutes seconds] :as time-remaining} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
+                                                                                     (gql-utils/gql-date->date period-end))]
     [:div.panel.proposed-change-panel
      ;; Only for debugging
     #_[:b (str (param-change-status @now pc) " " @now)]
@@ -422,6 +433,14 @@
 
                                            (#{:reg-entry.status/whitelisted} entry-status)
                                            "Change was accepted"))]]
+         (if period-end
+                   (if (= 0 days hours minutes seconds)
+                     [:li (str period-label " period ended.")]
+
+                     [:li (str period-label " period ends in: ")
+                      [:span.time-remaining (-> time-remaining
+                                              (format/format-time-units {:short? true}))]])
+                   [:li ""])
          [:li.attr [:label "Previous Value:"] [:span (str (scale-param-change-value key original-value) " "
                                                           (get-in param-info [key :unit]))]]
          [:li.attr [:label "New Value:"] [:span (str (scale-param-change-value key value) " "
@@ -468,24 +487,27 @@
                                                         ::registry-entry/challenge-success}}])
               now (ui-utils/now-in-seconds)
               param-db-keys-by-db @(subscribe [:memefactory.ui.config/param-db-keys-by-db])]
-          [:ul.proposal-list
-           (doall
-            (for [pc (-> @proposals-subs :search-param-changes :items)]
-              (let [pc (update pc :param-change/key
-                               (fn [k]
-                                 (keyword ({:meme-registry-db "meme"
-                                            :param-change-registry-db "param-change"}
-                                           (param-db-keys-by-db (:param-change/db pc)))
-                                          (gql-utils/gql-name->kw k))))
-                    entry-status (param-change-status @now pc)]
-                ^{:key (:reg-entry/address pc)}
-                [:li [proposed-change
-                      pc
-                      {:action-child (cond
-                                       (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
-                                       (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
-                                       (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
-                                       (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc])}]])))])))))
+          (if (:graphql/loading? @proposals-subs)
+            [:div.panel.spinner-panel
+             [spinner/spin]]
+            [:ul.proposal-list
+             (doall
+              (for [pc (-> @proposals-subs :search-param-changes :items)]
+                (let [pc (update pc :param-change/key
+                                 (fn [k]
+                                   (keyword ({:meme-registry-db "meme"
+                                              :param-change-registry-db "param-change"}
+                                             (param-db-keys-by-db (:param-change/db pc)))
+                                            (gql-utils/gql-name->kw k))))
+                      entry-status (param-change-status @now pc)]
+                  ^{:key (:reg-entry/address pc)}
+                  [:li [proposed-change
+                        pc
+                        {:action-child (cond
+                                         (#{:reg-entry.status/challenge-period} entry-status) [challenge-action pc]
+                                         (#{:reg-entry.status/reveal-period} entry-status)    [reveal-action pc]
+                                         (#{:reg-entry.status/commit-period} entry-status)    [vote-action pc]
+                                         (#{:reg-entry.status/whitelisted} entry-status)      [apply-change-action pc])}]])))]))))))
 
 (defn resolved-proposals-list []
   (let [active-account (subscribe [::accounts-subs/active-account])]
@@ -520,23 +542,27 @@
                                                                                                    [:challenge/vote {:vote/voter @active-account}
                                                                                                     [:vote/option
                                                                                                      :vote/amount]]]))]]]]}])]
-          [:ul.proposal-list
-           (doall
-            (for [pc (-> @proposals-subs :search-param-changes :items)]
-              (let [param-db-keys-by-db @(subscribe [:memefactory.ui.config/param-db-keys-by-db])
-                    pc (update pc :param-change/key
-                               (fn [k]
-                                 (keyword ({:meme-registry-db "meme"
-                                            :param-change-registry-db "param-change"}
-                                           (param-db-keys-by-db (:param-change/db pc)))
-                                          (gql-utils/gql-name->kw k))))
-                    now (ui-utils/now-in-seconds)
-                    entry-status (param-change-status @now pc)]
-                ^{:key (:reg-entry/address pc)}
-                [:li [proposed-change pc {:action-child [claim-action pc]
-                                          :applied-mark (cond
-                                                          (= entry-status :reg-entry.status/whitelisted) true
-                                                          (= entry-status :reg-entry.status/blacklisted) false)}]])))])))))
+
+          (if (:graphql/loading? @proposals-subs)
+              [:div.panel.spinner-panel
+               [spinner/spin]]
+              [:ul.proposal-list
+               (doall
+                (for [pc (-> @proposals-subs :search-param-changes :items)]
+                  (let [param-db-keys-by-db @(subscribe [:memefactory.ui.config/param-db-keys-by-db])
+                        pc (update pc :param-change/key
+                                   (fn [k]
+                                     (keyword ({:meme-registry-db "meme"
+                                                :param-change-registry-db "param-change"}
+                                               (param-db-keys-by-db (:param-change/db pc)))
+                                              (gql-utils/gql-name->kw k))))
+                        now (ui-utils/now-in-seconds)
+                        entry-status (param-change-status @now pc)]
+                    ^{:key (:reg-entry/address pc)}
+                    [:li [proposed-change pc {:action-child [claim-action pc]
+                                              :applied-mark (cond
+                                                              (= entry-status :reg-entry.status/whitelisted) true
+                                                              (= entry-status :reg-entry.status/blacklisted) false)}]])))]))))))
 
 (defn change-proposals []
   [simple-tabbed-pane
