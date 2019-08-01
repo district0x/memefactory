@@ -163,7 +163,7 @@
                        :param-change/db db
                        :param-change/key key
                        :param-change/value (bn/number value)
-                       :param-change/original-value (:param/value (db/get-param key db))
+                       :param-change/original-value (:param/value (first (db/get-params db [key])))
                        :param-change/reason reason
                        :param-change/meta-hash hash})))))))
 
@@ -313,15 +313,14 @@
         keys->values (->> #{"challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration" "deposit"
                             "challengeDispensation" "voteQuorum" "maxTotalSupply" "maxAuctionDuration"}
                           (map (fn [k] (when-let [v (records->values (web3/sha3 k))] [k v])))
-                          (into {}))
-        rows (reduce (fn [res [k v]]
-                       (conj res {:initial-param/key k
-                                  :initial-param/db address
-                                  :initial-param/value (bn/number v)
-                                  :initial-param/set-on timestamp}))
-                     []
-                     keys->values)]
-    (js/Promise.resolve (db/insert-initial-params! rows))))
+                          (into {}))]
+    (js/Promise.resolve (db/upsert-params!
+                         (map (fn [[k v]]
+                                {:param/key k
+                                 :param/db address
+                                 :param/value (bn/number v)
+                                 :param/set-on timestamp})
+                              keys->values)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of events handlers   ;;
