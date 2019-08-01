@@ -33,13 +33,16 @@
 
 (defn upload-file-to-twitter [twitter-obj file-content]
   (js/Promise. (fn [resolve reject]
-                 (.post twitter-obj
-                        "media/upload"
-                        #js {:media file-content}
-                        (fn [error media response]
-                          (if error
-                            (reject error)
-                            (resolve (.-media_id_string media))))))))
+                 (try
+                   (.post twitter-obj
+                          "media/upload"
+                          #js {:media file-content}
+                          (fn [error media response]
+                            (if error
+                              (reject error)
+                              (resolve (.-media_id_string media)))))
+                   (catch js/Error e
+                     (reject e))))))
 
 (defn tweet [twitter-obj {:keys [text media-id] :as tweet} {:keys [just-log-tweet?]}]
 
@@ -69,6 +72,8 @@
   (js/Promise.
    (fn [resolve reject]
      (let [tmp-dir "/tmp/memefactory"
+           ;; NOTE: Maybe instead of a random id we can create a folder with the same name as the ipfs hash
+           ;; easier to debug
            tmp-name (str (random-uuid))
            tar-file (str tmp-dir "/" tmp-name ".tar")
            img-tmp-dir (str tmp-dir "/" tmp-name)
@@ -92,7 +97,10 @@
                       (when-not just-log-tweet?
                         (.then (first-tar-obj image-tar-file-content)
                                (fn [image-file-content]
-                                 (resolve (upload-file-to-twitter twitter-obj image-file-content)))))))))))))
+                                 (-> (upload-file-to-twitter twitter-obj image-file-content)
+                                     (.then (fn [media-id] (resolve media-id)))
+                                     (.catch (fn [e] (log/error "Error uploading media to twitter" {:registry-entry registry-entry
+                                                                                                    :ipfs-hash ipfs-hash})))))))))))))))
 
 (defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :timestamp :creator :meta-hash
                                                                 :total-supply :version :deposit :challenge-period-end]
