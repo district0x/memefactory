@@ -291,10 +291,6 @@
         seller (:meme-auction/seller auction)
         {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller}
                                                            [:user/best-single-card-sale])]
-
-    (log/debug "### meme-auction-buy-event" {:buyer buyer
-                                             :seller seller})
-
     (promise-> (js/Promise.resolve (db/upsert-user! {:user/address seller
                                                      :user/best-single-card-sale (max best-single-card-sale
                                                                                       (bn/number seller-proceeds))}))
