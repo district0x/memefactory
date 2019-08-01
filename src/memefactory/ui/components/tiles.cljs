@@ -19,7 +19,6 @@
             [reagent.core :as r]
             [taoensso.timbre :as log :refer [spy]]))
 
-
 (defn meme-image [& _]
   (let [url (:gateway @(subscribe [::ipfs-subs/ipfs]))]
     (fn [image-hash & [{:keys [rejected?] :as props}]]
@@ -29,12 +28,12 @@
          props
          (cond
            (string/includes? src-url ".mp4")
-           [:video {:controls false
-                    :loop true
-                    :autoPlay true
-                    :muted true
-                    :width 290
-                    :height 435}
+           [:video.meme-image.initial-fade-in-delay {:controls false
+                                                     :loop true
+                                                     :autoPlay true
+                                                     :muted true
+                                                     :width 290
+                                                     :height 435}
             [:source {:src src-url
                       :type "video/mp4"}]
             [:span "Your browser does not support video tags"]]
