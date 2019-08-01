@@ -193,9 +193,9 @@
                        :on-click #(.stopPropagation %)}]
       [:div.footer
        [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value) :ether)]]
-       [inputs/pending-button {:disabled @tx-success?
+       [inputs/pending-button {:disabled (or @tx-pending? @tx-success?)
                                :pending? @tx-pending?
-                               :pending-text "Challenging..."
+                               :pending-text "Challenging"
                                :on-click #(dispatch [::memefactory-events/add-challenge
                                                      {:send-tx/id tx-id
                                                       :reg-entry/address address
@@ -217,7 +217,7 @@
     (fn [param-change]
       [:div.reveal-action
        [:div.icon]
-       [:div [inputs/pending-button {:disabled (or @tx-success? (not vote))
+       [:div [inputs/pending-button {:disabled (or @tx-success? @tx-pending? (not vote))
                                      :pending? @tx-pending?
                                      :pending-text "Revealing..."
                                      :on-click #(dispatch [::registry-entry/reveal-vote
