@@ -20,7 +20,6 @@
    [memefactory.server.utils :as server-utils]
    [memefactory.shared.contract.registry-entry :refer [vote-options]]
    [mount.core :as mount :refer [defstate]]
-   [print.foo :refer [look] :include-macros true]
    [taoensso.timbre :as log]))
 
 (declare start)
@@ -82,16 +81,32 @@
   (db/insert-registry-entry! (merge registry-entry
                                     {:reg-entry/created-on timestamp})))
 
+(defn- add-error [m err-txt]
+  (assoc m :errors (conj (:errors m) err-txt)))
+
 (defn meme-sanity-check [{:keys [:reg-entry/address
                                  :meme/meta-hash
                                  :meme/total-supply
                                  :meme/total-minted]}]
-  (let [add-error (fn [m err-txt] (assoc m :errors (conj (:errors m) err-txt)))]
-    (cond-> {:errors []}
-      (not (ipfs/ipfs-hash? meta-hash)) (add-error "Malformed ipfs meta hash")
-      (not (web3/address? address)) (add-error "Malformed registry entry address")
-      (not (int? total-supply)) (add-error "Malformed total-suply number")
-      (not (int? total-minted)) (add-error "Malformed total minted number"))))
+  (cond-> {:errors []}
+    (not (ipfs/ipfs-hash? meta-hash)) (add-error "Malformed ipfs meta hash")
+    (not (web3/address? address)) (add-error "Malformed registry entry address")
+    (not (int? total-supply)) (add-error "Malformed total-suply number")
+    (not (int? total-minted)) (add-error "Malformed total minted number")))
+
+(defn vote-sanity-check [{:keys [:vote/voter
+                                 :vote/amount
+                                 :vote/option]}]
+  (cond-> {:errors []}
+    (not (web3/address? voter))
+    (add-error "Not a voter address")
+
+    (or (not (number? amount))
+        (= 0 amount))
+    (add-error "Incorrect vote amount")
+
+    (not (#{0 1 2} option))
+    (add-error "Unknown option")))
 
 (defn meme-constructed-event [_ {:keys [:args] :as event}]
   (let [{:keys [:registry-entry :timestamp :creator :meta-hash
@@ -186,31 +201,28 @@
 
 (defn vote-revealed-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp :version :voter :option]} args]
-    (promise-> (js/Promise.all [(js/Promise.resolve (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :reg-entry/address :vote/amount]))
+    (promise-> (js/Promise.all [(js/Promise.resolve (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :vote/amount]))
                                 (js/Promise.resolve (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/votes-against :challenge/votes-for :challenge/votes-total]))])
-               (fn [[vote re]]
-                 (let [{:keys [:vote/amount :vote/option :challenge/votes-for]} (merge vote
-                                                                                       {:vote/option (bn/number option)
+               (fn [[vote {:keys [:challenge/votes-total :challenge/votes-against :challenge/votes-for]}]]
+                 (let [option (bn/number option)
+                       {:keys [:vote/voter :vote/amount :vote/option] :as vote} (merge vote
+                                                                                       {:vote/option option
                                                                                         :vote/revealed-on timestamp})
-                       {:keys [:challenge/votes-total :challenge/votes-against]} re
-                       amount (bn/number (or amount 0))
-                       votes-total (bn/number (or votes-total 0))
-                       votes-against (bn/number (or votes-against 0))
-                       votes-for (bn/number (or votes-for 0))]
-                   (promise-> (js/Promise.resolve (db/update-registry-entry! (cond-> {:reg-entry/address registry-entry
-                                                                                      :reg-entry/version version}
+                       errors (vote-sanity-check vote)]
+                   (if-not (empty? (:errors errors))
+                     (js/Promise.reject errors)
+                     (promise-> (js/Promise.resolve (db/update-registry-entry! (cond-> {:reg-entry/address registry-entry
+                                                                                        :reg-entry/version version}
 
-                                                                               true
-                                                                               (assoc :challenge/votes-total (+ votes-total amount))
+                                                                                 true
+                                                                                 (assoc :challenge/votes-total (+ votes-total amount))
 
-                                                                               (= (vote-options option) :vote.option/vote-against)
-                                                                               (assoc :challenge/votes-against (+ votes-against amount))
+                                                                                 (= (vote-options option) :vote.option/vote-against)
+                                                                                 (assoc :challenge/votes-against (+ votes-against amount))
 
-                                                                               (= (vote-options option) :vote.option/vote-for)
-                                                                               (assoc :challenge/votes-for (+ votes-for amount)))))
-                              #(db/update-vote! (merge vote
-                                                       {:vote/option (bn/number option)
-                                                        :vote/revealed-on timestamp})))))
+                                                                                 (= (vote-options option) :vote.option/vote-for)
+                                                                                 (assoc :challenge/votes-for (+ votes-for amount)))))
+                                #(db/update-vote! vote)))))
                #(db/upsert-user! {:user/address voter}))))
 
 (defn vote-reward-claimed-event [_ {:keys [:args]}]
@@ -270,19 +282,24 @@
     (js/Promise.resolve (db/update-meme-auction! {:meme-auction/address meme-auction
                                                   :meme-auction/canceled-on timestamp}))))
 
+
 (defn meme-auction-buy-event [_ {:keys [:args]}]
   (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
         auction (db/get-meme-auction meme-auction)
         reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
                               :reg-entry/address)
-        seller-address (:meme-auction/seller auction)
-        {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller-address}
+        seller (:meme-auction/seller auction)
+        {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller}
                                                            [:user/best-single-card-sale])]
-    (promise-> (js/Promise.resolve (db/upsert-user! {:user/address seller-address
+
+    (log/debug "### meme-auction-buy-event" {:buyer buyer
+                                             :seller seller})
+
+    (promise-> (js/Promise.resolve (db/upsert-user! {:user/address seller
                                                      :user/best-single-card-sale (max best-single-card-sale
                                                                                       (bn/number seller-proceeds))}))
                #(db/upsert-user! {:user/address buyer})
-               #(db/inc-user-field! (:meme-auction/seller auction) :user/total-earned (bn/number seller-proceeds))
+               #(db/inc-user-field! seller :user/total-earned (bn/number seller-proceeds))
                #(db/inc-meme-field! reg-entry-address :meme/total-trade-volume (bn/number price))
                #(db/update-meme-auction! {:meme-auction/address meme-auction
                                           :meme-auction/bought-for (bn/number price)
@@ -419,7 +436,8 @@
     (when-not (= ::db/started @db/memefactory-db)
       (throw (js/Error. "Database module has not started")))
     (let [event-callbacks
-          {:param-change-db/eternal-db-event eternal-db-event
+          {:meme-registry-db/eternal-db-event eternal-db-event
+           :param-change-db/eternal-db-event eternal-db-event
            :param-change-registry/param-change-constructed-event param-change-constructed-event
            :param-change-registry/challenge-created-event challenge-created-event
            :param-change-registry/vote-committed-event vote-committed-event
@@ -428,7 +446,6 @@
            :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
            :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
            :param-change-registry/param-change-applied-event param-change-applied-event
-           :meme-registry-db/eternal-db-event eternal-db-event
            :meme-registry/meme-constructed-event meme-constructed-event
            :meme-registry/challenge-created-event challenge-created-event
            :meme-registry/vote-committed-event vote-committed-event
