@@ -189,6 +189,10 @@
                             :twilio-api-key "PLACEHOLDER"
                             :blacklist-file "blacklist.edn"
                             :blacklist-token "PLACEHOLDER"
+                            :sigterm {:on-sigterm (fn [args]
+                                                    (log/warn "Received SIGTERM signal. Exiting" {:args args})
+                                                    (mount/stop)
+                                                    (.exit nodejs/process 0))}
                             :emailer {:private-key "PLACEHOLDER"
                                       :api-key "PLACEHOLDER"
                                       :template-id "PLACEHOLDER"

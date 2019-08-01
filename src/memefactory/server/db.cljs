@@ -8,7 +8,6 @@
             [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
             [medley.core :as medley]
             [mount.core :as mount :refer [defstate]]
-            [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]))
 
 (declare start)
@@ -37,9 +36,9 @@
    [:challenge/comment :varchar default-nil]
    [:challenge/commit-period-end :unsigned :integer default-nil]
    [:challenge/reveal-period-end :unsigned :integer default-nil]
-   [:challenge/votes-for :BIG :INT default-zero]
-   [:challenge/votes-against :BIG :INT default-zero]
-   [:challenge/votes-total :BIG :INT default-zero]
+   [:challenge/votes-for :UNSIGNED :BIG :INT default-zero]
+   [:challenge/votes-against :UNSIGNED :BIG :INT default-zero]
+   [:challenge/votes-total :UNSIGNED :BIG :INT default-zero]
    [:challenge/claimed-reward-on :unsigned :integer default-nil]])
 
 (def memes-columns
@@ -77,7 +76,7 @@
   [[:reg-entry/address address not-nil]
    [:tag/name :varchar not-nil]
    [(sql/call :primary-key :reg-entry/address :tag/name)]
-   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address)]
+   [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]
    [(sql/call :foreign-key :tag/name) (sql/call :references :tags :tag/name) (sql/raw "ON DELETE CASCADE")]])
 
 (def meme-auctions-columns
@@ -118,7 +117,7 @@
   [[:reg-entry/address address not-nil]
    [:vote/voter address not-nil]
    [:vote/option :unsigned :integer not-nil]
-   [:vote/amount :unsigned :BIG :INT default-nil]
+   [:vote/amount :unsigned :BIG :INT not-nil]
    [:vote/created-on :unsigned :integer default-nil]
    [:vote/revealed-on :unsigned :integer default-nil]
    [:vote/claimed-reward-on :unsigned :integer default-nil]
@@ -164,81 +163,6 @@
 
 (defn- index-name [col-name]
   (keyword (namespace col-name) (str (name col-name) "-index")))
-
-(defn clean-db []
-  (let [tables [:reg-entries
-                :votes
-                :meme-auctions
-                :meme-tags
-                :tags
-                :meme-tokens
-                :meme-token-owners
-                :memes
-                :param-changes
-                :users
-                :initial-params
-                :twitter-media
-                :events]
-        drop-table-if-exists (fn [t]
-                               (psqlh/drop-table :if-exists t))]
-    (doall
-     (map (fn [t]
-            (log/debug (str "Dropping table " t))
-            (db/run! (drop-table-if-exists t)))
-          tables))))
-
-(defn start [{:keys [:resync?] :as opts}]
-  (when resync?
-    (log/info "Database module called with a resync flag. Cleaning db")
-    (clean-db))
-
-  (db/run! (-> (psqlh/create-table :reg-entries :if-not-exists)
-               (psqlh/with-columns registry-entries-columns)))
-
-  (db/run! (-> (psqlh/create-table :memes :if-not-exists)
-               (psqlh/with-columns memes-columns)))
-
-  (db/run! (-> (psqlh/create-table :meme-tokens :if-not-exists)
-               (psqlh/with-columns meme-tokens-columns)))
-
-  (db/run! (-> (psqlh/create-table :meme-token-owners :if-not-exists)
-               (psqlh/with-columns meme-token-owners-columns)))
-
-  (db/run! (-> (psqlh/create-table :tags :if-not-exists)
-               (psqlh/with-columns tags-columns)))
-
-  (db/run! (-> (psqlh/create-table :meme-tags :if-not-exists)
-               (psqlh/with-columns meme-tags-columns)))
-
-  (db/run! (-> (psqlh/create-table :meme-auctions :if-not-exists)
-               (psqlh/with-columns meme-auctions-columns)))
-
-  (db/run! (-> (psqlh/create-table :param-changes :if-not-exists)
-               (psqlh/with-columns param-changes-columns)))
-
-  (db/run! (-> (psqlh/create-table :votes :if-not-exists)
-               (psqlh/with-columns votes-columns)))
-
-  (db/run! (-> (psqlh/create-table :users :if-not-exists)
-               (psqlh/with-columns user-columns)))
-
-  (db/run! (-> (psqlh/create-table :initial-params :if-not-exists)
-               (psqlh/with-columns initial-params-columns)))
-
-  (db/run! (-> (psqlh/create-table :twitter-media :if-not-exists)
-               (psqlh/with-columns twitter-media-columns)))
-
-  (db/run! (-> (psqlh/create-table :events :if-not-exists)
-               (psqlh/with-columns events-columns)))
-
-  ;; TODO create indexes
-  #_(doseq [column (rest registry-entry-column-names)]
-      (db/run! {:create-index (index-name column) :on [:offerings column]}))
-
-  ::started)
-
-(defn stop []
-  ::stopped)
 
 (defn create-insert-fn [table-name column-names & [{:keys [:insert-or-replace?]}]]
   (fn [item]
@@ -455,3 +379,80 @@
             :values [(select-keys args events-column-names)]
             :upsert {:on-conflict [:event/event-name :event/contract-key]
                      :do-update-set [:event/last-log-index :event/last-block-number :event/count]}}))
+
+;; LIFECYCLE
+
+(defn clean-db []
+  (let [tables [:reg-entries
+                :votes
+                :meme-auctions
+                :meme-tags
+                :tags
+                :meme-tokens
+                :meme-token-owners
+                :memes
+                :param-changes
+                :users
+                :initial-params
+                :twitter-media
+                :events]
+        drop-table-if-exists (fn [t]
+                               (psqlh/drop-table :if-exists t))]
+    (doall
+     (map (fn [t]
+            (log/debug (str "Dropping table " t))
+            (db/run! (drop-table-if-exists t)))
+          tables))))
+
+(defn start [{:keys [:resync?] :as opts}]
+  (when resync?
+    (log/info "Database module called with a resync flag.")
+    (clean-db))
+
+  (db/run! (-> (psqlh/create-table :reg-entries :if-not-exists)
+               (psqlh/with-columns registry-entries-columns)))
+
+  (db/run! (-> (psqlh/create-table :memes :if-not-exists)
+               (psqlh/with-columns memes-columns)))
+
+  (db/run! (-> (psqlh/create-table :meme-tokens :if-not-exists)
+               (psqlh/with-columns meme-tokens-columns)))
+
+  (db/run! (-> (psqlh/create-table :meme-token-owners :if-not-exists)
+               (psqlh/with-columns meme-token-owners-columns)))
+
+  (db/run! (-> (psqlh/create-table :tags :if-not-exists)
+               (psqlh/with-columns tags-columns)))
+
+  (db/run! (-> (psqlh/create-table :meme-tags :if-not-exists)
+               (psqlh/with-columns meme-tags-columns)))
+
+  (db/run! (-> (psqlh/create-table :meme-auctions :if-not-exists)
+               (psqlh/with-columns meme-auctions-columns)))
+
+  (db/run! (-> (psqlh/create-table :param-changes :if-not-exists)
+               (psqlh/with-columns param-changes-columns)))
+
+  (db/run! (-> (psqlh/create-table :votes :if-not-exists)
+               (psqlh/with-columns votes-columns)))
+
+  (db/run! (-> (psqlh/create-table :users :if-not-exists)
+               (psqlh/with-columns user-columns)))
+
+  (db/run! (-> (psqlh/create-table :initial-params :if-not-exists)
+               (psqlh/with-columns initial-params-columns)))
+
+  (db/run! (-> (psqlh/create-table :twitter-media :if-not-exists)
+               (psqlh/with-columns twitter-media-columns)))
+
+  (db/run! (-> (psqlh/create-table :events :if-not-exists)
+               (psqlh/with-columns events-columns)))
+
+  ;; TODO create indexes
+  #_(doseq [column (rest registry-entry-column-names)]
+      (db/run! {:create-index (index-name column) :on [:offerings column]}))
+
+  ::started)
+
+(defn stop []
+  ::stopped)
