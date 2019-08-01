@@ -361,23 +361,8 @@
          param-changes-result (paged-query param-changes-query
                                            first
                                            (when after
-                                             (js/parseInt after)))
-         ret (if-not (= 0 (:total-count param-changes-result))
-               param-changes-result
-               (do
-                 (log/debug "No parameter changes could be retrieved. Querying for initial parameters")
-                 (let [initial-params-query {:select [[:initial-params.initial-param/key :param-change/key]
-                                                      [:initial-params.initial-param/db :param-change/db]
-                                                      [:initial-params.initial-param/value :param-change/value]
-                                                      [:initial-params.initial-param/set-on :param-change/applied-on]]
-                                             :from [:initial-params]
-                                             :where [:and [:= key :initial-params.initial-param/key]
-                                                     [:= db :initial-params.initial-param/db]]}]
-                   (paged-query initial-params-query
-                                first
-                                (when after
-                                  (js/parseInt after))))))]
-     ret)))
+                                             (js/parseInt after)))]
+     param-changes-result)))
 
 (defn user-query-resolver [_ {:keys [:user/address] :as args} context debug]
   (log/debug "user args" args)
@@ -505,7 +490,7 @@
              (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
              db)]
     (try-catch-throw
-     (let [sql-query (db/all (mf-db/build-param-query keys db))]
+     (let [sql-query (mf-db/get-params db keys)]
        (log/debug "params-query-resolver" sql-query)
        sql-query))))
 

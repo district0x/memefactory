@@ -5,6 +5,7 @@
             [district.server.db.honeysql-extensions]
             [honeysql.core :as sql]
             [honeysql-postgres.helpers :as psqlh]
+            [honeysql.helpers :as sqlh]
             [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
             [medley.core :as medley]
             [mount.core :as mount :refer [defstate]]
@@ -94,12 +95,12 @@
    [:meme-auction/description :varchar default-nil]
    [(sql/call :primary-key :meme-auction/address)]])
 
-(def initial-params-columns
-  [[:initial-param/key :varchar not-nil]
-   [:initial-param/db address not-nil]
-   [:initial-param/value :unsigned :integer not-nil]
-   [:initial-param/set-on :unsigned :integer default-nil]
-   [(sql/call :primary-key :initial-param/key :initial-param/db)]])
+(def params-columns
+  [[:param/key :varchar not-nil]
+   [:param/db address not-nil]
+   [:param/value :unsigned :integer not-nil]
+   [:param/set-on :unsigned :integer default-nil]
+   [(sql/call :primary-key :param/key :param/db)]])
 
 (def param-changes-columns
   [[:reg-entry/address address not-nil]
@@ -154,7 +155,7 @@
 (def meme-tags-column-names (map first meme-tags-columns))
 (def meme-auctions-column-names (filter keyword? (map first meme-auctions-columns)))
 (def param-change-column-names (filter keyword? (map first param-changes-columns)))
-(def initial-params-column-names (filter keyword? (map first initial-params-columns)))
+(def params-column-names (filter keyword? (map first params-columns)))
 (def votes-column-names (map first votes-columns))
 (def tags-column-names (map first tags-columns))
 (def user-column-names (filter keyword? (map first user-columns)))
@@ -297,31 +298,18 @@
 
 ;; INITIAL-PARAMS
 
-(defn insert-initial-params! [rows]
-  (db/run! {:insert-into :initial-params
-            :values rows}))
+(defn upsert-params! [params]
+  (db/run! {:insert-into :params
+            :values (mapv #(select-keys % params-column-names) params)
+            :upsert {:on-conflict [:param/key :param/db]
+                     :do-update-set (keys (select-keys (first params) params-column-names))}}))
 
-(defn build-param-query [keys db]
-  {:select [:*]
-   :from [{:union [{:select [[:initial-param/key :param/key]
-                             [:initial-param/value :param/value]
-                             [:initial-param/set-on :param/set-on]
-                             [:initial-param/db :param/db]]
-                    :from [[:initial-params :ips]]}
-                   {:select [[:param-change/key :param/key]
-                             [:param-change/value :param/value]
-                             [:param-change/applied-on :param/set-on]
-                             [:param-change/db :param/db]]
-                    :from [[:param-changes :pc]]}]}]
-   :where [:and
-           [:= db :param/db]
-           [:in :param/key keys]
-           [:not= nil :param/set-on]]
-   :group-by [:param/key]
-   :having (sql/call :max :param/set-on)})
-
-(defn get-param [key db]
-  (db/get (build-param-query [key] db)))
+(defn get-params [db keys]
+  (db/all
+   (cond-> {:select [:*]
+            :from [:params]}
+     db (sqlh/merge-where [:= :params.param/db db])
+     keys (sqlh/merge-where [:in :params.param/key keys]))))
 
 ;; PARAM-CHANGES
 
@@ -393,7 +381,7 @@
                 :memes
                 :param-changes
                 :users
-                :initial-params
+                :params
                 :twitter-media
                 :events]
         drop-table-if-exists (fn [t]
@@ -439,8 +427,8 @@
   (db/run! (-> (psqlh/create-table :users :if-not-exists)
                (psqlh/with-columns user-columns)))
 
-  (db/run! (-> (psqlh/create-table :initial-params :if-not-exists)
-               (psqlh/with-columns initial-params-columns)))
+  (db/run! (-> (psqlh/create-table :params :if-not-exists)
+               (psqlh/with-columns params-columns)))
 
   (db/run! (-> (psqlh/create-table :twitter-media :if-not-exists)
                (psqlh/with-columns twitter-media-columns)))
