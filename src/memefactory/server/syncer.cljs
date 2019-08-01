@@ -282,7 +282,6 @@
     (js/Promise.resolve (db/update-meme-auction! {:meme-auction/address meme-auction
                                                   :meme-auction/canceled-on timestamp}))))
 
-
 (defn meme-auction-buy-event [_ {:keys [:args]}]
   (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
         auction (db/get-meme-auction meme-auction)
