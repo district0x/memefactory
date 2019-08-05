@@ -222,7 +222,7 @@
             [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
                                                 (ui-utils/format-dank account-balance))]
             [:p.token-return  "Tokens will be returned to you after revealing your vote."]
-            [:p "A vote secret is stored in your browser, which needs to be used for revealing the vote later."]]
+            [:p.token-return "A vote secret is stored in your browser, which needs to be used for revealing the vote later."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 
