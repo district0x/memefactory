@@ -13,8 +13,6 @@
             [memefactory.styles.component.buttons :refer [get-dank-button button vote-button-icon]]
             [clojure.string :as str]))
 
-
-;; TODO : buttons styles
 (defstyles core
   [:.dank-registry-vote-page
    [:section.vote-header
@@ -23,15 +21,14 @@
                        :color :blue})
      [:.get-dank-button
       (get-dank-button)]
-
      [:.buttons
       {:display :flex
        :flex-direction :row
        :flex-wrap :nowrap
-       :justify-content :space-between}
+       :justify-content :space-around
+       :margin (em 1)}
       ["input"
        {:display :none}]
-
       [:.button
        {:font-family "'Bungee',cursive"
         :width (em 13)
@@ -44,26 +41,11 @@
         :background-color "#9d0adb"
         :border-radius (em 2)
         :display :flex
-        :color :white}
-
-       #_{:display :flex
-        :justify-content :space-between
-        :align-items :center
-        :border "0.5px solid rgb(220, 220, 220)"
-        :padding "7px 14px"
-        :cursor :pointer
-        :color :blue #_@darkBlueText
-        :font-size "12px"
-        }]
-
-      ]
-
-     ]]
+        :color :white}]]]]
    [:section.challenges
     {:max-width (px 985)
      :margin-left :auto
      :margin-right :auto}
-
     [:.challenges
      {:padding-left (px 0)
       :padding-right (px 0)}]]
