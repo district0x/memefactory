@@ -10,6 +10,7 @@
                  [cljs-web3 "0.19.0-0-10"]
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "4.12.0-0"]
+                 [cljsjs/filesaverjs "1.3.3-0"]
                  [cljsjs/jquery "3.2.1-0"]
                  [cljsjs/react "16.4.1-0"]
                  [cljsjs/react-dom "16.4.1-0"]

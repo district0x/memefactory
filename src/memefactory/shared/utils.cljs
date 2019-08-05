@@ -1,9 +1,9 @@
 (ns memefactory.shared.utils
-  (:require
-    [bignumber.core :as bn]
-    [cljs.core.match :refer-macros [match]]
-    [district.web3-utils :as web3-utils]
-    [print.foo :refer [look] :include-macros true])
+  (:require [bignumber.core :as bn]
+            [cljs.core.match :refer-macros [match]]
+            [cljsjs.filesaverjs]
+            [district.web3-utils :as web3-utils]
+            [taoensso.timbre :as log])
   (:import [goog.async Debouncer]))
 
 ;; started-on, duration and now are expected in seconds
@@ -58,3 +58,12 @@
                                       :reg-entry.status/whitelisted
                                       :reg-entry.status/blacklisted)
     :else :reg-entry.status/whitelisted))
+
+(defn file-write [filename content & [mime-type]]
+
+  (log/debug "### FILE_WRITE" {:content content})
+
+  (js/saveAs (new js/Blob
+                  (clj->js [content])
+                  (clj->js {:type (or mime-type (str "application/json;charset=UTF-8"))}))
+             filename))

@@ -14,7 +14,7 @@
             [clojure.string :as str]))
 
 
-
+;; TODO : buttons styles
 (defstyles core
   [:.dank-registry-vote-page
    [:section.vote-header
@@ -22,7 +22,43 @@
      (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
                        :color :blue})
      [:.get-dank-button
-      (get-dank-button)]]]
+      (get-dank-button)]
+
+     [:.buttons
+      {:display :flex
+       :flex-direction :row
+       :flex-wrap :nowrap
+       :justify-content :space-between}
+      ["input"
+       {:display :none}]
+
+      [:.button
+       {:font-family "'Bungee',cursive"
+        :width (em 13)
+        :justify-content :center
+        :height (em 2.5)
+        :align-items :center
+        :white-space :nowrap
+        :border-style :none
+        :cursor :pointer
+        :background-color "#9d0adb"
+        :border-radius (em 2)
+        :display :flex
+        :color :white}
+
+       #_{:display :flex
+        :justify-content :space-between
+        :align-items :center
+        :border "0.5px solid rgb(220, 220, 220)"
+        :padding "7px 14px"
+        :cursor :pointer
+        :color :blue #_@darkBlueText
+        :font-size "12px"
+        }]
+
+      ]
+
+     ]]
    [:section.challenges
     {:max-width (px 985)
      :margin-left :auto
