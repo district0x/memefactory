@@ -60,9 +60,6 @@
     :else :reg-entry.status/whitelisted))
 
 (defn file-write [filename content & [mime-type]]
-
-  (log/debug "### FILE_WRITE" {:content content})
-
   (js/saveAs (new js/Blob
                   (clj->js [content])
                   (clj->js {:type (or mime-type (str "application/json;charset=UTF-8"))}))

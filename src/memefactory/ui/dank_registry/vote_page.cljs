@@ -27,7 +27,7 @@
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [taoensso.timbre :as log :refer [spy]]))
+   [taoensso.timbre :as log]))
 
 
 (defn header []
@@ -44,7 +44,6 @@
            {:on-click (fn [evt]
                         (re-frame/dispatch [::events/backup-vote-secrets]))}
            [:b "BACKUP VOTES"]]
-          ;; TODO : import
           [:label.button
            [:input {:type :file
                     :on-change (fn [evt]
@@ -53,9 +52,7 @@
                                        reader (js/FileReader.)]
                                    (set! (.-value target) "")
                                    (set! (.-onload reader) (fn [e]
-                                                             (re-frame/dispatch [::events/import-vote-secrets (-> e .-target .-result)])
-                                                             ;; (log/debug "### IMPORT VOTES" {:result (-> e .-target .-result)})
-                                                             ))
+                                                             (re-frame/dispatch [::events/import-vote-secrets (-> e .-target .-result)])))
                                    (.readAsText reader file)))}]
            [:b "IMPORT VOTES"]]]
          [nav-anchor {:route (when account-active? :route.get-dank/index)}
@@ -83,7 +80,6 @@
                                                                               [:challenge/vote {:vote/voter @active-account}
                                                                                [:vote/option
                                                                                 :vote/amount]]]))]]}])]
-    ;; (log/debug "@response" @response)
     (if (:graphql/loading? @response)
       [spinner/spin]
       (if-let [meme-voting (:meme @response)]
@@ -92,7 +88,6 @@
               {:keys [:vote/option :vote/amount]
                :or {option "voteOption_noVote"}} vote
               option (graphql-utils/gql-name->kw option)]
-          ;; (log/debug "vote" {:v vote :o option} ::collect-reward-action)
           (if (and (zero? votes-for)
                    (zero? votes-against))
             [:div.collect-reward
@@ -226,7 +221,8 @@
            [:<>
             [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
                                                 (ui-utils/format-dank account-balance))]
-            [:p.token-return  "Tokens will be returned to you after revealing your vote."]]
+            [:p.token-return  "Tokens will be returned to you after revealing your vote."]
+            [:p "A vote secret is stored in your browser, which needs to be used for revealing the vote later."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 
@@ -265,7 +261,6 @@
 
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
-  ;; (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)
   (case  (graphql-utils/gql-name->kw status)
     :reg-entry.status/commit-period [vote-action meme]
     :reg-entry.status/reveal-period [reveal-action meme]
@@ -273,11 +268,9 @@
     ;; being rendered with old subscription value
     [:div]))
 
-;; TODO: backup buttons
+
 (defmethod page :route.dank-registry/vote []
-  (let [
-        account @(subscribe [::accounts-subs/active-account])]
-    ;; (log/debug ":route.dank-registry/vote" account)
+  (let [account @(subscribe [::accounts-subs/active-account])]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory - Vote"

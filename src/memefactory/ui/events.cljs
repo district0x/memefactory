@@ -15,7 +15,6 @@
       clj->js
       js/JSON.stringify))
 
-
 ;; Adds the challenge to ipfs and if successfull dispatches ::create-challenge
 (re-frame/reg-event-fx
  ::add-challenge
@@ -31,9 +30,6 @@
 (re-frame/reg-fx
  :file/write
  (fn [[filename content]]
-
-   (log/debug "### FILE WRITE" {:content content})
-
    (shared-utils/file-write filename content)))
 
 (re-frame/reg-event-fx
@@ -42,18 +38,12 @@
  (fn [{:keys [:store]} [{:keys [:file/filename]}]]
    (let [filename "memefactory_vote_secrets.edn"
          votes (str (:votes store))]
-
-     (log/debug "### BACKUP VOTE SECRETS" {:votes votes})
-
      {:file/write [filename votes]})))
 
 (re-frame/reg-event-fx
-  ::import-vote-secrets
-  [interceptors (re-frame/inject-cofx :store)]
-  (fn [{:keys [:db :store]} [data-string]]
-    (let [votes (reader/read-string data-string)]
-
-      (log/debug "### IMPORT VOTE SECRETS" {:votes votes})
-
-      {:store (cljs-utils/merge-in store {:votes votes})
-       :db (cljs-utils/merge-in db {:votes votes})})))
+ ::import-vote-secrets
+ [interceptors (re-frame/inject-cofx :store)]
+ (fn [{:keys [:db :store]} [data-string]]
+   (let [votes (reader/read-string data-string)]
+     {:store (cljs-utils/merge-in store {:votes votes})
+      :db (cljs-utils/merge-in db {:votes votes})})))
