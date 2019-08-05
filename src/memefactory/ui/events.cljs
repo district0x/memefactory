@@ -29,8 +29,8 @@
 
 (re-frame/reg-fx
  :file/write
- (fn [[filename content]]
-   (shared-utils/file-write filename content)))
+ (fn [[filename content & [mime-type]]]
+   (shared-utils/file-write filename content mime-type)))
 
 (re-frame/reg-event-fx
  ::backup-vote-secrets
@@ -38,7 +38,7 @@
  (fn [{:keys [:store]} [{:keys [:file/filename]}]]
    (let [filename "memefactory_vote_secrets.edn"
          votes (str (:votes store))]
-     {:file/write [filename votes]})))
+     {:file/write [filename votes "text/plain"]})))
 
 (re-frame/reg-event-fx
  ::import-vote-secrets
