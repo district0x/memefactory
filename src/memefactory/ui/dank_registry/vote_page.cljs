@@ -6,7 +6,7 @@
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
    [district.parsers :as parsers]
-   [district.ui.component.form.input :refer [select-input with-label text-input amount-input pending-button]]
+   [district.ui.component.form.input :refer [select-input with-label text-input amount-input pending-button file-drag-input]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
    [district.ui.web3-account-balances.subs :as balance-subs]
@@ -14,6 +14,7 @@
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [district.ui.window-size.subs :as w-size-subs]
    [goog.string :as gstring]
+   [memefactory.ui.events :as events]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.buttons :as buttons]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
@@ -23,20 +24,37 @@
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.utils :as ui-utils]
-   [re-frame.core :refer [subscribe dispatch]]
+   [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
-   [taoensso.timbre :as log :refer [spy]]))
+   [taoensso.timbre :as log]))
 
 
 (defn header []
-  (let [active-account (subscribe [::accounts-subs/active-account])]
+  (let [form-data (r/atom nil)
+        active-account (subscribe [::accounts-subs/active-account])]
     (fn []
       (let [account-active? (boolean @active-account)]
         [:div.registry-vote-header
          [:div.icon]
          [:h2.title "Dank registry - VOTE"]
          [:h3.title "View challenges and vote to earn more DANK"]
+         [:div.buttons
+          [:label.button
+           {:on-click (fn [evt]
+                        (re-frame/dispatch [::events/backup-vote-secrets]))}
+           [:b "BACKUP VOTES"]]
+          [:label.button
+           [:input {:type :file
+                    :on-change (fn [evt]
+                                 (let [target (.-currentTarget evt)
+                                       file (-> target .-files (aget 0))
+                                       reader (js/FileReader.)]
+                                   (set! (.-value target) "")
+                                   (set! (.-onload reader) (fn [e]
+                                                             (re-frame/dispatch [::events/import-vote-secrets (-> e .-target .-result)])))
+                                   (.readAsText reader file)))}]
+           [:b "IMPORT VOTES"]]]
          [nav-anchor {:route (when account-active? :route.get-dank/index)}
           [:div.get-dank-button
            {:class (when-not account-active? "disabled")}
@@ -62,7 +80,6 @@
                                                                               [:challenge/vote {:vote/voter @active-account}
                                                                                [:vote/option
                                                                                 :vote/amount]]]))]]}])]
-    ;; (log/debug "@response" @response)
     (if (:graphql/loading? @response)
       [spinner/spin]
       (if-let [meme-voting (:meme @response)]
@@ -71,7 +88,6 @@
               {:keys [:vote/option :vote/amount]
                :or {option "voteOption_noVote"}} vote
               option (graphql-utils/gql-name->kw option)]
-          ;; (log/debug "vote" {:v vote :o option} ::collect-reward-action)
           (if (and (zero? votes-for)
                    (zero? votes-against))
             [:div.collect-reward
@@ -205,7 +221,8 @@
            [:<>
             [:p.max-vote-tokens (gstring/format "You can vote with up to %s tokens."
                                                 (ui-utils/format-dank account-balance))]
-            [:p.token-return  "Tokens will be returned to you after revealing your vote."]]
+            [:p.token-return  "Tokens will be returned to you after revealing your vote."]
+            [:p.token-return "A vote secret is stored in your browser, which needs to be used for revealing the vote later."]]
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 
@@ -244,7 +261,6 @@
 
 
 (defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
-  ;; (log/debug "REVEAL VOTE ACTION" meme ::reveal-vote-action)
   (case  (graphql-utils/gql-name->kw status)
     :reg-entry.status/commit-period [vote-action meme]
     :reg-entry.status/reveal-period [reveal-action meme]
@@ -255,7 +271,6 @@
 
 (defmethod page :route.dank-registry/vote []
   (let [account @(subscribe [::accounts-subs/active-account])]
-    ;; (log/debug ":route.dank-registry/vote" account)
     (fn []
       [app-layout
        {:meta {:title "MemeFactory - Vote"
