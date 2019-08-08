@@ -201,7 +201,7 @@
 
 (defn vote-revealed-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp :version :voter :option]} args]
-    (promise-> (js/Promise.all [(js/Promise.resolve (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :vote/amount]))
+    (promise-> (js/Promise.all [(js/Promise.resolve (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :vote/amount :reg-entry/address]))
                                 (js/Promise.resolve (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/votes-against :challenge/votes-for :challenge/votes-total]))])
                (fn [[vote {:keys [:challenge/votes-total :challenge/votes-against :challenge/votes-for]}]]
                  (let [option (bn/number option)
