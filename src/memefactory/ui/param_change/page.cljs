@@ -320,14 +320,12 @@
 (defn apply-change-action [{:keys [:reg-entry/address :reg-entry/creator] :as param-change}]
   (let [tx-id (str "apply" (:reg-entry/address param-change))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:param-change/apply-change tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {:param-change/apply-change tx-id}])
-        active-account (subscribe [::accounts-subs/active-account])]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {:param-change/apply-change tx-id}])]
     [:div.apply-change-action
      [inputs/pending-button
       {:pending? @tx-pending?
        :disabled (or @tx-pending?
-                     @tx-success?
-                     (not= @active-account (:user/address creator)))
+                     @tx-success?)
        :pending-text "Applying..."
        :on-click #(dispatch [::param-change/apply-param-change
                              {:send-tx/id tx-id
