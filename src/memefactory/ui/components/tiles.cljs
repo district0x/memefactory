@@ -27,6 +27,10 @@
         [:div.meme-card
          props
          (cond
+
+           (string/includes? src-url "forbidden")
+           [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]]
+
            (string/includes? src-url ".mp4")
            [:video.meme-image.initial-fade-in-delay {:controls false
                                                      :loop true
@@ -38,10 +42,7 @@
                       :type "video/mp4"}]
             [:span "Your browser does not support video tags"]]
 
-           (not-empty src-url)
-           [:img.meme-image.initial-fade-in-delay {:src src-url}]
-
-           :else [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])
+           :else [:img.meme-image.initial-fade-in-delay {:src src-url}])
          (when rejected?
            [:div.image-tape-container.initial-fade-in-delay
             [:div.image-tape
