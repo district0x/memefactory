@@ -176,10 +176,10 @@
     (promise-> (js/Promise.all [(js/Promise.resolve (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :reg-entry/address :vote/amount]))
                                 (js/Promise.resolve (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/votes-against :challenge/votes-for :challenge/votes-total]))])
                (fn [[vote re]]
-                 (let [{:keys [:vote/amount :vote/option :challenge/votes-for]} (merge vote
-                                                                                       {:vote/option (bn/number option)
-                                                                                        :vote/revealed-on timestamp})
-                       {:keys [:challenge/votes-total :challenge/votes-against]} re
+                 (let [{:keys [:vote/amount :vote/option] :as vote} (merge vote
+                                                                           {:vote/option (bn/number option)
+                                                                            :vote/revealed-on timestamp})
+                       {:keys [:challenge/votes-total :challenge/votes-against :challenge/votes-for]} re
                        amount (bn/number (or amount 0))
                        votes-total (bn/number (or votes-total 0))
                        votes-against (bn/number (or votes-against 0))
@@ -195,9 +195,7 @@
 
                                                                                (= (vote-options option) :vote.option/vote-for)
                                                                                (assoc :challenge/votes-for (+ votes-for amount)))))
-                              #(db/update-vote! (merge vote
-                                                       {:vote/option (bn/number option)
-                                                        :vote/revealed-on timestamp})))))
+                              #(db/update-vote! vote))))
                #(db/upsert-user! {:user/address voter}))))
 
 (defn vote-reward-claimed-event [_ {:keys [:args]}]
