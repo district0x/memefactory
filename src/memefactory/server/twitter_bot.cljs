@@ -41,7 +41,7 @@
                             (if error
                               (reject error)
                               (resolve (.-media_id_string media)))))
-                   (catch js/Error e
+                   (catch :default e
                      (reject e))))))
 
 (defn tweet [twitter-obj {:keys [text media-id] :as tweet} {:keys [just-log-tweet?]}]
@@ -71,18 +71,22 @@
 
   (js/Promise.
    (fn [resolve reject]
-     (let [tmp-dir "/tmp/memefactory"
-           ;; NOTE: Maybe instead of a random id we can create a folder with the same name as the ipfs hash
-           ;; easier to debug
-           tmp-name (str (random-uuid))
-           tar-file (str tmp-dir "/" tmp-name ".tar")
-           img-tmp-dir (str tmp-dir "/" tmp-name)
-           extract-stream (.extract tar-fs img-tmp-dir)]
-       (.writeFileSync fs tar-file buffer)
-       (.pipe (.createReadStream fs tar-file) extract-stream)
-       (.on extract-stream "finish"
-            (fn []
-              (resolve (.readFileSync fs (str img-tmp-dir "/" (aget (.readdirSync fs img-tmp-dir) 0))))))))))
+
+     (try
+       (let [tmp-dir "/tmp/memefactory"
+             ;; NOTE: Maybe instead of a random id we can create a folder with the same name as the ipfs hash
+             ;; easier to debug
+             tmp-name (str (random-uuid))
+             tar-file (str tmp-dir "/" tmp-name ".tar")
+             img-tmp-dir (str tmp-dir "/" tmp-name)
+             extract-stream (.extract tar-fs img-tmp-dir)]
+         (.writeFileSync fs tar-file buffer)
+         (.pipe (.createReadStream fs tar-file) extract-stream)
+         (.on extract-stream "finish"
+              (fn []
+                (resolve (.readFileSync fs (str img-tmp-dir "/" (aget (.readdirSync fs img-tmp-dir) 0)))))))
+       (catch :default e
+         (reject e))))))
 
 (defn ensure-media-uploaded [twitter-obj {:keys [image-hash registry-entry]} {:keys [just-log-tweet?]}]
   (js/Promise.
@@ -92,24 +96,22 @@
        (let [ipfs-hash (or image-hash
                            (:meme/image-hash (db/get-meme registry-entry)))]
          (log/info "Uploading media " {:ipfs-hash ipfs-hash} ::ensure-media-uploaded)
-         (-> (server-utils/get-ipfs-binary-file ipfs-hash)
-             (.then (fn [image-tar-file-content]
+         (promise-> (server-utils/get-ipfs-binary-file ipfs-hash)
+                    (fn [image-tar-file-content]
                       (when-not just-log-tweet?
-                        (.then (first-tar-obj image-tar-file-content)
-                               (fn [image-file-content]
-                                 (-> (upload-file-to-twitter twitter-obj image-file-content)
-                                     (.then (fn [media-id] (resolve media-id)))
-                                     (.catch (fn [e] (log/error "Error uploading media to twitter" {:registry-entry registry-entry
-                                                                                                    :ipfs-hash ipfs-hash})))))))))))))))
+                        (promise-> (first-tar-obj image-tar-file-content)
+                                   (fn [image-file-content]
+                                     (promise-> (upload-file-to-twitter twitter-obj image-file-content)
+                                                (fn [media-id] (resolve media-id)))))))))))))
 
 (defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :timestamp :creator :meta-hash
                                                                 :total-supply :version :deposit :challenge-period-end]
                                               :as ev}]
   (log/debug "Twitter bot processing meme submitted event " ev ::tweet-meme-submitted)
-  (-> (server-utils/get-ipfs-meta @ipfs/ipfs (web3/to-ascii meta-hash))
-      (.then (fn [{:keys [title image-hash] :as meme-meta}]
-               (-> (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts)
-                   (.then (fn [media-id]
+  (promise-> (server-utils/get-ipfs-meta @ipfs/ipfs (web3/to-ascii meta-hash))
+             (fn [{:keys [title image-hash] :as meme-meta}]
+               (promise-> (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts)
+                          (fn [media-id]
                             (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
                                   text (rand-nth [(gstring/format "Introducing '%s', The latest submission to vie for a place in the DANK registry. %s" title meme-detail-url)
                                                   (gstring/format "The newest entry to the DANK registry, meet '%s'. Will it pass the bar? %s" title meme-detail-url)])]
@@ -118,7 +120,7 @@
                               (tweet twitter-obj
                                      {:text text
                                       :media-id media-id}
-                                     opts)))))))))
+                                     opts)))))))
 
 (defn tweet-meme-challenged [twitter-obj opts {:keys [:registry-entry :challenger :commit-period-end
                                                       :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
@@ -127,12 +129,12 @@
         title (:meme/title (db/get-meme registry-entry))
         text (rand-nth [(gstring/format "A challenger appears... '%s' has had it's place in the DANK registry contested. DANK or STANK? %s" title meme-detail-url)
                         (gstring/format "%s has been challenged. DANK or STANK? Vote today %s" title meme-detail-url)])]
-    (-> (ensure-media-uploaded twitter-obj {:registry-entry registry-entry} opts)
-        (.then (fn [media-id]
+    (promise-> (ensure-media-uploaded twitter-obj {:registry-entry registry-entry} opts)
+               (fn [media-id]
                  (tweet twitter-obj
                         {:text text
                          :media-id media-id}
-                        opts))))))
+                        opts)))))
 
 ;; We need to watch out here tweet it just once, even if more cards of the same meme were offered at once.
 (def memes-offered-already-tweeted (atom #{}))
@@ -145,12 +147,12 @@
       (let [meme-detail-url (str "https://memefactory.io/meme-detail/" address)
             text (rand-nth [(gstring/format "The exalted '%s' has been offered for sale. Get em while they last! %s" title meme-detail-url)
                             (gstring/format "Fresh off the factory lines, '%s' is up the latest sell offering on Meme Factory. Grab yours today! %s" title meme-detail-url)])]
-        (-> (ensure-media-uploaded twitter-obj {:registry-entry address} opts)
-            (.then (fn [media-id]
+        (promise-> (ensure-media-uploaded twitter-obj {:registry-entry address} opts)
+                   (fn [media-id]
                      (tweet twitter-obj
                             {:text text
                              :media-id media-id}
-                            opts))))
+                            opts)))
         (swap! memes-offered-already-tweeted conj meme-and-block)))))
 
 (defn tweet-meme-auction-bought [twitter-obj opts {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
@@ -174,12 +176,12 @@
                                         formatted-price-eth
                                         formatted-price-dolar
                                         meme-detail-url)])]
-    (-> (ensure-media-uploaded twitter-obj {:registry-entry address} opts)
-        (.then (fn [media-id]
+    (promise-> (ensure-media-uploaded twitter-obj {:registry-entry address} opts)
+               (fn [media-id]
                  (tweet twitter-obj
                         {:text text
                          :media-id media-id}
-                        opts))))))
+                        opts)))))
 
 (defn- dispatcher [twitter-obj opts callback]
   (fn [_ {:keys [:latest-event? :args :block-number] :as ev}]
