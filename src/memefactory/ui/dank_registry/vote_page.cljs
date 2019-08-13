@@ -43,7 +43,7 @@
           [:label.button
            {:on-click (fn [evt]
                         (re-frame/dispatch [::events/backup-vote-secrets]))}
-           [:b "BACKUP VOTES"]]
+           [:span "BACKUP VOTES"]]
           [:label.button
            [:input {:type :file
                     :on-change (fn [evt]
@@ -54,7 +54,7 @@
                                    (set! (.-onload reader) (fn [e]
                                                              (re-frame/dispatch [::events/import-vote-secrets (-> e .-target .-result)])))
                                    (.readAsText reader file)))}]
-           [:b "IMPORT VOTES"]]]
+           [:span "IMPORT VOTES"]]]
          [nav-anchor {:route (when account-active? :route.get-dank/index)}
           [:div.get-dank-button
            {:class (when-not account-active? "disabled")}
