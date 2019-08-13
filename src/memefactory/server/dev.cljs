@@ -216,6 +216,12 @@
   (start))
 
 (defn -main [& args]
+  (.on js/process "unhandledRejection"
+       (fn [reason p] (log/error "Unhandled promise rejection " {:reason reason})))
+
+  (.on js/process "uncaughtException"
+       (fn [e] (log/error "Unhandled error " {:error e})))
+
   (when-not (= (last args) "--nostart")
     (log/debug "Mounting... (Pass the argument --nostart to prevent mounting on start)")
     (start)))

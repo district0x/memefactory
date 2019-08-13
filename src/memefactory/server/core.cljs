@@ -43,6 +43,13 @@
 
 
 (defn -main [& _]
+
+  (.on js/process "unhandledRejection"
+       (fn [reason p] (log/error "Unhandled promise rejection " {:reason reason})))
+
+  (.on js/process "uncaughtException"
+       (fn [e] (log/error "Unhandled error " {:error e})))
+
   (-> (mount/with-args
         {:config {:default {:logging {:console? false}
                             :time-source :js-date
