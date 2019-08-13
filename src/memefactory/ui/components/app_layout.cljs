@@ -138,7 +138,7 @@
    [:a
     {:href "https://district0x.io"
      :target :_blank
-     :rel="noopener noreferrer"}
+     :rel "noopener noreferrer"}
     "district0x Network"]])
 
 
@@ -164,7 +164,7 @@
                            (if url
                              [:a {:href url
                                   :target :_blank
-                                  :rel="noopener noreferrer"
+                                  :rel "noopener noreferrer"
                                   :class (when class (name class))}
                               entry-text]
                              [nav-anchor (merge

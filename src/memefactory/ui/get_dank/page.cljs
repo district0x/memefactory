@@ -15,7 +15,7 @@
 (def verify-through-oracle-timeout 300000)
 
 (defn a [href text]
-  [:a {:href href :target :_blank :rel="noopener noreferrer"} text])
+  [:a {:href href :target :_blank :rel "noopener noreferrer"} text])
 
 (defmethod page :route.get-dank/index []
   (let [form-data (r/atom {})
