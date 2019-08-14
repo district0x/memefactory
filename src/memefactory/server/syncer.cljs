@@ -411,7 +411,7 @@
     (doseq [{:keys [:reg-entry/address]} assignable-whitelisted-reg-entries]
       (assign-next-number! address))
 
-    (log/info "Schedulling number assigner to  memes already on db "
+    (log/info "Schedulling number assigner to memes already on db "
               {:count (count assignable-reg-entries)
                :current-meme-number (db/current-meme-number)}
               ::assign-meme-registry-numbers!)
