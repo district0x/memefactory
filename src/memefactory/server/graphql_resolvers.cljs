@@ -7,22 +7,22 @@
             [cljs-web3.eth :as web3-eth]
             [cljs.core.match :refer-macros [match]]
             [cljs.nodejs :as nodejs]
+            [clojure.set :as clj-set]
             [clojure.string :as str]
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :as web3]
+            [district.shared.async-helpers :refer [promise->]]
             [district.shared.error-handling :refer [try-catch-throw try-catch]]
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
             [memefactory.server.db :as mf-db]
-            [district.shared.async-helpers :refer [promise->]]
             [memefactory.server.ranks-cache :as ranks-cache]
             [memefactory.server.utils :as utils]
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [memefactory.shared.utils :as shared-utils]
-            [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]))
 
 (def enum graphql-utils/kw->gql-name)
@@ -1020,18 +1020,14 @@
     (log/info (str "Sending verification code to " country-code phone-number) options)
     (promise-> (request-promise options)
                (fn [response]
-                 (let [twilio-response (js->clj response)
-                       success (get twilio-response "success")
-                       graphql-response {:id (get twilio-response "uuid")
-                                         :success success
-                                         :status (get twilio-response "status")
-                                         :msg (get twilio-response "message")}]
-                   (log/info "Twilio resp:" twilio-response)
-                   (log/info "Type of success:" (type success))
-                   (if-not success
-                     (throw (js/Error. "Error calling phone verification API:"
-                                       graphql-response))
-                     graphql-response))))))
+                 (let [twilio-response (-> response
+                                           (js->clj :keywordize-keys true)
+                                           (clj-set/rename-keys {:uuid :id
+                                                                 :message :msg}))]
+                   (log/info "Twilio response" twilio-response)
+                   (if (:success twilio-response)
+                     twilio-response
+                     (log/error "Error calling phone verification API" twilio-response)))))))
 
 (def exec-promise (.promisify util (aget child-process "exec")))
 
@@ -1071,32 +1067,15 @@
                                        oraclize-public-key
                                        " -e "
                                        \' json-payload \')]
-      (log/debug full-encryption-command)
 
-      ;; Shell out
-      ;; Run the Python script to encrypt the payload
+      (log/debug "Shell out to python" {:bash full-encryption-command})
+
       (-> (exec-promise full-encryption-command)
         (.then (fn [result]
                  (let [python-result (js->clj result)]
                    (log/debug "python encryption result:" python-result)
                    (let [stdout (get python-result "stdout")
                          stderr (get python-result "stderr")]
-
-                     ;; Return the encrypted payload
-                     ;; (if (clojure.string/blank? stderr)
-                     ;;   (do
-                     ;;     {:success true
-                     ;;      :payload (clojure.string/trim-newline stdout)})
-
-                     ;;   (do
-                     ;;     {:success false
-                     ;;      :payload stderr}))
-
-                     ;; Who needs error handling? Apparently we don't. With the
-                     ;; latest version of the Python (both 2 and 3) encryption
-                     ;; library it spits a warning out to stderr for using the
-                     ;; encode_point() function. Until Oraclize upgrades the
-                     ;; encrypted_queries_tools.py script we're rollin' dirty.
                      {:success true
                       :payload (clojure.string/trim-newline stdout)}))))
         (.catch (fn [ex]
