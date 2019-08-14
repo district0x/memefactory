@@ -44,8 +44,7 @@
                       :environment "QA"}}
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-qa/smart-contracts skipped-contracts)
-                     ;; Commenting out for debugging QA
-                     ;; :load-method :use-loaded
+                     :load-method :use-loaded
                      }
    :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK])}
    :web3 {:url "https://ropsten.district0x.io"}
@@ -70,8 +69,7 @@
                       :environment "PRODUCTION"}}
    :time-source :blockchain
    :smart-contracts {:contracts (apply dissoc smart-contracts-prod/smart-contracts skipped-contracts)
-                     ;; Commenting out for debugging QA
-                     ;; :load-method :use-loaded
+                     :load-method :use-loaded
                      }
    :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK])}
    :web3 {:url "https://mainnet.district0x.io"}
