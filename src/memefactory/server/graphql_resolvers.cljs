@@ -522,9 +522,6 @@
     [false false true] (enum :vote-option/vote-against)
     [false _ _] (enum :vote-option/not-revealed)))
 
-(defn reg-entry->status-resolver [reg-entry]
-  (enum (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)))
-
 (defn reg-entry->creator-resolver [{:keys [:reg-entry/creator] :as reg-entry}]
   (log/debug "reg-entry->creator-resolver args" reg-entry)
   {:user/address creator})
@@ -1141,8 +1138,7 @@
               :blacklist-reg-entry blacklist-reg-entry-resolver}
    :Vote {:vote/option vote->option-resolver
           :vote/reward vote->reward-resolver}
-   :Meme {:reg-entry/status reg-entry->status-resolver
-          :reg-entry/creator reg-entry->creator-resolver
+   :Meme {:reg-entry/creator reg-entry->creator-resolver
           :challenge/vote-winning-vote-option reg-entry->vote-winning-vote-option-resolver
           :challenge/all-rewards reg-entry->all-rewards-resolver
           :challenge/challenger reg-entry->challenger
@@ -1160,8 +1156,7 @@
                  :meme-auction/status meme-auction->status-resolver
                  :meme-auction/meme-token meme-auction->meme-token-resolver}
    :MemeAuctionList {:items meme-auction-list->items-resolver}
-   :ParamChange {:reg-entry/status reg-entry->status-resolver
-                 :reg-entry/creator reg-entry->creator-resolver
+   :ParamChange {:reg-entry/creator reg-entry->creator-resolver
                  :challenge/challenger reg-entry->challenger
                  :challenge/all-rewards reg-entry->all-rewards-resolver
                  :challenge/vote reg-entry->vote-resolver}

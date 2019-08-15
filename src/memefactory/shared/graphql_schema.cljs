@@ -182,7 +182,6 @@
   interface RegEntry {
     regEntry_address: ID
     regEntry_version: Int
-    regEntry_status: RegEntryStatus
     regEntry_creator: User
     regEntry_deposit: Float
     regEntry_createdOn: Date
@@ -228,7 +227,6 @@
   type Meme implements RegEntry {
     regEntry_address: ID
     regEntry_version: Int
-    regEntry_status: RegEntryStatus
     regEntry_creator: User
     regEntry_deposit: Float
     regEntry_createdOn: Date
@@ -336,7 +334,6 @@
   type ParamChange implements RegEntry {
     regEntry_address: ID
     regEntry_version: Int
-    regEntry_status: RegEntryStatus
     regEntry_creator: User
     regEntry_deposit: Float
     regEntry_createdOn: Date

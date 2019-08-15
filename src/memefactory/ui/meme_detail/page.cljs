@@ -31,6 +31,7 @@
             [memefactory.ui.events :as memefactory-events]
             [memefactory.ui.spec :as spec]
             [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
+            [memefactory.shared.utils :as shared-utils]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
             [reagent.ratom :as ratom]
@@ -41,7 +42,6 @@
 (defn build-meme-query [address active-account]
   {:queries [[:meme {:reg-entry/address address}
               (cond-> [:reg-entry/address
-                       :reg-entry/status
                        :reg-entry/deposit
                        :reg-entry/created-on
                        :reg-entry/challenge-period-end
@@ -261,8 +261,7 @@
 
 
 (defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme} text]
-  (let [status (gql-utils/gql-name->kw status)
-        [period-label period-end] (case status
+  (let [[period-label period-end] (case status
                                     :reg-entry.status/challenge-period ["Challenge" challenge-period-end]
                                     :reg-entry.status/commit-period    ["Voting" commit-period-end]
                                     :reg-entry.status/reveal-period    ["Reveal" reveal-period-end]
@@ -476,7 +475,7 @@
 
 
 (defmethod challenge-component :reg-entry.status/reveal-period
-  [{:keys [:challenge/created-on :reg-entry/status :challenge/reveal-period-end] :as meme}]
+  [{:keys [:challenge/created-on :challenge/reveal-period-end] :as meme}]
   (let [{:keys [days hours minutes seconds]} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
                                                                   (gql-utils/gql-date->date reveal-period-end))]
     [:div
@@ -539,7 +538,11 @@
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         meme-sub (subscribe [::gql/query (build-meme-query address active-account)
                              {:refetch-on [:memefactory.ui.contract.registry-entry/challenge-success]}])
-        meme (when meme-sub (-> @meme-sub :meme))
+        now (ui-utils/now-in-seconds)
+        meme (when meme-sub (let [meme (->> @meme-sub
+                                            :meme
+                                            (shared-utils/reg-entry-dates-to-seconds))]
+                              (assoc meme :reg-entry/status (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds meme)))))
         {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply :reg-entry/created-on
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end]} meme
         token-count (->> owned-meme-tokens
