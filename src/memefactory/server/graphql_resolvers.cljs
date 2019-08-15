@@ -8,7 +8,7 @@
             [cljs.core.match :refer-macros [match]]
             [cljs.nodejs :as nodejs]
             [clojure.set :as clj-set]
-            [clojure.string :as str]
+            [clojure.string :as string]
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
@@ -31,6 +31,7 @@
 (def child-process (js/require "child_process"))
 (def util (js/require "util"))
 (def request-promise (nodejs/require "request-promise"))
+(def exec-promise (.promisify util (aget child-process "exec")))
 
 (def whitelisted-config-keys [:ipfs :ui])
 
@@ -48,6 +49,14 @@
        keys
        (map graphql-utils/gql-name->kw)
        set))
+
+(defn- graphqlize
+  "Given a map it will transform all the keys into graphql friendly
+  names."
+  [coll]
+  (reduce-kv
+   (fn [m k v]
+     (assoc m k (graphql-utils/kw->gql-name v))) (empty coll) coll))
 
 (defn paged-query
   "Execute a paged query.
@@ -999,14 +1008,6 @@
                                         :order-by [[:param-changes.param-change/applied-on :asc]]
                                         :limit 2}))))
 
-(defn graphqlize
-  "Given a map it will transform all the keys into graphql friendly
-  names."
-  [coll]
-  (reduce-kv
-   (fn [m k v]
-     (assoc m k (graphql-utils/kw->gql-name v))) (empty coll) coll))
-
 (defn send-verification-code-resolver
   [_ {:keys [country-code phone-number] :as args}]
   (let [options (clj->js
@@ -1017,24 +1018,23 @@
                   :body {"via" "sms"
                          "phone_number" phone-number
                          "country_code" country-code}})]
-    (log/info (str "Sending verification code to " country-code phone-number) options)
+    (log/debug "Sending verification code" {:args args :options options})
     (promise-> (request-promise options)
                (fn [response]
                  (let [twilio-response (-> response
                                            (js->clj :keywordize-keys true)
                                            (clj-set/rename-keys {:uuid :id
-                                                                 :message :msg}))]
-                   (log/info "Twilio response" twilio-response)
+                                                                 ;; TODO : do not rename message
+                                                                 ;; :message :msg
+                                                                 }))]
+                   (log/info "Phone verification response" twilio-response)
                    (if (:success twilio-response)
                      twilio-response
                      (log/error "Error calling phone verification API" twilio-response)))))))
 
-(def exec-promise (.promisify util (aget child-process "exec")))
-
 (defn encrypt-verification-payload-resolver
   [_ {:keys [country-code phone-number verification-code]}]
   ;; Build Oraclize call
-
   (cond
     (not (re-matches #"[0-9\+]{2,6}" (str country-code)))
     (do
@@ -1077,7 +1077,7 @@
                    (let [stdout (get python-result "stdout")
                          stderr (get python-result "stderr")]
                      {:success true
-                      :payload (clojure.string/trim-newline stdout)}))))
+                      :payload (string/trim-newline stdout)}))))
         (.catch (fn [ex]
                   (log/error "Error calling python" {:error ex})
                   {:success false

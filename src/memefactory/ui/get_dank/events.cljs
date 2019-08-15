@@ -3,6 +3,8 @@
     [ajax.core :as ajax]
     [cljs-web3.core :as web3]
     [day8.re-frame.http-fx]
+    [district.ui.graphql.utils :as graphql-ui-utils]
+    [district.graphql-utils :as graphql-utils]
     [district.ui.logging.events :as logging]
     [district.ui.notification.events :as notification-events]
     [district.ui.smart-contracts.queries :as contract-queries]
@@ -16,6 +18,9 @@
     [re-frame.core :as re-frame]
     [taoensso.timbre :as log]))
 
+(defn- parse-query [query]
+  (:query-str (graphql-ui-utils/parse-query {:queries [query]}
+                                            {:kw->gql-name graphql-utils/kw->gql-name})))
 
 (re-frame/reg-event-fx
  ::show-spinner
@@ -47,23 +52,37 @@
                        :on-success [::send-dank-but-only-once data]
                        :on-error [::logging/error "Error calling DankFaucet" {:fn :allocated-dank}]}]}}))
 
-
+;; TODO : DEUBG
 (re-frame/reg-event-fx
  ::send-dank-but-only-once
  (fn [_ [_ {:keys [country-code phone-number] :as args} resp]]
    (let [allocated-dank (aget resp "c")]
-     (if (<= allocated-dank 0)
+     (if true #_(<= allocated-dank 0)
        {:dispatch [::send-verification-code args]}
        {:log/info ["DANK already acquired" {:args args :response resp}]
         :dispatch [::notification-events/show "DANK already acquired"]}))))
 
-
+;; TODO : refactor
 (re-frame/reg-event-fx
  ::send-verification-code
  (fn [_ [_ {:keys [country-code phone-number] :as args}]]
-   (let [mutation (gstring/format
+   (let [mutation (str "mutation" (parse-query [:send-verification-code
+                                                {:country-code country-code
+                                                 :phone-number phone-number}
+                                                [:id
+                                                 :status
+                                                 :message
+                                                 :success]]))
+
+
+         #_(gstring/format
                    "mutation {sendVerificationCode(countryCode:\"%s\", phoneNumber:\"%s\") {id, status, msg, success}}"
-                   country-code phone-number)]
+                   country-code phone-number)
+
+
+         ]
+
+
      {:http-xhrio {:method          :post
                    :uri             (get-in config-map [:graphql :url])
                    :params          {:query mutation}
@@ -85,14 +104,39 @@
        {:dispatch [:district.ui.notification.events/show
                    "Internal error verifying the phone number"]}))))
 
+#_(defn test-it []
+  (:query-str (graphql-ui-utils/parse-query {:queries [
 
+                                                       [:encryptVerificationPayload
+                                                        {:country-code "33"
+                                                         :phone-number "7777"
+                                                         :verification-code "4502"}
+                                                        [:payload
+                                                         :success]
+                                                        ]
+
+                                                       #_[:search-meme-auctions
+                                                          {:order-by :meme-auctions.order-by/started-on
+                                                           :order-dir :desc
+                                                           :first 6}
+                                                          [[:items [:meme-auction/address
+                                                                    :meme-auction/start-price]]]]
+
+                                                       ]}
+
+                                            {:kw->gql-name graphql-utils/kw->gql-name})))
+
+;; TODO : refactor this cancer
 (re-frame/reg-event-fx
  ::encrypt-verification-payload
  (fn [_ [_ {:keys [country-code phone-number verification-code] :as args}]]
    (let [mutation (gstring/format
                    "mutation {encryptVerificationPayload(countryCode:\"%s\", phoneNumber:\"%s\", verificationCode:\"%s\") {payload, success}}"
                    country-code phone-number verification-code)]
-     {:http-xhrio {:method          :post
+
+     (log/debug "### MUTATION" mutation)
+
+     #_{:http-xhrio {:method          :post
                    :uri             (get-in config-map [:graphql :url])
                    :params          {:query mutation}
                    :timeout         8000
