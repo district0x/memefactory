@@ -3,7 +3,8 @@
             [cljs.core.match :refer-macros [match]]
             [cljsjs.filesaverjs]
             [district.web3-utils :as web3-utils]
-            [taoensso.timbre :as log])
+            [taoensso.timbre :as log]
+            [district.graphql-utils :as gql-utils])
   (:import [goog.async Debouncer]))
 
 ;; started-on, duration and now are expected in seconds
@@ -64,3 +65,17 @@
                   (clj->js [content])
                   (clj->js {:type (or mime-type (str "application/json;charset=UTF-8"))}))
              filename))
+
+(defn second-date-keys
+  "Convert given map keys from date to seconds since epoch"
+  [m ks]
+  (reduce (fn [r k]
+            (update r k #(let [r (when-let [d (gql-utils/gql-date->date %)]
+                                   (quot (.getTime d) 1000))]
+                           r)))
+   m
+   ks))
+
+(defn reg-entry-dates-to-seconds [entry]
+  (second-date-keys entry #{:reg-entry/created-on :reg-entry/challenge-period-end
+                            :challenge/commit-period-end :challenge/reveal-period-end}))

@@ -16,6 +16,7 @@
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles :refer [meme-image]]
+   [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.utils :as ui-utils]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
@@ -41,7 +42,6 @@
                        :reg-entry/challenge-period-end
                        :challenge/commit-period-end
                        :challenge/reveal-period-end
-                       :reg-entry/status
                        :challenge/comment
                        :meme/total-supply
                        :meme/image-hash
@@ -106,9 +106,10 @@
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child]}]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
                 :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
-                :meme/tags :challenge/challenger :challenge/comment :reg-entry/status :challenge/commit-period-end :challenge/reveal-period-end]} entry]
+                :meme/tags :challenge/challenger :challenge/comment :challenge/commit-period-end :challenge/reveal-period-end]} entry]
 
-    (let [status (gql-utils/gql-name->kw status)
+    (let [status (shared-utils/reg-entry-status @(ui-utils/now-in-seconds)
+                                                (shared-utils/reg-entry-dates-to-seconds entry))
           [period-label period-end] (case status
                                       :reg-entry.status/challenge-period ["Challenge" challenge-period-end]
                                       :reg-entry.status/commit-period    ["Voting" commit-period-end]

@@ -24,6 +24,7 @@
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.utils :as ui-utils]
+   [memefactory.shared.utils :as shared-utils]
    [re-frame.core :as re-frame :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
@@ -260,13 +261,16 @@
            [:div.no-reveal-info "You haven't voted"])]))))
 
 
-(defn reveal-vote-action [{:keys [:reg-entry/address :reg-entry/status] :as meme}]
-  (case  (graphql-utils/gql-name->kw status)
-    :reg-entry.status/commit-period [vote-action meme]
-    :reg-entry.status/reveal-period [reveal-action meme]
-    ;; TODO we should't need this extra case, but this component is
-    ;; being rendered with old subscription value
-    [:div]))
+(defn reveal-vote-action [{:keys [:reg-entry/address] :as meme}]
+
+  (let [status (shared-utils/reg-entry-status @(ui-utils/now-in-seconds)
+                                              (shared-utils/reg-entry-dates-to-seconds meme))]
+    (case  status
+     :reg-entry.status/commit-period [vote-action meme]
+     :reg-entry.status/reveal-period [reveal-action meme]
+     ;; TODO we should't need this extra case, but this component is
+     ;; being rendered with old subscription value
+     [:div])))
 
 
 (defmethod page :route.dank-registry/vote []

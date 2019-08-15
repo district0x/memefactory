@@ -428,27 +428,12 @@
       (str formated-time " ago")
       "less than a minute ago")))
 
-(defn second-date-keys
-  "Convert given map keys from date to seconds since epoch"
-  [m ks]
-  (reduce (fn [r k]
-            (update r k #(let [r (when-let [d (gql-utils/gql-date->date %)]
-                                   (quot (.getTime d) 1000))]
-                           r)))
-   m
-   ks))
-
-(defn param-change-status [now pc]
-  (->> (second-date-keys pc #{:reg-entry/created-on :reg-entry/challenge-period-end
-                              :challenge/commit-period-end :challenge/reveal-period-end})
-       (shared-utils/reg-entry-status now)))
-
 (defn proposed-change [{:keys [:reg-entry/creator :challenge/challenger :param-change/reason :param-change/key :param-change/db
                                :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end
                                :reg-entry/created-on :param-change/original-value :param-change/value
                                :challenge/comment :param-change/applied-on] :as pc} {:keys [action-child applied-mark]}]
   (let [now (ui-utils/now-in-seconds)
-        entry-status (param-change-status @now pc)
+        entry-status (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds pc))
         [period-label period-end] (case entry-status
                                     :reg-entry.status/challenge-period ["Challenge" challenge-period-end]
                                     :reg-entry.status/commit-period    ["Voting" commit-period-end]
@@ -458,8 +443,8 @@
                                                                                      (gql-utils/gql-date->date period-end))]
     [:div.panel.proposed-change-panel
      ;; Only for debugging
-    #_[:b (str (param-change-status @now pc) " " @now)]
-    #_(str (second-date-keys pc #{:reg-entry/created-on :reg-entry/challenge-period-end
+    #_[:b (str (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds pc)) " " @now)]
+    #_(str (shared-utils/second-date-keys pc #{:reg-entry/created-on :reg-entry/challenge-period-end
                                 :challenge/commit-period-end :challenge/reveal-period-end}))
      [:div.header
      (cond
@@ -474,7 +459,7 @@
         [:ul.submit-info
          [:li.attr [:label "Created:"] [:span (format-time created-on)]]
          [:li.attr [:label "Status:"] [:span
-                                       (let [entry-status (param-change-status @now pc)]
+                                       (let [entry-status (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds pc))]
                                          (cond
                                            applied-on
                                            (gstring/format "Change was applied " (format-time applied-on))
@@ -556,7 +541,7 @@
                                               :param-change-registry-db "param-change"}
                                              (param-db-keys-by-db (:param-change/db pc)))
                                             (gql-utils/gql-name->kw k))))
-                      entry-status (param-change-status @now pc)]
+                      entry-status (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds pc))]
                   ^{:key (:reg-entry/address pc)}
                   [:li [proposed-change
                         pc
@@ -614,7 +599,7 @@
                                                (param-db-keys-by-db (:param-change/db pc)))
                                               (gql-utils/gql-name->kw k))))
                         now (ui-utils/now-in-seconds)
-                        entry-status (param-change-status @now pc)]
+                        entry-status (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds pc))]
                     ^{:key (:reg-entry/address pc)}
                     [:li [proposed-change pc {:action-child [claim-action pc]
                                               :applied-mark (cond
