@@ -36,22 +36,59 @@
   [:div.header-box
    [:div.icon]
    [:h2.title "Parameters"]
-   [:h3.title "Lorem ipsum dolor sit ..."]])
+   [:h3.title "View, propose, and vote for changes to DANK registry variables"]])
 
-(def param-info {:meme/challenge-dispensation {:title "Meme Challenge Dispensation" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
-                 :meme/vote-quorum {:title "Meme Vote Quorum" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
-                 :meme/max-total-supply {:title "Meme Max Total Supply" :description "Lorem ipsum dolor sit amet,..." :unit ""}
-                 :meme/challenge-period-duration {:title "Meme Challenge Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :meme/max-auction-duration {:title "Meme Max Auction Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :meme/reveal-period-duration {:title "Meme Reveal Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :meme/commit-period-duration {:title "Meme Commit Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :meme/deposit {:title "Meme Deposit" :description "Lorem ipsum dolor sit amet,..." :unit "DANK"}
-                 :param-change/challenge-dispensation {:title "Parameter Challenge Dispensation" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
-                 :param-change/vote-quorum {:title "Parameter Vote Quorum" :description "Lorem ipsum dolor sit amet,..." :unit "%"}
-                 :param-change/challenge-period-duration {:title "Parameter Challenge Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :param-change/reveal-period-duration {:title "Parameter Reveal Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :param-change/commit-period-duration {:title "Parameter Commit Period Duration" :description "Lorem ipsum dolor sit amet,..." :unit "Seconds"}
-                 :param-change/deposit {:title "Parameter Deposit" :description "Lorem ipsum dolor sit amet,..." :unit "DANK"}})
+(def param-info {:meme/challenge-dispensation {:title "Meme Challenge Dispensation"
+                                               :description "The percentage of DANK from deposits rewarded to a winning meme challenger"
+                                               :unit "%"}
+                 :meme/vote-quorum {:title "Meme Vote Quorum"
+                                    :description "The percentage of upvotes required for a meme to win a challenge"
+                                    :unit "%"}
+                 :meme/max-total-supply {:title "Meme Max Total Supply"
+                                         :description "The maximum issuance number of a particular meme in the registry"
+                                         :unit ""}
+                 :meme/challenge-period-duration {:title "Meme Challenge Period Duration"
+                                                  :description "The amount of time a meme is open to challenge before moving to the registry"
+                                                  :unit "Seconds"}
+                 :meme/max-auction-duration {:title "Meme Max Auction Duration"
+                                             :description "The maximum amount of time a meme can be listed for sale before reaching end price"
+                                             :unit "Seconds"}
+                 :meme/reveal-period-duration {:title "Meme Reveal Period Duration"
+                                               :description "The amount of time to reveal votes once voting on a meme ends"
+                                               :unit "Seconds"}
+                 :meme/commit-period-duration {:title "Meme Commit Period Duration"
+                                               :description "The amount of time to vote once a challenge has been made against a meme"
+                                               :unit "Seconds"}
+                 :meme/deposit {:title "Meme Deposit"
+                                :description "The amount required to submit a meme, or challenge a submission"
+                                :unit "DANK"}
+                 :param-change/challenge-dispensation {:title "Parameter Challenge Dispensation"
+                                                       :description "The percentage of DANK from deposits rewarded to a winning parameter challenger"
+                                                       :unit "%"}
+                 :param-change/vote-quorum {:title "Parameter Vote Quorum"
+                                            :description "The percentage of upvotes required for a parameter to win a challenge"
+                                            :unit "%"}
+                 :param-change/challenge-period-duration {:title "Parameter Challenge Period Duration"
+                                                          :description "The amount of time a parameter change is open to challenge before taking effect"
+                                                          :unit "Seconds"}
+                 :param-change/reveal-period-duration {:title "Parameter Reveal Period Duration"
+                                                       :description "The amount of time to reveal votes once voting on a parameter ends"
+                                                       :unit "Seconds"}
+                 :param-change/commit-period-duration {:title "Parameter Commit Period Duration"
+                                                       :description "The amount of time to vote once a challenge has been made against a parameter"
+                                                       :unit "Seconds"}
+                 :param-change/deposit {:title "Parameter Deposit"
+                                        :description "The amount required to submit a parameter change"
+                                        :unit "DANK"}})
+
+;; We need this since Clojure maps desn't guarantee insertion order
+(def param-display-order [:meme/deposit :meme/challenge-dispensation :meme/vote-quorum :meme/challenge-period-duration
+                          :meme/commit-period-duration :meme/reveal-period-duration :meme/max-auction-duration :meme/max-total-supply
+                          :param-change/deposit :param-change/challenge-dispensation :param-change/vote-quorum
+                          :param-change/challenge-period-duration :param-change/commit-period-duration :param-change/reveal-period-duration])
+
+(when-not (= (set (keys param-info)) (set param-display-order))
+  (js/console.warn "memefactory.ui.param_change.page/parm-info and memefactory.ui.param_change.page/param-display-order keys differ"))
 
 (defn scale-param-change-value [k v]
   (if (#{:meme/deposit :param-change/deposit} k)
@@ -81,26 +118,29 @@
           [:th "Parameter"]
           [:th.optional "Current Value"]
           [:th.optional "Last Change"]
-          [:th [:div.collapse-icon {:on-click #(swap! open? not) ;; TODO: fix this on mobile, doesn't look good
+          [:th [:div.collapse-icon {:on-click #(swap! open? not)
                                     :class (when @open? "flipped")}]]]]
         [:tbody
-         (for [{:keys [key value set-on]} @all-params]
-           ^{:key (str key)}
-           [:tr
-            [:td
-             [:div
-              [:div.param-title (:title (param-info key))]
-              [:div.param-b (:description (param-info key))]]]
-            [:td
-             [:div
-              [:div.param-h "Current Value"]
-              [:div.param-b (str (scale-param-change-value key value) " " (:unit (param-info key)))]]]
-            [:td
-             [:div
-              [:div.param-h "Last Change"]
-              [:div.param-b (time-format/unparse (time-format/formatter "dd/MM/yyyy")
-                                                 (t/local-date-time (gql-utils/gql-date->date set-on)))]]]
-            [:td]])]]])))
+
+         (let [param-val (into {} (map (fn [p] [(:key p) p]) @all-params))]
+           (for [key param-display-order]
+             (let [{:keys [key value set-on]} (param-val key)]
+               ^{:key (str key)}
+               [:tr
+                [:td
+                 [:div
+                  [:div.param-title (:title (param-info key))]
+                  [:div.param-b (:description (param-info key))]]]
+                [:td
+                 [:div
+                  [:div.param-h "Current Value"]
+                  [:div.param-b (str (scale-param-change-value key value) " " (:unit (param-info key)))]]]
+                [:td
+                 [:div
+                  [:div.param-h "Last Change"]
+                  [:div.param-b (time-format/unparse (time-format/formatter "dd/MM/yyyy")
+                                                     (t/local-date-time (gql-utils/gql-date->date set-on)))]]]
+                [:td]])))]]])))
 
 
 (defn change-submit-form []
@@ -127,7 +167,7 @@
       [:div.panel.change-submit-form
        [:div.body
         [:h2.title "Propose a change"]
-        [:h3 "Lorem ipsum dolor sit amet..."]
+        [:h3 "Submit a proposal, along with a deposit of DANK, in order to change one of the above parameters. Parameter changes can drastically effect site behavior, so provide strong reasoning in the comment section."]
         [select-input {:form-data form-data
                        :id :param-change/key
                        :group-class :options
