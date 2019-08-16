@@ -78,7 +78,7 @@
     id: String
     status: Int
     success: Boolean
-    msg: String!
+    message: String!
   }
 
   type EncryptedVerificationPayload {

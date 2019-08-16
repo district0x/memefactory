@@ -1010,30 +1010,27 @@
 
 (defn send-verification-code-resolver
   [_ {:keys [country-code phone-number] :as args}]
-  (let [options (clj->js
-                 {:url "https://api.authy.com/protected/json/phones/verification/start"
-                  :method "POST"
-                  :headers {"X-Authy-API-Key" (:twilio-api-key @config)}
-                  :json true
-                  :body {"via" "sms"
-                         "phone_number" phone-number
-                         "country_code" country-code}})]
-    (log/debug "Sending verification code" {:args args :options options})
-    (promise-> (request-promise options)
+  (let [options {:url "https://api.authy.com/protected/json/phones/verification/start"
+                 :method "POST"
+                 :headers {"X-Authy-API-Key" (:twilio-api-key @config)}
+                 :json true
+                 :body {"via" "sms"
+                        "phone_number" phone-number
+                        "country_code" country-code}}]
+    (log/info "Sending verification code" {:args args :options options})
+    (promise-> (request-promise (clj->js options))
                (fn [response]
                  (let [twilio-response (-> response
                                            (js->clj :keywordize-keys true)
-                                           (clj-set/rename-keys {:uuid :id
-                                                                 ;; TODO : do not rename message
-                                                                 ;; :message :msg
-                                                                 }))]
+                                           (clj-set/rename-keys {:uuid :id}))]
                    (log/info "Phone verification response" twilio-response)
                    (if (:success twilio-response)
                      twilio-response
                      (log/error "Error calling phone verification API" twilio-response)))))))
 
 (defn encrypt-verification-payload-resolver
-  [_ {:keys [country-code phone-number verification-code]}]
+  [_ {:keys [country-code phone-number verification-code] :as args}]
+  (log/info "Received verification code" args)
   ;; Build Oraclize call
   (cond
     (not (re-matches #"[0-9\+]{2,6}" (str country-code)))
@@ -1084,10 +1081,8 @@
                    :payload (.getMessage ex)}))))))
 
 (defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
-
   (let [{:keys [blacklist-token blacklist-file]} @config]
     (if (= token blacklist-token)
-
       (do
         ;; update the blacklist file
         (-> (utils/load-edn-file blacklist-file)
@@ -1096,7 +1091,6 @@
         ;;  patch on db
         (mf-db/patch-forbidden-reg-entry-image! address)
         (log/info (str "Blacklisted " address " image.") ::blacklist-reg-entry-resolver))
-
       (log/warn (str "Tried to blacklist reg entry " address " with wrong token " token) ::blacklist-reg-entry-resolver))))
 
 (def resolvers-map

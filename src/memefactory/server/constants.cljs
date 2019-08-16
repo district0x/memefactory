@@ -23,4 +23,8 @@
    :meme-auction-factory/meme-auction-started-event [:meme-auction-factory-fwd :MemeAuctionStartedEvent {} {:from-block 0 :to-block "latest"}]
    :meme-auction-factory/meme-auction-buy-event [:meme-auction-factory-fwd :MemeAuctionBuyEvent {} {:from-block 0 :to-block "latest"}]
    :meme-auction-factory/meme-auction-canceled-event [:meme-auction-factory-fwd :MemeAuctionCanceledEvent {} {:from-block 0 :to-block "latest"}]
-   :meme-token/transfer [:meme-token :Transfer {} {:from-block 0 :to-block "latest"}]})
+   :meme-token/transfer [:meme-token :Transfer {} {:from-block 0 :to-block "latest"}]
+   ;; :dank-faucet/not-enough-ETH [:dank-faucet :NotEnoughETH {} {:from-block 0 :to-block "latest"}]
+   :dank-faucet/dank-event [:dank-faucet :DankEvent {} {:from-block 0 :to-block "latest"}]
+   :dank-faucet/oraclize-call [:dank-faucet :OraclizeCall {} {:from-block 0 :to-block "latest"}]
+   :dank-faucet/dank-reset [:dank-faucet :DankReset {} {:from-block 0 :to-block "latest"}]})
