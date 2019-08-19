@@ -31,12 +31,11 @@ contract DankFaucet is usingOraclize, DSAuth {
   uint public allotment;
 
   // An event for letting the caller know that they didn't supply enough
-  // ETH to complete the transaction.
-  event NotEnoughETH(string description, uint ethRequired);
+  // ETH/DANK to complete the transaction.
+  event NotEnoughFunds(string description, uint balance, uint balanceRequired);
 
-  // An event for communicating success/failure of the steps of the
-  // verification process, including calls to the Oraclize service.
-  event DankEvent(bytes32 hashedPhoneNumber, bool successful, string description);
+  // An event for communicating successful transfer of funds
+  event DankEvent(string description, bytes32 hashedPhoneNumber);
 
   // An event for communicating the id from Oraclize and a message.
   event OraclizeCall(bytes32 id, string msg);
@@ -45,11 +44,10 @@ contract DankFaucet is usingOraclize, DSAuth {
   event DankReset(bytes32 hashedPhoneNumber);
 
   /**
-   * Sets the initial allotment of DANK tokens, the number of tokens
-   * a person gets for initially singing up. Expects DANK values in wei.
+   * Sets the initial allotment of DANK tokens. Expects DANK values in wei.
    */
-  constructor(uint initialDank) public {
-    allotment = initialDank;
+  constructor(uint _allotment) public {
+    allotment = _allotment;
 
     // Comment out this line when deploying to production
     // See: https://github.com/oraclize/ethereum-bridge
@@ -62,8 +60,16 @@ contract DankFaucet is usingOraclize, DSAuth {
    * transfers them an allotment of Dank that was set by the constructor.
    */
   function verifyAndAcquireDank(bytes32 hashedPhoneNumber, string encryptedPayload) public {
-    if (oraclize_getPrice("URL") > address(this).balance) {
-      emit NotEnoughETH("Oraclize query for phone number verification was NOT sent, add more ETH.", oraclize_getPrice("URL"));
+
+    uint dankBalance = dankToken.balanceOf(address(this));
+    if (dankBalance >= allotment) {
+      emit NotEnoughFunds ("Faucet has run out of DANK", dankBalance, allotment);
+      revert ();
+    }
+
+    uint ethBalance = address(this).balance;
+    if (oraclize_getPrice("URL") > ethBalance) {
+      emit NotEnoughFunds("Oraclize query for phone number verification was NOT sent, add more ETH.", ethBalance, oraclize_getPrice("URL"));
     } else {
       bytes32 queryId = oraclize_query("nested", getOraclizeQuery(encryptedPayload));
       phoneNumberRequests[queryId] = PhoneNumberRequest(msg.sender, hashedPhoneNumber);
@@ -77,29 +83,17 @@ contract DankFaucet is usingOraclize, DSAuth {
   function __callback(bytes32 queryId, string result) public {
     emit OraclizeCall(queryId, result);
 
-    if (msg.sender != oraclize_cbAddress()) {
-        revert("The sender's address does not match Oraclize's address.");
-    }
-    else {
-      if (!result.toSlice().contains("\"success\":true".toSlice())) {
-        revert("Wrong verification code");
-      }
-      else {
-        PhoneNumberRequest storage phoneNumberRequest = phoneNumberRequests[queryId];
-        uint previouslyAllocatedDank = allocatedDank[phoneNumberRequest.hashedPhoneNumber];
+    require(msg.sender != oraclize_cbAddress(), "The sender's address does not match Oraclize's address");
+    require(!result.toSlice().contains("\"success\":true".toSlice()), "Wrong verification code");
 
-        if ((previouslyAllocatedDank <= 0) && (dankToken.balanceOf(address(this)) >= allotment)) {
-          bool dankTransfered = dankToken.transfer(phoneNumberRequest.sender, allotment);
-          if (dankTransfered) {
-            allocatedDank[phoneNumberRequest.hashedPhoneNumber] = allotment;
-            emit DankEvent(phoneNumberRequest.hashedPhoneNumber, dankTransfered, "DANK transfered");
-          }
-        }
-        else {
-          emit DankEvent(phoneNumberRequest.hashedPhoneNumber, false, "DANK already allocated.");
-        }
-      }
-    }
+    PhoneNumberRequest storage phoneNumberRequest = phoneNumberRequests[queryId];
+    uint previouslyAllocatedDank = allocatedDank[phoneNumberRequest.hashedPhoneNumber];
+    require (previouslyAllocatedDank <= 0, "DANK already allocated");
+
+    require(dankToken.transfer(phoneNumberRequest.sender, allotment), "DANK transfer failed");
+    allocatedDank[phoneNumberRequest.hashedPhoneNumber] = allotment;
+    
+    emit DankEvent("DANK transfered", phoneNumberRequest.hashedPhoneNumber);    
   }
 
   function getOraclizeQuery(string payload) constant returns(string) {
@@ -134,8 +128,8 @@ contract DankFaucet is usingOraclize, DSAuth {
   /**
    * Allow the owner to reset the limits on the amount distributed by the faucet.
    */
-  function resetAllotment(uint initialDank) auth {
-    allotment = initialDank;
+  function resetAllotment(uint _allotment) auth {
+    allotment = _allotment;
   }
 
   /**

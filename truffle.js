@@ -30,7 +30,7 @@ let parameters = {
                             },
     dankFaucet : {dank : 5000000e18, // how much DANK contract holds, 1e18 = 1 DANK
                   eth : 0.1e18, // ETH, 1e18 = 1ETH
-                  allotment : 450e18  // how much DANK faucet sends, 1e18 = 1 DANK
+                  allotment : 2000e18  // how much DANK faucet sends, 1e18 = 1 DANK
                  }
   },
   "prod" : {

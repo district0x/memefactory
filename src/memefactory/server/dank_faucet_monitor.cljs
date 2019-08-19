@@ -6,22 +6,21 @@
 
 (defn- dispatcher [callback]
   (fn [_ {:keys [:latest-event?] :as event}]
-
-    (log/debug "### FAUCET EVENT" event)
-
     (when latest-event?
       (callback event))))
 
-(defn log-dank-event [{:keys [:event] :as evt}]
-
-  (log/debug "### LATEST FAUCET EVENT" evt)
-
-  )
+(defn log-dank-event [{:keys [:event :args] :as evt}]
+  (case event
+    (or :NotEnoughETH :NotEnoughDANK) (log/error "DANK Faucet has run out of funds!" args)
+    :DankReset (log/info "DANK Faucet allotment for a phone number has been reset" args)
+    :OraclizeCall (log/info "Oraclize call" args)
+    :DankEvent (log/info "DANK succesfully transferred from the Faucet" args)
+    (log/warn "Unknown DankFaucet event" evt)))
 
 (defn start [opts]
   (let [callback-ids
         [
-         ;; (web3-events/register-callback! :dank-faucet/not-enough-eth (dispatcher log-dank-event))
+         ;; (web3-events/register-callback! :dank-faucet/not-enough-funds (dispatcher log-dank-event))
          (web3-events/register-callback! :dank-faucet/dank-event (dispatcher log-dank-event))
          (web3-events/register-callback! :dank-faucet/oraclize-call (dispatcher log-dank-event))
          (web3-events/register-callback! :dank-faucet/dank-reset (dispatcher log-dank-event))]]
