@@ -24,30 +24,30 @@ module.exports = function(deployer, network, accounts) {
     ]))
     .then (([
       dankFaucet,
-      dankToken      
+      dankToken
     ]) => Promise.all ([
       web3.eth.getBalance(dankFaucetAddress),
-      dankToken.balanceOf (dankFaucetAddress)      
+      dankToken.balanceOf (dankFaucetAddress)
     ]))
     .then (([
       ethBalance,
-      dankBalance      
+      dankBalance
     ]) => {
       console.log ("@@@ Faucet ETH balance: ", ethBalance);
       console.log ("@@@ Faucet DANK balance: ", dankBalance);
     })
-  
+
   // drain eth and dank
     .then (() => DankFaucet.at (dankFaucetAddress))
     .then ((dankFaucet) => Promise.all ([
-      // dankFaucet.withdrawEth (Object.assign(opts, {gas: 100000})),
-      dankFaucet.withdrawDank (Object.assign(opts, {gas: 100000}))      
+      dankFaucet.withdrawEth (Object.assign(opts, {gas: 100000})),
+      dankFaucet.withdrawDank (Object.assign(opts, {gas: 200000}))
     ]))
     .then (([
-      // tx1,
-      tx2      
+      tx1,
+      tx2
     ]) => console.log ("@@@ Faucet succesfully drained of all funds"))
-  
+
   // redeploy
   // seed with the same eth and dank
 
