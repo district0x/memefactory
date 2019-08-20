@@ -340,7 +340,11 @@
          now (utils/now-in-seconds)
          param-changes-query (cond-> {:select [:*]
                                       :from [:param-changes]
-                                      :left-join [[:reg-entries :re] [:= :re.reg-entry/address :param-changes.reg-entry/address]]}
+                                      :left-join [[:reg-entries :re] [:= :re.reg-entry/address :param-changes.reg-entry/address]]
+                                      :join [:params [:and
+                                                        [:= :param-changes.param-change/db :params.param/db]
+                                                        [:= :param-changes.param-change/key :params.param/key]]]
+                                      :where [:= :param-changes.param-change/original-value :params.param/value]}
 
                                key (sqlh/merge-where [:= key :param-changes.param-change/key])
 

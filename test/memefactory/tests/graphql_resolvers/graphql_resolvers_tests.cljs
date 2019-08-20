@@ -112,10 +112,10 @@
         initial-params (let [k ["deposit" "challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration"]
                              v [1000 1e5 1e4 1e4]]
                          (for [i (range (count k))]
-                           {:initial-param/key (get k i)
-                            :initial-param/db "MEMEREGISTRYADDR"
-                            :initial-param/value (get v i)
-                            :initial-param/set-on now}))
+                           {:param/key (get k i)
+                            :param/db "MEMEREGISTRYADDR"
+                            :param/value (get v i)
+                            :param/set-on now}))
         param-changes (let [v [2000 1e6 1e5 1e5 3000]]
                         (for [i (range (count v))]
                           {:reg-entry/address (str "PCHANGEADDR" i)
@@ -129,13 +129,16 @@
                            :param-change/meta-hash (str "MHASH" i)
                            :param-change/reason (str "Reason " i)
                            :param-change/original-value (case i
-                                                         0 (:initial-param/value (nth initial-params 0))
-                                                         1 (:initial-param/value (nth initial-params 1))
-                                                         2 (:initial-param/value (nth initial-params 2))
-                                                         3 (:initial-param/value (nth initial-params 3))
-                                                         4 (:initial-param/value (nth initial-params 0)))
+                                                         0 (:param/value (nth initial-params 0))
+                                                         1 (:param/value (nth initial-params 1))
+                                                         2 (:param/value (nth initial-params 2))
+                                                         3 (:param/value (nth initial-params 3))
+                                                         4 (:param/value (nth initial-params 0)))
                            :param-change/value (get v i)
                            :param-change/applied-on (+ now (hours->seconds i))}))]
+
+    ;; Create params
+    (meme-db/upsert-params! initial-params)
 
     ;; Generate some users
     (doseq [u all-users]
