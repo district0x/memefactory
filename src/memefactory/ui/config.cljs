@@ -20,8 +20,7 @@
    :logging {:level :debug
              :console? true}
    :time-source :js-date
-   :smart-contracts {:contracts (apply dissoc smart-contracts-dev/smart-contracts skipped-contracts)
-                     :load-method :use-loaded}
+   :smart-contracts {:contracts (apply dissoc smart-contracts-dev/smart-contracts skipped-contracts)}
    :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK])}
    :web3 {:url "http://localhost:8549"}
    :web3-tx {:disable-loading-recommended-gas-prices? true}
@@ -156,11 +155,12 @@
 (re-frame/reg-sub
  ::all-params
  (fn [db _]
-   (concat
-    (->> (::memefactory-db-params db)
-         (map (fn [[k pm]] (assoc pm :key (keyword "meme" k)))))
-    (->> (::param-change-db-params db)
-         (map (fn [[k pm]] (assoc pm :key (keyword "param-change" k))))))))
+   (when (and (::memefactory-db-params db) (::param-change-db-params db))
+     (concat
+      (->> (::memefactory-db-params db)
+           (map (fn [[k pm]] (assoc pm :key (keyword "meme" k)))))
+      (->> (::param-change-db-params db)
+           (map (fn [[k pm]] (assoc pm :key (keyword "param-change" k)))))))))
 
 (re-frame/reg-sub
  ::param-db-keys-by-db

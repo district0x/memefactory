@@ -121,26 +121,26 @@
           [:th [:div.collapse-icon {:on-click #(swap! open? not)
                                     :class (when @open? "flipped")}]]]]
         [:tbody
-
          (let [param-val (into {} (map (fn [p] [(:key p) p]) @all-params))]
-           (for [key param-display-order]
-             (let [{:keys [key value set-on]} (param-val key)]
-               ^{:key (str key)}
-               [:tr
-                [:td
-                 [:div
-                  [:div.param-title (:title (param-info key))]
-                  [:div.param-b (:description (param-info key))]]]
-                [:td
-                 [:div
-                  [:div.param-h "Current Value"]
-                  [:div.param-b (str (scale-param-change-value key value) " " (:unit (param-info key)))]]]
-                [:td
-                 [:div
-                  [:div.param-h "Last Change"]
-                  [:div.param-b (time-format/unparse (time-format/formatter "dd/MM/yyyy")
-                                                     (t/local-date-time (gql-utils/gql-date->date set-on)))]]]
-                [:td]])))]]])))
+           (when @all-params
+             (for [key param-display-order]
+               (let [{:keys [key value set-on db] :as pv} (param-val key)]
+                 ^{:key (str key)}
+                 [:tr
+                  [:td
+                   [:div
+                    [:div.param-title (:title (param-info key))]
+                    [:div.param-b (:description (param-info key))]]]
+                  [:td
+                   [:div
+                    [:div.param-h "Current Value"]
+                    [:div.param-b (str (scale-param-change-value key value) " " (:unit (param-info key)))]]]
+                  [:td
+                   [:div
+                    [:div.param-h "Last Change"]
+                    [:div.param-b (time-format/unparse (time-format/formatter "dd/MM/yyyy")
+                                                       (t/local-date-time (gql-utils/gql-date->date set-on)))]]]
+                  [:td]]))))]]])))
 
 
 (defn change-submit-form []
