@@ -40,46 +40,60 @@
 
 (def param-info {:meme/challenge-dispensation {:title "Meme Challenge Dispensation"
                                                :description "The percentage of DANK from deposits rewarded to a winning meme challenger"
-                                               :unit "%"}
+                                               :unit "%"
+                                               :validator #(< 0 % 101)}
                  :meme/vote-quorum {:title "Meme Vote Quorum"
                                     :description "The percentage of upvotes required for a meme to win a challenge"
-                                    :unit "%"}
+                                    :unit "%"
+                                    :validator #(< 0 % 100)}
                  :meme/max-total-supply {:title "Meme Max Total Supply"
                                          :description "The maximum issuance number of a particular meme in the registry"
-                                         :unit ""}
+                                         :unit ""
+                                         :validator #(< 0 %)}
                  :meme/challenge-period-duration {:title "Meme Challenge Period Duration"
                                                   :description "The amount of time a meme is open to challenge before moving to the registry"
-                                                  :unit "Seconds"}
+                                                  :unit "Seconds"
+                                                  :validator #(< 0 %)}
                  :meme/max-auction-duration {:title "Meme Max Auction Duration"
                                              :description "The maximum amount of time a meme can be listed for sale before reaching end price"
-                                             :unit "Seconds"}
+                                             :unit "Seconds"
+                                             :validator #(< 0 %)}
                  :meme/reveal-period-duration {:title "Meme Reveal Period Duration"
                                                :description "The amount of time to reveal votes once voting on a meme ends"
-                                               :unit "Seconds"}
+                                               :unit "Seconds"
+                                               :validator #(< 0 %)}
                  :meme/commit-period-duration {:title "Meme Commit Period Duration"
                                                :description "The amount of time to vote once a challenge has been made against a meme"
-                                               :unit "Seconds"}
+                                               :unit "Seconds"
+                                               :validator #(< 0 %)}
                  :meme/deposit {:title "Meme Deposit"
                                 :description "The amount required to submit a meme, or challenge a submission"
-                                :unit "DANK"}
+                                :unit "DANK"
+                                :validator #(< 0 %)}
                  :param-change/challenge-dispensation {:title "Parameter Challenge Dispensation"
                                                        :description "The percentage of DANK from deposits rewarded to a winning parameter challenger"
-                                                       :unit "%"}
+                                                       :unit "%"
+                                                       :validator #(< 0 % 100)}
                  :param-change/vote-quorum {:title "Parameter Vote Quorum"
                                             :description "The percentage of upvotes required for a parameter to win a challenge"
-                                            :unit "%"}
+                                            :unit "%"
+                                            :validator #(< 0 % 100)}
                  :param-change/challenge-period-duration {:title "Parameter Challenge Period Duration"
                                                           :description "The amount of time a parameter change is open to challenge before taking effect"
-                                                          :unit "Seconds"}
+                                                          :unit "Seconds"
+                                                          :validator #(< 0 %)}
                  :param-change/reveal-period-duration {:title "Parameter Reveal Period Duration"
                                                        :description "The amount of time to reveal votes once voting on a parameter ends"
-                                                       :unit "Seconds"}
+                                                       :unit "Seconds"
+                                                       :validator #(< 0 %)}
                  :param-change/commit-period-duration {:title "Parameter Commit Period Duration"
                                                        :description "The amount of time to vote once a challenge has been made against a parameter"
-                                                       :unit "Seconds"}
+                                                       :unit "Seconds"
+                                                       :validator #(< 0 %)}
                  :param-change/deposit {:title "Parameter Deposit"
                                         :description "The amount required to submit a parameter change"
-                                        :unit "DANK"}})
+                                        :unit "DANK"
+                                        :validator #(< 0 %)}})
 
 ;; We need this since Clojure maps desn't guarantee insertion order
 (def param-display-order [:meme/deposit :meme/challenge-dispensation :meme/vote-quorum :meme/challenge-period-duration
@@ -198,8 +212,13 @@
                            :id :param-change/comment
                            :on-click #(.stopPropagation %)}]
           [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value) :ether)]]]]]
+
        [pending-button {:pending? @tx-pending?
-                        :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))) (not @active-account))
+                        :disabled (or @tx-pending?
+                                      @tx-success?
+                                      (when-let [validator (get-in param-info [@selected-param :validator])]
+                                        (not (validator (:param-change/value @form-data))))
+                                      (not @active-account))
                         :class "footer"
                         :pending-text "Submitting ..."
                         :on-click #(dispatch [::param-change/upload-and-add-param-change
