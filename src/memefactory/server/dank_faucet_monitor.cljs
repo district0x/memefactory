@@ -13,7 +13,6 @@
   (case event
     :DankResetEvent (log/info "DANK Faucet allotment for a phone number has been reset" args)
     :OraclizeRequestEvent (log/info "Oraclize query" args)
-    :OraclizeResponseEvent (log/info "Oraclize response" args)
     :DankTransferEvent (log/info "DANK succesfully transferred from the Faucet" args)
     nil))
 
@@ -21,7 +20,6 @@
   (let [callback-ids
         [(web3-events/register-callback! :dank-faucet/dank-reset-event (dispatcher log-dank-event))
          (web3-events/register-callback! :dank-faucet/oraclize-request-event (dispatcher log-dank-event))
-         (web3-events/register-callback! :dank-faucet/oraclize-response-event (dispatcher log-dank-event))
          (web3-events/register-callback! :dank-faucet/dank-transfer-event (dispatcher log-dank-event))]]
     (assoc opts :callback-ids callback-ids)))
 

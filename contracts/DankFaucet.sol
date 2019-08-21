@@ -36,8 +36,6 @@ contract DankFaucet is usingOraclize, DSAuth {
   // An event for communicating the id from Oraclize and a message.
   event OraclizeRequestEvent(string message, bytes32 id);
 
-  event OraclizeResponseEvent(string message, bytes32 id, string response);
-
   // An event fired when a person's allotment is reset by the faucet.
   event DankResetEvent(bytes32 hashedPhoneNumber);
 
@@ -49,7 +47,7 @@ contract DankFaucet is usingOraclize, DSAuth {
 
     // Comment out this line when deploying to production
     // See: https://github.com/oraclize/ethereum-bridge
-    //OAR = OraclizeAddrResolverI(0xd0a6D832Ea2949B87165B2e8CE7119013c835295);
+    /* OAR = OraclizeAddrResolverI(0xd0a6D832Ea2949B87165B2e8CE7119013c835295); */
   }
 
   /**
@@ -79,8 +77,6 @@ contract DankFaucet is usingOraclize, DSAuth {
    * required by Oraclize.
    */
   function __callback(bytes32 queryId, string result) public {
-    emit OraclizeResponseEvent("Oraclize query response", queryId, result);
-
     require(msg.sender != oraclize_cbAddress(), "The sender's address does not match Oraclize's address");
     require(!result.toSlice().contains("\"success\":true".toSlice()), "Wrong verification code");
 

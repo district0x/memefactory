@@ -26,5 +26,4 @@
    :meme-token/transfer [:meme-token :Transfer {} {:from-block 0 :to-block "latest"}]
    :dank-faucet/dank-transfer-event [:dank-faucet :DankTransferEvent {} {:from-block 0 :to-block "latest"}]
    :dank-faucet/oraclize-request-event [:dank-faucet :OraclizeRequestEvent {} {:from-block 0 :to-block "latest"}]
-   :dank-faucet/oraclize-response-event [:dank-faucet :OraclizeResponseEvent {} {:from-block 0 :to-block "latest"}]
    :dank-faucet/dank-reset-event [:dank-faucet :DankResetEvent {} {:from-block 0 :to-block "latest"}]})
