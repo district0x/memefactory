@@ -87,7 +87,7 @@
                        :for :verification-code
                        :id :verification-code}]])))
             [:p "The phone number provided is never stored or retained. We use the service "
-             [a "https://provable.xyz/" "Oracalize"]
+             [a "https://provable.xyz/" "Oraclize"]
              " (now called Provable) to pass your phone number to "
              [a "https://www.twilio.com/" "Twilio"]
              ", a well-known api for SMS-based verifications. You can view Twilio's privacy policy "
