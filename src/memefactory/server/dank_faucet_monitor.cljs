@@ -11,19 +11,18 @@
 
 (defn log-dank-event [{:keys [:event :args] :as evt}]
   (case event
-    (or :NotEnoughETH :NotEnoughDANK) (log/error "DANK Faucet has run out of funds!" args)
-    :DankReset (log/info "DANK Faucet allotment for a phone number has been reset" args)
-    :OraclizeCall (log/info "Oraclize call" args)
-    :DankEvent (log/info "DANK succesfully transferred from the Faucet" args)
-    (log/warn "Unknown DankFaucet event" evt)))
+    :DankResetEvent (log/info "DANK Faucet allotment for a phone number has been reset" args)
+    :OraclizeRequestEvent (log/info "Oraclize query" args)
+    :OraclizeResponseEvent (log/info "Oraclize response" args)
+    :DankTransferEvent (log/info "DANK succesfully transferred from the Faucet" args)
+    nil))
 
 (defn start [opts]
   (let [callback-ids
-        [
-         ;; (web3-events/register-callback! :dank-faucet/not-enough-funds (dispatcher log-dank-event))
-         (web3-events/register-callback! :dank-faucet/dank-event (dispatcher log-dank-event))
-         (web3-events/register-callback! :dank-faucet/oraclize-call (dispatcher log-dank-event))
-         (web3-events/register-callback! :dank-faucet/dank-reset (dispatcher log-dank-event))]]
+        [(web3-events/register-callback! :dank-faucet/dank-reset-event (dispatcher log-dank-event))
+         (web3-events/register-callback! :dank-faucet/oraclize-request-event (dispatcher log-dank-event))
+         (web3-events/register-callback! :dank-faucet/oraclize-response-event (dispatcher log-dank-event))
+         (web3-events/register-callback! :dank-faucet/dank-transfer-event (dispatcher log-dank-event))]]
     (assoc opts :callback-ids callback-ids)))
 
 (defn stop [dank-faucet-monitor]

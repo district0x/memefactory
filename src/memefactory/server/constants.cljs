@@ -24,7 +24,7 @@
    :meme-auction-factory/meme-auction-buy-event [:meme-auction-factory-fwd :MemeAuctionBuyEvent {} {:from-block 0 :to-block "latest"}]
    :meme-auction-factory/meme-auction-canceled-event [:meme-auction-factory-fwd :MemeAuctionCanceledEvent {} {:from-block 0 :to-block "latest"}]
    :meme-token/transfer [:meme-token :Transfer {} {:from-block 0 :to-block "latest"}]
-   ;; :dank-faucet/not-enough-funds [:dank-faucet :NotEnoughFunds {} {:from-block 0 :to-block "latest"}]
-   :dank-faucet/dank-event [:dank-faucet :DankEvent {} {:from-block 0 :to-block "latest"}]
-   :dank-faucet/oraclize-call [:dank-faucet :OraclizeCall {} {:from-block 0 :to-block "latest"}]
-   :dank-faucet/dank-reset [:dank-faucet :DankReset {} {:from-block 0 :to-block "latest"}]})
+   :dank-faucet/dank-transfer-event [:dank-faucet :DankTransferEvent {} {:from-block 0 :to-block "latest"}]
+   :dank-faucet/oraclize-request-event [:dank-faucet :OraclizeRequestEvent {} {:from-block 0 :to-block "latest"}]
+   :dank-faucet/oraclize-response-event [:dank-faucet :OraclizeResponseEvent {} {:from-block 0 :to-block "latest"}]
+   :dank-faucet/dank-reset-event [:dank-faucet :DankResetEvent {} {:from-block 0 :to-block "latest"}]})
