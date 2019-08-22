@@ -27,7 +27,7 @@ contract DankFaucet is usingOraclize, DSAuth {
   // can track who's been allocated what DANK.
   mapping(bytes32 => PhoneNumberRequest) public phoneNumberRequests;
 
-  // The number of DANK tokens a person gets when they initially sing up.
+  // The number of DANK tokens a person gets when they initially sign up.
   uint public allotment;
 
   // An event for communicating successful transfer of funds
@@ -58,13 +58,13 @@ contract DankFaucet is usingOraclize, DSAuth {
   function verifyAndAcquireDank(bytes32 hashedPhoneNumber, string encryptedPayload) public {
 
     uint dankBalance = dankToken.balanceOf(address(this));
-    require(dankBalance >= allotment, "Faucet has run out of DANK");
+    require(dankBalance > allotment, "Faucet has run out of DANK");
 
     uint previouslyAllocatedDank = allocatedDank[hashedPhoneNumber];
     require(previouslyAllocatedDank <= 0, "DANK already allocated");
 
     uint ethBalance = address(this).balance;
-    require(oraclize_getPrice("URL") > ethBalance, "Oraclize query for phone number verification was NOT sent, add more ETH.");
+    require(ethBalance > oraclize_getPrice("URL"), "Oraclize query for phone number verification was NOT sent, add more ETH.");
 
     bytes32 queryId = oraclize_query("nested", getOraclizeQuery(encryptedPayload));
     phoneNumberRequests[queryId] = PhoneNumberRequest(msg.sender, hashedPhoneNumber);
@@ -77,8 +77,8 @@ contract DankFaucet is usingOraclize, DSAuth {
    * required by Oraclize.
    */
   function __callback(bytes32 queryId, string result) public {
-    require(msg.sender != oraclize_cbAddress(), "The sender's address does not match Oraclize's address");
-    require(!result.toSlice().contains("\"success\":true".toSlice()), "Wrong verification code");
+    require(msg.sender == oraclize_cbAddress(), "The sender's address does not match Oraclize's address");
+    require(result.toSlice().contains("\"success\":true".toSlice()), "Wrong verification code");
 
     PhoneNumberRequest storage phoneNumberRequest = phoneNumberRequests[queryId];
 

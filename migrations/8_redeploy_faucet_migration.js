@@ -16,7 +16,7 @@ const dankTokenAddress = "";
 const dSGuardAddress = "";
 
 // ropsten
-// const dankFaucetAddress = "0xcdb554c53607d1c82a89fb61b8e5c53fbe8e958e";
+// const dankFaucetAddress = "0x8993009f44cd657cf869e9ac30c189206e3b6cef";
 // const dankTokenAddress = "0xeda9bf9199fab6790f43ee21cdce048781f58302";
 // const dSGuardAddress = "0xab4d684b2cc21ea99ee560a0f0d1490b09b09127";
 
@@ -53,7 +53,7 @@ module.exports = function(deployer, network, accounts) {
       dankFaucet,
       dankToken
     ]) => Promise.all ([
-      dankFaucet.getBalance(),      
+      dankFaucet.getBalance(),
       dankToken.balanceOf (dankFaucetAddress)
     ]))
     .then (([
