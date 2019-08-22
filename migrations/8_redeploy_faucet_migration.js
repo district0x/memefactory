@@ -1,8 +1,12 @@
-const { linkBytecode } = require ("./utils.js");
-const { parameters } = require ('../truffle.js');
+const { linkBytecode, copy } = require ("./utils.js");
+const { parameters, contracts_build_directory } = require ('../truffle.js');
 
+const DSGuard = artifacts.require("DSGuard");
 const DankToken = artifacts.require("DankToken");
-const DankFaucet = artifacts.require ("DankFaucet");
+// const DankFaucet = artifacts.require ("DankFaucet");
+copy ("DankFaucet", "DankFaucetCp", contracts_build_directory);
+const DankFaucet = artifacts.require ("DankFaucetCp");
+
 const dankTokenPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
 
 // TODO : adjust addresses these
@@ -78,7 +82,12 @@ module.exports = function(deployer, network, accounts) {
       linkBytecode(DankFaucet, dankTokenPlaceholder, dankTokenAddress);
       return deployer.deploy(DankFaucet, parameters.dankFaucet.allotment, Object.assign(opts, {gas: 4000000}));          
     })
-  
+
+    .then (() => Promise.all ([DSGuard.at(dSGuardAddress),
+                               DankFaucet.deployed()]))
+    .then (([dSGuard,
+             dankFaucet]) => dankFaucet.setAuthority(dSGuard.address, Object.assign(opts, {gas: 200000, value: 0})))
+
   // seed with the same eth and dank amount
     .then (() => Promise.all ([DankToken.at (dankTokenAddress),
                                DankFaucet.at (dankFaucetAddress),
