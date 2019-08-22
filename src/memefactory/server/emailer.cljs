@@ -6,7 +6,6 @@
     [district.format :as format]
     [district.sendgrid :refer [send-email]]
     [district.server.config :as config]
-    [district.server.config :refer [config]]
     [district.server.logging]
     [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
     [district.shared.async-helpers :refer [promise->]]
@@ -301,6 +300,6 @@
 
 
 (defstate emailer
-  :start (start (merge (:pinner @config)
-                       (:pinner (mount/args))))
+  :start (start (merge (:emailer @config/config)
+                       (:emailer (mount/args))))
   :stop (stop emailer))

@@ -7,22 +7,22 @@
             [cljs-web3.eth :as web3-eth]
             [cljs.core.match :refer-macros [match]]
             [cljs.nodejs :as nodejs]
-            [clojure.string :as str]
+            [clojure.set :as clj-set]
+            [clojure.string :as string]
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :as web3]
+            [district.shared.async-helpers :refer [promise->]]
             [district.shared.error-handling :refer [try-catch-throw try-catch]]
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
             [memefactory.server.db :as mf-db]
-            [district.shared.async-helpers :refer [promise->]]
             [memefactory.server.ranks-cache :as ranks-cache]
             [memefactory.server.utils :as utils]
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [memefactory.shared.utils :as shared-utils]
-            [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]))
 
 (def enum graphql-utils/kw->gql-name)
@@ -31,6 +31,7 @@
 (def child-process (js/require "child_process"))
 (def util (js/require "util"))
 (def request-promise (nodejs/require "request-promise"))
+(def exec-promise (.promisify util (aget child-process "exec")))
 
 (def whitelisted-config-keys [:ipfs :ui])
 
@@ -48,6 +49,14 @@
        keys
        (map graphql-utils/gql-name->kw)
        set))
+
+(defn- graphqlize
+  "Given a map it will transform all the keys into graphql friendly
+  names."
+  [coll]
+  (reduce-kv
+   (fn [m k v]
+     (assoc m k (graphql-utils/kw->gql-name v))) (empty coll) coll))
 
 (defn paged-query
   "Execute a paged query.
@@ -1003,46 +1012,30 @@
                                         :order-by [[:param-changes.param-change/applied-on :asc]]
                                         :limit 2}))))
 
-(defn graphqlize
-  "Given a map it will transform all the keys into graphql friendly
-  names."
-  [coll]
-  (reduce-kv
-   (fn [m k v]
-     (assoc m k (graphql-utils/kw->gql-name v))) (empty coll) coll))
-
 (defn send-verification-code-resolver
   [_ {:keys [country-code phone-number] :as args}]
-  (let [options (clj->js
-                 {:url "https://api.authy.com/protected/json/phones/verification/start"
-                  :method "POST"
-                  :headers {"X-Authy-API-Key" (:twilio-api-key @config)}
-                  :json true
-                  :body {"via" "sms"
-                         "phone_number" phone-number
-                         "country_code" country-code}})]
-    (log/info (str "Sending verification code to " country-code phone-number) options)
-    (promise-> (request-promise options)
+  (let [options {:url "https://api.authy.com/protected/json/phones/verification/start"
+                 :method "POST"
+                 :headers {"X-Authy-API-Key" (:twilio-api-key @config)}
+                 :json true
+                 :body {"via" "sms"
+                        "phone_number" phone-number
+                        "country_code" country-code}}]
+    (log/info "Sending verification code" {:args args :options options})
+    (promise-> (request-promise (clj->js options))
                (fn [response]
-                 (let [twilio-response (js->clj response)
-                       success (get twilio-response "success")
-                       graphql-response {:id (get twilio-response "uuid")
-                                         :success success
-                                         :status (get twilio-response "status")
-                                         :msg (get twilio-response "message")}]
-                   (log/info "Twilio resp:" twilio-response)
-                   (log/info "Type of success:" (type success))
-                   (if-not success
-                     (throw (js/Error. "Error calling phone verification API:"
-                                       graphql-response))
-                     graphql-response))))))
-
-(def exec-promise (.promisify util (aget child-process "exec")))
+                 (let [twilio-response (-> response
+                                           (js->clj :keywordize-keys true)
+                                           (clj-set/rename-keys {:uuid :id}))]
+                   (log/info "Phone verification response" twilio-response)
+                   (if (:success twilio-response)
+                     twilio-response
+                     (log/error "Error calling phone verification API" twilio-response)))))))
 
 (defn encrypt-verification-payload-resolver
-  [_ {:keys [country-code phone-number verification-code]}]
+  [_ {:keys [country-code phone-number verification-code] :as args}]
+  (log/info "Received verification code" args)
   ;; Build Oraclize call
-
   (cond
     (not (re-matches #"[0-9\+]{2,6}" (str country-code)))
     (do
@@ -1075,44 +1068,25 @@
                                        oraclize-public-key
                                        " -e "
                                        \' json-payload \')]
-      (log/debug full-encryption-command)
 
-      ;; Shell out
-      ;; Run the Python script to encrypt the payload
+      (log/debug "Shell out to python" {:bash full-encryption-command})
+
       (-> (exec-promise full-encryption-command)
         (.then (fn [result]
                  (let [python-result (js->clj result)]
                    (log/debug "python encryption result:" python-result)
                    (let [stdout (get python-result "stdout")
                          stderr (get python-result "stderr")]
-
-                     ;; Return the encrypted payload
-                     ;; (if (clojure.string/blank? stderr)
-                     ;;   (do
-                     ;;     {:success true
-                     ;;      :payload (clojure.string/trim-newline stdout)})
-
-                     ;;   (do
-                     ;;     {:success false
-                     ;;      :payload stderr}))
-
-                     ;; Who needs error handling? Apparently we don't. With the
-                     ;; latest version of the Python (both 2 and 3) encryption
-                     ;; library it spits a warning out to stderr for using the
-                     ;; encode_point() function. Until Oraclize upgrades the
-                     ;; encrypted_queries_tools.py script we're rollin' dirty.
                      {:success true
-                      :payload (clojure.string/trim-newline stdout)}))))
+                      :payload (string/trim-newline stdout)}))))
         (.catch (fn [ex]
                   (log/error "Error calling python" {:error ex})
                   {:success false
                    :payload (.getMessage ex)}))))))
 
 (defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
-
   (let [{:keys [blacklist-token blacklist-file]} @config]
     (if (= token blacklist-token)
-
       (do
         ;; update the blacklist file
         (-> (utils/load-edn-file blacklist-file)
@@ -1121,7 +1095,6 @@
         ;;  patch on db
         (mf-db/patch-forbidden-reg-entry-image! address)
         (log/info (str "Blacklisted " address " image.") ::blacklist-reg-entry-resolver))
-
       (log/warn (str "Tried to blacklist reg entry " address " with wrong token " token) ::blacklist-reg-entry-resolver))))
 
 (def resolvers-map

@@ -3,6 +3,8 @@
     [ajax.core :as ajax]
     [cljs-web3.core :as web3]
     [day8.re-frame.http-fx]
+    [district.ui.graphql.utils :as graphql-ui-utils]
+    [district.graphql-utils :as graphql-utils]
     [district.ui.logging.events :as logging]
     [district.ui.notification.events :as notification-events]
     [district.ui.smart-contracts.queries :as contract-queries]
@@ -16,6 +18,9 @@
     [re-frame.core :as re-frame]
     [taoensso.timbre :as log]))
 
+(defn- parse-query [query]
+  (:query-str (graphql-ui-utils/parse-query {:queries [query]}
+                                            {:kw->gql-name graphql-utils/kw->gql-name})))
 
 (re-frame/reg-event-fx
  ::show-spinner
@@ -43,29 +48,30 @@
    {:web3/call {:web3 (:web3 db)
                 :fns [{:instance (contract-queries/instance db :dank-faucet)
                        :fn :allocated-dank
-                       :args [(web3/sha3 phone-number)]
+                       :args [(web3/sha3 (str country-code phone-number))]
                        :on-success [::send-dank-but-only-once data]
-                       :on-error [::error]}]}}))
+                       :on-error [::logging/error "Error calling DankFaucet" data ::get-allocated-dank]}]}}))
 
-
+;; TODO : DEUBG
 (re-frame/reg-event-fx
  ::send-dank-but-only-once
- (fn [{:keys [db]} [_ {:keys [country-code phone-number] :as data} resp]]
+ (fn [_ [_ {:keys [country-code phone-number] :as args} resp]]
    (let [allocated-dank (aget resp "c")]
-     (if (<= allocated-dank 0)
-       {:db db
-        :dispatch [::send-verification-code data]}
-       {:db db
-        :dispatch [::notification-events/show
-                   "DANK already acquired bawse"]}))))
-
+     (if true #_(<= allocated-dank 0)
+       {:dispatch [::send-verification-code args]}
+       {:log/info ["DANK already acquired" {:args args :response resp}]
+        :dispatch [::notification-events/show "DANK already acquired"]}))))
 
 (re-frame/reg-event-fx
  ::send-verification-code
- (fn [{:keys [db]} [_ {:keys [country-code phone-number]}]]
-   (let [mutation (gstring/format
-                   "mutation {sendVerificationCode(countryCode:\"%s\", phoneNumber:\"%s\") {id, status, msg, success}}"
-                   country-code phone-number)]
+ (fn [_ [_ {:keys [country-code phone-number] :as args}]]
+   (let [mutation (str "mutation" (parse-query [:send-verification-code
+                                                {:country-code country-code
+                                                 :phone-number phone-number}
+                                                [:id
+                                                 :status
+                                                 :message
+                                                 :success]]))]
      {:http-xhrio {:method          :post
                    :uri             (get-in config-map [:graphql :url])
                    :params          {:query mutation}
@@ -73,47 +79,44 @@
                    :response-format (ajax/json-response-format {:keywords? true})
                    :format          (ajax/json-request-format)
                    :on-success      [::verification-code-success]
-                   :on-failure      [::verification-code-error]}})))
+                   :on-failure      [::logging/error "Error calling sendVerificationCode" args]}})))
 
 
 (re-frame/reg-event-fx
  ::verification-code-success
- (fn [{:keys [db]} [_ {:keys [data]}]]
-   (log/debug "in verification-code-success, data:" data)
+ (fn [_ [_ {:keys [data]}]]
    (let [success (get-in data [:sendVerificationCode :success])
          msg     (get-in data [:sendVerificationCode :msg])]
      (if success
-       {:db db
+       {:log/info ["Successfully verified phone number" data ::verification-code-success]
         :dispatch [::stage 2]}
-
-       ;; Handle Twilio level errors here
-       {:db db
-        :dispatch [:district.ui.notification.events/show
+       {:dispatch [:district.ui.notification.events/show
                    "Internal error verifying the phone number"]}))))
-
 
 (re-frame/reg-event-fx
  ::encrypt-verification-payload
- (fn [{:keys [db]} [_ {:keys [country-code phone-number verification-code] :as data}]]
-   (let [mutation (gstring/format
-                   "mutation {encryptVerificationPayload(countryCode:\"%s\", phoneNumber:\"%s\", verificationCode:\"%s\") {payload, success}}"
-                   country-code phone-number verification-code)]
+ (fn [_ [_ {:keys [country-code phone-number verification-code] :as args}]]
+   (let [mutation (str "mutation" (parse-query [:encrypt-verification-payload
+                                                {:country-code country-code
+                                                 :phone-number phone-number
+                                                 :verification-code verification-code}
+                                                [:payload
+                                                 :success]]))]
      {:http-xhrio {:method          :post
                    :uri             (get-in config-map [:graphql :url])
                    :params          {:query mutation}
                    :timeout         8000
                    :response-format (ajax/json-response-format {:keywords? true})
                    :format          (ajax/json-request-format)
-                   :on-success      [::encrypt-payload-success data]
-                   :on-failure      [::verification-code-error]}})))
+                   :on-success      [::encrypt-payload-success args]
+                   :on-failure      [::logging/error "Error calling encryptVerificationPayload endpoint" args]}})))
 
 
 (re-frame/reg-event-fx
  ::encrypt-payload-success
  (fn [{:keys [db]} [_ {:keys [country-code phone-number verification-code] :as data} http-resp]]
-   (log/info "Encryption success:" data)
-   {:db (assoc db
-          ::spinner true)
+   {:log/info ["Encryption success" data ::encrypt-payload-success]
+    :db (assoc db ::spinner true)
     :dispatch [::verify-and-acquire-dank data http-resp]}))
 
 
@@ -121,40 +124,21 @@
  ::verify-and-acquire-dank
  (fn [{:keys [db]} [_ {:keys [country-code phone-number verification-code]
                        :as data} http-resp]]
-   (log/debug "in verify-and-acquire-dank data:" data)
-   (log/debug "in verify-and-acquire-dank http-resp:" http-resp)
    (let [active-account (account-queries/active-account db)
-         encrypted-payload (get-in http-resp [:data :encryptVerificationPayload :payload])]
-     (log/debug "country-code:" country-code "phone-number" phone-number "verification-code" verification-code)
-     (log/debug "encrypted-payload:" encrypted-payload)
-
+         encrypted-payload (get-in http-resp [:data :encryptVerificationPayload :payload])
+         args [(web3/sha3 (str country-code phone-number)) encrypted-payload]]
+     (log/debug "Succesfully encrypted payload" {:payload encrypted-payload})
      (when encrypted-payload
        {:dispatch
         [::tx-events/send-tx {:instance (contract-queries/instance db :dank-faucet)
                               :fn :verify-and-acquire-dank
-                              :args [(-> phone-number web3/sha3)
-                                     encrypted-payload]
+                              :args args
                               :tx-log {:name "Request DANK"}
                               :tx-opts {:from active-account}
                               :on-tx-success-n [[::hide-spinner]
                                                 [::notification-events/show
                                                  "Successfully requested DANK. It'll be delivered within few minutes!"]
                                                 [::stage 1]]
-                              :on-tx-hash-error [::logging/error
-                                                 [::verify-and-acquire-dank]]
-                              :on-tx-error [::logging/error
-                                            [::verify-and-acquire-dank]]}]}))))
-
-
-(re-frame/reg-event-db
- ::check-dank-error
- (fn [db [_ data]]
-   (log/debug "Error checking for allocated DANK:" data)
-   db))
-
-
-(re-frame/reg-event-db
- ::verification-code-error
- (fn [db [_ data]]
-   (log/debug "Error verifying verification code:" data)
-   db))
+                              :on-tx-error [::logging/error "Error calling DankFaucet" {:user {:id active-account}
+                                                                                        :args args}
+                                            ::verify-and-acquire-dank]}]}))))
