@@ -52,12 +52,11 @@
                        :on-success [::send-dank-but-only-once data]
                        :on-error [::logging/error "Error calling DankFaucet" data ::get-allocated-dank]}]}}))
 
-;; TODO : DEUBG
 (re-frame/reg-event-fx
  ::send-dank-but-only-once
  (fn [_ [_ {:keys [country-code phone-number] :as args} resp]]
    (let [allocated-dank (aget resp "c")]
-     (if true #_(<= allocated-dank 0)
+     (if (<= allocated-dank 0)
        {:dispatch [::send-verification-code args]}
        {:log/info ["DANK already acquired" {:args args :response resp}]
         :dispatch [::notification-events/show "DANK already acquired"]}))))
