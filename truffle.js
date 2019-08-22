@@ -86,5 +86,12 @@ module.exports = {
       gasPrice: 6e9,
       skipDryRun: true
     },
+    "infura-mainnet": {
+      provider: () => new HDWalletProvider(process.env.MNENOMIC || process.env.PRIV_KEY, "https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY),
+      network_id: 1,
+      gas: 6e6,
+      gasPrice: 4e9,
+      skipDryRun: true
+    }
   }
 };

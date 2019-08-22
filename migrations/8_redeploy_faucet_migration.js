@@ -3,7 +3,6 @@ const { parameters, contracts_build_directory } = require ('../truffle.js');
 
 const DSGuard = artifacts.require("DSGuard");
 const DankToken = artifacts.require("DankToken");
-// const DankFaucet = artifacts.require ("DankFaucet");
 copy ("DankFaucet", "DankFaucetCp", contracts_build_directory);
 const DankFaucet = artifacts.require ("DankFaucetCp");
 
@@ -17,7 +16,7 @@ const dankTokenAddress = "";
 const dSGuardAddress = "";
 
 // ropsten
-// const dankFaucetAddress = "0x3182564B0aaB918C1B2994B004cE1B35572A7af0";
+// const dankFaucetAddress = "0xcdb554c53607d1c82a89fb61b8e5c53fbe8e958e";
 // const dankTokenAddress = "0xeda9bf9199fab6790f43ee21cdce048781f58302";
 // const dSGuardAddress = "0xab4d684b2cc21ea99ee560a0f0d1490b09b09127";
 
@@ -27,10 +26,10 @@ const dSGuardAddress = "";
 // const dSGuardAddress = "0x5d0457f58ed4c115610a2253070a11fb82065403";
 
 /**
- * This migration drains old faucet and redeploys it seeding new Faucet with ETH and DANK 
+ * This migration drains old faucet and redeploys it seeding new Faucet with ETH and DANK
  *
  * Usage:
- * truffle migrate --network ganache --reset --f 8 --to 8
+ * truffle migrate --reset --f 8 --to 8 --network ganache
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -39,7 +38,7 @@ module.exports = function(deployer, network, accounts) {
   const opts = {gas: gas, from: address};
 
   let balances = {};
-  
+
   deployer.then (() => {
     console.log ("@@@ using Web3 version:", web3.version.api);
     console.log ("@@@ using address", address);
@@ -54,7 +53,7 @@ module.exports = function(deployer, network, accounts) {
       dankFaucet,
       dankToken
     ]) => Promise.all ([
-      web3.eth.getBalance(dankFaucetAddress),
+      dankFaucet.getBalance(),      
       dankToken.balanceOf (dankFaucetAddress)
     ]))
     .then (([
@@ -80,7 +79,7 @@ module.exports = function(deployer, network, accounts) {
   // redeploy
     .then (() => {
       linkBytecode(DankFaucet, dankTokenPlaceholder, dankTokenAddress);
-      return deployer.deploy(DankFaucet, parameters.dankFaucet.allotment, Object.assign(opts, {gas: 4000000}));          
+      return deployer.deploy(DankFaucet, parameters.dankFaucet.allotment, Object.assign(opts, {gas: 4000000}));
     })
 
     .then (() => Promise.all ([DSGuard.at(dSGuardAddress),
@@ -94,8 +93,10 @@ module.exports = function(deployer, network, accounts) {
                                DankFaucet.deployed()]))
     .then (([dankToken,
              dankFaucet,
-             newDankFaucet]) =>           
+             newDankFaucet]) =>
            Promise.all ([
              dankToken.transfer (newDankFaucet.address, balances.dank, Object.assign(opts, {gas: 200000})),
-             newDankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: balances.eth}))]));
+             newDankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: balances.eth}))]))
+    .then (() => DankFaucet.deployed())
+    .then ((dankFaucet) => console.log ("@@@ new DankFaucet address:", dankFaucet.address));
 }
