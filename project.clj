@@ -28,7 +28,7 @@
                  [district0x/district-format "1.0.6"]
                  [district0x/district-graphql-utils "1.0.8"]
                  [district0x/district-parsers "1.0.0"]
-                 [district0x/district-sendgrid "1.0.0"]
+                 [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.4"]
                  [district0x/district-server-graphql "1.0.16"]
