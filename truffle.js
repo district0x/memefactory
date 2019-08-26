@@ -80,17 +80,17 @@ module.exports = {
       network_id: '*'
     },
     "infura-ropsten": {
-      provider: () => new HDWalletProvider(process.env.MNENOMIC, "https://ropsten.infura.io/v3/" + process.env.INFURA_API_KEY),
-      network_id: 4,
+      provider: () => new HDWalletProvider(process.env.ROPSTEN_PRIV_KEY, "https://ropsten.infura.io/v3/" + process.env.INFURA_API_KEY),
+      network_id: 1,
       gas: 6e6,
       gasPrice: 6e9,
       skipDryRun: true
     },
     "infura-mainnet": {
-      provider: () => new HDWalletProvider(process.env.MNENOMIC || process.env.PRIV_KEY, "https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY),
-      network_id: 1,
+      provider: () => new HDWalletProvider(process.env.MAINNET_PRIV_KEY, "https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY),
+      network_id: 2,
       gas: 6e6,
-      gasPrice: 4e9,
+      gasPrice: 9e9,
       skipDryRun: true
     }
   }
