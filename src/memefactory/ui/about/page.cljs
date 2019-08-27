@@ -5,7 +5,7 @@
 
 
 (defn a [href text]
-  [:a {:href href :target :_blank} text])
+  [:a {:href href :target :_blank :rel "noopener noreferrer"} text])
 
 
 (defmethod page :route.about/index []

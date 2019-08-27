@@ -6,10 +6,11 @@
 
   :dependencies [[akiroz.re-frame/storage "0.1.2"]
                  [camel-snake-kebab "0.4.0"]
-                 [cljs-ajax "0.7.4"]
+                 [cljs-node-io "1.1.2"]
                  [cljs-web3 "0.19.0-0-10"]
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "4.12.0-0"]
+                 [cljsjs/filesaverjs "1.3.3-0"]
                  [cljsjs/jquery "3.2.1-0"]
                  [cljsjs/react "16.4.1-0"]
                  [cljsjs/react-dom "16.4.1-0"]
@@ -18,17 +19,16 @@
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [day8.re-frame/http-fx "0.1.6"]
-                 [cljs-node-io "1.1.2"]
                  [district0x/async-helpers "0.1.1"]
                  [district0x/bignumber "1.0.3"]
-                 [district0x/cljs-ipfs-native "1.0.2"]
+                 [district0x/cljs-ipfs-http-client "1.0.4"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
                  [district0x/district-format "1.0.6"]
                  [district0x/district-graphql-utils "1.0.8"]
                  [district0x/district-parsers "1.0.0"]
-                 [district0x/district-sendgrid "1.0.0"]
+                 [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.4"]
                  [district0x/district-server-graphql "1.0.16"]
@@ -41,13 +41,13 @@
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
                  [district0x/district-ui-component-active-account-balance "1.0.1"]
-                 [district0x/district-ui-component-form "0.2.10"]
+                 [district0x/district-ui-component-form "0.2.11"]
                  [district0x/district-ui-component-meta-tags "1.0.0"]
                  [district0x/district-ui-component-notification "1.0.0"]
                  [district0x/district-ui-component-tx-button "1.0.0"]
                  [district0x/district-ui-graphql "1.0.9"]
-                 [district0x/district-ui-ipfs "1.0.0"]
-                 [district0x/district-ui-logging "1.0.4"]
+                 [district0x/district-ui-ipfs "1.0.1"]
+                 [district0x/district-ui-logging "1.1.0"]
                  [district0x/district-ui-mobile "1.0.0"]
                  [district0x/district-ui-notification "1.0.1"]
                  [district0x/district-ui-now "1.0.2"]
@@ -59,13 +59,14 @@
                  [district0x/district-ui-web3-account-balances "1.0.2"]
                  [district0x/district-ui-web3-accounts "1.0.6"]
                  [district0x/district-ui-web3-balances "1.0.2"]
+                 [district0x/district-ui-web3-sync-now "1.0.3-2"]
                  [district0x/district-ui-web3-tx "1.0.11"]
                  [district0x/district-ui-web3-tx-id "1.0.1"]
                  [district0x/district-ui-web3-tx-log "1.0.11"]
                  [district0x/district-ui-window-size "1.0.1"]
                  [district0x/district-web3-utils "1.0.3"]
                  [district0x/error-handling "1.0.4"]
-                 [district0x/re-frame-ipfs-fx "0.0.2"]
+                 [district0x/re-frame-ipfs-fx "1.1.1"]
                  [funcool/bide "1.6.1-SNAPSHOT"] ;; version with fix for duplicated query params
                  [garden "1.3.5"]
                  [medley "1.0.0"]
@@ -75,6 +76,7 @@
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [print-foo-cljs "2.0.3"]
                  [re-frame "0.10.5"]
+                 [reagent "0.8.1"]
 
                  ;; only for tests
                  [org.clojure/core.async "0.4.490"]
@@ -120,6 +122,10 @@
                        [tar-fs "2.0.0"]
                        ;; for solidity sha3 function
                        [web3-utils "1.0.0-beta.55"]
+
+                       ;; For deploying to infura
+                       [truffle-hdwallet-provider "1.0.12"]
+                       [dotenv "8.0.0"]
                        ]}
 
   :solc {:src-path "contracts/"
@@ -211,7 +217,7 @@
                                    :pseudo-names true}}
                        {:id "server-tests"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
-                        ;; :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
+                        :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
                         :compiler {:main "memefactory.tests.runner"
                                    :output-to "memefactory-tests/memefactory-server-tests.js",
                                    :output-dir "memefactory-tests",

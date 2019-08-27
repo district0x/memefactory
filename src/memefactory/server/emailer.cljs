@@ -2,11 +2,11 @@
   (:require
     [cljs-time.coerce :as time-coerce]
     [cljs-time.core :as t]
+    [clojure.string :as string]
     [district.encryption :as encryption]
     [district.format :as format]
     [district.sendgrid :refer [send-email]]
     [district.server.config :as config]
-    [district.server.config :refer [config]]
     [district.server.logging]
     [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
     [district.shared.async-helpers :refer [promise->]]
@@ -19,17 +19,25 @@
     [mount.core :as mount :refer [defstate]]
     [taoensso.timbre :as log]))
 
-
 (defn validate-email [base64-encrypted-email]
   (when-not (empty? base64-encrypted-email)
     (let [email (encryption/decode-decrypt (get-in @config/config [:emailer :private-key]) base64-encrypted-email)]
       (when (email-address/isValidAddress email)
         email))))
 
+(defn email-supported-extension? [image-url]
+  (cond
+    (string/includes? image-url ".png") true
+    (string/includes? image-url ".jpeg") true
+    (string/includes? image-url ".jpg") true
+    (string/includes? image-url ".gif") true
+    :else false))
+
 (defn send-challenge-created-email-handler
   [{:keys [from to
            title
-           meme-url meme-image-url
+           meme-url
+           meme-image-url
            button-url
            time-remaining
            on-success on-error
@@ -46,7 +54,8 @@
     :substitutions {:header (str title " was challenged")
                     :button-title "Vote Now"
                     :button-href button-url
-                    :meme-image-url meme-image-url}
+                    :meme-image-url meme-image-url
+                    :meme-image-class (if (email-supported-extension? meme-image-url) "show" "no-show")}
     :on-success on-success
     :on-error on-error
     :template-id template-id
@@ -91,7 +100,8 @@
 
 (defn send-auction-bought-email-handler
   [{:keys [from to title
-           meme-url meme-image-url
+           meme-url
+           meme-image-url
            button-url
            buyer-address
            buyer-url
@@ -111,7 +121,8 @@
                :substitutions {:header (str title " was sold!")
                                :button-title "My Memefolio"
                                :button-href button-url
-                               :meme-image-url meme-image-url}
+                               :meme-image-url meme-image-url
+                               :meme-image-class (if (email-supported-extension? meme-image-url) "show" "no-show")}
                :on-success on-success
                :on-error on-error
                :template-id template-id
@@ -177,7 +188,8 @@
                :substitutions {:header "Vote Reward"
                                :button-title "My Memefolio"
                                :button-href button-url
-                               :meme-image-url meme-image-url}
+                               :meme-image-url meme-image-url
+                               :meme-image-class (if (email-supported-extension? meme-image-url) "show" "no-show")}
                :on-success on-success
                :on-error on-error
                :template-id template-id
@@ -240,7 +252,8 @@
                :substitutions {:header "Challenge Reward"
                                :button-title "My Memefolio"
                                :button-href button-url
-                               :meme-image-url meme-image-url}
+                               :meme-image-url meme-image-url
+                               :meme-image-class (if (email-supported-extension? meme-image-url) "show" "no-show")}
                :on-success on-success
                :on-error on-error
                :template-id template-id
@@ -301,6 +314,6 @@
 
 
 (defstate emailer
-  :start (start (merge (:pinner @config)
-                       (:pinner (mount/args))))
+  :start (start (merge (:emailer @config/config)
+                       (:emailer (mount/args))))
   :stop (stop emailer))

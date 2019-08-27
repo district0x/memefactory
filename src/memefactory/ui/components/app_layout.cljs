@@ -12,11 +12,13 @@
     [district.ui.web3-accounts.subs :as accounts-subs]
     [district.ui.web3-tx-log.subs :as tx-log-subs]
     [memefactory.ui.components.account-balances :refer [account-balances]]
+    [memefactory.ui.contract.param-change :as param-change]
     [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.subs :as mf-subs]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
-    [taoensso.timbre :as log :refer [spy]]))
+    [taoensso.timbre :as log :refer [spy]]
+    [goog.string :as gstring]))
 
 
 (def nav-menu-items [{:text "Marketplace"
@@ -35,7 +37,12 @@
                                   :route :route.dank-registry/challenge
                                   :class "dank-registry-challenge"}
                                  {:text "Browse"
-                                  :route :route.dank-registry/browse}]}
+                                  :route :route.dank-registry/browse}
+                                 {:text "Parameters"
+                                  :route :route.param-change/index
+                                  :class :param-change
+                                  :needs-account? true
+                                  :counter :open-param-proposals}]}
                      {:text "Leaderboard"
                       :route :route.leaderboard/dankest
                       :class :leaderboard
@@ -130,13 +137,14 @@
    [:div "Part of the"]
    [:a
     {:href "https://district0x.io"
-     :target :_blank}
+     :target :_blank
+     :rel "noopener noreferrer"}
     "district0x Network"]])
 
 
 (defn app-menu
-  ([items active-page] (app-menu items active-page 0))
-  ([items active-page depth]
+  ([items active-page counters] (app-menu items active-page counters 0))
+  ([items active-page counters depth]
    (let [active-account @(subscribe [:district.ui.web3-accounts.subs/active-account])]
      [:<>
       ;; Account Balance Header for Mobile
@@ -144,27 +152,31 @@
         [account-balances {:with-tx-logs? false}])
       [:ul.node {:key (str depth)}
        (doall
-        (map-indexed (fn [idx {:keys [:text :route :params :query :class :url :children :needs-account?]}]
-                       [:li.node-content {:key (str depth "-" idx)}
-                        [:div.item
-                         {:class (str (when class (name class))
-                                      (when (= active-page route) " active")
-                                      (when (and needs-account? (not active-account)) " disabled"))}
-                         (if url
-                           [:a {:href url
-                                :target :_blank
-                                :class (when class (name class))}
-                            text]
-                           [nav-anchor (merge
-                                         {:disabled true}
-                                         (when-not (and needs-account? (not active-account))
-                                           {:route route
-                                            :params params
-                                            :query query
-                                            :class (when class (name class))}))
-                            text])]
-                        (when children
-                          [app-menu children active-page (inc depth)])])
+        (map-indexed (fn [idx {:keys [:text :route :params :query :class :url :children :needs-account? :counter]}]
+                       (let [entry-text(if (and counter (pos? (get counters counter)))
+                                         (gstring/format "%s (%d)" text (get counters counter))
+                                         text)]
+                         [:li.node-content {:key (str depth "-" idx)}
+                          [:div.item
+                           {:class (str (when class (name class))
+                                        (when (= active-page route) " active")
+                                        (when (and needs-account? (not active-account)) " disabled"))}
+                           (if url
+                             [:a {:href url
+                                  :target :_blank
+                                  :rel "noopener noreferrer"
+                                  :class (when class (name class))}
+                              entry-text]
+                             [nav-anchor (merge
+                                          {:disabled true}
+                                          (when-not (and needs-account? (not active-account))
+                                            {:route route
+                                             :params params
+                                             :query query
+                                             :class (when class (name class))}))
+                              entry-text])]
+                          (when children
+                            [app-menu children active-page counters (inc depth)])]))
                      items))]])))
 
 
@@ -177,7 +189,14 @@
         drawer-open? (r/atom false)
         active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
         mobile-device? (subscribe [::mobile-subs/coinbase-compatible?])
-        coinbase-appstore-link (subscribe [::mf-subs/mobile-coinbase-appstore-link])]
+        coinbase-appstore-link (subscribe [::mf-subs/mobile-coinbase-appstore-link])
+        open-param-proposals (subscribe [::gql/query {:queries [[:search-param-changes {;;:order-dir :desc
+                                                                                        ;;:order-by :param-changes.order-by/created-on
+                                                                                        :statuses [:reg-entry.status/commit-period
+                                                                                                   :reg-entry.status/reveal-period
+                                                                                                   :reg-entry.status/challenge-period]}
+                                                                 [:total-count]]]}
+                                         {:refetch-on #{::param-change/create-param-change-success}}])]
     (fn [{:keys [:search-atom :meta :tags]}
          & children]
       [:div.app-container {:id "app-container"}
@@ -192,7 +211,7 @@
           [:div.mf-logo
            [:img {:src "/assets/icons/mememouth.png"}]
            [:span "MEME FACTORY"]]]
-         [app-menu nav-menu-items (:name @active-page)]]
+         [app-menu nav-menu-items (:name @active-page) {:open-param-proposals (-> @open-param-proposals :search-param-changes :total-count)}]]
         [district0x-banner]]
        [:div.app-content
         [app-bar {:search-atom search-atom}]
@@ -200,7 +219,7 @@
         (when (and (not @active-account) @mobile-device?)
          [:a.coinbase-promotion
           {:href @coinbase-appstore-link}
-          [:span "Submit Memes with "] [:img {:src "images/coinbase_logo.png"}]])
+          [:span "Submit Memes with "] [:img {:src "/images/coinbase_logo.png"}]])
         [:div.main-content
          [:div.main-content-inner
           (map-indexed (fn [index item]

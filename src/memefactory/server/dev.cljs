@@ -21,28 +21,30 @@
     [district.server.smart-contracts]
     [district.server.web3 :refer [web3]]
     [district.server.web3-events]
+    [district.shared.async-helpers :refer [promise->]]
     [goog.date.Date]
     [graphql-query.core :refer [graphql-query]]
     [memefactory.server.constants :as constants]
     [memefactory.server.contract.dank-token :as dank-token]
     [memefactory.server.contract.eternal-db :as eternal-db]
     [memefactory.server.contract.registry-entry :as registry-entry]
+    [memefactory.server.conversion-rates]
+    [memefactory.server.dank-faucet-monitor]
     [memefactory.server.db :as memefactory-db]
     [memefactory.server.emailer]
     [memefactory.server.generator :as generator]
-    [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status reg-entry-status-sql-clause]]
+    [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status-sql-clause]]
     [memefactory.server.ipfs]
-    [district.shared.async-helpers :refer [promise->]]
     [memefactory.server.pinner]
     [memefactory.server.ranks-cache]
     [memefactory.server.syncer :as syncer]
     [memefactory.server.twitter-bot]
-    [memefactory.server.conversion-rates]
     [memefactory.server.utils :as server-utils]
     [memefactory.shared.graphql-schema :refer [graphql-schema]]
     [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
     [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
     [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
+    [memefactory.shared.utils :as shared-utils]
     [mount.core :as mount]
     [taoensso.timbre :as log])
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
@@ -188,6 +190,10 @@
                             :twilio-api-key "PLACEHOLDER"
                             :blacklist-file "blacklist.edn"
                             :blacklist-token "PLACEHOLDER"
+                            :sigterm {:on-sigterm (fn [args]
+                                                    (log/warn "Received SIGTERM signal. Exiting" {:args args})
+                                                    (mount/stop)
+                                                    (.exit nodejs/process 0))}
                             :emailer {:private-key "PLACEHOLDER"
                                       :api-key "PLACEHOLDER"
                                       :template-id "PLACEHOLDER"
@@ -211,6 +217,12 @@
   (start))
 
 (defn -main [& args]
+  (.on js/process "unhandledRejection"
+       (fn [reason p] (log/error "Unhandled promise rejection " {:reason reason})))
+
+  (.on js/process "uncaughtException"
+       (fn [e] (log/error "Unhandled error " {:error e})))
+
   (when-not (= (last args) "--nostart")
     (log/debug "Mounting... (Pass the argument --nostart to prevent mounting on start)")
     (start)))
@@ -255,7 +267,7 @@
        (group-by :reg-entry/address)
        (map (fn [[address [r :as votes]]]
               {:address address
-               :server-status (name (reg-entry-status (server-utils/now-in-seconds) r))
+               :server-status (name (shared-utils/reg-entry-status (server-utils/now-in-seconds) r))
                :query-status (-> (db/get {:select [[(reg-entry-status-sql-clause (server-utils/now-in-seconds)) :status]]
                                           :from  [[:reg-entries :re]]
                                           :where [:= :re.reg-entry/address address]})
@@ -274,7 +286,7 @@
         entry (db/get {:select [:*]
                        :from [:reg-entries]
                        :where [:= :reg-entry/address re-address]})
-        current-status (reg-entry-status now entry)
+        current-status (shared-utils/reg-entry-status now entry)
         time-to-next (case current-status
                        :reg-entry.status/challenge-period (- (:reg-entry/challenge-period-end entry) now)
                        :reg-entry.status/commit-period    (- (:challenge/commit-period-end entry) now)

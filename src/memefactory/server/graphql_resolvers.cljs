@@ -7,22 +7,22 @@
             [cljs-web3.eth :as web3-eth]
             [cljs.core.match :refer-macros [match]]
             [cljs.nodejs :as nodejs]
-            [clojure.string :as str]
+            [clojure.set :as clj-set]
+            [clojure.string :as string]
             [district.graphql-utils :as graphql-utils]
             [district.server.config :refer [config]]
             [district.server.db :as db]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :as web3]
+            [district.shared.async-helpers :refer [promise->]]
             [district.shared.error-handling :refer [try-catch-throw try-catch]]
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
             [memefactory.server.db :as mf-db]
-            [district.shared.async-helpers :refer [promise->]]
             [memefactory.server.ranks-cache :as ranks-cache]
             [memefactory.server.utils :as utils]
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [memefactory.shared.utils :as shared-utils]
-            [print.foo :refer [look] :include-macros true]
             [taoensso.timbre :as log]))
 
 (def enum graphql-utils/kw->gql-name)
@@ -31,6 +31,7 @@
 (def child-process (js/require "child_process"))
 (def util (js/require "util"))
 (def request-promise (nodejs/require "request-promise"))
+(def exec-promise (.promisify util (aget child-process "exec")))
 
 (def whitelisted-config-keys [:ipfs :ui])
 
@@ -48,6 +49,14 @@
        keys
        (map graphql-utils/gql-name->kw)
        set))
+
+(defn- graphqlize
+  "Given a map it will transform all the keys into graphql friendly
+  names."
+  [coll]
+  (reduce-kv
+   (fn [m k v]
+     (assoc m k (graphql-utils/kw->gql-name v))) (empty coll) coll))
 
 (defn paged-query
   "Execute a paged query.
@@ -108,7 +117,7 @@
    :else (enum :reg-entry.status/whitelisted)))
 
 (defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :challenged :order-by :order-dir :owner :creator :curator :challenger :voter :first :after] :as args}]
-  (log/info "search-memes-query-resolver" args)
+  (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
          page-start-idx (when after (js/parseInt after))
@@ -327,7 +336,7 @@
      (log/debug "param-change query" sql-query)
      sql-query)))
 
-(defn search-param-changes-query-resolver [_ {:keys [:key :db :order-by :order-dir :group-by :first :after]
+(defn search-param-changes-query-resolver [_ {:keys [:key :db :order-by :order-dir :group-by :first :after :statuses :remove-applied]
                                               :or {order-dir :asc}
                                               :as args}]
   (log/debug "search-param-changes args" args)
@@ -336,43 +345,37 @@
    (let [db (if (contains? #{"memeRegistryDb" "paramChangeRegistryDb"} db)
               (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
               db)
+         statuses-set (when statuses (set statuses))
+         now (utils/now-in-seconds)
          param-changes-query (cond-> {:select [:*]
                                       :from [:param-changes]
-                                      :left-join [:reg-entries [:= :reg-entries.reg-entry/address :param-changes.reg-entry/address]]}
+                                      :left-join [[:reg-entries :re] [:= :re.reg-entry/address :param-changes.reg-entry/address]]
+                                      :join [:params [:and
+                                                        [:= :param-changes.param-change/db :params.param/db]
+                                                        [:= :param-changes.param-change/key :params.param/key]]]
+                                      :where [:= :param-changes.param-change/original-value :params.param/value]}
 
                                key (sqlh/merge-where [:= key :param-changes.param-change/key])
 
+                               remove-applied (sqlh/merge-where [:= nil :param-changes.param-change/applied-on])
+
                                db (sqlh/merge-where [:= db :param-changes.param-change/db])
+                               statuses-set (sqlh/merge-where [:in (reg-entry-status-sql-clause now) statuses-set])
+                               ;; What is this for?
+                               ;; order-by (sqlh/merge-where [:not= nil :param-changes.param-change/applied-on])
 
-                               order-by (sqlh/merge-where [:not= nil :param-changes.param-change/applied-on])
-
-                               order-by (sqlh/merge-order-by [[(get {:param-changes.order-by/applied-on :param-changes.param-change/applied-on}
+                               order-by (sqlh/merge-order-by [[(get {:param-changes.order-by/applied-on :param-changes.param-change/applied-on
+                                                                     :param-changes.order-by/created-on :re.reg-entry/created-on}
                                                                     (graphql-utils/gql-name->kw order-by))
-                                                               order-dir]])
+                                                               (keyword (or order-dir :desc))]])
 
                                group-by (merge {:group-by [(get {:param-changes.group-by/key :param-changes.param-change/key}
                                                                 (graphql-utils/gql-name->kw group-by))]}))
-
          param-changes-result (paged-query param-changes-query
                                            first
                                            (when after
                                              (js/parseInt after)))]
-
-     (if-not (= 0 (:total-count param-changes-result))
-       param-changes-result
-       (do
-         (log/debug "No parameter changes could be retrieved. Querying for initial parameters")
-         (let [initial-params-query {:select [[:initial-params.initial-param/key :param-change/key]
-                                              [:initial-params.initial-param/db :param-change/db]
-                                              [:initial-params.initial-param/value :param-change/value]
-                                              [:initial-params.initial-param/set-on :param-change/applied-on]]
-                                     :from [:initial-params]
-                                     :where [:and [:= key :initial-params.initial-param/key]
-                                             [:= db :initial-params.initial-param/db]]}]
-           (paged-query initial-params-query
-                        first
-                        (when after
-                          (js/parseInt after)))))))))
+     param-changes-result)))
 
 (defn user-query-resolver [_ {:keys [:user/address] :as args} context debug]
   (log/debug "user args" args)
@@ -385,7 +388,7 @@
        sql-query))))
 
 (defn search-users-query-resolver [_ {:keys [:order-by :order-dir :first :after] :or {order-dir :asc} :as args} _ document]
-  (log/info "search-users-query-resolver args" args)
+  (log/debug "search-users-query-resolver args" args)
   (try-catch-throw
    (let [order-dir (keyword order-dir)
          now (utils/now-in-seconds)
@@ -499,14 +502,8 @@
   (let [db (if (contains? #{"memeRegistryDb" "paramChangeRegistryDb"} db)
              (smart-contracts/contract-address (graphql-utils/gql-name->kw db))
              db)]
-    ;; TODO Fix this for param changes when that is ready, for now we will only
-    ;; load from INITIAL_PARAMS table
     (try-catch-throw
-     (let [sql-query (db/all {:select [[:initial-param/key :param/key]
-                                       [:initial-param/value :param/value] ]
-                              :from [[:initial-params :ips]]
-                              :where [:and [:= db :ips.initial-param/db]
-                                      [:in :ips.initial-param/key keys]]})]
+     (let [sql-query (mf-db/get-params db keys)]
        (log/debug "params-query-resolver" sql-query)
        sql-query))))
 
@@ -539,7 +536,7 @@
     [false _ _] (enum :vote-option/not-revealed)))
 
 (defn reg-entry->status-resolver [reg-entry]
-  (enum (reg-entry-status (utils/now-in-seconds) reg-entry)))
+  (enum (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)))
 
 (defn reg-entry->creator-resolver [{:keys [:reg-entry/creator] :as reg-entry}]
   (log/debug "reg-entry->creator-resolver args" reg-entry)
@@ -558,7 +555,7 @@
 
 (defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
   (log/debug "reg-entry->vote-winning-vote-option-resolver " {:reg-entry reg-entry :args args})
-  (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry))
+  (when (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry))
     (let [{:keys [:vote/option]} (db/get {:select [:vote/option]
                                           :from [:votes]
                                           :where [:and
@@ -591,7 +588,7 @@
                        (if (and (not claimed-reward-on)
                                 amount
                                 (= winning-option (registry-entry/vote-options option))
-                                (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (reg-entry-status (utils/now-in-seconds) reg-entry)))
+                                (#{:reg-entry.status/blacklisted :reg-entry.status/whitelisted} (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)))
                          (/ (* amount reward-pool) winning-amount)
                          0))]
     ;; TODO how to do about this?
@@ -612,7 +609,7 @@
 (defn vote->reward-resolver [{:keys [:reg-entry/address :vote/option] :as vote}]
   (log/debug "vote->reward-resolver args" vote)
   (try-catch-throw
-   (let [status (reg-entry-status (utils/now-in-seconds) (db/get {:select [:*]
+   (let [status (shared-utils/reg-entry-status (utils/now-in-seconds) (db/get {:select [:*]
                                                                   :from [:reg-entries]
                                                                   :where [:= address :reg-entry/address]}))
          {:keys [:challenge/reward-pool :votes/for :votes/against] :as sql-query} (db/get {:select [[{:select [:challenge/reward-pool]
@@ -785,7 +782,7 @@
                                   :join [:reg-entries [:= :reg-entries.reg-entry/address :memes.reg-entry/address]]
                                   :where [:= address :reg-entries.reg-entry/creator]}))]
          (log/debug "user->total-created-memes-whitelisted-resolver query" sql-query)
-         (count (filter (fn [e] (= :reg-entry.status/whitelisted (reg-entry-status (utils/now-in-seconds) e)))
+         (count (filter (fn [e] (= :reg-entry.status/whitelisted (shared-utils/reg-entry-status (utils/now-in-seconds) e)))
                         sql-query)))))))
 
 (defn user->creator-largest-sale-resolver
@@ -914,7 +911,7 @@
                               :where [:= address :votes.vote/voter]}))]
      (log/debug "user->total-participated-votes-success-resolver query" sql-query)
      (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
-               (let [ status (reg-entry-status (utils/now-in-seconds) reg-entry)]
+               (let [ status (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)]
                  (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
                          (and (= :reg-entry.status/blacklisted status) (= 2 option)))
                    (inc total)
@@ -1005,8 +1002,8 @@
   (get (ranks-cache/get-rank :collector-rank collector-rank)
        address))
 
-;; TODO: test
-(defn param-change->original-value-resolver [{:keys [:param-change/db :param-change/key] :as args}]
+;; TODO:
+#_(defn param-change->original-value-resolver [{:keys [:param-change/db :param-change/key] :as args}]
   (log/debug "param-change->original-value-resolver" args)
   (:param-change/value (second (db/all {:select [:param-change/value]
                                         :from [:param-changes]
@@ -1015,46 +1012,30 @@
                                         :order-by [[:param-changes.param-change/applied-on :asc]]
                                         :limit 2}))))
 
-(defn graphqlize
-  "Given a map it will transform all the keys into graphql friendly
-  names."
-  [coll]
-  (reduce-kv
-   (fn [m k v]
-     (assoc m k (graphql-utils/kw->gql-name v))) (empty coll) coll))
-
 (defn send-verification-code-resolver
   [_ {:keys [country-code phone-number] :as args}]
-  (let [options (clj->js
-                 {:url "https://api.authy.com/protected/json/phones/verification/start"
-                  :method "POST"
-                  :headers {"X-Authy-API-Key" (:twilio-api-key @config)}
-                  :json true
-                  :body {"via" "sms"
-                         "phone_number" phone-number
-                         "country_code" country-code}})]
-    (log/info (str "Sending verification code to " country-code phone-number) options)
-    (promise-> (request-promise options)
+  (let [options {:url "https://api.authy.com/protected/json/phones/verification/start"
+                 :method "POST"
+                 :headers {"X-Authy-API-Key" (:twilio-api-key @config)}
+                 :json true
+                 :body {"via" "sms"
+                        "phone_number" phone-number
+                        "country_code" country-code}}]
+    (log/info "Sending verification code" {:args args :options options})
+    (promise-> (request-promise (clj->js options))
                (fn [response]
-                 (let [twilio-response (js->clj response)
-                       success (get twilio-response "success")
-                       graphql-response {:id (get twilio-response "uuid")
-                                         :success success
-                                         :status (get twilio-response "status")
-                                         :msg (get twilio-response "message")}]
-                   (log/info "Twilio resp:" twilio-response)
-                   (log/info "Type of success:" (type success))
-                   (if-not success
-                     (throw (js/Error. "Error calling phone verification API:"
-                                       graphql-response))
-                     graphql-response))))))
-
-(def exec-promise (.promisify util (aget child-process "exec")))
+                 (let [twilio-response (-> response
+                                           (js->clj :keywordize-keys true)
+                                           (clj-set/rename-keys {:uuid :id}))]
+                   (log/info "Phone verification response" twilio-response)
+                   (if (:success twilio-response)
+                     twilio-response
+                     (log/error "Error calling phone verification API" twilio-response)))))))
 
 (defn encrypt-verification-payload-resolver
-  [_ {:keys [country-code phone-number verification-code]}]
+  [_ {:keys [country-code phone-number verification-code] :as args}]
+  (log/info "Received verification code" args)
   ;; Build Oraclize call
-
   (cond
     (not (re-matches #"[0-9\+]{2,6}" (str country-code)))
     (do
@@ -1087,44 +1068,25 @@
                                        oraclize-public-key
                                        " -e "
                                        \' json-payload \')]
-      (log/debug full-encryption-command)
 
-      ;; Shell out
-      ;; Run the Python script to encrypt the payload
+      (log/debug "Shell out to python" {:bash full-encryption-command})
+
       (-> (exec-promise full-encryption-command)
         (.then (fn [result]
                  (let [python-result (js->clj result)]
                    (log/debug "python encryption result:" python-result)
                    (let [stdout (get python-result "stdout")
                          stderr (get python-result "stderr")]
-
-                     ;; Return the encrypted payload
-                     ;; (if (clojure.string/blank? stderr)
-                     ;;   (do
-                     ;;     {:success true
-                     ;;      :payload (clojure.string/trim-newline stdout)})
-
-                     ;;   (do
-                     ;;     {:success false
-                     ;;      :payload stderr}))
-
-                     ;; Who needs error handling? Apparently we don't. With the
-                     ;; latest version of the Python (both 2 and 3) encryption
-                     ;; library it spits a warning out to stderr for using the
-                     ;; encode_point() function. Until Oraclize upgrades the
-                     ;; encrypted_queries_tools.py script we're rollin' dirty.
                      {:success true
-                      :payload (clojure.string/trim-newline stdout)}))))
+                      :payload (string/trim-newline stdout)}))))
         (.catch (fn [ex]
                   (log/error "Error calling python" {:error ex})
                   {:success false
                    :payload (.getMessage ex)}))))))
 
 (defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
-
   (let [{:keys [blacklist-token blacklist-file]} @config]
     (if (= token blacklist-token)
-
       (do
         ;; update the blacklist file
         (-> (utils/load-edn-file blacklist-file)
@@ -1133,7 +1095,6 @@
         ;;  patch on db
         (mf-db/patch-forbidden-reg-entry-image! address)
         (log/info (str "Blacklisted " address " image.") ::blacklist-reg-entry-resolver))
-
       (log/warn (str "Tried to blacklist reg entry " address " with wrong token " token) ::blacklist-reg-entry-resolver))))
 
 (def resolvers-map
@@ -1179,8 +1140,8 @@
    :ParamChange {:reg-entry/status reg-entry->status-resolver
                  :reg-entry/creator reg-entry->creator-resolver
                  :challenge/challenger reg-entry->challenger
-                 :challenge/vote reg-entry->vote-resolver
-                 :param-change/original-value param-change->original-value-resolver}
+                 :challenge/all-rewards reg-entry->all-rewards-resolver
+                 :challenge/vote reg-entry->vote-resolver}
    :ParamChangeList {:items param-change-list->items-resolver}
    :User {:user/total-created-memes user->total-created-memes-resolver
           :user/total-created-memes-whitelisted user->total-created-memes-whitelisted-resolver

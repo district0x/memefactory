@@ -317,7 +317,8 @@
                                                                                         :reg-entry/address (:reg-entry/address meme)
                                                                                         :comment (:challenge/comment @form-data)
                                                                                         :deposit dank-deposit
-                                                                                        :meme/title title}])}
+                                                                                        :tx-description title
+                                                                                        :type :meme}])}
          (if @tx-success?
            "Challenged"
            "Challenge")]]
@@ -352,7 +353,9 @@
                              :on-click #(dispatch [::registry-entry/reveal-vote
                                                    {:send-tx/id tx-id
                                                     :reg-entry/address (:reg-entry/address meme)
-                                                    :meme/title title}
+                                                    :tx-description title
+                                                    :option-desc {:vote.option/vote-against "stank"
+                                                                  :vote.option/vote-for     "dank"}}
                                                    vote])}
         (if @tx-success?
           "Revealed"
@@ -416,7 +419,10 @@
                                                                                               :vote/amount-for
                                                                                               parsers/parse-float
                                                                                               (web3/to-wei :ether))
-                                                                             :meme/title title}])}
+                                                                             :type :meme
+                                                                             :option-desc {:vote.option/vote-against "stank"
+                                                                                           :vote.option/vote-for     "dank"}
+                                                                             :tx-description title}])}
             (if @tx-success?
               "Voted"
               "Vote Dank")]]
@@ -445,10 +451,13 @@
                                                                              :reg-entry/address (:reg-entry/address meme)
                                                                              :vote/option :vote.option/vote-against
                                                                              :vote/amount (-> @form-data
-                                                                                              :vote/amount-against
-                                                                                              parsers/parse-float
-                                                                                              (web3/to-wei :ether))
-                                                                             :meme/title title}])}
+                                                                                            :vote/amount-against
+                                                                                            parsers/parse-float
+                                                                                            (web3/to-wei :ether))
+                                                                             :tx-description title
+                                                                             :option-desc {:vote.option/vote-against "stank"
+                                                                                           :vote.option/vote-for     "dank"}
+                                                                             :type :meme}])}
             (if @tx-success?
               "Voted"
               "Vote Stank")]]]
@@ -509,7 +518,7 @@
         [challenge-header created-on]
         [status-component meme "This meme has been submitted to the the registry, but has not passed the challenge window for automatic acceptance. It can be challenged at any time before this window ends."]
         (if-not (= 0 days hours minutes seconds)
-          [challenge-meme-component meme (:deposit params)]
+          [challenge-meme-component meme (-> params :deposit :value)]
           [:div "Challenge period ended."])]])))
 
 

@@ -20,6 +20,7 @@ contract ParamChange is RegistryEntry {
   uint private value;
   uint private originalValue;
   uint private appliedOn;
+  bytes private metaHash;
 
   /**
    * @dev Constructor for this contract.
@@ -32,24 +33,27 @@ contract ParamChange is RegistryEntry {
    * @param _db EternalDb change will be applied to
    * @param _key Key of a changed parameter
    * @param _value New value of a parameter
+   * @param _metaHash The ipfs hash of the param change meta
    */
   function construct(
     address _creator,
     uint _version,
     address _db,
     string _key,
-    uint _value
+    uint _value,
+    bytes _metaHash
   )
   external
   {
     bytes32 record = sha3(_key);
-    require(RegistryEntryLib.isChangeAllowed(registry, record, _value));
+    require(RegistryEntryLib.isChangeAllowed(registry, record, _value), "Change is not allowed.");
 
     super.construct(_creator, _version);
 
     db = EternalDb(_db);
     key = _key;
     value = _value;
+    metaHash = _metaHash;
     valueType = EternalDb.Types.UInt;
     originalValue = db.getUIntValue(record);
 
@@ -59,7 +63,8 @@ contract ParamChange is RegistryEntry {
                                              _key,
                                              value,
                                              deposit,
-                                             challenge.challengePeriodEnd);
+                                             challenge.challengePeriodEnd,
+                                             metaHash);
   }
 
   /**
@@ -75,15 +80,23 @@ contract ParamChange is RegistryEntry {
   external
   notEmergency
   {
-    require(db.getUIntValue(sha3(key)) == originalValue);
-    require(appliedOn < 0);
-    require(challenge.isWhitelisted());
-    require(registryToken.transfer(creator, deposit));
+    require(db.getUIntValue(sha3(key)) == originalValue, "Value is not the same as the original value");
+    require(appliedOn <= 0, "Parameter change already applied");
+    require(challenge.isWhitelisted(), "Can't apply parameter change, registry entry not whitelisted");
+    require(registryToken.transfer(creator, deposit), "Couldn't transfer deposit back to creator");
 
     db.setUIntValue(sha3(key), value);
     appliedOn = now;
 
     registry.fireParamChangeAppliedEvent(version);
+  }
+
+  function loadParamChange() external constant returns (address,
+                                                        string,
+                                                        uint,
+                                                        bytes)
+  {
+    return (db, key, value, metaHash);
   }
 
 }

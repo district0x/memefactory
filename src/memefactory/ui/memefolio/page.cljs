@@ -136,9 +136,10 @@
 
 
 (defn sell-form [{:keys [:meme/title :meme-auction/token-count :reg-entry/address] :as meme}
-                 {:keys [min-auction-duration max-auction-duration] :as params}
+                 {:keys [max-auction-duration] :as params}
                  send-sell-atom]
-  (let [tx-id (str (random-uuid))
+  (let [min-auction-duration 60 ;; limit hardcoded in MemeAuction.sol startAuction
+        tx-id (str (random-uuid))
         max-supported-in-a-tx 10
         active-account @(subscribe [::accounts-subs/active-account])
         meme-sub (subscribe [::gql/query {:queries [[:meme {:reg-entry/address address}
@@ -168,11 +169,13 @@
                                           ;; TODO: this durations should be specified in days and not in seconds at param level
                                           :meme-auction/duration (let [duration (parsers/parse-int (:meme-auction/duration @form-data))
                                                                        max-duration (-> max-auction-duration
+                                                                                        :value
                                                                                       time/seconds->days
                                                                                       int)
                                                                        min-duration (let [md (-> min-auction-duration
-                                                                                               time/seconds->days
-                                                                                               int)]
+                                                                                                 :value
+                                                                                                 time/seconds->days
+                                                                                                 int)]
                                                                                       (if (zero? md) 1 md))]
                                                                    (cond-> {:hint (str "Max " max-duration)}
                                                                      (not (<= min-duration duration max-duration))

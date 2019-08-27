@@ -1,35 +1,48 @@
 (ns memefactory.ui.components.tiles
-  (:require
-    [cljs-time.core :as t]
-    [clojure.string :as str]
-    [district.format :as format]
-    [district.graphql-utils :as gql-utils]
-    [district.time :as time]
-    [district.ui.component.form.input :as inputs]
-    [district.ui.graphql.subs :as gql]
-    [district.ui.ipfs.subs :as ipfs-subs]
-    [district.ui.mobile.subs :as mobile-subs]
-    [district.ui.now.subs]
-    [district.ui.web3-tx-id.subs :as tx-id-subs]
-    [goog.string :as gstring]
-    [memefactory.shared.utils :as shared-utils]
-    [memefactory.ui.components.general :refer [nav-anchor]]
-    [memefactory.ui.contract.meme-auction :as meme-auction]
-    [memefactory.ui.utils :as ui-utils :refer [format-price]]
-    [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]
-    [taoensso.timbre :as log :refer [spy]]))
-
+  (:require [cljs-time.core :as t]
+            [clojure.string :as string]
+            [district.format :as format]
+            [district.graphql-utils :as gql-utils]
+            [district.time :as time]
+            [district.ui.component.form.input :as inputs]
+            [district.ui.graphql.subs :as gql]
+            [district.ui.ipfs.subs :as ipfs-subs]
+            [district.ui.mobile.subs :as mobile-subs]
+            [district.ui.now.subs]
+            [district.ui.web3-tx-id.subs :as tx-id-subs]
+            [goog.string :as gstring]
+            [memefactory.shared.utils :as shared-utils]
+            [memefactory.ui.components.general :refer [nav-anchor]]
+            [memefactory.ui.contract.meme-auction :as meme-auction]
+            [memefactory.ui.utils :as ui-utils :refer [format-price]]
+            [re-frame.core :refer [subscribe dispatch]]
+            [reagent.core :as r]
+            [taoensso.timbre :as log :refer [spy]]))
 
 (defn meme-image [& _]
   (let [url (:gateway @(subscribe [::ipfs-subs/ipfs]))]
     (fn [image-hash & [{:keys [rejected?] :as props}]]
-      (let [props (dissoc props :rejected?)]
+      (let [props (dissoc props :rejected?)
+            src-url (str (format/ensure-trailing-slash url) image-hash)]
         [:div.meme-card
          props
-         (if (and url (not-empty image-hash))
-           [:img.meme-image.initial-fade-in-delay {:src (str (format/ensure-trailing-slash url) image-hash)}]
-           [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]])
+         (cond
+
+           (string/includes? src-url "forbidden")
+           [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]]
+
+           (string/includes? src-url ".mp4")
+           [:video.meme-image.initial-fade-in-delay {:controls false
+                                                     :loop true
+                                                     :autoPlay true
+                                                     :muted true
+                                                     :width 290
+                                                     :height 435}
+            [:source {:src src-url
+                      :type "video/mp4"}]
+            [:span "Your browser does not support video tags"]]
+
+           :else [:img.meme-image.initial-fade-in-delay {:src src-url}])
          (when rejected?
            [:div.image-tape-container.initial-fade-in-delay
             [:div.image-tape
@@ -38,7 +51,7 @@
 
 (defn- event-target-classlist [event]
   (-> (aget event "target" "className")
-      (str/split #"\ +")))
+      (string/split #"\ +")))
 
 
 (defn- event-target-has-class? [event class]

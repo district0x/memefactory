@@ -35,12 +35,13 @@
 
 
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
-  (let [all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
+  (let [deposit-value (:value deposit)
+        all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
         form-data (r/atom {:issuance 1})
         max-tags-allowed 6
         errors (reaction {:local (let [{:keys [title issuance file-info]} @form-data
                                        entered-tag (get @form-data "txt-:search-tags")
-                                       max-issuance (or max-total-supply 1)]
+                                       max-issuance (or (:value max-total-supply) 1)]
                                    (cond-> {:issuance {:hint (str "Max " max-issuance)}}
                                      (str/blank? title)
                                      (assoc-in [:title :error] "Title cannot be empty")
@@ -76,14 +77,11 @@
                                       (assoc-in [:file-info] (:error file-info))
 
                                       (:error search-tags)
-                                      (assoc-in [:search-tags] (:error search-tags))
-
-                                      ))})
+                                      (assoc-in [:search-tags] (:error search-tags))))})
         critical-errors (reaction (index-by-type @errors :error))
-        account-balance (subscribe [::balance-subs/active-account-balance :DANK])]
-
+        account-balance (subscribe [::balance-subs/active-account-balance :DANK])
+        active-account @(subscribe [::accounts-subs/active-account])]
     (fn []
-      (log/debug "@form-data" @form-data)
       [app-layout
        {:meta {:title "MemeFactory - Submit to Dank Registry"
                :description "Submit a new meme to the registry for consideration. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
@@ -98,15 +96,15 @@
                             :label "Upload a file"
                             :comment "Upload image with ratio 2:3 and size less than 1.5MB"
                             :file-accept-pred (fn [{:keys [name type size] :as props}]
-                                                (js/console.log "Veryfing acceptance of file of type : " type " and size : " size)
-                                                (and (#{"image/png" "image/gif" "image/jpeg"} type)
+                                                (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
+                                                (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "video/mp4"} type)
                                                      (< size 1500000)))
                             :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
                                                 (swap! form-data update-in [:file-info] dissoc :error)
-                                                (log/info (gstring/format "Accepted file %s %s %s" name type size) ::file-accepted))
+                                                (log/info "Accepted file" {:name name :type type :size size} ::file-accepted))
                             :on-file-rejected (fn [{:keys [name type size] :as props}]
-                                                (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif or file selected with size less than 1.5 Mb"})
-                                                (log/warn (gstring/format "Rejected file %s %s %s" name type size) ::file-rejected))}]]
+                                                (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif .svg or .mp4 file selected with size less than 1.5 Mb"})
+                                                (log/warn "Rejected file" {:name name :type type :size size :user {:id active-account}} ::file-rejected))}]]
          [:div.form-panel
           [with-label "Title"
            [text-input {:form-data form-data
@@ -151,13 +149,13 @@
           #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
           [:div.submit
            [:button {:on-click (fn []
-                                 (dispatch [::dr-events/upload-meme @form-data deposit])
+                                 (dispatch [::dr-events/upload-meme @form-data deposit-value])
                                  (reset! form-data {}))
                      :disabled (or (not (empty? @critical-errors))
-                                   (< @account-balance deposit))}
+                                   (< @account-balance deposit-value))}
             "Submit"]
-           [dank-with-logo (web3/from-wei deposit :ether)]]
-          (when (< @account-balance deposit)
+           [dank-with-logo (web3/from-wei deposit-value :ether)]]
+          (when (< @account-balance deposit-value)
             [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])]]]])))
 
 

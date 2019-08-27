@@ -15,7 +15,7 @@
 (def verify-through-oracle-timeout 300000)
 
 (defn a [href text]
-  [:a {:href href :target :_blank} text])
+  [:a {:href href :target :_blank :rel "noopener noreferrer"} text])
 
 (defmethod page :route.get-dank/index []
   (let [form-data (r/atom {})
@@ -87,7 +87,7 @@
                        :for :verification-code
                        :id :verification-code}]])))
             [:p "The phone number provided is never stored or retained. We use the service "
-             [a "https://provable.xyz/" "Oracalize"]
+             [a "https://provable.xyz/" "Oraclize"]
              " (now called Provable) to pass your phone number to "
              [a "https://www.twilio.com/" "Twilio"]
              ", a well-known api for SMS-based verifications. You can view Twilio's privacy policy "

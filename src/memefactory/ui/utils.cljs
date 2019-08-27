@@ -1,10 +1,13 @@
 (ns memefactory.ui.utils
-  (:require
-    [bignumber.core :as bn]
-    [cljs-web3.core :as web3]
-    [clojure.string :as str]
-    [district.format :as format]))
-
+  (:require [bignumber.core :as bn]
+            [cljs-time.core :as t]
+            [cljs-web3.core :as web3]
+            [cljs-web3.eth :as web3-eth]
+            [clojure.string :as string]
+            [district.format :as format]
+            [district.ui.now.subs]
+            [memefactory.ui.config :refer [config]]
+            [reagent.ratom :refer [reaction]]))
 
 (defn format-price [price]
   (format/format-eth (bn/number (web3/from-wei price :ether)) {:max-fraction-digits 3
@@ -33,6 +36,11 @@
            (:order-dir %))
         order-vec))
 
+(defn parse-ipfs-response [s]
+  (->> s
+       (string/split-lines)
+       (mapv #(.parse js/JSON %))
+       (mapv #(js->clj % :keywordize-keys true))))
 
 (defn build-order-by [prefix order-by]
   (keyword (str
@@ -41,6 +49,12 @@
            ;; HACK: this nasty hack is because our select form component doesn't support two options with the same key
            ;; for auctions we want to sort by price asc and desc, so we create price-asc and price-desc
            ;; and remove it here
-           (if (str/starts-with? (name order-by) "price")
+           (if (string/starts-with? (name order-by) "price")
              "price"
              (name order-by))))
+
+(defn now-in-seconds
+  "A reaction that returns time since epoch in seconds"
+  []
+  (let [now-subs (re-frame.core/subscribe [:district.ui.now.subs/now])]
+    (reaction (quot (.getTime @now-subs) 1000))))

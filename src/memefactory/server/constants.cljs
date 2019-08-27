@@ -4,6 +4,12 @@
 (def web3-events
   {:param-change-db/eternal-db-event [:param-change-registry-db :EternalDbEvent {} {:from-block 0 :to-block "latest"}]
    :param-change-registry/param-change-constructed-event [:param-change-registry-fwd :ParamChangeConstructedEvent {} {:from-block 0 :to-block "latest"}]
+   :param-change-registry/challenge-created-event [:param-change-registry-fwd :ChallengeCreatedEvent {} {:from-block 0 :to-block "latest"}]
+   :param-change-registry/vote-committed-event [:param-change-registry-fwd :VoteCommittedEvent {} {:from-block 0 :to-block "latest"}]
+   :param-change-registry/vote-revealed-event [:param-change-registry-fwd :VoteRevealedEvent {} {:from-block 0 :to-block "latest"}]
+   :param-change-registry/vote-amount-claimed-event [:param-change-registry-fwd :VoteAmountClaimedEvent {} {:from-block 0 :to-block "latest"}]
+   :param-change-registry/vote-reward-claimed-event [:param-change-registry-fwd :VoteRewardClaimedEvent {} {:from-block 0 :to-block "latest"}]
+   :param-change-registry/challenge-reward-claimed-event [:param-change-registry-fwd :ChallengeRewardClaimedEvent {} {:from-block 0 :to-block "latest"}]
    :param-change-registry/param-change-applied-event [:param-change-registry-fwd :ParamChangeAppliedEvent {} {:from-block 0 :to-block "latest"}]
    :meme-registry-db/eternal-db-event [:meme-registry-db :EternalDbEvent {} {:from-block 0 :to-block "latest"}]
    :meme-registry/meme-constructed-event [:meme-registry-fwd :MemeConstructedEvent {} {:from-block 0 :to-block "latest"}]
@@ -17,4 +23,7 @@
    :meme-auction-factory/meme-auction-started-event [:meme-auction-factory-fwd :MemeAuctionStartedEvent {} {:from-block 0 :to-block "latest"}]
    :meme-auction-factory/meme-auction-buy-event [:meme-auction-factory-fwd :MemeAuctionBuyEvent {} {:from-block 0 :to-block "latest"}]
    :meme-auction-factory/meme-auction-canceled-event [:meme-auction-factory-fwd :MemeAuctionCanceledEvent {} {:from-block 0 :to-block "latest"}]
-   :meme-token/transfer [:meme-token :Transfer {} {:from-block 0 :to-block "latest"}]})
+   :meme-token/transfer [:meme-token :Transfer {} {:from-block 0 :to-block "latest"}]
+   :dank-faucet/dank-transfer-event [:dank-faucet :DankTransferEvent {} {:from-block 0 :to-block "latest"}]
+   :dank-faucet/oraclize-request-event [:dank-faucet :OraclizeRequestEvent {} {:from-block 0 :to-block "latest"}]
+   :dank-faucet/dank-reset-event [:dank-faucet :DankResetEvent {} {:from-block 0 :to-block "latest"}]})

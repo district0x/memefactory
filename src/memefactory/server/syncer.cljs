@@ -1,6 +1,7 @@
 (ns memefactory.server.syncer
   (:require
    [bignumber.core :as bn]
+   [district.time :as time]
    [camel-snake-kebab.core :as cs :include-macros true]
    [cljs-ipfs-api.files :as ipfs-files]
    [cljs-solidity-sha3.core :refer [solidity-sha3]]
@@ -12,8 +13,7 @@
    [district.shared.error-handling :refer [try-catch]]
    [memefactory.server.db :as db]
    [memefactory.server.generator]
-   [district.time :as time]
-   [memefactory.server.graphql-resolvers :refer [reg-entry-status]]
+   [memefactory.shared.utils :as shared-utils]
    [memefactory.server.ipfs :as ipfs]
    [district.shared.async-helpers :refer [promise->]]
    [memefactory.server.ranks-cache :as ranks-cache]
@@ -55,7 +55,7 @@
       (if (not challenger)
         (assign-next-number! address)
         (if (> (server-utils/now-in-seconds) reveal-period-end)
-          (when (= (reg-entry-status (server-utils/now-in-seconds) re)
+          (when (= (shared-utils/reg-entry-status (server-utils/now-in-seconds) re)
                    :reg-entry.status/whitelisted)
             (assign-next-number! address))
           (schedule-meme-number-assigner address (inc (- reveal-period-end (server-utils/now-in-seconds)))))))))
@@ -77,16 +77,36 @@
 ;; Event handlers   ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
+(defn- add-registry-entry [registry-entry timestamp]
+  (db/insert-registry-entry! (merge registry-entry
+                                    {:reg-entry/created-on timestamp})))
+
+(defn- add-error [m err-txt]
+  (assoc m :errors (conj (:errors m) err-txt)))
+
 (defn meme-sanity-check [{:keys [:reg-entry/address
                                  :meme/meta-hash
                                  :meme/total-supply
                                  :meme/total-minted]}]
-  (let [add-error (fn [m err-txt] (assoc m :errors (conj (:errors m) err-txt)))]
-    (cond-> {:errors []}
-      (not (ipfs/ipfs-hash? meta-hash)) (add-error "Malformed ipfs meta hash")
-      (not (web3/address? address)) (add-error "Malformed registry entry address")
-      (not (int? total-supply)) (add-error "Malformed total-suply number")
-      (not (int? total-minted)) (add-error "Malformed total minted number"))))
+  (cond-> {:errors []}
+    (not (ipfs/ipfs-hash? meta-hash)) (add-error "Malformed ipfs meta hash")
+    (not (web3/address? address)) (add-error "Malformed registry entry address")
+    (not (int? total-supply)) (add-error "Malformed total-suply number")
+    (not (int? total-minted)) (add-error "Malformed total minted number")))
+
+(defn vote-sanity-check [{:keys [:vote/voter
+                                 :vote/amount
+                                 :vote/option]}]
+  (cond-> {:errors []}
+    (not (web3/address? voter))
+    (add-error "Not a voter address")
+
+    (or (not (number? amount))
+        (= 0 amount))
+    (add-error "Incorrect vote amount")
+
+    (not (#{0 1 2} option))
+    (add-error "Unknown option")))
 
 (defn meme-constructed-event [_ {:keys [:args] :as event}]
   (let [{:keys [:registry-entry :timestamp :creator :meta-hash
@@ -124,25 +144,33 @@
                        (doseq [t (into #{} search-tags)]
                          (db/tag-meme! {:reg-entry/address registry-entry :tag/name t})))))))))
 
-(defn param-change-constructed-event [_ {:keys [:args] :as event}]
-  (let [{:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp]} args]
-    (promise-> (js/Promise.resolve (db/insert-registry-entry! {:reg-entry/address registry-entry
-                                                               :reg-entry/creator creator
-                                                               :reg-entry/version version
-                                                               :reg-entry/deposit (bn/number deposit)
-                                                               :reg-entry/challenge-period-end (bn/number challenge-period-end)
-                                                               :reg-entry/created-on timestamp}))
-               #(db/insert-or-replace-param-change! {:reg-entry/address registry-entry
-                                                     :param-change/db db
-                                                     :param-change/key key
-                                                     :param-change/value (bn/number value)
-                                                     :param-change/initial-value (:initial-param/value (db/get-initial-param key db))}))))
+(defn param-change-constructed-event [_ {:keys [:args]}]
+  (try-catch
+   (let [{:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp :meta-hash]} args
+         hash (web3/to-ascii meta-hash)]
+      (add-registry-entry {:reg-entry/address registry-entry
+                           :reg-entry/creator creator
+                           :reg-entry/version version
+                           :reg-entry/created-on timestamp
+                           :reg-entry/deposit (bn/number deposit)
+                           :reg-entry/challenge-period-end (bn/number challenge-period-end)}
+                          timestamp)
+      (promise-> (server-utils/get-ipfs-meta @ipfs/ipfs hash)
+                 (fn [param-meta]
+                   (let [{:keys [reason]} param-meta]
+                     (db/insert-or-replace-param-change!
+                      {:reg-entry/address registry-entry
+                       :param-change/db db
+                       :param-change/key key
+                       :param-change/value (bn/number value)
+                       :param-change/original-value (:param/value (first (db/get-params db [key])))
+                       :param-change/reason reason
+                       :param-change/meta-hash hash})))))))
 
 (defn param-change-applied-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp]} args]
     (js/Promise.resolve (db/update-param-change! {:reg-entry/address registry-entry
                                                   :param-change/applied-on timestamp}))))
-
 
 (defn challenge-created-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :challenger :commit-period-end
@@ -173,29 +201,28 @@
 
 (defn vote-revealed-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp :version :voter :option]} args]
-    (promise-> (js/Promise.all [(js/Promise.resolve (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :reg-entry/address :vote/amount]))
+    (promise-> (js/Promise.all [(js/Promise.resolve (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :vote/amount :reg-entry/address]))
                                 (js/Promise.resolve (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/votes-against :challenge/votes-for :challenge/votes-total]))])
-               (fn [[vote re]]
-                 (let [{:keys [:vote/amount :vote/option] :as vote} (merge vote
-                                                                           {:vote/option (bn/number option)
-                                                                            :vote/revealed-on timestamp})
-                       {:keys [:challenge/votes-total :challenge/votes-against :challenge/votes-for]} re
-                       amount (bn/number (or amount 0))
-                       votes-total (bn/number (or votes-total 0))
-                       votes-against (bn/number (or votes-against 0))
-                       votes-for (bn/number (or votes-for 0))]
-                   (promise-> (js/Promise.resolve (db/update-registry-entry! (cond-> {:reg-entry/address registry-entry
-                                                                                      :reg-entry/version version}
+               (fn [[vote {:keys [:challenge/votes-total :challenge/votes-against :challenge/votes-for]}]]
+                 (let [option (bn/number option)
+                       {:keys [:vote/voter :vote/amount :vote/option] :as vote} (merge vote
+                                                                                       {:vote/option option
+                                                                                        :vote/revealed-on timestamp})
+                       errors (vote-sanity-check vote)]
+                   (if-not (empty? (:errors errors))
+                     (js/Promise.reject errors)
+                     (promise-> (js/Promise.resolve (db/update-registry-entry! (cond-> {:reg-entry/address registry-entry
+                                                                                        :reg-entry/version version}
 
-                                                                               true
-                                                                               (assoc :challenge/votes-total (+ votes-total amount))
+                                                                                 true
+                                                                                 (assoc :challenge/votes-total (+ votes-total amount))
 
-                                                                               (= (vote-options option) :vote.option/vote-against)
-                                                                               (assoc :challenge/votes-against (+ votes-against amount))
+                                                                                 (= (vote-options option) :vote.option/vote-against)
+                                                                                 (assoc :challenge/votes-against (+ votes-against amount))
 
-                                                                               (= (vote-options option) :vote.option/vote-for)
-                                                                               (assoc :challenge/votes-for (+ votes-for amount)))))
-                              #(db/update-vote! vote))))
+                                                                                 (= (vote-options option) :vote.option/vote-for)
+                                                                                 (assoc :challenge/votes-for (+ votes-for amount)))))
+                                #(db/update-vote! vote)))))
                #(db/upsert-user! {:user/address voter}))))
 
 (defn vote-reward-claimed-event [_ {:keys [:args]}]
@@ -260,14 +287,14 @@
         auction (db/get-meme-auction meme-auction)
         reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
                               :reg-entry/address)
-        seller-address (:meme-auction/seller auction)
-        {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller-address}
+        seller (:meme-auction/seller auction)
+        {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller}
                                                            [:user/best-single-card-sale])]
-    (promise-> (js/Promise.resolve (db/upsert-user! {:user/address seller-address
+    (promise-> (js/Promise.resolve (db/upsert-user! {:user/address seller
                                                      :user/best-single-card-sale (max best-single-card-sale
                                                                                       (bn/number seller-proceeds))}))
                #(db/upsert-user! {:user/address buyer})
-               #(db/inc-user-field! (:meme-auction/seller auction) :user/total-earned (bn/number seller-proceeds))
+               #(db/inc-user-field! seller :user/total-earned (bn/number seller-proceeds))
                #(db/inc-meme-field! reg-entry-address :meme/total-trade-volume (bn/number price))
                #(db/update-meme-auction! {:meme-auction/address meme-auction
                                           :meme-auction/bought-for (bn/number price)
@@ -286,15 +313,14 @@
         keys->values (->> #{"challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration" "deposit"
                             "challengeDispensation" "voteQuorum" "maxTotalSupply" "maxAuctionDuration"}
                           (map (fn [k] (when-let [v (records->values (web3/sha3 k))] [k v])))
-                          (into {}))
-        rows (reduce (fn [res [k v]]
-                       (conj res {:initial-param/key k
-                                  :initial-param/db address
-                                  :initial-param/value (bn/number v)
-                                  :initial-param/set-on timestamp}))
-                     []
-                     keys->values)]
-    (js/Promise.resolve (db/insert-initial-params! rows))))
+                          (into {}))]
+    (js/Promise.resolve (db/upsert-params!
+                         (map (fn [[k v]]
+                                {:param/key k
+                                 :param/db address
+                                 :param/value (bn/number v)
+                                 :param/set-on timestamp})
+                              keys->values)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of events handlers   ;;
@@ -370,10 +396,10 @@
         assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period
                                                      :reg-entry.status/commit-period
                                                      :reg-entry.status/reveal-period}
-                                                   (reg-entry-status now %))
+                                                   (shared-utils/reg-entry-status now %))
                                        (db/all-meme-reg-entries))
         assignable-whitelisted-reg-entries (filter #(and (not (:meme/number %))
-                                                         (= :reg-entry.status/whitelisted (reg-entry-status now %)))
+                                                         (= :reg-entry.status/whitelisted (shared-utils/reg-entry-status now %)))
                                                    (db/all-meme-reg-entries))]
 
     (log/info "Assigning numbers to whitelisted memes already on db "
@@ -385,7 +411,7 @@
     (doseq [{:keys [:reg-entry/address]} assignable-whitelisted-reg-entries]
       (assign-next-number! address))
 
-    (log/info "Schedulling number assigner to  memes already on db "
+    (log/info "Schedulling number assigner to memes already on db "
               {:count (count assignable-reg-entries)
                :current-meme-number (db/current-meme-number)}
               ::assign-meme-registry-numbers!)
@@ -404,10 +430,16 @@
     (when-not (= ::db/started @db/memefactory-db)
       (throw (js/Error. "Database module has not started")))
     (let [event-callbacks
-          {:param-change-db/eternal-db-event eternal-db-event
+          {:meme-registry-db/eternal-db-event eternal-db-event
+           :param-change-db/eternal-db-event eternal-db-event
            :param-change-registry/param-change-constructed-event param-change-constructed-event
+           :param-change-registry/challenge-created-event challenge-created-event
+           :param-change-registry/vote-committed-event vote-committed-event
+           :param-change-registry/vote-revealed-event vote-revealed-event
+           :param-change-registry/vote-amount-claimed-event vote-amount-reclaimed-event
+           :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
+           :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
            :param-change-registry/param-change-applied-event param-change-applied-event
-           :meme-registry-db/eternal-db-event eternal-db-event
            :meme-registry/meme-constructed-event meme-constructed-event
            :meme-registry/challenge-created-event challenge-created-event
            :meme-registry/vote-committed-event vote-committed-event

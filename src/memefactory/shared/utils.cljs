@@ -1,9 +1,9 @@
 (ns memefactory.shared.utils
-  (:require
-    [bignumber.core :as bn]
-    [cljs.core.match :refer-macros [match]]
-    [district.web3-utils :as web3-utils]
-    [print.foo :refer [look] :include-macros true])
+  (:require [bignumber.core :as bn]
+            [cljs.core.match :refer-macros [match]]
+            [cljsjs.filesaverjs]
+            [district.web3-utils :as web3-utils]
+            [taoensso.timbre :as log])
   (:import [goog.async Debouncer]))
 
 ;; started-on, duration and now are expected in seconds
@@ -45,3 +45,22 @@
     (if (> (* 100 for) (* quorum (+ for against)))
       :vote.option/vote-for
       :vote.option/vote-against)))
+
+(defn reg-entry-status [now {:keys [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
+                                    :challenge/commit-period-end :challenge/commit-period-end
+                                    :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against] :as reg-entry}]
+  (cond
+    (and (< now challenge-period-end) (not challenger)) :reg-entry.status/challenge-period
+    (< now commit-period-end)                           :reg-entry.status/commit-period
+    (< now reveal-period-end)                           :reg-entry.status/reveal-period
+    (and (pos? reveal-period-end)
+         (> now reveal-period-end)) (if (< votes-against votes-for)
+                                      :reg-entry.status/whitelisted
+                                      :reg-entry.status/blacklisted)
+    :else :reg-entry.status/whitelisted))
+
+(defn file-write [filename content & [mime-type]]
+  (js/saveAs (new js/Blob
+                  (clj->js [content])
+                  (clj->js {:type (or mime-type (str "application/json;charset=UTF-8"))}))
+             filename))

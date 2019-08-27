@@ -13,6 +13,8 @@
    [district.server.web3-watcher]
    [goog.functions :as gfun]
    [memefactory.server.constants :as constants]
+   [memefactory.server.conversion-rates]
+   [memefactory.server.dank-faucet-monitor]
    [memefactory.server.db]
    [memefactory.server.emailer]
    [memefactory.server.generator]
@@ -23,7 +25,6 @@
    [memefactory.server.sigterm]
    [memefactory.server.syncer]
    [memefactory.server.twitter-bot]
-   [memefactory.server.conversion-rates]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
    [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
@@ -43,6 +44,13 @@
 
 
 (defn -main [& _]
+
+  (.on js/process "unhandledRejection"
+       (fn [reason p] (log/error "Unhandled promise rejection " {:reason reason})))
+
+  (.on js/process "uncaughtException"
+       (fn [e] (log/error "Unhandled error " {:error e})))
+
   (-> (mount/with-args
         {:config {:default {:logging {:console? false}
                             :time-source :js-date

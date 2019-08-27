@@ -1,6 +1,8 @@
 'use strict';
 
 const MEMEFACTORY_ENV = process.env.MEMEFACTORY_ENV || "dev";
+const HDWalletProvider = require("truffle-hdwallet-provider");
+require('dotenv').config()  // Store environment-specific variable from '.env' to process.env
 
 const smartContractsPaths = {
   "dev" : '/src/memefactory/shared/smart_contracts_dev.cljs',
@@ -28,7 +30,7 @@ let parameters = {
                             },
     dankFaucet : {dank : 5000000e18, // how much DANK contract holds, 1e18 = 1 DANK
                   eth : 0.1e18, // ETH, 1e18 = 1ETH
-                  allotment : 450e18  // how much DANK faucet sends, 1e18 = 1 DANK
+                  allotment : 2000e18  // how much DANK faucet sends, 1e18 = 1 DANK
                  }
   },
   "prod" : {
@@ -76,6 +78,20 @@ module.exports = {
       gas: 6e6,
       gasPrice: 6e9, // 6 gwei
       network_id: '*'
+    },
+    "infura-ropsten": {
+      provider: () => new HDWalletProvider(process.env.MNENOMIC, "https://ropsten.infura.io/v3/" + process.env.INFURA_API_KEY),
+      network_id: 4,
+      gas: 6e6,
+      gasPrice: 6e9,
+      skipDryRun: true
+    },
+    "infura-mainnet": {
+      provider: () => new HDWalletProvider(process.env.MNENOMIC || process.env.PRIV_KEY, "https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY),
+      network_id: 1,
+      gas: 6e6,
+      gasPrice: 4e9,
+      skipDryRun: true
     }
   }
 };

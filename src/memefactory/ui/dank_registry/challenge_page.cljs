@@ -50,7 +50,7 @@
                                      (str/blank? comment)
                                      (assoc :comment "Challenge reason can't be empty")))})]
     (fn [{:keys [:reg-entry/address]}]
-      (let [dank-deposit (:deposit @(subscribe [:memefactory.ui.config/memefactory-db-params]))
+      (let [dank-deposit (:value (:deposit @(subscribe [:memefactory.ui.config/memefactory-db-params])))
             account-balance (subscribe [::balance-subs/active-account-balance :DANK])]
         [:div.challenge-controls
          [:div.vs
@@ -73,9 +73,10 @@
                              :on-click #(dispatch [::memefactory-events/add-challenge
                                                    {:send-tx/id tx-id
                                                     :reg-entry/address address
-                                                    :meme/title title
+                                                    :tx-description title
                                                     :comment (:comment @form-data)
-                                                    :deposit dank-deposit}])}
+                                                    :deposit dank-deposit
+                                                    :type :meme}])}
              (if @tx-success?
                "Challenged"
                "Challenge")]

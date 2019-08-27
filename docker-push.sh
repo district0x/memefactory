@@ -30,6 +30,10 @@ function build {
     VERSION=$(git log -1 --pretty=%h)
     TAG=$(tag $BUILD_ENV)
     IMG=$NAME:$VERSION
+    export SMART_CONTRACTS=./src/memefactory/shared/smart_contracts_${BUILD_ENV}.cljs
+    export SMART_CONTRACTS_BUILD_PATH=./resources/public/contracts/build/
+
+    echo "Current directory ${PWD}"
 
     SERVICE=$(echo $NAME | cut -d "-" -f 2)
 

@@ -11,7 +11,7 @@
 
 
 (defn a [href text]
-  [:a {:href href :target :_blank} text])
+  [:a {:href href :target :_blank :rel "noopener noreferrer"} text])
 
 
 (defmethod page :route.how-it-works/index []
@@ -53,8 +53,8 @@
         ". You can watch an installation tutorial below for each. "]
 
        [:div.badges
-        [:a.metamask-wallet {:href "https://metamask.io/" :target :_blank} [:img {:src "/assets/images/how-it-works/metamask.png"}]]
-        [:a.coinbase-wallet {:href "https://wallet.coinbase.com/" :target :_blank} [:img {:src "/assets/images/how-it-works/getCoinbaseWallet.svg"}]]]
+        [:a.metamask-wallet {:href "https://metamask.io/" :target :_blank :rel "noopener noreferrer"} [:img {:src "/assets/images/how-it-works/metamask.png"}]]
+        [:a.coinbase-wallet {:href "https://wallet.coinbase.com/" :target :_blank :rel "noopener noreferrer"} [:img {:src "/assets/images/how-it-works/getCoinbaseWallet.svg"}]]]
        ;; [VIDEO - setting up MetaMask]
        [youtube-video "Sc8J98m6SZE"]
 
