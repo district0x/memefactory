@@ -1,4 +1,26 @@
 const fs = require('fs');
+const edn = require("jsedn");
+const test = {
+  f1 : () => {return "Hello";},
+  f2 : () => {console.log(this.f1() + " world")}
+}
+
+function smartContractsTemplate (map, env) {
+  return `(ns memefactory.shared.smart-contracts-${env})
+
+  (def smart-contracts
+    ${map})
+`;
+}
+
+function encodeSmartContracts (smartContracts) {
+  if (Array.isArray(smartContracts)) {
+    smartContracts = new edn.Map(smartContracts);
+  }
+  var contracts = edn.encode(smartContracts);
+  console.log(contracts);
+  return contracts;
+};
 
 const utils = {
 
@@ -42,11 +64,40 @@ const utils = {
 
   smartContractsTemplate: (map, env) => {
     return `(ns memefactory.shared.smart-contracts-${env})
-
   (def smart-contracts
     ${map})
 `;
-  }
+  },
+
+  readSmartContractsFile: (smartContractsPath) => {
+    var content = fs.readFileSync(smartContractsPath, "utf8");
+
+    content = content.replace(/\(ns.*\)/gm, "");
+    content = content.replace(/\(def smart-contracts/gm, "");
+    content = content.replace(/\)$/gm, "");
+
+    return edn.parse(content);
+  },
+
+  setSmartContractAddress: (smartContracts, contractKey, newAddress) => {
+  var contract = edn.atPath(smartContracts, contractKey);
+  contract = contract.set(edn.kw(":address"), newAddress);
+  return smartContracts.set(edn.kw(contractKey), contract);
+  },
+
+  getSmartContractAddress: (smartContracts, contractKey) => {
+    try {
+      return edn.atPath(smartContracts, contractKey + " :address");
+    } catch (e) {
+      return null;
+    }
+  },
+
+  writeSmartContracts: (smartContractsPath, smartContracts, env) => {
+    console.log("Writing to smart contract file: " + smartContractsPath);
+    fs.writeFileSync(smartContractsPath, smartContractsTemplate(encodeSmartContracts(smartContracts), env));
+  },
+
 
 };
 

@@ -3,7 +3,6 @@ const {parameters, smart_contracts_path, env} = require ('../truffle.js');
 const web3Utils = require('web3-utils');
 
 const ParamChangeFactory = artifacts.require("ParamChangeFactory");
-const DSGuard = artifacts.require("DSGuard");
 const ParamChange = artifacts.require("ParamChange");
 const ParamChangeRegistry = artifacts.require("ParamChangeRegistry");
 const MutableForwarder = artifacts.require("MutableForwarder");
@@ -14,7 +13,6 @@ var smartContracts = readSmartContractsFile(smart_contracts_path);
 var dankTokenAddr = getSmartContractAddress(smartContracts, ":DANK");
 var paramChangeRegistryForwarderAddr = getSmartContractAddress(smartContracts, ":param-change-registry-fwd");
 var paramChangeRegistryDbAddr = getSmartContractAddress(smartContracts, ":param-change-registry-db");
-var dsGuardAddr = getSmartContractAddress(smartContracts, ":ds-guard");
 
 const forwarderTargetPlaceholder = "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef";
 const registryPlaceholder = "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed";
@@ -33,13 +31,12 @@ module.exports = function(deployer, network, accounts) {
   const gas = 4e6;
   const opts = {gas: gas, from: address};
 
-  deployer.then (async () => {
+  deployer.then (() => {
     console.log ("@@@ using Web3 version:", web3.version.api);
     console.log ("@@@ using address", address);
     console.log ("Current ParamChange address", getSmartContractAddress(smartContracts, ":param-change"));
     console.log ("Current ParamChangeRegistry address", getSmartContractAddress(smartContracts, ":param-change-registry"));
     console.log ("Current ParamChangeFactory address", getSmartContractAddress(smartContracts, ":param-change-factory"));
-
   });
 
   deployer
@@ -66,10 +63,10 @@ module.exports = function(deployer, network, accounts) {
 
       var paramChangeRegFwdInstance = MutableForwarder.at(paramChangeRegistryForwarderAddr);
 
-      var targetBefore = ParamChangeRegistry.at(paramChangeRegistryForwarderAddr);
-
       // Point to the ParamChangeRegistryForwarder to new location
+      console.log("Pointing ParamChangeRegFwd to new ParamChangeRegistryAddress : " ,newParamChangeRegistryAddress);
       await paramChangeRegFwdInstance.setTarget(newParamChangeRegistryAddress);
+      console.log("Done.");
 
       var target = ParamChangeRegistry.at(paramChangeRegistryForwarderAddr);
 
@@ -85,17 +82,12 @@ module.exports = function(deployer, network, accounts) {
       return deployer.deploy (ParamChangeFactory, paramChangeRegistryForwarderAddr, dankTokenAddr,
                               Object.assign(opts, {gas: gas}));
     })
-    .then(async (paramChangeFactoryInstance) => {
+    .then((paramChangeFactoryInstance) => {
       var target = ParamChangeRegistry.at(paramChangeRegistryForwarderAddr);
-      await target.setFactory(paramChangeFactoryInstance.address, true, Object.assign(opts, {gas: 100000}));
-      console.log("Setting factory to ", paramChangeFactoryInstance.address);
+      target.setFactory(paramChangeFactoryInstance.address, true, Object.assign(opts, {gas: 100000}));
 
       setSmartContractAddress(smartContracts, ":param-change-factory", paramChangeFactoryInstance.address);
       console.log("New ParamChangeFactory address is ", paramChangeFactoryInstance.address);
-
-      var pcr = ParamChangeRegistry.at(paramChangeRegistryForwarderAddr);
-
-      console.log("isFactory ", await pcr.isFactory(paramChangeFactoryInstance.address));
 
       /////////////////////////////
       // Write the new addresses //
