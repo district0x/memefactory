@@ -6,8 +6,10 @@ const web3Utils = require('web3-utils');
 var smartContracts = readSmartContractsFile(smart_contracts_path);
 var memeRegistryDbAddr = getSmartContractAddress(smartContracts, ":meme-registry-db");
 var paramChangeRegistryDbAddr = getSmartContractAddress(smartContracts, ":param-change-registry-db");
+var dSGuardAddr = getSmartContractAddress(smartContracts, ":ds-guard");
 
 const EternalDb = artifacts.require("EternalDb");
+const DSGuard = artifacts.require("DSGuard");
 
 /**
  * This migration fixes MemeRegistryDb and ParamChangeRegistryDb keys that where encoded with
@@ -28,43 +30,56 @@ module.exports = function(deployer, network, accounts) {
   });
 
   deployer
-    .then (() => {
+    .then (async () => {
       var memeRegistryDbInstance = EternalDb.at(memeRegistryDbAddr);
+      var dSGurardInstance = DSGuard.at(dSGuardAddr);
+
+      await dSGurardInstance.permit(address, memeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
+
       console.log("Setting values for MemeRegistryDb");
-      memeRegistryDbInstance.setUIntValues (['challengePeriodDuration',
-                                             'commitPeriodDuration',
-                                             'revealPeriodDuration',
-                                             'deposit',
-                                             'challengeDispensation',
-                                             'voteQuorum',
-                                             'maxTotalSupply',
-                                             'maxAuctionDuration'].map((k) => {return web3Utils.soliditySha3(k);}),
-                                            [parameters.memeRegistryDb.challengePeriodDuration,
-                                             parameters.memeRegistryDb.commitPeriodDuration,
-                                             parameters.memeRegistryDb.revealPeriodDuration ,
-                                             parameters.memeRegistryDb.deposit  ,
-                                             parameters.memeRegistryDb.challengeDispensation,
-                                             parameters.memeRegistryDb.voteQuorum,
-                                             parameters.memeRegistryDb.maxTotalSupply,
-                                             parameters.memeRegistryDb.maxAuctionDuration],
-                                            Object.assign(opts, {gas: 500000}))
+      await memeRegistryDbInstance.setUIntValues (['challengePeriodDuration',
+                                                   'commitPeriodDuration',
+                                                   'revealPeriodDuration',
+                                                   'deposit',
+                                                   'challengeDispensation',
+                                                   'voteQuorum',
+                                                   'maxTotalSupply',
+                                                   'maxAuctionDuration'].map((k) => {return web3Utils.soliditySha3(k);}),
+                                                  [parameters.memeRegistryDb.challengePeriodDuration,
+                                                   parameters.memeRegistryDb.commitPeriodDuration,
+                                                   parameters.memeRegistryDb.revealPeriodDuration ,
+                                                   parameters.memeRegistryDb.deposit  ,
+                                                   parameters.memeRegistryDb.challengeDispensation,
+                                                   parameters.memeRegistryDb.voteQuorum,
+                                                   parameters.memeRegistryDb.maxTotalSupply,
+                                                   parameters.memeRegistryDb.maxAuctionDuration],
+                                                  Object.assign(opts, {gas: 500000}));
+
+      await dSGurardInstance.forbid(address, memeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
 
       var paramChangeRegistryDbInstance = EternalDb.at(paramChangeRegistryDbAddr);
 
+      await dSGurardInstance.permit(address, paramChangeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
+
       console.log("Setting values for ParamChangeRegistryDb");
-      paramChangeRegistryDbInstance.setUIntValues (['challengePeriodDuration',
-                                                    'commitPeriodDuration',
-                                                    'revealPeriodDuration',
-                                                    'deposit',
-                                                    'challengeDispensation',
-                                                    'voteQuorum'].map((k) => {return web3Utils.soliditySha3(k);}),
-                                                   [parameters.paramChangeRegistryDb.challengePeriodDuration,
-                                                    parameters.paramChangeRegistryDb.commitPeriodDuration,
-                                                    parameters.paramChangeRegistryDb.revealPeriodDuration ,
-                                                    parameters.paramChangeRegistryDb.deposit  ,
-                                                    parameters.paramChangeRegistryDb.challengeDispensation,
-                                                    parameters.paramChangeRegistryDb.voteQuorum],
-                                                   Object.assign(opts, {gas: 500000}))})
+      await paramChangeRegistryDbInstance.setUIntValues (['challengePeriodDuration',
+                                                          'commitPeriodDuration',
+                                                          'revealPeriodDuration',
+                                                          'deposit',
+                                                          'challengeDispensation',
+                                                          'voteQuorum'].map((k) => {return web3Utils.soliditySha3(k);}),
+                                                         [parameters.paramChangeRegistryDb.challengePeriodDuration,
+                                                          parameters.paramChangeRegistryDb.commitPeriodDuration,
+                                                          parameters.paramChangeRegistryDb.revealPeriodDuration ,
+                                                          parameters.paramChangeRegistryDb.deposit  ,
+                                                          parameters.paramChangeRegistryDb.challengeDispensation,
+                                                          parameters.paramChangeRegistryDb.voteQuorum],
+                                                         Object.assign(opts, {gas: 500000}));
+
+      await dSGurardInstance.forbid(address, paramChangeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
+    });
+
+
 
   deployer.then (function () {
     console.log ("Done");

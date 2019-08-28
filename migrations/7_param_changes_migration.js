@@ -84,7 +84,7 @@ module.exports = function(deployer, network, accounts) {
     })
     .then((paramChangeFactoryInstance) => {
       var target = ParamChangeRegistry.at(paramChangeRegistryForwarderAddr);
-      target.setFactory(paramChangeFactoryInstance.address, true, Object.assign(opts, {gas: 100000}));
+      await target.setFactory(paramChangeFactoryInstance.address, true, Object.assign(opts, {gas: 100000}));
 
       setSmartContractAddress(smartContracts, ":param-change-factory", paramChangeFactoryInstance.address);
       console.log("New ParamChangeFactory address is ", paramChangeFactoryInstance.address);
