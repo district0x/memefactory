@@ -23,7 +23,11 @@
   (let [url (:gateway @(subscribe [::ipfs-subs/ipfs]))]
     (fn [image-hash & [{:keys [rejected?] :as props}]]
       (let [props (dissoc props :rejected?)
-            src-url (str (format/ensure-trailing-slash url) image-hash)]
+            src-url (str (format/ensure-trailing-slash url)
+                         (-> image-hash
+                             (clojure.string/split #"/")
+                             butlast
+                             (->> (clojure.string/join "/"))))]
         [:div.meme-card
          props
          (cond
