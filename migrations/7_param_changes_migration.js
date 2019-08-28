@@ -82,7 +82,7 @@ module.exports = function(deployer, network, accounts) {
       return deployer.deploy (ParamChangeFactory, paramChangeRegistryForwarderAddr, dankTokenAddr,
                               Object.assign(opts, {gas: gas}));
     })
-    .then((paramChangeFactoryInstance) => {
+    .then(async (paramChangeFactoryInstance) => {
       var target = ParamChangeRegistry.at(paramChangeRegistryForwarderAddr);
       await target.setFactory(paramChangeFactoryInstance.address, true, Object.assign(opts, {gas: 100000}));
 
