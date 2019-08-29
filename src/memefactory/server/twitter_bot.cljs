@@ -93,11 +93,8 @@
    (fn [resolve reject]
      (if-let [media-id (db/get-meme-media-id registry-entry)]
        (resolve media-id)
-       (let [ipfs-hash (-> (or image-hash
-                               (:meme/image-hash (db/get-meme registry-entry)))
-                           (clojure.string/split #"/")
-                           butlast
-                           (->> (clojure.string/join "/")))]
+       (let [ipfs-hash (or image-hash
+                           (:meme/image-hash (db/get-meme registry-entry)))]
          (log/info "Uploading media " {:ipfs-hash ipfs-hash} ::ensure-media-uploaded)
          (promise-> (server-utils/get-ipfs-binary-file ipfs-hash)
                     (fn [image-tar-file-content]
