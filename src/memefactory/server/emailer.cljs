@@ -17,7 +17,9 @@
     [memefactory.server.db :as db]
     [memefactory.server.emailer.templates :as templates]
     [mount.core :as mount :refer [defstate]]
-    [taoensso.timbre :as log]))
+    [taoensso.timbre :as log]
+    [cljs.core.async :as async])
+  (:require-macros [district.shared.async-helpers :refer [safe-go <?]]))
 
 (defn validate-email [base64-encrypted-email]
   (when-not (empty? base64-encrypted-email)
@@ -65,38 +67,38 @@
 
 (defn send-challenge-created-email [{:keys [:registry-entry :challenger :commit-period-end
                                             :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
-  (let [{:keys [:reg-entry/creator :meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
-        {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
-        root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
-        ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
-        meme-url (str root-url "meme-detail/" registry-entry)
-        [unit value] (time/time-remaining-biggest-unit (t/now)
-                                                       (-> commit-period-end time/epoch->long time-coerce/from-long))
-        time-remaining (format/format-time-units {unit value})
-        meme-image-url (str ipfs-gateway-url image-hash)]
-    (promise-> (district0x-emails/get-email {:district0x-emails/address creator})
-               #(validate-email %)
-               (fn [to] (if to
-                          (do
-                            (log/info "Sending meme challenged email" ev ::send-challenge-created-email)
-                            (send-challenge-created-email-handler
-                             {:from from
-                              :to to
-                              :title title
-                              :meme-url meme-url
-                              :meme-image-url meme-image-url
-                              :button-url meme-url
-                              :time-remaining time-remaining
-                              :on-success #(log/info "Success sending meme challenged email"
-                                                     {:to to :registry-entry registry-entry :meme-title title}
-                                                     ::send-challenge-created-email)
-                              :on-error #(log/error "Error when sending meme challenged email"
-                                                    {:error % :event ev :meme meme :to to}
-                                                    ::send-challenge-created-email)
-                              :template-id template-id
-                              :api-key api-key
-                              :print-mode? print-mode?}))
-                          (log/info "No email found for challenged meme creator" {:event ev :meme meme} ::send-challenge-created-email))))))
+  (safe-go
+   (let [{:keys [:reg-entry/creator :meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
+         {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
+         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
+         meme-url (str root-url "meme-detail/" registry-entry)
+         [unit value] (time/time-remaining-biggest-unit (t/now)
+                                                        (-> commit-period-end time/epoch->long time-coerce/from-long))
+         time-remaining (format/format-time-units {unit value})
+         meme-image-url (str ipfs-gateway-url image-hash)
+         email (<? (district0x-emails/get-email {:district0x-emails/address creator}))]
+     (if-let [to (validate-email email)]
+       (do
+         (log/info "Sending meme challenged email" ev ::send-challenge-created-email)
+         (send-challenge-created-email-handler
+          {:from from
+           :to to
+           :title title
+           :meme-url meme-url
+           :meme-image-url meme-image-url
+           :button-url meme-url
+           :time-remaining time-remaining
+           :on-success #(log/info "Success sending meme challenged email"
+                                  {:to to :registry-entry registry-entry :meme-title title}
+                                  ::send-challenge-created-email)
+           :on-error #(log/error "Error when sending meme challenged email"
+                                 {:error % :event ev :meme meme :to to}
+                                 ::send-challenge-created-email)
+           :template-id template-id
+           :api-key api-key
+           :print-mode? print-mode?}))
+       (log/info "No email found for challenged meme creator" {:event ev :meme meme} ::send-challenge-created-email)))))
 
 (defn send-auction-bought-email-handler
   [{:keys [from to title
@@ -130,39 +132,38 @@
                :print-mode? print-mode?}))
 
 (defn send-auction-bought-email [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
-  (let [{:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
-        {:keys [:reg-entry/address :meme/title :meme/image-hash]} (db/get-meme-by-auction-address address)
-        {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
-        root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
-        ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
-        meme-image-url (str ipfs-gateway-url image-hash)
-        buyer-url (str root-url "memefolio/" buyer)
-        meme-url (str root-url "meme-detail/" address)
-        button-url (str root-url "memefolio/?tab=sold")]
-    (promise-> (district0x-emails/get-email {:district0x-emails/address seller})
-               #(validate-email %)
-               (fn [to]
-                 (if to
-                   (send-auction-bought-email-handler
-                    {:from from
-                     :to to
-                     :title title
-                     :meme-url meme-url
-                     :meme-image-url meme-image-url
-                     :buyer-address buyer
-                     :buyer-url buyer-url
-                     :price price
-                     :button-url button-url
-                     :on-success #(log/info "Success sending auction bought email"
-                                            {:to to :meme-auction meme-auction :meme-title title}
+  (safe-go
+   (let [{:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
+         {:keys [:reg-entry/address :meme/title :meme/image-hash]} (db/get-meme-by-auction-address address)
+         {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
+         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
+         meme-image-url (str ipfs-gateway-url image-hash)
+         buyer-url (str root-url "memefolio/" buyer)
+         meme-url (str root-url "meme-detail/" address)
+         button-url (str root-url "memefolio/?tab=sold")
+         email (<? (district0x-emails/get-email {:district0x-emails/address seller}))]
+     (if-let [to (validate-email email)]
+       (send-auction-bought-email-handler
+                     {:from from
+                      :to to
+                      :title title
+                      :meme-url meme-url
+                      :meme-image-url meme-image-url
+                      :buyer-address buyer
+                      :buyer-url buyer-url
+                      :price price
+                      :button-url button-url
+                      :on-success #(log/info "Success sending auction bought email"
+                                             {:to to :meme-auction meme-auction :meme-title title}
+                                             ::send-auction-bought-email)
+                      :on-error #(log/error "Error when sending auction-bought email"
+                                            {:error % :event ev :meme-auction meme-auction :to to}
                                             ::send-auction-bought-email)
-                     :on-error #(log/error "Error when sending auction-bought email"
-                                           {:error % :event ev :meme-auction meme-auction :to to}
-                                           ::send-auction-bought-email)
-                     :template-id template-id
-                     :api-key api-key
-                     :print-mode? print-mode?})
-                   (log/info "No email found for meme auction seller" {:event ev :meme-auction meme-auction} ::send-auction-bought-email))))))
+                      :template-id template-id
+                      :api-key api-key
+                      :print-mode? print-mode?})
+       (log/info "No email found for meme auction seller" {:event ev :meme-auction meme-auction} ::send-auction-bought-email)))))
 
 (defn send-vote-reward-claimed-email-handler
   [{:keys [to from
@@ -197,39 +198,38 @@
                :print-mode? print-mode?}))
 
 (defn send-vote-reward-claimed-email [{:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
-  (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
-        {:keys [:vote/option]} (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/option])
-        {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer ])
-        root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
-        ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
-        button-url (str root-url "memefolio/?tab=curated")
-        meme-url (str root-url "meme-detail/" registry-entry)
-        meme-image-url (str ipfs-gateway-url image-hash)]
-    (promise-> (district0x-emails/get-email {:district0x-emails/address voter})
-               #(validate-email %)
-               (fn [to]
-                 (if to
-                   (do
-                     (send-vote-reward-claimed-email-handler
-                      {:to to
-                       :from from
-                       :title title
-                       :option option
-                       :amount amount
-                       :meme-url meme-url
-                       :meme-image-url meme-image-url
-                       :button-url button-url
-                       :on-success #(log/info "Success sending email"
-                                              {:to to :registry-entry registry-entry :meme-title title}
-                                              ::send-vote-reward-claimed-email)
-                       :on-error #(log/error "Error when sending email"
-                                             {:error % :event ev :meme meme :to to}
-                                             ::send-vote-reward-claimed-email)
-                       :template-id template-id
-                       :api-key api-key
-                       :print-mode? print-mode?})
-                     (log/info "Sending vote reward received email" ev ::send-vote-reward-claimed-email))
-                   (log/info "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email))))))
+  (safe-go
+   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
+         {:keys [:vote/option]} (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/option])
+         {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer ])
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
+         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
+         button-url (str root-url "memefolio/?tab=curated")
+         meme-url (str root-url "meme-detail/" registry-entry)
+         meme-image-url (str ipfs-gateway-url image-hash)
+         email (<? (district0x-emails/get-email {:district0x-emails/address voter}))]
+     (if-let [to (validate-email email)]
+       (do
+         (send-vote-reward-claimed-email-handler
+          {:to to
+           :from from
+           :title title
+           :option option
+           :amount amount
+           :meme-url meme-url
+           :meme-image-url meme-image-url
+           :button-url button-url
+           :on-success #(log/info "Success sending email"
+                                  {:to to :registry-entry registry-entry :meme-title title}
+                                  ::send-vote-reward-claimed-email)
+           :on-error #(log/error "Error when sending email"
+                                 {:error % :event ev :meme meme :to to}
+                                 ::send-vote-reward-claimed-email)
+           :template-id template-id
+           :api-key api-key
+           :print-mode? print-mode?})
+         (log/info "Sending vote reward received email" ev ::send-vote-reward-claimed-email)
+         (log/info "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email))))))
 
 (defn send-challenge-reward-claimed-email-handler
   [{:keys [to from
@@ -261,37 +261,37 @@
                :print-mode? print-mode?}))
 
 (defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
-  (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
-        {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
-        root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
-        ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
-        meme-url (str root-url "meme-detail/" registry-entry)
-        meme-image-url (str ipfs-gateway-url image-hash)
-        button-url (str root-url "memefolio/?tab=curated")]
-    (promise-> (district0x-emails/get-email {:district0x-emails/address challenger})
-               #(validate-email %)
-               (fn [to]
-                 (if to
-                   (do
-                     (log/info "Sending chalenge reward received email" ev ::send-challenge-reward-claimed-email)
-                     (send-challenge-reward-claimed-email-handler
-                      {:from from
-                       :to to
-                       :title title
-                       :amount amount
-                       :meme-url meme-url
-                       :meme-image-url meme-image-url
-                       :button-url button-url
-                       :on-success #(log/info "Success sending challenge reward claimed email"
-                                              {:to to :registry-entry registry-entry :title title}
-                                              ::send-challenge-reward-claimed-email)
-                       :on-error #(log/error "Error when sending challenge reward claimed email"
-                                             {:error % :event ev :meme meme :to to}
-                                             ::send-challenge-reward-claimed-email)
-                       :template-id template-id
-                       :api-key api-key
-                       :print-mode? print-mode?}))
-                   (log/info "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email))))))
+  (safe-go
+   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
+         {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
+         root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
+         ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
+         meme-url (str root-url "meme-detail/" registry-entry)
+         meme-image-url (str ipfs-gateway-url image-hash)
+         button-url (str root-url "memefolio/?tab=curated")
+         email (<? (district0x-emails/get-email {:district0x-emails/address challenger}))]
+     (if-let [to (validate-email email)]
+       (do
+         (log/info "Sending chalenge reward received email" ev ::send-challenge-reward-claimed-email)
+         (send-challenge-reward-claimed-email-handler
+          {:from from
+           :to to
+           :title title
+           :amount amount
+           :meme-url meme-url
+           :meme-image-url meme-image-url
+           :button-url button-url
+           :on-success #(log/info "Success sending challenge reward claimed email"
+                                  {:to to :registry-entry registry-entry :title title}
+                                  ::send-challenge-reward-claimed-email)
+           :on-error #(log/error "Error when sending challenge reward claimed email"
+                                 {:error % :event ev :meme meme :to to}
+                                 ::send-challenge-reward-claimed-email)
+           :template-id template-id
+           :api-key api-key
+           :print-mode? print-mode?}))
+
+       (log/info "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email)))))
 
 
 (defn- dispatcher [callback]

@@ -1,4 +1,7 @@
-(ns memefactory.shared.utils)
+(ns memefactory.shared.utils
+  (:require [taoensso.timbre]
+            [cljs.core]
+            [district.shared.error-handling]))
 
 (defmacro get-environment []
   (let [env (or (System/getenv "MEMEFACTORY_ENV") "dev")]
