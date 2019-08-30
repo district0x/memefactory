@@ -21,7 +21,7 @@
     [district.server.smart-contracts]
     [district.server.web3 :refer [web3]]
     [district.server.web3-events]
-    [district.shared.async-helpers :refer [promise->]]
+    [district.shared.async-helpers :refer [promise->] :as async-helpers]
     [goog.date.Date]
     [graphql-query.core :refer [graphql-query]]
     [memefactory.server.constants :as constants]
@@ -46,6 +46,7 @@
     [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
     [memefactory.shared.utils :as shared-utils]
     [mount.core :as mount]
+    [cljs-promises.async]
     [taoensso.timbre :as log])
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
@@ -203,7 +204,8 @@
                                           :consumer-secret "PLACEHOLDER"
                                           :access-token-key "PLACEHOLDER"
                                           :access-token-secret "PLACEHOLDER"
-                                          :just-log-tweet? false}}}
+                                          :just-log-tweet? true}
+                            :pinner {:disabled? true}}}
          :web3-events {:events constants/web3-events}})
     (mount/start)
     (as-> $ (log/warn "Started" {:components $
@@ -217,11 +219,11 @@
   (start))
 
 (defn -main [& args]
+
+  (async-helpers/extend-promises-as-channels!)
+
   (.on js/process "unhandledRejection"
        (fn [reason p] (log/error "Unhandled promise rejection " {:reason reason})))
-
-  (.on js/process "uncaughtException"
-       (fn [e] (log/error "Unhandled error " {:error e})))
 
   (when-not (= (last args) "--nostart")
     (log/debug "Mounting... (Pass the argument --nostart to prevent mounting on start)")

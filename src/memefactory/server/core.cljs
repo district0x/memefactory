@@ -30,7 +30,9 @@
    [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
    [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
    [mount.core :as mount]
-   [taoensso.timbre :as log])
+   [memefactory.shared.utils :as shared-utils]
+   [taoensso.timbre :as log]
+   [district.shared.async-helpers :as async-helpers])
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
 (nodejs/enable-util-print!)
@@ -45,11 +47,10 @@
 
 (defn -main [& _]
 
+  (async-helpers/extend-promises-as-channels!)
+
   (.on js/process "unhandledRejection"
        (fn [reason p] (log/error "Unhandled promise rejection " {:reason reason})))
-
-  #_(.on js/process "uncaughtException"
-       (fn [e] (log/error "Unhandled error " {:error e})))
 
   (-> (mount/with-args
         {:config {:default {:logging {:console? false}
