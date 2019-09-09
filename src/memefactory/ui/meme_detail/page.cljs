@@ -467,7 +467,7 @@
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 
-(defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status gql-utils/gql-name->kw)]
+(defmulti challenge-component (fn [meme] (match [(:reg-entry/status meme)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
                                                 [:reg-entry.status/challenge-period] :reg-entry.status/challenge-period
                                                 [:reg-entry.status/commit-period] :reg-entry.status/commit-period
