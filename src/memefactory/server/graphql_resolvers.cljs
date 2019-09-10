@@ -93,7 +93,7 @@
     (< now commit-period-end)                           :reg-entry.status/commit-period
     (< now reveal-period-end)                           :reg-entry.status/reveal-period
     (and (pos? reveal-period-end)
-         (> now reveal-period-end)) (if (< votes-against votes-for) ;; TODO: this should be using quorum
+         (> now reveal-period-end)) (if (< votes-against votes-for)
                                       :reg-entry.status/whitelisted
                                       :reg-entry.status/blacklisted)
     :else :reg-entry.status/whitelisted))
@@ -109,7 +109,7 @@
    [:< now :re.challenge/reveal-period-end]                   (enum :reg-entry.status/reveal-period)
    [:and
     [:> :re.challenge/reveal-period-end 0]
-    [:> now :re.challenge/reveal-period-end]]  (sql/call :case ;; TODO: this should be using quorum
+    [:> now :re.challenge/reveal-period-end]]  (sql/call :case
                                                          [:< :re.challenge/votes-against :re.challenge/votes-for]
                                                          (enum :reg-entry.status/whitelisted)
 
@@ -420,7 +420,6 @@
                                                 [{:select [:%count.*]
                                                   :from [:votes]
                                                   :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
-                                                  ;; TODO: this should be using quorum
                                                   ;; This doesn't look right, looks like it should be counting user option for a challenge
                                                   ;; when that option is equal to the challenge winning result
                                                   :where [:and [:> now :reg-entries.challenge/reveal-period-end]
@@ -436,7 +435,6 @@
                                               (when (select? :user/total-created-challenges-success)
                                                 [{:select [:%count.* ]
                                                   :from [:reg-entries]
-                                                  ;; TODO: this should be using quorum
                                                   :where [:and [:> now :reg-entries.challenge/reveal-period-end]
                                                           [:>= :reg-entries.challenge/votes-against :reg-entries.challenge/votes-for]
                                                           [:= :reg-entries.challenge/challenger :users.user/address]]}
