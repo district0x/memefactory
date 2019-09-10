@@ -90,7 +90,6 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(registryToken.transferFrom(_challenger, this, deposit));
 
     challenge.challenger = _challenger;
-    challenge.voteQuorum = registry.db().getUIntValue(registry.voteQuorumKey());
     uint commitDuration = registry.db().getUIntValue(registry.commitPeriodDurationKey());
     uint revealDuration = registry.db().getUIntValue(registry.revealPeriodDurationKey());
 
@@ -281,14 +280,12 @@ contract RegistryEntry is ApproveAndCallFallBack {
                                              uint,
                                              uint,
                                              uint,
-                                             uint,
                                              bytes,
                                              uint){
     return (deposit,
             creator,
             version,
             challenge.challenger,
-            challenge.voteQuorum,
             challenge.commitPeriodEnd,
             challenge.revealPeriodEnd,
             challenge.rewardPool,

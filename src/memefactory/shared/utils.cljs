@@ -39,14 +39,6 @@
   (let [dbnc (Debouncer. f interval)]
     (fn [& args] (.apply (.-fire dbnc) dbnc (to-array args)))))
 
-;; This should follow RegistryEntryLib.sol winningVoteOption
-(defn winning-vote-option [{:keys [:votes/against :votes/for :challenge/reveal-period-end]} quorum now]
-  (if (< now reveal-period-end)
-    :vote.option/no-vote
-    (if (> (* 100 for) (* quorum (+ for against)))
-      :vote.option/vote-for
-      :vote.option/vote-against)))
-
 (defn reg-entry-status [now {:keys [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
                                     :challenge/commit-period-end :challenge/commit-period-end
                                     :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against] :as reg-entry}]

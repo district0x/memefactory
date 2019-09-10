@@ -20,7 +20,6 @@ contract Registry is DSAuth {
   bytes32 public constant revealPeriodDurationKey = sha3("revealPeriodDuration");
   bytes32 public constant depositKey = sha3("deposit");
   bytes32 public constant challengeDispensationKey = sha3("challengeDispensation");
-  bytes32 public constant voteQuorumKey = sha3("voteQuorum");
   bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
   bytes32 public constant maxAuctionDurationKey = sha3("maxAuctionDuration");
 

@@ -42,10 +42,6 @@
                                                :description "The percentage of DANK from deposits rewarded to a winning meme challenger"
                                                :unit "%"
                                                :validator #(< 0 % 101)}
-                 :meme/vote-quorum {:title "Meme Vote Quorum"
-                                    :description "The percentage of upvotes required for a meme to win a challenge"
-                                    :unit "%"
-                                    :validator #(< 0 % 100)}
                  :meme/max-total-supply {:title "Meme Max Total Supply"
                                          :description "The maximum issuance number of a particular meme in the registry"
                                          :unit ""
@@ -74,10 +70,6 @@
                                                        :description "The percentage of DANK from deposits rewarded to a winning parameter challenger"
                                                        :unit "%"
                                                        :validator #(< 0 % 100)}
-                 :param-change/vote-quorum {:title "Parameter Vote Quorum"
-                                            :description "The percentage of upvotes required for a parameter to win a challenge"
-                                            :unit "%"
-                                            :validator #(< 0 % 100)}
                  :param-change/challenge-period-duration {:title "Parameter Challenge Period Duration"
                                                           :description "The amount of time a parameter change is open to challenge before taking effect"
                                                           :unit "Seconds"
@@ -96,9 +88,9 @@
                                         :validator #(< 0 %)}})
 
 ;; We need this since Clojure maps desn't guarantee insertion order
-(def param-display-order [:meme/deposit :meme/challenge-dispensation :meme/vote-quorum :meme/challenge-period-duration
+(def param-display-order [:meme/deposit :meme/challenge-dispensation :meme/challenge-period-duration
                           :meme/commit-period-duration :meme/reveal-period-duration :meme/max-auction-duration :meme/max-total-supply
-                          :param-change/deposit :param-change/challenge-dispensation :param-change/vote-quorum
+                          :param-change/deposit :param-change/challenge-dispensation
                           :param-change/challenge-period-duration :param-change/commit-period-duration :param-change/reveal-period-duration])
 
 (when-not (= (set (keys param-info)) (set param-display-order))
