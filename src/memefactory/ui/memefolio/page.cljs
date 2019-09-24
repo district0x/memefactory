@@ -29,6 +29,7 @@
     [memefactory.ui.contract.meme :as meme]
     [memefactory.ui.contract.meme-token :as meme-token]
     [memefactory.shared.utils :as shared-utils]
+    [memefactory.ui.subs :as mf-subs]
     [memefactory.ui.utils :as ui-utils :refer [copy-to-clipboard!]]
     [print.foo :refer [look] :include-macros true]
     [re-frame.core :as re-frame :refer [subscribe dispatch]]
@@ -727,12 +728,14 @@
 
 
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
-  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged? :option-filters]} form-data]
+  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged? :option-filters :nsfw-switch]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner user-address
                                          :first first}
                                         (when after
                                           {:after (str after)})
+                                        (when nsfw-switch
+                                          {:tags-not [search/nsfw-tag]})
                                         (when term
                                           {:title term})
                                         {:order-by (ui-utils/build-order-by :memes (or order-by :created-on))
@@ -760,6 +763,8 @@
                                        :first first}
                                       (when after
                                         {:after (str after)})
+                                      (when nsfw-switch
+                                          {:tags-not [search/nsfw-tag]})
                                       (when term
                                         {:title term})
                                       {:order-by (ui-utils/build-order-by :memes (or order-by :created-on))
@@ -784,6 +789,8 @@
                                         challenged?              {:challenger user-address})
                                       (when after
                                         {:after (str after)})
+                                      (when nsfw-switch
+                                          {:tags-not [search/nsfw-tag]})
                                       (when term
                                         {:title term})
                                       {:order-by (ui-utils/build-order-by :memes (or order-by :created-on))
@@ -805,6 +812,8 @@
                                                :first first}
                                               (when after
                                                 {:after (str after)})
+                                              (when nsfw-switch
+                                                {:tags-not [search/nsfw-tag]})
                                               (when term
                                                 {:title term})
                                               {:order-by (ui-utils/build-order-by :meme-auctions (or order-by :started-on))
@@ -925,6 +934,7 @@
                                                                                    "Your Memefolio URL was copied to clipboard!"]))
                                                                       :title "Copy shareable URL to clipboard"
                                                                       :src "/assets/icons/link.svg"}])])
+                                   :check-filters [search/nsfw-check-filter]
                                    :form-data form-data
                                    ;; :on-selected-tags-change re-search
                                    ;; :on-search-change re-search
@@ -990,6 +1000,7 @@
             form-data (r/atom {:term (:term query)
                                :voted? true
                                :challenged? true
+                               :nsfw-switch @(subscribe [::mf-subs/nsfw-switch])
                                :option-filters :only-lowest-number})]
         [app-layout
          {:meta {:title (if url-account

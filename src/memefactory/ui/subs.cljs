@@ -43,3 +43,8 @@
      android? (:android-mobile-link ui.mobile/coinbase-appstore-links)
      ios? (:ios-mobile-link ui.mobile/coinbase-appstore-links)
      :else (:main-mobile-link ui.mobile/coinbase-appstore-links))))
+
+(re-frame/reg-sub
+ ::nsfw-switch
+ (fn [db _]
+   (:nsfw-switch db)))

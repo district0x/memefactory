@@ -5,10 +5,11 @@
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
    [district.ui.router.subs :as router-subs]
+   [memefactory.ui.subs :as mf-subs]
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [no-items-found]]
-   [memefactory.ui.components.search :refer [search-tools auctions-option-filters]]
+   [memefactory.ui.components.search :as search :refer [search-tools auctions-option-filters]]
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles]
    [memefactory.ui.utils :as ui-utils]
@@ -26,7 +27,7 @@
                      {:key "price-desc" :value "Most Expensive" :order-dir :desc}
                      {:key "random" :value "Random"}])
 
-(defn build-tiles-query [{:keys [:search-term :search-tags :order-by :order-dir :option-filters]} after]
+(defn build-tiles-query [{:keys [:search-term :search-tags :order-by :order-dir :option-filters :nsfw-switch]} after]
   [:search-meme-auctions
    (cond-> {:first page-size
             :statuses [:meme-auction.status/active]}
@@ -35,6 +36,9 @@
 
      (not-empty search-tags)
      (assoc :tags search-tags)
+
+     nsfw-switch
+     (assoc :tags-not [search/nsfw-tag])
 
      after
      (assoc :after after)
@@ -93,12 +97,12 @@
             (for [{:keys [:meme-auction/address] :as auc} all-auctions]
               ^{:key address} [tiles/auction-tile {:show-cards-left? (contains? #{:only-cheapest :only-lowest-number} (:option-filters @form-data))} auc])))])]))
 
-
 (defn index-page []
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
                     #_(log/debug "Starting with " (:term query))
                     (r/atom {:search-term (:term query)
+                             :nsfw-switch @(subscribe [::mf-subs/nsfw-switch])
                              :option-filters (if-let [opt (:option-filter query)]
                                                (keyword opt)
                                                :only-cheapest)
@@ -127,8 +131,7 @@
                           :search-id :search-term
                           :selected-tags-id :search-tags
                           :option-filters-id :option-filters
-                          ;; :check-filters [{:label "Show only cheapest offering of meme"
-                          ;;                  :id :only-cheapest?}]
+                          :check-filters [search/nsfw-check-filter]
                           :title "Marketplace"
                           :sub-title "Buy and Sell memes"
                           :select-options auctions-order

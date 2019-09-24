@@ -10,6 +10,14 @@
 
 (defstyles core
   [:textarea {:outline :none}]
+  [:.single-check
+   {:display :flex
+    :padding-left (em 0.4)}
+   [:label {:font-size "10px"
+            :white-space :nowrap}]
+   [:.input-group
+    [:.help-block {:display :none}]]]
+
   [".labeled-input-group"
    [">label"
     {:position :absolute

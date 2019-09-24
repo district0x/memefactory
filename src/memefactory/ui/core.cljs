@@ -72,6 +72,7 @@
    (-> db
        (assoc :settings (:settings store))
        (assoc :votes (:votes store))
+       (assoc :nsfw-switch (:nsfw-switch store))
        (assoc :memefactory.ui.get-dank.page/stage 1))))
 
 (re-frame/reg-event-fx

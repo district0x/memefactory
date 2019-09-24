@@ -30,8 +30,10 @@
             [memefactory.ui.dank-registry.vote-page :as vote-page]
             [memefactory.ui.events :as memefactory-events]
             [memefactory.ui.spec :as spec]
+            [memefactory.ui.components.general :as gen-comps]
             [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
             [memefactory.shared.utils :as shared-utils]
+            [memefactory.ui.subs :as mf-subs]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
             [reagent.ratom :as ratom]
@@ -112,16 +114,21 @@
 
 
 (defn related-memes-container [address tags]
-  (let [form-data (r/atom {:option-filters :only-lowest-number})
-        build-query (fn [{:keys [:options] :as args}]
+  (let [form-data (r/atom {:option-filters :only-lowest-number
+                           :nsfw-switch @(subscribe [::mf-subs/nsfw-switch])})
+        build-query (fn [{:keys [:option-filters :nsfw-switch] :as args}]
                       [[:search-meme-auctions (cond-> {:tags-or tags
                                                        :first 18
                                                        :non-for-meme address
                                                        :statuses [:meme-auction.status/active]}
-                                                (#{:only-lowest-number :only-cheapest} options)
+
+                                                (#{:only-lowest-number :only-cheapest} option-filters)
                                                 (assoc :group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
                                                                        :only-cheapest :meme-auctions.group-by/cheapest}
-                                                                      options)))
+                                                                      option-filters))
+
+                                                nsfw-switch
+                                                (assoc :tags-not [search/nsfw-tag]))
                         [[:items [:meme-auction/address
                                   :meme-auction/status
                                   :meme-auction/start-price
@@ -142,7 +149,7 @@
                                       :meme/total-minted]]]]]]]]])]
     (fn [address tags]
       (let [query-id [address @form-data]
-            response (subscribe [::gql/query {:queries (build-query {:options (:option-filters @form-data)})}])
+            response (subscribe [::gql/query {:queries (build-query @form-data)}])
 
             state (-> @response :search-meme-auctions :items)
             loading? (:graphql/loading? @response)]
@@ -150,6 +157,7 @@
          [inputs/radio-group {:id :option-filters
                               :form-data form-data
                               :options search/auctions-option-filters}]
+         [gen-comps/nsfw-switch form-data]
          (if (and (empty? state)
                   (not loading?))
            [:div.no-items-found "No items found"]

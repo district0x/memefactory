@@ -116,7 +116,7 @@
                                                          :else (enum :reg-entry.status/blacklisted))
    :else (enum :reg-entry.status/whitelisted)))
 
-(defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :challenged :order-by :order-dir :owner :creator :curator :challenger :voter :first :after] :as args}]
+(defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :tags-not :statuses :challenged :order-by :order-dir :owner :creator :curator :challenger :voter :first :after] :as args}]
   (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
@@ -163,6 +163,9 @@
                                                            [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
                                                            [:in :meme-tags.tag/name tags]]}])
                  tags-or      (sqlh/merge-where [:in :meme-tags.tag/name tags-or])
+                 tags-not     (sqlh/merge-where [:or
+                                                 [:not-in :meme-tags.tag/name tags-not]
+                                                 [:= :meme-tags.tag/name nil]])
                  creator      (sqlh/merge-where [:= :re.reg-entry/creator creator])
                  curator      (sqlh/merge-where [:or [:= :re.challenge/challenger curator]
                                                  [:= :v.vote/voter curator]])
@@ -233,7 +236,7 @@
 ;; If testing this by hand remember params like statuses should be string and not keywords
 ;; like (search-meme-auctions-query-resolver nil {:statuses [(enum :meme-auction.status/active)]})
 (defn search-meme-auctions-query-resolver [_ {:keys [:title :non-for-meme :for-meme
-                                                     :tags :tags-or :order-by :order-dir :group-by
+                                                     :tags :tags-or :tags-not :order-by :order-dir :group-by
                                                      :statuses :seller :first :after] :as args}]
   (log/debug "search-meme-auctions-query-resolver" args)
   (try-catch-throw
@@ -260,6 +263,9 @@
                  non-for-meme (sqlh/merge-where [:not= :m.reg-entry/address non-for-meme])
                  for-meme     (sqlh/merge-where [:= :m.reg-entry/address for-meme])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
+                 tags-not     (sqlh/merge-where [:or
+                                                 [:not-in :meme-tags.tag/name tags-not]
+                                                 [:= :meme-tags.tag/name nil]])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                            :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
