@@ -14,7 +14,8 @@
    {:display :flex
     :padding-left (em 0.4)}
    [:label {:font-size "10px"
-            :white-space :nowrap}]
+            :white-space :nowrap
+            :margin-left (em 0.4)}]
    [:.input-group
     [:.help-block {:display :none}]]]
 

@@ -24,10 +24,9 @@
 
 (defn nsfw-switch [form-data]
   (let [id :nsfw-switch]
-    (fn []
-      [:div.nsfw-switch.single-check
-       [input/checkbox-input {:form-data form-data
-                              :id id
-                              :on-change #(dispatch [::mf-events/nsfw-switch]) }]
-       [:label {:on-click #(swap! form-data update id not)}
-        "NSFW"]])))
+    [:div.nsfw-switch.single-check
+     [input/checkbox-input {:form-data form-data
+                            :id id
+                            :on-change #(dispatch [::mf-events/nsfw-switch]) }]
+     [:label {:on-click #(swap! form-data update id not)}
+      "NSFW"]]))
