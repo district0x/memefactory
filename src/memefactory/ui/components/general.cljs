@@ -1,7 +1,11 @@
 (ns memefactory.ui.components.general
   (:require
     [district.ui.router.events :as router-events]
-    [re-frame.core :refer [dispatch subscribe]]))
+    [re-frame.core :refer [dispatch subscribe]]
+    [memefactory.ui.subs :as mf-subs]
+    [memefactory.ui.events :as mf-events]
+    [reagent.core :as r]
+    [district.ui.component.form.input :as input]))
 
 
 (defn dank-with-logo [amount]
@@ -17,3 +21,13 @@
                     :href (when route @(subscribe [:district.ui.router.subs/resolve route params query]))}
                    (dissoc props :route :params :query))]
         childs))
+
+(defn nsfw-switch [form-data]
+  (let [id :nsfw-switch]
+    (fn []
+      [:div.nsfw-switch.single-check
+       [input/checkbox-input {:form-data form-data
+                              :id id
+                              :on-change #(dispatch [::mf-events/nsfw-switch]) }]
+       [:label {:on-click #(swap! form-data update id not)}
+        "NSFW"]])))

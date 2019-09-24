@@ -43,6 +43,7 @@
                       :margin-left (em 3)
                       :margin-right (em 3)
                       :top (em -1)}])]
+    [:.nsfw-switch {:margin-left (em 2.2)}]
     [:.scroll-area
      {:width "100%"}
      [:.tiles

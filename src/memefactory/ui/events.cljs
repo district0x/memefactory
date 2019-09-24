@@ -47,3 +47,11 @@
    (let [votes (reader/read-string data-string)]
      {:store (cljs-utils/merge-in store {:votes votes})
       :db (cljs-utils/merge-in db {:votes votes})})))
+
+(re-frame/reg-event-fx
+ ::nsfw-switch
+ [interceptors (re-frame/inject-cofx :store)]
+ (fn [{:keys [db store]} _]
+   (let [on-or-off (not (:nsfw-switch db))]
+     {:store (assoc store :nsfw-switch on-or-off)
+      :db (assoc db :nsfw-switch on-or-off)})))
