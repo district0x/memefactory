@@ -84,8 +84,8 @@
       (str
        "'name dropdown .'\n"
        "'chip chip .'\n"
-       "'. checkbox .'\n"
-       "'. radios .'\n")
+       "'. radios .'\n"
+       "'. checkbox .'\n")
       :grid-column-gap (em 2)
       :color (c/color :section-subcaption)}
      (for-media-max :computer
@@ -96,8 +96,8 @@
                           "'name'\n"
                           "'dropdown'\n"
                           "'chip'\n"
-                          "'checkbox'\n"
-                          "'radios'\n")}
+                          "'radios'\n"
+                          "'checkbox'\n")}
                      [:.filled
                       [:label {:display :none}]]])
 
