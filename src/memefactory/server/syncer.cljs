@@ -378,7 +378,13 @@
                  (and (= block-number last-block-number) (> log-index last-log-index)))
            (do
              (log/info "Handling new event" evt)
-             (let [res (callback err event)] ;; block if we need
+
+             (let [result (callback err event)]
+               ;; block if we need
+               (if (satisfies? cljs.core.async.impl.protocols/ReadPort result)
+                 (<! result)
+                 result)
+
                (db/upsert-event! {:event/last-log-index log-index
                                   :event/last-block-number block-number
                                   :event/count (inc count)
