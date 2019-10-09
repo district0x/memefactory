@@ -338,7 +338,7 @@
        (db/patch-forbidden-reg-entry-image! address)))))
 
 (defn- block-timestamp* [block-number]
-  (let [out-ch (async/chan)]
+  (let [out-ch (async/promise-chan)]
    (web3-eth/get-block @web3 block-number false (fn [err {:keys [:timestamp] :as res}]
                                                   (if err
                                                     (js/Error. err)
@@ -390,7 +390,7 @@
                                   :event/count (inc count)
                                   :event/event-name event-name
                                   :event/contract-key contract-key})
-               res))
+               result))
 
            (log/info "Skipping handling of a persisted event" evt)))
        (catch js/Error error
