@@ -28,7 +28,7 @@
             :statuses [:reg-entry.status/whitelisted]
             :order-dir :desc}
      after       (assoc :after after)
-     nsfw-switch (assoc :tags-not [search/nsfw-tag]))
+     (not nsfw-switch) (assoc :tags-not [search/nsfw-tag]))
    [:total-count
     :end-cursor
     :has-next-page

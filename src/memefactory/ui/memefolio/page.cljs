@@ -734,7 +734,7 @@
                                          :first first}
                                         (when after
                                           {:after (str after)})
-                                        (when nsfw-switch
+                                        (when (not nsfw-switch)
                                           {:tags-not [search/nsfw-tag]})
                                         (when term
                                           {:title term})
@@ -763,7 +763,7 @@
                                        :first first}
                                       (when after
                                         {:after (str after)})
-                                      (when nsfw-switch
+                                      (when (not nsfw-switch)
                                           {:tags-not [search/nsfw-tag]})
                                       (when term
                                         {:title term})
@@ -789,7 +789,7 @@
                                         challenged?              {:challenger user-address})
                                       (when after
                                         {:after (str after)})
-                                      (when nsfw-switch
+                                      (when (not nsfw-switch)
                                           {:tags-not [search/nsfw-tag]})
                                       (when term
                                         {:title term})
@@ -812,7 +812,7 @@
                                                :first first}
                                               (when after
                                                 {:after (str after)})
-                                              (when nsfw-switch
+                                              (when (not nsfw-switch)
                                                 {:tags-not [search/nsfw-tag]})
                                               (when term
                                                 {:title term})

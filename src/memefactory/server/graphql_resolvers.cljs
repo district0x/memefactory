@@ -264,8 +264,8 @@
                  for-meme     (sqlh/merge-where [:= :m.reg-entry/address for-meme])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
                  tags-not     (sqlh/merge-where [:or
-                                                 [:not-in :meme-tags.tag/name tags-not]
-                                                 [:= :meme-tags.tag/name nil]])
+                                                 [:not-in :mtags.tag/name tags-not]
+                                                 [:= :mtags.tag/name nil]])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                            :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
