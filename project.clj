@@ -19,7 +19,7 @@
                  [com.taoensso/encore "2.92.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [day8.re-frame/http-fx "0.1.6"]
-                 [district0x/async-helpers "0.1.2"]
+                 [district0x/async-helpers "0.1.3"]
                  [district0x/bignumber "1.0.3"]
                  [district0x/cljs-ipfs-http-client "1.0.5"]
                  [district0x/cljs-solidity-sha3 "1.0.0"]
