@@ -340,15 +340,6 @@
        (log/info (str "Blacklisting address " address) ::apply-blacklist-patches)
        (db/patch-forbidden-reg-entry-image! address)))))
 
-#_(defn- block-timestamp* [block-number]
-    (js/Promise.
-     (fn [resolve reject]
-       (web3-eth/get-block @web3 block-number false (fn [err res]
-                                                      (if err
-                                                        (reject err)
-                                                        (let [{:keys [:timestamp] :as result} (js->clj res :keywordize-keys true)]
-                                                          (log/debug "cache miss for block-timestamp" {:block-number block-number :timestamp timestamp})
-                                                          (resolve timestamp))))))))
 (defn- block-timestamp* [block-number]
   (let [out-ch (async/promise-chan)]
     (web3-eth/get-block @web3 block-number false (fn [err {:keys [:timestamp] :as res}]
