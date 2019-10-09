@@ -127,7 +127,7 @@
                                                                        :only-cheapest :meme-auctions.group-by/cheapest}
                                                                       option-filters))
 
-                                                nsfw-switch
+                                                (not nsfw-switch)
                                                 (assoc :tags-not [search/nsfw-tag]))
                         [[:items [:meme-auction/address
                                   :meme-auction/status

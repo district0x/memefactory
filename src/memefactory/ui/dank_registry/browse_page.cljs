@@ -24,7 +24,7 @@
      (not-empty search-term) (assoc :title search-term)
      (not-empty search-tags) (assoc :tags search-tags)
      after                   (assoc :after after)                    ;; TODO: fix this HACK!
-     nsfw-switch             (assoc :tags-not [search/nsfw-tag])
+     (not nsfw-switch)       (assoc :tags-not [search/nsfw-tag])
      order-by                (assoc :order-by (keyword "memes.order-by" (case order-by
                                                                           "number-asc" "number"
                                                                           "number-desc" "number"

@@ -37,7 +37,7 @@
      (not-empty search-tags)
      (assoc :tags search-tags)
 
-     nsfw-switch
+     (not nsfw-switch)
      (assoc :tags-not [search/nsfw-tag])
 
      after
