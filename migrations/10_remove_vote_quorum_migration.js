@@ -1,13 +1,23 @@
-const {readSmartContractsFile,getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode} = require ("./utils.js");
-const {parameters, smart_contracts_path, env} = require ('../truffle.js');
+const {readSmartContractsFile,getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode, copy} = require ("./utils.js");
+const {contracts_build_directory, parameters, smart_contracts_path, env} = require ('../truffle.js');
 
-const ParamChangeFactory = artifacts.require("ParamChangeFactory");
-const ParamChange = artifacts.require("ParamChange");
-const ParamChangeRegistry = artifacts.require("ParamChangeRegistry");
+copy ("ParamChangeFactory", "ParamChangeFactoryCp", contracts_build_directory);
+const ParamChangeFactory = artifacts.require("ParamChangeFactoryCp");
 
-const MemeFactory = artifacts.require("MemeFactory");
-const Meme = artifacts.require("Meme");
-const MemeRegistry = artifacts.require("MemeRegistry");
+copy ("ParamChange", "ParamChangeCp", contracts_build_directory);
+const ParamChange = artifacts.require("ParamChangeCp");
+
+copy ("ParamChangeRegistry", "ParamChangeRegistryCp", contracts_build_directory);
+const ParamChangeRegistry = artifacts.require("ParamChangeRegistryCp");
+
+copy ("MemeFactory", "MemeFactoryCp", contracts_build_directory);
+const MemeFactory = artifacts.require("MemeFactoryCp");
+
+copy ("Meme", "MemeCp", contracts_build_directory);
+const Meme = artifacts.require("MemeCp");
+
+copy ("Registry", "RegistryCp", contracts_build_directory);
+const MemeRegistry = artifacts.require("RegistryCp");
 
 console.log("Using smart_contracts file ", smart_contracts_path);
 
