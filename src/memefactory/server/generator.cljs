@@ -160,7 +160,6 @@
                                                                       :duration (+ 60 (rand-int (- (bn/number max-auction-duration) 60)))
                                                                       :description description}
                                                                      {:from account}))]
-     ;; TODO : bug in smart-contracts/contract-event-in-tx, returns only last event
      (<? (smart-contracts/contract-event-in-tx [:meme-auction-factory :meme-auction-factory-fwd] :MemeAuctionStartedEvent tx-receipt)))))
 
 (defn buy-auctions! [{:keys [:accounts :meme-auctions :buy-auctions]}]
@@ -187,13 +186,14 @@
          to-reveal-time-increase (<? (web3-evm/increase-time @web3 (inc (bn/number commit-period-duration))))
          reveal-votes-txs (<? (reveal-votes! (merge accounts meme (:reveal-votes reveal-votes) {:commit-votes commit-votes})))
          to-claim-time-increase (<? (web3-evm/increase-time @web3 (bn/number (inc (bn/number reveal-period-duration)))))
-
          block (<? (web3-evm/mine-block @web3))
          status (<? (get-meme-status meme))
          claim-rewards-txs (<? (claim-rewards! (merge accounts meme {:claim-vote-rewards claim-vote-rewards})))
          meme-tokens (<? (mint-meme-tokens! (merge accounts meme mint-meme-tokens)))
-         meme-auctions (<? (start-auctions! (merge accounts meme-db-values meme {:minted-meme-tokens meme-tokens} start-auctions)))
-         buy-auction-txs (<? (buy-auctions! (merge accounts {:meme-auctions [meme-auctions] :buy-auctions buy-auctions} )))]
+         meme-auctions [(<? (start-auctions! (merge accounts meme-db-values meme {:minted-meme-tokens meme-tokens} start-auctions)))]
+         ;; TODO : weird bug, tx is sent but never executed
+         ;; buy-auction-txs (<? (buy-auctions! (merge accounts {:meme-auctions meme-auctions :buy-auctions buy-auctions})))
+         ]
      (log/debug "generate-memes results" {:meme-db-values meme-db-values
                                           :meme-image-hash meme-image-hash
                                           :meme-meta-hash meme-meta-hash
@@ -208,4 +208,5 @@
                                           :claim-rewards-txs (map :transaction-hash claim-rewards-txs)
                                           :meme-tokens meme-tokens
                                           :meme-auctions meme-auctions
-                                          :buy-auction-txs (map :transaction-hash buy-auction-txs)}))))
+                                          ;; :buy-auction-txs (map :transaction-hash buy-auction-txs)
+                                          }))))
