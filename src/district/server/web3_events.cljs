@@ -1,12 +1,11 @@
 (ns district.server.web3-events
-  (:require
-   [cljs-web3.eth :as web3-eth]
-   [district.server.config :refer [config]]
-   [district.server.smart-contracts :as smart-contracts]
-   [district.server.web3 :refer [web3]]
-   [medley.core :as medley]
-   [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log]))
+  (:require [cljs-web3.eth :as web3-eth]
+            [district.server.config :refer [config]]
+            [district.server.smart-contracts :as smart-contracts]
+            [district.server.web3 :refer [web3]]
+            [medley.core :as medley]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (declare start)
 (declare stop)
@@ -17,10 +16,6 @@
   :stop (stop web3-events))
 
 (defn register-callback! [event-key callback & [callback-id]]
-
-  (log/debug "@@@ REGISTER-CALLBACK!" {:k event-key})
-
-
   (let [[contract-key event] (if-not (= event-key ::after-past-events-dummy-key)
                                (get (:events @web3-events) event-key)
                                [::after-past-events-dummy-contract ::after-past-events-dummy-event])
@@ -63,44 +58,15 @@
      (for [callback (vals (get-in @(:callbacks @web3-events) [(:contract-key contract) event]))]
        (callback err evt)))))
 
-(defn test-it []
-  (for [[contract events] @(:callbacks @web3-events)]
-
-    (log/debug "test-it" {:c contract
-                          :e events})
-
-    ))
-
 (defn- start-dispatching-latest-events! [events]
   (web3-eth/get-block-number @web3 (fn [_ last-block-number]
-                                     (let [event-filters #_(doall (for [[k [contract event]] events]
-                                                                  (let [[_ callback] (first (get-in @(:callbacks @web3-events) [contract event]))]
-                                                                    (smart-contracts/subscribe-events contract
-                                                                                                      event
-                                                                                                      {:from-block last-block-number
-                                                                                                       :latest-event? true}
-                                                                                                      callback))))
-
-                                           (doall (for [[contract event->callbacks] (dissoc @(:callbacks @web3-events) :callback-id->path)
-                                                        [event callbacks] event->callbacks]
-
-                                                    (do
-                                                      (log/debug "@@" {:contract contract
-                                                                       :event event
-                                                                       :callbacks (vals callbacks)})
-
-                                                      ;; (constantly true)
-
-                                                      (smart-contracts/subscribe-events contract
-                                                                                          event
-                                                                                          {:from-block last-block-number
-                                                                                           :latest-event? true}
-                                                                                          (vals callbacks))
-
-                                                      )))
-
-
-                                           ]
+                                     (let [event-filters (doall (for [[contract event->callbacks] (dissoc @(:callbacks @web3-events) :callback-id->path)
+                                                                      [event callbacks] event->callbacks]
+                                                                  (smart-contracts/subscribe-events contract
+                                                                                                    event
+                                                                                                    {:from-block last-block-number
+                                                                                                     :latest-event? true}
+                                                                                                    (vals callbacks))))]
                                        (log/info "Subscribed to future events" {:events (keys events)
                                                                                 :from-block last-block-number})
                                        (swap! (:event-filters @web3-events) (fn [_ new] new) event-filters)))))

@@ -1,22 +1,20 @@
 (ns district.server.smart-contracts
-  (:require
-   [cljs-web3.core :as web3-core]
-   [cljs-web3.eth :as web3-eth]
-   [cljs-web3.utils :as web3-utils]
-   [district.shared.async-helpers :refer [promise->]]
-   [taoensso.timbre :as log]
-   [clojure.set :as clojure-set]
-   [cljs.core.async :refer [<! timeout] :as async]
-   [cljs.core.match :refer-macros [match]]
-   [cljs.nodejs :as nodejs]
-   ;; [cljs.pprint]
-   [taoensso.timbre :as log]
-   [clojure.string :as string]
-   [district.shared.async-helpers :as async-helpers]
-   [district.server.config :refer [config]]
-   [district.server.web3 :refer [web3]]
-   [mount.core :as mount :refer [defstate]]
-   [cljs.core.async.impl.protocols])
+  (:require [cljs-web3.core :as web3-core]
+            [cljs-web3.eth :as web3-eth]
+            [cljs-web3.utils :as web3-utils]
+            [cljs.core.async :refer [<! timeout] :as async]
+            [cljs.core.async.impl.protocols]
+            [cljs.core.match :refer-macros [match]]
+            [cljs.nodejs :as nodejs]
+            [clojure.set :as clojure-set]
+            [clojure.string :as string]
+            [district.server.config :refer [config]]
+            [district.server.web3 :refer [web3]]
+            [district.shared.async-helpers :as async-helpers]
+            [district.shared.async-helpers :refer [promise->]]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]
+            [taoensso.timbre :as log])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (def fs (nodejs/require "fs"))
@@ -189,20 +187,6 @@
                                        (callback error enriched-evt)))
 
                                    (log/warn (str "No callback specified for event " evt)))))))
-
-#_(defn subscribe-events [contract event {:keys [:from-block :address :topics :ignore-forward? :latest-event?] :as opts} & [callback]]
-  (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})]
-    (web3-eth/subscribe-events @web3
-                               contract-instance
-                               event
-                               opts
-                               (fn [error evt]
-                                 (if callback
-                                   (callback error (->> evt
-                                                        web3-utils/js->cljkk
-                                                        (#(assoc % :latest-event? latest-event?))
-                                                        (enrich-event-log contract contract-instance)))
-                                   (log/warn (str "No callback specified for event " event)))))))
 
 (defn subscribe-event-logs [contract event {:keys [:from-block :address :topics :ignore-forward?] :as opts} & [callback]]
   (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})

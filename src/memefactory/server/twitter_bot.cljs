@@ -1,22 +1,20 @@
 (ns memefactory.server.twitter-bot
-  (:require
-   [bignumber.core :as bn]
-   [cljs-web3.utils :as web3-utils]
-   [cljs.core.async :as async]
-   [cljs.nodejs :as nodejs]
-   [district.format :as format]
-   [district.server.config :as config]
-   [district.server.web3 :refer [web3]]
-   [district.server.web3-events :as web3-events]
-   [district.shared.async-helpers :refer [safe-go <?]]
-   [goog.string :as gstring]
-   [memefactory.server.conversion-rates :as conversion-rates]
-   [memefactory.server.db :as db]
-   [memefactory.server.ipfs :as ipfs]
-   [memefactory.server.utils :as server-utils]
-   [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log]
-   ))
+  (:require [bignumber.core :as bn]
+            [cljs-web3.utils :as web3-utils]
+            [cljs.core.async :as async]
+            [cljs.nodejs :as nodejs]
+            [district.format :as format]
+            [district.server.config :as config]
+            [district.server.web3 :refer [web3]]
+            [district.server.web3-events :as web3-events]
+            [district.shared.async-helpers :refer [safe-go <?]]
+            [goog.string :as gstring]
+            [memefactory.server.conversion-rates :as conversion-rates]
+            [memefactory.server.db :as db]
+            [memefactory.server.ipfs :as ipfs]
+            [memefactory.server.utils :as server-utils]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (def Twitter (nodejs/require "twitter"))
 (def fs (nodejs/require "fs"))
@@ -80,8 +78,7 @@
 
 (defn ensure-media-uploaded [twitter-obj {:keys [image-hash registry-entry]} {:keys [just-log-tweet?]}]
   (safe-go
-   true
-   #_(if-let [media-id (db/get-meme-media-id registry-entry)]
+   (if-let [media-id (db/get-meme-media-id registry-entry)]
      media-id
      (let [ipfs-hash (or image-hash
                          (:meme/image-hash (db/get-meme registry-entry)))
@@ -93,7 +90,6 @@
            media-id))))))
 
 
-;; TODO : blows up
 (defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :timestamp :creator :meta-hash
                                                      :total-supply :version :deposit :challenge-period-end]
                                               :as ev}]
@@ -184,12 +180,10 @@
                                    :access_token_key access-token-key
                                    :access_token_secret access-token-secret})
         callback-ids
-        [
-         (web3-events/register-callback! :meme-registry/meme-constructed-event (dispatcher twitter-obj opts tweet-meme-submitted))
+        [(web3-events/register-callback! :meme-registry/meme-constructed-event (dispatcher twitter-obj opts tweet-meme-submitted))
          (web3-events/register-callback! :meme-registry/challenge-created-event (dispatcher twitter-obj opts tweet-meme-challenged))
          (web3-events/register-callback! :meme-auction-factory/meme-auction-started-event (dispatcher twitter-obj opts tweet-meme-offered))
-         (web3-events/register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher twitter-obj opts tweet-meme-auction-bought))
-         ]]
+         (web3-events/register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher twitter-obj opts tweet-meme-auction-bought))]]
     {:callback-ids callback-ids
      :twitter-obj twitter-obj}))
 
