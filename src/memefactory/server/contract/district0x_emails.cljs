@@ -4,6 +4,9 @@
             [district.server.config :as config]))
 
 (defn get-email [{:keys [:district0x-emails/address]}]
+
+  (prn "@@@ GET EMAIL" address)
+
   (smart-contracts/contract-call :district0x-emails :get-email [address]))
 
 (defn set-email [email]

@@ -197,13 +197,14 @@
                                         :challenge/comment (:comment challenge-meta)})))))
 
 (defn vote-committed-event [_ {:keys [:args]}]
-  (let [{:keys [:registry-entry :timestamp :voter :amount]} args
-        vote {:reg-entry/address registry-entry
-              :vote/voter voter
-              :vote/amount (bn/number amount)
-              :vote/option 0}]
-    (db/upsert-user! {:user/address voter})
-    (db/insert-vote! (merge vote {:vote/created-on timestamp}))))
+  (safe-go
+   (let [{:keys [:registry-entry :timestamp :voter :amount]} args
+         vote {:reg-entry/address registry-entry
+               :vote/voter voter
+               :vote/amount (bn/number amount)
+               :vote/option 0}]
+     (db/upsert-user! {:user/address voter})
+     (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
 (defn vote-revealed-event [_ {:keys [:args]}]
   (safe-go
@@ -446,7 +447,8 @@
      (when-not (= ::db/started @db/memefactory-db)
        (throw (js/Error. "Database module has not started")))
      (let [start-time (server-utils/now)
-           event-callbacks {:meme-registry-db/eternal-db-event eternal-db-event
+           event-callbacks {
+                            :meme-registry-db/eternal-db-event eternal-db-event
                             :meme-registry/meme-constructed-event meme-constructed-event
                             :meme-registry/challenge-created-event challenge-created-event
                             :meme-registry/vote-committed-event vote-committed-event
@@ -467,7 +469,8 @@
                             :param-change-registry/vote-amount-claimed-event vote-amount-claimed-event
                             :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
                             :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
-                            :param-change-registry/param-change-applied-event param-change-applied-event}
+                            :param-change-registry/param-change-applied-event param-change-applied-event
+                            }
            callback-ids (doall (for [[event-key callback] event-callbacks]
                                  (web3-events/register-callback! event-key (dispatcher callback))))]
        (web3-events/register-after-past-events-dispatched-callback! (fn []

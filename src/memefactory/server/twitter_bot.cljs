@@ -186,9 +186,9 @@
         callback-ids
         [
          (web3-events/register-callback! :meme-registry/meme-constructed-event (dispatcher twitter-obj opts tweet-meme-submitted))
-         #_(web3-events/register-callback! :meme-registry/challenge-created-event (dispatcher twitter-obj opts tweet-meme-challenged))
-         #_(web3-events/register-callback! :meme-auction-factory/meme-auction-started-event (dispatcher twitter-obj opts tweet-meme-offered))
-         #_(web3-events/register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher twitter-obj opts tweet-meme-auction-bought))
+         (web3-events/register-callback! :meme-registry/challenge-created-event (dispatcher twitter-obj opts tweet-meme-challenged))
+         (web3-events/register-callback! :meme-auction-factory/meme-auction-started-event (dispatcher twitter-obj opts tweet-meme-offered))
+         (web3-events/register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher twitter-obj opts tweet-meme-auction-bought))
          ]]
     {:callback-ids callback-ids
      :twitter-obj twitter-obj}))

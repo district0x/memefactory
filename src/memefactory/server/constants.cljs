@@ -1,7 +1,8 @@
 (ns memefactory.server.constants)
 
 (def web3-events
-  {:meme-registry-db/eternal-db-event [:meme-registry-db :EternalDbEvent]
+  {
+   :meme-registry-db/eternal-db-event [:meme-registry-db :EternalDbEvent]
    :meme-registry/meme-constructed-event [:meme-registry-fwd :MemeConstructedEvent]
    :meme-registry/challenge-created-event [:meme-registry-fwd :ChallengeCreatedEvent]
    :meme-registry/vote-committed-event [:meme-registry-fwd :VoteCommittedEvent]
@@ -25,4 +26,5 @@
    :param-change-registry/param-change-applied-event [:param-change-registry-fwd :ParamChangeAppliedEvent]
    :dank-faucet/dank-transfer-event [:dank-faucet :DankTransferEvent]
    :dank-faucet/oraclize-request-event [:dank-faucet :OraclizeRequestEvent]
-   :dank-faucet/dank-reset-event [:dank-faucet :DankResetEvent]})
+   :dank-faucet/dank-reset-event [:dank-faucet :DankResetEvent]
+   })

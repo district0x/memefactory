@@ -10,6 +10,7 @@
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [web3]]
             [district.shared.async-helpers :refer [safe-go <?]]
+            [cljs.core.async :as async]
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.meme :as meme]
             [memefactory.server.contract.meme-auction :as meme-auction]
@@ -170,6 +171,11 @@
      (meme-auction/buy meme-auction {:from (nth accounts from-account)
                                      :value (web3-utils/to-wei @web3 price :ether)}))))
 
+(defn pause [millis]
+  (js/Promise. (fn [resolve reject]
+                 (js/setTimeout #(resolve millis)
+                                millis))))
+
 (defn generate-memes [{:keys [:create-meme :challenge-meme :commit-votes
                               :reveal-votes :claim-vote-rewards :mint-meme-tokens
                               :start-auctions :buy-auctions]
@@ -180,8 +186,10 @@
          meme-image-hash (<? (upload-meme-image! create-meme))
          meme-meta-hash (<? (upload-meme-meta! (merge meme-image-hash create-meme)))
          meme (<? (create-meme! (merge accounts meme-db-values meme-meta-hash create-meme)))
+         ;; _ (<? (pause 1000))
          challenge-meta (<? (upload-challenge-meta! (merge accounts meme-db-values meme challenge-meme)))
          challenge-meme-tx (<? (challenge-meme! (merge accounts challenge-meta meme challenge-meme)))
+         ;; _ (<? (pause 1000))
          commit-votes-txs (<? (commit-votes! (merge accounts meme {:commit-votes commit-votes})))
          to-reveal-time-increase (<? (web3-evm/increase-time @web3 (inc (bn/number commit-period-duration))))
          reveal-votes-txs (<? (reveal-votes! (merge accounts meme (:reveal-votes reveal-votes) {:commit-votes commit-votes})))
@@ -194,7 +202,7 @@
          ;; TODO : weird bug, tx is sent but never executed
          ;; buy-auction-txs (<? (buy-auctions! (merge accounts {:meme-auctions meme-auctions :buy-auctions buy-auctions})))
          ]
-     (log/debug "generate-memes results" {:meme-db-values meme-db-values
+     #_(log/debug "generate-memes results" {:meme-db-values meme-db-values
                                           :meme-image-hash meme-image-hash
                                           :meme-meta-hash meme-meta-hash
                                           :meme meme

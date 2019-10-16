@@ -172,7 +172,25 @@
   ([contract method]
    (contract-send contract method [] {})))
 
-(defn subscribe-events [contract event {:keys [:from-block :address :topics :ignore-forward? :latest-event?] :as opts} & [callback]]
+(defn subscribe-events [contract event {:keys [:from-block :address :topics :ignore-forward? :latest-event?] :as opts} callbacks]
+  (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})]
+    (web3-eth/subscribe-events @web3
+                               contract-instance
+                               event
+                               opts
+                               (fn [error evt]
+                                 (if callbacks
+                                   ;; if we have callbacks registered, fire this event in all of them
+                                   (let [enriched-evt (->> evt
+                                                           web3-utils/js->cljkk
+                                                           (#(assoc % :latest-event? latest-event?))
+                                                           (enrich-event-log contract contract-instance))]
+                                     (doseq [callback callbacks]
+                                       (callback error enriched-evt)))
+
+                                   (log/warn (str "No callback specified for event " evt)))))))
+
+#_(defn subscribe-events [contract event {:keys [:from-block :address :topics :ignore-forward? :latest-event?] :as opts} & [callback]]
   (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})]
     (web3-eth/subscribe-events @web3
                                contract-instance
@@ -184,7 +202,7 @@
                                                         web3-utils/js->cljkk
                                                         (#(assoc % :latest-event? latest-event?))
                                                         (enrich-event-log contract contract-instance)))
-                                   (log/warn (str "No callback specified for event " evt)))))))
+                                   (log/warn (str "No callback specified for event " event)))))))
 
 (defn subscribe-event-logs [contract event {:keys [:from-block :address :topics :ignore-forward?] :as opts} & [callback]]
   (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})
