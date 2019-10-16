@@ -206,7 +206,7 @@
                    (reduce (fn [result {:keys [:topics :data] :as log}]
                              (when (= signature (first topics))
                                (let [return-values (web3-eth/decode-log @web3 (:inputs event-interface) data topics)]
-                                 (reduced (web3-utils/return-values->clj return-values event-interface)))))
+                                 (web3-utils/return-values->clj return-values event-interface))))
                            nil
                            logs))))))
 
