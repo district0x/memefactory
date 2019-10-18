@@ -290,12 +290,8 @@
     (db/update-meme-auction! {:meme-auction/address meme-auction
                               :meme-auction/canceled-on timestamp})))
 
-;; TODO : never gets called, wtf?
 (defn meme-auction-buy-event [_ {:keys [:args] :as evt}]
   (safe-go
-
-   (log/error "@@@ meme-auction-buy-event" evt)
-
    (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
          auction (db/get-meme-auction meme-auction)
          reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
