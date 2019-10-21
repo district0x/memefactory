@@ -1,6 +1,5 @@
 (ns memefactory.server.dev
   (:require
-   #_[district.server.web3-watcher]
    [ajax.core :as http]
    [bignumber.core :as bn]
    [camel-snake-kebab.core :as cs :include-macros true]
@@ -20,6 +19,7 @@
    [district.server.smart-contracts]
    [district.server.web3 :refer [web3]]
    [district.server.web3-events]
+   [district.server.web3-watcher]
    [district.shared.async-helpers :as async-helpers]
    [goog.date.Date]
    [graphql-query.core :refer [graphql-query]]
@@ -203,14 +203,16 @@
                                            :confirmations 3
                                            :on-offline (fn []
                                                          (log/error "Ethereum node went offline, stopping syncing modules" ::web3-watcher)
-                                                         (mount/stop #'memefactory.server.db/memefactory-db
+                                                         (mount/stop #'district.server.web3/web3
+                                                                     #'memefactory.server.db/memefactory-db
                                                                      #'district.server.web3-events/web3-events
                                                                      #'memefactory.server.syncer/syncer
                                                                      #'memefactory.server.pinner/pinner
                                                                      #'memefactory.server.emailer/emailer))
                                            :on-online (fn []
                                                         (log/warn "Ethereum node went online again, starting syncing modules" ::web3-watcher)
-                                                        (mount/start #'memefactory.server.db/memefactory-db
+                                                        (mount/start #'district.server.web3/web3
+                                                                     #'memefactory.server.db/memefactory-db
                                                                      #'district.server.web3-events/web3-events
                                                                      #'memefactory.server.syncer/syncer
                                                                      #'memefactory.server.pinner/pinner

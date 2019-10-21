@@ -19,23 +19,28 @@
 (defn websocket-connection? [uri]
   (string/starts-with? uri "ws"))
 
-(defn start [{:keys [:port :url] :as opts}]
-  (when (and (not port) (not url))
-    (throw (js/Error. "You must provide port or url to start the web3 component")))
+(defn create [{:keys [:host :port :url] :as opts}]
   (let [uri (if url
               url
-              (str "http://127.0.0.1:" port))
+              (str (or host "http://127.0.0.1") ":" port))
         instance (web3js/new)]
-    (web3-core/extend {:instance instance
-                       :provider (if (websocket-connection? uri)
-                                   (web3-core/websocket-provider instance uri)
-                                   (web3-core/http-provider instance uri))}
-      :evm
-      [(web3-helpers/method {:name "increaseTime"
-                             :call "evm_increaseTime"
-                             :params 1})
-       (web3-helpers/method {:name "mineBlock"
-                             :call "evm_mine"})])))
+    {:instance instance
+     :provider (if (websocket-connection? uri)
+                 (web3-core/websocket-provider instance uri)
+                 (web3-core/http-provider instance uri))}))
+
+(defn start [{:keys [:port :url] :as opts}]
+
+  (when (and (not port) (not url))
+    (throw (js/Error. "You must provide port or url to start the web3 component")))
+
+  (web3-core/extend (create opts)
+    :evm
+    [(web3-helpers/method {:name "increaseTime"
+                           :call "evm_increaseTime"
+                           :params 1})
+     (web3-helpers/method {:name "mineBlock"
+                           :call "evm_mine"})]))
 
 (defn stop [web3]
   ::stopped)

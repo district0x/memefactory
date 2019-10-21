@@ -12,12 +12,16 @@
     (new Web3 (new (aget Web3 "providers" "HttpProvider") uri)))
   (-websocket-provider [_ uri]
     (new Web3 (new (aget Web3 "providers" "WebsocketProvider") uri)))
+  (-connection-url [_ provider]
+   (aget provider "currentProvider" "connection" "_url"))
   (-extend [_ provider property methods]
     {:instance _
      :provider (js-invoke provider "extend" (web3-helpers/cljkk->js {:property property
-                                                                   :methods methods}))})
+                                                                     :methods methods}))})
   (-connected? [_ provider & [callback]]
     (apply js-invoke (aget provider "eth" "net") "isListening" (remove nil? [callback])))
+  (-on-disconnect [_ provider & [callback]]
+    (apply js-invoke (aget provider "currentProvider") (remove nil? ["on" "end" callback])))
   (-address? [_ provider address]
     (js-invoke (aget provider "utils") "isAddress" address))
   (-sha3 [_ provider arg]
@@ -67,9 +71,7 @@
   (-increase-time [this provider seconds]
     (js-invoke (aget provider "evm") "increaseTime" seconds))
   (-mine-block [this provider]
-    (js-invoke (aget provider "evm") "mineBlock"))
-
-  )
+    (js-invoke (aget provider "evm") "mineBlock")))
 
 (defn new []
   (->Web3Js))

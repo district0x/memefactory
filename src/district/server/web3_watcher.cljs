@@ -1,66 +1,36 @@
 (ns district.server.web3-watcher
-  (:require
-    [cljs-web3.core :as web3]
-    [district.server.config :refer [config]]
-    [district.server.web3 :refer [web3]]
-    [mount.core :as mount :refer [defstate]]))
+  (:require [cljs-web3.eth :as web3-eth]
+            [cljs-web3.core :as web3-core]
+            [district.server.config :refer [config]]
+            [district.server.web3 :refer [web3 create]]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (declare start)
 (declare stop)
+
 (defstate web3-watcher
   :start (start (merge (:web3-watcher @config)
                        (:web3-watcher (mount/args))))
   :stop (stop))
 
-
-;; (defn online? []
-;;   @(:online? @web3-watcher))
-
-
-;; (defn- update-online! [online?]
-;;   (reset! (:online? @web3-watcher) online?))
-
-
-;; (defn- reset-confirmations-left! []
-;;   (reset! (:confirmations-left @web3-watcher) (:confirmations @web3-watcher)))
-
-
-;; (defn- decrease-confirmations-left! []
-;;   (swap! (:confirmations-left @web3-watcher) dec))
-
-
-;; (defn- check-connection []
-;;   (let [connected? (web3/connected? @web3)]
-;;     (cond
-;;       (and connected? (not (online?)))
-;;       (do
-;;         (update-online! true)
-;;         (reset-confirmations-left!)
-;;         ((:on-online @web3-watcher)))
-
-;;       (and (not connected?)
-;;            (> @(:confirmations-left @web3-watcher) 0))
-;;       (decrease-confirmations-left!)
-
-;;       (and (not connected?)
-;;            (online?)
-;;            (<= @(:confirmations-left @web3-watcher) 0))
-;;       (do
-;;         (update-online! false)
-;;         ((:on-offline @web3-watcher))))))
-
-
-(defn start [{:keys [:interval :on-online :on-offline :confirmations] :as opts
+(defn start [{:keys [:interval :on-online :on-offline] :as opts
               :or {interval 3000 confirmations 3}}]
-:TODO
-
-  #_(merge {:on-online identity
-          :on-offline identity
-          :interval-id (js/setInterval check-connection interval)
-          :online? (atom (web3/connected? @web3))
-          :confirmations-left (atom confirmations)}
-         opts))
-
+  (let [interval-id (atom nil)]
+    (web3-core/on-disconnect @web3
+                             (fn [event]
+                               (log/info "Web3 connection interrupted" {:event event})
+                               (on-offline)
+                               (reset! interval-id (js/setInterval (fn []
+                                                                     (web3-eth/connected? (create {:url (web3-core/connection-url @web3)})
+                                                                                          (fn [error result]
+                                                                                            (let [connected? (and (nil? error) result)]
+                                                                                              (log/debug "Polling..." {:connected? connected?})
+                                                                                              (when connected?
+                                                                                                (js/clearInterval (:interval-id @web3-watcher))
+                                                                                                (on-online))))))
+                                                                   interval))))
+    {:interval-id interval-id}))
 
 (defn stop []
-  #_(js/clearInterval (:interval-id @web3-watcher)))
+  (js/clearInterval (:interval-id @web3-watcher)))

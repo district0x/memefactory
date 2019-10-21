@@ -21,7 +21,7 @@
    [memefactory.shared.contract.registry-entry :refer [vote-options]]
    [memefactory.shared.utils :as shared-utils]
    [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log :refer [spy]]
+   [taoensso.timbre :as log]
    ))
 
 (declare start)
