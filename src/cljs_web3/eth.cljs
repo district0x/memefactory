@@ -1,8 +1,8 @@
 (ns cljs-web3.eth
   (:require [cljs-web3.api :as api]))
 
-(defn connected? [{:keys [:instance :provider]} & [callback]]
-  (api/-connected? instance provider callback))
+(defn is-listening? [{:keys [:instance :provider]} & [callback]]
+  (api/-is-listening? instance provider callback))
 
 (defn contract-at [{:keys [:instance :provider]} abi address]
  (api/-contract-at instance provider abi address))

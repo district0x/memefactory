@@ -13,5 +13,11 @@
 (defn extend [{:keys [:instance :provider]} property methods]
   (api/-extend instance provider property methods))
 
+(defn connected? [{:keys [:instance :provider]}]
+  (api/-connected? instance provider))
+
+(defn disconnect [{:keys [:instance :provider]}]
+  (api/-disconnect instance provider))
+
 (defn on-disconnect [{:keys [:instance :provider]} & [callback]]
   (api/-on-disconnect instance provider callback))

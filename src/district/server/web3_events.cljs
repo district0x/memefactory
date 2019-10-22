@@ -80,7 +80,7 @@
     (unregister-callbacks! callback-ids)))
 
 (defn start [{:keys [:events] :as opts}]
-  (web3-eth/connected? @web3 (fn [_ listening?]
+  (web3-eth/is-listening? @web3 (fn [_ listening?]
 
                                (if-not listening?
                                  (throw (js/Error. "Can't connect to Ethereum node"))

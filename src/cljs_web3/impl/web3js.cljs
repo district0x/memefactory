@@ -13,13 +13,17 @@
   (-websocket-provider [_ uri]
     (new Web3 (new (aget Web3 "providers" "WebsocketProvider") uri)))
   (-connection-url [_ provider]
-   (aget provider "currentProvider" "connection" "_url"))
+    (aget provider "currentProvider" "connection" "_url"))
   (-extend [_ provider property methods]
     {:instance _
      :provider (js-invoke provider "extend" (web3-helpers/cljkk->js {:property property
                                                                      :methods methods}))})
-  (-connected? [_ provider & [callback]]
+  (-is-listening? [_ provider & [callback]]
     (apply js-invoke (aget provider "eth" "net") "isListening" (remove nil? [callback])))
+  (-connected? [_ provider]
+    (aget provider "currentProvider"  "connected"))
+  (-disconnect [_ provider]
+    (js-invoke (aget provider "currentProvider") "disconnect"))
   (-on-disconnect [_ provider & [callback]]
     (apply js-invoke (aget provider "currentProvider") (remove nil? ["on" "end" callback])))
   (-address? [_ provider address]

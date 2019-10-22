@@ -438,7 +438,7 @@
 (defn start [opts]
   (safe-go
    (when-not (:disabled? opts)
-     (when-not (web3-eth/connected? @web3)
+     (when-not (web3-eth/is-listening? @web3)
        (throw (js/Error. "Can't connect to Ethereum node")))
      (when-not (= ::db/started @db/memefactory-db)
        (throw (js/Error. "Database module has not started")))

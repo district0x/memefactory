@@ -20,6 +20,9 @@
   (string/starts-with? uri "ws"))
 
 (defn create [{:keys [:host :port :url] :as opts}]
+
+  (prn "@@@ create")
+
   (let [uri (if url
               url
               (str (or host "http://127.0.0.1") ":" port))
@@ -30,6 +33,8 @@
                  (web3-core/http-provider instance uri))}))
 
 (defn start [{:keys [:port :url] :as opts}]
+
+  (prn "@@@ start")
 
   (when (and (not port) (not url))
     (throw (js/Error. "You must provide port or url to start the web3 component")))
@@ -42,5 +47,5 @@
      (web3-helpers/method {:name "mineBlock"
                            :call "evm_mine"})]))
 
-(defn stop [web3]
-  ::stopped)
+(defn stop [this]
+  (web3-core/disconnect @this))

@@ -56,7 +56,7 @@
 
 (defn start [opts]
   (safe-go
-   (when-not (<? (web3-eth/connected? @web3))
+   (when-not (<? (web3-eth/is-listening? @web3))
      (throw (js/Error. "Can't connect to Ethereum node"))))
   (let [event-callbacks {:my-contract/set-counter-event on-set-counter-event
                          :my-contract/increment-counter-event on-increment-counter-event}
