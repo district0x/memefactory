@@ -71,11 +71,11 @@
    [(sql/call :primary-key :meme-token/token-id)]])
 
 (def tags-columns
-  [[:tag/name :varchar primary-key not-nil]])
+  [[:tag/name :varchar primary-key not-nil (sql/raw "COLLATE NOCASE")]])
 
 (def meme-tags-columns
   [[:reg-entry/address address not-nil]
-   [:tag/name :varchar not-nil]
+   [:tag/name :varchar not-nil (sql/raw "COLLATE NOCASE")]
    [(sql/call :primary-key :reg-entry/address :tag/name)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]
    [(sql/call :foreign-key :tag/name) (sql/call :references :tags :tag/name) (sql/raw "ON DELETE CASCADE")]])
