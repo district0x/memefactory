@@ -82,7 +82,6 @@
 (defn tag []
   [:&
    {:line-height 1
-    :text-transform :capitalize
     :background-color (c/color :tags-grey)
     :color (c/color :menu-text)
     :margin (em 0.3)
