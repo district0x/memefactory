@@ -36,7 +36,7 @@
               :or {interval 3000} :as opts}]
   (let [this-web3 (create opts)
         interval-id (atom nil)
-        reset-connection (fn [event]
+        reset-connection (fn []
                            (on-offline)
                            (reset! interval-id (js/setInterval (fn []
                                                                  (let [new-web3 (create opts)]
@@ -47,7 +47,8 @@
                                                                                                (when connected?
                                                                                                  (js/clearInterval @interval-id)
                                                                                                  ;; swap websocket
-                                                                                                 (goog.object/set (:provider @web3) "currentProvider"
+                                                                                                 (web3-core/set-provider @web3 (aget (:provider new-web3) "currentProvider"))
+                                                                                                 #_(goog.object/set (:provider @web3) "currentProvider"
                                                                                                                   (aget (:provider new-web3) "currentProvider"))
                                                                                                  (on-online)))))))
                                                                interval)))]
@@ -55,7 +56,16 @@
     (when (and (not port) (not url))
       (throw (js/Error. "You must provide port or url to start the web3 component")))
 
-    (web3-core/on-error this-web3 reset-connection)
+    (js/setInterval (fn []
+                      (web3-eth/is-listening? this-web3
+                                              (fn [error result]
+                                                (let [connected? (and (nil? error) result)]
+                                                  (log/debug "Running connection healthcheck..." {:connected? connected?})
+                                                  (when-not connected?
+                                                    (reset-connection))))))
+                    300000)
+
+    (web3-core/on-error this-web3 #(log/error "Websocket connection error" {:error %}))
     (web3-core/on-disconnect this-web3 reset-connection)
 
     (web3-core/extend this-web3

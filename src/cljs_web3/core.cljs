@@ -10,6 +10,9 @@
 (defn websocket-provider [web3 uri]
   (api/-websocket-provider web3 uri))
 
+(defn set-provider [{:keys [:instance :provider]} new-provider]
+  (api/-set-provider instance provider new-provider))
+
 (defn extend [{:keys [:instance :provider]} property methods]
   (api/-extend instance provider property methods))
 

@@ -12,6 +12,8 @@
     (new Web3 (new (aget Web3 "providers" "HttpProvider") uri)))
   (-websocket-provider [_ uri]
     (new Web3 (new (aget Web3 "providers" "WebsocketProvider") uri)))
+  (-set-provider [_ provider new-provider]
+    (js-invoke provider "setProvider" new-provider))
   (-connection-url [_ provider]
     (aget provider "currentProvider" "connection" "_url"))
   (-extend [_ provider property methods]
