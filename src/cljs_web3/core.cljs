@@ -19,5 +19,11 @@
 (defn disconnect [{:keys [:instance :provider]}]
   (api/-disconnect instance provider))
 
+(defn on-connect [{:keys [:instance :provider]} & [callback]]
+  (api/-on-connect instance provider callback))
+
 (defn on-disconnect [{:keys [:instance :provider]} & [callback]]
   (api/-on-disconnect instance provider callback))
+
+(defn on-error [{:keys [:instance :provider]} & [callback]]
+  (api/-on-error instance provider callback))

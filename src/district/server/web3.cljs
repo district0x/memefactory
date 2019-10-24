@@ -35,27 +35,28 @@
 (defn start [{:keys [:port :url :on-online :on-offline :interval]
               :or {interval 3000} :as opts}]
   (let [this-web3 (create opts)
-        interval-id (atom nil)]
+        interval-id (atom nil)
+        reset-connection (fn [event]
+                           (on-offline)
+                           (reset! interval-id (js/setInterval (fn []
+                                                                 (let [new-web3 (create opts)]
+                                                                   (web3-eth/is-listening? new-web3
+                                                                                           (fn [error result]
+                                                                                             (let [connected? (and (nil? error) result)]
+                                                                                               (log/debug "Polling..." {:connected? connected?})
+                                                                                               (when connected?
+                                                                                                 (js/clearInterval @interval-id)
+                                                                                                 ;; swap websocket
+                                                                                                 (goog.object/set (:provider @web3) "currentProvider"
+                                                                                                                  (aget (:provider new-web3) "currentProvider"))
+                                                                                                 (on-online)))))))
+                                                               interval)))]
 
     (when (and (not port) (not url))
       (throw (js/Error. "You must provide port or url to start the web3 component")))
 
-    (web3-core/on-disconnect this-web3
-                             (fn [event]
-                               (on-offline)
-                               (reset! interval-id (js/setInterval (fn []
-                                                                     (let [new-web3 (create opts)]
-                                                                       (web3-eth/is-listening? new-web3
-                                                                                               (fn [error result]
-                                                                                                 (let [connected? (and (nil? error) result)]
-                                                                                                   (log/debug "Polling..." {:connected? connected?})
-                                                                                                   (when connected?
-                                                                                                     (js/clearInterval @interval-id)
-                                                                                                     ;; swap websocket
-                                                                                                     (goog.object/set (:provider @web3) "currentProvider"
-                                                                                                                      (aget (:provider new-web3) "currentProvider"))
-                                                                                                     (on-online)))))))
-                                                                   interval))))
+    (web3-core/on-error this-web3 reset-connection)
+    (web3-core/on-disconnect this-web3 reset-connection)
 
     (web3-core/extend this-web3
       :evm

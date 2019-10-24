@@ -24,8 +24,12 @@
     (aget provider "currentProvider"  "connected"))
   (-disconnect [_ provider]
     (js-invoke (aget provider "currentProvider") "disconnect"))
+  (-on-connect [_ provider & [callback]]
+    (apply js-invoke (aget provider "currentProvider") (remove nil? ["on" "connect" callback])))
   (-on-disconnect [_ provider & [callback]]
     (apply js-invoke (aget provider "currentProvider") (remove nil? ["on" "end" callback])))
+  (-on-error [_ provider & [callback]]
+    (apply js-invoke (aget provider "currentProvider") (remove nil? ["on" "error" callback])))
   (-address? [_ provider address]
     (js-invoke (aget provider "utils") "isAddress" address))
   (-sha3 [_ provider arg]
