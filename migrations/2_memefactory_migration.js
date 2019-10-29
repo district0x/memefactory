@@ -4,6 +4,8 @@ const edn = require("jsedn");
 const {env, contracts_build_directory, smart_contracts_path, parameters} = require ('../truffle.js');
 const web3Utils = require('web3-utils');
 
+const Migrations = artifacts.require("Migrations");
+
 copy ("DSGuard", "DSGuardCp", contracts_build_directory);
 const DSGuard = artifacts.require("DSGuardCp");
 
@@ -75,7 +77,7 @@ const memeAuctionFactoryPlaceholder = "daffdaffdaffdaffdaffdaffdaffdaffdaffdaff"
  * This migration deploys the MemeFactory smart contract suite
  *
  * Usage:
- * truffle migrate --network ganache/parity --reset --f 1 --to 2
+ * truffle migrate --network ganache --f 1 --to 3
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -363,6 +365,7 @@ module.exports = function(deployer, network, accounts) {
          console.log ("@@@ ETH balance of DankFaucet:", ethBalance);
        })
     .then ( () => [
+      Migrations.deployed(),
       DSGuard.deployed (),
       MiniMeTokenFactory.deployed (),
       DankToken.deployed (),
@@ -385,7 +388,8 @@ module.exports = function(deployer, network, accounts) {
       DankFaucet.deployed ()])
     .then ((promises) => Promise.all(promises))
     .then ((
-      [dSGuard,
+      [migrations,
+       dSGuard,
        miniMeTokenFactory,
        dankToken,
        districtConfig,
@@ -408,6 +412,9 @@ module.exports = function(deployer, network, accounts) {
 
          var smartContracts = edn.encode(
            new edn.Map([
+
+             edn.kw(":migrations"), new edn.Map([edn.kw(":name"), "Migrations",
+                                                 edn.kw(":address"), migrations.address]),
 
              edn.kw(":district-config"), new edn.Map([edn.kw(":name"), "DistrictConfig",
                                                       edn.kw(":address"), districtConfig.address]),

@@ -1,9 +1,5 @@
 const fs = require('fs');
 const edn = require("jsedn");
-const test = {
-  f1 : () => {return "Hello";},
-  f2 : () => {console.log(this.f1() + " world")}
-}
 
 function smartContractsTemplate (map, env) {
   return `(ns memefactory.shared.smart-contracts-${env})

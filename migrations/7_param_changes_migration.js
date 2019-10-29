@@ -1,4 +1,4 @@
-const {readSmartContractsFile,getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode} = require ("./utils.js");
+const {readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode} = require ("./utils.js");
 const {parameters, smart_contracts_path, env} = require ('../truffle.js');
 const web3Utils = require('web3-utils');
 
@@ -21,9 +21,6 @@ const dankTokenPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
 /**
  * This migration redeploys ParamChange.sol ParamChangeFactory.sol ParamChangeRegistry.sol
  * which were updated in 10742ba
- *
- * Usage:
- * truffle migrate --network ganache/parity --reset --f 7 --to 7
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -95,10 +92,8 @@ module.exports = function(deployer, network, accounts) {
       writeSmartContracts(smart_contracts_path, smartContracts, env);
 
     })
-    .catch(console.error);
-
-  deployer.then (function () {
-    console.log ("Done");
-  });
+    .then (function () {
+      console.log ("Done");
+    });
 
 }

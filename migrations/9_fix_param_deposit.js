@@ -1,4 +1,4 @@
-const {readSmartContractsFile,getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode} = require ("./utils.js");
+const {readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode} = require ("./utils.js");
 
 const {parameters, smart_contracts_path, env} = require ('../truffle.js');
 const web3Utils = require('web3-utils');
@@ -14,9 +14,6 @@ const newDepositValue = 250000e18;
 /**
  * This migration fixes Parameter Deposit that was initialy set to 1000000000 DANK
  * @madvas : we’ve put it there before so nobody can propose param change, we need to change that value direct way through EternalDb
- *
- * Usage:
- * truffle migrate --network ganache/parity --reset --f 9 --to 9
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -27,9 +24,7 @@ module.exports = function(deployer, network, accounts) {
   deployer.then (() => {
     console.log ("@@@ using Web3 version:", web3.version.api);
     console.log ("@@@ using address", address);
-  });
-
-  deployer
+  })
     .then (async () => {
       var paramChangeRegistryDbInstance = EternalDb.at(paramChangeRegistryDbAddr);
       var dSGurardInstance = DSGuard.at(dSGuardAddr);
@@ -43,10 +38,9 @@ module.exports = function(deployer, network, accounts) {
                                                         Object.assign(opts, {gas: 500000}));
 
       await dSGurardInstance.forbid(address, paramChangeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
-})
-
-  deployer.then (function () {
-    console.log ("Done");
-  });
+    })
+    .then (function () {
+      console.log ("Done");
+    });
 
 }
