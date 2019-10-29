@@ -1,8 +1,6 @@
 const {last, copy, linkBytecode, smartContractsTemplate, readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts} = require ("./utils.js");
 const {contracts_build_directory, smart_contracts_path, parameters, env} = require ('../truffle.js');
 
-const MEMEFACTORY_ENV = process.env.MEMEFACTORY_ENV || "dev";
-
 // existing contracts
 const OldMemeFactory = artifacts.require("MemeFactory");
 const OldDistrictConfig = artifacts.require("DistrictConfig");
@@ -45,6 +43,7 @@ const deployedParamChangeRegistryForwarderAddress = getSmartContractAddress(smar
 
 /**
  * This migration updates Meme and ParamChange Contracts
+ * truffle migrate --network ganache --f 5 --to 5
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -54,7 +53,6 @@ module.exports = function(deployer, network, accounts) {
 
   deployer.then (() => {
     console.log ("@@@ using Web3 version:", web3.version.api);
-    console.log ("@@@ MEMEFACTORY_ENV: ", MEMEFACTORY_ENV);
     console.log ("@@@ using address", address);
     console.log ("@@@ using smart contracts file", smart_contracts_path);
   });

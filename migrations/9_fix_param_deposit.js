@@ -14,6 +14,8 @@ const newDepositValue = 250000e18;
 /**
  * This migration fixes Parameter Deposit that was initialy set to 1000000000 DANK
  * @madvas : we’ve put it there before so nobody can propose param change, we need to change that value direct way through EternalDb
+ *
+ * truffle migrate --network infura-ropsten --f 9 --to 9
  */
 module.exports = function(deployer, network, accounts) {
 

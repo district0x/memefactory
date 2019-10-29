@@ -19,6 +19,7 @@ const paramChangeRegistryForwarderAddress = getSmartContractAddress(smartContrac
 
 /**
  * This migration updates Registry contracts
+ * truffle migrate --network ganache --f 4 --to 4
  */
 module.exports = function(deployer, network, accounts) {
 

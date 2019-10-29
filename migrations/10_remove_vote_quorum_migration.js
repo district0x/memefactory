@@ -19,7 +19,7 @@ const Meme = artifacts.require("MemeCp");
 copy ("Registry", "RegistryCp", contracts_build_directory);
 const MemeRegistry = artifacts.require("RegistryCp");
 
-console.log("Using smart_contracts file ", smart_contracts_path);
+const Migrations = artifacts.require("Migrations");
 
 var smartContracts = readSmartContractsFile(smart_contracts_path);
 var dankTokenAddr = getSmartContractAddress(smartContracts, ":DANK");
@@ -27,6 +27,7 @@ var memeRegistryForwarderAddr = getSmartContractAddress(smartContracts, ":meme-r
 var paramChangeRegistryForwarderAddr = getSmartContractAddress(smartContracts, ":param-change-registry-fwd");
 var districtConfigAddr = getSmartContractAddress(smartContracts, ":district-config");
 var memeTokenAddr = getSmartContractAddress(smartContracts, ":meme-token");
+const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations");
 
 const registryPlaceholder = "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed";
 const dankTokenPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
@@ -38,15 +39,7 @@ const forwarderTargetPlaceholder = "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef";
  * This migration redeploys Meme.sol, ParamChange.sol, Memefactory.sol and ParamChangeFactory.sol
  * to remove vote quorum parameter
  *
- * Usage:
- * DEV
- * truffle migrate --network ganache --reset --f 10 --to 10
- *
- * QA
- * MEMEFACTORY_ENV=qa truffle migrate --network infura-ropsten --f 10 --to 10 --reset
- *
- * PROD
- * MEMEFACTORY_ENV=prod truffle migrate --network infura-mainnet --f 10 --to 10 --reset
+ * env MEMEFACTORY_ENV=dev/qa/prod truffle migrate --network infura-ropsten --f 10 --to 10
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -57,10 +50,8 @@ module.exports = function(deployer, network, accounts) {
   deployer.then (() => {
     console.log ("@@@ using Web3 version:", web3.version.api);
     console.log ("@@@ using address", address);
-  });
-
-
-  deployer
+    console.log("@@@ using smart_contracts file ", smart_contracts_path);
+  })
     .then (async () => {
 
       // Deploy Meme
@@ -100,9 +91,16 @@ module.exports = function(deployer, network, accounts) {
       await memeRegistry.setFactory(memeFactoryInstance.address, true, Object.assign(opts, {gas: 100000}))
       await paramChangeRegistry.setFactory(paramChangeFactoryInstance.address, true, Object.assign(opts, {gas: 100000}))
 
-      writeSmartContracts(smart_contracts_path, smartContracts, env);
+    })
+    .then (async () => {
 
+      //  set last ran tx
+      const migrations = Migrations.at (migrationsAddress);
+      await migrations.setCompleted (10, Object.assign(opts, {gas: 100000}));
+
+      writeSmartContracts(smart_contracts_path, smartContracts, env);
       console.log ("Done");
+
     });
 
 }

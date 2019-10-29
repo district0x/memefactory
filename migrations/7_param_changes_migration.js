@@ -21,6 +21,7 @@ const dankTokenPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
 /**
  * This migration redeploys ParamChange.sol ParamChangeFactory.sol ParamChangeRegistry.sol
  * which were updated in 10742ba
+ * truffle migrate --network ganache --f 7 --to 7
  */
 module.exports = function(deployer, network, accounts) {
 

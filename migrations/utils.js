@@ -4,8 +4,8 @@ const edn = require("jsedn");
 function smartContractsTemplate (map, env) {
   return `(ns memefactory.shared.smart-contracts-${env})
 
-  (def smart-contracts
-    ${map})
+(def smart-contracts
+  ${map})
 `;
 }
 

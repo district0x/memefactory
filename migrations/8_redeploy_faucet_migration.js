@@ -16,6 +16,7 @@ const dSGuardAddress = getSmartContractAddress(smartContracts, ":ds-guard");
 
 /**
  * This migration drains old faucet and redeploys it seeding new Faucet with ETH and DANK
+ * truffle migrate --network infura-ropsten --f 8 --to 8
  */
 module.exports = function(deployer, network, accounts) {
 

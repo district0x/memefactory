@@ -14,6 +14,7 @@ const DSGuard = artifacts.require("DSGuard");
 /**
  * This migration fixes MemeRegistryDb and ParamChangeRegistryDb keys that where encoded with
  * incorrect sha3 function. See https://github.com/district0x/memefactory/issues/505
+ * truffle migrate --network ganache --f 6 --to 6
  */
 module.exports = function(deployer, network, accounts) {
 
