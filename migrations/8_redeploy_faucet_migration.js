@@ -1,3 +1,4 @@
+const BigNumber = require('bignumber.js');
 const { linkBytecode, copy } = require ("./utils.js");
 const { parameters, contracts_build_directory } = require ('../truffle.js');
 
@@ -21,7 +22,7 @@ const dSGuardAddress = "";
 // const dSGuardAddress = "0xab4d684b2cc21ea99ee560a0f0d1490b09b09127";
 
 // mainnet
-// const dankFaucetAddress = "0x51605924b0c6e14f1bb3b73749675e22435896ac";
+// const dankFaucetAddress = "0x7abdcd059a60ad6d240a62be3fe0293fb2b65c19";
 // const dankTokenAddress = "0x0cb8d0b37c7487b11d57f1f33defa2b1d3cfccfe";
 // const dSGuardAddress = "0x5d0457f58ed4c115610a2253070a11fb82065403";
 
@@ -55,6 +56,8 @@ module.exports = function(deployer, network, accounts) {
     ]) => Promise.all ([
       dankFaucet.getBalance(),
       dankToken.balanceOf (dankFaucetAddress)
+      // new BigNumber(0.2e18),
+      // new BigNumber(4865000e18)
     ]))
     .then (([
       ethBalance,
@@ -68,8 +71,8 @@ module.exports = function(deployer, network, accounts) {
   // drain eth and dank
     .then (() => DankFaucet.at (dankFaucetAddress))
     .then ((dankFaucet) => Promise.all ([
-      dankFaucet.withdrawEth (Object.assign(opts, {gas: 100000})),
-      dankFaucet.withdrawDank (Object.assign(opts, {gas: 200000}))
+      dankFaucet.withdrawEth (Object.assign(opts, {gas: 0.5e6})),
+      dankFaucet.withdrawDank (Object.assign(opts, {gas: 0.5e6}))
     ]))
     .then (([
       tx1,
@@ -79,13 +82,13 @@ module.exports = function(deployer, network, accounts) {
   // redeploy
     .then (() => {
       linkBytecode(DankFaucet, dankTokenPlaceholder, dankTokenAddress);
-      return deployer.deploy(DankFaucet, parameters.dankFaucet.allotment, Object.assign(opts, {gas: 4000000}));
+      return deployer.deploy(DankFaucet, parameters.dankFaucet.allotment, Object.assign(opts, {gas: 4e6}));
     })
 
     .then (() => Promise.all ([DSGuard.at(dSGuardAddress),
                                DankFaucet.deployed()]))
     .then (([dSGuard,
-             dankFaucet]) => dankFaucet.setAuthority(dSGuard.address, Object.assign(opts, {gas: 200000, value: 0})))
+             dankFaucet]) => dankFaucet.setAuthority(dSGuard.address, Object.assign(opts, {gas: 0.5e6, value: 0})))
 
   // seed with the same eth and dank amount
     .then (() => Promise.all ([DankToken.at (dankTokenAddress),
@@ -95,8 +98,9 @@ module.exports = function(deployer, network, accounts) {
              dankFaucet,
              newDankFaucet]) =>
            Promise.all ([
-             dankToken.transfer (newDankFaucet.address, balances.dank, Object.assign(opts, {gas: 200000})),
-             newDankFaucet.sendEth (Object.assign(opts, {gas: 200000, value: balances.eth}))]))
+             dankToken.transfer (newDankFaucet.address, balances.dank, Object.assign(opts, {gas: 0.5e6})),
+             newDankFaucet.sendEth (Object.assign(opts, {gas: 0.5e6, value: balances.eth}))]))
     .then (() => DankFaucet.deployed())
-    .then ((dankFaucet) => console.log ("@@@ new DankFaucet address:", dankFaucet.address));
+    .then ((dankFaucet) => console.log ("@@@ new DankFaucet address:", dankFaucet.address))
+  ;
 }
