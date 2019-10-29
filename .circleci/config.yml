@@ -100,7 +100,7 @@ workflows:
       - build_and_deploy:
           requires:
             - test
-            - test_migrations
+            - check_migrations
           filters:
             branches:
               only:
