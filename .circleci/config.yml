@@ -1,0 +1,108 @@
+version: 2.1
+jobs:
+
+  test:
+    working_directory: ~/ci
+    docker:
+      # Primary container image where all steps run.
+      - image: district0x/cljs-dev
+      # Secondary container images on common network.
+      - image: trufflesuite/ganache-cli:latest
+        command: [-d, -m district0x, -p 8545, -l 8000000]
+      - image: district0x/ipfs-daemon:latest
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore m2 package cache
+          keys:
+            - v1-dependencies-{{ checksum "project.clj" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run: lein deps
+      - save_cache:
+          name: Save m2 package cache
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "project.clj" }}
+      - restore_cache:
+          name: Restore npm package cache
+          keys:
+            - npm-packages-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install node modules
+          command: lein npm install
+      - save_cache:
+          name: Save npm package cache
+          key: npm-packages-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules/
+      - run: truffle migrate --network ganache
+      - run: lein doo node "server-tests" once
+
+  check_migrations:
+    docker:
+      - image: district0x/cljs-dev
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore npm package cache
+          keys:
+            - npm-packages-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install node modules
+          command: lein npm install
+      - save_cache:
+          name: Save npm package cache
+          key: npm-packages-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules/
+      - run:
+          name: check if all migrations have been ran
+          command: |
+            if [ "$CIRCLE_BRANCH == 'master' ]; then
+              env MEMEFACTORY_ENV=qa INFURA_API_KEY=$INFURA_API_KEY ROPSTEN_PRIV_KEY=$ROPSTEN_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten
+            elif [ "$CIRCLE_BRANCH == 'production' ]; then
+              env MEMEFACTORY_ENV=prod INFURA_API_KEY=$INFURA_API_KEY MAINNET_PRIV_KEY=$MAINNET_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-mainnet
+            else
+              echo "Wrong branch";
+              exit -1;
+            fi
+
+  build_and_deploy:
+   machine: true
+   steps:
+     - checkout
+     - run:
+         name: Build and deploy docker containers
+         command: |
+            if [ "$CIRCLE_BRANCH == 'master' ]; then
+              /bin/bash docker-push.sh qa
+            elif [ "$CIRCLE_BRANCH == 'production' ]; then
+              /bin/bash docker-push.sh prod
+            else
+              echo "Wrong branch";
+              exit -1;
+            fi
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - test
+      - check_migrations:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
+                - production
+      - build_and_deploy:
+          requires:
+            - test
+            - test_migrations
+          filters:
+            branches:
+              only:
+                - master
+                - production

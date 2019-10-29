@@ -18,14 +18,13 @@ const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations")
  * MEMEFACTORY_ENV=dev truffle exec ./migrations/check_ran_migrations.js --network ganache
  */
 module.exports = function(callback) {
-
   web3.version.getNetwork( (error, id) => {
-
-    const network = NETWORKS [id] || "ganache";
-    const migrations = Migrations.at (migrationsAddress);
 
     console.log ("@@@ using Web3 version:", web3.version.api);
     console.log("@@@ using smart_contracts file ", smart_contracts_path);
+
+    const network = NETWORKS [id] || "ganache";
+    const migrations = Migrations.at (migrationsAddress);
 
     migrations.last_completed_migration ()
       .then ((response) => {

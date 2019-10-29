@@ -25,8 +25,8 @@
 
 (nodejs/enable-util-print!)
 
-(def child-process (nodejs/require "child_process"))
-(def spawn (aget child-process "spawn"))
+;; (def child-process (nodejs/require "child_process"))
+;; (def spawn (aget child-process "spawn"))
 
 (set! (.-error js/console) (fn [x] (.log js/console x)))
 
@@ -42,13 +42,13 @@
 (defn start-and-run-tests []
   (async/go
     ((test-utils/create-before-fixture))
-    (log/info "Transfering dank to accounts" ::deploy-contracts-and-run-tests)
-    (doseq [acc (web3-eth/accounts @web3)]
+    #_(log/info "Transfering dank to accounts" ::deploy-contracts-and-run-tests)
+    #_(doseq [acc (web3-eth/accounts @web3)]
         (<? (dank-token/transfer {:to acc :amount "1000e18"} {:gas 200000})))
-    (log/info "Account balances now are " ::deploy-contracts-and-run-tests)
-    (doseq [acc (web3-eth/accounts @web3)]
-      (println (str "Balance of " acc " is " (<? (dank-token/balance-of acc)))))
-    (log/info "Running tests" ::deploy-contracts-and-run-tests)
+    #_(log/info "Account balances now are " ::deploy-contracts-and-run-tests)
+    #_(doseq [acc (web3-eth/accounts @web3)]
+        (println (str "Balance of " acc " is " (<? (dank-token/balance-of acc)))))
+    #_(log/info "Running tests" ::deploy-contracts-and-run-tests)
     (cljs.test/run-tests
      'memefactory.tests.graphql-resolvers.graphql-resolvers-tests
      'memefactory.tests.smart-contracts.registry-entry-tests
@@ -57,17 +57,17 @@
      'memefactory.tests.smart-contracts.registry-tests
      'memefactory.tests.smart-contracts.param-change-tests)))
 
-(defn deploy-contracts-and-run-tests
-  "Redeploy smart contracts with truffle"
-  []
-  (log/warn "Redeploying contracts, please be patient..." ::redeploy)
-  (let [child (spawn "truffle migrate --network ganache --reset" (clj->js {:stdio "inherit" :shell true}))]
-    (-> child
-        (.on "close" (fn []
-                       ;; Give it some time to write smart_contracts.cljs
-                       ;; if we remove the timeout, it start mount components while we still have the old smart_contract.cljs
-                       (js/setTimeout #(start-and-run-tests) 5000))))))
+#_(defn deploy-contracts-and-run-tests
+    "Redeploy smart contracts with truffle"
+    []
+    (log/warn "Redeploying contracts, please be patient..." ::redeploy)
+    (let [child (spawn "truffle migrate --network ganache --reset" (clj->js {:stdio "inherit" :shell true}))]
+      (-> child
+          (.on "close" (fn []
+                         ;; Give it some time to write smart_contracts.cljs
+                         ;; if we remove the timeout, it start mount components while we still have the old smart_contract.cljs
+                         (js/setTimeout #(start-and-run-tests) 5000))))))
 
 (cljs-promises.async/extend-promises-as-pair-channels!)
-(deploy-contracts-and-run-tests)
-#_(start-and-run-tests)
+;; (deploy-contracts-and-run-tests)
+(start-and-run-tests)

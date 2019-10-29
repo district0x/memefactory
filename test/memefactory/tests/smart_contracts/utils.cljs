@@ -17,7 +17,7 @@
 
 (defn create-before-fixture []
   (fn []
-    (let [args {:web3 {:port 8549}
+    (let [args {:web3 {:port 8545}
                 :smart-contracts {:contracts-var #'smart-contracts
                                   :auto-mining? true}
                 :time-source :blockchain
