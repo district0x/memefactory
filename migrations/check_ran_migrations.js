@@ -34,16 +34,16 @@ module.exports = function(callback) {
         console.log ("last completed migration on the network", network, "has number", number);
 
         fs.readdirSync(migrations_dir).forEach(file => {
-          migrationNumber = file.match(/^\d+|\d+\b|\d+(?=\w)/g) [0];
-          if (migrationNumber > number) {
+          var migrationNumber = file.match(/^\d+|\d+\b|\d+(?=\w)/g) || false;
+          if (migrationNumber && migrationNumber [0] > number) {
             console.error ("ERROR: migration ", number, "has not been ran on the network", network);
             process.exit(1);
           }
         });
 
-        callback ();
-      });
-
+        console.log ("Done.");
+      })
+      .then (callback);
   });
 
 }
