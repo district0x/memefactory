@@ -3,7 +3,9 @@
    [clojure.string :as str]
    [district.ui.component.form.input :refer [with-label select-input text-input checkbox-input with-label chip-input radio-group]]
    [print.foo :refer [look] :include-macros true]
-   [reagent.core :as r])
+   [reagent.core :as r]
+   [re-frame.core :as re-frame]
+   [memefactory.ui.events :as mf-events])
   (:require-macros [reagent.ratom :refer [reaction]]))
 
 
@@ -26,13 +28,19 @@
                               {:key :only-cheapest :label "Show only the cheapest card of meme"}
                               {:key :all-cards :label "All cards"}])
 
+(def nsfw-check-filter {:label "NSFW"
+                        :id :nsfw-switch
+                        :on-check-filter-change #(re-frame/dispatch [::mf-events/nsfw-switch])})
+
+(def nsfw-tag "nsfw")
+
 (defn search-tools [{:keys [form-data selected-tags-id search-id]}]
 
   (let [search-input-form-data (r/atom {search-id (get @form-data search-id)})
         chip-input-form-data (r/atom {selected-tags-id (get @form-data selected-tags-id)})]
     (fn [{:keys [title sub-title form-data tags selected-tags-id search-id select-options check-filters
-                on-selected-tags-change on-search-change on-select-change option-filters option-filters-id]}]
-     [:div.search-form
+                 on-selected-tags-change on-search-change on-select-change option-filters option-filters-id]}]
+      [:div.search-form
       [:div.icon]
       [:div.header
        [:h2 title]
@@ -81,15 +89,17 @@
           :for :tags
           :form-data form-data
           :id [selected-tags-id]}]
-        (if check-filters
-          [:div.check-group (doall
+        (when check-filters
+          [:div.check-group
+           (doall
                              (for [{:keys [id label on-check-filter-change]} check-filters]
                                ^{:key id} [:div.single-check
                                            [checkbox-input {:form-data form-data
                                                             :id id
                                                             :on-change on-check-filter-change}]
                                            [:label {:on-click #(swap! form-data update id not)}
-                                            label]]))]
+                                            label]]))])
+        (when option-filters
           [:div.options-group
            [radio-group {:id option-filters-id
                          :form-data form-data

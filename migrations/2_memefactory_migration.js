@@ -206,7 +206,6 @@ module.exports = function(deployer, network, accounts) {
                                                   'revealPeriodDuration',
                                                   'deposit',
                                                   'challengeDispensation',
-                                                  'voteQuorum',
                                                   'maxTotalSupply',
                                                   'maxAuctionDuration'].map((k) => {return web3Utils.soliditySha3(k);}),
                                                  [parameters.memeRegistryDb.challengePeriodDuration,
@@ -214,7 +213,6 @@ module.exports = function(deployer, network, accounts) {
                                                   parameters.memeRegistryDb.revealPeriodDuration ,
                                                   parameters.memeRegistryDb.deposit  ,
                                                   parameters.memeRegistryDb.challengeDispensation,
-                                                  parameters.memeRegistryDb.voteQuorum,
                                                   parameters.memeRegistryDb.maxTotalSupply,
                                                   parameters.memeRegistryDb.maxAuctionDuration],
                                                  Object.assign(opts, {gas: 500000})))
@@ -226,14 +224,12 @@ module.exports = function(deployer, network, accounts) {
                                                   'commitPeriodDuration',
                                                   'revealPeriodDuration',
                                                   'deposit',
-                                                  'challengeDispensation',
-                                                  'voteQuorum'].map((k) => {return web3Utils.soliditySha3(k);}),
+                                                  'challengeDispensation'].map((k) => {return web3Utils.soliditySha3(k);}),
                                                  [parameters.paramChangeRegistryDb.challengePeriodDuration,
                                                   parameters.paramChangeRegistryDb.commitPeriodDuration,
                                                   parameters.paramChangeRegistryDb.revealPeriodDuration ,
                                                   parameters.paramChangeRegistryDb.deposit  ,
-                                                  parameters.paramChangeRegistryDb.challengeDispensation,
-                                                  parameters.paramChangeRegistryDb.voteQuorum],
+                                                  parameters.paramChangeRegistryDb.challengeDispensation],
                                                  Object.assign(opts, {gas: 500000})))
     .then (() => Promise.all ([DSGuard.deployed (),
                                MemeRegistryDb.deployed ()]))

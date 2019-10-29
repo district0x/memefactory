@@ -30,7 +30,10 @@
             [memefactory.ui.dank-registry.vote-page :as vote-page]
             [memefactory.ui.events :as memefactory-events]
             [memefactory.ui.spec :as spec]
+            [memefactory.ui.components.general :as gen-comps]
             [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
+            [memefactory.shared.utils :as shared-utils]
+            [memefactory.ui.subs :as mf-subs]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
             [reagent.ratom :as ratom]
@@ -41,7 +44,6 @@
 (defn build-meme-query [address active-account]
   {:queries [[:meme {:reg-entry/address address}
               (cond-> [:reg-entry/address
-                       :reg-entry/status
                        :reg-entry/deposit
                        :reg-entry/created-on
                        :reg-entry/challenge-period-end
@@ -112,16 +114,21 @@
 
 
 (defn related-memes-container [address tags]
-  (let [form-data (r/atom {:option-filters :only-lowest-number})
-        build-query (fn [{:keys [:options] :as args}]
+  (let [form-data (r/atom {:option-filters :only-lowest-number
+                           :nsfw-switch @(subscribe [::mf-subs/nsfw-switch])})
+        build-query (fn [{:keys [:option-filters :nsfw-switch] :as args}]
                       [[:search-meme-auctions (cond-> {:tags-or tags
                                                        :first 18
                                                        :non-for-meme address
                                                        :statuses [:meme-auction.status/active]}
-                                                (#{:only-lowest-number :only-cheapest} options)
+
+                                                (#{:only-lowest-number :only-cheapest} option-filters)
                                                 (assoc :group-by (get {:only-lowest-number :meme-auctions.group-by/lowest-card-number
                                                                        :only-cheapest :meme-auctions.group-by/cheapest}
-                                                                      options)))
+                                                                      option-filters))
+
+                                                (not nsfw-switch)
+                                                (assoc :tags-not [search/nsfw-tag]))
                         [[:items [:meme-auction/address
                                   :meme-auction/status
                                   :meme-auction/start-price
@@ -142,7 +149,7 @@
                                       :meme/total-minted]]]]]]]]])]
     (fn [address tags]
       (let [query-id [address @form-data]
-            response (subscribe [::gql/query {:queries (build-query {:options (:option-filters @form-data)})}])
+            response (subscribe [::gql/query {:queries (build-query @form-data)}])
 
             state (-> @response :search-meme-auctions :items)
             loading? (:graphql/loading? @response)]
@@ -150,6 +157,7 @@
          [inputs/radio-group {:id :option-filters
                               :form-data form-data
                               :options search/auctions-option-filters}]
+         [gen-comps/nsfw-switch form-data]
          (if (and (empty? state)
                   (not loading?))
            [:div.no-items-found "No items found"]
@@ -261,8 +269,7 @@
 
 
 (defn status-component [{:keys [:reg-entry/status :reg-entry/challenge-period-end :challenge/commit-period-end :challenge/reveal-period-end] :as meme} text]
-  (let [status (gql-utils/gql-name->kw status)
-        [period-label period-end] (case status
+  (let [[period-label period-end] (case status
                                     :reg-entry.status/challenge-period ["Challenge" challenge-period-end]
                                     :reg-entry.status/commit-period    ["Voting" commit-period-end]
                                     :reg-entry.status/reveal-period    ["Reveal" reveal-period-end]
@@ -468,7 +475,7 @@
            [:div.not-enough-dank "You don't have any DANK tokens to vote on this meme challenge"])]))))
 
 
-(defmulti challenge-component (fn [meme] (match [(-> meme :reg-entry/status gql-utils/gql-name->kw)]
+(defmulti challenge-component (fn [meme] (match [(:reg-entry/status meme)]
                                                 [(:or :reg-entry.status/whitelisted :reg-entry.status/blacklisted)] [:reg-entry.status/whitelisted :reg-entry.status/blacklisted]
                                                 [:reg-entry.status/challenge-period] :reg-entry.status/challenge-period
                                                 [:reg-entry.status/commit-period] :reg-entry.status/commit-period
@@ -476,7 +483,7 @@
 
 
 (defmethod challenge-component :reg-entry.status/reveal-period
-  [{:keys [:challenge/created-on :reg-entry/status :challenge/reveal-period-end] :as meme}]
+  [{:keys [:challenge/created-on :challenge/reveal-period-end] :as meme}]
   (let [{:keys [days hours minutes seconds]} (time/time-remaining @(subscribe [:district.ui.now.subs/now])
                                                                   (gql-utils/gql-date->date reveal-period-end))]
     [:div
@@ -539,7 +546,11 @@
         address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
         meme-sub (subscribe [::gql/query (build-meme-query address active-account)
                              {:refetch-on [:memefactory.ui.contract.registry-entry/challenge-success]}])
-        meme (when meme-sub (-> @meme-sub :meme))
+        now (ui-utils/now-in-seconds)
+        meme (when meme-sub (let [meme (->> @meme-sub
+                                            :meme
+                                            (shared-utils/reg-entry-dates-to-seconds))]
+                              (assoc meme :reg-entry/status (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds meme)))))
         {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply :reg-entry/created-on
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end]} meme
         token-count (->> owned-meme-tokens

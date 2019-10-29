@@ -8,6 +8,9 @@
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles]
+   [memefactory.ui.components.general :as gen-comps]
+   [memefactory.ui.components.search :as search]
+   [memefactory.ui.subs :as mf-subs]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -15,7 +18,7 @@
 
 (def page-size 6)
 
-(defn build-tiles-query [after {:keys [order-by]}]
+(defn build-tiles-query [after {:keys [order-by :nsfw-switch]}]
   [:search-memes
    (cond-> {:first page-size
             :order-by ({"total-trade-volume"  :memes.order-by/total-trade-volume
@@ -24,7 +27,8 @@
                        order-by)
             :statuses [:reg-entry.status/whitelisted]
             :order-dir :desc}
-     after (assoc :after after))
+     after       (assoc :after after)
+     (not nsfw-switch) (assoc :tags-not [search/nsfw-tag]))
    [:total-count
     :end-cursor
     :has-next-page
@@ -68,7 +72,8 @@
 
 
 (defmethod page :route.leaderboard/dankest []
-  (let [form-data (r/atom {:order-by "total-trade-volume"})]
+  (let [form-data (r/atom {:order-by "total-trade-volume"
+                           :nsfw-switch @(subscribe [::mf-subs/nsfw-switch])})]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory - Dankest Memes"
@@ -86,4 +91,5 @@
              :options [{:key "average-price" :value "by average price"}
                        {:key "total-trade-volume" :value "by total volume"}
                        {:key "highest-single-sale" :value "by highest single sale"}]}]]
+          [gen-comps/nsfw-switch form-data]
           [dankest-memes-tiles form-data]]]]])))

@@ -100,7 +100,6 @@
         _ (log/debug "Loading param change initial parameters" {:graphql-url graphql-url})
         query (graphql-query {:queries [[:params {:db db
                                                   :keys [(graphql-utils/kw->gql-name :max-auction-duration)
-                                                         (graphql-utils/kw->gql-name :vote-quorum)
                                                          (graphql-utils/kw->gql-name :max-total-supply)
                                                          (graphql-utils/kw->gql-name :reveal-period-duration)
                                                          (graphql-utils/kw->gql-name :commit-period-duration)

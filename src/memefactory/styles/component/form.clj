@@ -10,6 +10,24 @@
 
 (defstyles core
   [:textarea {:outline :none}]
+  [:.single-check
+   {:display :flex
+    :padding-left (em 0.4)}
+   [:label {:font-size "10px"
+            :white-space :nowrap
+            :margin-left (em 0.4)}]
+   [:.input-group
+    [:input {:-webkit-appearance :none
+             :-moz-appearance :none
+             :background-color :white
+             :border "1px solid #cacece"
+             :padding (px 6)
+             :border-radius (px 3)
+             :display :inline-block
+             :position :relative}
+     [:&:checked {:background-color :black}]]
+    [:.help-block {:display :none}]]]
+
   [".labeled-input-group"
    [">label"
     {:position :absolute

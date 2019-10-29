@@ -79,11 +79,11 @@
            challenger-init-balance (bn/number (<? (dank-token/balance-of challenger-addr)))
            [max-total-supply deposit challenge-period-duration
             commit-period-duration reveal-period-duration max-auction-duration
-            vote-quorum challenge-dispensation]
+            challenge-dispensation]
            (->> (<? (eternal-db/get-uint-values :meme-registry-db
                                                 [:max-total-supply :deposit :challenge-period-duration
                                                  :commit-period-duration :reveal-period-duration :max-auction-duration
-                                                 :vote-quorum :challenge-dispensation]))
+                                                 :challenge-dispensation]))
                 (map bn/number))
            meme-entry-1 (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
            challenge #(registry-entry/approve-and-create-challenge meme-entry-1
@@ -108,7 +108,6 @@
                   (* 2 deposit))))
 
          (is (= challenger-addr (:challenge/challenger entry)))
-         (is (= vote-quorum (bn/number (:challenge/vote-quorum entry))))
          ;; We can't test time related thing with ganache because of
          ;; https://github.com/trufflesuite/ganache-core/issues/111
 
@@ -142,11 +141,11 @@
            voter-init-balance (<? (dank-token/balance-of voter-addr))
            [max-total-supply deposit challenge-period-duration
             commit-period-duration reveal-period-duration max-auction-duration
-            vote-quorum challenge-dispensation]
+            challenge-dispensation]
            (->> (<? (eternal-db/get-uint-values :meme-registry-db
                                                 [:max-total-supply :deposit :challenge-period-duration
                                                  :commit-period-duration :reveal-period-duration :max-auction-duration
-                                                 :vote-quorum :challenge-dispensation]))
+                                                 :challenge-dispensation]))
                 (map bn/number))
            registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
            _ (registry-entry/approve-and-create-challenge registry-entry
@@ -194,11 +193,11 @@
      (let [[voter-addr creator-addr challenger-addr] (web3-eth/accounts @web3)
            [max-total-supply deposit challenge-period-duration
             commit-period-duration reveal-period-duration max-auction-duration
-            vote-quorum challenge-dispensation]
+            challenge-dispensation]
            (->> (<? (eternal-db/get-uint-values :meme-registry-db
                                                 [:max-total-supply :deposit :challenge-period-duration
                                                  :commit-period-duration :reveal-period-duration :max-auction-duration
-                                                 :vote-quorum :challenge-dispensation]))
+                                                 :challenge-dispensation]))
                 (map bn/number))
            registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
            _ (<? (registry-entry/approve-and-create-challenge registry-entry
@@ -231,11 +230,11 @@
        (let [[voter-addr creator-addr challenger-addr voter-addr2] (web3-eth/accounts @web3)
              [max-total-supply deposit challenge-period-duration
               commit-period-duration reveal-period-duration max-auction-duration
-              vote-quorum challenge-dispensation]
+              challenge-dispensation]
              (->> (<? (eternal-db/get-uint-values :meme-registry-db
                                                   [:max-total-supply :deposit :challenge-period-duration
                                                    :commit-period-duration :reveal-period-duration :max-auction-duration
-                                                   :vote-quorum :challenge-dispensation]))
+                                                   :challenge-dispensation]))
                   (map bn/number))
              registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
              _ (<? (registry-entry/approve-and-create-challenge registry-entry
@@ -321,11 +320,11 @@
      (let [[voter-addr creator-addr challenger-addr] (web3-eth/accounts @web3)
            [max-total-supply deposit challenge-period-duration
             commit-period-duration reveal-period-duration max-auction-duration
-            vote-quorum challenge-dispensation]
+            challenge-dispensation]
            (->> (<? (eternal-db/get-uint-values :meme-registry-db
                                                 [:max-total-supply :deposit :challenge-period-duration
                                                  :commit-period-duration :reveal-period-duration :max-auction-duration
-                                                 :vote-quorum :challenge-dispensation]))
+                                                 :challenge-dispensation]))
                 (map bn/number))
            registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
            _ (<? (registry-entry/approve-and-create-challenge registry-entry
@@ -374,11 +373,11 @@
        (let [[voter-addr creator-addr challenger-addr] (web3-eth/accounts @web3)
              [max-total-supply deposit challenge-period-duration
               commit-period-duration reveal-period-duration max-auction-duration
-              vote-quorum challenge-dispensation]
+              challenge-dispensation]
              (->> (<? (eternal-db/get-uint-values :meme-registry-db
                                                [:max-total-supply :deposit :challenge-period-duration
                                                 :commit-period-duration :reveal-period-duration :max-auction-duration
-                                                :vote-quorum :challenge-dispensation]))
+                                                :challenge-dispensation]))
                   (map bn/number))
              registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
              _ (<? (registry-entry/approve-and-create-challenge registry-entry

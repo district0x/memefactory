@@ -22,7 +22,6 @@ library RegistryEntryLib {
 
   struct Challenge {
     address challenger;
-    uint voteQuorum;
     uint rewardPool;
     bytes metaHash;
     uint commitPeriodEnd;
@@ -235,7 +234,7 @@ library RegistryEntryLib {
         }
       }
 
-      if(record == registry.challengeDispensationKey() || record == registry.voteQuorumKey() ||
+      if(record == registry.challengeDispensationKey() ||
          record == registry.maxTotalSupplyKey()) {
         if (_value >= 0 && _value <= 100) {
           return true;
@@ -288,9 +287,7 @@ library RegistryEntryLib {
   }
 
   /**
-   * @dev Returns winning vote option in held voting according to vote quorum
-   * If voteQuorum is 50, any majority of votes will win
-   * If voteQuorum is 24, only 25 votes out of 100 is enough to VoteFor be winning option
+   * @dev Returns winning vote option in held voting
    *
    * @return Winning vote option
    */
@@ -302,7 +299,7 @@ library RegistryEntryLib {
       return VoteOption.NoVote;
     }
 
-    if (self.votesFor.mul(100) > self.voteQuorum.mul(self.votesFor.add(self.votesAgainst))) {
+    if (self.votesAgainst < self.votesFor) {
       return VoteOption.VoteFor;
     } else {
       return VoteOption.VoteAgainst;

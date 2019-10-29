@@ -16,7 +16,6 @@
                                :reg-entry/creator
                                :reg-entry/version
                                :challenge/challenger
-                               :challenge/vote-quorum
                                :challenge/commit-period-end
                                :challenge/reveal-period-end
                                :challenge/reward-pool

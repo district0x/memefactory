@@ -28,6 +28,8 @@
     [memefactory.ui.components.tiles :as tiles]
     [memefactory.ui.contract.meme :as meme]
     [memefactory.ui.contract.meme-token :as meme-token]
+    [memefactory.shared.utils :as shared-utils]
+    [memefactory.ui.subs :as mf-subs]
     [memefactory.ui.utils :as ui-utils :refer [copy-to-clipboard!]]
     [print.foo :refer [look] :include-macros true]
     [re-frame.core :as re-frame :refer [subscribe dispatch]]
@@ -313,7 +315,7 @@
                         :has-more? has-more?
                         :load-fn re-search}
        (when-not loading-first?
-         (doall (map (fn [{:keys [:reg-entry/address :reg-entry/status :meme/image-hash :meme/number
+         (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
                                   :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
                        (when address
                          (let [token-ids (map :meme-token/token-id owned-meme-tokens)
@@ -438,7 +440,8 @@
 
 (defmethod panel :created [_ {:keys [:state :loading-first? :loading-more? :has-more? :re-search]}]
   (let [url-address (-> @(re-frame/subscribe [::router-subs/active-page]) :params :address)
-        active-account @(subscribe [::accounts-subs/active-account])]
+        active-account @(subscribe [::accounts-subs/active-account])
+        now (ui-utils/now-in-seconds)]
     (log/debug _ {:c (count state)})
     (if (and (empty? state)
              (not loading-first?))
@@ -451,10 +454,9 @@
                         :load-fn re-search}
        (when-not loading-first?
          (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
-                                  :meme/title :meme/total-supply :meme/total-minted
-                                  :reg-entry/status] :as meme}]
+                                  :meme/title :meme/total-supply :meme/total-minted] :as meme}]
                        (when address
-                         (let [status (gql-utils/gql-name->kw (or status :undefined))
+                         (let [status (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds meme))
                                rejected? (= status :reg-entry.status/blacklisted)]
                            ^{:key address} [:div.compact-tile
                                             [:div.container
@@ -553,12 +555,12 @@
                       :load-fn re-search}
      (when-not loading-first?
        (doall
-        (map (fn [{:keys [:reg-entry/address :reg-entry/status
-                          :meme/image-hash :meme/number
+        (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
                           :meme/title :challenge/vote] :as meme}]
                (when address
                  (let [{:keys [:vote/option]} vote
-                       status (gql-utils/gql-name->kw (or status :undefined))
+                       status (shared-utils/reg-entry-status @(ui-utils/now-in-seconds)
+                                                             (shared-utils/reg-entry-dates-to-seconds meme))
                        rejected? (= status :reg-entry.status/blacklisted)]
                    ^{:key address}
                    [:div.compact-tile
@@ -726,12 +728,14 @@
 
 
 (defn build-query [tab {:keys [:user-address :form-data :prefix :first :after] :as opts}]
-  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged? :option-filters]} form-data]
+  (let [{:keys [:term :order-by :order-dir :search-tags :group-by-memes? :voted? :challenged? :option-filters :nsfw-switch]} form-data]
     (case tab
       :collected [[:search-memes (merge {:owner user-address
                                          :first first}
                                         (when after
                                           {:after (str after)})
+                                        (when (not nsfw-switch)
+                                          {:tags-not [search/nsfw-tag]})
                                         (when term
                                           {:title term})
                                         {:order-by (ui-utils/build-order-by :memes (or order-by :created-on))
@@ -742,7 +746,6 @@
                     :end-cursor
                     :has-next-page
                     [:items (remove nil? [:reg-entry/address
-                                          :reg-entry/status
                                           :reg-entry/created-on
                                           :meme/image-hash
                                           :meme/meta-hash
@@ -760,6 +763,8 @@
                                        :first first}
                                       (when after
                                         {:after (str after)})
+                                      (when (not nsfw-switch)
+                                          {:tags-not [search/nsfw-tag]})
                                       (when term
                                         {:title term})
                                       {:order-by (ui-utils/build-order-by :memes (or order-by :created-on))
@@ -775,8 +780,7 @@
                            :meme/number
                            :meme/title
                            :meme/total-minted
-                           :meme/total-supply
-                           :reg-entry/status]]]]]
+                           :meme/total-supply]]]]]
       :curated [[:search-memes (merge {:curator user-address
                                        :first first}
                                       (cond
@@ -785,6 +789,8 @@
                                         challenged?              {:challenger user-address})
                                       (when after
                                         {:after (str after)})
+                                      (when (not nsfw-switch)
+                                          {:tags-not [search/nsfw-tag]})
                                       (when term
                                         {:title term})
                                       {:order-by (ui-utils/build-order-by :memes (or order-by :created-on))
@@ -799,7 +805,6 @@
                            :meme/meta-hash
                            :meme/number
                            :meme/title
-                           :reg-entry/status
                            [:challenge/vote {:vote/voter user-address}
                             [:vote/option]]]]]]]
       :selling [[:search-meme-auctions (merge {:seller user-address
@@ -807,6 +812,8 @@
                                                :first first}
                                               (when after
                                                 {:after (str after)})
+                                              (when (not nsfw-switch)
+                                                {:tags-not [search/nsfw-tag]})
                                               (when term
                                                 {:title term})
                                               {:order-by (ui-utils/build-order-by :meme-auctions (or order-by :started-on))
@@ -927,6 +934,7 @@
                                                                                    "Your Memefolio URL was copied to clipboard!"]))
                                                                       :title "Copy shareable URL to clipboard"
                                                                       :src "/assets/icons/link.svg"}])])
+                                   :check-filters [search/nsfw-check-filter]
                                    :form-data form-data
                                    ;; :on-selected-tags-change re-search
                                    ;; :on-search-change re-search
@@ -992,6 +1000,7 @@
             form-data (r/atom {:term (:term query)
                                :voted? true
                                :challenged? true
+                               :nsfw-switch @(subscribe [::mf-subs/nsfw-switch])
                                :option-filters :only-lowest-number})]
         [app-layout
          {:meta {:title (if url-account

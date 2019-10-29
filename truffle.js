@@ -17,7 +17,6 @@ let parameters = {
                       revealPeriodDuration : 600, // seconds
                       deposit : 1e18, // 1e18 = 1 DANK
                       challengeDispensation : 50, // percent
-                      voteQuorum : 50, // percent
                       maxTotalSupply : 10, // int
                       maxAuctionDuration : 1.21e6 // seconds
                      },
@@ -25,8 +24,7 @@ let parameters = {
                              commitPeriodDuration : 600, // seconds
                              revealPeriodDuration : 600, // seconds
                              deposit : 1e18, // 1e18 = 1 DANK
-                             challengeDispensation : 50, // percent
-                             voteQuorum : 50 // percent
+                             challengeDispensation : 50 // percent
                             },
     dankFaucet : {dank : 5000000e18, // how much DANK contract holds, 1e18 = 1 DANK
                   eth : 0.1e18, // ETH, 1e18 = 1ETH
@@ -39,7 +37,6 @@ let parameters = {
                       revealPeriodDuration : 86400, // seconds
                       deposit : 100e18, // 1e18 = 1 DANK
                       challengeDispensation : 50, // percent
-                      voteQuorum : 50, // percent
                       maxTotalSupply : 100, // int
                       maxAuctionDuration : (30 * 86400) // seconds
                      },
@@ -47,8 +44,7 @@ let parameters = {
                              commitPeriodDuration : 86400, // seconds
                              revealPeriodDuration : 86400, // seconds
                              deposit : 1000000000e18, // 1e18 = 1 DANK
-                             challengeDispensation : 50, // percent
-                             voteQuorum : 50 // percent
+                             challengeDispensation : 50 // percent
                             },
     dankFaucet : {dank : 5000000e18, // how much DANK contract holds, 1e18 = 1 DANK
                   eth : 0.2e18, // ETH, 1e18 = 1ETH

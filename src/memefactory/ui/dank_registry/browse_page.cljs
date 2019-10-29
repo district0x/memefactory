@@ -3,10 +3,11 @@
     [district.ui.component.page :refer [page]]
     [district.ui.graphql.subs :as gql]
     [district.ui.router.subs :as router-subs]
+    [memefactory.ui.subs :as mf-subs]
     [memefactory.ui.components.app-layout :refer [app-layout]]
     [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
     [memefactory.ui.components.panels :refer [no-items-found]]
-    [memefactory.ui.components.search :refer [search-tools]]
+    [memefactory.ui.components.search :as search :refer [search-tools]]
     [memefactory.ui.components.spinner :as spinner]
     [memefactory.ui.components.tiles :as tiles]
     [memefactory.ui.dank-registry.events]
@@ -16,13 +17,14 @@
 
 (def page-size 6)
 
-(defn build-tiles-query [{:keys [:search-term :order-by :search-tags :order-dir :only-cheapest?]} after]
+(defn build-tiles-query [{:keys [:search-term :order-by :search-tags :order-dir :only-cheapest? :nsfw-switch]} after]
   [:search-memes
    (cond-> {:first page-size
             :statuses [:reg-entry.status/whitelisted]}
      (not-empty search-term) (assoc :title search-term)
      (not-empty search-tags) (assoc :tags search-tags)
      after                   (assoc :after after)                    ;; TODO: fix this HACK!
+     (not nsfw-switch)       (assoc :tags-not [search/nsfw-tag])
      order-by                (assoc :order-by (keyword "memes.order-by" (case order-by
                                                                           "number-asc" "number"
                                                                           "number-desc" "number"
@@ -74,6 +76,7 @@
   (let [active-page (subscribe [::router-subs/active-page])
         form-data (let [{:keys [query]} @active-page]
                     (r/atom {:term ""
+                             :nsfw-switch @(subscribe [::mf-subs/nsfw-switch])
                              :order-by (or (:order-by query) "number-desc")
                              :order-dir (or (:order-dir query) "desc")}))
         all-tags-subs (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
@@ -95,6 +98,7 @@
                          :title "Dank registry"
                          :sub-title "Browse all memes ever minted"
                          :on-selected-tags-change re-search
+                         :check-filters [search/nsfw-check-filter]
                          ;; TODO: Fix this hack, we need a way of passing a select more info
                          :select-options (->> [{:key "number-asc" :value "Registry Number"}
                                                {:key "number-desc" :value "Newest"}

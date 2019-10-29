@@ -11,6 +11,7 @@
     [memefactory.ui.components.panels :refer [no-items-found]]
     [memefactory.ui.components.spinner :as spinner]
     [memefactory.ui.components.tiles :as tiles]
+    [memefactory.ui.components.search :as search]
     [memefactory.ui.home.tutorial :refer [tutorial-button]]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]))
@@ -119,6 +120,7 @@
     :order-dir :desc
     :group-by :meme-auctions.group-by/lowest-card-number
     :statuses [:meme-auction.status/active]
+    :tags-not [search/nsfw-tag]
     :first 6}
    [[:items auction-node-graph]]])
 
@@ -128,6 +130,7 @@
     :statuses [:meme-auction.status/active]
     :group-by :meme-auctions.group-by/lowest-card-number
     :order-dir :asc
+    :tags-not [search/nsfw-tag]
     :first 6}
    [[:items auction-node-graph]]])
 
@@ -136,6 +139,7 @@
    {:order-by :meme-auctions.order-by/random
     :statuses [:meme-auction.status/active]
     :group-by :meme-auctions.group-by/lowest-card-number
+    :tags-not [search/nsfw-tag]
     :first 6}
    [[:items auction-node-graph]]])
 
@@ -143,6 +147,7 @@
   [:search-memes
    {:order-by :memes.order-by/daily-total-votes
     :order-dir :desc
+    :tags-not [search/nsfw-tag]
     :statuses [:reg-entry.status/commit-period]
     :first 6}
    [[:items [:reg-entry/address

@@ -93,7 +93,7 @@
     (< now commit-period-end)                           :reg-entry.status/commit-period
     (< now reveal-period-end)                           :reg-entry.status/reveal-period
     (and (pos? reveal-period-end)
-         (> now reveal-period-end)) (if (< votes-against votes-for) ;; TODO: this should be using quorum
+         (> now reveal-period-end)) (if (< votes-against votes-for)
                                       :reg-entry.status/whitelisted
                                       :reg-entry.status/blacklisted)
     :else :reg-entry.status/whitelisted))
@@ -109,14 +109,14 @@
    [:< now :re.challenge/reveal-period-end]                   (enum :reg-entry.status/reveal-period)
    [:and
     [:> :re.challenge/reveal-period-end 0]
-    [:> now :re.challenge/reveal-period-end]]  (sql/call :case ;; TODO: this should be using quorum
+    [:> now :re.challenge/reveal-period-end]]  (sql/call :case
                                                          [:< :re.challenge/votes-against :re.challenge/votes-for]
                                                          (enum :reg-entry.status/whitelisted)
 
                                                          :else (enum :reg-entry.status/blacklisted))
    :else (enum :reg-entry.status/whitelisted)))
 
-(defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :statuses :challenged :order-by :order-dir :owner :creator :curator :challenger :voter :first :after] :as args}]
+(defn search-memes-query-resolver [_ {:keys [:title :tags :tags-or :tags-not :statuses :challenged :order-by :order-dir :owner :creator :curator :challenger :voter :first :after] :as args}]
   (log/debug "search-memes-query-resolver" args)
   (try-catch-throw
    (let [statuses-set (when statuses (set statuses))
@@ -163,6 +163,9 @@
                                                            [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
                                                            [:in :meme-tags.tag/name tags]]}])
                  tags-or      (sqlh/merge-where [:in :meme-tags.tag/name tags-or])
+                 tags-not     (sqlh/merge-where [:or
+                                                 [:not-in :meme-tags.tag/name tags-not]
+                                                 [:= :meme-tags.tag/name nil]])
                  creator      (sqlh/merge-where [:= :re.reg-entry/creator creator])
                  curator      (sqlh/merge-where [:or [:= :re.challenge/challenger curator]
                                                  [:= :v.vote/voter curator]])
@@ -233,7 +236,7 @@
 ;; If testing this by hand remember params like statuses should be string and not keywords
 ;; like (search-meme-auctions-query-resolver nil {:statuses [(enum :meme-auction.status/active)]})
 (defn search-meme-auctions-query-resolver [_ {:keys [:title :non-for-meme :for-meme
-                                                     :tags :tags-or :order-by :order-dir :group-by
+                                                     :tags :tags-or :tags-not :order-by :order-dir :group-by
                                                      :statuses :seller :first :after] :as args}]
   (log/debug "search-meme-auctions-query-resolver" args)
   (try-catch-throw
@@ -260,6 +263,9 @@
                  non-for-meme (sqlh/merge-where [:not= :m.reg-entry/address non-for-meme])
                  for-meme     (sqlh/merge-where [:= :m.reg-entry/address for-meme])
                  tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
+                 tags-not     (sqlh/merge-where [:or
+                                                 [:not-in :mtags.tag/name tags-not]
+                                                 [:= :mtags.tag/name nil]])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                            :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
@@ -420,7 +426,6 @@
                                                 [{:select [:%count.*]
                                                   :from [:votes]
                                                   :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
-                                                  ;; TODO: this should be using quorum
                                                   ;; This doesn't look right, looks like it should be counting user option for a challenge
                                                   ;; when that option is equal to the challenge winning result
                                                   :where [:and [:> now :reg-entries.challenge/reveal-period-end]
@@ -436,7 +441,6 @@
                                               (when (select? :user/total-created-challenges-success)
                                                 [{:select [:%count.* ]
                                                   :from [:reg-entries]
-                                                  ;; TODO: this should be using quorum
                                                   :where [:and [:> now :reg-entries.challenge/reveal-period-end]
                                                           [:>= :reg-entries.challenge/votes-against :reg-entries.challenge/votes-for]
                                                           [:= :reg-entries.challenge/challenger :users.user/address]]}
@@ -534,9 +538,6 @@
     [false true false] (enum :vote-option/vote-for)
     [false false true] (enum :vote-option/vote-against)
     [false _ _] (enum :vote-option/not-revealed)))
-
-(defn reg-entry->status-resolver [reg-entry]
-  (enum (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)))
 
 (defn reg-entry->creator-resolver [{:keys [:reg-entry/creator] :as reg-entry}]
   (log/debug "reg-entry->creator-resolver args" reg-entry)
@@ -1118,8 +1119,7 @@
               :blacklist-reg-entry blacklist-reg-entry-resolver}
    :Vote {:vote/option vote->option-resolver
           :vote/reward vote->reward-resolver}
-   :Meme {:reg-entry/status reg-entry->status-resolver
-          :reg-entry/creator reg-entry->creator-resolver
+   :Meme {:reg-entry/creator reg-entry->creator-resolver
           :challenge/vote-winning-vote-option reg-entry->vote-winning-vote-option-resolver
           :challenge/all-rewards reg-entry->all-rewards-resolver
           :challenge/challenger reg-entry->challenger
@@ -1137,8 +1137,7 @@
                  :meme-auction/status meme-auction->status-resolver
                  :meme-auction/meme-token meme-auction->meme-token-resolver}
    :MemeAuctionList {:items meme-auction-list->items-resolver}
-   :ParamChange {:reg-entry/status reg-entry->status-resolver
-                 :reg-entry/creator reg-entry->creator-resolver
+   :ParamChange {:reg-entry/creator reg-entry->creator-resolver
                  :challenge/challenger reg-entry->challenger
                  :challenge/all-rewards reg-entry->all-rewards-resolver
                  :challenge/vote reg-entry->vote-resolver}

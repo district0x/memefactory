@@ -524,6 +524,7 @@
                        :padding-top (em 7)}]
      [:h2.title {:padding-top (em 1)}]
      [:.selling-panel
+      [:.nsfw-switch {:margin-left (em 2.2)}]
       [:.help-block {:display :none}]
       [:.meme-card
        [:.selling-tile-back
