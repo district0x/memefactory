@@ -192,7 +192,6 @@
   (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})
         event-signature (:signature (web3-helpers/event-interface contract-instance event))]
     (web3-eth/subscribe-logs @web3
-                             contract-instance
                              (merge {:address (aget contract-instance "options" "address")
                                      :topics [event-signature]}
                                     opts)

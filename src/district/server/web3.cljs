@@ -5,8 +5,7 @@
    [clojure.string :as string]
    [cljs-web3.core :as web3-core]
    [cljs-web3.eth :as web3-eth]
-   [web3.impl.web3js :as web3js]
-   [goog.object]
+   [cljs-web3.impl.web3js :as web3js]
    [taoensso.timbre :as log]
    [district.server.config :refer [config]]
    [mount.core :as mount :refer [defstate]]))
@@ -27,13 +26,12 @@
               url
               (str (or host "http://127.0.0.1") ":" port))
         instance (web3js/new)]
-    {:instance instance
-     :provider (if (websocket-connection? uri)
-                 (web3-core/websocket-provider instance uri)
-                 (web3-core/http-provider instance uri))}))
+    (if (websocket-connection? uri)
+      (web3-core/websocket-provider instance uri)
+      (web3-core/http-provider instance uri))))
 
-(defn start [{:keys [:port :url :on-online :on-offline :interval]
-              :or {interval 3000} :as opts}]
+(defn start [{:keys [:port :url :on-online :on-offline :healthcheck-interval :polling-interval]
+              :or {polling-interval 3000 healthcheck-interval 300000} :as opts}]
   (let [this-web3 (create opts)
         interval-id (atom nil)
         reset-connection (fn []
@@ -48,24 +46,12 @@
                                                                                                  (js/clearInterval @interval-id)
                                                                                                  ;; swap websocket
                                                                                                  (web3-core/set-provider @web3 (aget (:provider new-web3) "currentProvider"))
-                                                                                                 #_(goog.object/set (:provider @web3) "currentProvider"
-                                                                                                                  (aget (:provider new-web3) "currentProvider"))
                                                                                                  (on-online)))))))
-                                                               interval)))]
+                                                               polling-interval)))]
 
     (when (and (not port) (not url))
       (throw (js/Error. "You must provide port or url to start the web3 component")))
 
-    (js/setInterval (fn []
-                      (web3-eth/is-listening? this-web3
-                                              (fn [error result]
-                                                (let [connected? (and (nil? error) result)]
-                                                  (log/debug "Running connection healthcheck..." {:connected? connected?})
-                                                  (when-not connected?
-                                                    (reset-connection))))))
-                    300000)
-
-    (web3-core/on-error this-web3 #(log/error "Websocket connection error" {:error %}))
     (web3-core/on-disconnect this-web3 reset-connection)
 
     (web3-core/extend this-web3
