@@ -35,7 +35,7 @@ module.exports = function(callback) {
         fs.readdirSync(migrations_dir).forEach(file => {
           var migrationNumber = file.match(/^\d+|\d+\b|\d+(?=\w)/g) || false;
           if (migrationNumber && migrationNumber [0] > number) {
-            console.error ("ERROR: migration ", number, "has not been ran on the network", network);
+            console.error ("ERROR: migration", number, "has not been ran on the network", network);
             process.exit(1);
           }
         });

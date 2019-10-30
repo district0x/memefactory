@@ -42,6 +42,7 @@ jobs:
   check_migrations:
     docker:
       - image: district0x/cljs-dev
+    shell: /bin/bash --login -o pipefail
     steps:
       - checkout
       - restore_cache:
