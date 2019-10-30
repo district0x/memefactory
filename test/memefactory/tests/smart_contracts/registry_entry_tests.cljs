@@ -28,8 +28,6 @@
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
 
-
-
 (defn load-registry-entry [address]
   (async/go
     (->> (<? (registry-entry/load-registry-entry address))

@@ -95,6 +95,7 @@ module.exports = function(deployer, network, accounts) {
   deployer.then (() => {
     console.log ("@@@ using Web3 version:", web3.version.api);
     console.log ("@@@ using address", address);
+    console.log ("@@@ using smart contracts file", smart_contracts_path);
   });
 
   deployer.deploy (District0xEmails, Object.assign(opts, {gas: 500000}))

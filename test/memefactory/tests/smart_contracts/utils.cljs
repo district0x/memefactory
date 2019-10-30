@@ -7,7 +7,7 @@
    [cljs.test :refer-macros [deftest is testing run-tests use-fixtures async]]
    [district.server.web3 :refer [web3]]
    [memefactory.shared.smart-contracts-dev :refer [smart-contracts]]
-   [district.server.smart-contracts :refer [instance wait-for-tx-receipt]]
+   [district.server.smart-contracts :refer [wait-for-tx-receipt]]
    [mount.core :as mount]
    [cljs.core.async :as async :refer-macros [go]]
    [clojure.core.async :as async]))

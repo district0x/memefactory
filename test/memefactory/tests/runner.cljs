@@ -1,13 +1,16 @@
 (ns memefactory.tests.runner
-  (:require [cljs.nodejs :as nodejs]
+  (:require [cljs-promises.async :refer-macros [<?]]
+            [cljs-promises.async]
+            [cljs-web3.core :as web3]
+            [cljs-web3.eth :as web3-eth]
+            [cljs.nodejs :as nodejs]
+            [clojure.core.async :as async :refer [<!]]
             [district.graphql-utils :as graphql-utils]
             [district.server.graphql :as graphql]
             [district.server.graphql.utils :as utils]
-            [cljs-web3.core :as web3]
-            [cljs-web3.eth :as web3-eth]
             [district.server.web3 :refer [web3]]
-            [memefactory.server.contract.dank-token :as dank-token]
             [doo.runner :refer-macros [doo-tests]]
+            [memefactory.server.contract.dank-token :as dank-token]
             [memefactory.server.graphql-resolvers :refer [resolvers-map]]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.tests.graphql-resolvers.graphql-resolvers-tests]
@@ -18,10 +21,7 @@
             [memefactory.tests.smart-contracts.registry-entry-tests]
             [memefactory.tests.smart-contracts.registry-tests]
             [memefactory.tests.smart-contracts.utils :as test-utils]
-            [taoensso.timbre :as log]
-            [cljs-promises.async]
-            [clojure.core.async :as async :refer [<!]]
-            [cljs-promises.async :refer-macros [<?]]))
+            [taoensso.timbre :as log]))
 
 (nodejs/enable-util-print!)
 
@@ -42,13 +42,13 @@
 (defn start-and-run-tests []
   (async/go
     ((test-utils/create-before-fixture))
-    (log/info "Transfering dank to accounts" ::deploy-contracts-and-run-tests)
+    (log/info "Transfering dank to accounts" ::start-and-run-tests)
     (doseq [acc (web3-eth/accounts @web3)]
-        (<? (dank-token/transfer {:to acc :amount "1000e18"} {:gas 200000})))
-    #_(log/info "Account balances now are " ::deploy-contracts-and-run-tests)
-    #_(doseq [acc (web3-eth/accounts @web3)]
-        (println (str "Balance of " acc " is " (<? (dank-token/balance-of acc)))))
-    #_(log/info "Running tests" ::deploy-contracts-and-run-tests)
+      (<? (dank-token/transfer {:to acc :amount "1000e18"} {:gas 200000})))
+    (log/info "Account balances now are " ::start-and-run-tests)
+    (doseq [acc (web3-eth/accounts @web3)]
+      (println (str "Balance of " acc " is " (<? (dank-token/balance-of acc)))))
+    (log/info "Running tests" ::start-and-run-tests)
     (cljs.test/run-tests
      'memefactory.tests.graphql-resolvers.graphql-resolvers-tests
      'memefactory.tests.smart-contracts.registry-entry-tests
