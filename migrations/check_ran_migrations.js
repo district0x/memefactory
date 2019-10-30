@@ -14,6 +14,8 @@ const Migrations = artifacts.require("Migrations");
 var smartContracts = readSmartContractsFile(smart_contracts_path);
 const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations");
 
+console.log ("@@@ script:");
+
 /**
  * MEMEFACTORY_ENV=dev truffle exec ./migrations/check_ran_migrations.js --network ganache
  */
