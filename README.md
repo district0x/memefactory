@@ -1,6 +1,6 @@
 # [MemeFactory](https://memefactory.io)
 
-[![Build Status](https://travis-ci.org/district0x/memefactory.svg?branch=master)](https://travis-ci.org/district0x/memefactory)
+[![CircleCI](https://circleci.com/gh/district0x/memefactory/tree/master.svg?style=svg)](https://circleci.com/gh/district0x/memefactory/tree/master)
 
 MemeFactory is a platform for the decentralized creation, issuance, and exchange of provably rare digital collectibles on the Ethereum blockchain. Meme Factory strives to be the first self-governing digital collectibles marketplace. By utilizing a “token curated registry”, called the Dank Registry, Meme Factory users will be able to submit original memes to a community run list, where token holders of a newly minted token, the DANK token, decide what makes the cut.
 

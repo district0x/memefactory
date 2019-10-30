@@ -59,9 +59,9 @@ jobs:
       - run:
           name: check if all migrations have been ran
           command: |
-            if [ "$CIRCLE_BRANCH == 'feature/track-migrations' ]; then
+            if [ "$CIRCLE_BRANCH" == 'feature/track-migrations' ]; then
               env MEMEFACTORY_ENV=qa INFURA_API_KEY=$INFURA_API_KEY ROPSTEN_PRIV_KEY=$ROPSTEN_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten
-            elif [ "$CIRCLE_BRANCH == 'production' ]; then
+            elif [ "$CIRCLE_BRANCH" == 'production' ]; then
               env MEMEFACTORY_ENV=prod INFURA_API_KEY=$INFURA_API_KEY MAINNET_PRIV_KEY=$MAINNET_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-mainnet
             else
               echo "Wrong branch";
