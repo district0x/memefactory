@@ -30,11 +30,6 @@
   (mount/stop)
   (async done (js/setTimeout #(done) 1000)))
 
-(defn tx-error? [tx-hash]
-  (.then (wait-for-tx-receipt tx-hash)
-         (fn [{:keys [status] :as reply}]
-           (js/Promise.resolve (= status "0x0")))))
-
 (defn tx-reverted? [transaction]
   (try
     (<! (transaction))

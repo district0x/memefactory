@@ -16,8 +16,7 @@
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.shared.contract.registry-entry :refer [vote-option->num vote-options parse-load-registry-entry parse-load-vote]]
             [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
-            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]
-            [print.foo :include-macros true :refer [look]]))
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")

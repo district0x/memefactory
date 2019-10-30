@@ -9,6 +9,7 @@
             [district.server.config]
             [district.server.smart-contracts :refer [contract-address]]
             [district.server.web3 :refer [web3]]
+            [district.shared.async-helpers :refer [promise->]]
             [district.web3-utils :as web3-utils]
             [memefactory.server.contract.dank-token :as dank-token]
             [memefactory.server.contract.ds-auth :as ds-auth]
@@ -20,10 +21,8 @@
             [memefactory.server.contract.param-change-factory :as param-change-factory]
             [memefactory.server.contract.registry :as registry]
             [memefactory.server.contract.registry-entry :as registry-entry]
-            [district.shared.async-helpers :refer [promise->]]
             [memefactory.shared.smart-contracts-dev :refer [smart-contracts]]
-            [memefactory.tests.smart-contracts.utils :refer [now create-before-fixture after-fixture]]
-            [print.foo :include-macros true]))
+            [memefactory.tests.smart-contracts.utils :refer [now create-before-fixture after-fixture]]))
 
 (deftest deployment-tests
   (testing "testing if deployment was succesfull"

@@ -17,7 +17,7 @@
             [memefactory.server.contract.meme-token :as meme-token]
             [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
             [memefactory.tests.smart-contracts.utils :as test-utils]
-            [memefactory.tests.smart-contracts.utils :refer [tx-error? tx-reverted?]]))
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")

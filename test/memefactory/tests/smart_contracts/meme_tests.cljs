@@ -12,7 +12,7 @@
             [memefactory.server.contract.meme-token :as meme-token]
             [cljs-promises.async :refer-macros [<?]]
             [clojure.core.async :as async :refer [<!]]
-            [memefactory.tests.smart-contracts.utils :refer [tx-error? tx-reverted?]]))
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
