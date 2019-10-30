@@ -47,7 +47,7 @@
      'memefactory.tests.smart-contracts.meme-tests
      'memefactory.tests.smart-contracts.meme-auction-tests
      'memefactory.tests.smart-contracts.registry-tests
-     ;; 'memefactory.tests.smart-contracts.param-change-tests
+     'memefactory.tests.smart-contracts.param-change-tests
      )))
 
 (cljs-promises.async/extend-promises-as-pair-channels!)

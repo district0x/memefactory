@@ -3,13 +3,14 @@
             [cljs-time.core :as t]
             [cljs-web3.core :as web3]
             [cljs-web3.eth :as web3-eth]
-            [cljs.test :refer-macros [deftest is testing run-tests use-fixtures async]]
-            ;; [clojure.core.async :refer [<!]]
-            [cljs-promises.async :refer-macros [<?]]
+            [cljs.test :as test]
+            [clojure.core.async :as async :refer [<!]]
+            [district.shared.async-helpers :refer [safe-go <?]]
             [district.server.smart-contracts :refer [wait-for-tx-receipt]]
             [district.server.web3 :refer [web3]]
             [memefactory.shared.smart-contracts-dev :refer [smart-contracts]]
-            [mount.core :as mount]))
+            [mount.core :as mount])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn now []
   (from-long (* (:timestamp (web3-eth/get-block @web3 (web3-eth/block-number @web3))) 1000)))
@@ -28,10 +29,14 @@
 
 (defn after-fixture []
   (mount/stop)
-  (async done (js/setTimeout #(done) 1000)))
+  (test/async done (js/setTimeout #(done) 1000)))
 
 (defn tx-reverted? [transaction]
-  (try
-    (<! (transaction))
-    (catch :default e
-      true)))
+  (go
+    (let [out-ch (async/chan)]
+      (try
+        (<? (transaction))
+        (async/put! out-ch false)
+        (catch :default e
+          (async/put! out-ch true)))
+      out-ch)))

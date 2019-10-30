@@ -334,7 +334,6 @@
                                               :salt (str salt)}
                                              {:from voter-addr}))]
 
-
        (web3-evm/increase-time! @web3 [(inc reveal-period-duration)])
 
        (let [balance-before-claim (<? (dank-token/balance-of voter-addr))
