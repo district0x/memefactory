@@ -13,7 +13,7 @@
             [print.foo :refer [look] :include-macros true]
             [clojure.core.async :as async :refer [<!]]
             [cljs-promises.async :refer-macros [<?]]
-            [memefactory.tests.smart-contracts.utils :refer [tx-error? tx-reverted?]]))
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")

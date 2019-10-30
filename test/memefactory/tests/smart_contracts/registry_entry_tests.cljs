@@ -58,8 +58,8 @@
            (is (= (bn/number (<? (dank-token/balance-of (:reg-entry/address entry))))
                   deposit ))))
 
-       #_(testing "Construct method of cannot be called twice"
-           (is (<? (tx-error? (<? (contract-call :meme :construct [creator-addr deposit max-total-supply sample-meta-hash-1])))))))
+       (testing "Construct method of cannot be called twice"
+         (is (tx-reverted? #(contract-call :meme :construct [creator-addr deposit max-total-supply sample-meta-hash-1])))))
      (done))))
 
 (deftest approve-and-create-challenge-test
