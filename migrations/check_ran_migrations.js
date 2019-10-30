@@ -6,7 +6,7 @@ const migrations_dir = './migrations/';
 
 const NETWORKS = {
   "1" : "mainnet",
-  "3": "ropsten"
+  "3" : "ropsten"
 };
 
 const Migrations = artifacts.require("Migrations");
@@ -29,7 +29,7 @@ module.exports = function(callback) {
     migrations.last_completed_migration ()
       .then ((response) => {
 
-        const number = response.c [0];
+        const number = 9 ; //response.c [0];
         console.log ("last completed migration on the network", network, "has number", number);
 
         fs.readdirSync(migrations_dir).forEach(file => {
