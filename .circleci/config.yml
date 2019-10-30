@@ -64,7 +64,8 @@ jobs:
             echo "$CIRCLE_BRANCH"
             if [ "$CIRCLE_BRANCH" = 'feature/track-migrations' ]; then
               echo "FUBAR 2"
-              do something weird instead
+              truffle --version
+              env MEMEFACTORY_ENV=qa INFURA_API_KEY=$INFURA_API_KEY ROPSTEN_PRIV_KEY=$ROPSTEN_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten;
             elif [ "$CIRCLE_BRANCH" = 'production' ]; then
               echo "FUBAR 2"
               env MEMEFACTORY_ENV=prod INFURA_API_KEY=$INFURA_API_KEY MAINNET_PRIV_KEY=$MAINNET_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-mainnet;
