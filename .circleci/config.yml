@@ -60,8 +60,8 @@ jobs:
       - run:
           name: check if all migrations have been ran
           command: |
-              truffle --version
-              env MEMEFACTORY_ENV=qa INFURA_API_KEY=$INFURA_API_KEY ROPSTEN_PRIV_KEY=$ROPSTEN_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten;
+            truffle --version
+            env MEMEFACTORY_ENV=qa INFURA_API_KEY=$INFURA_API_KEY ROPSTEN_PRIV_KEY=$ROPSTEN_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten;
             echo "F-U";
 
   build_and_deploy:
