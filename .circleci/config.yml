@@ -45,18 +45,18 @@ jobs:
     shell: /bin/bash --login -o pipefail
     steps:
       - checkout
-      # - restore_cache:
-      #     name: Restore npm package cache
-      #     keys:
-      #       - npm-packages-{{ checksum "package-lock.json" }}
-      # - run:
-      #     name: Install node modules
-      #     command: lein npm install
-      # - save_cache:
-      #     name: Save npm package cache
-      #     key: npm-packages-{{ checksum "package-lock.json" }}
-      #     paths:
-      #       - ./node_modules/
+      - restore_cache:
+          name: Restore npm package cache
+          keys:
+            - npm-packages-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install node modules
+          command: lein npm install
+      - save_cache:
+          name: Save npm package cache
+          key: npm-packages-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules/
       - run:
           name: check if all migrations have been ran
           command: |
