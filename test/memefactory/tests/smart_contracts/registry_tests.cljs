@@ -33,9 +33,9 @@
                                      {:from (first (web3-eth/accounts @web3))}))))
 
      (testing "Unauthorised address cannot call this set-factory"
-       (is (tx-reverted? #(registry/set-factory [:meme-registry :meme-registry-fwd]
-                                                {:factory (contract-address :meme-factory)}
-                                                {:from (last (web3-eth/accounts @web3))}))))
+       (is (<? (tx-reverted? (<? (registry/set-factory [:meme-registry :meme-registry-fwd]
+                                                       {:factory (contract-address :meme-factory)}
+                                                       {:from (second (web3-eth/accounts @web3))}))))))
      (done))))
 
 (deftest add-registry-entry-test
@@ -44,9 +44,9 @@
    (async/go
      (let [[addr0 addr1] (web3-eth/accounts @web3)]
        (testing "addRegistryEntry cannot be called by regular address"
-         (is (tx-reverted? #(contract-call [:param-change-registry :param-change-registry-fwd]
-                                           :add-registry-entry [addr1]
-                                           {:from addr0}))))
+         (is (<? (tx-reverted? (<? (contract-call [:param-change-registry :param-change-registry-fwd]
+                                                  :add-registry-entry [addr1]
+                                                  {:from addr0}))))))
        (done)))))
 
 (deftest set-emergency-test
@@ -67,14 +67,14 @@
             (catch js/Error e nil))))
 
        (testing "After enabling emergency, check at least 1 method in a RegistryEntry with notEmergency modifier starts failing"
-         (is (tx-reverted? #(registry-entry/approve-and-create-challenge meme-entry
-                                                                         {:amount deposit
-                                                                          :meta-hash sample-meta-hash-1}
-                                                                         {:from challenger-addr}))))
+         (is (<? (tx-reverted? (<? (registry-entry/approve-and-create-challenge meme-entry
+                                                                                {:amount deposit
+                                                                                 :meta-hash sample-meta-hash-1}
+                                                                                {:from challenger-addr}))))))
 
        (testing "Unauthorised address cannot call this method"
-         (is (tx-reverted? #(contract-call  :param-change-registry :set-emergency [true]
-                                            {:from (last (web3-eth/accounts @web3))}))))
+         (is (<? (tx-reverted? (<? (contract-call  :param-change-registry :set-emergency [true]
+                                                   {:from (last (web3-eth/accounts @web3))}))))))
 
        ;; Disabling emergency mode!!!!
        (<? (contract-call  [:meme-registry :meme-registry-fwd]

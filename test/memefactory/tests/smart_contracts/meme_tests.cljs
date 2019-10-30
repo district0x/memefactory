@@ -12,6 +12,7 @@
             [memefactory.server.contract.meme-token :as meme-token]
             [cljs-promises.async :refer-macros [<?]]
             [clojure.core.async :as async :refer [<!]]
+            [taoensso.timbre :refer [spy]]
             [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
@@ -69,7 +70,7 @@
 
        (testing "Meme deposit can't be transferred if not whitelisted"
          ;; it will not be whitelisted because we are still in challenge period
-         (is (tx-reverted? #(meme/transfer-deposit registry-entry))))
+         (is (<? (tx-reverted? (<? (meme/transfer-deposit registry-entry))))))
 
        (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
 
@@ -93,7 +94,7 @@
 
        (testing "Meme cant be minted if it's not whitelisted"
          ;; it will not be whitelisted because we are still in challenge period
-         (is (tx-reverted? #(meme/mint registry-entry max-total-supply {}))))
+         (is (<? (tx-reverted? (<? (meme/mint registry-entry max-total-supply {}))))))
 
        (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
 

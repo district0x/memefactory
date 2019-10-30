@@ -13,6 +13,7 @@
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.param-change :as param-change]
             [memefactory.server.contract.param-change-factory :as param-change-factory]
+            [taoensso.timbre :refer [spy]]
             [memefactory.server.contract.param-change-registry :as param-change-registry]
             [memefactory.server.contract.registry :as registry]
             [memefactory.server.contract.registry-entry :as registry-entry]
@@ -27,40 +28,40 @@
 ;;;;;;;;;;;;;;;;;
 
 (deftest approve-and-create-param-change-test
-    (test/async
-     done
-     (async/go
-       (try
-         (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
-               [deposit challenge-period-duration] (->> (<? (eternal-db/get-uint-values :param-change-registry-db
-                                                                                        [:deposit :challenge-period-duration]))
-                                                        (map bn/number))
-               tx-hash (<? (param-change-factory/approve-and-create-param-change
-                            {:db (contract-address :meme-registry-db)
-                             :key :deposit
-                             :value (web3/to-wei 2 :ether)
-                             :amount deposit
-                             :meta-hash "QmfWFPzyZRMV7w5NvXfSWeZtEAvsNKYZwuvwpgHD82NR28"}
-                            {:from creator-addr}))
-               registry-entry (->> (registry/param-change-constructed-event-in-tx [:param-change-registry :param-change-registry-fwd] (look tx-hash))
-                                   :args
-                                   :registry-entry)
-               change-entry (<? (param-change/load-param-change registry-entry))]
+  (test/async
+   done
+   (async/go
+     (try
+       (let [[creator-addr challenger-addr] (web3-eth/accounts @web3)
+             [deposit challenge-period-duration] (->> (<? (eternal-db/get-uint-values :param-change-registry-db
+                                                                                      [:deposit :challenge-period-duration]))
+                                                      (map bn/number))
+             tx-hash (<? (param-change-factory/approve-and-create-param-change
+                          {:db (contract-address :meme-registry-db)
+                           :key (name :deposit)
+                           :value (web3/to-wei 2 :ether)
+                           :amount (str deposit)
+                           :meta-hash "QmfWFPzyZRMV7w5NvXfSWeZtEAvsNKYZwuvwpgHD82NR28"}
+                          {:from creator-addr}))
+             registry-entry (->> (registry/param-change-constructed-event-in-tx [:param-change-registry :param-change-registry-fwd] tx-hash)
+                                 :args
+                                 :registry-entry)
+             change-entry (<? (param-change/load-param-change registry-entry))]
 
-           (testing "Can create param change registry"
-             (is tx-hash))
+         (testing "Can create param change registry"
+           (is (not (<? (tx-reverted? tx-hash)))))
 
-           (testing "Properties should be good after creating param change"
-             (is (= (:param-change/db change-entry) (contract-address :meme-registry-db)))
-             (is (= (:param-change/key change-entry) "deposit"))
-             (is (= (:param-change/value change-entry) (js/parseInt (web3/to-wei 2 :ether)))))
+         (testing "Properties should be good after creating param change"
+           (is (= (:param-change/db change-entry) (contract-address :meme-registry-db)))
+           (is (= (:param-change/key change-entry) "deposit"))
+           (is (= (:param-change/value change-entry) (js/parseInt (web3/to-wei 2 :ether)))))
 
-           (testing "Can create challenge under valid condidtions"
-             (is (<? (registry-entry/approve-and-create-challenge registry-entry
-                                                                  {:amount deposit}
-                                                                  {:from challenger-addr}))))
-           (done))
-         (catch js/Error e (js/console.error e))))))
+         (testing "Can create challenge under valid condidtions"
+           (is (<? (registry-entry/approve-and-create-challenge registry-entry
+                                                                {:amount deposit}
+                                                                {:from challenger-addr}))))
+         (done))
+       (catch js/Error e (js/console.error e))))))
 
 (deftest apply-param-change-test
   (test/async

@@ -113,14 +113,14 @@
          (is (= sample-meta-hash-1 (:challenge/meta-hash entry))))
 
        (testing "Challenge cannot be created if RegistryEntry was already challenged"
-         (is (tx-reverted? challenge)))
+         (is (<? (tx-reverted? (<? (challenge))))))
 
        (testing "Challenge cannot be created outside challenge period"
          (let [registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-2))]
            (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
-           (is (tx-reverted? #(registry-entry/approve-and-create-challenge registry-entry
-                                                                           {:amount deposit
-                                                                            :meta-hash sample-meta-hash-2})))))
+           (is (<? (tx-reverted? (<? (registry-entry/approve-and-create-challenge registry-entry
+                                                                                  {:amount deposit
+                                                                                   :meta-hash sample-meta-hash-2})))))))
        (done)))))
 
 (deftest approve-and-commit-vote-test
@@ -168,7 +168,14 @@
 
        (testing "Vote cannot be committed outside vote commit period"
          (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
-         (is (tx-reverted? #(registry-entry/approve-and-commit-vote registry-entry
+
+         (is (<? (tx-reverted? (<? (registry-entry/approve-and-commit-vote registry-entry
+                                                                        {:amount vote-amount
+                                                                         :salt salt
+                                                                         :vote-option vote-option}
+                                                                        {:from voter-addr2})))))
+
+         #_(is (tx-reverted? #(registry-entry/approve-and-commit-vote registry-entry
                                                                     {:amount vote-amount
                                                                      :salt salt
                                                                      :vote-option vote-option}
@@ -202,13 +209,14 @@
                                                          {:amount first-vote-amount
                                                           :salt salt
                                                           :vote-option :vote.option/vote-for}
-                                                         {:from voter-addr}))]
+                                                         {:from voter-addr}))
+           voter-balance (<? (dank-token/balance-of voter-addr))]
        (testing "Can't make second vote"
-         (is (tx-reverted? #(registry-entry/approve-and-commit-vote registry-entry
-                                                                    {:amount (<? (dank-token/balance-of voter-addr))
-                                                                     :salt salt
-                                                                     :vote-option :vote.option/vote-against}
-                                                                    {:from voter-addr}))))
+         (is (<? (tx-reverted? (<? (registry-entry/approve-and-commit-vote registry-entry
+                                                                           {:amount voter-balance
+                                                                            :salt salt
+                                                                            :vote-option :vote.option/vote-against}
+                                                                           {:from voter-addr}))))))
        (done)))))
 
 (deftest reveal-vote-test
@@ -250,19 +258,19 @@
          (is (bn/= (<? (dank-token/balance-of voter-addr2)) (bn/- voter-addr2-init-balance vote-amount) )))
 
        (testing "Vote cannot be revealed outside vote reveal period"
-         (is (tx-reverted? #(registry-entry/reveal-vote registry-entry
-                                                        {:address voter-addr
-                                                         :vote-option :vote.option/vote-for
-                                                         :salt salt}
-                                                        {:from voter-addr}))))
+         (is (<? (tx-reverted? (<? (registry-entry/reveal-vote registry-entry
+                                                            {:address voter-addr
+                                                             :vote-option :vote.option/vote-for
+                                                             :salt salt}
+                                                            {:from voter-addr}))))))
        (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
 
        (testing "Vote cannot be revealed with incorrect salt"
-         (is (tx-reverted? #(registry-entry/reveal-vote registry-entry
-                                                        {:address voter-addr
-                                                         :vote-option :vote.option/vote-for
-                                                         :salt (str salt "x")}
-                                                        {:from voter-addr}))))
+         (is (<? (tx-reverted? (<? (registry-entry/reveal-vote registry-entry
+                                                               {:address voter-addr
+                                                                :vote-option :vote.option/vote-for
+                                                                :salt (str salt "x")}
+                                                               {:from voter-addr}))))))
 
        (let [reveal-vote1 #(registry-entry/reveal-vote registry-entry
                                                        {:address voter-addr
@@ -297,7 +305,7 @@
                      (+ vote-amount (bn/number voter-addr2-init-balance)))))
 
          (testing "Vote cannot be revealed twice"
-           (is (tx-reverted? #(reveal-vote1)))))
+           (is (<? (tx-reverted? (<? (reveal-vote1)))))))
        (done)))))
 
 (deftest claim-rewards
@@ -394,5 +402,5 @@
            (is (= vote-amount (bn/number (bn/- balance-after-reclaim balance-before-reclaim)))))
 
          (testing "Cannot be called twice"
-           (is (tx-reverted? #(reclaim-vote-deposit)))))
+           (is (<? (tx-reverted? (<? (reclaim-vote-deposit)))))))
        (done)))))
