@@ -42,8 +42,8 @@
 (defn start-and-run-tests []
   (async/go
     ((test-utils/create-before-fixture))
-    #_(log/info "Transfering dank to accounts" ::deploy-contracts-and-run-tests)
-    #_(doseq [acc (web3-eth/accounts @web3)]
+    (log/info "Transfering dank to accounts" ::deploy-contracts-and-run-tests)
+    (doseq [acc (web3-eth/accounts @web3)]
         (<? (dank-token/transfer {:to acc :amount "1000e18"} {:gas 200000})))
     #_(log/info "Account balances now are " ::deploy-contracts-and-run-tests)
     #_(doseq [acc (web3-eth/accounts @web3)]
