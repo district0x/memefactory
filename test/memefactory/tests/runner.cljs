@@ -25,9 +25,6 @@
 
 (nodejs/enable-util-print!)
 
-;; (def child-process (nodejs/require "child_process"))
-;; (def spawn (aget child-process "spawn"))
-
 (set! (.-error js/console) (fn [x] (.log js/console x)))
 
 (defn on-jsload []
@@ -37,14 +34,9 @@
                                                  :gql-name->kw graphql-utils/gql-name->kw})
                     :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
 
-;; Lets prepare everything for the tests!!!
-
 (defn start-and-run-tests []
   (async/go
     ((test-utils/create-before-fixture))
-    (log/info "Transfering dank to accounts" ::start-and-run-tests)
-    (doseq [acc (web3-eth/accounts @web3)]
-      (<? (dank-token/transfer {:to acc :amount "1000e18"} {:gas 200000})))
     (log/info "Account balances now are " ::start-and-run-tests)
     (doseq [acc (web3-eth/accounts @web3)]
       (println (str "Balance of " acc " is " (<? (dank-token/balance-of acc)))))
@@ -55,19 +47,8 @@
      'memefactory.tests.smart-contracts.meme-tests
      'memefactory.tests.smart-contracts.meme-auction-tests
      'memefactory.tests.smart-contracts.registry-tests
-     'memefactory.tests.smart-contracts.param-change-tests)))
-
-#_(defn deploy-contracts-and-run-tests
-    "Redeploy smart contracts with truffle"
-    []
-    (log/warn "Redeploying contracts, please be patient..." ::redeploy)
-    (let [child (spawn "truffle migrate --network ganache --reset" (clj->js {:stdio "inherit" :shell true}))]
-      (-> child
-          (.on "close" (fn []
-                         ;; Give it some time to write smart_contracts.cljs
-                         ;; if we remove the timeout, it start mount components while we still have the old smart_contract.cljs
-                         (js/setTimeout #(start-and-run-tests) 5000))))))
+     ;; 'memefactory.tests.smart-contracts.param-change-tests
+     )))
 
 (cljs-promises.async/extend-promises-as-pair-channels!)
-;; (deploy-contracts-and-run-tests)
 (start-and-run-tests)

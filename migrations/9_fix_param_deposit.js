@@ -31,7 +31,7 @@ module.exports = function(deployer, network, accounts) {
       var paramChangeRegistryDbInstance = EternalDb.at(paramChangeRegistryDbAddr);
       var dSGurardInstance = DSGuard.at(dSGuardAddr);
       console.log("Changing eternal db at address", paramChangeRegistryDbAddr);
-      console.log("Setting new param changes deposit value to ", newDepositValue);
+      console.log("Setting new param changes deposit value to", newDepositValue);
 
       await dSGurardInstance.permit(address, paramChangeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
 
@@ -41,8 +41,6 @@ module.exports = function(deployer, network, accounts) {
 
       await dSGurardInstance.forbid(address, paramChangeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
     })
-    .then (function () {
-      console.log ("Done");
-    });
+    .then ( () => console.log ("Done"));
 
 }

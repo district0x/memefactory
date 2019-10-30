@@ -1,10 +1,13 @@
 (ns memefactory.tests.smart-contracts.registry-entry-tests
   (:require [bignumber.core :as bn]
+            [cljs-promises.async :refer-macros [<?]]
             [cljs-solidity-sha3.core :refer [solidity-sha3]]
             [cljs-web3.core :as web3]
             [cljs-web3.eth :as web3-eth]
             [cljs-web3.evm :as web3-evm]
             [cljs.test :as test :refer-macros [deftest is testing use-fixtures]]
+            [clojure.core.async :as async :refer [<!]]
+            [district.server.smart-contracts :refer [contract-call wait-for-tx-receipt]]
             [district.server.web3 :refer [web3]]
             [memefactory.server.contract.dank-token :as dank-token]
             [memefactory.server.contract.eternal-db :as eternal-db]
@@ -13,17 +16,8 @@
             [memefactory.server.contract.registry-entry :as registry-entry]
             [memefactory.shared.contract.registry-entry :refer [vote-option->num vote-options parse-load-registry-entry parse-load-vote]]
             [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
-            [district.server.smart-contracts :refer [contract-call wait-for-tx-receipt]]
-            [print.foo :include-macros true :refer [look]]
-            [clojure.core.async :as async :refer [<!]]
-            [cljs-promises.async :refer-macros [<?]]
-            [memefactory.tests.smart-contracts.utils :refer [tx-error?]]))
-
-#_(use-fixtures
-  :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
-                                                    :use-n-account-as-deposit-collector 3
-                                                    :meme-auction-cut 10})
-         :after test-utils/after-fixture})
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]
+            [print.foo :include-macros true :refer [look]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
@@ -66,7 +60,7 @@
                   deposit ))))
 
        #_(testing "Construct method of cannot be called twice"
-         (is (<? (tx-error? (<? (contract-call :meme :construct [creator-addr deposit max-total-supply sample-meta-hash-1])))))))
+           (is (<? (tx-error? (<? (contract-call :meme :construct [creator-addr deposit max-total-supply sample-meta-hash-1])))))))
      (done))))
 
 (deftest approve-and-create-challenge-test
@@ -120,15 +114,14 @@
          (is (= sample-meta-hash-1 (:challenge/meta-hash entry))))
 
        (testing "Challenge cannot be created if RegistryEntry was already challenged"
-         (is (<? (tx-error? (<? (challenge))))))
+         (is (tx-reverted? challenge)))
 
        (testing "Challenge cannot be created outside challenge period"
          (let [registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-2))]
            (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
-           (is (<? (tx-error? (<? (-> registry-entry
-                                      (registry-entry/approve-and-create-challenge
-                                       {:amount deposit
-                                        :meta-hash sample-meta-hash-2}))))))))
+           (is (tx-reverted? #(registry-entry/approve-and-create-challenge registry-entry
+                                                                           {:amount deposit
+                                                                            :meta-hash sample-meta-hash-2})))))
        (done)))))
 
 (deftest approve-and-commit-vote-test
@@ -160,8 +153,7 @@
                                                                {:amount vote-amount
                                                                 :salt salt
                                                                 :vote-option vote-option}
-                                                               {:from voter-addr}))
-           ]
+                                                               {:from voter-addr}))]
 
        (testing "Vote can be committed under valid conditions"
          (is vote-tx))
@@ -177,11 +169,11 @@
 
        (testing "Vote cannot be committed outside vote commit period"
          (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
-         (is (<? (tx-error? (<? (registry-entry/approve-and-commit-vote registry-entry
-                                                                        {:amount vote-amount
-                                                                         :salt salt
-                                                                         :vote-option vote-option}
-                                                                        {:from voter-addr2}))))))
+         (is (tx-reverted? #(registry-entry/approve-and-commit-vote registry-entry
+                                                                    {:amount vote-amount
+                                                                     :salt salt
+                                                                     :vote-option vote-option}
+                                                                    {:from voter-addr2}))))
        (done)))))
 
 (deftest approve-and-commit-vote-rejection-tests
@@ -212,104 +204,102 @@
                                                           :salt salt
                                                           :vote-option :vote.option/vote-for}
                                                          {:from voter-addr}))]
-
        (testing "Can't make second vote"
-         (is (<? (tx-error? (<? (registry-entry/approve-and-commit-vote registry-entry
-                                                                        {:amount (<? (dank-token/balance-of voter-addr))
-                                                                         :salt salt
-                                                                         :vote-option :vote.option/vote-against}
-                                                                        {:from voter-addr}))))))
+         (is (tx-reverted? #(registry-entry/approve-and-commit-vote registry-entry
+                                                                    {:amount (<? (dank-token/balance-of voter-addr))
+                                                                     :salt salt
+                                                                     :vote-option :vote.option/vote-against}
+                                                                    {:from voter-addr}))))
        (done)))))
 
 (deftest reveal-vote-test
-    (test/async
-     done
-     (async/go
-       (let [[voter-addr creator-addr challenger-addr voter-addr2] (web3-eth/accounts @web3)
-             [max-total-supply deposit challenge-period-duration
-              commit-period-duration reveal-period-duration max-auction-duration
-              challenge-dispensation]
-             (->> (<? (eternal-db/get-uint-values :meme-registry-db
-                                                  [:max-total-supply :deposit :challenge-period-duration
-                                                   :commit-period-duration :reveal-period-duration :max-auction-duration
-                                                   :challenge-dispensation]))
-                  (map bn/number))
-             registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
-             _ (<? (registry-entry/approve-and-create-challenge registry-entry
-                                                                {:amount deposit
-                                                                 :meta-hash sample-meta-hash-1}
-                                                                {:from challenger-addr}))
-             ;; TODO Fix test
-             {:keys [:reg-entry/address :challenge/commit-period-end]} (<! (load-registry-entry registry-entry))
-             voter-addr1-init-balance (<? (dank-token/balance-of voter-addr))
-             voter-addr2-init-balance (<? (dank-token/balance-of voter-addr2))
-             vote-amount 10
-             salt "abc"
-             _ (<? (registry-entry/approve-and-commit-vote registry-entry
-                                                        {:amount vote-amount
-                                                         :salt salt
-                                                         :vote-option :vote.option/vote-for}
-                                                        {:from voter-addr}))
-             _ (<? (registry-entry/approve-and-commit-vote registry-entry
-                                                        {:amount vote-amount
-                                                         :salt salt
-                                                         :vote-option :vote.option/vote-against}
-                                                        {:from voter-addr2}))]
+  (test/async
+   done
+   (async/go
+     (let [[voter-addr creator-addr challenger-addr voter-addr2] (web3-eth/accounts @web3)
+           [max-total-supply deposit challenge-period-duration
+            commit-period-duration reveal-period-duration max-auction-duration
+            challenge-dispensation]
+           (->> (<? (eternal-db/get-uint-values :meme-registry-db
+                                                [:max-total-supply :deposit :challenge-period-duration
+                                                 :commit-period-duration :reveal-period-duration :max-auction-duration
+                                                 :challenge-dispensation]))
+                (map bn/number))
+           registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
+           _ (<? (registry-entry/approve-and-create-challenge registry-entry
+                                                              {:amount deposit
+                                                               :meta-hash sample-meta-hash-1}
+                                                              {:from challenger-addr}))
+           {:keys [:reg-entry/address :challenge/commit-period-end]} (<! (load-registry-entry registry-entry))
+           voter-addr1-init-balance (<? (dank-token/balance-of voter-addr))
+           voter-addr2-init-balance (<? (dank-token/balance-of voter-addr2))
+           vote-amount 10
+           salt "abc"
+           _ (<? (registry-entry/approve-and-commit-vote registry-entry
+                                                         {:amount vote-amount
+                                                          :salt salt
+                                                          :vote-option :vote.option/vote-for}
+                                                         {:from voter-addr}))
+           _ (<? (registry-entry/approve-and-commit-vote registry-entry
+                                                         {:amount vote-amount
+                                                          :salt salt
+                                                          :vote-option :vote.option/vote-against}
+                                                         {:from voter-addr2}))]
 
-         (testing "Vote transferred DANK from the voter to the registry entry"
-           (is (bn/= (<? (dank-token/balance-of voter-addr)) (bn/- voter-addr1-init-balance vote-amount) ))
-           (is (bn/= (<? (dank-token/balance-of voter-addr2)) (bn/- voter-addr2-init-balance vote-amount) )))
+       (testing "Vote transferred DANK from the voter to the registry entry"
+         (is (bn/= (<? (dank-token/balance-of voter-addr)) (bn/- voter-addr1-init-balance vote-amount) ))
+         (is (bn/= (<? (dank-token/balance-of voter-addr2)) (bn/- voter-addr2-init-balance vote-amount) )))
 
-         (testing "Vote cannot be revealed outside vote reveal period"
-           (is (<? (tx-error? (<? (registry-entry/reveal-vote registry-entry
-                                                              {:address voter-addr
-                                                               :vote-option :vote.option/vote-for
-                                                               :salt salt}
-                                                              {:from voter-addr}))))))
-         (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
+       (testing "Vote cannot be revealed outside vote reveal period"
+         (is (tx-reverted? #(registry-entry/reveal-vote registry-entry
+                                                        {:address voter-addr
+                                                         :vote-option :vote.option/vote-for
+                                                         :salt salt}
+                                                        {:from voter-addr}))))
+       (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
 
-         (testing "Vote cannot be revealed with incorrect salt"
-           (is (<? (tx-error? (<? (registry-entry/reveal-vote registry-entry
-                                                              {:address voter-addr
-                                                               :vote-option :vote.option/vote-for
-                                                               :salt (str salt "x")}
-                                                              {:from voter-addr}))))))
+       (testing "Vote cannot be revealed with incorrect salt"
+         (is (tx-reverted? #(registry-entry/reveal-vote registry-entry
+                                                        {:address voter-addr
+                                                         :vote-option :vote.option/vote-for
+                                                         :salt (str salt "x")}
+                                                        {:from voter-addr}))))
 
-         (let [reveal-vote1 #(registry-entry/reveal-vote registry-entry
-                                                         {:address voter-addr
-                                                          :vote-option :vote.option/vote-for
-                                                          :salt (str salt)}
-                                                         {:from voter-addr})
-               _ (<? (registry-entry/reveal-vote registry-entry
-                                              {:address voter-addr2
-                                               :vote-option :vote.option/vote-against
-                                               :salt (str salt)}
-                                              {:from voter-addr2}))
-               reveal-tx (<? (reveal-vote1))
+       (let [reveal-vote1 #(registry-entry/reveal-vote registry-entry
+                                                       {:address voter-addr
+                                                        :vote-option :vote.option/vote-for
+                                                        :salt (str salt)}
+                                                       {:from voter-addr})
+             _ (<? (registry-entry/reveal-vote registry-entry
+                                               {:address voter-addr2
+                                                :vote-option :vote.option/vote-against
+                                                :salt (str salt)}
+                                               {:from voter-addr2}))
+             reveal-tx (<? (reveal-vote1))
 
-               vote1 (<! (load-vote registry-entry voter-addr))
-               vote2 (<! (load-vote registry-entry voter-addr2))]
+             vote1 (<! (load-vote registry-entry voter-addr))
+             vote2 (<! (load-vote registry-entry voter-addr2))]
 
-           (testing "Vote can be revealed under valid conditions"
-             (is reveal-tx))
+         (testing "Vote can be revealed under valid conditions"
+           (is reveal-tx))
 
-           (testing "Check properties of revealed vote"
-             (is (:vote/revealed-on vote1))
-             (is (:vote/option vote1)))
+         (testing "Check properties of revealed vote"
+           (is (:vote/revealed-on vote1))
+           (is (:vote/option vote1)))
 
-           (testing "Both scenarios for vote options"
-             (is (= (-> vote1 :vote/option vote-options) :vote.option/vote-for))
-             (is (= (-> vote2 :vote/option vote-options) :vote.option/vote-against)))
+         (testing "Both scenarios for vote options"
+           (is (= (-> vote1 :vote/option vote-options) :vote.option/vote-for))
+           (is (= (-> vote2 :vote/option vote-options) :vote.option/vote-against)))
 
-           (testing "Revealing returned DANK token back to voters"
-             (is (bn/= (bn/number (<? (dank-token/balance-of voter-addr)))
-                       (+ vote-amount (bn/number voter-addr1-init-balance))))
-             (is (bn/= (bn/number (<? (dank-token/balance-of voter-addr2)))
-                       (+ vote-amount (bn/number voter-addr2-init-balance)))))
+         (testing "Revealing returned DANK token back to voters"
+           (is (bn/= (bn/number (<? (dank-token/balance-of voter-addr)))
+                     (+ vote-amount (bn/number voter-addr1-init-balance))))
+           (is (bn/= (bn/number (<? (dank-token/balance-of voter-addr2)))
+                     (+ vote-amount (bn/number voter-addr2-init-balance)))))
 
-           (testing "Vote cannot be revealed twice"
-             (is (<? (tx-error? (<? (reveal-vote1)))))))
-         (done)))))
+         (testing "Vote cannot be revealed twice"
+           (is (tx-reverted? #(reveal-vote1)))))
+       (done)))))
 
 (deftest claim-rewards
   (test/async
@@ -363,49 +353,48 @@
            (is (bn/> balance-after-claim balance-before-claim))))
        (done)))))
 
-
 (deftest reclaim-vote-amount-test
-    (test/async
-     done
-     (async/go
-       (let [[voter-addr creator-addr challenger-addr] (web3-eth/accounts @web3)
-             [max-total-supply deposit challenge-period-duration
-              commit-period-duration reveal-period-duration max-auction-duration
-              challenge-dispensation]
-             (->> (<? (eternal-db/get-uint-values :meme-registry-db
-                                               [:max-total-supply :deposit :challenge-period-duration
-                                                :commit-period-duration :reveal-period-duration :max-auction-duration
-                                                :challenge-dispensation]))
-                  (map bn/number))
-             registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
-             _ (<? (registry-entry/approve-and-create-challenge registry-entry
-                                                                {:amount deposit
-                                                                 :meta-hash sample-meta-hash-1}
-                                                                {:from challenger-addr}))
+  (test/async
+   done
+   (async/go
+     (let [[voter-addr creator-addr challenger-addr] (web3-eth/accounts @web3)
+           [max-total-supply deposit challenge-period-duration
+            commit-period-duration reveal-period-duration max-auction-duration
+            challenge-dispensation]
+           (->> (<? (eternal-db/get-uint-values :meme-registry-db
+                                                [:max-total-supply :deposit :challenge-period-duration
+                                                 :commit-period-duration :reveal-period-duration :max-auction-duration
+                                                 :challenge-dispensation]))
+                (map bn/number))
+           registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
+           _ (<? (registry-entry/approve-and-create-challenge registry-entry
+                                                              {:amount deposit
+                                                               :meta-hash sample-meta-hash-1}
+                                                              {:from challenger-addr}))
 
-             {:keys [:reg-entry/address :challenge/commit-period-end]} (<! (load-registry-entry registry-entry))
-             vote-amount 10
-             salt "abc"
-             _ (<? (registry-entry/approve-and-commit-vote registry-entry
-                                                           {:amount (bn/number vote-amount)
-                                                            :salt salt
-                                                            :vote-option :vote.option/vote-for}
-                                                           {:from voter-addr}))]
+           {:keys [:reg-entry/address :challenge/commit-period-end]} (<! (load-registry-entry registry-entry))
+           vote-amount 10
+           salt "abc"
+           _ (<? (registry-entry/approve-and-commit-vote registry-entry
+                                                         {:amount (bn/number vote-amount)
+                                                          :salt salt
+                                                          :vote-option :vote.option/vote-for}
+                                                         {:from voter-addr}))]
 
-         ;; after reveal period
-         (web3-evm/increase-time! @web3 [(inc (+ commit-period-duration reveal-period-duration))])
+       ;; after reveal period
+       (web3-evm/increase-time! @web3 [(inc (+ commit-period-duration reveal-period-duration))])
 
-         (let [balance-before-reclaim (<? (dank-token/balance-of voter-addr))
-               reclaim-vote-deposit #(registry-entry/reclaim-vote-amount registry-entry {:from voter-addr})
-               reward-claim-tx (<? (reclaim-vote-deposit))
-               balance-after-reclaim (<? (dank-token/balance-of voter-addr))]
+       (let [balance-before-reclaim (<? (dank-token/balance-of voter-addr))
+             reclaim-vote-deposit #(registry-entry/reclaim-vote-amount registry-entry {:from voter-addr})
+             reward-claim-tx (<? (reclaim-vote-deposit))
+             balance-after-reclaim (<? (dank-token/balance-of voter-addr))]
 
-           (testing "Vote reward can be claimed under valid condidtions"
-             (is reward-claim-tx))
+         (testing "Vote reward can be claimed under valid condidtions"
+           (is reward-claim-tx))
 
-           (testing "Vote amount is reclaimed"
-             (is (= vote-amount (bn/number (bn/- balance-after-reclaim balance-before-reclaim)))))
+         (testing "Vote amount is reclaimed"
+           (is (= vote-amount (bn/number (bn/- balance-after-reclaim balance-before-reclaim)))))
 
-           (testing "Cannot be called twice"
-             (is (<? (tx-error? (<? (reclaim-vote-deposit)))))))
-         (done)))))
+         (testing "Cannot be called twice"
+           (is (tx-reverted? #(reclaim-vote-deposit)))))
+       (done)))))

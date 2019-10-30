@@ -7,7 +7,9 @@ const smartContracts = readSmartContractsFile(smart_contracts_path);
 const dankTokenAddr = getSmartContractAddress(smartContracts, ":DANK");
 
 /**
- * This migration transfers DANK to the last ganache account for development purposes
+ * This migration transfers DANK to ganache accounts for development purposes
+ *
+ * truffle migrate --network ganache --f 3 --to 3
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -22,18 +24,27 @@ module.exports = function(deployer, network, accounts) {
 
   deployer
     .then (() => DankToken.at (dankTokenAddr))
-    .then ((instance) => instance.transfer (last(accounts), 15e21, Object.assign(opts, {gas: 200000})))
+    .then ((instance) => {
+      let txs = [];
+      for (i = 0; i < accounts.length; i++) {
+        txs.push (instance.transfer (accounts [i], 1000e18, Object.assign(opts, {gas: 200000})));
+      }
+      return txs;
+    })
     .then (() => DankToken.at (dankTokenAddr))
-    .then ((instance) => [instance.balanceOf (address),
-                          instance.balanceOf (last(accounts))])
+    .then ((instance) => {
+      let txs = [];
+      for (i = 0; i < accounts.length; i++) {
+        txs.push (instance.balanceOf (accounts [i]));
+      }
+      return txs;
+    })
     .then (promises => Promise.all (promises))
-    .then ((
-      [balance1,
-       balance2]) => {
-         console.log ("@@@ DANK balance of:", address, balance1);
-         console.log ("@@@ DANK balance of:", last(accounts), balance2);
-       }).then (function () {
-         console.log ("Done");
-       });
+    .then ((balances) => {
+      for (i = 0; i < balances.length; i++) {
+        console.log ("@@@ DANK balance of:", accounts [i], balances [i]);
+      }
+    })
+    .then ( () => console.log ("Done"));
 
 }
