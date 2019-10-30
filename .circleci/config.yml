@@ -61,7 +61,8 @@ jobs:
           name: check if all migrations have been ran
           command: |
             truffle --version
-            truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten;
+            ( truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten )&
+            wait
             echo "F-U";
 
   build_and_deploy:
