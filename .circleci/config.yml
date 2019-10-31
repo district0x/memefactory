@@ -43,6 +43,7 @@ jobs:
           paths:
             - truffle.js
             # - node_modules/*
+            - project.clj
             - package-lock.json
             - src/memefactory/shared/smart_contracts_qa.cljs
             - src/memefactory/shared/smart_contracts_prod.cljs
