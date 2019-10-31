@@ -72,8 +72,6 @@ workflows:
     jobs:
       # - test
       - check_migrations:
-          # requires:
-          #   - test
           filters:
             branches:
               only:
