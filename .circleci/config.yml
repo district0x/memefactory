@@ -81,7 +81,7 @@ jobs:
      - image: district0x/cljs-dev
     steps:
      - setup_remote_docker:
-       version: 18.06.0-ce
+         version: 18.06.0-ce
      - run:
          name: Install Docker client
          command: |
