@@ -1,7 +1,7 @@
 (ns memefactory.server.pinner
   (:require
    [cljs-ipfs-api.pin :as pin]
-   [cljs-web3.core :as web3]
+   [cljs-web3.core :as web3-core]
    [district.server.config :refer [config]]
    [district.server.logging]
    [district.server.web3 :refer [web3]]
@@ -20,10 +20,10 @@
   (fn [err event]
     (callback err event)))
 
-(defn meme-constructed-event [err {:keys [:args]}]
+#_(defn meme-constructed-event [err {:keys [:args]}]
   (safe-go
    (let [{:keys [:meta-hash]} args
-         meta-hash (web3/to-ascii meta-hash)]
+         meta-hash (web3-core/to-ascii meta-hash)]
 
      (cond
        err
@@ -53,9 +53,9 @@
                             (log/info (str "Pinned meme image hash " image-hash) ::pin-image-hash))))))))))))
 
 
-(defn challenge-created-event [err {:keys [:args]}]
+#_(defn challenge-created-event [err {:keys [:args]}]
   (let [{:keys [:metahash]} args
-        meta-hash (web3/to-ascii metahash)]
+        meta-hash (web3-core/to-ascii metahash)]
 
     (cond
       err
@@ -73,14 +73,14 @@
 
 
 (defn start [opts]
-  (when-not (:disabled? opts)
+  #_(when-not (:disabled? opts)
     (register-callback! :meme-registry/meme-constructed-event (dispatcher meme-constructed-event) ::meme-constructed-event)
     (register-callback! :meme-registry/challenge-created-event (dispatcher challenge-created-event) ::challenge-created-event))
   opts)
 
 
 (defn stop [pinner]
-  (when-not (:disabled? @pinner)
+  #_(when-not (:disabled? @pinner)
     (unregister-callbacks! [::meme-constructed-event ::challenge-created-event])))
 
 

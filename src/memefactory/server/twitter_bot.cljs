@@ -1,33 +1,26 @@
 (ns memefactory.server.twitter-bot
-  (:require
-   [cljs.nodejs :as nodejs]
-   [cljs-time.coerce :as time-coerce]
-   [cljs-web3.core :as web3]
-   [cljs-time.core :as t]
-   [district.encryption :as encryption]
-   [district.format :as format]
-   [district.sendgrid :refer [send-email]]
-   [district.server.config :as config]
-   [district.server.config :refer [config]]
-   [district.server.logging]
-   [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
-   [district.shared.error-handling :refer [try-catch try-catch-throw]]
-   [district.time :as time]
-   [goog.format.EmailAddress :as email-address]
-   [memefactory.server.contract.district0x-emails :as district0x-emails]
-   [memefactory.server.db :as db]
-   [memefactory.server.emailer.templates :as templates]
-   [district.shared.async-helpers :refer [promise->]]
-   [memefactory.server.utils :as server-utils]
-   [memefactory.server.ipfs :as ipfs]
-   [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log]
-   [goog.string :as gstring]
-   [print.foo :refer [look] :include-macros true]
-   [bignumber.core :as bn]
-   [memefactory.server.conversion-rates :as conv-rates]
-   [cljs.core.async :as async])
-  (:require-macros [district.shared.async-helpers :refer [safe-go <?]]))
+  (:require [bignumber.core :as bn]
+            [cljs-time.coerce :as time-coerce]
+            [cljs-web3.utils :as web3-utils]
+            [cljs.core.async :as async]
+            [cljs.nodejs :as nodejs]
+            [district.encryption :as encryption]
+            [district.format :as format]
+            [district.server.config :as config]
+            [district.server.web3 :refer [web3]]
+            [district.server.web3-events :as web3-events]
+            [district.shared.async-helpers :refer [safe-go <?]]
+            [district.time :as time]
+            [goog.format.EmailAddress :as email-address]
+            [goog.string :as gstring]
+            [memefactory.server.contract.district0x-emails :as district0x-emails]
+            [memefactory.server.conversion-rates :as conversion-rates]
+            [memefactory.server.db :as db]
+            [memefactory.server.emailer.templates :as templates]
+            [memefactory.server.ipfs :as ipfs]
+            [memefactory.server.utils :as server-utils]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (def Twitter (nodejs/require "twitter"))
 (def fs (nodejs/require "fs"))
@@ -73,20 +66,20 @@
   [buffer]
   (let [out-ch (async/promise-chan)]
     (try
-     (let [tmp-dir "/tmp/memefactory"
-           ;; NOTE: Maybe instead of a random id we can create a folder with the same name as the ipfs hash
-           ;; easier to debug
-           tmp-name (str (random-uuid))
-           tar-file (str tmp-dir "/" tmp-name ".tar")
-           img-tmp-dir (str tmp-dir "/" tmp-name)
-           extract-stream (.extract tar-fs img-tmp-dir)]
-       (.writeFileSync fs tar-file buffer)
-       (.pipe (.createReadStream fs tar-file) extract-stream)
-       (.on extract-stream "finish"
-            (fn []
-              (async/put! out-ch (.readFileSync fs (str img-tmp-dir "/" (aget (.readdirSync fs img-tmp-dir) 0)))))))
-     (catch :default e
-       (async/put! out-ch e)))
+      (let [tmp-dir "/tmp/memefactory"
+            ;; NOTE: Maybe instead of a random id we can create a folder with the same name as the ipfs hash
+            ;; easier to debug
+            tmp-name (str (random-uuid))
+            tar-file (str tmp-dir "/" tmp-name ".tar")
+            img-tmp-dir (str tmp-dir "/" tmp-name)
+            extract-stream (.extract tar-fs img-tmp-dir)]
+        (.writeFileSync fs tar-file buffer)
+        (.pipe (.createReadStream fs tar-file) extract-stream)
+        (.on extract-stream "finish"
+             (fn []
+               (async/put! out-ch (.readFileSync fs (str img-tmp-dir "/" (aget (.readdirSync fs img-tmp-dir) 0)))))))
+      (catch :default e
+        (async/put! out-ch e)))
     out-ch))
 
 (defn ensure-media-uploaded [twitter-obj {:keys [image-hash registry-entry]} {:keys [just-log-tweet?]}]
@@ -107,7 +100,7 @@
                                               :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme submitted event " ev ::tweet-meme-submitted)
-   (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs (web3/to-ascii meta-hash)))
+   (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs (web3-utils/to-ascii @web3 meta-hash)))
          {:keys [title image-hash]} meme-meta
          media-id (<? (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts))
          meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
@@ -137,7 +130,7 @@
 ;; We need to watch out here tweet it just once, even if more cards of the same meme were offered at once.
 (def memes-offered-already-tweeted (atom #{}))
 (defn tweet-meme-offered [twitter-obj opts {:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price
-                                                              :duration :description :started-on :block-number] :as ev}]
+                                                   :duration :description :started-on :block-number] :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme offered event " ev ::tweet-meme-offered)
    (let [{:keys [:reg-entry/address :meme/title]} (db/get-meme-by-token-id (bn/number token-id))
@@ -159,11 +152,11 @@
    (let [{:keys [:reg-entry/address :meme/title]} (-> meme-auction
                                                       db/get-meme-by-auction-address)
          meme-detail-url (str "https://memefactory.io/meme-detail/" address)
-         price-eth (bn/number (web3/from-wei price :ether))
+         price-eth (bn/number (web3-utils/from-wei @web3 price :ether))
          formatted-price-eth (format/format-eth  price-eth
                                                  {:max-fraction-digits 3
                                                   :min-fraction-digits 2})
-         price-dolar (* (conv-rates/get-cached-rate-sync :ETH :USD) price-eth)
+         price-dolar (* (conversion-rates/get-cached-rate-sync :ETH :USD) price-eth)
          formatted-price-dolar (format/format-currency price-dolar {:currency "USD"})
          text (rand-nth [(gstring/format "'%s' was just purchased for [%s] [%s]. Find, create, and sell more rare collectibles only on Meme Factory! %s"
                                          title
@@ -186,26 +179,23 @@
     (when latest-event?
       (callback twitter-obj opts (assoc args :block-number block-number)))))
 
-
 (defn start [{:keys [consumer-key consumer-secret access-token-key access-token-secret] :as opts}]
   (let [twitter-obj (Twitter. #js {:consumer_key consumer-key
                                    :consumer_secret consumer-secret
                                    :access_token_key access-token-key
                                    :access_token_secret access-token-secret})
         callback-ids
-        [(register-callback! :meme-registry/meme-constructed-event (dispatcher twitter-obj opts tweet-meme-submitted))
-         (register-callback! :meme-registry/challenge-created-event (dispatcher twitter-obj opts tweet-meme-challenged))
-         (register-callback! :meme-auction-factory/meme-auction-started-event (dispatcher twitter-obj opts tweet-meme-offered))
-         (register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher twitter-obj opts tweet-meme-auction-bought))]]
+        [(web3-events/register-callback! :meme-registry/meme-constructed-event (dispatcher twitter-obj opts tweet-meme-submitted))
+         (web3-events/register-callback! :meme-registry/challenge-created-event (dispatcher twitter-obj opts tweet-meme-challenged))
+         (web3-events/register-callback! :meme-auction-factory/meme-auction-started-event (dispatcher twitter-obj opts tweet-meme-offered))
+         (web3-events/register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher twitter-obj opts tweet-meme-auction-bought))]]
     {:callback-ids callback-ids
      :twitter-obj twitter-obj}))
 
-
 (defn stop [twitter-bot]
-  (unregister-callbacks! (:callback-ids @twitter-bot)))
-
+  (web3-events/unregister-callbacks! (:callback-ids @twitter-bot)))
 
 (defstate twitter-bot
-  :start (start (merge (:twitter-bot @config)
+  :start (start (merge (:twitter-bot @config/config)
                        (:twitter-bot (mount/args))))
   :stop (stop twitter-bot))

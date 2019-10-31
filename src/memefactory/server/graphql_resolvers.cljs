@@ -2,7 +2,6 @@
   (:require [ajax.core :refer [GET POST]]
             [bignumber.core :as bn]
             [cljs-time.core :as t]
-            [cljs-web3.async.eth :as web3-eth-async]
             [cljs-web3.core :as web3-core]
             [cljs-web3.eth :as web3-eth]
             [cljs.core.match :refer-macros [match]]

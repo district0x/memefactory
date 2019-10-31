@@ -17,14 +17,14 @@
     nil))
 
 (defn start [opts]
-  (let [callback-ids
+  #_(let [callback-ids
         [(web3-events/register-callback! :dank-faucet/dank-reset-event (dispatcher log-dank-event))
          (web3-events/register-callback! :dank-faucet/oraclize-request-event (dispatcher log-dank-event))
          (web3-events/register-callback! :dank-faucet/dank-transfer-event (dispatcher log-dank-event))]]
     (assoc opts :callback-ids callback-ids)))
 
 (defn stop [dank-faucet-monitor]
-  (web3-events/unregister-callbacks! (:callback-ids @dank-faucet-monitor)))
+  #_(web3-events/unregister-callbacks! (:callback-ids @dank-faucet-monitor)))
 
 (defstate dank-faucet-monitor
   :start (start (merge (:dank-faucet-monitor @config/config)
