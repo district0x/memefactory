@@ -21,12 +21,10 @@
                  [district0x/async-helpers "0.1.3"]
                  [district0x/bignumber "1.0.3"]
                  [district0x/cljs-ipfs-http-client "1.0.5"]
-                 ;; [district0x/cljs-solidity-sha3 "1.0.0"]
                  [district0x/district-cljs-utils "1.0.4"]
                  [district0x/district-encryption "1.0.1"]
                  [district0x/district-format "1.0.6"]
                  [district0x/district-graphql-utils "1.0.8"]
-                 [district0x/district-parsers "1.0.0"]
                  [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.4"]
@@ -34,13 +32,13 @@
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
 
-                 ;; TODO
+                 ;; TODO : update to new releases
+                 [cljs-web3-next "0.0.10-SNAPSHOT"]
                  ;; [cljs-web3 "0.19.0-0-10"]
                  ;; [district0x/district-server-smart-contracts "1.0.17"]
                  ;; [district0x/district-server-web3 "1.0.1"]
                  ;; [district0x/district-server-web3-events "1.0.4"]
                  ;; [district0x/district-server-web3-watcher "1.0.3"]
-                 ;; [district0x/district-web3-utils "1.0.3"]
 
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
@@ -73,7 +71,7 @@
                  [funcool/bide "1.6.1-SNAPSHOT"] ;; version with fix for duplicated query params
                  [garden "1.3.5"]
                  [medley "1.0.0"]
-                 [mount "0.1.12"]
+                 [mount "0.1.16"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
                  [org.clojure/clojurescript "1.10.439"]
                  [org.clojure/core.match "0.3.0-alpha4"]
@@ -115,23 +113,20 @@
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]
                        [request-promise "4.2.2"]
-
                        ;; this isn't required directly by memefactory but  0.6.1 is broken and
-                       ;; district0x/district-server-web3 needs [ganache-core "2.0.2"] who also needs "ethereumjs-wallet": "~0.6.0"
+                       ;; district0x/district-server-web3 needs [ganache-core "2.0.2"]   who also needs "ethereumjs-wallet": "~0.6.0"
                        ;; https://github.com/ethereumjs/ethereumjs-wallet/issues/64
                        ;; [ethereumjs-wallet "0.6.0"]
-
                        ;; truffle script deps
                        [jsedn "0.4.1"]
                        [web3-utils "1.0.0-beta.55"]
                        ;; for twitter bot
                        [twitter "1.7.1"]
                        [tar-fs "2.0.0"]
-
                        ;; For deploying to infura
                        [truffle-hdwallet-provider "1.0.12"]
                        [dotenv "8.0.0"]
-                       ;; TODO
+                       ;; before its in cljsjs
                        [web3 "1.2.0"]
                        ]}
 
@@ -164,7 +159,24 @@
                                   [lein-doo "0.1.8"]]
                    :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
                    :source-paths ["dev" "src"]
-                   :resource-paths ["resources"]}}
+                   :resource-paths ["resources"]}
+             ;; before ui is moved web3 v1.0
+             :ui-deps {:dependencies [;; dev deps
+                                      [org.clojure/clojure "1.9.0"]
+                                      [binaryage/devtools "0.9.10"]
+                                      [cider/piggieback "0.4.0"]
+                                      [figwheel-sidecar "0.5.18"]
+                                      [org.clojure/tools.reader "1.3.0"]
+                                      [re-frisk "0.5.3"]
+                                      [lein-doo "0.1.8"]
+                                      ;; ui-deps
+                                      [cljs-web3 "0.19.0-0-10"]
+                                      ;; this is now cljs-web3.utils/solidity-sha3
+                                      [district0x/cljs-solidity-sha3 "1.0.0"]
+                                      ;; this is now cljs-web3.helpers
+                                      [district0x/district-web3-utils "1.0.3"]
+                                      ;; these functions should just be a part of cljs-web3.helpers
+                                      [district0x/district-parsers "1.0.0"]]}}
 
   :garden {:builds [{:id "screen"
                      :source-paths ["src"]
@@ -176,15 +188,15 @@
                                 :pretty-print? false}}]}
 
   :cljsbuild {:builds [{:id "dev-server"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared"  "src/district" "src/cljs_web3"]
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared"  "src/district"]
                         :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
                         :compiler {:main "memefactory.server.dev"
                                    :output-to "dev-server/memefactory.js"
                                    :output-dir "dev-server"
                                    :target :nodejs
                                    :optimizations :none
-                                   :source-map true}
-                        }
+                                   :source-map true}}
+
                        {:id "dev-ui"
                         :source-paths ["src/memefactory/ui" "src/memefactory/shared"]
                         :figwheel {:on-jsload "district.ui.reagent-render/rerender"}

@@ -8,7 +8,7 @@
    [district.server.web3 :refer [web3]]
    [district.shared.async-helpers :refer [safe-go <?]]
 
-   ;; [bignumber.core :as bn]
+   [bignumber.core :as bn]
    ;; [camel-snake-kebab.core :as cs :include-macros true]
    ;; [cljs-solidity-sha3.core :refer [solidity-sha3]]
    ;; [district.shared.async-helpers :refer [promise->]]
@@ -21,6 +21,8 @@
 
 ;; (defn registry [contract-addr]
 ;;   (contract-call [:meme contract-addr] :registry))
+
+
 
 (defn status [contract-addr]
   (-> (smart-contracts/contract-call [:meme contract-addr] :status)

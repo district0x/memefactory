@@ -1,14 +1,11 @@
 (ns memefactory.server.dev
   (:require
+   #_[district.server.web3-watcher]
    [ajax.core :as http]
    [bignumber.core :as bn]
    [camel-snake-kebab.core :as cs :include-macros true]
+   [cljs-promises.async]
    [cljs-time.core :as t]
-      ;; TODO
-   ;; [cljs-web3.core :as web3-core]
-   ;; [cljs-web3.eth :as web3-eth]
-   ;; [cljs-web3.evm :as web3-evm]
-#_   [district.server.web3-watcher]
    [cljs.nodejs :as nodejs]
    [cljs.pprint :as pprint]
    [clojure.pprint :refer [print-table]]
@@ -40,9 +37,7 @@
    [memefactory.server.pinner]
    [memefactory.server.ranks-cache]
    [memefactory.server.syncer :as syncer]
-
    [memefactory.server.twitter-bot]
-
    [memefactory.server.utils :as server-utils]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
@@ -50,9 +45,8 @@
    [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
    [memefactory.shared.utils :as shared-utils]
    [mount.core :as mount]
-   [cljs-promises.async]
-   [taoensso.timbre :as log])
-  )
+   [taoensso.timbre :as log]
+   ))
 
 (nodejs/enable-util-print!)
 
@@ -250,10 +244,6 @@
 ;; Some useful repl tools ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#_(defn increase-time [seconds]
-    (web3-evm/increase-time! @web3 [seconds])
-    (web3-evm/mine! @web3))
-
 (defn select
   "Usage: (select [:*] :from [:memes])"
   [& [select-fields & r]]
@@ -273,70 +263,7 @@
                            (map :name)))]
      (doseq [t all-tables]
        (println "#######" (string/upper-case t) "#######")
-       (select [:*] :from [(keyword t)])
-       #_(println "\n\n")))))
-
-#_(defn print-statuses []
-  (web3-evm/mine! @web3) ;; We need to mine a block so time make sense
-  (->> (db/all {:select [:v.* :re.*]
-                :from [[:reg-entries :re]]
-                :left-join [[:votes :v] [:= :re.reg-entry/address :v.reg-entry/address]]})
-       (group-by :reg-entry/address)
-       (map (fn [[address [r :as votes]]]
-              {:address address
-               :server-status (name (shared-utils/reg-entry-status (server-utils/now-in-seconds) r))
-               :query-status (-> (db/get {:select [[(reg-entry-status-sql-clause (server-utils/now-in-seconds)) :status]]
-                                          :from  [[:reg-entries :re]]
-                                          :where [:= :re.reg-entry/address address]})
-                                 :status
-                                 graphql-utils/gql-name->kw
-                                 name)
-               :v+ (:challenge/votes-for r)
-               :v- (:challenge/votes-against r)
-               :v? (count (filter #(and (pos? (:vote/amount %))
-                                        (or (zero? (:vote/revealed-on %))
-                                            (nil? (:vote/revealed-on %)))) votes))}))
-       #_print-table))
-
-#_(defn increase-time-to-next-period [re-address]
-  (let [now (server-utils/now-in-seconds)
-        entry (db/get {:select [:*]
-                       :from [:reg-entries]
-                       :where [:= :reg-entry/address re-address]})
-        current-status (shared-utils/reg-entry-status now entry)
-        time-to-next (case current-status
-                       :reg-entry.status/challenge-period (- (:reg-entry/challenge-period-end entry) now)
-                       :reg-entry.status/commit-period    (- (:challenge/commit-period-end entry) now)
-                       :reg-entry.status/reveal-period    (- (:challenge/reveal-period-end entry) now)
-                       :reg-entry.status/whitelisted      (println "Not moving for whitelisted")
-                       :reg-entry.status/blacklisted      (println "Not moving for blacklisted"))]
-    (println "Increasing time by " time-to-next)
-    (increase-time time-to-next)
-    (when (#{:reg-entry.status/challenge-period :reg-entry.status/reveal-period} current-status)
-      (syncer/meme-number-assigner re-address))))
-
-#_(defn print-balances []
-    (->> (web3-eth/accounts @web3)
-         (map (fn [account]
-                {:account account
-                 :dank (bn/number (dank-token/balance-of account))
-                 :eth (bn/number (web3-eth/get-balance @web3 account))}))
-         #_print-table))
-
-#_(defn print-params []
-  (let [param-keys [:max-total-supply :deposit :challenge-period-duration
-                    :commit-period-duration :reveal-period-duration :max-auction-duration
-                    :vote-quorum :challenge-dispensation]]
-    (->> (eternal-db/get-uint-values :meme-registry-db param-keys)
-         (map bn/number)
-         (zipmap param-keys)
-         #_pprint/pprint)))
+       (select [:*] :from [(keyword t)])))))
 
 (defn print-ranks-cache []
   (pprint/pprint @@memefactory.server.ranks-cache/ranks-cache))
-
-#_(defn transfer-dank [account dank-amount]
-    (let [accounts (web3-eth/accounts @web3)]
-      (dank-token/transfer {:to account :amount (web3-core/to-wei dank-amount :ether)}
-                           ;; this is the deployer of dank-token so it owns the initial amount
-                           {:from (first accounts)})))

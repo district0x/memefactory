@@ -26,7 +26,6 @@
             [district.ui.web3-tx]
             [district.ui.web3]
             [district.ui.window-size]
-            [memefactory.shared.contract.registry-entry]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.routes :refer [routes]]
             [memefactory.ui.about.page]

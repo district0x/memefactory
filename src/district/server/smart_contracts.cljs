@@ -1,7 +1,7 @@
 (ns district.server.smart-contracts
   (:require [cljs-web3.core :as web3-core]
             [cljs-web3.eth :as web3-eth]
-            [cljs-web3.utils :as web3-utils]
+            [cljs-web3.helpers :as web3-helpers]
             [cljs.core.async :refer [<! timeout] :as async]
             [cljs.core.async.impl.protocols]
             [cljs.core.match :refer-macros [match]]
@@ -105,12 +105,12 @@
 
 (defn- enrich-event-log [contract-name contract-instance {:keys [:event :return-values] :as log}]
   (-> log
-      (update :return-values #(web3-utils/return-values->clj return-values (web3-utils/event-interface contract-instance event)))
+      (update :return-values #(web3-helpers/return-values->clj return-values (web3-helpers/event-interface contract-instance event)))
       (update :event (fn [event-name]
                        (if (= (first event-name)
                               (string/upper-case (first event-name)))
                          (keyword event-name)
-                         (web3-utils/kebab-case (keyword event-name)))))
+                         (web3-helpers/kebab-case (keyword event-name)))))
       (assoc :contract (dissoc (contract-by-address (:address log))
                                :abi :bin :instance))
       (clojure-set/rename-keys {:return-values :args})))
@@ -164,7 +164,7 @@
                                               method
                                               args
                                               opts))))
-              #(web3-utils/js->cljkk %)))
+              #(web3-helpers/js->cljkk %)))
   ([contract method args]
    (contract-send contract method args {}))
   ([contract method]
@@ -180,7 +180,7 @@
                                  (if callbacks
                                    ;; if we have callbacks registered, fire this event in all of them
                                    (let [enriched-evt (->> evt
-                                                           web3-utils/js->cljkk
+                                                           web3-helpers/js->cljkk
                                                            (#(assoc % :latest-event? latest-event?))
                                                            (enrich-event-log contract contract-instance))]
                                      (doseq [callback callbacks]
@@ -190,25 +190,25 @@
 
 (defn subscribe-event-logs [contract event {:keys [:from-block :address :topics :ignore-forward?] :as opts} & [callback]]
   (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})
-        event-signature (:signature (web3-utils/event-interface contract-instance event))]
+        event-signature (:signature (web3-helpers/event-interface contract-instance event))]
     (web3-eth/subscribe-logs @web3
                              contract-instance
                              (merge {:address (aget contract-instance "options" "address")
                                      :topics [event-signature]}
                                     opts)
                              (fn [error event]
-                               (callback error (web3-utils/js->cljkk event))))))
+                               (callback error (web3-helpers/js->cljkk event))))))
 
 (defn contract-event-in-tx [contract event {:keys [:transaction-hash] :as tx-receipt}]
   (let [contract-instance (instance-from-arg contract)
-        {:keys [:signature] :as event-interface} (web3-utils/event-interface contract-instance event)]
+        {:keys [:signature] :as event-interface} (web3-helpers/event-interface contract-instance event)]
     (promise-> (web3-eth/get-transaction-receipt @web3 transaction-hash)
                (fn [tx-receipt]
-                 (let [{:keys [:logs :inputs]} (web3-utils/js->cljkk tx-receipt)]
+                 (let [{:keys [:logs :inputs]} (web3-helpers/js->cljkk tx-receipt)]
                    (reduce (fn [result {:keys [:topics :data] :as log}]
                              (when (= signature (first topics))
                                (let [return-values (web3-eth/decode-log @web3 (:inputs event-interface) data topics)]
-                                 (web3-utils/return-values->clj return-values event-interface))))
+                                 (web3-helpers/return-values->clj return-values event-interface))))
                            nil
                            logs))))))
 
@@ -226,7 +226,7 @@
                                                  opts
                                                  (fn [error events]
                                                    (let [logs (->> events
-                                                                   web3-utils/js->cljkk
+                                                                   web3-helpers/js->cljkk
                                                                    (map (partial enrich-event-log contract contract-instance)))]
                                                      (async/put! logs-ch {:err error :logs logs}))))
                        logs-ch))]

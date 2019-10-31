@@ -44,7 +44,7 @@ function build {
     case $SERVICE in
       "ui")
         lein garden once
-        env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "ui"
+        env MEMEFACTORY_ENV=$BUILD_ENV lein with-profile ui-deps cljsbuild once "ui"
         ;;
       "server")
         env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "server"

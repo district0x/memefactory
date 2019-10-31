@@ -1,6 +1,6 @@
 (ns web3.impl.web3js
   (:require [cljs-web3.api :as api :refer [Web3Api]]
-            [cljs-web3.utils :as web3-utils]
+            [cljs-web3.helpers :as web3-helpers]
             [cljs-web3.macros :refer [defrecord+]]
             [cljs.nodejs :as nodejs]))
 
@@ -14,7 +14,7 @@
     (new Web3 (new (aget Web3 "providers" "WebsocketProvider") uri)))
   (-extend [_ provider property methods]
     {:instance _
-     :provider (js-invoke provider "extend" (web3-utils/cljkk->js {:property property
+     :provider (js-invoke provider "extend" (web3-helpers/cljkk->js {:property property
                                                                    :methods methods}))})
   (-connected? [_ provider & [callback]]
     (apply js-invoke (aget provider "eth" "net") "isListening" (remove nil? [callback])))
@@ -45,15 +45,15 @@
   (-get-block [_ provider block-hash-or-number return-transactions? & [callback]]
     (apply js-invoke (aget provider "eth") "getBlock" (remove nil? [block-hash-or-number return-transactions? callback])))
   (-encode-abi [_ contract-instance method args]
-    (js-invoke (apply js-invoke (aget contract-instance "methods") (web3-utils/camel-case (name method)) (clj->js args)) "encodeABI" ))
+    (js-invoke (apply js-invoke (aget contract-instance "methods") (web3-helpers/camel-case (name method)) (clj->js args)) "encodeABI" ))
   (-contract-call [_ contract-instance method args opts]
-    (js-invoke (apply js-invoke (aget contract-instance "methods") (web3-utils/camel-case (name method)) (clj->js args)) "call" (clj->js opts)))
+    (js-invoke (apply js-invoke (aget contract-instance "methods") (web3-helpers/camel-case (name method)) (clj->js args)) "call" (clj->js opts)))
   (-contract-send [_ contract-instance method args opts]
-    (js-invoke (apply js-invoke (aget contract-instance "methods") (web3-utils/camel-case (name method)) (clj->js args)) "send" (clj->js opts)))
+    (js-invoke (apply js-invoke (aget contract-instance "methods") (web3-helpers/camel-case (name method)) (clj->js args)) "send" (clj->js opts)))
   (-subscribe-events [_ contract-instance event opts & [callback]]
-    (apply js-invoke (aget contract-instance "events") (web3-utils/camel-case (name event)) (remove nil? [(web3-utils/cljkk->js opts) callback])))
+    (apply js-invoke (aget contract-instance "events") (web3-helpers/camel-case (name event)) (remove nil? [(web3-helpers/cljkk->js opts) callback])))
   (-subscribe-logs [_ provider contract-instance opts & [callback]]
-    (js-invoke (aget provider "eth") "subscribe" "logs" (web3-utils/cljkk->js opts) callback))
+    (js-invoke (aget provider "eth") "subscribe" "logs" (web3-helpers/cljkk->js opts) callback))
   (-decode-log [_ provider abi data topics]
     (js-invoke (aget provider "eth" "abi") "decodeLog" (clj->js abi) data (clj->js topics)))
   (-on [_ event-emitter evt callback]
@@ -63,7 +63,7 @@
   (-clear-subscriptions [_ provider]
     (js-invoke (aget provider "eth") "clearSubscriptions"))
   (-get-past-events [this contract-instance event opts & [callback]]
-    (js-invoke contract-instance "getPastEvents" (web3-utils/camel-case (name event)) (web3-utils/cljkk->js opts) callback))
+    (js-invoke contract-instance "getPastEvents" (web3-helpers/camel-case (name event)) (web3-helpers/cljkk->js opts) callback))
   (-increase-time [this provider seconds]
     (js-invoke (aget provider "evm") "increaseTime" seconds))
   (-mine-block [this provider]
