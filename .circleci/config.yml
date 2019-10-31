@@ -96,21 +96,21 @@ workflows:
   version: 2
   build_and_deploy:
     jobs:
-      - test
-      - check_migrations:
-          requires:
-            - test
-          filters:
-            branches:
-              only:
-                - master
-                - production
+      # - test
+      # - check_migrations:
+      #     requires:
+      #       - test
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
+      #           - production
       - build_and_deploy:
-          requires:
-            - test
-            - check_migrations
+          # requires:
+          #   - test
+          #   - check_migrations
           filters:
             branches:
               only:
-                - master
+                - feature/track-migrations
                 - production
