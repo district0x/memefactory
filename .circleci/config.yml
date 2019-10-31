@@ -40,8 +40,9 @@ jobs:
   #     - run: lein doo node "server-tests" once
 
   check_migrations:
-    docker:
-      - image: district0x/cljs-dev
+    machine: true
+    # docker:
+    #   - image: district0x/cljs-dev
     shell: /bin/bash -eo pipefail
     steps:
       - checkout
