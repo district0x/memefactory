@@ -59,8 +59,8 @@ jobs:
       #     paths:
       #       - ./node_modules/
       - run : npm install truffle@4.1.14 truffle-hdwallet-provider@1.0.12 dotenv@8.0.0
-      - run : truffle compile
-      - run : env MEMEFACTORY_ENV=qa truffle exec migrations/check_ran_migrations.js --network infura-ropsten
+      - run : node truffle compile
+      - run : env MEMEFACTORY_ENV=qa node truffle exec migrations/check_ran_migrations.js --network infura-ropsten
       # - run:
       #     name: check if all migrations have been ran
       #     command: |
