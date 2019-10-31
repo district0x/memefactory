@@ -63,22 +63,22 @@ jobs:
       #     command: |
       #       exit $(truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten);
 
-  build_and_deploy:
-   machine: true
-   shell: /bin/bash --login -o pipefail
-   steps:
-     - checkout
-     - run:
-         name: Build and deploy docker containers
-         command: |
-            if [ "$CIRCLE_BRANCH" == 'master' ]; then
-              /bin/bash docker-push.sh qa
-            elif [ "$CIRCLE_BRANCH" == 'production' ]; then
-              /bin/bash docker-push.sh prod
-            else
-              echo "Wrong branch";
-              exit -1;
-            fi
+  # build_and_deploy:
+  #  machine: true
+  #  shell: /bin/bash -eo pipefail
+  #  steps:
+  #    - checkout
+  #    - run:
+  #        name: Build and deploy docker containers
+  #        command: |
+  #           if [ "$CIRCLE_BRANCH" == 'master' ]; then
+  #             /bin/bash docker-push.sh qa
+  #           elif [ "$CIRCLE_BRANCH" == 'production' ]; then
+  #             /bin/bash docker-push.sh prod
+  #           else
+  #             echo "Wrong branch";
+  #             exit -1;
+  #           fi
 
 workflows:
   version: 2
@@ -93,12 +93,12 @@ workflows:
               only:
                 - feature/track-migrations
                 - production
-      - build_and_deploy:
-          requires:
-            - test
-            - check_migrations
-          filters:
-            branches:
-              only:
-                - master
-                - production
+      # - build_and_deploy:
+      #     requires:
+      #       - test
+      #       - check_migrations
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
+      #           - production
