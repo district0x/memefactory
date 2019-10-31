@@ -66,7 +66,7 @@ jobs:
       #     key: npm-packages-{{ checksum "package-lock.json" }}
       #     paths:
       #       - ./node_modules/
-      - run : npm install truffle-hdwallet-provider@1.0.12 dotenv@8.0.0
+      - run : npm install truffle-hdwallet-provider@1.0.12 dotenv@8.0.0 jsedn@0.4.1
       - run : truffle compile
       - run : env MEMEFACTORY_ENV=qa INFURA_API_KEY=$INFURA_API_KEY ROPSTEN_PRIV_KEY=$ROPSTEN_PRIV_KEY truffle exec migrations/check_ran_migrations.js --network infura-ropsten
       # - run:
