@@ -58,8 +58,8 @@ jobs:
       #     key: npm-packages-{{ checksum "package-lock.json" }}
       #     paths:
       #       - ./node_modules/
-      - run : nvm install v11.14.0
-      - run : nvm alias default v11.14.0
+      # - run : nvm install v11.14.0
+      # - run : nvm alias default v11.14.0
       - run : node --version
       - run : npm install -g truffle@4.1.14
       - run : npm install truffle-hdwallet-provider@1.0.12 dotenv@8.0.0
