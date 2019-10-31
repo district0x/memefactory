@@ -79,7 +79,6 @@ jobs:
               echo "Wrong branch";
               exit -1;
             fi
-      # - run : env MEMEFACTORY_ENV=qa INFURA_API_KEY=$INFURA_API_KEY ROPSTEN_PRIV_KEY=$ROPSTEN_PRIV_KEY truffle exec migrations/check_ran_migrations.js --network infura-ropsten
 
   # build_and_deploy:
   #  machine: true

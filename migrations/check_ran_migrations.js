@@ -31,7 +31,7 @@ module.exports = function(callback) {
     migrations.last_completed_migration ()
       .then ((response) => {
 
-        const number = 9 ; //response.c [0];
+        const number = response.c [0];
         console.log ("last completed migration on the network", network, "has number", number);
 
         fs.readdirSync(migrations_dir).forEach(file => {
