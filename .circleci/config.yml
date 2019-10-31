@@ -44,29 +44,32 @@ jobs:
       - image: district0x/cljs-dev
     steps:
       - checkout
-      # - run:
-      #     name: Install node
-      #     command: |
-      #       set +e
-      #       touch $BASH_ENV
-      #       curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-      #       echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
-      #       echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
-      #       echo 'nvm install v11.14.0' >> $BASH_ENV
-      #       echo 'nvm alias default v11.14.0' >> $BASH_ENV
-      # - restore_cache:
-      #     name: Restore npm package cache
-      #     keys:
-      #       - npm-packages-{{ checksum "package-lock.json" }}
-      # - run:
-      #     name: Install node modules
-      #     command: lein npm install
-      # - save_cache:
-      #     name: Save npm package cache
-      #     key: npm-packages-{{ checksum "package-lock.json" }}
-      #     paths:
-      #       - ./node_modules/
-      - run : truffle compile
+      - run:
+          name: Install node
+          command: |
+            set +e
+            touch $BASH_ENV
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+            echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
+            echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
+            echo 'nvm install v11.14.0' >> $BASH_ENV
+            echo 'nvm alias default v11.14.0' >> $BASH_ENV
+      - restore_cache:
+          name: Restore npm package cache
+          keys:
+            - npm-packages-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install node modules
+          command: lein npm install
+      - save_cache:
+          name: Save npm package cache
+          key: npm-packages-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules/
+      # - attach_workspace:
+      #    at: /
+      # - run : ls
+      # - run : truffle compile
       - run:
           name: check if all migrations have been ran
           command: |
