@@ -47,7 +47,7 @@ jobs:
             - package-lock.json
             - src/memefactory/shared/smart_contracts_qa.cljs
             - src/memefactory/shared/smart_contracts_prod.cljs
-            - migrations/check_ran_migrations.js
+            - migrations/*
             - resources/public/contracts/build/*
             - resources/libs/*
 
