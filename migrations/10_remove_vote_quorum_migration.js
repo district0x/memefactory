@@ -94,13 +94,12 @@ module.exports = function(deployer, network, accounts) {
     })
     .then (async () => {
 
-      //  set last ran tx
+      // set last ran tx
       const migrations = Migrations.at (migrationsAddress);
       await migrations.setCompleted (10, Object.assign(opts, {gas: 100000}));
 
       writeSmartContracts(smart_contracts_path, smartContracts, env);
       console.log ("Done");
-
     });
 
 }

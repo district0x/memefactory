@@ -1,4 +1,3 @@
-// const BigNumber = require('bignumber.js');
 const { linkBytecode, copy, readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts } = require ("./utils.js");
 const { parameters, contracts_build_directory, smart_contracts_path, env } = require ('../truffle.js');
 
@@ -6,17 +5,19 @@ const DSGuard = artifacts.require("DSGuard");
 const DankToken = artifacts.require("DankToken");
 copy ("DankFaucet", "DankFaucetCp", contracts_build_directory);
 const DankFaucet = artifacts.require ("DankFaucetCp");
-
-const dankTokenPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
+const Migrations = artifacts.require("Migrations");
 
 const smartContracts = readSmartContractsFile(smart_contracts_path);
 const dankTokenAddress = getSmartContractAddress(smartContracts, ":DANK");
 const dankFaucetAddress = getSmartContractAddress(smartContracts, ":dank-faucet");
 const dSGuardAddress = getSmartContractAddress(smartContracts, ":ds-guard");
+const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations");
+
+const dankTokenPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
 
 /**
  * This migration drains old faucet and redeploys it seeding new Faucet with ETH and DANK
- * truffle migrate --network infura-ropsten --f 8 --to 8
+ * truffle migrate --network ganache --f 8 --to 8
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -91,9 +92,15 @@ module.exports = function(deployer, network, accounts) {
 
       console.log ("@@@ new DankFaucet address:", dankFaucet.address)
       setSmartContractAddress(smartContracts, ":dank-faucet", dankFaucet.address);
+
+    })
+    .then (async () => {
+
+      // set last ran tx
+      const migrations = Migrations.at (migrationsAddress);
+      await migrations.setCompleted (8, Object.assign(opts, {gas: 100000, value: 0}));
+
       writeSmartContracts(smart_contracts_path, smartContracts, env);
-
       console.log ("Done");
-
     });
 }

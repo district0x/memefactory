@@ -84,17 +84,7 @@
                                                                                     :end-price (web3/to-wei 0.01 :ether)
                                                                                     :duration max-auction-duration
                                                                                     :description "Test"})]
-                                                 {:from (last (web3-eth/accounts @web3))})))))
-
-           #_(is
-            (tx-reverted? #(contract-call [:meme-auction-factory :meme-auction-factory-fwd] :on-E-R-C-721-received
-                                          [creator-addr
-                                           (:meme/token-id-start meme)
-                                           (meme-auction/start-auction-data {:start-price (web3/to-wei 0.1 :ether)
-                                                                             :end-price (web3/to-wei 0.01 :ether)
-                                                                             :duration max-auction-duration
-                                                                             :description "Test"})]
-                                          {:from (last (web3-eth/accounts @web3))})))))
+                                                 {:from (last (web3-eth/accounts @web3))})))))))
 
        (testing "Fails when passed duration is bigger than :max-duration TCR parameter or shorter than 1 minute"
          (let [transfer-data {:from creator-addr

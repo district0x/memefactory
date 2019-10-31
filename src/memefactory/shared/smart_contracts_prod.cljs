@@ -56,6 +56,9 @@
    {:name "MutableForwarder",
     :address "0xe278b85a36f6b370347d69fb4744947e2965c058",
     :forwards-to :meme-registry},
+   :migrations
+   {:name "Migrations",
+    :address "0xfcdf47d4ca1effaa6759829f6985f6a5e4e54ae1"},
    :district0x-emails
    {:name "District0xEmails",
     :address "0x5065ef0724b76421aeaafa87ba752d6c5d5499b5"},

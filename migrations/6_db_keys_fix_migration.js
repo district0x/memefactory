@@ -1,19 +1,21 @@
-const {readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode} = require ("./utils.js");
-
-const {parameters, smart_contracts_path, env} = require ('../truffle.js');
 const web3Utils = require('web3-utils');
+const { readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode } = require ("./utils.js");
+const { parameters, smart_contracts_path, env } = require ('../truffle.js');
+
+const EternalDb = artifacts.require("EternalDb");
+const DSGuard = artifacts.require("DSGuard");
+const Migrations = artifacts.require("Migrations");
 
 var smartContracts = readSmartContractsFile(smart_contracts_path);
 var memeRegistryDbAddr = getSmartContractAddress(smartContracts, ":meme-registry-db");
 var paramChangeRegistryDbAddr = getSmartContractAddress(smartContracts, ":param-change-registry-db");
 var dSGuardAddr = getSmartContractAddress(smartContracts, ":ds-guard");
-
-const EternalDb = artifacts.require("EternalDb");
-const DSGuard = artifacts.require("DSGuard");
+const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations");
 
 /**
  * This migration fixes MemeRegistryDb and ParamChangeRegistryDb keys that where encoded with
  * incorrect sha3 function. See https://github.com/district0x/memefactory/issues/505
+ *
  * truffle migrate --network ganache --f 6 --to 6
  */
 module.exports = function(deployer, network, accounts) {
@@ -74,7 +76,12 @@ module.exports = function(deployer, network, accounts) {
 
       await dSGurardInstance.forbid(address, paramChangeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
     })
-    .then (function () {
+    .then (async () => {
+
+      // set last ran tx
+      const migrations = Migrations.at (migrationsAddress);
+      await migrations.setCompleted (6, Object.assign(opts, {gas: 100000}));
+
       console.log ("Done");
     });
 

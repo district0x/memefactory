@@ -14,6 +14,8 @@ const ParamChangeRegistryForwarder = artifacts.require("ParamChangeRegistryForwa
 
 const ParamChangeRegistry = artifacts.require("ParamChangeRegistry");
 
+const Migrations = artifacts.require("Migrations");
+
 // redeployed contracts
 
 copy ("MemeFactory", "MemeFactoryCp", contracts_build_directory);
@@ -40,6 +42,7 @@ const deployedMemeFactoryAddress = getSmartContractAddress(smartContracts, ":mem
 const deployedDistrictConfigAddress = getSmartContractAddress(smartContracts, ":district-config");
 const deployedParamChangeFactoryAddress = getSmartContractAddress(smartContracts, ":param-change-factory");
 const deployedParamChangeRegistryForwarderAddress = getSmartContractAddress(smartContracts, ":param-change-registry-fwd");
+const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations");
 
 /**
  * This migration updates Meme and ParamChange Contracts
@@ -168,7 +171,12 @@ module.exports = function(deployer, network, accounts) {
         paramChangeRegistry.setFactory(oldParamChangeFactory.address, false, Object.assign(opts, {gas: 100000}))
       ]);
     })
-    .then (() => {
+    .then (async () => {
+
+      // set last ran tx
+      const migrations = Migrations.at (migrationsAddress);
+      await migrations.setCompleted (5, Object.assign(opts, {gas: 100000}));
+
       writeSmartContracts(smart_contracts_path, smartContracts, env);
       console.log ("Done")
     });

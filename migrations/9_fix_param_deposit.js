@@ -1,21 +1,23 @@
-const {readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode} = require ("./utils.js");
-
-const {parameters, smart_contracts_path, env} = require ('../truffle.js');
 const web3Utils = require('web3-utils');
+const {readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode} = require ("./utils.js");
+const {parameters, smart_contracts_path, env} = require ('../truffle.js');
+
+const EternalDb = artifacts.require("EternalDb");
+const DSGuard = artifacts.require("DSGuard");
+const Migrations = artifacts.require("Migrations");
 
 var smartContracts = readSmartContractsFile(smart_contracts_path);
 var paramChangeRegistryDbAddr = getSmartContractAddress(smartContracts, ":param-change-registry-db");
 var dSGuardAddr = getSmartContractAddress(smartContracts, ":ds-guard");
+const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations");
 
-const EternalDb = artifacts.require("EternalDb");
-const DSGuard = artifacts.require("DSGuard");
 const newDepositValue = 250000e18;
 
 /**
  * This migration fixes Parameter Deposit that was initialy set to 1000000000 DANK
  * @madvas : we’ve put it there before so nobody can propose param change, we need to change that value direct way through EternalDb
  *
- * truffle migrate --network infura-ropsten --f 9 --to 9
+ * truffle migrate --network ganache --f 9 --to 9
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -41,6 +43,13 @@ module.exports = function(deployer, network, accounts) {
 
       await dSGurardInstance.forbid(address, paramChangeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
     })
-    .then ( () => console.log ("Done"));
+    .then (async () => {
+
+      // set last ran tx
+      const migrations = Migrations.at (migrationsAddress);
+      await migrations.setCompleted (9, Object.assign(opts, {gas: 100000}));
+
+      console.log ("Done");
+    });
 
 }

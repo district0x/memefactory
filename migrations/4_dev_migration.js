@@ -13,9 +13,12 @@ const MemeRegistryForwarder = artifacts.require("MemeRegistryForwarder");
 copy ("MutableForwarder", "ParamChangeRegistryForwarder", contracts_build_directory);
 const ParamChangeRegistryForwarder = artifacts.require("ParamChangeRegistryForwarder");
 
+const Migrations = artifacts.require("Migrations");
+
 const smartContracts = readSmartContractsFile(smart_contracts_path);
 const memeRegistryForwarderAddress = getSmartContractAddress(smartContracts, ":meme-registry-fwd");
 const paramChangeRegistryForwarderAddress = getSmartContractAddress(smartContracts, ":param-change-registry-fwd");
+const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations");
 
 /**
  * This migration updates Registry contracts
@@ -56,8 +59,15 @@ module.exports = function(deployer, network, accounts) {
              setSmartContractAddress(smartContracts, ":meme-registry", memeRegistry.address);
              setSmartContractAddress(smartContracts, ":param-change-registry", paramChangeRegistry.address);
 
-             writeSmartContracts(smart_contracts_path, smartContracts, env);
            })
-    .then ( () => console.log ("Done"));
+    .then (async () => {
+
+      // set last ran tx
+      const migrations = Migrations.at (migrationsAddress);
+      await migrations.setCompleted (4, Object.assign(opts, {gas: 100000}));
+
+      writeSmartContracts(smart_contracts_path, smartContracts, env);
+      console.log ("Done")
+    });
 
 }
