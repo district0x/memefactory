@@ -77,9 +77,9 @@ jobs:
             fi
 
   build_and_deploy:
-   docker:
+    docker:
      - image: district0x/cljs-dev
-   steps:
+    steps:
      - setup_remote_docker:
        version: 18.06.0-ce
      - run:
