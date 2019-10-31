@@ -45,22 +45,20 @@ jobs:
     shell: /bin/bash -eo pipefail
     steps:
       - checkout
-      - restore_cache:
-          name: Restore npm package cache
-          keys:
-            - npm-packages-{{ checksum "package-lock.json" }}
-      - run:
-          name: Install node modules
-          command: lein npm install
-      - save_cache:
-          name: Save npm package cache
-          key: npm-packages-{{ checksum "package-lock.json" }}
-          paths:
-            - ./node_modules/
-      - run: ls
-      - run: ls migrations/
-      - run: cat migrations/check_ran_migrations.js
-      - run: env MEMEFACTORY_ENV=dev truffle exec migrations/check_ran_migrations.js --network infura-ropsten
+      # - restore_cache:
+      #     name: Restore npm package cache
+      #     keys:
+      #       - npm-packages-{{ checksum "package-lock.json" }}
+      # - run:
+      #     name: Install node modules
+      #     command: lein npm install
+      # - save_cache:
+      #     name: Save npm package cache
+      #     key: npm-packages-{{ checksum "package-lock.json" }}
+      #     paths:
+      #       - ./node_modules/
+      - run : npm install truffle-hdwallet-provider@1.0.12 dotenv@8.0.0
+      - run: env MEMEFACTORY_ENV=dev truffle exec migrations/check_ran_migrations.js --network ganache
       # - run:
       #     name: check if all migrations have been ran
       #     command: |
