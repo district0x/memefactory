@@ -40,7 +40,9 @@
    [memefactory.server.pinner]
    [memefactory.server.ranks-cache]
    [memefactory.server.syncer :as syncer]
+
    [memefactory.server.twitter-bot]
+
    [memefactory.server.utils :as server-utils]
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
@@ -50,7 +52,7 @@
    [mount.core :as mount]
    [cljs-promises.async]
    [taoensso.timbre :as log])
-  (:require-macros [memefactory.shared.utils :refer [get-environment]]))
+  )
 
 (nodejs/enable-util-print!)
 
@@ -84,9 +86,6 @@
 
         (.on "close" (fn []
                        (log/info "Finished redploying contracts" ::redeploy))))))
-
-
-;; TODO : generator
 
 (defn generate-data
   "Generate dev data from supplied scenarios.
@@ -159,7 +158,7 @@
 
 
 (def contracts-var
-  (condp = (get-environment)
+  (condp = (shared-utils/get-environment)
     "prod" #'smart-contracts-prod/smart-contracts
     "qa" #'smart-contracts-qa/smart-contracts
     "qa-dev" #'smart-contracts-qa/smart-contracts

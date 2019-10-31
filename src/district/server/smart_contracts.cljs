@@ -11,7 +11,7 @@
    [cljs.nodejs :as nodejs]
    [cljs.pprint]
    [clojure.string :as string]
-   [district.shared.async-helpers :as asynch]
+   [district.shared.async-helpers :as async-helpers]
    [district.server.config :refer [config]]
    [district.server.web3 :refer [web3]]
    [mount.core :as mount :refer [defstate]]
@@ -105,13 +105,13 @@
     :else contract))
 
 (defn- enrich-event-log [contract-name contract-instance {:keys [:event :return-values] :as log}]
+
+  #_(taoensso.timbre/debug "@@@ enrich-event-log" {:contracts-name contract-name
+                                                 :contract-instance contract-instance
+                                                 :log log})
+
   (-> log
-      (update :return-values #(web3-utils/return-values->clj return-values (web3-utils/event-interface contract-instance event))
-              #_#(reduce (fn [res value]
-                           (let [n (:name value)]
-                             (assoc res (-> n web3-utils/kebab-case keyword) (aget return-values n))))
-                         {}
-                         (:inputs (web3-utils/event-interface contract-instance event))))
+      (update :return-values #(web3-utils/return-values->clj return-values (web3-utils/event-interface contract-instance event)))
       (update :event (fn [event-name]
                        (if (= (first event-name)
                               (string/upper-case (first event-name)))
@@ -158,14 +158,17 @@
    function returns a Promise resolving to a tx receipt."
   ([contract method args {:keys [:from :gas :ignore-forward?] :as opts}]
    (promise-> (if from
-                (js/Promise.resolve from)
+                (js/Promise.resolve [from])
                 (web3-eth/accounts @web3))
               (fn [accounts]
-                (let [opts (merge (when-not from
-                                    {:from (first accounts)})
+                (let [opts (merge {:from (first accounts)}
                                   (when-not gas
                                     {:gas 4000000})
                                   (dissoc opts :ignore-forward?))]
+
+                  (prn "@@@ " contract " " method
+                       " inst " (instance-from-arg contract {:ignore-forward? ignore-forward?}))
+
                   (-> (web3-eth/contract-send @web3
                                               (instance-from-arg contract {:ignore-forward? ignore-forward?})
                                               method
@@ -177,16 +180,25 @@
   ([contract method]
    (contract-send contract method [] {})))
 
-(defn subscribe-events [contract event {:keys [:from-block :address :topics :ignore-forward?] :as opts} & [callback]]
+;; TODO : here
+(defn subscribe-events [contract event {:keys [:from-block :address :topics :ignore-forward? :latest-event?] :as opts} & [callback]]
+
+  #_(taoensso.timbre/debug "@@@ enrich-event-log" {:contracts contract
+                                                 :event event
+                                                 :opts opts
+                                                 :cb callback})
+
   (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})]
     (web3-eth/subscribe-events @web3
                                contract-instance
                                event
                                opts
-                               (fn [error event]
-                                 (callback error (->> event
-                                                      web3-utils/js->cljkk
-                                                      (enrich-event-log contract contract-instance)))))))
+                               (when callback
+                                 (fn [error event]
+                                   (callback error (->> event
+                                                        web3-utils/js->cljkk
+                                                        (#(assoc % :latest-event? latest-event?))
+                                                        (enrich-event-log contract contract-instance))))))))
 
 (defn subscribe-event-logs [contract event {:keys [:from-block :address :topics :ignore-forward?] :as opts} & [callback]]
   (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})
@@ -198,15 +210,6 @@
                                     opts)
                              (fn [error event]
                                (callback error (web3-utils/js->cljkk event))))))
-
-#_(defn wait-for-tx-receipt
-    "blocks until transaction `tx-hash` gets sent to the network. returns js/Promise"
-    [tx-hash]
-    (promise-> (web3-eth/get-transaction-receipt @web3 tx-hash)
-               (fn [receipt]
-                 (if receipt
-                   receipt
-                   (js/setTimeout #(wait-for-tx-receipt tx-hash) 1000)))))
 
 (defn contract-event-in-tx [contract event {:keys [:transaction-hash] :as tx-receipt}]
   (let [contract-instance (instance-from-arg contract)
@@ -221,21 +224,6 @@
                            nil
                            logs))))))
 
-#_(defn contract-events-in-tx [tx-hash contract event-name & args]
-    (let [instance (instance-from-arg contract)
-          event-filter (apply web3-eth/contract-call instance event-name args)
-          formatter (aget event-filter "formatter")
-          contract-addr (aget instance "address")
-          {:keys [:logs]} (web3-eth/get-transaction-receipt @web3 tx-hash)
-          signature (aget event-filter "options" "topics" 0)]
-      (reduce (fn [result log]
-                (when (= signature (first (:topics log)))
-                  (let [{:keys [:address] :as evt} (js->clj (formatter (clj->js log)) :keywordize-keys true)]
-                    (when (= contract-addr address)
-                      (concat result [(js->cljkk evt)])))))
-              nil
-              logs)))
-
 (defn replay-past-events-in-order [events callback {:keys [:from-block :to-block
                                                            :ignore-forward? :delay
                                                            :transform-fn :on-finish]
@@ -244,6 +232,9 @@
   (let [logs-chans (for [[k [contract event]] events]
                      (let [logs-ch (async/promise-chan)
                            contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})]
+
+                       (taoensso.timbre/debug "@@@ REPLAY" {:event event})
+
                        (web3-eth/get-past-events @web3
                                                  contract-instance
                                                  event
@@ -266,6 +257,9 @@
 
         ;; no more channels to read, sort and callback
         (let [sorted-logs (transform-fn (sort-by (juxt :block-number :transaction-index :log-index) all-logs))]
+
+          (prn "@@@ SORTED-LOGS/COUNT" (count sorted-logs))
+
           (go-loop [logs sorted-logs]
             (if (seq logs)
               (do
@@ -280,8 +274,8 @@
                         (satisfies? cljs.core.async.impl.protocols/ReadPort res)
                         (<! res)
 
-                        (asynch/promise? res)
-                        (<! (asynch/promise->chan res))))))
+                        (async-helpers/promise? res)
+                        (<! (async-helpers/promise->chan res))))))
                 (recur (rest logs)))
 
               (when (fn? on-finish)

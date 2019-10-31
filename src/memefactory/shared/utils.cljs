@@ -5,6 +5,7 @@
             [district.web3-utils :as web3-utils]
             [taoensso.timbre :as log]
             [district.graphql-utils :as gql-utils])
+  (:require-macros [memefactory.shared.utils])
   (:import [goog.async Debouncer]))
 
 ;; started-on, duration and now are expected in seconds

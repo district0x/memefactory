@@ -51,7 +51,7 @@
   (-contract-send [_ contract-instance method args opts]
     (js-invoke (apply js-invoke (aget contract-instance "methods") (web3-utils/camel-case (name method)) (clj->js args)) "send" (clj->js opts)))
   (-subscribe-events [_ contract-instance event opts & [callback]]
-    (js-invoke (aget contract-instance "events") (web3-utils/camel-case (name event)) (web3-utils/cljkk->js opts) callback))
+    (apply js-invoke (aget contract-instance "events") (web3-utils/camel-case (name event)) (remove nil? [(web3-utils/cljkk->js opts) callback])))
   (-subscribe-logs [_ provider contract-instance opts & [callback]]
     (js-invoke (aget provider "eth") "subscribe" "logs" (web3-utils/cljkk->js opts) callback))
   (-decode-log [_ provider abi data topics]

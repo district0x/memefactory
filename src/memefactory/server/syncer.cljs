@@ -15,7 +15,7 @@
    [memefactory.server.generator]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.server.ipfs :as ipfs]
-   [district.shared.async-helpers :refer [safe-go <? #_promise->]]
+   [district.shared.async-helpers :refer [safe-go <?]]
    [memefactory.server.ranks-cache :as ranks-cache]
    [memefactory.server.utils :as server-utils]
    [memefactory.shared.contract.registry-entry :refer [vote-options]]
@@ -288,24 +288,29 @@
     (db/update-meme-auction! {:meme-auction/address meme-auction
                               :meme-auction/canceled-on timestamp})))
 
-(defn meme-auction-buy-event [_ {:keys [:args]}]
-  (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
-        auction (db/get-meme-auction meme-auction)
-        reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
-                              :reg-entry/address)
-        seller (:meme-auction/seller auction)
-        {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller}
-                                                           [:user/best-single-card-sale])]
-    (db/upsert-user! {:user/address seller
-                      :user/best-single-card-sale (max best-single-card-sale
-                                                       (bn/number seller-proceeds))})
-    (db/upsert-user! {:user/address buyer})
-    (db/inc-user-field! seller :user/total-earned (bn/number seller-proceeds))
-    (db/inc-meme-field! reg-entry-address :meme/total-trade-volume (bn/number price))
-    (db/update-meme-auction! {:meme-auction/address meme-auction
-                              :meme-auction/bought-for (bn/number price)
-                              :meme-auction/bought-on timestamp
-                              :meme-auction/buyer buyer})))
+;; TODO : never gets called, wtf?
+(defn meme-auction-buy-event [_ {:keys [:args] :as evt}]
+  (safe-go
+
+   (log/error "@@@ meme-auction-buy-event" evt)
+
+   (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
+         auction (db/get-meme-auction meme-auction)
+         reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
+                               :reg-entry/address)
+         seller (:meme-auction/seller auction)
+         {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller}
+                                                            [:user/best-single-card-sale])]
+     (db/upsert-user! {:user/address seller
+                       :user/best-single-card-sale (max best-single-card-sale
+                                                        (bn/number seller-proceeds))})
+     (db/upsert-user! {:user/address buyer})
+     (db/inc-user-field! seller :user/total-earned (bn/number seller-proceeds))
+     (db/inc-meme-field! reg-entry-address :meme/total-trade-volume (bn/number price))
+     (db/update-meme-auction! {:meme-auction/address meme-auction
+                               :meme-auction/bought-for (bn/number price)
+                               :meme-auction/bought-on timestamp
+                               :meme-auction/buyer buyer}))))
 
 (defn meme-token-transfer-event [_ {:keys [:args]}]
   (let [{:keys [:_to :_token-id :_timestamp]} args]
@@ -440,28 +445,30 @@
      (when-not (= ::db/started @db/memefactory-db)
        (throw (js/Error. "Database module has not started")))
      (let [start-time (server-utils/now)
-           event-callbacks {:meme-registry-db/eternal-db-event eternal-db-event
-                            :meme-registry/meme-constructed-event meme-constructed-event
-                            :meme-registry/challenge-created-event challenge-created-event
-                            :meme-registry/vote-committed-event vote-committed-event
-                            :meme-registry/vote-revealed-event vote-revealed-event
-                            :meme-registry/vote-amount-claimed-event vote-amount-claimed-event
-                            :meme-registry/vote-reward-claimed-event vote-reward-claimed-event
-                            :meme-registry/challenge-reward-claimed-event challenge-reward-claimed-event
-                            :meme-registry/meme-minted-event meme-minted-event
-                            :meme-auction-factory/meme-auction-started-event meme-auction-started-event
-                            :meme-auction-factory/meme-auction-buy-event meme-auction-buy-event
-                            :meme-auction-factory/meme-auction-canceled-event meme-auction-canceled-event
-                            :meme-token/transfer meme-token-transfer-event
-                            :param-change-db/eternal-db-event eternal-db-event
-                            :param-change-registry/param-change-constructed-event param-change-constructed-event
-                            :param-change-registry/challenge-created-event challenge-created-event
-                            :param-change-registry/vote-committed-event vote-committed-event
-                            :param-change-registry/vote-revealed-event vote-revealed-event
-                            :param-change-registry/vote-amount-claimed-event vote-amount-claimed-event
-                            :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
-                            :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
-                            :param-change-registry/param-change-applied-event param-change-applied-event}
+           event-callbacks {
+                            ;; :meme-registry-db/eternal-db-event eternal-db-event
+                            ;; :meme-registry/meme-constructed-event meme-constructed-event
+                            ;; :meme-registry/challenge-created-event challenge-created-event
+                            ;; :meme-registry/vote-committed-event vote-committed-event
+                            ;; :meme-registry/vote-revealed-event vote-revealed-event
+                            ;; :meme-registry/vote-amount-claimed-event vote-amount-claimed-event
+                            ;; :meme-registry/vote-reward-claimed-event vote-reward-claimed-event
+                            ;; :meme-registry/challenge-reward-claimed-event challenge-reward-claimed-event
+                            ;; :meme-registry/meme-minted-event meme-minted-event
+                            ;; :meme-auction-factory/meme-auction-started-event meme-auction-started-event
+                            ;; :meme-auction-factory/meme-auction-buy-event meme-auction-buy-event
+                            ;; :meme-auction-factory/meme-auction-canceled-event meme-auction-canceled-event
+                            ;; :meme-token/transfer meme-token-transfer-event
+                            ;; :param-change-db/eternal-db-event eternal-db-event
+                            ;; :param-change-registry/param-change-constructed-event param-change-constructed-event
+                            ;; :param-change-registry/challenge-created-event challenge-created-event
+                            ;; :param-change-registry/vote-committed-event vote-committed-event
+                            ;; :param-change-registry/vote-revealed-event vote-revealed-event
+                            ;; :param-change-registry/vote-amount-claimed-event vote-amount-claimed-event
+                            ;; :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
+                            ;; :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
+                            ;; :param-change-registry/param-change-applied-event param-change-applied-event
+                            }
            callback-ids (doall (for [[event-key callback] event-callbacks]
                                  (web3-events/register-callback! event-key (dispatcher callback))))]
        (web3-events/register-after-past-events-dispatched-callback! (fn []

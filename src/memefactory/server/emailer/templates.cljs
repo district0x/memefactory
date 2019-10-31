@@ -6,7 +6,7 @@
             [garden.core :as garden]))
 
 (defn- format-token-amount [amount]
-  (-> amount (web3-utils/from-wei @web3 :ether) bn/number (.toFixed 3)))
+  (-> (web3-utils/from-wei @web3 amount :ether) bn/number (.toFixed 3)))
 
 (def link-style
   (garden/style

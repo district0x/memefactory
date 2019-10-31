@@ -20,7 +20,7 @@
   (let [[contract-key event] (if-not (= event-key ::after-past-events-dummy-key)
                                (get (:events @web3-events) event-key)
                                [::after-past-events-dummy-contract ::after-past-events-dummy-event])
-        callback-id (or callback-id (random-uuid))]
+        callback-id (or callback-id (str (random-uuid)))]
     (when-not contract-key
       (throw (js/Error. "Trying to register callback for non existing event " event-key)))
 
@@ -65,7 +65,8 @@
                                                                   (let [[_ callback] (first (get-in @(:callbacks @web3-events) [contract event]))]
                                                                     (smart-contracts/subscribe-events contract
                                                                                                       event
-                                                                                                      {:from-block last-block-number}
+                                                                                                      {:from-block last-block-number
+                                                                                                       :latest-event? true}
                                                                                                       callback))))]
                                        (log/info "Subscribed to future events" {:events (keys events)})
                                        (swap! (:event-filters @web3-events) (fn [_ new] new) event-filters)))))
