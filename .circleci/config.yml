@@ -57,7 +57,7 @@ jobs:
           key: npm-packages-{{ checksum "package-lock.json" }}
           paths:
             - ./node_modules/
-      - run: env MEMEFACTORY_ENV=dev truffle migrate --network ganache --reset
+      - run: env MEMEFACTORY_ENV=dev truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten
       # - run:
       #     name: check if all migrations have been ran
       #     command: |
