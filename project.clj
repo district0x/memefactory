@@ -90,7 +90,6 @@
             [lein-cljsbuild "1.1.7"]
             [lein-figwheel "0.5.18"]
             [lein-shell "0.5.0"]
-            [lein-solc "1.0.11"]
             [lein-doo "0.1.8"]
             [lein-npm "0.6.2"]
             [lein-pdo "0.1.1"]
@@ -127,17 +126,6 @@
                        [truffle-hdwallet-provider "1.0.12"]
                        [dotenv "8.0.0"]
                        ]}
-
-  :solc {:src-path "contracts/"
-         :build-path "resources/public/contracts/build/"
-         :byte-count true
-         :solc-err-only true
-         :verbose false
-         :abi? false
-         :bin? false
-         :truffle-artifacts? true
-         :contracts :all
-         :optimize-runs {"ParamChange.sol" 1}}
 
   :source-paths ["src" "test"]
 

@@ -83,7 +83,7 @@ function login {
 function before {
   lein deps
   lein npm install
-  lein solc once
+  truffle compile
 }
 
 #--- EXECUTE

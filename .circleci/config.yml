@@ -77,8 +77,10 @@ jobs:
             fi
 
   build_and_deploy:
-   machine: true
+    docker:
+      - image: district0x/cljs-dev
    steps:
+     - setup_remote_docker
      - checkout
      - run:
          name: Build and deploy docker containers
