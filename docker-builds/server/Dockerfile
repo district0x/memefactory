@@ -1,4 +1,4 @@
-FROM node:11-stretch-slim
+FROM node:11.14.0-stretch-slim
 MAINTAINER "Filip Bielejec" <filip@district0x.io>
 
 # twitter-bot needs to be able to write here
