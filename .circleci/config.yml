@@ -1,43 +1,43 @@
 version: 2.1
 jobs:
 
-  # test:
-  #   working_directory: ~/ci
-  #   docker:
-  #     # Primary container image where all steps run.
-  #     - image: district0x/cljs-dev
-  #     # Secondary container images on common network.
-  #     - image: trufflesuite/ganache-cli:latest
-  #       command: [-d, -m district0x, -p 8545, -l 8000000, --noVMErrorsOnRPCResponse]
-  #     - image: district0x/ipfs-daemon:latest
-  #   steps:
-  #     - checkout
-  #     - restore_cache:
-  #         name: Restore m2 package cache
-  #         keys:
-  #           - v1-dependencies-{{ checksum "project.clj" }}
-  #           # fallback to using the latest cache if no exact match is found
-  #           - v1-dependencies-
-  #     - run: lein deps
-  #     - save_cache:
-  #         name: Save m2 package cache
-  #         paths:
-  #           - ~/.m2
-  #         key: v1-dependencies-{{ checksum "project.clj" }}
-  #     - restore_cache:
-  #         name: Restore npm package cache
-  #         keys:
-  #           - npm-packages-{{ checksum "package-lock.json" }}
-  #     - run:
-  #         name: Install node modules
-  #         command: lein npm install
-  #     - save_cache:
-  #         name: Save npm package cache
-  #         key: npm-packages-{{ checksum "package-lock.json" }}
-  #         paths:
-  #           - ./node_modules/
-  #     - run: env MEMEFACTORY_ENV=dev truffle migrate --network ganache --reset
-  #     - run: lein doo node "server-tests" once
+  test:
+    working_directory: ~/memefactory
+    docker:
+      # Primary container image where all steps run.
+      - image: district0x/cljs-dev
+      # Secondary container images on common network.
+      - image: trufflesuite/ganache-cli:latest
+        command: [-d, -m district0x, -p 8545, -l 8000000, --noVMErrorsOnRPCResponse]
+      - image: district0x/ipfs-daemon:latest
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore m2 package cache
+          keys:
+            - v1-dependencies-{{ checksum "project.clj" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run: lein deps
+      - save_cache:
+          name: Save m2 package cache
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "project.clj" }}
+      - restore_cache:
+          name: Restore npm package cache
+          keys:
+            - npm-packages-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install node modules
+          command: lein npm install
+      - save_cache:
+          name: Save npm package cache
+          key: npm-packages-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules/
+      - run: env MEMEFACTORY_ENV=dev truffle migrate --network ganache --reset
+      - run: lein doo node "server-tests" once
 
   check_migrations:
     docker:
@@ -66,7 +66,6 @@ jobs:
       #     key: npm-packages-{{ checksum "package-lock.json" }}
       #     paths:
       #       - ./node_modules/
-      - run : npm install truffle-hdwallet-provider@1.0.12 dotenv@8.0.0 jsedn@0.4.1
       - run : truffle compile
       - run:
           name: check if all migrations have been ran
@@ -80,42 +79,41 @@ jobs:
               exit -1;
             fi
 
-  # build_and_deploy:
-  #  machine: true
-  #  shell: /bin/bash -eo pipefail
-  #  steps:
-  #    - checkout
-  #    - run:
-  #        name: Build and deploy docker containers
-  #        command: |
-  #           if [ "$CIRCLE_BRANCH" == 'master' ]; then
-  #             /bin/bash docker-push.sh qa
-  #           elif [ "$CIRCLE_BRANCH" == 'production' ]; then
-  #             /bin/bash docker-push.sh prod
-  #           else
-  #             echo "Wrong branch";
-  #             exit -1;
-  #           fi
+  build_and_deploy:
+   machine: true
+   steps:
+     - checkout
+     - run:
+         name: Build and deploy docker containers
+         command: |
+            if [ "$CIRCLE_BRANCH" == 'master' ]; then
+              /bin/bash docker-push.sh qa
+            elif [ "$CIRCLE_BRANCH" == 'production' ]; then
+              /bin/bash docker-push.sh prod
+            else
+              echo "Wrong branch";
+              exit -1;
+            fi
 
 workflows:
   version: 2
   build_and_deploy:
     jobs:
-      # - test
+      - test
       - check_migrations:
-          # requires:
-          #   - test
+          requires:
+            - test
           filters:
             branches:
               only:
                 - feature/track-migrations
                 - production
-      # - build_and_deploy:
-      #     requires:
-      #       - test
-      #       - check_migrations
-      #     filters:
-      #       branches:
-      #         only:
-      #           - master
-      #           - production
+      - build_and_deploy:
+          requires:
+            - test
+            - check_migrations
+          filters:
+            branches:
+              only:
+                - master
+                - production
