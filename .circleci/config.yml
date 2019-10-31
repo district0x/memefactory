@@ -42,7 +42,9 @@ jobs:
           root:  ~/memefactory
           paths:
             - truffle.js
-            - node-modules/*
+            - node_modules/*
+            - src/memefactory/shared/smart_contracts_qa.cljs
+            - src/memefactory/shared/smart_contracts_prod.cljs
             - resources/public/contracts/build/*
 
   check_migrations:
