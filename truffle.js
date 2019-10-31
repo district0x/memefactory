@@ -61,18 +61,11 @@ module.exports = {
   contracts_build_directory: __dirname + '/resources/public/contracts/build/',
   parameters : parameters [MEMEFACTORY_ENV],
   networks: {
-    ganache: {
-      host: 'localhost',
-      port: 8549,
-      gas: 6e6, // gas limit
-      gasPrice: 20e9, // 20 gwei, default for ganache
-      network_id: '*'
-    },
-    parity: {
+    "ganache": {
       host: 'localhost',
       port: 8545,
-      gas: 6e6,
-      gasPrice: 6e9, // 6 gwei
+      gas: 6e6, // gas limit
+      gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
     },
     "infura-ropsten": {

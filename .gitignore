@@ -7,7 +7,6 @@ pom.xml.asc
 /.env
 *.jar
 *.class
-*.json
 /.lein-*
 /.nrepl-port
 .hgignosxAQZre

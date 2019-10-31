@@ -1,18 +1,18 @@
-const {readSmartContractsFile,getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode} = require ("./utils.js");
-const {parameters, smart_contracts_path, env} = require ('../truffle.js');
 const web3Utils = require('web3-utils');
+const { readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts, linkBytecode } = require ("./utils.js");
+const { parameters, smart_contracts_path, env } = require ('../truffle.js');
 
 const ParamChangeFactory = artifacts.require("ParamChangeFactory");
 const ParamChange = artifacts.require("ParamChange");
 const ParamChangeRegistry = artifacts.require("ParamChangeRegistry");
 const MutableForwarder = artifacts.require("MutableForwarder");
-
-console.log("Using smart_contracts file ", smart_contracts_path);
+const Migrations = artifacts.require("Migrations");
 
 var smartContracts = readSmartContractsFile(smart_contracts_path);
 var dankTokenAddr = getSmartContractAddress(smartContracts, ":DANK");
 var paramChangeRegistryForwarderAddr = getSmartContractAddress(smartContracts, ":param-change-registry-fwd");
 var paramChangeRegistryDbAddr = getSmartContractAddress(smartContracts, ":param-change-registry-db");
+const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations");
 
 const forwarderTargetPlaceholder = "beefbeefbeefbeefbeefbeefbeefbeefbeefbeef";
 const registryPlaceholder = "feedfeedfeedfeedfeedfeedfeedfeedfeedfeed";
@@ -21,9 +21,7 @@ const dankTokenPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
 /**
  * This migration redeploys ParamChange.sol ParamChangeFactory.sol ParamChangeRegistry.sol
  * which were updated in 10742ba
- *
- * Usage:
- * truffle migrate --network ganache/parity --reset --f 7 --to 7
+ * truffle migrate --network ganache --f 7 --to 7
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -34,9 +32,10 @@ module.exports = function(deployer, network, accounts) {
   deployer.then (() => {
     console.log ("@@@ using Web3 version:", web3.version.api);
     console.log ("@@@ using address", address);
-    console.log ("Current ParamChange address", getSmartContractAddress(smartContracts, ":param-change"));
-    console.log ("Current ParamChangeRegistry address", getSmartContractAddress(smartContracts, ":param-change-registry"));
-    console.log ("Current ParamChangeFactory address", getSmartContractAddress(smartContracts, ":param-change-factory"));
+    console.log ("@@@ using smart_contracts file ", smart_contracts_path);
+    console.log ("@@@ current ParamChange address", getSmartContractAddress(smartContracts, ":param-change"));
+    console.log ("@@@ current ParamChangeRegistry address", getSmartContractAddress(smartContracts, ":param-change-registry"));
+    console.log ("@@@ current ParamChangeFactory address", getSmartContractAddress(smartContracts, ":param-change-factory"));
   });
 
   deployer
@@ -89,16 +88,15 @@ module.exports = function(deployer, network, accounts) {
       setSmartContractAddress(smartContracts, ":param-change-factory", paramChangeFactoryInstance.address);
       console.log("New ParamChangeFactory address is ", paramChangeFactoryInstance.address);
 
-      /////////////////////////////
-      // Write the new addresses //
-      /////////////////////////////
-      writeSmartContracts(smart_contracts_path, smartContracts, env);
-
     })
-    .catch(console.error);
+    .then (async () => {
 
-  deployer.then (function () {
-    console.log ("Done");
-  });
+      // set last ran tx
+      const migrations = Migrations.at (migrationsAddress);
+      await migrations.setCompleted (7, Object.assign(opts, {gas: 100000}));
+
+      writeSmartContracts(smart_contracts_path, smartContracts, env);
+      console.log ("Done");
+    });
 
 }

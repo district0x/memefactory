@@ -11,18 +11,12 @@
             [memefactory.server.contract.registry :as registry]
             [memefactory.server.contract.meme-token :as meme-token]
             [cljs-promises.async :refer-macros [<?]]
-            [print.foo :include-macros true :refer [look]]
             [clojure.core.async :as async :refer [<!]]
-            [memefactory.tests.smart-contracts.utils :refer [tx-error?]]))
+            [taoensso.timbre :refer [spy]]
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
-
-#_(use-fixtures
-  :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
-                                                    :use-n-account-as-deposit-collector 3
-                                                    :meme-auction-cut 10})
-         :after test-utils/after-fixture})
 
 ;;;;;;;;;;;
 ;; Meme  ;;
@@ -32,12 +26,15 @@
   "Creates a meme and returns its registry entry"
   [& [creator-addr deposit total-supply meta-hash :as args]]
   (async/go
-    (let [tx (<? (meme-factory/approve-and-create-meme {:meta-hash meta-hash
-                                                        :total-supply total-supply
-                                                        :amount deposit}
-                                                       {:from creator-addr}))]
-      (-> (registry/meme-constructed-event-in-tx [:meme-registry :meme-registry-fwd] tx)
-          :args :registry-entry))))
+    (try
+      (let [tx (<? (meme-factory/approve-and-create-meme {:meta-hash meta-hash
+                                                          :total-supply total-supply
+                                                          :amount deposit}
+                                                         {:from creator-addr}))]
+        (-> (registry/meme-constructed-event-in-tx [:meme-registry :meme-registry-fwd] tx)
+            :args :registry-entry))
+      (catch :default e
+        false))))
 
 (deftest approve-and-create-meme-test
   (test/async
@@ -73,7 +70,7 @@
 
        (testing "Meme deposit can't be transferred if not whitelisted"
          ;; it will not be whitelisted because we are still in challenge period
-         (is (<? (tx-error? (<? (meme/transfer-deposit registry-entry))))))
+         (is (<? (tx-reverted? (<? (meme/transfer-deposit registry-entry))))))
 
        (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
 
@@ -82,7 +79,7 @@
          (is (<? (meme/transfer-deposit registry-entry)))
          ;; TODO: Check collector increased balance, need to know collector address
          #_(let [collector-final-balance (bn/number (<? (dank-token/balance-of collector-address)))]
-           (is (> collector-final-balance collector-initial-balance))))
+             (is (> collector-final-balance collector-initial-balance))))
        (done)))))
 
 (deftest mint-test
@@ -97,7 +94,7 @@
 
        (testing "Meme cant be minted if it's not whitelisted"
          ;; it will not be whitelisted because we are still in challenge period
-         (is (<? (tx-error? (<? (meme/mint registry-entry max-total-supply {}))))))
+         (is (<? (tx-reverted? (<? (meme/mint registry-entry max-total-supply {}))))))
 
        (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
 
@@ -111,11 +108,11 @@
              (is (= (:meme/total-minted meme) mint-count))
              ;; TODO: how to do this with core.async?
              #_(is (apply (partial = creator-addr)
-                        (map (fn [token-id]
-                               (<? (meme-token/owner-of token-id)))
-                             (range (:meme/token-id-start meme)
-                                    (+ (:meme/token-id-start meme)
-                                       (:meme/total-minted meme)))))))
+                          (map (fn [token-id]
+                                 (<? (meme-token/owner-of token-id)))
+                               (range (:meme/token-id-start meme)
+                                      (+ (:meme/token-id-start meme)
+                                         (:meme/total-minted meme)))))))
            (testing "Mint should work with passed amount that's bigger than totalSupply"
              (<? (meme/mint registry-entry (+ 3 max-total-supply) {}))
              (let [meme (<? (meme/load-meme registry-entry))]

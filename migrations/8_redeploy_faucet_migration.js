@@ -1,36 +1,23 @@
-const BigNumber = require('bignumber.js');
-const { linkBytecode, copy } = require ("./utils.js");
-const { parameters, contracts_build_directory } = require ('../truffle.js');
+const { linkBytecode, copy, readSmartContractsFile, getSmartContractAddress, setSmartContractAddress, writeSmartContracts } = require ("./utils.js");
+const { parameters, contracts_build_directory, smart_contracts_path, env } = require ('../truffle.js');
 
 const DSGuard = artifacts.require("DSGuard");
 const DankToken = artifacts.require("DankToken");
 copy ("DankFaucet", "DankFaucetCp", contracts_build_directory);
 const DankFaucet = artifacts.require ("DankFaucetCp");
+const Migrations = artifacts.require("Migrations");
+
+const smartContracts = readSmartContractsFile(smart_contracts_path);
+const dankTokenAddress = getSmartContractAddress(smartContracts, ":DANK");
+const dankFaucetAddress = getSmartContractAddress(smartContracts, ":dank-faucet");
+const dSGuardAddress = getSmartContractAddress(smartContracts, ":ds-guard");
+const migrationsAddress = getSmartContractAddress(smartContracts, ":migrations");
 
 const dankTokenPlaceholder = "deaddeaddeaddeaddeaddeaddeaddeaddeaddead";
 
-// TODO : adjust addresses these
-
-// ganache
-const dankFaucetAddress = "";
-const dankTokenAddress = "";
-const dSGuardAddress = "";
-
-// ropsten
-// const dankFaucetAddress = "0x8993009f44cd657cf869e9ac30c189206e3b6cef";
-// const dankTokenAddress = "0xeda9bf9199fab6790f43ee21cdce048781f58302";
-// const dSGuardAddress = "0xab4d684b2cc21ea99ee560a0f0d1490b09b09127";
-
-// mainnet
-// const dankFaucetAddress = "0x7abdcd059a60ad6d240a62be3fe0293fb2b65c19";
-// const dankTokenAddress = "0x0cb8d0b37c7487b11d57f1f33defa2b1d3cfccfe";
-// const dSGuardAddress = "0x5d0457f58ed4c115610a2253070a11fb82065403";
-
 /**
  * This migration drains old faucet and redeploys it seeding new Faucet with ETH and DANK
- *
- * Usage:
- * truffle migrate --reset --f 8 --to 8 --network ganache
+ * truffle migrate --network ganache --f 8 --to 8
  */
 module.exports = function(deployer, network, accounts) {
 
@@ -101,6 +88,19 @@ module.exports = function(deployer, network, accounts) {
              dankToken.transfer (newDankFaucet.address, balances.dank, Object.assign(opts, {gas: 0.5e6})),
              newDankFaucet.sendEth (Object.assign(opts, {gas: 0.5e6, value: balances.eth}))]))
     .then (() => DankFaucet.deployed())
-    .then ((dankFaucet) => console.log ("@@@ new DankFaucet address:", dankFaucet.address))
-  ;
+    .then ((dankFaucet) => {
+
+      console.log ("@@@ new DankFaucet address:", dankFaucet.address)
+      setSmartContractAddress(smartContracts, ":dank-faucet", dankFaucet.address);
+
+    })
+    .then (async () => {
+
+      // set last ran tx
+      const migrations = Migrations.at (migrationsAddress);
+      await migrations.setCompleted (8, Object.assign(opts, {gas: 100000, value: 0}));
+
+      writeSmartContracts(smart_contracts_path, smartContracts, env);
+      console.log ("Done");
+    });
 }

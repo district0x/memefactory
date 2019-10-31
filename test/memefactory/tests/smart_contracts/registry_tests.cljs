@@ -13,13 +13,7 @@
             [print.foo :refer [look] :include-macros true]
             [clojure.core.async :as async :refer [<!]]
             [cljs-promises.async :refer-macros [<?]]
-            [memefactory.tests.smart-contracts.utils :refer [tx-error?]]))
-
-#_(use-fixtures
-  :once {:before (test-utils/create-before-fixture {:use-n-account-as-cut-collector 2
-                                                    :use-n-account-as-deposit-collector 3
-                                                    :meme-auction-cut 10})
-         :after test-utils/after-fixture})
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
@@ -36,12 +30,12 @@
        (is (<? (registry/set-factory [:meme-registry :meme-registry-fwd]
                                      {:factory (contract-address :meme-factory)
                                       :factory? true}
-                                     {:from (last (web3-eth/accounts @web3))}))))
+                                     {:from (first (web3-eth/accounts @web3))}))))
 
      (testing "Unauthorised address cannot call this set-factory"
-       (is (<? (tx-error? (<? (registry/set-factory [:meme-registry :meme-registry-fwd]
-                                                    {:factory (contract-address :meme-factory)}
-                                                    {:from (second (web3-eth/accounts @web3))}))))))
+       (is (<? (tx-reverted? (<? (registry/set-factory [:meme-registry :meme-registry-fwd]
+                                                       {:factory (contract-address :meme-factory)}
+                                                       {:from (second (web3-eth/accounts @web3))}))))))
      (done))))
 
 (deftest add-registry-entry-test
@@ -50,9 +44,9 @@
    (async/go
      (let [[addr0 addr1] (web3-eth/accounts @web3)]
        (testing "addRegistryEntry cannot be called by regular address"
-         (is (<? (tx-error? (<? (contract-call [:param-change-registry :param-change-registry-fwd]
-                                               :add-registry-entry [addr1]
-                                               {:from addr0}))))))
+         (is (<? (tx-reverted? (<? (contract-call [:param-change-registry :param-change-registry-fwd]
+                                                  :add-registry-entry [addr1]
+                                                  {:from addr0}))))))
        (done)))))
 
 (deftest set-emergency-test
@@ -73,14 +67,14 @@
             (catch js/Error e nil))))
 
        (testing "After enabling emergency, check at least 1 method in a RegistryEntry with notEmergency modifier starts failing"
-         (is (<? (tx-error? (<? (registry-entry/approve-and-create-challenge meme-entry
-                                                                             {:amount deposit
-                                                                              :meta-hash sample-meta-hash-1}
-                                                                             {:from challenger-addr}))))))
+         (is (<? (tx-reverted? (<? (registry-entry/approve-and-create-challenge meme-entry
+                                                                                {:amount deposit
+                                                                                 :meta-hash sample-meta-hash-1}
+                                                                                {:from challenger-addr}))))))
 
        (testing "Unauthorised address cannot call this method"
-         (is (<? (tx-error? (<? (contract-call  :param-change-registry :set-emergency [true]
-                                                {:from (last (web3-eth/accounts @web3))}))))))
+         (is (<? (tx-reverted? (<? (contract-call  :param-change-registry :set-emergency [true]
+                                                   {:from (last (web3-eth/accounts @web3))}))))))
 
        ;; Disabling emergency mode!!!!
        (<? (contract-call  [:meme-registry :meme-registry-fwd]
