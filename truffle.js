@@ -10,8 +10,6 @@ const smartContractsPaths = {
   "prod" :'/src/memefactory/shared/smart_contracts_prod.cljs'
 };
 
-console.log("@@@ truffle-conf");
-
 let parameters = {
   "qa" : {
     memeRegistryDb : {challengePeriodDuration : 600, // seconds (10 minutes)

@@ -42,7 +42,6 @@ jobs:
           root:  ~/memefactory
           paths:
             - truffle.js
-            # - node_modules/*
             - project.clj
             - package-lock.json
             - src/memefactory/shared/smart_contracts_qa.cljs
@@ -56,20 +55,6 @@ jobs:
     docker:
       - image: district0x/cljs-dev
     steps:
-      # - checkout
-      # - restore_cache:
-      #     name: Restore npm package cache
-      #     keys:
-      #       - npm-packages-{{ checksum "package-lock.json" }}
-      # - run:
-      #     name: Install node modules
-      #     command: lein npm install
-      # - save_cache:
-      #     name: Save npm package cache
-      #     key: npm-packages-{{ checksum "package-lock.json" }}
-      #     paths:
-      #       - ./node_modules/
-      # - run : truffle compile
       - attach_workspace:
          at: ~/memefactory
       - restore_cache:
@@ -79,8 +64,6 @@ jobs:
       - run:
           name: Install node modules
           command: npm install
-      - run : ls -A
-      - run : ls ~/memefactory
       - run:
           name: check if all migrations have been ran
           command: |

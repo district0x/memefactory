@@ -9,8 +9,6 @@ const NETWORKS = {
   "3" : "ropsten"
 };
 
-console.log ("@@@ script:");
-
 const Migrations = artifacts.require("Migrations");
 
 var smartContracts = readSmartContractsFile(smart_contracts_path);
