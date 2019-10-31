@@ -38,8 +38,15 @@ jobs:
             - ./node_modules/
       - run: env MEMEFACTORY_ENV=dev truffle migrate --network ganache --reset
       - run: lein doo node "server-tests" once
+      - persist_to_workspace:
+          root:  ~/memefactory
+          paths:
+            - truffle.js
+            - node-modules/*
+            - resources/public/contracts/build/*
 
   check_migrations:
+    working_directory: ~/memefactory
     docker:
       - image: district0x/cljs-dev
     steps:
@@ -56,15 +63,15 @@ jobs:
       #     key: npm-packages-{{ checksum "package-lock.json" }}
       #     paths:
       #       - ./node_modules/
+      # - run : truffle compile
       - attach_workspace:
-         at: /tmp/output
-      - run : cd /tmp/output
-      - run : truffle compile
+         at: ~/memefactory
+      - run : ls -A
+      - run : ls ~/memefactory
       - run:
           name: check if all migrations have been ran
           command: |
             if [ "$CIRCLE_BRANCH" = 'feature/track-migrations' ]; then
-              ls -A
               env MEMEFACTORY_ENV=qa INFURA_API_KEY=$INFURA_API_KEY ROPSTEN_PRIV_KEY=$ROPSTEN_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-ropsten
             elif [ "$CIRCLE_BRANCH" = 'production' ]; then
               env MEMEFACTORY_ENV=prod INFURA_API_KEY=$INFURA_API_KEY MAINNET_PRIV_KEY=$MAINNET_PRIV_KEY truffle exec ./migrations/check_ran_migrations.js --network infura-mainnet
