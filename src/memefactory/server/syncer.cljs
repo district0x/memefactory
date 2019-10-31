@@ -384,7 +384,6 @@
                  (and (= block-number last-block-number) (> log-index last-log-index)))
            (let [result (callback err event)]
              (log/info "Handling new event" evt)
-
              ;; block if we need
              (when (satisfies? cljs.core.async.impl.protocols/ReadPort result)
                (<! result))
