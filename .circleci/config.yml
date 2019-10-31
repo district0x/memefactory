@@ -42,9 +42,11 @@ jobs:
           root:  ~/memefactory
           paths:
             - truffle.js
-            - node_modules/*
+            # - node_modules/*
+            - package-lock.json
             - src/memefactory/shared/smart_contracts_qa.cljs
             - src/memefactory/shared/smart_contracts_prod.cljs
+            - migrations/check_ran_migrations.js
             - resources/public/contracts/build/*
 
   check_migrations:
@@ -68,6 +70,10 @@ jobs:
       # - run : truffle compile
       - attach_workspace:
          at: ~/memefactory
+      - restore_cache:
+          name: Restore npm package cache
+          keys:
+            - npm-packages-{{ checksum "package-lock.json" }}
       - run : ls -A
       - run : ls ~/memefactory
       - run:
