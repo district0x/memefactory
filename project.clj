@@ -33,10 +33,10 @@
                  [district0x/district-server-middleware-logging "1.0.0"]
 
                  ;; TODO : update to new releases
-                 [cljs-web3-next "0.0.10-SNAPSHOT"]
+                 [cljs-web3-next "0.0.10"]
                  ;; [cljs-web3 "0.19.0-0-10"]
                  ;; [district0x/district-server-smart-contracts "1.0.17"]
-                 ;; [district0x/district-server-web3 "1.0.1"]
+                 [district0x/district-server-web3 "1.1.0-SNAPSHOT"]
                  ;; [district0x/district-server-web3-events "1.0.4"]
                  ;; [district0x/district-server-web3-watcher "1.0.3"]
 
@@ -188,7 +188,7 @@
                                 :pretty-print? false}}]}
 
   :cljsbuild {:builds [{:id "dev-server"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared"  "src/district"]
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared" "src/district"]
                         :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
                         :compiler {:main "memefactory.server.dev"
                                    :output-to "dev-server/memefactory.js"
