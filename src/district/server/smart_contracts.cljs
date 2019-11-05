@@ -128,8 +128,7 @@
    # returns:
    function returns a Promise resolving to the result of `method` call."
   ([contract method args {:keys [:ignore-forward?] :as opts}]
-   (web3-eth/contract-call @web3
-                           (instance-from-arg contract {:ignore-forward? ignore-forward?})
+   (web3-eth/contract-call (instance-from-arg contract {:ignore-forward? ignore-forward?})
                            method
                            args
                            (dissoc opts :ignore-forward?)))
@@ -159,8 +158,7 @@
                                   (when-not gas
                                     {:gas 4000000})
                                   (dissoc opts :ignore-forward?))]
-                  (-> (web3-eth/contract-send @web3
-                                              (instance-from-arg contract {:ignore-forward? ignore-forward?})
+                  (-> (web3-eth/contract-send (instance-from-arg contract {:ignore-forward? ignore-forward?})
                                               method
                                               args
                                               opts))))
@@ -172,8 +170,7 @@
 
 (defn subscribe-events [contract event {:keys [:from-block :address :topics :ignore-forward? :latest-event?] :as opts} callbacks]
   (let [contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})]
-    (web3-eth/subscribe-events @web3
-                               contract-instance
+    (web3-eth/subscribe-events contract-instance
                                event
                                opts
                                (fn [error evt]
@@ -219,8 +216,7 @@
   (let [logs-chans (for [[k [contract event]] events]
                      (let [logs-ch (async/promise-chan)
                            contract-instance (instance-from-arg contract {:ignore-forward? ignore-forward?})]
-                       (web3-eth/get-past-events @web3
-                                                 contract-instance
+                       (web3-eth/get-past-events contract-instance
                                                  event
                                                  opts
                                                  (fn [error events]

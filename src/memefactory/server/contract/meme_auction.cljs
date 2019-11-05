@@ -8,4 +8,4 @@
   (smart-contracts/contract-send [:meme-auction contract-addr] :buy [] (merge {:gas 500000} opts)))
 
 (defn start-auction-data [{:keys [:start-price :end-price :duration :description] :as args}]
-  (web3-eth/encode-abi @web3 (smart-contracts/instance :meme-auction) :start-auction [start-price end-price duration description]))
+  (web3-eth/encode-abi (smart-contracts/instance :meme-auction) :start-auction [start-price end-price duration description]))

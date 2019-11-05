@@ -99,4 +99,4 @@
 (defn stop [web3-events]
   (log/info "Stopping web3-events" (:events @web3-events))
   (doseq [subscription @(:event-filters @web3-events)]
-    (web3-eth/unsubscribe @web3 subscription)))
+    (web3-eth/unsubscribe subscription)))

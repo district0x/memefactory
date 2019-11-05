@@ -33,10 +33,10 @@
                  [district0x/district-server-middleware-logging "1.0.0"]
 
                  ;; TODO : update to new releases
-                 [cljs-web3-next "0.0.10"]
+                 [cljs-web3-next "0.0.15"]
                  ;; [cljs-web3 "0.19.0-0-10"]
                  ;; [district0x/district-server-smart-contracts "1.0.17"]
-                 [district0x/district-server-web3 "1.1.0-SNAPSHOT"]
+                 [district0x/district-server-web3 "1.1.2"]
                  ;; [district0x/district-server-web3-events "1.0.4"]
                  ;; [district0x/district-server-web3-watcher "1.0.3"]
 
