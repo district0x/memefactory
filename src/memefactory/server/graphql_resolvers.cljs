@@ -23,7 +23,8 @@
             [memefactory.server.utils :as utils]
             [memefactory.shared.contract.registry-entry :as registry-entry]
             [memefactory.shared.utils :as shared-utils]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [clojure.string :as str]))
 
 (def enum graphql-utils/kw->gql-name)
 
@@ -123,6 +124,9 @@
          page-start-idx (when after (js/parseInt after))
          page-size first
          now (utils/now-in-seconds)
+         tags (when tags (map str/lower-case tags))
+         tags-not (when tags-not (map str/lower-case tags-not))
+         tags-or (when tags-or (map str/lower-case tags-or))
          query (cond-> {:select [:re.* :memes.* :votes.votes-total :meme/average-price :meme/highest-single-sale]
                         :from [:memes]
                         :modifiers [:distinct]
@@ -161,10 +165,10 @@
                                                    :from [:meme-tags]
                                                    :where [:and
                                                            [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
-                                                           [:in :meme-tags.tag/name tags]]}])
-                 tags-or      (sqlh/merge-where [:in :meme-tags.tag/name tags-or])
+                                                           [:in (sql/call :lower :meme-tags.tag/name) tags]]}])
+                 tags-or      (sqlh/merge-where [:in (sql/call :lower :meme-tags.tag/name) tags-or])
                  tags-not     (sqlh/merge-where [:or
-                                                 [:not-in :meme-tags.tag/name tags-not]
+                                                 [:not-in (sql/call :lower :meme-tags.tag/name) tags-not]
                                                  [:= :meme-tags.tag/name nil]])
                  creator      (sqlh/merge-where [:= :re.reg-entry/creator creator])
                  curator      (sqlh/merge-where [:or [:= :re.challenge/challenger curator]
@@ -186,7 +190,7 @@
                                                           ;; TODO: move this transformation to district-server-graphql
                                                           (graphql-utils/gql-name->kw order-by))
                                                      (or (keyword order-dir) :asc)]]))]
-(paged-query query page-size page-start-idx))))
+     (paged-query query page-size page-start-idx))))
 
 (defn search-meme-tokens-query-resolver [_ {:keys [:statuses :order-by :order-dir :owner :first :after] :as args}]
   (log/debug "search-meme-tokens-query-resolver" args)
@@ -244,6 +248,9 @@
          now (utils/now-in-seconds)
          page-start-idx (when after (js/parseInt after))
          page-size first
+         tags (when tags (map str/lower-case tags))
+         tags-not (when tags-not (map str/lower-case tags-not))
+         tags-or (when tags-or (map str/lower-case tags-or))
          query (cond-> {:select [:ma.* :m.reg-entry/address :m.meme/total-minted :m.meme/number :mt.meme-token/number]
                         :modifiers [:distinct]
                         :from [[:meme-auctions :ma]]
@@ -259,12 +266,12 @@
                                                    :from [[:meme-tags :mtts]]
                                                    :where [:and
                                                            [:= :mtts.reg-entry/address :m.reg-entry/address]
-                                                           [:in :mtts.tag/name tags]]}])
+                                                           [:in (sql/call :lower :mtts.tag/name) tags]]}])
                  non-for-meme (sqlh/merge-where [:not= :m.reg-entry/address non-for-meme])
                  for-meme     (sqlh/merge-where [:= :m.reg-entry/address for-meme])
-                 tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
+                 tags-or      (sqlh/merge-where [:in (sql/call :lower :mtags.tag/name) tags-or])
                  tags-not     (sqlh/merge-where [:or
-                                                 [:not-in :mtags.tag/name tags-not]
+                                                 [:not-in (sql/call :lower :mtags.tag/name) tags-not]
                                                  [:= :mtags.tag/name nil]])
                  statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                  order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
