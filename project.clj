@@ -35,7 +35,7 @@
                  ;; TODO : update to new releases
                  [cljs-web3-next "0.0.15"]
                  [district0x/district-server-smart-contracts "1.1.0"]
-                 [district0x/district-server-web3 "1.1.2"]
+                 [district0x/district-server-web3 "1.1.4-SNAPSHOT"]
                  [district0x/district-server-web3-events "1.1.0"]
 
                  [district0x/district-time "1.0.1"]
@@ -186,7 +186,7 @@
                                 :pretty-print? false}}]}
 
   :cljsbuild {:builds [{:id "dev-server"
-                        :source-paths ["src/memefactory/server" "src/memefactory/shared" "src/district"]
+                        :source-paths ["src/memefactory/server" "src/memefactory/shared"]
                         :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
                         :compiler {:main "memefactory.server.dev"
                                    :output-to "dev-server/memefactory.js"
