@@ -6,6 +6,7 @@
    [district.server.db]
    [district.server.graphql :as graphql]
    [district.server.graphql.utils :as utils]
+   [district.server.logging]
    [district.server.middleware.logging :refer [logging-middlewares]]
    [district.server.web3 :refer [web3]]
    [district.shared.async-helpers :as async-helpers]
@@ -14,7 +15,6 @@
    [memefactory.shared.graphql-schema :refer [graphql-schema]]
    [memefactory.shared.smart-contracts-dev :refer [smart-contracts]]
    [memefactory.tests.graphql-resolvers.graphql-resolvers-tests]
-   [memefactory.tests.smart-contracts.utils :as test-utils]
    [mount.core :as mount]
    [taoensso.timbre :as log]
 
