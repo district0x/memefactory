@@ -240,11 +240,12 @@
                         :data :search-memes))))
            (done))))
 
-#_(deftest filtering-by-statuses-should-work
+(deftest filtering-by-statuses-should-work
   (async done
          (go
            (is (= {:items [#:reg-entry{:address "MEMEADDR0"}]}
-                  (-> (<! (graphql/run-query-async {:queries [[:search-memes {:statuses [:reg-entry.status/commit-period]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-memes {:statuses [:regEntry_status_commitPeriod
+                                                                                         #_:reg-entry.status/commit-period]}
                                                                [[:items [:reg-entry/address]]]]]}))
                       :data :search-memes)))
            (done))))
@@ -267,407 +268,525 @@
                    :data :search-memes))
            (done))))
 
+(deftest sorting-should-work
+  (async done
+         (go
+           (let [build-query (fn [order-dir]
+                               {:queries [[:search-memes {:order-by :memes_orderBy_revealPeriodEnd
+                                                          #_:memes.order-by/reveal-period-end
+                                                          :order-dir order-dir}
+                                           [[:items [:reg-entry/address]]]]]})]
+             (is (= [#:reg-entry{:address "MEMEADDR2"}
+                     #:reg-entry{:address "MEMEADDR5"}
+                     #:reg-entry{:address "MEMEADDR6"}
+                     #:reg-entry{:address "MEMEADDR7"}
+                     #:reg-entry{:address "MEMEADDR8"}
+                     #:reg-entry{:address "MEMEADDR9"}
+                     #:reg-entry{:address "MEMEADDR3"}
+                     #:reg-entry{:address "MEMEADDR4"}
+                     #:reg-entry{:address "MEMEADDR0"}
+                     #:reg-entry{:address "MEMEADDR1"}]
+                    (-> (<! (graphql/run-query-async (build-query :asc)))
+                        :data :search-memes :items))))
+           (done))))
+
+(deftest should-retrieve-meme-tokens
+  (async done
+         (go
+           (is (= (-> (<! (graphql/run-query-async {:queries [[:search-meme-tokens
+                                                               [:total-count
+                                                                :has-next-page
+                                                                :end-cursor
+                                                                [:items [:meme-token/token-id]]]]]}))
+                      :data :search-meme-tokens)
+                  {:total-count 4,
+                   :has-next-page false,
+                   :end-cursor "4",
+                   :items [#:meme-token{:token-id "0"} #:meme-token{:token-id "1"} #:meme-token{:token-id "2"} #:meme-token{:token-id "3"}]}))
+           (done))))
+
+(deftest filter-by-owner-should-work
+  (async done
+         (go
+           (is (= 2
+                  (-> (<! (graphql/run-query-async {:queries [[:search-meme-tokens {:owner "BUYERADDR"}
+                                                               [:total-count]]]}))
+                      :data :search-meme-tokens :total-count)))
+           (is (= 0
+                  (-> (<! (graphql/run-query-async {:queries [[:search-meme-tokens {:owner "CADDR7"}
+                                                               [:total-count]]]}))
+                      :data :search-meme-tokens :total-count)))
+           (done))))
+
+(deftest sorting-by-meme-title-should-work
+  (async done
+         (go
+           (let [build-query (fn [order] {:queries [[:search-meme-tokens {:order-by :memeTokens_orderBy_memeTitle
+                                                                          #_:meme-tokens.order-by/meme-title
+                                                                          :order-dir order}
+                                                     [[:items [[:meme-token/meme [:meme/title]]]]]]]})]
+             (is (= (-> (<! (graphql/run-query-async (build-query :asc)))
+                        :data :search-meme-tokens :items)
+                    (-> (<! (graphql/run-query-async (build-query :desc)))
+                        :data :search-meme-tokens :items
+                        reverse))))
+           (done))))
+
+(deftest should-retrieve-meme-auctions
+  (async done
+         (go
+           (is (= {:total-count 4,
+                   :end-cursor "4",
+                   :has-next-page false,
+                   :items [#:meme-auction{:address "AUCTIONADDR0"}
+                           #:meme-auction{:address "AUCTIONADDR1"}
+                           #:meme-auction{:address "AUCTIONADDR2"}
+                           #:meme-auction{:address "AUCTIONADDR3"}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-meme-auctions
+                                                               [:total-count
+                                                                :end-cursor
+                                                                :has-next-page
+                                                                [:items [:meme-auction/address]]]]]}))
+                      :data :search-meme-auctions)))
+           (done))))
+
+#_(deftest sorting-by-price-should-work
+  (async done
+         (go
+           (is (= [#:meme-auction{:address "AUCTIONADDR2"}
+                   #:meme-auction{:address "AUCTIONADDR0"}
+                   #:meme-auction{:address "AUCTIONADDR1"}
+                   #:meme-auction{:address "AUCTIONADDR3"}]
+                  (-> (<! (graphql/run-query-async {:queries [[:search-meme-auctions {:order-by :memeAuctions_orderBy_price
+                                                                                      ;; :meme-auctions.order-by/price
+                                                                                      :order-dir :desc}
+                                                               [[:items [:meme-auction/address]]]]]}))
+                      :data :search-meme-auctions :items)))
+           (done))))
+
+(deftest filter-by-title-should-work
+  (async done
+         (go
+           (is (= [{:meme-auction/meme-token {:meme-token/meme {:meme/title "Meme Title 3"}}}]
+                  (->> (<! (graphql/run-query-async {:queries [[:search-meme-auctions {:title "Meme Title 3"}
+                                                                [[:items [[:meme-auction/meme-token [[:meme-token/meme [:meme/title]]]]]]]]]}))
+                       :data :search-meme-auctions :items)))
+           (done))))
+
+(deftest grouping-should-work
+  (async done
+         (go
+           (is (= [#:meme-auction{:bought-for 70,:meme-token #:meme-token{:meme #:meme{:title "Meme Title 2"}}}
+                   #:meme-auction{:bought-for nil,:meme-token #:meme-token{:meme #:meme{:title "Meme Title 3"}}}
+                   #:meme-auction{:bought-for nil,:meme-token #:meme-token{:meme #:meme{:title "Meme Title 5"}}}]
+                  (->> (<! (graphql/run-query-async {:queries [[:search-meme-auctions {:group-by :memeAuctions_groupBy_cheapest
+                                                                                       #_:meme-auctions.group-by/cheapest}
+                                                                [[:items [:meme-auction/bought-for
+                                                                          [:meme-auction/meme-token [[:meme-token/meme [:meme/title]]]]]]]]]}))
+                       :data :search-meme-auctions :items)))
+           (done))))
+
+(deftest filter-by-tags-or
+  (async done
+         (go
+           (->> (<! (graphql/run-query-async {:queries [[:search-meme-auctions {:tags-or ["tag2"]}
+                                                         [[:items [:meme-auction/address
+                                                                   [:meme-auction/meme-token [[:meme-token/meme [:meme/title
+                                                                                                                 :reg-entry/address
+                                                                                                                 [:meme/tags [:tag/name]]]]]]]]]]]}))
+                :data :search-meme-auctions :items)
+           (done))))
+
+(deftest filter-by-tags
+  (async done
+         (go
+           (is (= [{:meme-auction/address "AUCTIONADDR1",
+                    :meme-auction/meme-token {:meme-token/meme {:meme/title "Meme Title 3",
+                                                                :reg-entry/address "MEMEADDR3",
+                                                                :meme/tags [#:tag{:name "tag1"}
+                                                                            #:tag{:name "tag2"}]}}}]
+                  (->> (<! (graphql/run-query-async {:queries [[:search-meme-auctions {:tags ["tag1" "tag2"]}
+                                                                [[:items [:meme-auction/address
+                                                                          [:meme-auction/meme-token [[:meme-token/meme [:meme/title
+                                                                                                                        :reg-entry/address
+                                                                                                                        [:meme/tags [:tag/name]]]]]]]]]]]}))
+                       :data :search-meme-auctions :items)))
+           (done))))
+
+(deftest should-retrieve-meme-auction
+  (async done
+         (go
+           (is (= [#:meme-auction{:address "AUCTIONADDR1", :start-price 100}]
+                  [(-> (<! (graphql/run-query-async {:queries [[:meme-auction {:meme-auction/address "AUCTIONADDR1"}
+                                                                [:meme-auction/address
+                                                                 :meme-auction/start-price]]]}))
+                       :data :meme-auction)]))
+           (done))))
+
+(deftest search-tags-test
+  (async done
+         (go
+           (is (= {:total-count 2, :items [#:tag{:name "tag1"} #:tag{:name "tag2"}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-tags
+                                                               [:total-count
+                                                                [:items [:tag/name]]]]]}))
+                      :data :search-tags)))
+           (done))))
+
+(deftest meme->owned-meme-tokens-test
+  (async done
+         (go
+           (is (= {:meme/owned-meme-tokens [{:meme-token/token-id "0"} {:meme-token/token-id "2"}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:meme {:reg-entry/address "MEMEADDR2"}
+                                                               [[:meme/owned-meme-tokens {:owner "BUYERADDR"} [:meme-token/token-id]]]]]}))
+                      :data :meme)))
+           (done))))
+
+(deftest param-change-test
+  (async done
+         (go
+           (is (= {:reg-entry/address "PCHANGEADDR0",
+                   :param-change/db "MEMEREGISTRYADDR",
+                   :param-change/key "deposit",
+                   :param-change/value 2000}
+                  (-> (<! (graphql/run-query-async {:queries [[:param-change {:reg-entry/address "PCHANGEADDR0"}
+                                                               [:reg-entry/address
+                                                                :param-change/db
+                                                                :param-change/key
+                                                                :param-change/value]]]}))
+                      :data :param-change)))
+           (done))))
+
+(deftest search-params-should-retrieve-paginated-values
+  (async done
+         (go
+           (is (= {:total-count 2,
+                   :end-cursor "2",
+                   :items [#:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 2000}
+                           #:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 3000}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-param-changes {:key "deposit"
+                                                                                      :db "MEMEREGISTRYADDR"}
+                                                               [:total-count
+                                                                :end-cursor
+                                                                [:items [:param-change/db
+                                                                         :param-change/key
+                                                                         :param-change/value]]]]]}))
+                      :data :search-param-changes)))
+           (done))))
+
+(deftest search-params-order-by-can-be-used-to-retrieve-most-recent-parameter-values
+  (async done
+         (go
+           (is  (= #:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 3000}
+                   (-> (<! (graphql/run-query-async {:queries [[:search-param-changes {:key "deposit" :db "MEMEREGISTRYADDR"
+                                                                                       :order-by :paramChanges_orderBy_appliedOn
+                                                                                       #_:param-changes.order-by/applied-on
+                                                                                       :order-dir :asc}
+                                                                [:total-count
+                                                                 :end-cursor
+                                                                 [:items [:param-change/db
+                                                                          :param-change/key
+                                                                          :param-change/value]]]]]}))
+                       :data :search-param-changes :items last)))
+           (done))))
+
+(deftest non-existing-user-is-nil
+  (async done
+         (go
+           (is (nil? (-> (<! (graphql/run-query-async {:queries [[:user {:user/address "FOOBAR"}
+                                                                  [:user/address]]]}))
+                         :data
+                         :user)))
+           (done))))
+
+(deftest test-total-created-memes-and-total-created-memes-whitelisted
+  (async done
+         (go
+           (is (= [#:user{:address "CADDR2"
+                          :total-created-memes 1
+                          :total-created-memes-whitelisted 1}]
+                  [(-> (<! (graphql/run-query-async {:queries [[:user {:user/address "CADDR2"}
+                                                                [:user/address
+                                                                 :user/total-created-memes
+                                                                 :user/total-created-memes-whitelisted]]]}))
+                       :data
+                       :user)]))
+           (done))))
+
+(deftest test-total-collected-token-ids-and-total-collected-memes
+  (async done
+         (go
+           (is (= [#:user{:address "BUYERADDR"
+                          :total-collected-token-ids 2
+                          :total-collected-memes 1}]
+                  [(-> (<! (graphql/run-query-async {:queries [[:user {:user/address "BUYERADDR"}
+                                                                [:user/address
+                                                                 :user/total-collected-token-ids
+                                                                 :user/total-collected-memes]]]}))
+                       :data
+                       :user)]))
+           (done))))
+
+(deftest test-total-created-challenges-and-total-created-challenges-success
+  (async done
+         (go
+           (is (= [#:user{:address "CHADDR"
+                          :total-created-challenges 4
+                          :total-created-challenges-success 1}]
+                  [(-> (<! (graphql/run-query-async {:queries [[:user {:user/address "CHADDR"}
+                                                                [:user/address
+                                                                 :user/total-created-challenges
+                                                                 :user/total-created-challenges-success]]]}))
+                       :data
+                       :user)]))
+           (done))))
 
 
+(def largest-sale-query [[:user {:user/address "CADDR2"}
+                          [:user/address
+                           [:user/largest-sale [:meme-auction/address
+                                                :meme-auction/bought-for
+                                                [:meme-auction/buyer [:user/address]]
+                                                [:meme-auction/seller [:user/address]]]]]]])
 
+(def creator-largest-sale-query [[:user {:user/address "CADDR2"}
+                                  [:user/address
+                                   [:user/creator-largest-sale [:meme-auction/address
+                                                                :meme-auction/bought-for
+                                                                [:meme-auction/buyer [:user/address]]
+                                                                [:meme-auction/seller [:user/address]]]]]]])
 
+(def largest-sale #:user{:address "CADDR2",
+                         :largest-sale #:meme-auction{:address "AUCTIONADDR2",
+                                                      :bought-for 72,
+                                                      :buyer #:user{:address "BUYERADDR"},
+                                                      :seller #:user{:address "CADDR2"}}})
 
-  #_(testing "Sorting should work"
-    (let [build-query (fn [order-dir] {:queries [[:search-memes {:order-by :memes.order-by/reveal-period-end :order-dir order-dir}
-                                                  [[:items [:reg-entry/address]]]]]})]
-      (is (= [#:reg-entry{:address "MEMEADDR2"}
-              #:reg-entry{:address "MEMEADDR5"}
-              #:reg-entry{:address "MEMEADDR6"}
-              #:reg-entry{:address "MEMEADDR7"}
-              #:reg-entry{:address "MEMEADDR8"}
-              #:reg-entry{:address "MEMEADDR9"}
-              #:reg-entry{:address "MEMEADDR3"}
-              #:reg-entry{:address "MEMEADDR4"}
-              #:reg-entry{:address "MEMEADDR0"}
-              #:reg-entry{:address "MEMEADDR1"}]
-             (-> (graphql/run-query (build-query :asc))
-                 :data :search-memes :items)))))
+(def creator-largest-sale #:user{:address "CADDR2",
+                                 :creator-largest-sale #:meme-auction{:address "AUCTIONADDR2",
+                                                                      :bought-for 72,
+                                                                      :buyer #:user{:address "BUYERADDR"},
+                                                                      :seller #:user{:address "CADDR2"}}})
 
+(deftest test-largest-sale
+  (async done
+         (go
+           (is (= largest-sale
+                  (-> (<! (graphql/run-query-async {:queries largest-sale-query}))
+                      :data
+                      :user)))
+           (done))))
 
+(deftest test-creator-largest-sale
+  (async done
+         (go
+           (is (= creator-largest-sale
+                  (-> (<! (graphql/run-query-async {:queries creator-largest-sale-query}))
+                      :data
+                      :user)))
+           (done))))
 
+(deftest test-order-by-total-collected-memes
+  (async done
+         (go
+           (is (= {:total-count 13
+                   :items [#:user{:address "BUYERADDR"
+                                  :total-collected-memes 1}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCollectedMemes,
+                                                                              #_:users.order-by/total-collected-memes
+                                                                              :order-dir :desc
+                                                                              :first 1
+                                                                              :after "0"}
+                                                               [:total-count
+                                                                [:items [:user/address
+                                                                         :user/total-collected-memes]]]]]}))
+                      :data :search-users)))
+           (done))))
 
+#_(deftest test-order-by-total-created-memes
+  (async done
+         (go
+           (is (= [#:user{:address "CADDR6", :total-created-memes 1}
+                   #:user{:address "CADDR2", :total-created-memes 1}
+                   #:user{:address "CADDR3", :total-created-memes 1}
+                   #:user{:address "CADDR7", :total-created-memes 1}
+                   #:user{:address "CADDR1", :total-created-memes 1}
+                   #:user{:address "CADDR8", :total-created-memes 1}
+                   #:user{:address "CADDR9", :total-created-memes 1}
+                   #:user{:address "CADDR0", :total-created-memes 1}
+                   #:user{:address "CADDR4", :total-created-memes 1}
+                   #:user{:address "CADDR5", :total-created-memes 1}
+                   #:user{:address "BUYERADDR", :total-created-memes 0}
+                   #:user{:address "CHADDR", :total-created-memes 0}
+                   #:user{:address "VOTERADDR", :total-created-memes 0}]
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCollectedMemes
+                                                                              #_:users.order-by/total-created-memes
+                                                                              :order-dir :desc}
+                                                               [[:items [:user/address
+                                                                         :user/total-created-memes]]]]]}))
+                      :data :search-users :items)))
+           (done))))
 
+#_(deftest test-order-by-total-created-memes-whitelisted
+  (async done
+         (go
+           (is (= [{:user/address "CADDR2", :user/total-created-memes-whitelisted 1}
+                   {:user/address "CADDR3", :user/total-created-memes-whitelisted 1}
+                   {:user/address "CADDR5", :user/total-created-memes-whitelisted 1}
+                   {:user/address "CADDR6", :user/total-created-memes-whitelisted 0}
+                   {:user/address "BUYERADDR", :user/total-created-memes-whitelisted 0}
+                   {:user/address "CADDR7", :user/total-created-memes-whitelisted 0}
+                   {:user/address "CADDR1", :user/total-created-memes-whitelisted 0}
+                   {:user/address "CADDR8", :user/total-created-memes-whitelisted 0}
+                   {:user/address "CHADDR", :user/total-created-memes-whitelisted 0}
+                   {:user/address "CADDR9", :user/total-created-memes-whitelisted 0}
+                   {:user/address "CADDR0", :user/total-created-memes-whitelisted 0}
+                   {:user/address "CADDR4", :user/total-created-memes-whitelisted 0}
+                   {:user/address "VOTERADDR", :user/total-created-memes-whitelisted 0}]
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/total-created-memes-whitelisted
+                                                                              :order-dir :desc}
+                                                               [[:items [:user/address
+                                                                         :user/total-created-memes-whitelisted]]]]]}))
+                      :data :search-users :items)))
+           (done))))
 
+(deftest test-order-by-total-collected-token-ids
+  (async done
+         (go
+           (is (= {:items [#:user{:address "BUYERADDR"
+                                  :total-collected-token-ids 2}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCollectedTokenIds,
+                                                                              #_:users.order-by/total-collected-token-ids
+                                                                              :order-dir :desc
+                                                                              :first 1
+                                                                              :after "0"}
+                                                               [[:items [:user/address
+                                                                         :user/total-collected-token-ids]]]]]}))
+                      :data :search-users)))
+           (done))))
 
-#_(testing "Should retrieve meme tokens"
-    (is (= (-> (graphql/run-query {:queries [[:search-meme-tokens
-                                              [:total-count
-                                               :has-next-page
-                                               :end-cursor
-                                               [:items [:meme-token/token-id]]]]]})
-               :data :search-meme-tokens)
-           {:total-count 4,
-            :has-next-page false,
-            :end-cursor "4",
-            :items [#:meme-token{:token-id "0"} #:meme-token{:token-id "1"} #:meme-token{:token-id "2"} #:meme-token{:token-id "3"}]})))
+(deftest test-order-by-total-created-challenges
+  (async done
+         (go
+           (is (= {:items [#:user{:address "CHADDR"
+                                  :total-created-challenges 4}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCreatedChallenges
+                                                                              #_:users.order-by/total-created-challenges
+                                                                              :order-dir :desc
+                                                                              :first 1
+                                                                              :after "0"}
+                                                               [[:items [:user/address
+                                                                         :user/total-created-challenges]]]]]}))
+                      :data :search-users)))
+           (done))))
 
-#_(testing "Filter by owner should work"
-  (is (= 2
-         (-> (graphql/run-query {:queries [[:search-meme-tokens {:owner "BUYERADDR"}
-                                            [:total-count]]]})
-             :data :search-meme-tokens :total-count)))
-  (is (= 0
-         (-> (graphql/run-query {:queries [[:search-meme-tokens {:owner "CADDR7"}
-                                            [:total-count]]]})
-             :data :search-meme-tokens :total-count))))
+(deftest test-order-by-total-created-challenges-success
+  (async done
+         (go
+           (is (= {:items [#:user{:address "CHADDR"
+                                  :total-created-challenges-success 1}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCreatedChallengesSuccess
+                                                                              #_:users.order-by/total-created-challenges-success
+                                                                              :order-dir :desc
+                                                                              :first 1
+                                                                              :after "0"}
+                                                               [[:items [:user/address
+                                                                         :user/total-created-challenges-success]]]]]}))
+                      :data :search-users)))
+           (done))))
 
-#_(testing "Sorting by Meme Title should work"
-  (let [build-query (fn [order] {:queries [[:search-meme-tokens {:order-by :meme-tokens.order-by/meme-title :order-dir order}
-                                            [[:items [[:meme-token/meme [:meme/title]]]]]]]})]
-    (is (= (-> (graphql/run-query (build-query :asc))
-               :data :search-meme-tokens :items)
-           (-> (graphql/run-query (build-query :desc))
-               :data :search-meme-tokens :items
-               reverse)))))
+(deftest test-order-by-total-participated-votes
+  (async done
+         (go
+           (is (= {:items [#:user{:address "VOTERADDR"
+                                  :total-participated-votes 2}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalParticipatedVotes
+                                                                              #_:users.order-by/total-participated-votes
+                                                                              :order-dir :desc
+                                                                              :first 1
+                                                                              :after "0"}
+                                                               [[:items [:user/address
+                                                                         :user/total-participated-votes]]]]]}))
+                      :data :search-users)))
+           (done))))
 
-#_(deftest search-meme-auctions-test
-  (testing "Should retrieve meme auctions"
-    (is (= {:total-count 4,
-            :end-cursor "4",
-            :has-next-page false,
-            :items [#:meme-auction{:address "AUCTIONADDR0"}
-                    #:meme-auction{:address "AUCTIONADDR1"}
-                    #:meme-auction{:address "AUCTIONADDR2"}
-                    #:meme-auction{:address "AUCTIONADDR3"}]}
-           (-> (graphql/run-query {:queries [[:search-meme-auctions
-                                              [:total-count
-                                               :end-cursor
-                                               :has-next-page
-                                               [:items [:meme-auction/address]]]]]})
-               :data :search-meme-auctions))))
+(deftest test-order-by-total-participated-votes-success
+  (async done
+         (go
+           (is (= {:items [#:user{:address "VOTERADDR"
+                                  :total-participated-votes-success 1}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalParticipatedVotesSuccess
+                                                                             #_:users.order-by/total-participated-votes-success
+                                                                             :order-dir :desc
+                                                                             :first 1
+                                                                             :after "0"}
+                                                              [[:items [:user/address
+                                                                        :user/total-participated-votes-success]]]]]}))
+                      :data :search-users)))
+           (done))))
 
-  #_(testing "Sorting by price should work"
-      (is (= [#:meme-auction{:address "AUCTIONADDR2"}
-              #:meme-auction{:address "AUCTIONADDR0"}
-              #:meme-auction{:address "AUCTIONADDR1"}
-              #:meme-auction{:address "AUCTIONADDR3"}]
-             (-> (graphql/run-query {:queries [[:search-meme-auctions {:order-by :meme-auctions.order-by/price :order-dir :desc}
-                                                [[:items [:meme-auction/address]]]]]})
-                 :data :search-meme-auctions :items))))
+(deftest test-order-by-curator-total-earned
+  (async done
+         (go
+           (is (= {:items [#:user{:address "VOTERADDR"
+                                  :user/curator-total-earned 1500}]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_curatorTotalEarned
+                                                                              #_:users.order-by/curator-total-earned
+                                                                              :order-dir :desc
+                                                                              :first 1
+                                                                              :after "0"}
+                                                               [[:items [:user/address
+                                                                         :user/curator-total-earned]]]]]}))
+                      :data :search-users)))
+           (done))))
 
-  (testing "Filter by title should work"
-    (is (= [{:meme-auction/meme-token {:meme-token/meme {:meme/title "Meme Title 3"}}}]
-           (->> (graphql/run-query {:queries [[:search-meme-auctions {:title "Meme Title 3"}
-                                               [[:items [[:meme-auction/meme-token [[:meme-token/meme [:meme/title]]]]]]]]]})
-                :data :search-meme-auctions :items))))
+(deftest test-order-by user-address
+  (async done
+         (go
+           (is (= [#:user{:address "BUYERADDR"}
+                   #:user{:address "CADDR0"}
+                   #:user{:address "CADDR1"}
+                   #:user{:address "CADDR2"}
+                   #:user{:address "CADDR3"}
+                   #:user{:address "CADDR4"}
+                   #:user{:address "CADDR5"}
+                   #:user{:address "CADDR6"}
+                   #:user{:address "CADDR7"}
+                   #:user{:address "CADDR8"}
+                   #:user{:address "CADDR9"}
+                   #:user{:address "CHADDR"}
+                   #:user{:address "VOTERADDR"}]
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_address
+                                                                              #_:users.order-by/address
+                                                                              :order-dir :asc
+                                                                              :first 13
+                                                                              :after "0"}
+                                                               [[:items [:user/address]]]]]}))
+                      :data :search-users :items)))
+           (done))))
 
-  (testing "Grouping should work"
-    (is (= [#:meme-auction{:bought-for 70,:meme-token #:meme-token{:meme #:meme{:title "Meme Title 2"}}}
-            #:meme-auction{:bought-for nil,:meme-token #:meme-token{:meme #:meme{:title "Meme Title 3"}}}
-            #:meme-auction{:bought-for nil,:meme-token #:meme-token{:meme #:meme{:title "Meme Title 5"}}}]
-           (->> (graphql/run-query {:queries [[:search-meme-auctions {:group-by :meme-auctions.group-by/cheapest}
-                                               [[:items [:meme-auction/bought-for
-                                                         [:meme-auction/meme-token [[:meme-token/meme [:meme/title]]]]]]]]]})
-                :data :search-meme-auctions :items))))
-
-  (testing "Filter by tags-or should work"
-    (->> (graphql/run-query {:queries [[:search-meme-auctions {:tags-or ["tag2"]}
-                                        [[:items [:meme-auction/address
-                                                  [:meme-auction/meme-token [[:meme-token/meme [:meme/title
-                                                                                                :reg-entry/address
-                                                                                                [:meme/tags [:tag/name]]]]]]]]]]]})
-         :data :search-meme-auctions :items))
-
-  (testing "Filter by tags should work"
-    (is (= [{:meme-auction/address "AUCTIONADDR1",
-             :meme-auction/meme-token {:meme-token/meme {:meme/title "Meme Title 3",
-                                                         :reg-entry/address "MEMEADDR3",
-                                                         :meme/tags [#:tag{:name "tag1"}
-                                                                     #:tag{:name "tag2"}]}}}]
-           (->> (graphql/run-query {:queries [[:search-meme-auctions {:tags ["tag1" "tag2"]}
-                                               [[:items [:meme-auction/address
-                                                         [:meme-auction/meme-token [[:meme-token/meme [:meme/title
-                                                                                                       :reg-entry/address
-                                                                                                       [:meme/tags [:tag/name]]]]]]]]]]]})
-                :data :search-meme-auctions :items)))))
-
-#_(deftest meme-auction-test
-  (testing "Should retrieve meme auction"
-    (is (= [#:meme-auction{:address "AUCTIONADDR1", :start-price 100}]
-           [(-> (graphql/run-query {:queries [[:meme-auction {:meme-auction/address "AUCTIONADDR1"}
-                                               [:meme-auction/address
-                                                :meme-auction/start-price]]]})
-                :data :meme-auction)]))))
-
-#_(deftest search-tags-test
-  (testing "Should retrieve tags"
-    (is (= {:total-count 2, :items [#:tag{:name "tag1"} #:tag{:name "tag2"}]}
-           (-> (graphql/run-query {:queries [[:search-tags
-                                              [:total-count
-                                               [:items [:tag/name]]]]]})
-               :data :search-tags)))))
-
-#_(deftest meme->owned-meme-tokens-test
-  (testing "Retrieving a meme with owned meme tokens should work"
-    (is (= {:meme/owned-meme-tokens [{:meme-token/token-id "0"} {:meme-token/token-id "2"}]}
-           (-> (graphql/run-query {:queries [[:meme {:reg-entry/address "MEMEADDR2"}
-                                              [[:meme/owned-meme-tokens {:owner "BUYERADDR"} [:meme-token/token-id]]]]]})
-               :data :meme)))))
-
-#_(deftest param-change-test
-  (testing "Should retrieve param change"
-    (is (= {:reg-entry/address "PCHANGEADDR0",
-            :param-change/db "MEMEREGISTRYADDR",
-            :param-change/key "deposit",
-            :param-change/value 2000}
-           (-> (graphql/run-query {:queries [[:param-change {:reg-entry/address "PCHANGEADDR0"}
-                                              [:reg-entry/address
-                                               :param-change/db
-                                               :param-change/key
-                                               :param-change/value]]]})
-               :data :param-change)))))
-
-#_(deftest search-param-changes-test
-  (testing "Search params should retrieve paginated values"
-    (is (= {:total-count 2,
-            :end-cursor "2",
-            :items [#:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 2000}
-                    #:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 3000}]}
-           (-> (graphql/run-query {:queries [[:search-param-changes {:key "deposit"
-                                                                     :db "MEMEREGISTRYADDR"}
-                                              [:total-count
-                                               :end-cursor
-                                               [:items [:param-change/db
-                                                        :param-change/key
-                                                        :param-change/value]]]]]})
-               :data :search-param-changes))))
-
-  (testing "Search params order-by can be used to retrieve most recent parameter values"
-    (is  (= #:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 3000}
-            (-> (graphql/run-query {:queries [[:search-param-changes {:key "deposit" :db "MEMEREGISTRYADDR"
-                                                                      :order-by :param-changes.order-by/applied-on
-                                                                      :order-dir :asc}
-                                               [:total-count
-                                                :end-cursor
-                                                [:items [:param-change/db
-                                                         :param-change/key
-                                                         :param-change/value]]]]]})
-                :data :search-param-changes :items last)))))
-
-#_(deftest user-test
-  (testing "Test non existing user is nil"
-    (is (nil? (-> (graphql/run-query {:queries [[:user {:user/address "FOOBAR"}
-                                                 [:user/address]]]})
-                  :data
-                  :user))))
-  (testing "Test total-created-memes & total-created-memes-whitelisted"
-    (is (= [#:user{:address "CADDR2"
-                   :total-created-memes 1
-                   :total-created-memes-whitelisted 1}]
-           [(-> (graphql/run-query {:queries [[:user {:user/address "CADDR2"}
-                                               [:user/address
-                                                :user/total-created-memes
-                                                :user/total-created-memes-whitelisted]]]})
-                :data
-                :user)])))
-  (testing "Test total-collected-token-ids & total-collected-memes"
-    (is (= [#:user{:address "BUYERADDR"
-                   :total-collected-token-ids 2
-                   :total-collected-memes 1}]
-           [(-> (graphql/run-query {:queries [[:user {:user/address "BUYERADDR"}
-                                               [:user/address
-                                                :user/total-collected-token-ids
-                                                :user/total-collected-memes]]]})
-                :data
-                :user)])))
-
-  #_(testing "Test total-created-challenges & total-created-challenges-success"
-      (is (= [#:user{:address "CHADDR"
-                     :total-created-challenges 4
-                     :total-created-challenges-success 1}]
-             [(-> (graphql/run-query {:queries [[:user {:user/address "CHADDR"}
-                                                 [:user/address
-                                                  :user/total-created-challenges
-                                                  :user/total-created-challenges-success]]]})
-                  :data
-                  :user)])))
-
-  (let [largest-sale-query [[:user {:user/address "CADDR2"}
-                             [:user/address
-                              [:user/largest-sale [:meme-auction/address
-                                                   :meme-auction/bought-for
-                                                   [:meme-auction/buyer [:user/address]]
-                                                   [:meme-auction/seller [:user/address]]]]]]]
-        creator-largest-sale-query [[:user {:user/address "CADDR2"}
-                                     [:user/address
-                                      [:user/creator-largest-sale [:meme-auction/address
-                                                                   :meme-auction/bought-for
-                                                                   [:meme-auction/buyer [:user/address]]
-                                                                   [:meme-auction/seller [:user/address]]]]]]]
-        largest-sale #:user{:address "CADDR2",
-                            :largest-sale #:meme-auction{:address "AUCTIONADDR2",
-                                                         :bought-for 72,
-                                                         :buyer #:user{:address "BUYERADDR"},
-                                                         :seller #:user{:address "CADDR2"}}}
-        creator-largest-sale #:user{:address "CADDR2",
-                                    :creator-largest-sale #:meme-auction{:address "AUCTIONADDR2",
-                                                                         :bought-for 72,
-                                                                         :buyer #:user{:address "BUYERADDR"},
-                                                                         :seller #:user{:address "CADDR2"}}}]
-    (testing "Test largest-sale"
-      (is (= largest-sale
-             (-> (graphql/run-query {:queries largest-sale-query})
-                 :data
-                 :user))))
-    (testing "Test creator-largest-sale"
-      (is (= creator-largest-sale
-             (-> (graphql/run-query {:queries creator-largest-sale-query})
-                 :data
-                 :user))))))
-
-#_(deftest search-users-test
-    (testing "Test order-by total-collected-memes"
-      (is (= {:total-count 13
-              :items [#:user{:address "BUYERADDR"
-                             :total-collected-memes 1}]}
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-collected-memes
-                                                               :order-dir :desc
-                                                               :first 1
-                                                               :after "0"}
-                                                [:total-count
-                                                 [:items [:user/address
-                                                          :user/total-collected-memes]]]]]})
-                 :data :search-users))))
-    (testing "Test order-by total-created-memes"
-      (is (= [#:user{:address "CADDR6", :total-created-memes 1}
-              #:user{:address "CADDR2", :total-created-memes 1}
-              #:user{:address "CADDR3", :total-created-memes 1}
-              #:user{:address "CADDR7", :total-created-memes 1}
-              #:user{:address "CADDR1", :total-created-memes 1}
-              #:user{:address "CADDR8", :total-created-memes 1}
-              #:user{:address "CADDR9", :total-created-memes 1}
-              #:user{:address "CADDR0", :total-created-memes 1}
-              #:user{:address "CADDR4", :total-created-memes 1}
-              #:user{:address "CADDR5", :total-created-memes 1}
-              #:user{:address "BUYERADDR", :total-created-memes 0}
-              #:user{:address "CHADDR", :total-created-memes 0}
-              #:user{:address "VOTERADDR", :total-created-memes 0}]
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-created-memes
-                                                               :order-dir :desc}
-                                                [[:items [:user/address
-                                                          :user/total-created-memes]]]]]})
-                 :data :search-users :items))))
-    (testing "Test order-by total-created-memes-whitelisted"
-      (is (= [{:user/address "CADDR2", :user/total-created-memes-whitelisted 1}
-              {:user/address "CADDR3", :user/total-created-memes-whitelisted 1}
-              {:user/address "CADDR5", :user/total-created-memes-whitelisted 1}
-              {:user/address "CADDR6", :user/total-created-memes-whitelisted 0}
-              {:user/address "BUYERADDR", :user/total-created-memes-whitelisted 0}
-              {:user/address "CADDR7", :user/total-created-memes-whitelisted 0}
-              {:user/address "CADDR1", :user/total-created-memes-whitelisted 0}
-              {:user/address "CADDR8", :user/total-created-memes-whitelisted 0}
-              {:user/address "CHADDR", :user/total-created-memes-whitelisted 0}
-              {:user/address "CADDR9", :user/total-created-memes-whitelisted 0}
-              {:user/address "CADDR0", :user/total-created-memes-whitelisted 0}
-              {:user/address "CADDR4", :user/total-created-memes-whitelisted 0}
-              {:user/address "VOTERADDR", :user/total-created-memes-whitelisted 0}]
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-created-memes-whitelisted
-                                                               :order-dir :desc}
-                                                [[:items [:user/address
-                                                          :user/total-created-memes-whitelisted]]]]]})
-                 :data :search-users :items))))
-    (testing "Test order-by total-collected-token-ids"
-      (is (= {:items [#:user{:address "BUYERADDR"
-                             :total-collected-token-ids 2}]}
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-collected-token-ids
-                                                               :order-dir :desc
-                                                               :first 1
-                                                               :after "0"}
-                                                [[:items [:user/address
-                                                          :user/total-collected-token-ids]]]]]})
-                 :data :search-users))))
-    (testing "Test order-by total-created-challenges"
-      (is (= {:items [#:user{:address "CHADDR"
-                             :total-created-challenges 4}]}
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-created-challenges
-                                                               :order-dir :desc
-                                                               :first 1
-                                                               :after "0"}
-                                                [[:items [:user/address
-                                                          :user/total-created-challenges]]]]]})
-                 :data :search-users))))
-    (testing "Test order-by total-created-challenges-success"
-      (is (= {:items [#:user{:address "CHADDR"
-                             :total-created-challenges-success 1}]}
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-created-challenges-success
-                                                               :order-dir :desc
-                                                               :first 1
-                                                               :after "0"}
-                                                [[:items [:user/address
-                                                          :user/total-created-challenges-success]]]]]})
-                 :data :search-users))))
-    (testing "Test order-by total-participated-votes"
-      (is (= {:items [#:user{:address "VOTERADDR"
-                             :total-participated-votes 2}]}
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-participated-votes
-                                                               :order-dir :desc
-                                                               :first 1
-                                                               :after "0"}
-                                                [[:items [:user/address
-                                                          :user/total-participated-votes]]]]]})
-                 :data :search-users))))
-    (testing "Test order-by total-participated-votes-success"
-      (is (= {:items [#:user{:address "VOTERADDR"
-                             :total-participated-votes-success 1}]}
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/total-participated-votes-success
-                                                               :order-dir :desc
-                                                               :first 1
-                                                               :after "0"}
-                                                [[:items [:user/address
-                                                          :user/total-participated-votes-success]]]]]})
-                 :data :search-users))))
-    (testing "Test order-by curator-total-earned"
-      (is (= {:items [#:user{:address "VOTERADDR"
-                             :user/curator-total-earned 1500}]}
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/curator-total-earned
-                                                               :order-dir :desc
-                                                               :first 1
-                                                               :after "0"}
-                                                [[:items [:user/address
-                                                          :user/curator-total-earned]]]]]})
-                 :data :search-users))))
-    (testing "Test order-by user-address"
-      (is (= [#:user{:address "BUYERADDR"}
-              #:user{:address "CADDR0"}
-              #:user{:address "CADDR1"}
-              #:user{:address "CADDR2"}
-              #:user{:address "CADDR3"}
-              #:user{:address "CADDR4"}
-              #:user{:address "CADDR5"}
-              #:user{:address "CADDR6"}
-              #:user{:address "CADDR7"}
-              #:user{:address "CADDR8"}
-              #:user{:address "CADDR9"}
-              #:user{:address "CHADDR"}
-              #:user{:address "VOTERADDR"}]
-             (-> (graphql/run-query {:queries [[:search-users {:order-by :users.order-by/address
-                                                               :order-dir :asc
-                                                               :first 13
-                                                               :after "0"}
-                                                [[:items [:user/address]]]]]})
-                 :data :search-users :items)))))
-
-#_(deftest param-test
-  (testing "Should retrieve param"
-    (is (= [#:param{:db "MEMEREGISTRYADDR", :key "deposit", :value 2000}]
-           [(-> (graphql/run-query {:queries [[:param {:db "MEMEREGISTRYADDR" :key "deposit"}
-                                               [:param/db
-                                                :param/key
-                                                :param/value]]]})
-                :data :param)]))))
+(deftest param-test
+  (async done
+         (go
+           (is (= [#:param{:db "MEMEREGISTRYADDR", :key "deposit", :value 2000}]
+                  [(-> (<! (graphql/run-query-async {:queries [[:param {:db "MEMEREGISTRYADDR" :key "deposit"}
+                                                                [:param/db
+                                                                 :param/key
+                                                                 :param/value]]]}))
+                       :data :param)]))
+           (done))))
 
 #_(deftest params-test
-    #_(testing "Should retrieve params collection"
-        (is (empty? (difference #{{:param/value 1e5} {:param/value 2000} {:param/value 3000}}
-                                (set (-> (graphql/run-query {:queries [[:params {:db "MEMEREGISTRYADDR" :keys ["commitPeriodDuration" "deposit"]}
-                                                                        [:param/value]]]})
-                                         :data :params)))))))
+  (async done
+         (go
+           (is (empty? (difference #{{:param/value 1e5} {:param/value 2000} {:param/value 3000}}
+                                   (set (-> (<! (graphql/run-query-async {:queries [[:params {:db "MEMEREGISTRYADDR" :keys ["commitPeriodDuration" "deposit"]}
+                                                                                     [:param/value]]]}))
+                                            :data :params)))))
+           (done))))
 
+
+;; TODO
 #_(deftest ranks-test
     #_(testing "Should retrieve ranks correctly"
         (is (= [#:user{:creator-rank 12,
