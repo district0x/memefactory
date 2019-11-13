@@ -2,13 +2,13 @@
   (:require
    [cljs-time.core :as time]
    [cljs.nodejs :as nodejs]
+   [cljs.test :refer [run-tests]]
    [district.graphql-utils :as graphql-utils]
    [district.server.db]
    [district.server.graphql :as graphql]
    [district.server.graphql.utils :as utils]
    [district.server.logging]
    [district.server.middleware.logging :refer [logging-middlewares]]
-   [district.server.web3 :refer [web3]]
    [district.shared.async-helpers :as async-helpers]
    [doo.runner :refer-macros [doo-tests]]
    [memefactory.server.graphql-resolvers :refer [resolvers-map]]
@@ -31,18 +31,11 @@
 
 (async-helpers/extend-promises-as-channels!)
 
-(defn on-jsload []
-  (graphql/restart {:schema (utils/build-schema graphql-schema
-                                                resolvers-map
-                                                {:kw->gql-name graphql-utils/kw->gql-name
-                                                 :gql-name->kw graphql-utils/gql-name->kw})
-                    :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)}))
-
 (defn start-and-run-tests []
   (-> (mount/with-args {:web3 {:url "ws://127.0.0.1:8545"}
                         :db {:opts {:memory true}}
                         :smart-contracts {:contracts-var #'smart-contracts}
-                        :graphql {:port 6400
+                        :graphql {:port 6300
                                   :middlewares [logging-middlewares]
                                   :schema (utils/build-schema graphql-schema
                                                               resolvers-map
@@ -64,7 +57,8 @@
       (mount/start)
       (as-> $ (log/warn "Started" $)))
 
-  (doo-tests
+  (;;doo-tests
+   run-tests
    'memefactory.tests.graphql-resolvers.graphql-resolvers-tests
    ;; 'memefactory.tests.smart-contracts.registry-entry-tests
    ;; 'memefactory.tests.smart-contracts.meme-tests
