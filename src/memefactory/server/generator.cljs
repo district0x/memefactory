@@ -72,7 +72,9 @@
                                                                                                :total-supply (or total-supply
                                                                                                                  (inc (rand-int max-total-supply)))
                                                                                                :amount deposit}
-                                                                                              {:from (nth accounts from-account)}))]
+                                                                                              {:from (if (string? from-account)
+                                                                                                       from-account
+                                                                                                       (nth accounts from-account))}))]
      (<? (smart-contracts/contract-event-in-tx [:meme-registry :meme-registry-fwd] :MemeConstructedEvent tx-receipt)))))
 
 (defn upload-challenge-meta! [{:keys [:comment]
@@ -202,7 +204,7 @@
          ;; TODO : weird bug, tx is sent but never executed
          ;; buy-auction-txs (<? (buy-auctions! (merge accounts {:meme-auctions meme-auctions :buy-auctions buy-auctions})))
          ]
-     #_(log/debug "generate-memes results" {:meme-db-values meme-db-values
+     (log/debug "generate-memes results" {:meme-db-values meme-db-values
                                           :meme-image-hash meme-image-hash
                                           :meme-meta-hash meme-meta-hash
                                           :meme meme
