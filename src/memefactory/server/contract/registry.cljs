@@ -66,5 +66,5 @@
 ;; (defn param-change-applied-event-in-tx [contract-key tx-hash & args]
 ;;   (apply contract-event-in-tx tx-hash contract-key :ParamChangeAppliedEvent args))
 
-;; (defn is-factory? [contract-key factory]
-;;   (contract-call contract-key :is-factory [factory]))
+(defn is-factory? [contract-key factory]
+  (smart-contracts/contract-call contract-key :is-factory [factory]))

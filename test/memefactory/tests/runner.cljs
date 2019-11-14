@@ -18,7 +18,7 @@
    [mount.core :as mount]
    [taoensso.timbre :as log]
 
-   ;; [memefactory.tests.smart-contracts.deployment-tests]
+   [memefactory.tests.smart-contracts.deployment-tests]
    ;; [memefactory.tests.smart-contracts.meme-auction-tests]
    ;; [memefactory.tests.smart-contracts.meme-tests]
    ;; [memefactory.tests.smart-contracts.param-change-tests]
@@ -60,6 +60,7 @@
   (;;doo-tests
    run-tests
    'memefactory.tests.graphql-resolvers.graphql-resolvers-tests
+   'memefactory.tests.smart-contracts.deployment-tests
    ;; 'memefactory.tests.smart-contracts.registry-entry-tests
    ;; 'memefactory.tests.smart-contracts.meme-tests
    ;; 'memefactory.tests.smart-contracts.meme-auction-tests

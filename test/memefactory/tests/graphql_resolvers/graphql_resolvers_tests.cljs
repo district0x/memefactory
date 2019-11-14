@@ -1,18 +1,16 @@
 (ns memefactory.tests.graphql-resolvers.graphql-resolvers-tests
-  (:require
-   [cljs-time.coerce :as time-coerce]
-   [cljs-web3.eth :as web3-eth]
-   [cljs.core.async :refer [go <!]]
-   [cljs.test :refer-macros [deftest is testing async]]
-   [clojure.set :refer [difference]]
-   [district.graphql-utils :as graphql-utils]
-   [district.server.graphql :as graphql]
-   [district.server.web3 :refer [web3]]
-   [memefactory.server.db :as meme-db]
-   [memefactory.server.utils :as server-utils]
-   [mount.core :as mount]
-   [taoensso.timbre :as log :refer [spy]]
-   ))
+  (:require [cljs-time.coerce :as time-coerce]
+            [cljs-web3.eth :as web3-eth]
+            [cljs.core.async :refer [go <!]]
+            [cljs.test :refer-macros [deftest is testing async]]
+            [clojure.set :refer [difference]]
+            [district.graphql-utils :as graphql-utils]
+            [district.server.graphql :as graphql]
+            [district.server.web3 :refer [web3]]
+            [memefactory.server.db :as meme-db]
+            [memefactory.server.utils :as server-utils]
+            [mount.core :as mount]
+            [taoensso.timbre :as log :refer [spy]]))
 
 (defn hours->seconds [n]
   (* n 60 60))
@@ -244,8 +242,7 @@
   (async done
          (go
            (is (= {:items [#:reg-entry{:address "MEMEADDR0"}]}
-                  (-> (<! (graphql/run-query-async {:queries [[:search-memes {:statuses [:regEntry_status_commitPeriod
-                                                                                         #_:reg-entry.status/commit-period]}
+                  (-> (<! (graphql/run-query-async {:queries [[:search-memes {:statuses [:reg-entry.status/commit-period]}
                                                                [[:items [:reg-entry/address]]]]]}))
                       :data :search-memes)))
            (done))))
@@ -272,8 +269,7 @@
   (async done
          (go
            (let [build-query (fn [order-dir]
-                               {:queries [[:search-memes {:order-by :memes_orderBy_revealPeriodEnd
-                                                          #_:memes.order-by/reveal-period-end
+                               {:queries [[:search-memes {:order-by :memes.order-by/reveal-period-end
                                                           :order-dir order-dir}
                                            [[:items [:reg-entry/address]]]]]})]
              (is (= [#:reg-entry{:address "MEMEADDR2"}
@@ -302,7 +298,10 @@
                   {:total-count 4,
                    :has-next-page false,
                    :end-cursor "4",
-                   :items [#:meme-token{:token-id "0"} #:meme-token{:token-id "1"} #:meme-token{:token-id "2"} #:meme-token{:token-id "3"}]}))
+                   :items [#:meme-token{:token-id "0"}
+                           #:meme-token{:token-id "1"}
+                           #:meme-token{:token-id "2"}
+                           #:meme-token{:token-id "3"}]}))
            (done))))
 
 (deftest filter-by-owner-should-work
@@ -321,8 +320,7 @@
 (deftest sorting-by-meme-title-should-work
   (async done
          (go
-           (let [build-query (fn [order] {:queries [[:search-meme-tokens {:order-by :memeTokens_orderBy_memeTitle
-                                                                          #_:meme-tokens.order-by/meme-title
+           (let [build-query (fn [order] {:queries [[:search-meme-tokens {:order-by :meme-tokens.order-by/meme-title
                                                                           :order-dir order}
                                                      [[:items [[:meme-token/meme [:meme/title]]]]]]]})]
              (is (= (-> (<! (graphql/run-query-async (build-query :asc)))
@@ -351,18 +349,17 @@
            (done))))
 
 #_(deftest sorting-by-price-should-work
-  (async done
-         (go
-           (is (= [#:meme-auction{:address "AUCTIONADDR2"}
-                   #:meme-auction{:address "AUCTIONADDR0"}
-                   #:meme-auction{:address "AUCTIONADDR1"}
-                   #:meme-auction{:address "AUCTIONADDR3"}]
-                  (-> (<! (graphql/run-query-async {:queries [[:search-meme-auctions {:order-by :memeAuctions_orderBy_price
-                                                                                      ;; :meme-auctions.order-by/price
-                                                                                      :order-dir :desc}
-                                                               [[:items [:meme-auction/address]]]]]}))
-                      :data :search-meme-auctions :items)))
-           (done))))
+    (async done
+           (go
+             (is (= [#:meme-auction{:address "AUCTIONADDR2"}
+                     #:meme-auction{:address "AUCTIONADDR0"}
+                     #:meme-auction{:address "AUCTIONADDR1"}
+                     #:meme-auction{:address "AUCTIONADDR3"}]
+                    (-> (<! (graphql/run-query-async {:queries [[:search-meme-auctions {:order-by :meme-auctions.order-by/price
+                                                                                        :order-dir :desc}
+                                                                 [[:items [:meme-auction/address]]]]]}))
+                        :data :search-meme-auctions :items)))
+             (done))))
 
 (deftest filter-by-title-should-work
   (async done
@@ -379,8 +376,7 @@
            (is (= [#:meme-auction{:bought-for 70,:meme-token #:meme-token{:meme #:meme{:title "Meme Title 2"}}}
                    #:meme-auction{:bought-for nil,:meme-token #:meme-token{:meme #:meme{:title "Meme Title 3"}}}
                    #:meme-auction{:bought-for nil,:meme-token #:meme-token{:meme #:meme{:title "Meme Title 5"}}}]
-                  (->> (<! (graphql/run-query-async {:queries [[:search-meme-auctions {:group-by :memeAuctions_groupBy_cheapest
-                                                                                       #_:meme-auctions.group-by/cheapest}
+                  (->> (<! (graphql/run-query-async {:queries [[:search-meme-auctions {:group-by :meme-auctions.group-by/cheapest}
                                                                 [[:items [:meme-auction/bought-for
                                                                           [:meme-auction/meme-token [[:meme-token/meme [:meme/title]]]]]]]]]}))
                        :data :search-meme-auctions :items)))
@@ -479,8 +475,7 @@
          (go
            (is  (= #:param-change{:db "MEMEREGISTRYADDR" :key "deposit" :value 3000}
                    (-> (<! (graphql/run-query-async {:queries [[:search-param-changes {:key "deposit" :db "MEMEREGISTRYADDR"
-                                                                                       :order-by :paramChanges_orderBy_appliedOn
-                                                                                       #_:param-changes.order-by/applied-on
+                                                                                       :order-by :param-changes.order-by/applied-on
                                                                                        :order-dir :asc}
                                                                 [:total-count
                                                                  :end-cursor
@@ -592,8 +587,7 @@
            (is (= {:total-count 13
                    :items [#:user{:address "BUYERADDR"
                                   :total-collected-memes 1}]}
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCollectedMemes,
-                                                                              #_:users.order-by/total-collected-memes
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/total-collected-memes
                                                                               :order-dir :desc
                                                                               :first 1
                                                                               :after "0"}
@@ -604,59 +598,59 @@
            (done))))
 
 #_(deftest test-order-by-total-created-memes
-  (async done
-         (go
-           (is (= [#:user{:address "CADDR6", :total-created-memes 1}
-                   #:user{:address "CADDR2", :total-created-memes 1}
-                   #:user{:address "CADDR3", :total-created-memes 1}
-                   #:user{:address "CADDR7", :total-created-memes 1}
-                   #:user{:address "CADDR1", :total-created-memes 1}
-                   #:user{:address "CADDR8", :total-created-memes 1}
-                   #:user{:address "CADDR9", :total-created-memes 1}
-                   #:user{:address "CADDR0", :total-created-memes 1}
-                   #:user{:address "CADDR4", :total-created-memes 1}
-                   #:user{:address "CADDR5", :total-created-memes 1}
-                   #:user{:address "BUYERADDR", :total-created-memes 0}
-                   #:user{:address "CHADDR", :total-created-memes 0}
-                   #:user{:address "VOTERADDR", :total-created-memes 0}]
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCollectedMemes
-                                                                              #_:users.order-by/total-created-memes
-                                                                              :order-dir :desc}
-                                                               [[:items [:user/address
-                                                                         :user/total-created-memes]]]]]}))
-                      :data :search-users :items)))
-           (done))))
+    (async done
+           (go
+             (is (= [#:user{:address "CADDR6", :total-created-memes 1}
+                     #:user{:address "CADDR2", :total-created-memes 1}
+                     #:user{:address "CADDR3", :total-created-memes 1}
+                     #:user{:address "CADDR7", :total-created-memes 1}
+                     #:user{:address "CADDR1", :total-created-memes 1}
+                     #:user{:address "CADDR8", :total-created-memes 1}
+                     #:user{:address "CADDR9", :total-created-memes 1}
+                     #:user{:address "CADDR0", :total-created-memes 1}
+                     #:user{:address "CADDR4", :total-created-memes 1}
+                     #:user{:address "CADDR5", :total-created-memes 1}
+                     #:user{:address "BUYERADDR", :total-created-memes 0}
+                     #:user{:address "CHADDR", :total-created-memes 0}
+                     #:user{:address "VOTERADDR", :total-created-memes 0}]
+                    (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCollectedMemes
+                                                                                #_:users.order-by/total-created-memes
+                                                                                :order-dir :desc}
+                                                                 [[:items [:user/address
+                                                                           :user/total-created-memes]]]]]}))
+                        :data :search-users :items)))
+             (done))))
 
 #_(deftest test-order-by-total-created-memes-whitelisted
-  (async done
-         (go
-           (is (= [{:user/address "CADDR2", :user/total-created-memes-whitelisted 1}
-                   {:user/address "CADDR3", :user/total-created-memes-whitelisted 1}
-                   {:user/address "CADDR5", :user/total-created-memes-whitelisted 1}
-                   {:user/address "CADDR6", :user/total-created-memes-whitelisted 0}
-                   {:user/address "BUYERADDR", :user/total-created-memes-whitelisted 0}
-                   {:user/address "CADDR7", :user/total-created-memes-whitelisted 0}
-                   {:user/address "CADDR1", :user/total-created-memes-whitelisted 0}
-                   {:user/address "CADDR8", :user/total-created-memes-whitelisted 0}
-                   {:user/address "CHADDR", :user/total-created-memes-whitelisted 0}
-                   {:user/address "CADDR9", :user/total-created-memes-whitelisted 0}
-                   {:user/address "CADDR0", :user/total-created-memes-whitelisted 0}
-                   {:user/address "CADDR4", :user/total-created-memes-whitelisted 0}
-                   {:user/address "VOTERADDR", :user/total-created-memes-whitelisted 0}]
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/total-created-memes-whitelisted
-                                                                              :order-dir :desc}
-                                                               [[:items [:user/address
-                                                                         :user/total-created-memes-whitelisted]]]]]}))
-                      :data :search-users :items)))
-           (done))))
+    (async done
+           (go
+             (is (= [{:user/address "CADDR2", :user/total-created-memes-whitelisted 1}
+                     {:user/address "CADDR3", :user/total-created-memes-whitelisted 1}
+                     {:user/address "CADDR5", :user/total-created-memes-whitelisted 1}
+                     {:user/address "CADDR6", :user/total-created-memes-whitelisted 0}
+                     {:user/address "BUYERADDR", :user/total-created-memes-whitelisted 0}
+                     {:user/address "CADDR7", :user/total-created-memes-whitelisted 0}
+                     {:user/address "CADDR1", :user/total-created-memes-whitelisted 0}
+                     {:user/address "CADDR8", :user/total-created-memes-whitelisted 0}
+                     {:user/address "CHADDR", :user/total-created-memes-whitelisted 0}
+                     {:user/address "CADDR9", :user/total-created-memes-whitelisted 0}
+                     {:user/address "CADDR0", :user/total-created-memes-whitelisted 0}
+                     {:user/address "CADDR4", :user/total-created-memes-whitelisted 0}
+                     {:user/address "VOTERADDR", :user/total-created-memes-whitelisted 0}]
+                    (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/total-created-memes-whitelisted
+                                                                                :order-dir :desc}
+                                                                 [[:items [:user/address
+                                                                           :user/total-created-memes-whitelisted]]]]]}))
+                        :data :search-users :items)))
+             (done))))
 
 (deftest test-order-by-total-collected-token-ids
   (async done
          (go
            (is (= {:items [#:user{:address "BUYERADDR"
                                   :total-collected-token-ids 2}]}
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCollectedTokenIds,
-                                                                              #_:users.order-by/total-collected-token-ids
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by
+                                                                              :users.order-by/total-collected-token-ids
                                                                               :order-dir :desc
                                                                               :first 1
                                                                               :after "0"}
@@ -670,8 +664,7 @@
          (go
            (is (= {:items [#:user{:address "CHADDR"
                                   :total-created-challenges 4}]}
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCreatedChallenges
-                                                                              #_:users.order-by/total-created-challenges
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/total-created-challenges
                                                                               :order-dir :desc
                                                                               :first 1
                                                                               :after "0"}
@@ -685,8 +678,7 @@
          (go
            (is (= {:items [#:user{:address "CHADDR"
                                   :total-created-challenges-success 1}]}
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalCreatedChallengesSuccess
-                                                                              #_:users.order-by/total-created-challenges-success
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/total-created-challenges-success
                                                                               :order-dir :desc
                                                                               :first 1
                                                                               :after "0"}
@@ -700,8 +692,7 @@
          (go
            (is (= {:items [#:user{:address "VOTERADDR"
                                   :total-participated-votes 2}]}
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalParticipatedVotes
-                                                                              #_:users.order-by/total-participated-votes
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/total-participated-votes
                                                                               :order-dir :desc
                                                                               :first 1
                                                                               :after "0"}
@@ -715,13 +706,12 @@
          (go
            (is (= {:items [#:user{:address "VOTERADDR"
                                   :total-participated-votes-success 1}]}
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_totalParticipatedVotesSuccess
-                                                                             #_:users.order-by/total-participated-votes-success
-                                                                             :order-dir :desc
-                                                                             :first 1
-                                                                             :after "0"}
-                                                              [[:items [:user/address
-                                                                        :user/total-participated-votes-success]]]]]}))
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/total-participated-votes-success
+                                                                              :order-dir :desc
+                                                                              :first 1
+                                                                              :after "0"}
+                                                               [[:items [:user/address
+                                                                         :user/total-participated-votes-success]]]]]}))
                       :data :search-users)))
            (done))))
 
@@ -730,8 +720,7 @@
          (go
            (is (= {:items [#:user{:address "VOTERADDR"
                                   :user/curator-total-earned 1500}]}
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_curatorTotalEarned
-                                                                              #_:users.order-by/curator-total-earned
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/curator-total-earned
                                                                               :order-dir :desc
                                                                               :first 1
                                                                               :after "0"}
@@ -740,7 +729,7 @@
                       :data :search-users)))
            (done))))
 
-(deftest test-order-by user-address
+(deftest test-order-by-user-address
   (async done
          (go
            (is (= [#:user{:address "BUYERADDR"}
@@ -756,8 +745,7 @@
                    #:user{:address "CADDR9"}
                    #:user{:address "CHADDR"}
                    #:user{:address "VOTERADDR"}]
-                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users_orderBy_address
-                                                                              #_:users.order-by/address
+                  (-> (<! (graphql/run-query-async {:queries [[:search-users {:order-by :users.order-by/address
                                                                               :order-dir :asc
                                                                               :first 13
                                                                               :after "0"}
@@ -777,25 +765,25 @@
            (done))))
 
 #_(deftest params-test
+    (async done
+           (go
+             (is (empty? (difference #{{:param/value 1e5} {:param/value 2000} {:param/value 3000}}
+                                     (set (-> (<! (graphql/run-query-async {:queries [[:params {:db "MEMEREGISTRYADDR" :keys ["commitPeriodDuration" "deposit"]}
+                                                                                       [:param/value]]]}))
+                                              :data :params)))))
+             (done))))
+
+#_(deftest ranks-test
   (async done
          (go
-           (is (empty? (difference #{{:param/value 1e5} {:param/value 2000} {:param/value 3000}}
-                                   (set (-> (<! (graphql/run-query-async {:queries [[:params {:db "MEMEREGISTRYADDR" :keys ["commitPeriodDuration" "deposit"]}
-                                                                                     [:param/value]]]}))
-                                            :data :params)))))
+           (is (= [#:user{:creator-rank 12,
+                          :challenger-rank 11,
+                          :curator-rank 0,
+                          :voter-rank 0}]
+                  [(-> (<! (graphql/run-query-async {:queries [[:user {:user/address "VOTERADDR"}
+                                                                [:user/creator-rank
+                                                                 :user/challenger-rank
+                                                                 :user/curator-rank
+                                                                 :user/voter-rank]]]}))
+                       :data :user)]))
            (done))))
-
-
-;; TODO
-#_(deftest ranks-test
-    #_(testing "Should retrieve ranks correctly"
-        (is (= [#:user{:creator-rank 12,
-                       :challenger-rank 11,
-                       :curator-rank 0,
-                       :voter-rank 0}]
-               [(-> (graphql/run-query {:queries [[:user {:user/address "VOTERADDR"}
-                                                   [:user/creator-rank
-                                                    :user/challenger-rank
-                                                    :user/curator-rank
-                                                    :user/voter-rank]]]})
-                    :data :user)]))))
