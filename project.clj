@@ -28,7 +28,6 @@
                  [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.4"]
-                 [district0x/district-server-graphql "1.0.16"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
 
@@ -37,6 +36,7 @@
                  [district0x/district-server-smart-contracts "1.1.0"]
                  [district0x/district-server-web3 "1.1.4-SNAPSHOT"]
                  [district0x/district-server-web3-events "1.1.0"]
+                 [district0x/district-server-graphql "1.0.18"]
 
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
@@ -224,7 +224,6 @@
                                    :pseudo-names true}}
                        {:id "server-tests"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
-                        :figwheel {:on-jsload "memefactory.tests.runner/on-jsload"}
                         :compiler {:main "memefactory.tests.runner"
                                    :output-to "memefactory-tests/memefactory-server-tests.js",
                                    :output-dir "memefactory-tests",
