@@ -2,9 +2,10 @@
   (:require [bignumber.core :as bn]
             [cljs-web3.eth :as web3-eth]
             [cljs-web3.utils :as web3-utils]
+            [clojure.string :as string]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [web3]]
-            [district.shared.async-helpers :refer [safe-go <?]]
+            [district.shared.async-helpers :refer [promise-> safe-go <?]]
             [memefactory.server.contract.dank-token :as dank-token]
             [memefactory.shared.contract.registry-entry :refer [parse-status vote-option->num]]))
 
@@ -35,3 +36,18 @@
 
 (defn claim-rewards [contract-addr & [opts]]
   (smart-contracts/contract-send (smart-contracts/instance :meme contract-addr) :claim-rewards [(:from opts)] (merge {:gas 500000} opts)))
+
+(defn load-registry-entry [contract-addr]
+  (promise-> (smart-contracts/contract-call (smart-contracts/instance :meme contract-addr) :load [] #_(merge {:gas 500000} opts))
+             (fn [registry-entry]
+               (let [meta-hash (aget registry-entry "7")]
+                 {:reg-entry/address (string/lower-case contract-addr)
+                  :reg-entry/deposit (bn/number (aget registry-entry "0"))
+                  :reg-entry/creator (string/lower-case (aget registry-entry "1"))
+                  :reg-entry/version (bn/number (aget registry-entry "2"))
+                  :challenge/challenger (string/lower-case (aget registry-entry "3"))
+                  :challenge/commit-period-end (bn/number (aget registry-entry "4"))
+                  :challenge/reveal-period-end (bn/number (aget registry-entry "5"))
+                  :challenge/reward-pool (bn/number (aget registry-entry "6"))
+                  :challenge/meta-hash (when meta-hash (web3-utils/to-ascii @web3 meta-hash))
+                  :challenge/claimed-reward-on (bn/number (aget registry-entry "8"))}))))

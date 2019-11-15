@@ -1,32 +1,42 @@
 (ns memefactory.tests.smart-contracts.registry-entry-tests
-  (:require [bignumber.core :as bn]
-            [cljs-promises.async :refer-macros [<?]]
-            [cljs-solidity-sha3.core :refer [solidity-sha3]]
-            [cljs-web3.core :as web3]
-            [cljs-web3.eth :as web3-eth]
-            [cljs-web3.evm :as web3-evm]
-            [cljs.test :as test :refer-macros [deftest is testing use-fixtures]]
-            [clojure.core.async :as async :refer [<!]]
-            [district.server.smart-contracts :refer [contract-call wait-for-tx-receipt]]
-            [district.server.web3 :refer [web3]]
-            [memefactory.server.contract.dank-token :as dank-token]
-            [memefactory.server.contract.eternal-db :as eternal-db]
-            [memefactory.server.contract.minime-token :as minime-token]
-            [memefactory.server.contract.registry :as registry]
-            [memefactory.server.contract.registry-entry :as registry-entry]
-            [memefactory.shared.contract.registry-entry :refer [vote-option->num vote-options parse-load-registry-entry parse-load-vote]]
-            [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
-            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
+  (:require
+   [cljs.test :as test :refer-macros [deftest is testing async]]
+   [cljs.core.async :refer [go <!]]
+   [district.shared.async-helpers :refer [<?]]
+   [bignumber.core :as bn]
+   ;; [cljs-promises.async :refer-macros [<?]]
+   ;; [cljs-solidity-sha3.core :refer [solidity-sha3]]
+   ;; [cljs-web3.core :as web3]
+   [cljs-web3.eth :as web3-eth]
+   ;; [cljs-web3.evm :as web3-evm]
+   [cljs-web3.utils :as web3-utils]
+   ;; [cljs.test :as test :refer-macros [deftest is testing use-fixtures]]
+   ;; [clojure.core.async :as async :refer [<!]]
+   ;; [district.server.smart-contracts :refer [contract-call wait-for-tx-receipt]]
+   [district.server.web3 :refer [web3]]
+   [memefactory.server.contract.dank-token :as dank-token]
+   [memefactory.server.contract.eternal-db :as eternal-db]
+   ;; [memefactory.server.contract.minime-token :as minime-token]
+   ;; [memefactory.server.contract.registry :as registry]
+   [memefactory.server.contract.registry-entry :as registry-entry]
+   [memefactory.server.contract.meme :as meme]
+   ;; [memefactory.shared.contract.registry-entry :refer [vote-option->num vote-options #_parse-load-registry-entry #_parse-load-vote]]
+   [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
+   [clojure.string :as string]
+   [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]
+
+   ))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
 
-(defn load-registry-entry [address]
-  (async/go
+#_(defn load-registry-entry [address]
+  (go
     (->> (<? (registry-entry/load-registry-entry address))
-         (parse-load-registry-entry address))))
 
-(defn load-vote [reg-entry-addr voter-addr]
+         #_(parse-load-registry-entry address))))
+
+#_(defn load-vote [reg-entry-addr voter-addr]
   (async/go
     (->> (<? (registry-entry/load-registry-entry-vote reg-entry-addr voter-addr))
          (parse-load-vote reg-entry-addr voter-addr))))
@@ -36,10 +46,9 @@
 ;;;;;;;;;;;;;;;;;;;
 
 (deftest approve-and-create-meme-registry-test
-  (test/async
-   done
-   (async/go
-     (let [[creator-addr] (web3-eth/accounts @web3)
+  (async done
+   (go
+     (let [[creator-addr] (map string/lower-case (<! (web3-eth/accounts @web3)))
            creator-init-balance (<? (dank-token/balance-of creator-addr))
            [max-total-supply deposit] (->> (<? (eternal-db/get-uint-values :meme-registry-db [:max-total-supply :deposit]))
                                            (map bn/number))
@@ -49,20 +58,21 @@
          (is registry-entry))
 
        (testing "Created RegistryEntry has properties initialised as they should be"
-         (let [entry (<! (load-registry-entry registry-entry))]
-           (is (= (web3/from-wei deposit :ether) (str (:reg-entry/deposit entry))))
+         (let [entry (<! (registry-entry/load-registry-entry registry-entry))]
+
+           (cljs.pprint/pprint registry-entry #_entry)
+
+           (is (= deposit (:reg-entry/deposit entry)))
            (is (= creator-addr (:reg-entry/creator entry)))
            (is (= 1 (:reg-entry/version entry)))
-           (is (bn/= (<? (dank-token/balance-of creator-addr))
-                     (bn/- creator-init-balance deposit)))
-           (is (= (bn/number (<? (dank-token/balance-of (:reg-entry/address entry))))
-                  deposit ))))
+           (is (bn/= (bn/number (<? (dank-token/balance-of creator-addr)))
+                  (bn/- creator-init-balance deposit)))))
 
        (testing "Construct method of cannot be called twice"
-         (is (tx-reverted? #(contract-call :meme :construct [creator-addr deposit max-total-supply sample-meta-hash-1])))))
+         (is (tx-reverted? (<! (meme/construct registry-entry {:creator/address creator-addr :total-supply max-total-supply :meta-hash  sample-meta-hash-1}))))))
      (done))))
 
-(deftest approve-and-create-challenge-test
+#_(deftest approve-and-create-challenge-test
   (test/async
    done
    (async/go
@@ -123,7 +133,7 @@
                                                                                    :meta-hash sample-meta-hash-2})))))))
        (done)))))
 
-(deftest approve-and-commit-vote-test
+#_(deftest approve-and-commit-vote-test
   (test/async
    done
    (async/go
@@ -182,7 +192,7 @@
                                                                     {:from voter-addr2}))))
        (done)))))
 
-(deftest approve-and-commit-vote-rejection-tests
+#_(deftest approve-and-commit-vote-rejection-tests
   (test/async
    done
    (async/go
@@ -219,7 +229,7 @@
                                                                            {:from voter-addr}))))))
        (done)))))
 
-(deftest reveal-vote-test
+#_(deftest reveal-vote-test
   (test/async
    done
    (async/go
@@ -308,7 +318,7 @@
            (is (<? (tx-reverted? (<? (reveal-vote1)))))))
        (done)))))
 
-(deftest claim-rewards
+#_(deftest claim-rewards
   (test/async
    done
    (async/go
@@ -359,7 +369,7 @@
            (is (bn/> balance-after-claim balance-before-claim))))
        (done)))))
 
-(deftest reclaim-vote-amount-test
+#_(deftest reclaim-vote-amount-test
   (test/async
    done
    (async/go
