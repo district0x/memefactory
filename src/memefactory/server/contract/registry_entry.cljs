@@ -18,7 +18,7 @@
 
 (defn approve-and-create-challenge [contract-addr {:keys [:amount] :as args} & [opts]]
   (dank-token/approve-and-call {:spender contract-addr
-                                :amount amount
+                                :amount (str amount)
                                 :extra-data (create-challenge-data (merge {:challenger (:from opts)} args))}
                                (merge {:gas 6000000} opts)))
 

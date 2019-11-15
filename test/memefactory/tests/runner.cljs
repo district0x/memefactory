@@ -45,7 +45,7 @@
                                   :path "/graphql"
                                   :graphiql true}
                         :logging {:level :info
-                                  :console? true}
+                                  :console? #_true false}
                         :time-source :blockchain
                         :ranks-cache {:ttl (time/in-millis (time/minutes 60))}})
       (mount/only [#'district.server.logging/logging
