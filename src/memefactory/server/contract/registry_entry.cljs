@@ -7,7 +7,8 @@
             [district.server.web3 :refer [web3]]
             [district.shared.async-helpers :refer [promise-> safe-go <?]]
             [memefactory.server.contract.dank-token :as dank-token]
-            [memefactory.shared.contract.registry-entry :refer [parse-status vote-option->num]]))
+            [memefactory.shared.contract.registry-entry :refer [parse-status vote-option->num vote-options]
+             ]))
 
 (defn status [contract-addr]
   (-> (smart-contracts/contract-call [:meme contract-addr] :status)
@@ -27,7 +28,7 @@
 
 (defn approve-and-commit-vote [contract-addr {:keys [:amount] :as args} & [opts]]
   (dank-token/approve-and-call {:spender contract-addr
-                                :amount amount
+                                :amount (str amount)
                                 :extra-data (commit-vote-data (merge {:voter (:from opts)} args))}
                                (merge opts {:gas 1200000})))
 
@@ -38,7 +39,7 @@
   (smart-contracts/contract-send (smart-contracts/instance :meme contract-addr) :claim-rewards [(:from opts)] (merge {:gas 500000} opts)))
 
 (defn load-registry-entry [contract-addr]
-  (promise-> (smart-contracts/contract-call (smart-contracts/instance :meme contract-addr) :load [] #_(merge {:gas 500000} opts))
+  (promise-> (smart-contracts/contract-call (smart-contracts/instance :meme contract-addr) :load [])
              (fn [registry-entry]
                (let [meta-hash (aget registry-entry "7")]
                  {:reg-entry/address (string/lower-case contract-addr)
@@ -51,3 +52,13 @@
                   :challenge/reward-pool (bn/number (aget registry-entry "6"))
                   :challenge/meta-hash (when meta-hash (web3-utils/to-ascii @web3 meta-hash))
                   :challenge/claimed-reward-on (bn/number (aget registry-entry "8"))}))))
+
+(defn load-registry-entry-vote [contract-addr voter-addr]
+  (promise-> (smart-contracts/contract-call [:meme contract-addr] :load-vote [voter-addr])
+             (fn [vote]
+               {:vote/secret-hash (aget vote "0")
+                :vote/option (js/parseInt (aget vote "1"))
+                :vote/amount (bn/number (aget vote "2"))
+                :vote/revealed-on (bn/number (aget vote "3"))
+                :vote/claimed-reward-on (bn/number (aget vote "4"))
+                :vote/reclaimed-deposit-on (bn/number (aget vote "5"))})))
