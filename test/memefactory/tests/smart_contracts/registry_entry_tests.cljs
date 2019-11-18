@@ -20,7 +20,7 @@
    [memefactory.server.contract.registry :as registry]
    [memefactory.server.contract.registry-entry :as registry-entry]
    [memefactory.server.contract.meme :as meme]
-   ;; [memefactory.shared.contract.registry-entry :refer [vote-option->num vote-options #_parse-load-registry-entry #_parse-load-vote]]
+   [memefactory.shared.contract.registry-entry :refer [vote-option->num #_vote-options #_parse-load-registry-entry #_parse-load-vote]]
    [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
    [clojure.string :as string]
    [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]
@@ -90,8 +90,6 @@
                  challenge (<! (challenge-fn))
                  entry (<! (registry-entry/load-registry-entry meme-entry-1))]
 
-             (prn "CHALLENGE" (keys challenge))
-
              (testing "Can create challenge under valid condidtions"
                (is entry))
 
@@ -130,64 +128,60 @@
                                                                                     {:from challenger-addr}))))))
              (done)))))
 
-#_(deftest approve-and-commit-vote-test
-    (test/async
-     done
-     (async/go
-       (let [[voter-addr creator-addr challenger-addr voter-addr2] (web3-eth/accounts @web3)
-             voter-init-balance (<? (dank-token/balance-of voter-addr))
-             [max-total-supply deposit challenge-period-duration
-              commit-period-duration reveal-period-duration max-auction-duration
-              challenge-dispensation]
-             (->> (<? (eternal-db/get-uint-values :meme-registry-db
-                                                  [:max-total-supply :deposit :challenge-period-duration
-                                                   :commit-period-duration :reveal-period-duration :max-auction-duration
-                                                   :challenge-dispensation]))
-                  (map bn/number))
-             registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
-             _ (registry-entry/approve-and-create-challenge registry-entry
-                                                            {:amount deposit
-                                                             :meta-hash sample-meta-hash-1}
-                                                            {:from challenger-addr})
+(deftest approve-and-commit-vote-test
+  (async done
+         (go
+           (let [[voter-addr creator-addr challenger-addr voter-addr2] (<! (web3-eth/accounts @web3))
+                 voter-init-balance (<? (dank-token/balance-of voter-addr))
+                 [max-total-supply deposit challenge-period-duration
+                  commit-period-duration reveal-period-duration max-auction-duration
+                  challenge-dispensation]
+                 (->> (<? (eternal-db/get-uint-values :meme-registry-db
+                                                      [:max-total-supply :deposit :challenge-period-duration
+                                                       :commit-period-duration :reveal-period-duration :max-auction-duration
+                                                       :challenge-dispensation]))
+                      (map bn/number))
+                 reg-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
+                 _ (<! (registry-entry/approve-and-create-challenge reg-entry
+                                                                    {:amount deposit
+                                                                     :meta-hash sample-meta-hash-1}
+                                                                    {:from challenger-addr}))
 
-             {:keys [:reg-entry/address :challenge/commit-period-end]} (<! (load-registry-entry registry-entry))
-             vote-amount 10
-             reg-balance-before-vote (<? (dank-token/balance-of address))
-             salt "abc"
-             vote-option :vote.option/vote-for
-             vote-tx (<? (registry-entry/approve-and-commit-vote registry-entry
-                                                                 {:amount vote-amount
-                                                                  :salt salt
-                                                                  :vote-option vote-option}
-                                                                 {:from voter-addr}))]
+                 {:keys [:reg-entry/address :challenge/commit-period-end]} (<! (registry-entry/load-registry-entry reg-entry))
+                 vote-amount 10
+                 reg-balance-before-vote (<! (dank-token/balance-of address))
+                 salt "abc"
+                 vote-option :vote.option/vote-for
+                 vote-tx (<? (registry-entry/approve-and-commit-vote address
+                                                                     {:amount vote-amount
+                                                                      :salt salt
+                                                                      :vote-option vote-option}
+                                                                     {:from voter-addr}))]
 
-         (testing "Vote can be committed under valid conditions"
-           (is vote-tx))
+             (testing "Vote can be committed under valid conditions"
+               (is vote-tx))
 
-         (testing "Check properties of committed vote"
-           (let [vote (<! (load-vote registry-entry voter-addr))]
-             (is (bn/= (<? (dank-token/balance-of address))
-                       (bn/+ reg-balance-before-vote vote-amount)))
-             (is (= (:vote/secret-hash vote)
-                    (solidity-sha3 (vote-option->num vote-option) salt)))
-             (is (bn/= (web3/to-big-number (:vote/amount vote))
-                       vote-amount))))
+             (testing "Check properties of committed vote"
+               (let [vote (<! (registry-entry/load-registry-entry-vote address voter-addr))]
 
-         (testing "Vote cannot be committed outside vote commit period"
-           (web3-evm/increase-time! @web3 [(inc commit-period-duration)])
+                 (is (= (bn/number (<? (dank-token/balance-of address)))
+                        (+ (bn/number reg-balance-before-vote) vote-amount)))
 
-           (is (<? (tx-reverted? (<? (registry-entry/approve-and-commit-vote registry-entry
+                 (is (= (:vote/secret-hash vote)
+                        (web3-utils/solidity-sha3 @web3 (vote-option->num vote-option) salt)))
+
+                 (is (= (bn/number (:vote/amount vote))
+                        vote-amount))))
+
+             (testing "Vote cannot be committed outside vote commit period"
+               (<! (web3-evm/increase-time @web3 (inc commit-period-duration)))
+
+               (is (tx-reverted? (<? (registry-entry/approve-and-commit-vote registry-entry
                                                                              {:amount vote-amount
                                                                               :salt salt
                                                                               :vote-option vote-option}
                                                                              {:from voter-addr2})))))
-
-           #_(is (tx-reverted? #(registry-entry/approve-and-commit-vote registry-entry
-                                                                        {:amount vote-amount
-                                                                         :salt salt
-                                                                         :vote-option vote-option}
-                                                                        {:from voter-addr2}))))
-         (done)))))
+             (done)))))
 
 #_(deftest approve-and-commit-vote-rejection-tests
     (test/async
