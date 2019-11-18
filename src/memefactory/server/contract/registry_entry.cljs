@@ -62,3 +62,6 @@
                 :vote/revealed-on (bn/number (aget vote "3"))
                 :vote/claimed-reward-on (bn/number (aget vote "4"))
                 :vote/reclaimed-deposit-on (bn/number (aget vote "5"))})))
+
+(defn reclaim-vote-amount [contract-addr & [opts]]
+  (smart-contracts/contract-send [:meme contract-addr] :reclaim-vote-amount [(:from opts)] (merge {:gas 500000} opts)))
