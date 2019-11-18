@@ -7,8 +7,8 @@
 ;; (defn construct [contract-key {:keys [:db]} & [opts]]
 ;;   (contract-call contract-key :construct [db] (merge {:gas 100000} opts)))
 
-;; (defn set-factory [contract-key {:keys [:factory :factory?]} & [opts]]
-;;   (contract-call contract-key :set-factory [factory factory?] (merge opts {:gas 100000})))
+(defn set-factory [contract-key {:keys [:factory :factory?]} & [opts]]
+  (smart-contracts/contract-send contract-key :set-factory [factory factory?] (merge opts {:gas 100000})))
 
 ;; (defn meme-constructed-event [contract-key opts on-event]
 ;;   (create-event-filter contract-key :MemeConstructedEvent {} opts on-event))
@@ -35,9 +35,7 @@
 ;;   (create-event-filter contract-key :ChallengeRewardClaimedEvent {} opts on-event))
 
 (defn meme-constructed-event-in-tx [contract-key tx-hash]
-  (smart-contracts/contract-event-in-tx tx-hash contract-key :MemeConstructedEvent)
-
-  #_(apply contract-event-in-tx tx-hash contract-key :MemeConstructedEvent args))
+  (smart-contracts/contract-event-in-tx tx-hash contract-key :MemeConstructedEvent))
 
 ;; (defn meme-minted-event-in-tx [contract-key tx-hash & args]
 ;;   (apply contract-event-in-tx tx-hash contract-key :MemeMintedEvent args))
