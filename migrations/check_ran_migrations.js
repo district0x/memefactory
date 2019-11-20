@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const { readSmartContractsFile, getSmartContractAddress } = require ("./utils.js");
-const { parameters, smart_contracts_path } = require ('../truffle.js');
+const { smart_contracts_path } = require ('../truffle.js');
 const migrations_dir = './migrations/';
 
 const NETWORKS = {

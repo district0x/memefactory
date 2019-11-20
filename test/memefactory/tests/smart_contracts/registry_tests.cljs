@@ -3,7 +3,6 @@
    [bignumber.core :as bn]
    [cljs-web3.eth :as web3-eth]
    [cljs.core.async :refer [go <!]]
-   [cljs.core.async :refer [go <!]]
    [cljs.test :as test :refer-macros [deftest is testing async]]
    [clojure.string :as string]
    [district.server.smart-contracts :as smart-contracts]

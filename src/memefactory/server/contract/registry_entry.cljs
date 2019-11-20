@@ -30,7 +30,7 @@
   (dank-token/approve-and-call {:spender contract-addr
                                 :amount (str amount)
                                 :extra-data (commit-vote-data (merge {:voter (:from opts)} args))}
-                               (merge opts {:gas 1200000})))
+                               (merge {:gas 1200000} opts)))
 
 (defn reveal-vote [contract-addr {:keys [:address :vote-option :salt]} & [opts]]
   (smart-contracts/contract-send (smart-contracts/instance :meme contract-addr) :reveal-vote [(vote-option->num vote-option) salt] (merge {:gas 500000} opts)))
