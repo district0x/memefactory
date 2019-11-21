@@ -63,7 +63,7 @@
                                       :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
                                       :graphiql false}
-                            :web3 {:url "http://localhost:8545"
+                            :web3 {:url "ws://127.0.0.1:8545"
                                    :on-offline (fn []
                                                  (log/error "Ethereum node went offline, stopping syncing modules" ::web3-watcher)
                                                  (mount/stop #'memefactory.server.db/memefactory-db

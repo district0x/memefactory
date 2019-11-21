@@ -61,6 +61,7 @@
    'memefactory.tests.smart-contracts.meme-auction-tests
    'memefactory.tests.smart-contracts.registry-entry-tests
    'memefactory.tests.smart-contracts.registry-tests
+   ;; TODO : these test are broken
    ;; 'memefactory.tests.smart-contracts.param-change-tests
    ))
 
