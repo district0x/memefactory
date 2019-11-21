@@ -22,7 +22,7 @@
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-dev/smart-contracts skipped-contracts)}
    :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK])}
-   :web3 {:url "http://localhost:8549"}
+   :web3 {:url "http://localhost:8545"}
    :web3-tx {:disable-loading-recommended-gas-prices? true}
    :web3-tx-log {:disable-using-localstorage? true
                  :open-on-tx-hash? true
@@ -43,8 +43,7 @@
                       :environment "QA"}}
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-qa/smart-contracts skipped-contracts)
-                     :load-method :use-loaded
-                     }
+                     :load-method :use-loaded}
    :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK])}
    :web3 {:url "https://ropsten.district0x.io"}
    :web3-tx-log {:disable-using-localstorage? false
@@ -68,8 +67,7 @@
                       :environment "PRODUCTION"}}
    :time-source :blockchain
    :smart-contracts {:contracts (apply dissoc smart-contracts-prod/smart-contracts skipped-contracts)
-                     :load-method :use-loaded
-                     }
+                     :load-method :use-loaded}
    :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK])}
    :web3 {:url "https://mainnet.district0x.io"}
    :web3-tx-log {:disable-using-localstorage? false
