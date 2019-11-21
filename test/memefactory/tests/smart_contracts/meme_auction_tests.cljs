@@ -79,75 +79,75 @@
                                                                         (promise-> (meme-auction/current-price meme-auction)
                                                                                    (fn [current-price]
                                                                                      (is (= current-price "100000000000000000")))))])]
-
-
                  (<! (tx creator-addr))
-                 (web3-eth/unsubscribe event-emitter))
+                 (web3-eth/unsubscribe event-emitter)))
 
-               #_(testing "onERC721Received fails when called directly, without transferring tokenId"
-                   (is
-                    (<? (tx-reverted? (<? (contract-call [:meme-auction-factory :meme-auction-factory-fwd] :on-E-R-C-721-received
-                                                         [creator-addr
-                                                          (:meme/token-id-start meme)
-                                                          (meme-auction/start-auction-data {:start-price (web3/to-wei 0.1 :ether)
-                                                                                            :end-price (web3/to-wei 0.01 :ether)
-                                                                                            :duration max-auction-duration
-                                                                                            :description "Test"})]
-                                                         {:from (last (web3-eth/accounts @web3))})))))))
+             (testing "onERC721Received fails when called directly, without transferring tokenId"
+               (is
+                (tx-reverted? (<? (smart-contracts/contract-send [:meme-auction-factory :meme-auction-factory-fwd] :on-E-R-C-721-received
+                                                                 [creator-addr
+                                                                  (:meme/token-id-start meme)
+                                                                  (meme-auction/start-auction-data {:start-price (web3-utils/to-wei @web3 0.1 :ether)
+                                                                                                    :end-price (web3-utils/to-wei @web3 0.01 :ether)
+                                                                                                    :duration max-auction-duration
+                                                                                                    :description "Test"})]
+                                                                 {:from (last (<! (web3-eth/accounts @web3)))})))))
 
-             #_(testing "Fails when passed duration is bigger than :max-duration TCR parameter or shorter than 1 minute"
-                 (let [transfer-data {:from creator-addr
-                                      :token-ids (range (:meme/token-id-start meme)
-                                                        (+
-                                                         (:meme/token-id-start meme)
-                                                         (:meme/total-minted meme)))
-                                      :start-price (web3/to-wei 0.1 :ether)
-                                      :end-price (web3/to-wei 0.01 :ether)
-                                      :description "Test auction"}]
-                   (is (tx-reverted? #(meme-token/transfer-multi-and-start-auction (assoc transfer-data :duration (+ 2 max-auction-duration)) {})))
-                   (is (tx-reverted? #(meme-token/transfer-multi-and-start-auction (assoc transfer-data :duration 1) {})))))
+             (testing "Fails when passed duration is bigger than :max-duration TCR parameter or shorter than 1 minute"
+               (let [transfer-data {:from creator-addr
+                                    :token-ids (range (:meme/token-id-start meme)
+                                                      (+
+                                                       (:meme/token-id-start meme)
+                                                       (:meme/total-minted meme)))
+                                    :start-price (web3-utils/to-wei @web3 0.1 :ether)
+                                    :end-price (web3-utils/to-wei @web3 0.01 :ether)
+                                    :description "Test auction"}]
+                 (is (tx-reverted? (<! (meme-token/transfer-multi-and-start-auction (assoc transfer-data :duration (+ 2 max-auction-duration)) {}))))
+                 (is (tx-reverted? (<! (meme-token/transfer-multi-and-start-auction (assoc transfer-data :duration 1) {}))))))
 
-             #_(testing "fireMemeAuctionEvent cannot be called directly, only by MemeAuction contract"
-                 (is (<? (tx-reverted? (<? (contract-call [:meme-auction-factory :meme-auction-factory-fwd]
-                                                          :fire-meme-auction-started-event
-                                                          [1 creator-addr 2 1 600 "" 1]))))))
+             (testing "fireMemeAuctionEvent cannot be called directly, only by MemeAuction contract"
+               (is (tx-reverted? (<? (smart-contracts/contract-send [:meme-auction-factory :meme-auction-factory-fwd]
+                                                                    :fire-meme-auction-started-event
+                                                                    [1 creator-addr 2 1 600 "" 1])))))
              (done)))))
 
 ;;;;;;;;;;;;;;;;;
 ;; MemeAuction ;;
 ;;;;;;;;;;;;;;;;;
 
-#_(deftest meme-auction-buy-test
+(deftest meme-auction-buy-test
     ;; cut collector is addr 2, check before fixture creation ath the top
-    (test/async
-     done
-     (async/go
-       (let [[creator-addr buyer-addr cut-collector-addr] (web3-eth/accounts @web3)
+    (async done
+     (go
+       (let [[creator-addr buyer-addr cut-collector-addr] (<! (web3-eth/accounts @web3))
              [max-total-supply deposit challenge-period-duration max-auction-duration meme-auction-cut]
              (->> (<? (eternal-db/get-uint-values :meme-registry-db
                                                   [:max-total-supply :deposit
                                                    :challenge-period-duration :max-auction-duration :meme-auction-cut]))
                   (map bn/number))
              registry-entry (<! (create-meme creator-addr deposit max-total-supply sample-meta-hash-1))
-             _ (web3-evm/increase-time! @web3 [(inc challenge-period-duration)])
+             _ (web3-evm/increase-time @web3 (inc challenge-period-duration))
              _ (<? (meme/mint registry-entry max-total-supply {}))
              meme (<? (meme/load-meme registry-entry))
-             start-price (web3/to-wei 0.1 :ether)
+             ;; start-price (web3/to-wei 0.1 :ether)
 
-             transfer-tx (<? (meme-token/transfer-multi-and-start-auction {:from creator-addr
-                                                                           :token-ids [(:meme/token-id-start meme)]
-                                                                           :start-price start-price
-                                                                           :end-price (web3/to-wei 0.01 :ether)
-                                                                           :duration max-auction-duration
-                                                                           :description "Test auction"}))
-             auction-address (-> (meme-auction-factory/meme-auction-started-event-in-tx transfer-tx)
-                                 :args :meme-auction)
-             auction (<? (meme-auction/load-meme-auction auction-address))]
+             ;; transfer-tx (<? (meme-token/transfer-multi-and-start-auction {:from creator-addr
+             ;;                                                               :token-ids [(:meme/token-id-start meme)]
+             ;;                                                               :start-price start-price
+             ;;                                                               :end-price (web3/to-wei 0.01 :ether)
+             ;;                                                               :duration max-auction-duration
+             ;;                                                               :description "Test auction"}))
+             ;; auction-address (-> (meme-auction-factory/meme-auction-started-event-in-tx transfer-tx)
+             ;;                     :args :meme-auction)
+             ;; auction (<? (meme-auction/load-meme-auction auction-address))
+             ]
 
-         (testing "Meme cannot be bought if not enough funds is sent"
+         (prn "MEME" meme)
+
+         #_(testing "Meme cannot be bought if not enough funds is sent"
            (is (<? (tx-reverted? (<? (meme-auction/buy auction-address {:from buyer-addr :value (web3/to-wei 0.0001 :ether)}))))))
 
-         (let [cut-collector-init-balance (web3-eth/get-balance @web3 cut-collector-addr)
+         #_(let [cut-collector-init-balance (web3-eth/get-balance @web3 cut-collector-addr)
                creator-init-balance (web3-eth/get-balance @web3 creator-addr)
                buyer-init-balance (web3-eth/get-balance @web3 buyer-addr)
                buy-tx (<? (meme-auction/buy auction-address {:from buyer-addr :value (web3/to-wei 0.2 :ether)}))
