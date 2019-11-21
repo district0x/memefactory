@@ -1,6 +1,6 @@
 (ns memefactory.server.contract.meme
   (:require [bignumber.core :as bn]
-            [cljs-web3.utils :as web3-utils]
+            [cljs-web3-next.utils :as web3-utils]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [web3]]
             [district.shared.async-helpers :refer [promise->]]

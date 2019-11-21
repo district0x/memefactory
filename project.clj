@@ -28,14 +28,14 @@
                  [district0x/district-sendgrid "1.0.1"]
                  [district0x/district-server-config "1.0.1"]
                  [district0x/district-server-db "1.0.4"]
+                 [district0x/district-server-graphql "1.0.18"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
 
-                 [cljs-web3-next "0.0.15"]
-                 [district0x/district-server-smart-contracts "1.1.0"]
-                 [district0x/district-server-web3 "1.1.4"]
-                 [district0x/district-server-web3-events "1.1.0"]
-                 [district0x/district-server-graphql "1.0.18"]
+                 [cljs-web3-next "0.1.1"]
+                 [district0x/district-server-web3 "1.2.0"]
+                 [district0x/district-server-smart-contracts "1.2.0"]
+                 [district0x/district-server-web3-events "1.1.5"]
 
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
@@ -76,15 +76,22 @@
                  [re-frame "0.10.5"]
                  [reagent "0.8.1"]
 
+                 ;; ui only dependencies before ui is migrated to cljs-web3-next
+                 [cljs-web3 "0.19.0-0-10"]
+                 ;; this is now cljs-web3-next.utils/solidity-sha3
+                 [district0x/cljs-solidity-sha3 "1.0.0"]
+                 ;; this is now cljs-web3-next.helpers
+                 [district0x/district-web3-utils "1.0.3"]
+                 ;; these functions should be part of cljs-web3-next.helpers
+                 [district0x/district-parsers "1.0.0"]
+
                  ;; only for tests
                  [org.clojure/core.async "0.4.490"]
                  [jamesmacaulay/cljs-promises "0.1.0"]]
 
   :exclusions [funcool/bide
                express-graphql
-               cljsjs/react-with-addons
-               ;; before ui is migrated
-               cljs-web3]
+               cljsjs/react-with-addons]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]

@@ -1,14 +1,12 @@
 (ns memefactory.server.utils
-  (:require
-   [cljs-ipfs-api.files :as ipfs-files]
-   [cljs-web3.eth :as web3-eth]
-   [cljs.nodejs :as nodejs]
-   [cljs.reader :refer [read-string]]
-   [district.server.config :refer [config]]
-   [district.server.web3 :refer [web3]]
-   [taoensso.timbre :as log]
-   [district.shared.async-helpers :refer [promise->]]
-   ))
+  (:require [cljs-ipfs-api.files :as ipfs-files]
+            [cljs-web3-next.eth :as web3-eth]
+            [cljs.nodejs :as nodejs]
+            [cljs.reader :refer [read-string]]
+            [district.server.config :refer [config]]
+            [district.server.web3 :refer [web3]]
+            [taoensso.timbre :as log]
+            [district.shared.async-helpers :refer [promise->]]))
 
 (defonce fs (nodejs/require "fs"))
 

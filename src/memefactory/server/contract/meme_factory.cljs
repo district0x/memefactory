@@ -1,6 +1,6 @@
 (ns memefactory.server.contract.meme-factory
-  (:require [cljs-web3.eth :as web3-eth]
-            [cljs-web3.utils :as web3-utils]
+  (:require [cljs-web3-next.eth :as web3-eth]
+            [cljs-web3-next.utils :as web3-utils]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [web3]]
             [memefactory.server.contract.dank-token :as dank-token]))

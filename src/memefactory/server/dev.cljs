@@ -33,7 +33,6 @@
    [memefactory.server.generator :as generator]
    [memefactory.server.graphql-resolvers :refer [resolvers-map reg-entry-status-sql-clause]]
    [memefactory.server.ipfs]
-   [memefactory.server.pinner]
    [memefactory.server.ranks-cache]
    [memefactory.server.syncer :as syncer]
    [memefactory.server.twitter-bot]
@@ -178,14 +177,12 @@
                                                  (mount/stop #'memefactory.server.db/memefactory-db
                                                   #'district.server.web3-events/web3-events
                                                   #'memefactory.server.syncer/syncer
-                                                  #'memefactory.server.pinner/pinner
                                                   #'memefactory.server.emailer/emailer))
                                    :on-online (fn []
                                                 (log/warn "Ethereum node went online again, starting syncing modules" ::web3-watcher)
                                                 (mount/start #'memefactory.server.db/memefactory-db
                                                  #'district.server.web3-events/web3-events
                                                  #'memefactory.server.syncer/syncer
-                                                 #'memefactory.server.pinner/pinner
                                                  #'memefactory.server.emailer/emailer))}
                             :ipfs {:host "http://127.0.0.1:5001"
                                    :endpoint "/api/v0"

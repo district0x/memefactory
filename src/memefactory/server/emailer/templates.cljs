@@ -1,6 +1,6 @@
 (ns memefactory.server.emailer.templates
   (:require [bignumber.core :as bn]
-            [cljs-web3.utils :as web3-utils]
+            [cljs-web3-next.utils :as web3-utils]
             [clojure.string :as string]
             [district.server.web3 :refer [web3]]
             [garden.core :as garden]))

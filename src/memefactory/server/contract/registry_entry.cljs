@@ -1,14 +1,13 @@
 (ns memefactory.server.contract.registry-entry
   (:require [bignumber.core :as bn]
-            [cljs-web3.eth :as web3-eth]
-            [cljs-web3.utils :as web3-utils]
+            [cljs-web3-next.eth :as web3-eth]
+            [cljs-web3-next.utils :as web3-utils]
             [clojure.string :as string]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [web3]]
             [district.shared.async-helpers :refer [promise-> safe-go <?]]
             [memefactory.server.contract.dank-token :as dank-token]
-            [memefactory.shared.contract.registry-entry :refer [parse-status vote-option->num vote-options]
-             ]))
+            [memefactory.shared.contract.registry-entry :refer [parse-status vote-option->num vote-options]]))
 
 (defn status [contract-addr]
   (-> (smart-contracts/contract-call [:meme contract-addr] :status)

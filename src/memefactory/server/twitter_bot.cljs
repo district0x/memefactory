@@ -1,6 +1,6 @@
 (ns memefactory.server.twitter-bot
   (:require [bignumber.core :as bn]
-            [cljs-web3.utils :as web3-utils]
+            [cljs-web3-next.utils :as web3-utils]
             [cljs.core.async :as async]
             [cljs.nodejs :as nodejs]
             [district.format :as format]
