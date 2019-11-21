@@ -1,19 +1,18 @@
 (ns memefactory.tests.smart-contracts.registry-tests
-  (:require
-   [bignumber.core :as bn]
-   [cljs-web3.eth :as web3-eth]
-   [cljs.core.async :refer [go <!]]
-   [cljs.test :as test :refer-macros [deftest is testing async]]
-   [clojure.string :as string]
-   [district.server.smart-contracts :as smart-contracts]
-   [district.server.web3 :refer [web3]]
-   [district.shared.async-helpers :refer [<?]]
-   [memefactory.server.contract.eternal-db :as eternal-db]
-   [memefactory.server.contract.mutable-forwarder :as mutable-forwarder]
-   [memefactory.server.contract.registry :as registry]
-   [memefactory.server.contract.registry-entry :as registry-entry]
-   [memefactory.tests.smart-contracts.meme-tests :as meme-tests]
-   [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
+  (:require [bignumber.core :as bn]
+            [cljs-web3-next.eth :as web3-eth]
+            [cljs.core.async :refer [go <!]]
+            [cljs.test :as test :refer-macros [deftest is testing async]]
+            [clojure.string :as string]
+            [district.server.smart-contracts :as smart-contracts]
+            [district.server.web3 :refer [web3]]
+            [district.shared.async-helpers :refer [<?]]
+            [memefactory.server.contract.eternal-db :as eternal-db]
+            [memefactory.server.contract.mutable-forwarder :as mutable-forwarder]
+            [memefactory.server.contract.registry :as registry]
+            [memefactory.server.contract.registry-entry :as registry-entry]
+            [memefactory.tests.smart-contracts.meme-tests :as meme-tests]
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")

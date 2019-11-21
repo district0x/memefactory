@@ -1,6 +1,6 @@
 (ns memefactory.tests.graphql-resolvers.graphql-resolvers-tests
   (:require [cljs-time.coerce :as time-coerce]
-            [cljs-web3.eth :as web3-eth]
+            [cljs-web3-next.eth :as web3-eth]
             [cljs.core.async :refer [go <!]]
             [cljs.test :refer-macros [deftest is testing async]]
             [clojure.set :refer [difference]]

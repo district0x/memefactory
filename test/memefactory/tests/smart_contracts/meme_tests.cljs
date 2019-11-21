@@ -1,22 +1,18 @@
 (ns memefactory.tests.smart-contracts.meme-tests
-  (:require
-   [bignumber.core :as bn]
-   [cljs-web3.eth :as web3-eth]
-   [cljs-web3.evm :as web3-evm]
-   [cljs.test :refer-macros [deftest is testing async]]
-   [district.server.web3 :refer [web3]]
-   [memefactory.server.contract.dank-token :as dank-token]
-   [memefactory.server.contract.eternal-db :as eternal-db]
-   [memefactory.server.contract.meme :as meme]
-   [memefactory.server.contract.meme-factory :as meme-factory]
-   [memefactory.server.contract.registry :as registry]
-   ;; [memefactory.server.contract.meme-token :as meme-token]
-   [cljs.core.async :refer [go <!]]
-   [district.shared.async-helpers :refer [<?]]
-   ;; [taoensso.timbre :refer [spy]]
-   [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]
-   [memefactory.server.generator :refer [create-meme!]]
-   ))
+  (:require [bignumber.core :as bn]
+            [cljs-web3-next.eth :as web3-eth]
+            [cljs-web3-next.evm :as web3-evm]
+            [cljs.test :refer-macros [deftest is testing async]]
+            [district.server.web3 :refer [web3]]
+            [memefactory.server.contract.dank-token :as dank-token]
+            [memefactory.server.contract.eternal-db :as eternal-db]
+            [memefactory.server.contract.meme :as meme]
+            [memefactory.server.contract.meme-factory :as meme-factory]
+            [memefactory.server.contract.registry :as registry]
+            [cljs.core.async :refer [go <!]]
+            [district.shared.async-helpers :refer [<?]]
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]
+            [memefactory.server.generator :refer [create-meme!]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")

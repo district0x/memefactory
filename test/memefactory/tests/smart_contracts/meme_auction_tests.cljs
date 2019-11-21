@@ -1,9 +1,9 @@
 (ns memefactory.tests.smart-contracts.meme-auction-tests
   (:require [bignumber.core :as bn]
-            [cljs-web3.eth :as web3-eth]
-            [cljs-web3.evm :as web3-evm]
-            [cljs-web3.helpers :as web3-helpers]
-            [cljs-web3.utils :as web3-utils]
+            [cljs-web3-next.eth :as web3-eth]
+            [cljs-web3-next.evm :as web3-evm]
+            [cljs-web3-next.helpers :as web3-helpers]
+            [cljs-web3-next.utils :as web3-utils]
             [cljs.core.async :refer [go <!]]
             [cljs.test :as test :refer-macros [deftest is testing async]]
             [district.server.smart-contracts :as smart-contracts]

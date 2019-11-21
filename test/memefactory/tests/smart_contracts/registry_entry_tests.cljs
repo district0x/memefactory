@@ -1,22 +1,21 @@
 (ns memefactory.tests.smart-contracts.registry-entry-tests
-  (:require
-   [bignumber.core :as bn]
-   [cljs-web3.eth :as web3-eth]
-   [cljs-web3.evm :as web3-evm]
-   [cljs-web3.utils :as web3-utils]
-   [cljs.core.async :refer [go <!]]
-   [cljs.test :as test :refer-macros [deftest is testing async]]
-   [clojure.string :as string]
-   [district.server.web3 :refer [web3]]
-   [district.shared.async-helpers :refer [<?]]
-   [memefactory.server.contract.dank-token :as dank-token]
-   [memefactory.server.contract.eternal-db :as eternal-db]
-   [memefactory.server.contract.meme :as meme]
-   [memefactory.server.contract.registry :as registry]
-   [memefactory.server.contract.registry-entry :as registry-entry]
-   [memefactory.shared.contract.registry-entry :refer [vote-option->num vote-options]]
-   [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
-   [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
+  (:require [bignumber.core :as bn]
+            [cljs-web3-next.eth :as web3-eth]
+            [cljs-web3-next.evm :as web3-evm]
+            [cljs-web3-next.utils :as web3-utils]
+            [cljs.core.async :refer [go <!]]
+            [cljs.test :as test :refer-macros [deftest is testing async]]
+            [clojure.string :as string]
+            [district.server.web3 :refer [web3]]
+            [district.shared.async-helpers :refer [<?]]
+            [memefactory.server.contract.dank-token :as dank-token]
+            [memefactory.server.contract.eternal-db :as eternal-db]
+            [memefactory.server.contract.meme :as meme]
+            [memefactory.server.contract.registry :as registry]
+            [memefactory.server.contract.registry-entry :as registry-entry]
+            [memefactory.shared.contract.registry-entry :refer [vote-option->num vote-options]]
+            [memefactory.tests.smart-contracts.meme-tests :refer [create-meme]]
+            [memefactory.tests.smart-contracts.utils :refer [tx-reverted?]]))
 
 (def sample-meta-hash-1 "QmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJH")
 (def sample-meta-hash-2 "JmZJWGiKnqhmuuUNfcryiumVHCKGvVNZWdy7xtd3XCkQJ9")
