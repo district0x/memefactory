@@ -8,8 +8,8 @@
 ;; (defn token-uri [token-id]
 ;;   (contract-call :meme-token token-id :token-uri))
 
-;; (defn owner-of [token-id]
-;;   (contract-call :meme-token :owner-of [token-id]))
+(defn owner-of [token-id]
+  (smart-contracts/contract-call :meme-token :owner-of [token-id]))
 
 ;; (defn safe-transfer-from [{:keys [:from :to :token-id]} & [opts]]
 ;;   (contract-call :meme-token :safe-transfer-from [from to token-id] (merge {:gas 3000000} opts)))
