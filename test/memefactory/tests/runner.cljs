@@ -17,15 +17,12 @@
    [memefactory.tests.graphql-resolvers.graphql-resolvers-tests]
    [mount.core :as mount]
    [taoensso.timbre :as log]
-
    [memefactory.tests.smart-contracts.deployment-tests]
    [memefactory.tests.smart-contracts.meme-tests]
    [memefactory.tests.smart-contracts.meme-auction-tests]
-   ;; [memefactory.tests.smart-contracts.param-change-tests]
+   [memefactory.tests.smart-contracts.param-change-tests]
    [memefactory.tests.smart-contracts.registry-entry-tests]
-   ;; [memefactory.tests.smart-contracts.registry-tests]
-
-   ))
+   [memefactory.tests.smart-contracts.registry-tests]))
 
 (nodejs/enable-util-print!)
 
@@ -45,7 +42,7 @@
                                   :path "/graphql"
                                   :graphiql true}
                         :logging {:level :info
-                                  :console? #_true false}
+                                  :console? false}
                         :time-source :blockchain
                         :ranks-cache {:ttl (time/in-millis (time/minutes 60))}})
       (mount/only [#'district.server.logging/logging
@@ -58,12 +55,12 @@
       (as-> $ (log/warn "Started" $)))
 
   (run-tests
-   ;; 'memefactory.tests.graphql-resolvers.graphql-resolvers-tests
-   ;; 'memefactory.tests.smart-contracts.deployment-tests
-   ;; 'memefactory.tests.smart-contracts.meme-tests
-   ;; 'memefactory.tests.smart-contracts.meme-auction-tests
+   'memefactory.tests.graphql-resolvers.graphql-resolvers-tests
+   'memefactory.tests.smart-contracts.deployment-tests
+   'memefactory.tests.smart-contracts.meme-tests
+   'memefactory.tests.smart-contracts.meme-auction-tests
    'memefactory.tests.smart-contracts.registry-entry-tests
-   ;; 'memefactory.tests.smart-contracts.registry-tests
+   'memefactory.tests.smart-contracts.registry-tests
    ;; 'memefactory.tests.smart-contracts.param-change-tests
    ))
 

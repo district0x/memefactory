@@ -8,6 +8,9 @@
 (defn buy [contract-addr & [{:keys [:from :value :gas] :as opts}]]
   (smart-contracts/contract-send [:meme-auction contract-addr] :buy [] (merge {:gas 500000} opts)))
 
+(defn cancel [contract-addr & [{:keys [:from :value :gas] :as opts}]]
+  (smart-contracts/contract-send [:meme-auction contract-addr] :cancel [] (merge {:gas 500000} opts)))
+
 (defn start-auction-data [{:keys [:start-price :end-price :duration :description] :as args}]
   (web3-eth/encode-abi (smart-contracts/instance :meme-auction) :start-auction [start-price end-price duration description]))
 
