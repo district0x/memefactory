@@ -34,7 +34,7 @@
                  ;; TODO : update to new releases
                  [cljs-web3-next "0.0.15"]
                  [district0x/district-server-smart-contracts "1.1.0"]
-                 [district0x/district-server-web3 "1.1.4-SNAPSHOT"]
+                 [district0x/district-server-web3 "1.1.4"]
                  [district0x/district-server-web3-events "1.1.0"]
                  [district0x/district-server-graphql "1.0.18"]
 
