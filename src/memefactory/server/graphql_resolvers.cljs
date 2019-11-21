@@ -160,11 +160,12 @@
                                                               :from [:meme-tags]
                                                               :where [:and
                                                                       [:= :meme-tags.reg-entry/address :memes.reg-entry/address]
-                                                                      [:in :meme-tags.tag/name tags]]}])
-                             tags-or      (sqlh/merge-where [:in :meme-tags.tag/name tags-or])
-                             tags-not     (sqlh/merge-where [:or
-                                                             [:not-in :meme-tags.tag/name tags-not]
-                                                             [:= :meme-tags.tag/name nil]])
+                                                                      [:in (sql/call :lower :meme-tags.tag/name) tags]]}])
+                             tags-or      (sqlh/merge-where [:in (sql/call :lower :meme-tags.tag/name) tags-or])
+                             tags-not     (sqlh/merge-where [:not-in :re.reg-entry/address {:select [:meme-tags.reg-entry/address]
+                                                                                            :modifiers [:distinct]
+                                                                                            :from [:meme-tags]
+                                                                                            :where [:in (sql/call :lower :meme-tags.tag/name) tags-not]}])
                              creator      (sqlh/merge-where [:= :re.reg-entry/creator creator])
                              curator      (sqlh/merge-where [:or [:= :re.challenge/challenger curator]
                                                              [:= :v.vote/voter curator]])
@@ -241,7 +242,6 @@
   (promise-> (utils/now-in-seconds)
              (fn [now]
                (let [statuses-set (when statuses (set statuses))
-                     ;; now (utils/now-in-seconds)
                      page-start-idx (when after (js/parseInt after))
                      page-size first
                      query (cond-> {:select [:ma.* :m.reg-entry/address :m.meme/total-minted :m.meme/number :mt.meme-token/number]

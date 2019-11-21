@@ -31,7 +31,6 @@
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
 
-                 ;; TODO : update to new releases
                  [cljs-web3-next "0.0.15"]
                  [district0x/district-server-smart-contracts "1.1.0"]
                  [district0x/district-server-web3 "1.1.4"]
@@ -173,7 +172,7 @@
                                       [district0x/cljs-solidity-sha3 "1.0.0"]
                                       ;; this is now cljs-web3.helpers
                                       [district0x/district-web3-utils "1.0.3"]
-                                      ;; these functions should just be a part of cljs-web3.helpers
+                                      ;; these functions should be part of cljs-web3.helpers
                                       [district0x/district-parsers "1.0.0"]]}}
 
   :garden {:builds [{:id "screen"
