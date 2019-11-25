@@ -92,8 +92,8 @@
                             :twitter-bot {:consumer-key "PLACEHOLDER"
                                           :consumer-secret "PLACEHOLDER"
                                           :access-token-key "PLACEHOLDER"
-                                          :access-token-secret "PLACEHOLDER"}}
-                  :web3-events {:events constants/web3-events}}})
+                                          :access-token-secret "PLACEHOLDER"}
+                            :web3-events {:events constants/web3-events}}}})
       (mount/start)
       (#(log/warn "Started" {:components %
                              :config @config}))))
