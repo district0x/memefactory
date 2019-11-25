@@ -1,6 +1,5 @@
 (ns memefactory.server.contract.param-change-registry
-  (:require [district.server.smart-contracts :refer [contract-call instance contract-address]]
-            [memefactory.server.contract.registry :as registry]))
+  (:require [district.server.smart-contracts :as smart-contracts]))
 
 (defn apply-param-change [param-change-address & [opts]]
-  (contract-call [:param-change-registry :param-change-registry-fwd] :apply-param-change [param-change-address] (merge {:gas 700000} opts)))
+  (smart-contracts/contract-send [:param-change-registry :param-change-registry-fwd] :apply-param-change [param-change-address] (merge {:gas 700000} opts)))

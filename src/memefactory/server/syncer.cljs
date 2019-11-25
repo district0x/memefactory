@@ -1,28 +1,26 @@
 (ns memefactory.server.syncer
-  (:require
-   [bignumber.core :as bn]
-   [district.time :as time]
-   [camel-snake-kebab.core :as cs :include-macros true]
-   [cljs-ipfs-api.files :as ipfs-files]
-   [cljs-solidity-sha3.core :refer [solidity-sha3]]
-   [cljs-web3.core :as web3]
-   [cljs-web3.eth :as web3-eth]
-   [district.server.config :refer [config]]
-   [district.server.web3 :refer [web3]]
-   [district.server.web3-events :refer [register-callback! unregister-callbacks! register-after-past-events-dispatched-callback!]]
-   [district.shared.error-handling :refer [try-catch]]
-   [memefactory.server.db :as db]
-   [memefactory.server.generator]
-   [memefactory.shared.utils :as shared-utils :refer []]
-   [memefactory.server.ipfs :as ipfs]
-   [district.shared.async-helpers :refer [promise->]]
-   [memefactory.server.ranks-cache :as ranks-cache]
-   [memefactory.server.utils :as server-utils]
-   [memefactory.shared.contract.registry-entry :refer [vote-options]]
-   [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log]
-   [cljs.core.async :as async])
-  (:require-macros [district.shared.async-helpers :refer [safe-go <?]]))
+  (:require [bignumber.core :as bn]
+            [camel-snake-kebab.core :as camel-snake-kebab]
+            [cljs-ipfs-api.files :as ipfs-files]
+            [cljs-web3-next.core :as web3-core]
+            [cljs-web3-next.eth :as web3-eth]
+            [cljs-web3-next.utils :as web3-utils]
+            [cljs.core.async :as async]
+            [district.server.config :refer [config]]
+            [district.server.web3 :refer [web3]]
+            [district.server.web3-events :as web3-events]
+            [district.shared.async-helpers :refer [safe-go <?]]
+            [district.shared.error-handling :refer [try-catch]]
+            [district.time :as time]
+            [memefactory.server.db :as db]
+            [memefactory.server.generator]
+            [memefactory.server.ipfs :as ipfs]
+            [memefactory.server.ranks-cache :as ranks-cache]
+            [memefactory.server.utils :as server-utils]
+            [memefactory.shared.contract.registry-entry :refer [vote-options]]
+            [memefactory.shared.utils :as shared-utils]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (declare start)
 (declare stop)
@@ -47,20 +45,22 @@
     (log/info (str "Meme " address " got number " (inc current-meme-number) " assigned."))))
 
 (defn meme-number-assigner [address]
-  (let [{:keys [:challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end] :as re}
-        (db/get-registry-entry {:reg-entry/address address} [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
-                                                             :challenge/commit-period-end :challenge/commit-period-end
-                                                             :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against])
-        {:keys [:meme/number]} (db/get-meme address)]
-    ;; if we have a number assigned we don't do anything
-    (when-not number
-      (if (not challenger)
-        (assign-next-number! address)
-        (if (> (server-utils/now-in-seconds) reveal-period-end)
-          (when (= (shared-utils/reg-entry-status (server-utils/now-in-seconds) re)
-                   :reg-entry.status/whitelisted)
-            (assign-next-number! address))
-          (schedule-meme-number-assigner address (inc (- reveal-period-end (server-utils/now-in-seconds)))))))))
+  (safe-go
+   (let [{:keys [:challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end] :as re}
+         (db/get-registry-entry {:reg-entry/address address} [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
+                                                              :challenge/commit-period-end :challenge/commit-period-end
+                                                              :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against])
+         {:keys [:meme/number] :as meme} (db/get-meme address)
+         now-in-seconds (<? (server-utils/now-in-seconds))]
+     ;; if we have a number assigned we don't do anything
+     (when-not number
+       (if (not challenger)
+         (assign-next-number! address)
+         (if (> now-in-seconds reveal-period-end)
+           (when (= (shared-utils/reg-entry-status now-in-seconds re)
+                    :reg-entry.status/whitelisted)
+             (assign-next-number! address))
+           (schedule-meme-number-assigner address (inc (- reveal-period-end now-in-seconds)))))))))
 
 (defn schedule-meme-number-assigner [address seconds]
   (when (pos? seconds)
@@ -86,21 +86,11 @@
 (defn- add-error [m err-txt]
   (assoc m :errors (conj (:errors m) err-txt)))
 
-(defn meme-sanity-check [{:keys [:reg-entry/address
-                                 :meme/meta-hash
-                                 :meme/total-supply
-                                 :meme/total-minted]}]
-  (cond-> {:errors []}
-    (not (ipfs/ipfs-hash? meta-hash)) (add-error "Malformed ipfs meta hash")
-    (not (web3/address? address)) (add-error "Malformed registry entry address")
-    (not (int? total-supply)) (add-error "Malformed total-suply number")
-    (not (int? total-minted)) (add-error "Malformed total minted number")))
-
 (defn vote-sanity-check [{:keys [:vote/voter
                                  :vote/amount
                                  :vote/option]}]
   (cond-> {:errors []}
-    (not (web3/address? voter))
+    (not (web3-utils/address? @web3 voter))
     (add-error "Not a voter address")
 
     (or (not (number? amount))
@@ -109,6 +99,16 @@
 
     (not (#{0 1 2} option))
     (add-error "Unknown option")))
+
+(defn meme-sanity-check [{:keys [:reg-entry/address
+                                 :meme/meta-hash
+                                 :meme/total-supply
+                                 :meme/total-minted]}]
+  (cond-> {:errors []}
+    (not (ipfs/ipfs-hash? meta-hash)) (add-error "Malformed ipfs meta hash")
+    (not (web3-utils/address? @web3 address)) (add-error "Malformed registry entry address")
+    (not (int? total-supply)) (add-error "Malformed total-suply number")
+    (not (int? total-minted)) (add-error "Malformed total minted number")))
 
 (defn meme-constructed-event [_ {:keys [:args] :as event}]
   (safe-go
@@ -121,11 +121,12 @@
                               :reg-entry/deposit (bn/number deposit)
                               :reg-entry/challenge-period-end (bn/number challenge-period-end)}
          meme {:reg-entry/address registry-entry
-               :meme/meta-hash (web3/to-ascii meta-hash)
+               :meme/meta-hash (web3-utils/to-ascii @web3 meta-hash)
                :meme/total-supply (bn/number total-supply)
                :meme/total-minted 0}
          {:keys [:meme/meta-hash]} meme
-         errors (meme-sanity-check meme)]
+         errors (meme-sanity-check meme)
+         now-in-seconds (<? (server-utils/now-in-seconds))]
      (if-not (empty? (:errors errors))
        (do
          (log/warn (str "Dropping smart contract event " (:event event))
@@ -141,8 +142,9 @@
                                        :meme/comment comment
                                        :meme/image-hash image-hash
                                        :meme/title title}))
+
          (schedule-meme-number-assigner registry-entry (inc (- (bn/number challenge-period-end)
-                                                               (server-utils/now-in-seconds))))
+                                                               now-in-seconds)))
          (when search-tags
            (doseq [t (into #{} search-tags)]
              (db/tag-meme! {:reg-entry/address registry-entry :tag/name t}))))))))
@@ -150,7 +152,7 @@
 (defn param-change-constructed-event [_ {:keys [:args]}]
   (safe-go
    (let [{:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp :meta-hash]} args
-         hash (web3/to-ascii meta-hash)
+         hash (web3-utils/to-ascii @web3 meta-hash)
          {:keys [reason]} (server-utils/get-ipfs-meta @ipfs/ipfs hash)]
      (add-registry-entry {:reg-entry/address registry-entry
                           :reg-entry/creator creator
@@ -182,7 +184,7 @@
                     :challenge/commit-period-end (bn/number commit-period-end)
                     :challenge/reveal-period-end (bn/number reveal-period-end)
                     :challenge/reward-pool (bn/number reward-pool)
-                    :challenge/meta-hash (web3/to-ascii metahash)}
+                    :challenge/meta-hash (web3-utils/to-ascii @web3 metahash)}
          registry-entry {:reg-entry/address registry-entry
                          :reg-entry/version version}
          challenge-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs (:challenge/meta-hash challenge)))]
@@ -193,13 +195,14 @@
                                         :challenge/comment (:comment challenge-meta)})))))
 
 (defn vote-committed-event [_ {:keys [:args]}]
-  (let [{:keys [:registry-entry :timestamp :voter :amount]} args
-        vote {:reg-entry/address registry-entry
-              :vote/voter voter
-              :vote/amount (bn/number amount)
-              :vote/option 0}]
-    (db/upsert-user! {:user/address voter})
-    (db/insert-vote! (merge vote {:vote/created-on timestamp}))))
+  (safe-go
+   (let [{:keys [:registry-entry :timestamp :voter :amount]} args
+         vote {:reg-entry/address registry-entry
+               :vote/voter voter
+               :vote/amount (bn/number amount)
+               :vote/option 0}]
+     (db/upsert-user! {:user/address voter})
+     (db/insert-vote! (merge vote {:vote/created-on timestamp})))))
 
 (defn vote-revealed-event [_ {:keys [:args]}]
   (safe-go
@@ -236,7 +239,7 @@
                        :vote/claimed-reward-on timestamp})
      (db/inc-user-field! voter :user/voter-total-earned (bn/number amount)))))
 
-(defn vote-amount-reclaimed-event [_ {:keys [:args]} ]
+(defn vote-amount-claimed-event [_ {:keys [:args]} ]
   (let [{:keys [:registry-entry :timestamp :version :voter :amount]} args]
     (db/update-vote! {:reg-entry/address registry-entry
                       :vote/voter voter
@@ -261,8 +264,8 @@
                              :token-id-end token-end-id
                              :reg-entry/address registry-entry})
     (db/update-meme! {:reg-entry/address registry-entry
-                       :meme/first-mint-on timestamp
-                       :meme/token-id-start token-start-id
+                      :meme/first-mint-on timestamp
+                      :meme/token-id-start token-start-id
                       :meme/total-minted total-minted})
     (doseq [tid (range token-start-id (inc token-end-id))]
       (db/upsert-meme-token-owner! {:meme-token/token-id tid
@@ -285,24 +288,25 @@
     (db/update-meme-auction! {:meme-auction/address meme-auction
                               :meme-auction/canceled-on timestamp})))
 
-(defn meme-auction-buy-event [_ {:keys [:args]}]
-  (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
-        auction (db/get-meme-auction meme-auction)
-        reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
-                              :reg-entry/address)
-        seller (:meme-auction/seller auction)
-        {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller}
-                                                           [:user/best-single-card-sale])]
-    (js/Promise.resolve (db/upsert-user! {:user/address seller
-                                          :user/best-single-card-sale (max best-single-card-sale
-                                                                           (bn/number seller-proceeds))}))
-    (db/upsert-user! {:user/address buyer})
-    (db/inc-user-field! seller :user/total-earned (bn/number seller-proceeds))
-    (db/inc-meme-field! reg-entry-address :meme/total-trade-volume (bn/number price))
-    (db/update-meme-auction! {:meme-auction/address meme-auction
-                              :meme-auction/bought-for (bn/number price)
-                              :meme-auction/bought-on timestamp
-                              :meme-auction/buyer buyer})))
+(defn meme-auction-buy-event [_ {:keys [:args] :as evt}]
+  (safe-go
+   (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
+         auction (db/get-meme-auction meme-auction)
+         reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
+                               :reg-entry/address)
+         seller (:meme-auction/seller auction)
+         {:keys [:user/best-single-card-sale]} (db/get-user {:user/address seller}
+                                                            [:user/best-single-card-sale])]
+     (db/upsert-user! {:user/address seller
+                       :user/best-single-card-sale (max best-single-card-sale
+                                                        (bn/number seller-proceeds))})
+     (db/upsert-user! {:user/address buyer})
+     (db/inc-user-field! seller :user/total-earned (bn/number seller-proceeds))
+     (db/inc-meme-field! reg-entry-address :meme/total-trade-volume (bn/number price))
+     (db/update-meme-auction! {:meme-auction/address meme-auction
+                               :meme-auction/bought-for (bn/number price)
+                               :meme-auction/bought-on timestamp
+                               :meme-auction/buyer buyer}))))
 
 (defn meme-token-transfer-event [_ {:keys [:args]}]
   (let [{:keys [:_to :_token-id :_timestamp]} args]
@@ -310,12 +314,12 @@
                                   :meme-token/owner _to
                                   :meme-token/transferred-on (bn/number _timestamp)})))
 
-(defn eternal-db-event [_ {:keys [:args :address]}]
+(defn eternal-db-event [_ {:keys [:args :address] :as event}]
   (let [{:keys [:records :values :timestamp]} args
         records->values (zipmap records values)
         keys->values (->> #{"challengePeriodDuration" "commitPeriodDuration" "revealPeriodDuration" "deposit"
                             "challengeDispensation" "voteQuorum" "maxTotalSupply" "maxAuctionDuration"}
-                          (map (fn [k] (when-let [v (records->values (web3/sha3 k))] [k v])))
+                          (map (fn [k] (when-let [v (records->values (web3-utils/sha3 @web3 k))] [k v])))
                           (into {}))]
     (db/upsert-params!
      (map (fn [[k v]]
@@ -339,13 +343,13 @@
 
 (defn- block-timestamp* [block-number]
   (let [out-ch (async/promise-chan)]
-   (web3-eth/get-block @web3 block-number false (fn [err {:keys [:timestamp] :as res}]
-                                                  (if err
-                                                    (js/Error. err)
-                                                    (do
-                                                      (log/debug "cache miss for block-timestamp" {:block-number block-number :timestamp timestamp})
-                                                      (async/put! out-ch timestamp)))))
-   out-ch))
+    (web3-eth/get-block @web3 block-number false (fn [err {:keys [:timestamp] :as res}]
+                                                   (if err
+                                                     (async/put! out-ch err)
+                                                     (let [{:keys [:timestamp] :as result} (js->clj res :keywordize-keys true)]
+                                                       (log/debug "cache miss for block-timestamp" {:block-number block-number :timestamp timestamp})
+                                                       (async/put! out-ch timestamp)))))
+    out-ch))
 
 (def block-timestamp
   (memoize block-timestamp*))
@@ -356,12 +360,12 @@
      (try
        (let [block-timestamp (<? (block-timestamp block-number))
              event (-> event
-                       (update :event cs/->kebab-case)
+                       (update :event camel-snake-kebab/->kebab-case)
+                       (update-in [:args :version] bn/number)
                        (update-in [:args :timestamp] (fn [timestamp]
                                                        (if timestamp
                                                          (bn/number timestamp)
-                                                         block-timestamp)))
-                       (update-in [:args :version] bn/number))
+                                                         block-timestamp))))
              {:keys [:event/contract-key :event/event-name :event/block-number :event/log-index]} (get-event event)
              {:keys [:event/last-block-number :event/last-log-index :event/count]
               :or {last-block-number -1
@@ -376,21 +380,16 @@
                   :log-index log-index}]
          (if (or (> block-number last-block-number)
                  (and (= block-number last-block-number) (> log-index last-log-index)))
-           (do
+           (let [result (callback err event)]
              (log/info "Handling new event" evt)
-
-             (let [result (callback err event)]
-               ;; block if we need
-               (if (satisfies? cljs.core.async.impl.protocols/ReadPort result)
-                 (<! result)
-                 result)
-
-               (db/upsert-event! {:event/last-log-index log-index
-                                  :event/last-block-number block-number
-                                  :event/count (inc count)
-                                  :event/event-name event-name
-                                  :event/contract-key contract-key})
-               result))
+             ;; block if we need
+             (when (satisfies? cljs.core.async.impl.protocols/ReadPort result)
+               (<! result))
+             (db/upsert-event! {:event/last-log-index log-index
+                                :event/last-block-number block-number
+                                :event/count (inc count)
+                                :event/event-name event-name
+                                :event/contract-key contract-key}))
 
            (log/info "Skipping handling of a persisted event" evt)))
        (catch js/Error error
@@ -434,43 +433,42 @@
                                                      now))))))
 
 (defn start [opts]
-  (when-not (:disabled? opts)
-    (when-not (web3/connected? @web3)
-      (throw (js/Error. "Can't connect to Ethereum node")))
-    (when-not (= ::db/started @db/memefactory-db)
-      (throw (js/Error. "Database module has not started")))
-    (let [event-callbacks
-          {:meme-registry-db/eternal-db-event eternal-db-event
-           :param-change-db/eternal-db-event eternal-db-event
-           :param-change-registry/param-change-constructed-event param-change-constructed-event
-           :param-change-registry/challenge-created-event challenge-created-event
-           :param-change-registry/vote-committed-event vote-committed-event
-           :param-change-registry/vote-revealed-event vote-revealed-event
-           :param-change-registry/vote-amount-claimed-event vote-amount-reclaimed-event
-           :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
-           :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
-           :param-change-registry/param-change-applied-event param-change-applied-event
-           :meme-registry/meme-constructed-event meme-constructed-event
-           :meme-registry/challenge-created-event challenge-created-event
-           :meme-registry/vote-committed-event vote-committed-event
-           :meme-registry/vote-revealed-event vote-revealed-event
-           :meme-registry/vote-amount-claimed-event vote-amount-reclaimed-event
-           :meme-registry/vote-reward-claimed-event vote-reward-claimed-event
-           :meme-registry/challenge-reward-claimed-event challenge-reward-claimed-event
-           :meme-registry/meme-minted-event meme-minted-event
-           :meme-auction-factory/meme-auction-started-event meme-auction-started-event
-           :meme-auction-factory/meme-auction-buy-event meme-auction-buy-event
-           :meme-auction-factory/meme-auction-canceled-event meme-auction-canceled-event
-           :meme-token/transfer meme-token-transfer-event}
-          start-time (server-utils/now)
-          callback-ids (doseq [[event-key callback] event-callbacks]
-                         (register-callback! event-key (dispatcher callback)))]
-      (register-after-past-events-dispatched-callback! (fn []
-                                                         (log/warn "Syncing past events finished" (time/time-units (- (server-utils/now) start-time)) ::start)
-                                                         (apply-blacklist-patches!)
-                                                         (assign-meme-registry-numbers!)))
-      (assoc opts :callback-ids callback-ids))))
+  (safe-go
+   (when-not (:disabled? opts)
+     (when-not (web3-eth/is-listening? @web3)
+       (throw (js/Error. "Can't connect to Ethereum node")))
+     (when-not (= ::db/started @db/memefactory-db)
+       (throw (js/Error. "Database module has not started")))
+     (let [start-time (server-utils/now)
+           event-callbacks {:meme-registry-db/eternal-db-event eternal-db-event
+                            :meme-registry/meme-constructed-event meme-constructed-event
+                            :meme-registry/challenge-created-event challenge-created-event
+                            :meme-registry/vote-committed-event vote-committed-event
+                            :meme-registry/vote-revealed-event vote-revealed-event
+                            :meme-registry/vote-amount-claimed-event vote-amount-claimed-event
+                            :meme-registry/vote-reward-claimed-event vote-reward-claimed-event
+                            :meme-registry/challenge-reward-claimed-event challenge-reward-claimed-event
+                            :meme-registry/meme-minted-event meme-minted-event
+                            :meme-auction-factory/meme-auction-started-event meme-auction-started-event
+                            :meme-auction-factory/meme-auction-buy-event meme-auction-buy-event
+                            :meme-auction-factory/meme-auction-canceled-event meme-auction-canceled-event
+                            :meme-token/transfer meme-token-transfer-event
+                            :param-change-db/eternal-db-event eternal-db-event
+                            :param-change-registry/param-change-constructed-event param-change-constructed-event
+                            :param-change-registry/challenge-created-event challenge-created-event
+                            :param-change-registry/vote-committed-event vote-committed-event
+                            :param-change-registry/vote-revealed-event vote-revealed-event
+                            :param-change-registry/vote-amount-claimed-event vote-amount-claimed-event
+                            :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
+                            :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
+                            :param-change-registry/param-change-applied-event param-change-applied-event}
+           callback-ids (doall (for [[event-key callback] event-callbacks]
+                                 (web3-events/register-callback! event-key (dispatcher callback))))]
+       (web3-events/register-after-past-events-dispatched-callback! (fn []
+                                                                      (log/warn "Syncing past events finished" (time/time-units (- (server-utils/now) start-time)) ::start)
+                                                                      (apply-blacklist-patches!)
+                                                                      (assign-meme-registry-numbers!)))
+       (assoc opts :callback-ids callback-ids)))))
 
 (defn stop [syncer]
-  (when-not (:disabled? @syncer)
-    (unregister-callbacks! (:callback-ids @syncer))))
+  (web3-events/unregister-callbacks! (:callback-ids @syncer)))

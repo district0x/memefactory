@@ -11,8 +11,8 @@
    [district.ui.web3-accounts.queries :as account-queries]
    [district.ui.web3-tx.events :as tx-events]
    [goog.string :as gstring]
-   [memefactory.shared.contract.registry-entry :as reg-entry]
-   [print.foo :refer [look] :include-macros true]
+   [clojure.set :as set]
+   [memefactory.shared.contract.registry-entry :refer [vote-options vote-option->num]]
    [re-frame.core :as re-frame]
    [memefactory.ui.utils :as utils]
    [taoensso.timbre :as log]))
@@ -71,7 +71,7 @@
                                  tx-description)
          active-account (account-queries/active-account db)
          salt (cljs-utils/rand-str 5)
-         secret-hash (solidity-sha3 (reg-entry/vote-option->num option) salt)
+         secret-hash (solidity-sha3 (vote-option->num option) salt)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
                                                 :commit-vote
                                                 active-account
@@ -110,7 +110,7 @@
          {:keys [option salt]} (get-in store [:votes active-account address])]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme address)
                                       :fn :reveal-vote
-                                      :args [(reg-entry/vote-option->num option) salt]
+                                      :args [(vote-option->num option) salt]
                                       :tx-opts {:from active-account}
                                       :tx-id {::reveal-vote id}
                                       :tx-log {:name tx-name

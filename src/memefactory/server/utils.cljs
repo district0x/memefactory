@@ -1,12 +1,12 @@
 (ns memefactory.server.utils
-  (:require
-   [cljs-ipfs-api.files :as ipfs-files]
-   [cljs-web3.eth :as web3-eth]
-   [cljs.nodejs :as nodejs]
-   [cljs.reader :refer [read-string]]
-   [district.server.config :refer [config]]
-   [district.server.web3 :as web3]
-   [taoensso.timbre :as log]))
+  (:require [cljs-ipfs-api.files :as ipfs-files]
+            [cljs-web3-next.eth :as web3-eth]
+            [cljs.nodejs :as nodejs]
+            [cljs.reader :refer [read-string]]
+            [district.server.config :refer [config]]
+            [district.server.web3 :refer [web3]]
+            [taoensso.timbre :as log]
+            [district.shared.async-helpers :refer [promise->]]))
 
 (defonce fs (nodejs/require "fs"))
 
@@ -17,9 +17,12 @@
   ;; if we are in dev we use blockchain timestamp so we can
   ;; increment it by hand, and also so we don't need block mining
   ;; in order to keep js time and blockchain time close
+  ;; returns a Promise
   (if (= :blockchain (:time-source @config))
-    (->> (web3-eth/block-number @web3/web3) (web3-eth/get-block @web3/web3) :timestamp)
-    (quot (now) 1000)))
+    (promise-> (web3-eth/get-block-number @web3)
+               #(web3-eth/get-block @web3 % false)
+               #(-> % (js->clj :keywordize-keys true) :timestamp))
+    (js/Promise.resolve (quot (now) 1000))))
 
 (defn load-edn-file [file & read-opts]
   (try

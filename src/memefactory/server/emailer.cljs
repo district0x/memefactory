@@ -1,25 +1,23 @@
 (ns memefactory.server.emailer
-  (:require
-    [cljs-time.coerce :as time-coerce]
-    [cljs-time.core :as t]
-    [clojure.string :as string]
-    [district.encryption :as encryption]
-    [district.format :as format]
-    [district.sendgrid :refer [send-email]]
-    [district.server.config :as config]
-    [district.server.logging]
-    [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
-    [district.shared.async-helpers :refer [promise->]]
-    [district.shared.error-handling :refer [try-catch try-catch-throw]]
-    [district.time :as time]
-    [goog.format.EmailAddress :as email-address]
-    [memefactory.server.contract.district0x-emails :as district0x-emails]
-    [memefactory.server.db :as db]
-    [memefactory.server.emailer.templates :as templates]
-    [mount.core :as mount :refer [defstate]]
-    [taoensso.timbre :as log]
-    [cljs.core.async :as async])
-  (:require-macros [district.shared.async-helpers :refer [safe-go <?]]))
+  (:require [cljs-time.coerce :as time-coerce]
+            [cljs-time.core :as cljs-time]
+            [cljs.core.async :as async]
+            [clojure.string :as string]
+            [district.encryption :as encryption]
+            [district.format :as format]
+            [district.sendgrid :refer [send-email]]
+            [district.server.config :as config]
+            [district.server.logging]
+            [district.server.web3-events :as web3-events]
+            [district.shared.async-helpers :refer [safe-go <?]]
+            [district.shared.error-handling :refer [try-catch]]
+            [district.time :as time]
+            [goog.format.EmailAddress :as email-address]
+            [memefactory.server.contract.district0x-emails :as district0x-emails]
+            [memefactory.server.db :as db]
+            [memefactory.server.emailer.templates :as templates]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (defn validate-email [base64-encrypted-email]
   (when-not (empty? base64-encrypted-email)
@@ -64,7 +62,6 @@
     :api-key api-key
     :print-mode? print-mode?}))
 
-
 (defn send-challenge-created-email [{:keys [:registry-entry :challenger :commit-period-end
                                             :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (safe-go
@@ -73,7 +70,7 @@
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
          ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
          meme-url (str root-url "meme-detail/" registry-entry)
-         [unit value] (time/time-remaining-biggest-unit (t/now)
+         [unit value] (time/time-remaining-biggest-unit (cljs-time/now)
                                                         (-> commit-period-end time/epoch->long time-coerce/from-long))
          time-remaining (format/format-time-units {unit value})
          meme-image-url (str ipfs-gateway-url image-hash)
@@ -144,25 +141,27 @@
          button-url (str root-url "memefolio/?tab=sold")
          email (<? (district0x-emails/get-email {:district0x-emails/address seller}))]
      (if-let [to (validate-email email)]
-       (send-auction-bought-email-handler
-                     {:from from
-                      :to to
-                      :title title
-                      :meme-url meme-url
-                      :meme-image-url meme-image-url
-                      :buyer-address buyer
-                      :buyer-url buyer-url
-                      :price price
-                      :button-url button-url
-                      :on-success #(log/info "Success sending auction bought email"
-                                             {:to to :meme-auction meme-auction :meme-title title}
-                                             ::send-auction-bought-email)
-                      :on-error #(log/error "Error when sending auction-bought email"
-                                            {:error % :event ev :meme-auction meme-auction :to to}
-                                            ::send-auction-bought-email)
-                      :template-id template-id
-                      :api-key api-key
-                      :print-mode? print-mode?})
+       (do
+         (log/info "Sending auction-bought email" ev)
+         (send-auction-bought-email-handler
+          {:from from
+           :to to
+           :title title
+           :meme-url meme-url
+           :meme-image-url meme-image-url
+           :buyer-address buyer
+           :buyer-url buyer-url
+           :price price
+           :button-url button-url
+           :on-success #(log/info "Success sending auction bought email"
+                                  {:to to :meme-auction meme-auction :meme-title title}
+                                  ::send-auction-bought-email)
+           :on-error #(log/error "Error when sending auction-bought email"
+                                 {:error % :event ev :meme-auction meme-auction :to to}
+                                 ::send-auction-bought-email)
+           :template-id template-id
+           :api-key api-key
+           :print-mode? print-mode?}))
        (log/info "No email found for meme auction seller" {:event ev :meme-auction meme-auction} ::send-auction-bought-email)))))
 
 (defn send-vote-reward-claimed-email-handler
@@ -210,6 +209,7 @@
          email (<? (district0x-emails/get-email {:district0x-emails/address voter}))]
      (if-let [to (validate-email email)]
        (do
+         (log/info "Sending vote reward claimed email" ev ::send-vote-reward-claimed-email)
          (send-vote-reward-claimed-email-handler
           {:to to
            :from from
@@ -227,9 +227,8 @@
                                  ::send-vote-reward-claimed-email)
            :template-id template-id
            :api-key api-key
-           :print-mode? print-mode?})
-         (log/info "Sending vote reward received email" ev ::send-vote-reward-claimed-email)
-         (log/info "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email))))))
+           :print-mode? print-mode?}))
+       (log/info "No email found for voter" {:event ev :meme meme} ::send-vote-reward-claimed-email)))))
 
 (defn send-challenge-reward-claimed-email-handler
   [{:keys [to from
@@ -272,7 +271,7 @@
          email (<? (district0x-emails/get-email {:district0x-emails/address challenger}))]
      (if-let [to (validate-email email)]
        (do
-         (log/info "Sending chalenge reward received email" ev ::send-challenge-reward-claimed-email)
+         (log/info "Sending challenge reward received email" ev ::send-challenge-reward-claimed-email)
          (send-challenge-reward-claimed-email-handler
           {:from from
            :to to
@@ -290,28 +289,23 @@
            :template-id template-id
            :api-key api-key
            :print-mode? print-mode?}))
-
        (log/info "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email)))))
-
 
 (defn- dispatcher [callback]
   (fn [_ {:keys [:latest-event? :args] :as ev}]
     (when latest-event?
       (callback args))))
 
-
 (defn start [opts]
   (let [callback-ids
-        [(register-callback! :meme-registry/challenge-created-event (dispatcher send-challenge-created-email))
-         (register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher send-auction-bought-email))
-         (register-callback! :meme-registry/vote-reward-claimed-event (dispatcher send-vote-reward-claimed-email))
-         (register-callback! :meme-registry/challenge-reward-claimed-event (dispatcher send-challenge-reward-claimed-email))]]
+        [(web3-events/register-callback! :meme-registry/challenge-created-event (dispatcher send-challenge-created-email))
+         (web3-events/register-callback! :meme-auction-factory/meme-auction-buy-event (dispatcher send-auction-bought-email))
+         (web3-events/register-callback! :meme-registry/vote-reward-claimed-event (dispatcher send-vote-reward-claimed-email))
+         (web3-events/register-callback! :meme-registry/challenge-reward-claimed-event (dispatcher send-challenge-reward-claimed-email))]]
     (assoc opts :callback-ids callback-ids)))
 
-
 (defn stop [emailer]
-  (unregister-callbacks! (:callback-ids @emailer)))
-
+  (web3-events/unregister-callbacks! (:callback-ids @emailer)))
 
 (defstate emailer
   :start (start (merge (:emailer @config/config)

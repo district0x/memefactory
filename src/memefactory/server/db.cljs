@@ -5,8 +5,7 @@
             [district.server.db.honeysql-extensions]
             [honeysql.core :as sql]
             [honeysql-postgres.helpers :as psqlh]
-            [honeysql.helpers :as sqlh]
-            [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
+            [honeysql.helpers :as sqlh :refer [merge-where merge-order-by merge-left-join defhelper]]
             [medley.core :as medley]
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))

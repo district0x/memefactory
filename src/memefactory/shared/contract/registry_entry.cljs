@@ -1,9 +1,6 @@
 (ns memefactory.shared.contract.registry-entry
   (:require [bignumber.core :as bn]
-            [cljs-web3.core :as web3]
-            [clojure.set :as set]
-            [district.web3-utils :refer [empty-address? wei->eth-number]]
-            [memefactory.shared.utils :as shared-utils]))
+            [clojure.set :as set]))
 
 (def statuses
   {0 :reg-entry.status/challenge-period
@@ -38,32 +35,3 @@
 
 (defn parse-status [status]
   (statuses (bn/number status)))
-
-(defn parse-load-registry-entry [reg-entry-addr registry-entry & [{:keys []}]]
-  (when registry-entry
-    (let [registry-entry (zipmap load-registry-entry-keys registry-entry)]
-      (-> registry-entry
-        (assoc :reg-entry/address reg-entry-addr)
-        (update :reg-entry/version bn/number)
-        (update :reg-entry/deposit wei->eth-number)
-        (update :challenge/commit-period-end bn/number)
-        (update :challenge/reveal-period-end bn/number)
-        (update :challenge/reward-pool bn/number)
-        (update :challenge/meta-hash web3/to-ascii)
-        (update :challenge/claimed-reward-on bn/number)))))
-
-
-(defn parse-vote-option [vote-option]
-  (vote-options (bn/number vote-option)))
-
-(defn parse-load-vote [contract-addr voter-address voter & [{:keys [:parse-dates? :parse-vote-option?]}]]
-  (when voter
-    (let [voter (zipmap vote-props voter)]
-      (-> voter
-        (assoc :reg-entry/address contract-addr)
-        (assoc :vote/voter voter-address)
-        (update :vote/option (if parse-vote-option? parse-vote-option bn/number))
-        (update :vote/amount bn/number)
-        (update :vote/revealed-on (constantly (shared-utils/parse-uint-date (:vote/revealed-on voter) parse-dates?)))
-        (update :vote/claimed-reward-on (constantly (shared-utils/parse-uint-date (:vote/claimed-reward-on voter) parse-dates?)))
-        (update :vote/reclaimed-amount-on (constantly (shared-utils/parse-uint-date (:vote/reclaimed-deposit-on voter) parse-dates?)))))))

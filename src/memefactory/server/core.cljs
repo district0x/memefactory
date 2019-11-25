@@ -10,7 +10,6 @@
    [district.server.middleware.logging :refer [logging-middlewares]]
    [district.server.web3 :refer [web3]]
    [district.server.web3-events]
-   [district.server.web3-watcher]
    [goog.functions :as gfun]
    [memefactory.server.constants :as constants]
    [memefactory.server.conversion-rates]
@@ -64,7 +63,21 @@
                                       :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
                                       :graphiql false}
-                            :web3 {:url "http://localhost:8545"}
+                            :web3 {:url "ws://127.0.0.1:8545"
+                                   :on-offline (fn []
+                                                 (log/error "Ethereum node went offline, stopping syncing modules" ::web3-watcher)
+                                                 (mount/stop #'memefactory.server.db/memefactory-db
+                                                             #'district.server.web3-events/web3-events
+                                                             #'memefactory.server.syncer/syncer
+                                                             #'memefactory.server.pinner/pinner
+                                                             #'memefactory.server.emailer/emailer))
+                                   :on-online (fn []
+                                                (log/warn "Ethereum node went online again, starting syncing modules" ::web3-watcher)
+                                                (mount/start #'memefactory.server.db/memefactory-db
+                                                             #'district.server.web3-events/web3-events
+                                                             #'memefactory.server.syncer/syncer
+                                                             #'memefactory.server.pinner/pinner
+                                                             #'memefactory.server.emailer/emailer))}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var contracts-var}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
@@ -79,24 +92,8 @@
                             :twitter-bot {:consumer-key "PLACEHOLDER"
                                           :consumer-secret "PLACEHOLDER"
                                           :access-token-key "PLACEHOLDER"
-                                          :access-token-secret "PLACEHOLDER"}}}
-         :web3-watcher {:interval 3000
-                        :confirmations 3
-                        :on-offline (fn []
-                                      (log/error "Ethereum node went offline, stopping syncing modules" ::web3-watcher)
-                                      (mount/stop #'memefactory.server.db/memefactory-db
-                                                  #'district.server.web3-events/web3-events
-                                                  #'memefactory.server.syncer/syncer
-                                                  #'memefactory.server.pinner/pinner
-                                                  #'memefactory.server.emailer/emailer))
-                        :on-online (fn []
-                                     (log/warn "Ethereum node went online again, starting syncing modules" ::web3-watcher)
-                                     (mount/start #'memefactory.server.db/memefactory-db
-                                                  #'district.server.web3-events/web3-events
-                                                  #'memefactory.server.syncer/syncer
-                                                  #'memefactory.server.pinner/pinner
-                                                  #'memefactory.server.emailer/emailer))}
-         :web3-events {:events constants/web3-events}})
+                                          :access-token-secret "PLACEHOLDER"}}
+                  :web3-events {:events constants/web3-events}}})
       (mount/start)
       (#(log/warn "Started" {:components %
                              :config @config}))))

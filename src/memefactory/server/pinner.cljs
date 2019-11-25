@@ -1,20 +1,16 @@
 (ns memefactory.server.pinner
-  (:require
-   [cljs-ipfs-api.pin :as pin]
-   [cljs-web3.core :as web3]
-   [district.server.config :refer [config]]
-   [district.server.logging]
-   [district.server.web3 :refer [web3]]
-   [district.server.web3-events :refer [register-callback! unregister-callbacks!]]
-   [goog.date.Date]
-   [memefactory.server.ipfs :as ipfs]
-   [district.shared.async-helpers :refer [promise->]]
-   [memefactory.server.utils :as server-utils]
-   [mount.core :as mount :refer [defstate]]
-   [print.foo :refer [look] :include-macros true]
-   [taoensso.timbre :as log]
-   [cljs.core.async :as async])
-  (:require-macros [district.shared.async-helpers :refer [safe-go <?]]))
+  (:require [cljs-ipfs-api.pin :as pin]
+            [cljs-web3-next.utils :as web3-utils]
+            [district.server.config :refer [config]]
+            [district.server.logging]
+            [district.server.web3 :refer [web3]]
+            [district.server.web3-events :as web3-events]
+            [district.shared.async-helpers :refer [safe-go <?]]
+            [goog.date.Date]
+            [memefactory.server.ipfs :as ipfs]
+            [memefactory.server.utils :as server-utils]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (defn- dispatcher [callback]
   (fn [err event]
@@ -23,7 +19,7 @@
 (defn meme-constructed-event [err {:keys [:args]}]
   (safe-go
    (let [{:keys [:meta-hash]} args
-         meta-hash (web3/to-ascii meta-hash)]
+         meta-hash (web3-utils/to-ascii @web3 meta-hash)]
 
      (cond
        err
@@ -52,10 +48,9 @@
                             (log/error (str "Pinning meme image hash failed " image-hash " " err) ::pin-image-hash)
                             (log/info (str "Pinned meme image hash " image-hash) ::pin-image-hash))))))))))))
 
-
 (defn challenge-created-event [err {:keys [:args]}]
   (let [{:keys [:metahash]} args
-        meta-hash (web3/to-ascii metahash)]
+        meta-hash (web3-utils/to-ascii @web3 metahash)]
 
     (cond
       err
@@ -71,18 +66,16 @@
                    (log/error (str "Pinning challenge meta hash failed " meta-hash " " err) ::pin-meta-hash)
                    (log/info (str "Pinned challenge meta hash " meta-hash) ::pin-meta-hash)))))))
 
-
 (defn start [opts]
   (when-not (:disabled? opts)
-    (register-callback! :meme-registry/meme-constructed-event (dispatcher meme-constructed-event) ::meme-constructed-event)
-    (register-callback! :meme-registry/challenge-created-event (dispatcher challenge-created-event) ::challenge-created-event))
-  opts)
-
+    (let [callback-ids
+          [(web3-events/register-callback! :meme-registry/meme-constructed-event (dispatcher meme-constructed-event) ::meme-constructed-event)
+           (web3-events/register-callback! :meme-registry/challenge-created-event (dispatcher challenge-created-event) ::challenge-created-event)]]
+      (assoc opts :callback-ids callback-ids))))
 
 (defn stop [pinner]
   (when-not (:disabled? @pinner)
-    (unregister-callbacks! [::meme-constructed-event ::challenge-created-event])))
-
+    (web3-events/unregister-callbacks! [::meme-constructed-event ::challenge-created-event])))
 
 (defstate pinner
   :start (start (merge (:pinner @config)

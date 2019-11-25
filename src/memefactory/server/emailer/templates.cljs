@@ -1,12 +1,12 @@
 (ns memefactory.server.emailer.templates
-  (:require
-   [bignumber.core :as bn]
-   [cljs-web3.core :as web3]
-   [clojure.string :as str]
-   [garden.core :as garden]))
+  (:require [bignumber.core :as bn]
+            [cljs-web3-next.utils :as web3-utils]
+            [clojure.string :as string]
+            [district.server.web3 :refer [web3]]
+            [garden.core :as garden]))
 
 (defn- format-token-amount [amount]
-  (-> amount (web3/from-wei :ether) bn/number (.toFixed 3)))
+  (-> (web3-utils/from-wei @web3 amount :ether) bn/number (.toFixed 3)))
 
 (def link-style
   (garden/style
@@ -18,7 +18,7 @@
 (defn challenge-created-email-body [{:keys [:meme/title :meme-url :time-remaining]}]
   (let [link (format-link meme-url title)]
     (str "Your meme " link " was just challenged. Hurry, you have "
-         (str/lower-case time-remaining) " to visit the website and vote to keep your meme in the Dank Registry!")))
+         (string/lower-case time-remaining) " to visit the website and vote to keep your meme in the Dank Registry!")))
 
 (defn meme-auction-bought-email-body [{:keys [:price :meme/title :meme-url :buyer-address :buyer-url]}]
   (let [buyer-link (format-link buyer-url buyer-address)
