@@ -30,8 +30,8 @@
                  :etherscan-url "https://ropsten.etherscan.io"}
    :graphql {:schema graphql-schema
              :url "http://localhost:6300/graphql"}
-   :ipfs {:host "http://127.0.0.1:5001"
-          :endpoint "/api/v0"
+   :ipfs {:endpoint "/api/v0"
+          :host "http://127.0.0.1:5001"
           :gateway "http://127.0.0.1:8080/ipfs"}
    :router {:html5? false}
    :router-google-analytics {:enabled? false}})
@@ -45,7 +45,7 @@
    :smart-contracts {:contracts (apply dissoc smart-contracts-qa/smart-contracts skipped-contracts)
                      :load-method :use-loaded}
    :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK])}
-   :web3 {:url "https://ropsten.district0x.io"}
+   :web3 {:url "https://ropsten.infura.io"}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
