@@ -6,6 +6,7 @@
             [cljs-web3-next.eth :as web3-eth]
             [cljs-web3-next.utils :as web3-utils]
             [cljs.core.async :as async]
+            [clojure.string :as string]
             [district.server.config :refer [config]]
             [district.server.web3 :refer [web3]]
             [district.server.web3-events :as web3-events]
@@ -324,7 +325,7 @@
     (db/upsert-params!
      (map (fn [[k v]]
             {:param/key k
-             :param/db address
+             :param/db (string/lower-case address)
              :param/value (bn/number v)
              :param/set-on timestamp})
           keys->values))))
