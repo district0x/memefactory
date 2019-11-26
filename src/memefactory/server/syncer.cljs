@@ -115,6 +115,8 @@
   (safe-go
    (let [{:keys [:registry-entry :timestamp :creator :meta-hash
                  :total-supply :version :deposit :challenge-period-end]} args
+         registry-entry (string/lower-case registry-entry)
+         creator (string/lower-case creator)
          registry-entry-data {:reg-entry/address registry-entry
                               :reg-entry/creator creator
                               :reg-entry/version version
@@ -154,7 +156,10 @@
   (safe-go
    (let [{:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp :meta-hash]} args
          hash (web3-utils/to-ascii @web3 meta-hash)
-         {:keys [reason]} (server-utils/get-ipfs-meta @ipfs/ipfs hash)]
+         {:keys [reason]} (server-utils/get-ipfs-meta @ipfs/ipfs hash)
+         registry-entry (string/lower-case registry-entry)
+         creator (string/lower-case creator)
+         db (string/lower-case db)]
      (add-registry-entry {:reg-entry/address registry-entry
                           :reg-entry/creator creator
                           :reg-entry/version version
@@ -172,7 +177,8 @@
        :param-change/meta-hash hash}))))
 
 (defn param-change-applied-event [_ {:keys [:args]}]
-  (let [{:keys [:registry-entry :timestamp]} args]
+  (let [{:keys [:registry-entry :timestamp]} args
+        registry-entry (string/lower-case registry-entry)]
     (db/update-param-change! {:reg-entry/address registry-entry
                               :param-change/applied-on timestamp})))
 
@@ -180,6 +186,8 @@
   (safe-go
    (let [{:keys [:registry-entry :challenger :commit-period-end
                  :reveal-period-end :reward-pool :metahash :timestamp :version]} args
+         registry-entry (string/lower-case registry-entry)
+         challenger (string/lower-case challenger)
          challenge {:reg-entry/address registry-entry
                     :challenge/challenger challenger
                     :challenge/commit-period-end (bn/number commit-period-end)
@@ -198,6 +206,8 @@
 (defn vote-committed-event [_ {:keys [:args]}]
   (safe-go
    (let [{:keys [:registry-entry :timestamp :voter :amount]} args
+         registry-entry (string/lower-case registry-entry)
+         voter (string/lower-case voter)
          vote {:reg-entry/address registry-entry
                :vote/voter voter
                :vote/amount (bn/number amount)
@@ -208,6 +218,8 @@
 (defn vote-revealed-event [_ {:keys [:args]}]
   (safe-go
    (let [{:keys [:registry-entry :timestamp :version :voter :option]} args
+         registry-entry (string/lower-case registry-entry)
+         voter (string/lower-case voter)
          vote (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/voter :vote/amount :reg-entry/address])
          re (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/votes-against :challenge/votes-for :challenge/votes-total])
          {:keys [:challenge/votes-total :challenge/votes-against :challenge/votes-for]} re]
@@ -234,14 +246,18 @@
 
 (defn vote-reward-claimed-event [_ {:keys [:args]}]
   (safe-go
-   (let [{:keys [:registry-entry :timestamp :version :voter :amount]} args]
+   (let [{:keys [:registry-entry :timestamp :version :voter :amount]} args
+         registry-entry (string/lower-case registry-entry)
+         voter (string/lower-case voter)]
      (db/update-vote! {:reg-entry/address registry-entry
                        :vote/voter voter
                        :vote/claimed-reward-on timestamp})
      (db/inc-user-field! voter :user/voter-total-earned (bn/number amount)))))
 
 (defn vote-amount-claimed-event [_ {:keys [:args]} ]
-  (let [{:keys [:registry-entry :timestamp :version :voter :amount]} args]
+  (let [{:keys [:registry-entry :timestamp :version :voter :amount]} args
+        registry-entry (string/lower-case registry-entry)
+        voter (string/lower-case voter)]
     (db/update-vote! {:reg-entry/address registry-entry
                       :vote/voter voter
                       :vote/reclaimed-amount-on timestamp})))
@@ -249,6 +265,8 @@
 (defn challenge-reward-claimed-event [_ {:keys [:args]}]
   (safe-go
    (let [{:keys [:registry-entry :timestamp :version :challenger :amount]} args
+         registry-entry (string/lower-case registry-entry)
+         challenger (string/lower-case challenger)
          re (db/get-registry-entry {:reg-entry/address registry-entry} [:challenge/challenger :reg-entry/deposit])
          {:keys [:challenge/challenger :reg-entry/deposit]} re]
      (db/update-registry-entry! {:reg-entry/address registry-entry
@@ -258,6 +276,8 @@
 
 (defn meme-minted-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp :version :creator :token-start-id :token-end-id :total-minted]} args
+        registry-entry (string/lower-case registry-entry)
+        creator (string/lower-case creator)
         token-start-id (bn/number token-start-id)
         token-end-id (bn/number token-end-id)
         total-minted (bn/number total-minted)]
@@ -274,8 +294,10 @@
                                     :meme-token/transferred-on timestamp}))))
 
 (defn meme-auction-started-event [_ {:keys [:args]}]
-  (let [{:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price :duration :description :started-on]} args]
-    (db/insert-meme-auction! {:meme-auction/address meme-auction
+  (let [{:keys [:meme-auction :timestamp :token-id :seller :start-price :end-price :duration :description :started-on]} args
+        meme-auction (string/lower-case meme-auction)
+        seller (string/lower-case seller)]
+    (db/insert-meme-auction! {:meme-auction/address (string/lower-case meme-auction)
                               :meme-auction/token-id (bn/number token-id)
                               :meme-auction/seller seller
                               :meme-auction/start-price (bn/number start-price)
@@ -285,13 +307,16 @@
                               :meme-auction/started-on (bn/number started-on)})))
 
 (defn meme-auction-canceled-event [_ {:keys [:args]}]
-  (let [{:keys [:meme-auction :timestamp :token-id]} args]
-    (db/update-meme-auction! {:meme-auction/address meme-auction
+  (let [{:keys [:meme-auction :timestamp :token-id]} args
+        meme-auction (string/lower-case meme-auction)]
+    (db/update-meme-auction! {:meme-auction/address (string/lower-case meme-auction)
                               :meme-auction/canceled-on timestamp})))
 
 (defn meme-auction-buy-event [_ {:keys [:args] :as evt}]
   (safe-go
    (let [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds]} args
+         meme-auction (string/lower-case meme-auction)
+         buyer (string/lower-case buyer)
          auction (db/get-meme-auction meme-auction)
          reg-entry-address (-> (db/get-meme-by-auction-address meme-auction)
                                :reg-entry/address)
@@ -312,7 +337,7 @@
 (defn meme-token-transfer-event [_ {:keys [:args]}]
   (let [{:keys [:_to :_token-id :_timestamp]} args]
     (db/upsert-meme-token-owner! {:meme-token/token-id (bn/number _token-id)
-                                  :meme-token/owner _to
+                                  :meme-token/owner (string/lower-case _to)
                                   :meme-token/transferred-on (bn/number _timestamp)})))
 
 (defn eternal-db-event [_ {:keys [:args :address] :as event}]
