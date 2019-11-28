@@ -15,13 +15,14 @@
             [district.time :as time]
             [memefactory.server.db :as db]
             [memefactory.server.generator]
+            [district.server.smart-contracts :as smart-contracts]
             [memefactory.server.ipfs :as ipfs]
             [memefactory.server.ranks-cache :as ranks-cache]
             [memefactory.server.utils :as server-utils]
             [memefactory.shared.contract.registry-entry :refer [vote-options]]
             [memefactory.shared.utils :as shared-utils]
             [mount.core :as mount :refer [defstate]]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log :refer [spy]]))
 
 (declare start)
 (declare stop)
@@ -369,11 +370,12 @@
 
 (defn- block-timestamp* [block-number]
   (let [out-ch (async/promise-chan)]
-    (web3-eth/get-block @web3 block-number false (fn [err {:keys [:timestamp] :as res}]
-                                                   (if err
-                                                     (async/put! out-ch err)
-                                                     (let [{:keys [:timestamp] :as result} (js->clj res :keywordize-keys true)]
-                                                       (log/debug "cache miss for block-timestamp" {:block-number block-number :timestamp timestamp})
+    (smart-contracts/wait-for-block block-number (fn [error result]
+                                                   (if error
+                                                     (async/put! out-ch error)
+                                                     (let [{:keys [:timestamp]} (js->clj result :keywordize-keys true)]
+                                                       (log/debug "cache miss for block-timestamp" {:block-number block-number
+                                                                                                    :timestamp timestamp})
                                                        (async/put! out-ch timestamp)))))
     out-ch))
 

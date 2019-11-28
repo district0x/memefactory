@@ -35,6 +35,7 @@
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
 (nodejs/enable-util-print!)
+(defonce resync-count (atom 0))
 
 (def contracts-var
   (condp = (get-environment)
@@ -65,14 +66,14 @@
                                       :graphiql false}
                             :web3 {:url "ws://127.0.0.1:8545"
                                    :on-offline (fn []
-                                                 (log/error "Ethereum node went offline, stopping syncing modules" ::web3-watcher)
+                                                 (log/warn "Ethereum node went offline, stopping syncing modules" {:resyncs @resync-count} ::web3-watcher)
                                                  (mount/stop #'memefactory.server.db/memefactory-db
                                                              #'district.server.web3-events/web3-events
                                                              #'memefactory.server.syncer/syncer
                                                              #'memefactory.server.pinner/pinner
                                                              #'memefactory.server.emailer/emailer))
                                    :on-online (fn []
-                                                (log/warn "Ethereum node went online again, starting syncing modules" ::web3-watcher)
+                                                (log/warn "Ethereum node went online again, starting syncing modules" {:resyncs (swap! resync-count inc)} ::web3-watcher)
                                                 (mount/start #'memefactory.server.db/memefactory-db
                                                              #'district.server.web3-events/web3-events
                                                              #'memefactory.server.syncer/syncer

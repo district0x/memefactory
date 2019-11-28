@@ -32,9 +32,9 @@
                  [district0x/district-server-graphql "1.0.18"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.2.0"]
-                 [district0x/district-server-web3 "1.2.0"]
-                 [district0x/district-server-web3-events "1.1.6"]
+                 [district0x/district-server-smart-contracts "1.2.1"]
+                 [district0x/district-server-web3 "1.2.1"]
+                 [district0x/district-server-web3-events "1.1.7"]
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
                  [district0x/district-ui-component-active-account-balance "1.0.1"]
@@ -90,6 +90,7 @@
   :exclusions [funcool/bide
                express-graphql
                cljsjs/react-with-addons]
+
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]

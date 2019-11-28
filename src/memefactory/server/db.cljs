@@ -109,7 +109,7 @@
    [:param-change/original-value :unsigned :integer not-nil]
    [:param-change/applied-on :unsigned :integer default-nil]
    [:param-change/meta-hash ipfs-hash not-nil]
-   [:param-change/reason :varchar not-nil]
+   [:param-change/reason :varchar default-nil]
    [(sql/call :primary-key :reg-entry/address)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]])
 
