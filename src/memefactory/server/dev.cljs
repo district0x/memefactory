@@ -230,10 +230,6 @@
   (.on js/process "unhandledRejection"
        (fn [reason p] (log/error "Unhandled promise rejection" {:reason reason})))
 
-  ;; TODO : remove
-  (.on js/process "uncaughtException"
-       (fn [error] (log/error "Unhandled exception" {:error error})))
-
   (when-not (= (last args) "--nostart")
     (log/debug "Mounting... (Pass the argument --nostart to prevent mounting on start)")
     (start)))

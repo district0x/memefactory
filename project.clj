@@ -91,7 +91,6 @@
                express-graphql
                cljsjs/react-with-addons]
 
-
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
             [lein-figwheel "0.5.18"]
