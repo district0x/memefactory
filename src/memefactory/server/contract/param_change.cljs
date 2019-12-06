@@ -3,7 +3,7 @@
             [district.server.smart-contracts :as smart-contracts]))
 
 (defn load-param-change [contract-addr]
-  (promise-> (smart-contracts/contract-call (instance :param-change contract-addr) :load-param-change)
+  (promise-> (smart-contracts/contract-call (smart-contracts/instance :param-change contract-addr) :load-param-change)
              (fn [param-change]
                {:reg-entry/address contract-addr
                 :db (aget param-change "0")
