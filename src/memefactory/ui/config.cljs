@@ -69,7 +69,7 @@
    :smart-contracts {:contracts (apply dissoc smart-contracts-prod/smart-contracts skipped-contracts)
                      :load-method :use-loaded}
    :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK])}
-   :web3 {:url "https://mainnet.district0x.io"}
+   :web3 {:url "https://mainnet.infura.io"}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
