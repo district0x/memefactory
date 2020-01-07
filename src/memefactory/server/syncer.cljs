@@ -500,4 +500,5 @@
        (assoc opts :callback-ids callback-ids)))))
 
 (defn stop [syncer]
+  (ping-stop)
   (web3-events/unregister-callbacks! (:callback-ids @syncer)))

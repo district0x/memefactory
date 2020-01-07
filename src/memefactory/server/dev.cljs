@@ -17,7 +17,7 @@
             [district.server.middleware.logging :refer [logging-middlewares]]
             [district.server.smart-contracts]
             [district.server.web3-events]
-            [district.server.web3 :as web3]
+            [district.server.web3]
             [district.shared.async-helpers :as async-helpers]
             [goog.date.Date]
             [graphql-query.core :refer [graphql-query]]
@@ -177,15 +177,13 @@
                                                  (mount/stop #'memefactory.server.db/memefactory-db
                                                              #'district.server.web3-events/web3-events
                                                              #'memefactory.server.syncer/syncer
-                                                             #'memefactory.server.emailer/emailer)
-                                                 (web3/ping-stop))
+                                                             #'memefactory.server.emailer/emailer))
                                    :on-online (fn []
                                                 (log/warn "Ethereum node went online again, starting syncing modules" {:resyncs (swap! resync-count inc)} ::web3-watcher)
                                                 (mount/start #'memefactory.server.db/memefactory-db
                                                              #'district.server.web3-events/web3-events
                                                              #'memefactory.server.syncer/syncer
-                                                             #'memefactory.server.emailer/emailer)
-                                                (web3/ping-start {:ping-interval 10000}))}
+                                                             #'memefactory.server.emailer/emailer))}
                             :ipfs {:host "http://127.0.0.1:5001"
                                    :endpoint "/api/v0"
                                    :gateway "http://127.0.0.1:8080/ipfs"}
