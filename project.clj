@@ -11,9 +11,6 @@
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "4.12.0-0"]
                  [cljsjs/filesaverjs "1.3.3-0"]
-                 [cljsjs/jquery "3.2.1-0"]
-                 [cljsjs/react "16.4.1-0"]
-                 [cljsjs/react-dom "16.4.1-0"]
                  [cljsjs/react-infinite "0.13.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.taoensso/encore "2.92.0"]
@@ -33,7 +30,7 @@
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.2.1"]
-                 [district0x/district-server-web3 "1.2.1"]
+                 [district0x/district-server-web3 "1.2.2"]
                  [district0x/district-server-web3-events "1.1.7"]
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
@@ -89,7 +86,9 @@
 
   :exclusions [funcool/bide
                express-graphql
-               cljsjs/react-with-addons]
+               cljsjs/react-with-addons
+               cljsjs/react
+               cljsjs/react-dom]
 
   :plugins [[lein-auto "0.1.2"]
             [lein-cljsbuild "1.1.7"]
@@ -106,11 +105,6 @@
                        [cors "2.8.4"]
                        [eccjs "0.3.1"]
                        [express "4.15.3"]
-                       ;; needed until v0.6.13 is officially released
-                       [express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
-                       [graphql "0.13.1"]
-                       [graphql-fields "1.0.2"]
-                       [graphql-tools "3.0.1"]
                        [is-ipfs "0.4.8"]
                        [source-map-support "0.5.3"]
                        [ws "4.0.0"]
