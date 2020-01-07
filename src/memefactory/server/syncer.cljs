@@ -8,7 +8,7 @@
             [cljs.core.async :as async]
             [clojure.string :as string]
             [district.server.config :refer [config]]
-            [district.server.web3 :refer [web3]]
+            [district.server.web3 :refer [web3 ping-start ping-stop]]
             [district.server.web3-events :as web3-events]
             [district.shared.async-helpers :refer [safe-go <?]]
             [district.shared.error-handling :refer [try-catch]]
@@ -495,7 +495,8 @@
        (web3-events/register-after-past-events-dispatched-callback! (fn []
                                                                       (log/warn "Syncing past events finished" (time/time-units (- (server-utils/now) start-time)) ::start)
                                                                       (apply-blacklist-patches!)
-                                                                      (assign-meme-registry-numbers!)))
+                                                                      (assign-meme-registry-numbers!)
+                                                                      (ping-start {:ping-interval 10000})))
        (assoc opts :callback-ids callback-ids)))))
 
 (defn stop [syncer]

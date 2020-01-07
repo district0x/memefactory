@@ -8,7 +8,7 @@
    [district.server.graphql.utils :as utils]
    [district.server.logging]
    [district.server.middleware.logging :refer [logging-middlewares]]
-   [district.server.web3 :refer [web3]]
+   [district.server.web3 :as web3]
    [district.server.web3-events]
    [goog.functions :as gfun]
    [memefactory.server.constants :as constants]
@@ -71,14 +71,16 @@
                                                              #'district.server.web3-events/web3-events
                                                              #'memefactory.server.syncer/syncer
                                                              #'memefactory.server.pinner/pinner
-                                                             #'memefactory.server.emailer/emailer))
+                                                             #'memefactory.server.emailer/emailer)
+                                                 (web3/ping-stop))
                                    :on-online (fn []
                                                 (log/warn "Ethereum node went online again, starting syncing modules" {:resyncs (swap! resync-count inc)} ::web3-watcher)
                                                 (mount/start #'memefactory.server.db/memefactory-db
                                                              #'district.server.web3-events/web3-events
                                                              #'memefactory.server.syncer/syncer
                                                              #'memefactory.server.pinner/pinner
-                                                             #'memefactory.server.emailer/emailer))}
+                                                             #'memefactory.server.emailer/emailer)
+                                                (web3/ping-start {:ping-interval 10000}))}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var contracts-var}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
