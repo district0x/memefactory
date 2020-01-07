@@ -8,7 +8,7 @@
    [district.server.graphql.utils :as utils]
    [district.server.logging]
    [district.server.middleware.logging :refer [logging-middlewares]]
-   [district.server.web3 :refer [web3]]
+   [district.server.web3]
    [district.server.web3-events]
    [goog.functions :as gfun]
    [memefactory.server.constants :as constants]
