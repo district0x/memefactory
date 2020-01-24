@@ -3,7 +3,6 @@
             [cljs-web3-next.utils :as web3-utils]
             [cljs.core.async :as async]
             [cljs.nodejs :as nodejs]
-            [clojure.string :as string]
             [district.format :as format]
             [district.server.config :as config]
             [district.server.web3 :refer [web3]]
@@ -79,10 +78,10 @@
 
 (defn ensure-media-uploaded [twitter-obj {:keys [image-hash registry-entry]} {:keys [just-log-tweet?]}]
   (safe-go
-   (if-let [media-id (db/get-meme-media-id (string/lower-case registry-entry))]
+   (if-let [media-id (db/get-meme-media-id registry-entry)]
      media-id
      (let [ipfs-hash (or image-hash
-                         (:meme/image-hash (db/get-meme (string/lower-case registry-entry))))
+                         (:meme/image-hash (db/get-meme registry-entry)))
            _ (log/info "Uploading media " {:ipfs-hash ipfs-hash} ::ensure-media-uploaded)
            image-tar-file-content (<? (server-utils/get-ipfs-binary-file ipfs-hash))]
        (when-not just-log-tweet?
@@ -96,8 +95,7 @@
                                               :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme submitted event " ev ::tweet-meme-submitted)
-   (let [registry-entry (string/lower-case registry-entry)
-         meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs (web3-utils/to-ascii @web3 meta-hash)))
+   (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs (web3-utils/to-ascii @web3 meta-hash)))
          {:keys [title image-hash]} meme-meta
          media-id (<? (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts))
          meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
@@ -114,8 +112,7 @@
                                                       :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme challenged event " ev ::tweet-meme-challenged)
-   (let [registry-entry (string/lower-case registry-entry)
-         meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
+   (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
          title (:meme/title (db/get-meme registry-entry))
          text (rand-nth [(gstring/format "A challenger appears... '%s' has had it's place in the DANK registry contested. DANK or STANK? %s" title meme-detail-url)
                          (gstring/format "%s has been challenged. DANK or STANK? Vote today %s" title meme-detail-url)])
@@ -148,8 +145,7 @@
 (defn tweet-meme-auction-bought [twitter-obj opts {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (safe-go
    (log/debug "Twitter bot processing auction bought event " ev ::tweet-meme-auction-bought)
-   (let [meme-auction (string/lower-case meme-auction)
-         {:keys [:reg-entry/address :meme/title]} (-> meme-auction
+   (let [{:keys [:reg-entry/address :meme/title]} (-> meme-auction
                                                       db/get-meme-by-auction-address)
          meme-detail-url (str "https://memefactory.io/meme-detail/" address)
          price-eth (bn/number (web3-utils/from-wei @web3 price :ether))
