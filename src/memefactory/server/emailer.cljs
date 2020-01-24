@@ -62,10 +62,11 @@
     :api-key api-key
     :print-mode? print-mode?}))
 
-(defn send-challenge-created-email [{:keys [:registry-entry :challenger :commit-period-end
+(defn send-challenge-created-email [{:keys [:registry-entry :commit-period-end
                                             :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (safe-go
-   (let [{:keys [:reg-entry/creator :meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
+   (let [registry-entry (string/lower-case registry-entry)
+         {:keys [:reg-entry/creator :meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
          ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
@@ -130,7 +131,9 @@
 
 (defn send-auction-bought-email [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
   (safe-go
-   (let [{:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
+   (let [meme-auction (string/lower-case meme-auction)
+         buyer (string/lower-case buyer)
+         {:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
          {:keys [:reg-entry/address :meme/title :meme/image-hash]} (db/get-meme-by-auction-address address)
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
@@ -198,7 +201,9 @@
 
 (defn send-vote-reward-claimed-email [{:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
   (safe-go
-   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
+   (let [registry-entry (string/lower-case registry-entry)
+         voter (string/lower-case voter)
+         {:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme (string/lower-case registry-entry))
          {:keys [:vote/option]} (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/option])
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer ])
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
@@ -261,7 +266,9 @@
 
 (defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
   (safe-go
-   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
+   (let [registry-entry (string/lower-case registry-entry)
+         challenger (string/lower-case challenger)
+         {:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme (string/lower-case registry-entry))
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
          ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
