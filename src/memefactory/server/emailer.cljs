@@ -62,7 +62,7 @@
     :api-key api-key
     :print-mode? print-mode?}))
 
-(defn send-challenge-created-email [{:keys [:registry-entry :challenger :commit-period-end
+(defn send-challenge-created-email [{:keys [:registry-entry :commit-period-end
                                             :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (safe-go
    (let [{:keys [:reg-entry/creator :meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)

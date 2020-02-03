@@ -54,7 +54,7 @@
                  [district0x/district-ui-smart-contracts "1.0.8"]
                  [district0x/district-ui-web3 "1.3.2"]
                  [district0x/district-ui-web3-account-balances "1.0.2"]
-                 [district0x/district-ui-web3-accounts "1.0.6"]
+                 [district0x/district-ui-web3-accounts "1.0.7"]
                  [district0x/district-ui-web3-balances "1.0.2"]
                  [district0x/district-ui-web3-sync-now "1.0.3-2"]
                  [district0x/district-ui-web3-tx "1.0.11"]
@@ -100,6 +100,8 @@
             [lein-pdo "0.1.1"]
             [lein-garden "0.3.0"]]
 
+  :doo {:paths {:karma "./node_modules/karma/bin/karma"}}
+
   :npm {:dependencies [["@sentry/node" "4.2.1"]
                        [better-sqlite3 "5.4.0"]
                        [chalk "2.3.0"]
@@ -125,7 +127,10 @@
                        [truffle-hdwallet-provider "1.0.12"]
                        [dotenv "8.0.0"]
                        ;; before its in cljsjs
-                       [web3 "1.2.0"]]}
+                       [web3 "1.2.0"]]
+        :devDependencies [[karma "1.7.1"]
+                          [karma-cli "1.0.1"]
+                          [karma-cljs-test "0.1.0"]]}
 
   :source-paths ["src" "test"]
 

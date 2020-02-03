@@ -90,7 +90,7 @@
            media-id))))))
 
 
-(defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :timestamp :creator :meta-hash
+(defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :timestamp :meta-hash
                                                      :total-supply :version :deposit :challenge-period-end]
                                               :as ev}]
   (safe-go
@@ -108,7 +108,7 @@
              :media-id media-id}
             opts))))
 
-(defn tweet-meme-challenged [twitter-obj opts {:keys [:registry-entry :challenger :commit-period-end
+(defn tweet-meme-challenged [twitter-obj opts {:keys [:registry-entry :commit-period-end
                                                       :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme challenged event " ev ::tweet-meme-challenged)
@@ -124,7 +124,8 @@
 
 ;; We need to watch out here tweet it just once, even if more cards of the same meme were offered at once.
 (def memes-offered-already-tweeted (atom #{}))
-(defn tweet-meme-offered [twitter-obj opts {:keys [:meme-auction :timestamp :meme-auction :token-id :seller :start-price :end-price
+
+(defn tweet-meme-offered [twitter-obj opts {:keys [:timestamp :token-id :start-price :end-price
                                                    :duration :description :started-on :block-number] :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme offered event " ev ::tweet-meme-offered)
