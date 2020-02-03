@@ -21,6 +21,7 @@
              :console? true}
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-dev/smart-contracts skipped-contracts)}
+   :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK])}
    :web3 {:url "http://localhost:8545"}
    :web3-tx {:disable-loading-recommended-gas-prices? true}
@@ -44,6 +45,7 @@
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-qa/smart-contracts skipped-contracts)
                      :load-method :use-loaded}
+   :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK])}
    :web3 {:url "https://ropsten.infura.io"}
    :web3-tx-log {:disable-using-localstorage? false
@@ -68,6 +70,7 @@
    :time-source :blockchain
    :smart-contracts {:contracts (apply dissoc smart-contracts-prod/smart-contracts skipped-contracts)
                      :load-method :use-loaded}
+   :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK])}
    :web3 {:url "https://mainnet.infura.io"}
    :web3-tx-log {:disable-using-localstorage? false
