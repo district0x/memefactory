@@ -61,6 +61,7 @@
                  [district0x/district-ui-web3-tx-id "1.0.1"]
                  [district0x/district-ui-web3-tx-log "1.0.11"]
                  [district0x/district-ui-window-size "1.0.1"]
+                 [district0x/eip55 "0.0.1"]
                  [district0x/error-handling "1.0.4"]
                  [district0x/re-frame-ipfs-fx "1.1.1"]
                  [funcool/bide "1.6.1-SNAPSHOT"] ;; version with fix for duplicated query params

@@ -1,16 +1,17 @@
 (ns memefactory.ui.config
-  (:require
-   [ajax.core :as ajax]
-   [district.graphql-utils :as graphql-utils]
-   [district.ui.logging.events :as logging]
-   [graphql-query.core :refer [graphql-query]]
-   [memefactory.shared.graphql-schema :refer [graphql-schema]]
-   [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
-   [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
-   [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
-   [mount.core :refer [defstate]]
-   [re-frame.core :as re-frame]
-   [taoensso.timbre :as log])
+  (:require [ajax.core :as ajax]
+            [district.graphql-utils :as graphql-utils]
+            [district.ui.logging.events :as logging]
+            [district.ui.smart-contracts.queries :as contract-queries]
+            [eip55.core :refer [address->checksum]]
+            [graphql-query.core :refer [graphql-query]]
+            [memefactory.shared.graphql-schema :refer [graphql-schema]]
+            [memefactory.shared.smart-contracts-dev :as smart-contracts-dev]
+            [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
+            [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
+            [mount.core :refer [defstate]]
+            [re-frame.core :as re-frame]
+            [taoensso.timbre :as log])
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
 (def skipped-contracts [:ds-guard :minime-token-factory])
@@ -98,8 +99,10 @@
 
 (defn load-db-params [db {:keys [on-success]}]
   (let [graphql-url (-> config-map :graphql :url)
-        _ (log/debug "Loading param change initial parameters" {:graphql-url graphql-url})
-        query (graphql-query {:queries [[:params {:db db
+        db-address (address->checksum db)
+        _ (log/debug "Loading param change initial parameters" {:graphql-url graphql-url
+                                                                :db db-address})
+        query (graphql-query {:queries [[:params {:db db-address
                                                   :keys [(graphql-utils/kw->gql-name :max-auction-duration)
                                                          (graphql-utils/kw->gql-name :max-total-supply)
                                                          (graphql-utils/kw->gql-name :reveal-period-duration)
@@ -120,14 +123,14 @@
 
 (re-frame/reg-event-fx
  ::load-memefactory-db-params
- (fn [cofx _]
-   (load-db-params (graphql-utils/kw->gql-name :meme-registry-db)
+ (fn [{:keys [:db]} _]
+   (load-db-params (contract-queries/contract-address db :meme-registry-db)
                    {:on-success [::db-params-loaded ::memefactory-db-params]})))
 
 (re-frame/reg-event-fx
  ::load-param-change-db-params
- (fn [cofx _]
-   (load-db-params (graphql-utils/kw->gql-name :param-change-registry-db)
+ (fn [{:keys [:db]} _]
+   (load-db-params (contract-queries/contract-address db :param-change-registry-db)
                    {:on-success [::db-params-loaded ::param-change-db-params]})))
 
 (re-frame/reg-event-db
