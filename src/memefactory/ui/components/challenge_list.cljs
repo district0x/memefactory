@@ -43,6 +43,8 @@
                        :challenge/commit-period-end
                        :challenge/reveal-period-end
                        :challenge/comment
+                       :challenge/votes-for
+                       :challenge/votes-against
                        :meme/total-supply
                        :meme/image-hash
                        :meme/title
