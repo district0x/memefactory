@@ -122,6 +122,9 @@
                (let [statuses-set (when statuses (set statuses))
                      page-start-idx (when after (js/parseInt after))
                      page-size first
+                     tags (when tags (map string/lower-case tags))
+                     tags-not (when tags-not (map string/lower-case tags-not))
+                     tags-or (when tags-or (map string/lower-case tags-or))
                      query (cond-> {:select [:re.* :memes.* :votes.votes-total :meme/average-price :meme/highest-single-sale]
                                     :from [:memes]
                                     :modifiers [:distinct]
@@ -244,6 +247,9 @@
                (let [statuses-set (when statuses (set statuses))
                      page-start-idx (when after (js/parseInt after))
                      page-size first
+                     tags (when tags (map string/lower-case tags))
+                     tags-not (when tags-not (map string/lower-case tags-not))
+                     tags-or (when tags-or (map string/lower-case tags-or))
                      query (cond-> {:select [:ma.* :m.reg-entry/address :m.meme/total-minted :m.meme/number :mt.meme-token/number]
                                     :modifiers [:distinct]
                                     :from [[:meme-auctions :ma]]
@@ -262,10 +268,11 @@
                                                                        [:in :mtts.tag/name tags]]}])
                              non-for-meme (sqlh/merge-where [:not= :m.reg-entry/address non-for-meme])
                              for-meme     (sqlh/merge-where [:= :m.reg-entry/address for-meme])
-                             tags-or      (sqlh/merge-where [:in :mtags.tag/name tags-or])
-                             tags-not     (sqlh/merge-where [:or
-                                                             [:not-in :mtags.tag/name tags-not]
-                                                             [:= :mtags.tag/name nil]])
+                             tags-or      (sqlh/merge-where [:in (sql/call :lower :mtags.tag/name) tags-or])
+                             tags-not     (sqlh/merge-where [:not-in :m.reg-entry/address {:select [:mtags.reg-entry/address]
+                                                                                           :modifiers [:distinct]
+                                                                                           :from [:meme-tags]
+                                                                                           :where [:in (sql/call :lower :mtags.tag/name) tags-not]}])
                              statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                              order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                                        :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
