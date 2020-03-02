@@ -269,10 +269,10 @@
                              non-for-meme (sqlh/merge-where [:not= :m.reg-entry/address non-for-meme])
                              for-meme     (sqlh/merge-where [:= :m.reg-entry/address for-meme])
                              tags-or      (sqlh/merge-where [:in (sql/call :lower :mtags.tag/name) tags-or])
-                             tags-not     (sqlh/merge-where [:not-in :m.reg-entry/address {:select [:mtags.reg-entry/address]
+                             tags-not     (sqlh/merge-where [:not-in :m.reg-entry/address {:select [:meme-tags.reg-entry/address]
                                                                                            :modifiers [:distinct]
                                                                                            :from [:meme-tags]
-                                                                                           :where [:in (sql/call :lower :mtags.tag/name) tags-not]}])
+                                                                                           :where [:in (sql/call :lower :meme-tags.tag/name) tags-not]}])
                              statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
                              order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                                        :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
