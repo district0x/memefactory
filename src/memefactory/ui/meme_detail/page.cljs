@@ -586,7 +586,7 @@
              (if exists?
                [:div.registry {:key :registry}
                 [:h1 title]
-                [:div.status (case (gql-utils/gql-name->kw status)
+                [:div.status (case status
                                :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
                                :reg-entry.status/blacklisted [:label.rejected "Rejected from Registry"]
                                :reg-entry.status/challenge-period [:label.rejected "Open for Challenge"]
