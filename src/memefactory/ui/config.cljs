@@ -25,7 +25,8 @@
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK])}
    :web3 {:url "http://localhost:8545"}
-   :web3-tx {:disable-loading-recommended-gas-prices? true}
+   :web3-tx {:disable-loading-recommended-gas-prices? true
+             :eip55? true}
    :web3-tx-log {:disable-using-localstorage? true
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
@@ -49,6 +50,7 @@
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK])}
    :web3 {:url "https://ropsten.infura.io"}
+   :web3-tx {:eip55? true}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
@@ -74,6 +76,7 @@
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK])}
    :web3 {:url "https://mainnet.infura.io"}
+   :web3-tx {:eip55? true}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
