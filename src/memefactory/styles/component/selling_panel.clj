@@ -1,12 +1,11 @@
 (ns memefactory.styles.component.selling-panel
-  (:require
-    [clojure.string :as s]
-    [garden.def :refer [defstyles]]
-    [garden.selectors :as sel]
-    [garden.units :refer [pt px em rem]]
-    [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-    [memefactory.styles.component.compact-tile :refer [overlay-background-footer]]
-    [memefactory.styles.base.colors :refer [color]]))
+  (:require [garden.def :refer [defstyles]]
+            [garden.units :refer [em px]]
+            [memefactory.styles.base.colors :refer [color]]
+            [memefactory.styles.base.media :refer [for-media-max]]
+            [memefactory.styles.component.compact-tile
+             :refer
+             [overlay-background-footer]]))
 
 (defstyles core
   [:.selling-panel

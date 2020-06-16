@@ -1,17 +1,10 @@
 (ns memefactory.styles.component.buttons
-  (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.base.borders :refer [border-top]]
+  (:require [garden.units :refer [em px]]
             [memefactory.styles.base.colors :as c]
             [memefactory.styles.base.fonts :refer [font]]
-            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-            [garden.selectors :as sel]
-            [garden.units :refer [pt px em rem]]
-            [clojure.string :as str]))
+            [memefactory.styles.base.media :refer [for-media-max]]))
 
-(defn button [{:keys [color background-color before-icon after-icon width height line-height]}]
+(defn button [{:keys [color background-color  width height line-height]}]
   [:&
    (font :bungee)
    (merge
@@ -41,7 +34,6 @@
     [:img
      {:height (or height (em 1.8))
       :width (or height (em 1.8))}]]])
-
 
 (defn get-dank-button []
   [:&
@@ -90,7 +82,6 @@
     :font-size (px 12)
     :padding "8px 20px"
     :display :inline-block}])
-
 
 (defn vote-button-icon [top & [left]]
   [:&:before {:content "''"

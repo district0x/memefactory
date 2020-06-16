@@ -1,10 +1,8 @@
 (ns memefactory.styles.pages.my-settings
   (:require [garden.def :refer [defstyles]]
-            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-            [garden.units :refer [pt px em rem]]
-            [memefactory.styles.base.colors :as c]
-            [memefactory.styles.base.fonts :refer [font]]
-            [memefactory.styles.component.buttons :refer [button get-dank-button]]
+            [garden.units :refer [em px]]
+            [memefactory.styles.base.media :refer [for-media-max for-media-min]]
+            [memefactory.styles.component.buttons :refer [get-dank-button]]
             [memefactory.styles.component.panels :refer [panel-with-icon]]))
 
 (defstyles core

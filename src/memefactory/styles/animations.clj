@@ -1,9 +1,6 @@
 (ns memefactory.styles.animations
-  (:require
-   [garden.core :refer [css]]
-   [garden.def :refer [defstyles]]
-   [garden.stylesheet :refer [at-media at-keyframes]]
-   [garden.units :refer [rem px em]]))
+  (:require [garden.def :refer [defstyles]]
+            [garden.stylesheet :refer [at-keyframes]]))
 
 (defstyles core
   (at-keyframes :spin

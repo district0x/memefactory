@@ -9,7 +9,7 @@
     (when latest-event?
       (callback event))))
 
-(defn log-dank-event [{:keys [:event :args] :as evt}]
+(defn log-dank-event [{:keys [:event :args]}]
   (case event
     :DankResetEvent (log/info "DANK Faucet allotment for a phone number has been reset" args)
     :OraclizeRequestEvent (log/info "Oraclize query" args)

@@ -1,12 +1,12 @@
 (ns memefactory.server.db
   (:require [district.server.config :refer [config]]
             [district.server.db :as db]
-            [district.server.db.column-types :refer [address not-nil default-nil default-zero default-false sha3-hash primary-key]]
-            [district.server.db.honeysql-extensions]
-            [honeysql.core :as sql]
+            [district.server.db.column-types
+             :refer
+             [address default-nil default-zero not-nil primary-key]]
             [honeysql-postgres.helpers :as psqlh]
-            [honeysql.helpers :as sqlh :refer [merge-where merge-order-by merge-left-join defhelper]]
-            [medley.core :as medley]
+            [honeysql.core :as sql]
+            [honeysql.helpers :as sqlh]
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
@@ -161,9 +161,6 @@
 (def twitter-media-column-names (filter keyword? (map first twitter-media-columns)))
 (def events-column-names (filter keyword? (map first events-columns)))
 
-(defn- index-name [col-name]
-  (keyword (namespace col-name) (str (name col-name) "-index")))
-
 (defn create-insert-fn [table-name column-names & [{:keys [:insert-or-replace?]}]]
   (fn [item]
     (let [item (select-keys item column-names)]
@@ -270,7 +267,7 @@
 
 ;; TAGS / MEME-TAGS
 
-(defn tag-meme! [{:keys [:reg-entry/address :tag/name] :as args}]
+(defn tag-meme! [args]
   (db/run! {:insert-into :tags
             :values [(select-keys args tags-column-names)]
             :upsert {:on-conflict [:tag/name]
@@ -391,7 +388,7 @@
             (db/run! (drop-table-if-exists t)))
           tables))))
 
-(defn start [{:keys [:resync?] :as opts}]
+(defn start [{:keys [:resync?]}]
   (when resync?
     (log/info "Database module called with a resync flag.")
     (clean-db))

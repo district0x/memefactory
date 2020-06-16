@@ -1,11 +1,7 @@
 (ns memefactory.styles.container.tiles
-  (:require
-   [garden.def :refer [defstyles]]
-   [garden.stylesheet :refer [at-media]]
-   [clojure.string :as s]
-   [memefactory.styles.base.colors :refer [color]]
-   [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-   [garden.units :refer [px em]]))
+  (:require [garden.def :refer [defstyles]]
+            [garden.units :refer [em]]
+            [memefactory.styles.base.media :refer [for-media-max]]))
 
 (defstyles core
   [:.tiles

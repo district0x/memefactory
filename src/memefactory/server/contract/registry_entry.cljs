@@ -5,9 +5,11 @@
             [clojure.string :as string]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [web3]]
-            [district.shared.async-helpers :refer [promise-> safe-go <?]]
+            [district.shared.async-helpers :refer [promise->]]
             [memefactory.server.contract.dank-token :as dank-token]
-            [memefactory.shared.contract.registry-entry :refer [parse-status vote-option->num vote-options]]))
+            [memefactory.shared.contract.registry-entry
+             :refer
+             [parse-status vote-option->num]]))
 
 (defn status [contract-addr]
   (-> (smart-contracts/contract-call [:meme contract-addr] :status)
@@ -31,7 +33,7 @@
                                 :extra-data (commit-vote-data (merge {:voter (:from opts)} args))}
                                (merge {:gas 1200000} opts)))
 
-(defn reveal-vote [contract-addr {:keys [:address :vote-option :salt]} & [opts]]
+(defn reveal-vote [contract-addr {:keys [:vote-option :salt]} & [opts]]
   (smart-contracts/contract-send (smart-contracts/instance :meme contract-addr) :reveal-vote [(vote-option->num vote-option) salt] (merge {:gas 500000} opts)))
 
 (defn claim-rewards [contract-addr & [opts]]

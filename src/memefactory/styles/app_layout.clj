@@ -1,8 +1,7 @@
 (ns memefactory.styles.app-layout
-  (:require [clojure.string :as s]
+  (:require [garden.color :refer [transparentize]]
             [garden.def :refer [defstyles]]
-            [garden.units :refer [px em]]
-            [garden.color :refer [transparentize]]
+            [garden.units :refer [em px]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.grid :refer [grid-columns]]
             [memefactory.styles.base.media :refer [for-media-max]]))

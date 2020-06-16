@@ -1,16 +1,13 @@
 (ns memefactory.server.emailer
   (:require [cljs-time.coerce :as time-coerce]
             [cljs-time.core :as cljs-time]
-            [cljs.core.async :as async]
             [clojure.string :as string]
             [district.encryption :as encryption]
             [district.format :as format]
             [district.sendgrid :refer [send-email]]
             [district.server.config :as config]
-            [district.server.logging]
             [district.server.web3-events :as web3-events]
-            [district.shared.async-helpers :refer [safe-go <?]]
-            [district.shared.error-handling :refer [try-catch]]
+            [district.shared.async-helpers :refer [<? safe-go]]
             [district.time :as time]
             [goog.format.EmailAddress :as email-address]
             [memefactory.server.contract.district0x-emails :as district0x-emails]
@@ -62,8 +59,7 @@
     :api-key api-key
     :print-mode? print-mode?}))
 
-(defn send-challenge-created-email [{:keys [:registry-entry :commit-period-end
-                                            :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
+(defn send-challenge-created-email [{:keys [:registry-entry :commit-period-end] :as ev}]
   (safe-go
    (let [{:keys [:reg-entry/creator :meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
@@ -128,7 +124,7 @@
                :api-key api-key
                :print-mode? print-mode?}))
 
-(defn send-auction-bought-email [{:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
+(defn send-auction-bought-email [{:keys [:meme-auction :buyer :price] :as ev}]
   (safe-go
    (let [{:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
          {:keys [:reg-entry/address :meme/title :meme/image-hash]} (db/get-meme-by-auction-address address)
@@ -196,7 +192,7 @@
                :api-key api-key
                :print-mode? print-mode?}))
 
-(defn send-vote-reward-claimed-email [{:keys [:registry-entry :timestamp :version :voter :amount] :as ev}]
+(defn send-vote-reward-claimed-email [{:keys [:registry-entry :voter :amount] :as ev}]
   (safe-go
    (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:vote/option]} (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/option])
@@ -259,7 +255,7 @@
                :api-key api-key
                :print-mode? print-mode?}))
 
-(defn send-challenge-reward-claimed-email [{:keys [:registry-entry :timestamp :version :challenger :amount] :as ev}]
+(defn send-challenge-reward-claimed-email [{:keys [:registry-entry :challenger :amount] :as ev}]
   (safe-go
    (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
@@ -292,7 +288,7 @@
        (log/info "No email found for challenger" {:event ev :meme meme} ::send-challenge-reward-claimed-email)))))
 
 (defn- dispatcher [callback]
-  (fn [_ {:keys [:latest-event? :args] :as ev}]
+  (fn [_ {:keys [:latest-event? :args]}]
     (when latest-event?
       (callback args))))
 

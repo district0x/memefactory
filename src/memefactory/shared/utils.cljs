@@ -3,16 +3,15 @@
             [cljs-time.coerce :as time-coerce]
             [cljs-time.core :as time]
             [cljs.core.match :refer-macros [match]]
-            [cljsjs.filesaverjs]
             [district.graphql-utils :as gql-utils])
-  (:require-macros [memefactory.shared.utils])
-  (:import [goog.async Debouncer]))
+  (:import goog.async.Debouncer))
 
 ;; started-on, duration and now are expected in seconds
 (defn calculate-meme-auction-price [{:keys [:meme-auction/start-price
                                             :meme-auction/end-price
                                             :meme-auction/duration
-                                            :meme-auction/started-on] :as auction} now]
+                                            :meme-auction/started-on]}
+                                    now]
   (let [seconds-passed (- now started-on)
         total-price-change (- start-price end-price)
         current-price-change (quot (* total-price-change seconds-passed) duration)]
@@ -46,9 +45,9 @@
   (let [dbnc (Debouncer. f interval)]
     (fn [& args] (.apply (.-fire dbnc) dbnc (to-array args)))))
 
-(defn reg-entry-status [now {:keys [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
-                                    :challenge/commit-period-end :challenge/commit-period-end
-                                    :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against] :as reg-entry}]
+(defn reg-entry-status [now {:keys [:reg-entry/challenge-period-end :challenge/challenger
+                                    :challenge/commit-period-end :challenge/reveal-period-end
+                                    :challenge/votes-for :challenge/votes-against]}]
   (cond
     (and (< now challenge-period-end) (not challenger)) :reg-entry.status/challenge-period
     (< now commit-period-end)                           :reg-entry.status/commit-period

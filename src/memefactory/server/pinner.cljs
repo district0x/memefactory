@@ -2,11 +2,9 @@
   (:require [cljs-ipfs-api.pin :as pin]
             [cljs-web3-next.utils :as web3-utils]
             [district.server.config :refer [config]]
-            [district.server.logging]
             [district.server.web3 :refer [web3]]
             [district.server.web3-events :as web3-events]
-            [district.shared.async-helpers :refer [safe-go <?]]
-            [goog.date.Date]
+            [district.shared.async-helpers :refer [<? safe-go]]
             [memefactory.server.ipfs :as ipfs]
             [memefactory.server.utils :as server-utils]
             [mount.core :as mount :refer [defstate]]
@@ -29,24 +27,23 @@
        (log/error (str "Meme meta hash is not valid IPFS hash " meta-hash) ::invalid-meta-hash)
 
        :else
-       (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs meta-hash))]
-         (let [{:keys [:image-hash]} meme-meta]
+       (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs meta-hash))
+             {:keys [:image-hash]} meme-meta]
+         (if-not (ipfs/ipfs-hash? image-hash)
+           (log/error (str "Meme image hash is not valid IPFS hash " image-hash) ::invalid-image-hash)
 
-           (if-not (ipfs/ipfs-hash? image-hash)
-             (log/error (str "Meme image hash is not valid IPFS hash " image-hash) ::invalid-image-hash)
+           (do
+             (pin/add meta-hash
+                      (fn [err]
+                        (if err
+                          (log/error (str "Pinning meme meta hash failed " meta-hash) ::pin-meta-hash)
+                          (log/info (str "Pinned meme meta hash " meta-hash) ::pin-meta-hash))))
 
-             (do
-               (pin/add meta-hash
-                        (fn [err]
-                          (if err
-                            (log/error (str "Pinning meme meta hash failed " meta-hash) ::pin-meta-hash)
-                            (log/info (str "Pinned meme meta hash " meta-hash) ::pin-meta-hash))))
-
-               (pin/add image-hash
-                        (fn [err]
-                          (if err
-                            (log/error (str "Pinning meme image hash failed " image-hash " " err) ::pin-image-hash)
-                            (log/info (str "Pinned meme image hash " image-hash) ::pin-image-hash))))))))))))
+             (pin/add image-hash
+                      (fn [err]
+                        (if err
+                          (log/error (str "Pinning meme image hash failed " image-hash " " err) ::pin-image-hash)
+                          (log/info (str "Pinned meme image hash " image-hash) ::pin-image-hash)))))))))))
 
 (defn challenge-created-event [err {:keys [:args]}]
   (let [{:keys [:metahash]} args

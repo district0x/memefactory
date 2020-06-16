@@ -6,7 +6,7 @@
             [district.server.web3 :refer [web3]]
             [memefactory.server.contract.dank-token :as dank-token]))
 
-(defn create-param-change-data [{:keys [:creator :db :key :value :meta-hash] :as args}]
+(defn create-param-change-data [{:keys [:creator :db :key :value :meta-hash]}]
   (web3-eth/encode-abi (smart-contracts/instance :param-change-factory)
                        :create-param-change
                        [creator

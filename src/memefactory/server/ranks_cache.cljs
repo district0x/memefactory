@@ -1,13 +1,7 @@
 (ns memefactory.server.ranks-cache
-  (:require [district.server.config :refer [config]]
-            [district.server.db :as db]
-            [mount.core :as mount :refer [defstate]]
-            [honeysql.core :as sql]
-            [honeysql.helpers :refer [merge-where merge-order-by merge-left-join defhelper]]
-            [cljs.cache :as cache]
-            [memefactory.server.db]))
-
-
+  (:require [cljs.cache :as cache]
+            [district.server.config :refer [config]]
+            [mount.core :as mount :refer [defstate]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Our users ranks cache is a TTL cache by ranks type [:creator-rank :challenger-rank :voter-rank :curator-rank] ;;
@@ -24,15 +18,14 @@
 ;;                    "USER_ADDR2" 23}}                                                                          ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (declare start)
 (declare stop)
+(declare ranks-cache)
 
 (defstate ranks-cache
   :start (start (merge (:ranks-cache @config)
                        (:ranks-cache (mount/args))))
   :stop (stop))
-
 
 (defn start [opts]
   (atom (cache/ttl-cache-factory {nil nil} ;; Do we want to start with cold cache?

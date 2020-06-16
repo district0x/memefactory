@@ -5,7 +5,7 @@
             [district.server.web3 :refer [web3]]
             [memefactory.server.contract.dank-token :as dank-token]))
 
-(defn create-meme-data [{:keys [:creator :meta-hash :total-supply] :as args}]
+(defn create-meme-data [{:keys [:creator :meta-hash :total-supply]}]
   (web3-eth/encode-abi (smart-contracts/instance :meme-factory) :create-meme [creator (web3-utils/from-ascii @web3 meta-hash) total-supply]))
 
 (defn approve-and-create-meme [{:keys [:amount] :as args} & [opts]]

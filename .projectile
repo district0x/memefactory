@@ -18,3 +18,4 @@
 -.cljs_node_repl
 -package-lock.json
 -figwheel_server.log
+-.clj-kondo/*

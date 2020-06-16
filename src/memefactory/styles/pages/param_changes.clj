@@ -1,16 +1,13 @@
 (ns memefactory.styles.pages.param-changes
   (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.base.borders :refer [border-top]]
+            [garden.units :refer [em px]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
-            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-            [garden.selectors :as sel]
-            [garden.units :refer [pt px em rem]]
-            [memefactory.styles.component.panels :refer [panel-with-icon tabs]]
-            [memefactory.styles.component.buttons :refer [button get-dank-button vote-button-icon]]))
+            [memefactory.styles.base.media :refer [for-media-max]]
+            [memefactory.styles.component.buttons
+             :refer
+             [button get-dank-button vote-button-icon]]
+            [memefactory.styles.component.panels :refer [panel-with-icon tabs]]))
 
 (defstyles core
   [:.param-change-page
