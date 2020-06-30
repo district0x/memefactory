@@ -82,7 +82,7 @@ function login {
 
 function before {
   lein deps
-  lein npm install
+  yarn deps
   truffle compile
 }
 
