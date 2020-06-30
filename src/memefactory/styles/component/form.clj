@@ -1,12 +1,8 @@
 (ns memefactory.styles.component.form
-  (:require
-   [garden.def :refer [defstyles]]
-   [garden.stylesheet :refer [at-media]]
-   [clojure.string :as s]
-   [memefactory.styles.base.colors :refer [color]]
-   [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-   [memefactory.styles.base.fonts :refer [font]]
-   [garden.units :refer [px em pt]]))
+  (:require [garden.def :refer [defstyles]]
+            [garden.units :refer [em px]]
+            [memefactory.styles.base.colors :refer [color]]
+            [memefactory.styles.base.media :refer [for-media-max]]))
 
 (defstyles core
   [:textarea {:outline :none}]
@@ -184,9 +180,7 @@
     :background-size ["0.6em"  "0.6em"]
     :background-position "right 0.5em center";
     :background-repeat :no-repeat
-    :background-image "url('/assets/icons/dropdown.png')"
-
-    }
+    :background-image "url('/assets/icons/dropdown.png')"}
    [:&.white-select
     {:background-color :white
      :border-radius "2em"
@@ -199,5 +193,4 @@
      :background-position "right 1.5em center"
      :box-shadow ".3em .3em 0px 0px rgba(0,0,0,0.05)"}
     (for-media-max :tablet
-                   [:& {:margin-right :unset}])]]
-  )
+                   [:& {:margin-right :unset}])]])

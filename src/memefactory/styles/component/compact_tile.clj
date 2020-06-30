@@ -1,25 +1,19 @@
 (ns memefactory.styles.component.compact-tile
-  (:require
-   [garden.def :refer [defstyles]]
-   [garden.stylesheet :refer [at-media at-keyframes]]
-   [clojure.string :as s]
-   [memefactory.styles.base.colors :refer [color]]
-   [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-   [memefactory.styles.base.fonts :refer [font]]
-   [memefactory.styles.component.buttons :refer [button]]
-   [memefactory.styles.component.overflow :refer [of-ellipsis]]
-   [garden.units :refer [px em pt]]))
-
+  (:require [garden.def :refer [defstyles]]
+            [garden.stylesheet :refer [at-keyframes]]
+            [garden.units :refer [em pt px]]
+            [memefactory.styles.base.colors :refer [color]]
+            [memefactory.styles.base.fonts :refer [font]]
+            [memefactory.styles.component.buttons :refer [button]]
+            [memefactory.styles.component.overflow :refer [of-ellipsis]]))
 
 (def bar-height (px 50))
 (def card-aspect-ratio 1.5)
 (def card-width 290)
 (def card-height (int (* card-aspect-ratio card-width)))
 
-
 (def animation-speed "0.35s")
 (def animation-timing "ease-in")
-
 
 (def no-select-style
   {:-webkit-touch-callout :none
@@ -29,14 +23,12 @@
    :-ms-user-select :none
    :user-select :none})
 
-
 (def no-drag-style
   {:-webkit-user-drag :none
    :-khtml-user-drag :none
    :-moz-user-drag :none
    :-o-user-drag :none
    :user-drag :none})
-
 
 (def default-animation-style
   {:-webkit-animation-duration animation-speed
@@ -45,7 +37,6 @@
    :animation-timing-function animation-timing
    :-webkit-transform-style :preserve-3d
    :transform-style :preserve-3d})
-
 
 (def overlay-background (str "linear-gradient(to bottom, "
                              (color :meme-bg) " 0%,"
@@ -56,7 +47,6 @@
                                     (color :meme-bg) " 80%,"
                                     (color :meme-bg-bottom) " 80%,"
                                     (color :meme-bg-bottom) " 100%)"))
-
 
 (defstyles core
 
@@ -97,8 +87,6 @@
    :flipping-back-not-facing
    [:from {:transform "rotateY(0deg);"}]
    [:to {:transform "rotateY(-180deg);"}])
-
-
 
   ;;
   ;; Main Tile Styling

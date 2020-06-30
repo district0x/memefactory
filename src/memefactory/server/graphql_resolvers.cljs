@@ -1,10 +1,5 @@
 (ns memefactory.server.graphql-resolvers
-  (:require [ajax.core :refer [GET POST]]
-            [bignumber.core :as bn]
-            [cljs-time.core :as t]
-            [cljs-web3-next.core :as web3-core]
-            [cljs-web3-next.eth :as web3-eth]
-            [cljs.core.match :refer-macros [match]]
+  (:require [cljs.core.match :refer-macros [match]]
             [cljs.nodejs :as nodejs]
             [clojure.set :as clj-set]
             [clojure.string :as string]
@@ -12,9 +7,8 @@
             [district.server.config :refer [config]]
             [district.server.db :as db]
             [district.server.smart-contracts :as smart-contracts]
-            [district.server.web3 :as web3]
-            [district.shared.async-helpers :refer [safe-go <? promise->]]
-            [district.shared.error-handling :refer [try-catch-throw try-catch]]
+            [district.shared.async-helpers :refer [promise->]]
+            [district.shared.error-handling :refer [try-catch-throw]]
             [honeysql.core :as sql]
             [honeysql.helpers :as sqlh]
             [memefactory.server.db :as mf-db]
@@ -49,14 +43,6 @@
        (map graphql-utils/gql-name->kw)
        set))
 
-(defn- graphqlize
-  "Given a map it will transform all the keys into graphql friendly
-  names."
-  [coll]
-  (reduce-kv
-   (fn [m k v]
-     (assoc m k (graphql-utils/kw->gql-name v))) (empty coll) coll))
-
 (defn paged-query
   "Execute a paged query.
   query: a map honeysql query.
@@ -77,16 +63,16 @@
      :end-cursor (str last-idx)
      :has-next-page (< last-idx total-count)}))
 
-(defn meme-query-resolver [_ {:keys [:reg-entry/address] :as args}]
+(defn meme-query-resolver [_ {:keys [:reg-entry/address]}]
   (db/get {:select [:*]
            :from [[:memes :m] [:reg-entries :re]]
            :where [:and
                    [:= :m.reg-entry/address :re.reg-entry/address]
                    [:= :re.reg-entry/address address]]}))
 
-(defn reg-entry-status [now {:keys [:reg-entry/created-on :reg-entry/challenge-period-end :challenge/challenger
-                                    :challenge/commit-period-end :challenge/commit-period-end
-                                    :challenge/reveal-period-end :challenge/votes-for :challenge/votes-against] :as reg-entry}]
+(defn reg-entry-status [now {:keys [:reg-entry/challenge-period-end :challenge/challenger
+                                    :challenge/commit-period-end :challenge/reveal-period-end
+                                    :challenge/votes-for :challenge/votes-against]}]
   (cond
     (and (< now challenge-period-end) (not challenger)) :reg-entry.status/challenge-period
     (< now commit-period-end)                           :reg-entry.status/commit-period
@@ -223,7 +209,7 @@
      (log/debug "meme-auction query" sql-query)
      sql-query)))
 
-(defn meme-auction-status-sql-clause [now]
+(defn meme-auction-status-sql-clause []
   (sql/call ;; TODO: can we remove aliases here?
    :case
    [:not= :ma.meme-auction/canceled-on nil] (enum :meme-auction.status/canceled)
@@ -273,7 +259,7 @@
                                                                                            :modifiers [:distinct]
                                                                                            :from [:meme-tags]
                                                                                            :where [:in (sql/call :lower :meme-tags.tag/name) tags-not]}])
-                             statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause now) statuses-set])
+                             statuses-set (sqlh/merge-where [:in (meme-auction-status-sql-clause ) statuses-set])
                              order-by     (sqlh/merge-order-by [[(get {:meme-auctions.order-by/started-on :ma.meme-auction/started-on
                                                                        :meme-auctions.order-by/bought-on  :ma.meme-auction/bought-on
                                                                        :meme-auctions.order-by/token-id   :ma.meme-auction/token-id
@@ -389,7 +375,7 @@
                                                          (js/parseInt after)))]
                  param-changes-result))))
 
-(defn user-query-resolver [_ {:keys [:user/address] :as args} context debug]
+(defn user-query-resolver [_ {:keys [:user/address] :as args}]
   (log/debug "user args" args)
   (try-catch-throw
    (let [sql-query (db/get {:select [:*]
@@ -517,7 +503,7 @@
        (log/debug "params-query-resolver" sql-query)
        sql-query))))
 
-(defn events-query-resolver [_ {:keys [:event-name :contract-key] :as args}]
+(defn events-query-resolver [_ args]
   (log/debug "events-query-resolver" args)
   (try-catch-throw
    (let [sql-query (mf-db/all-events)]
@@ -560,7 +546,8 @@
        :vote/option
        registry-entry/vote-options))
 
-(defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address :reg-entry/status] :as reg-entry} {:keys [:vote/voter] :as args}]
+(defn reg-entry->vote-winning-vote-option-resolver [{:keys [:reg-entry/address] :as reg-entry}
+                                                    {:keys [:vote/voter] :as args}]
   (log/debug "reg-entry->vote-winning-vote-option-resolver" {:reg-entry reg-entry :args args})
   (promise-> (utils/now-in-seconds)
              (fn [now]
@@ -584,7 +571,7 @@
                                                 (= :vote.option/vote-against (reg-entry-winning-vote-option reg-entry)))
                                          (+ deposit (- deposit reward-pool))
                                          0)
-                     voter-amount (let [{:keys [:vote/option :vote/amount :vote/claimed-reward-on] :as v}
+                     voter-amount (let [{:keys [:vote/option :vote/amount :vote/claimed-reward-on]}
                                         (db/get {:select [:vote/option :vote/amount :vote/claimed-reward-on]
                                                  :from [:votes]
                                                  :where [:and
@@ -657,7 +644,8 @@
      (log/debug "reg-entry->vote query" sql-query)
      sql-query)))
 
-(defn meme->owned-meme-tokens [{:keys [:reg-entry/address] :as meme} {:keys [:owner] :as args}]
+(defn meme->owned-meme-tokens [{:keys [:reg-entry/address]}
+                               {:keys [:owner]}]
   (try-catch-throw
    (let [query (merge {:select [:mto.* :mt.*]
                        :modifiers [:distinct]
@@ -669,7 +657,7 @@
                                [:= :mto.meme-token/owner owner]]})]
      (db/all query))))
 
-(defn meme->tags [{:keys [:reg-entry/address] :as meme}]
+(defn meme->tags [{:keys [:reg-entry/address]}]
   (try-catch-throw
    (db/all {:select [:tag/name]
             :from [:meme-tags]
@@ -914,26 +902,24 @@
   "Amount of different votes user voted for winning option"
   [{:keys [:user/address] :as user}]
   (log/debug "user->total-participated-votes-success-resolver args" user)
-  (promise-> (utils/now-in-seconds)
-             (fn [now]
-               (let [sql-query (when address
-                                 (db/all {:select [:*]
-                                          :from [:votes]
-                                          :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
-                                          :where [:= address :votes.vote/voter]}))]
-                 (log/debug "user->total-participated-votes-success-resolver query" sql-query)
-                 (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
-                           (let [ status (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)]
-                             (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
-                                     (and (= :reg-entry.status/blacklisted status) (= 2 option)))
-                               (inc total)
-                               total)))
-                         0
-                         sql-query)))))
+  (let [sql-query (when address
+                    (db/all {:select [:*]
+                             :from [:votes]
+                             :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
+                             :where [:= address :votes.vote/voter]}))]
+    (log/debug "user->total-participated-votes-success-resolver query" sql-query)
+    (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
+              (let [ status (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)]
+                (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
+                        (and (= :reg-entry.status/blacklisted status) (= 2 option)))
+                  (inc total)
+                  total)))
+            0
+            sql-query)))
 
 (defn user->curator-total-earned-resolver
   [{:keys [:user/voter-total-earned
-           :user/challenger-total-earned] :as user} parent]
+           :user/challenger-total-earned] :as user}]
   (log/debug "user->curator-total-earned-resolver args" user)
   (try-catch-throw
    (when (and voter-total-earned challenger-total-earned)
@@ -1088,8 +1074,7 @@
           (.then (fn [result]
                    (let [python-result (js->clj result)]
                      (log/debug "python encryption result:" python-result)
-                     (let [stdout (get python-result "stdout")
-                           stderr (get python-result "stderr")]
+                     (let [stdout (get python-result "stdout")]
                        {:success true
                         :payload (string/trim-newline stdout)}))))
           (.catch (fn [ex]
@@ -1097,7 +1082,7 @@
                     {:success false
                      :payload (.getMessage ex)}))))))
 
-(defn blacklist-reg-entry-resolver [_ {:keys [address token] :as args}]
+(defn blacklist-reg-entry-resolver [_ {:keys [address token]}]
   (let [{:keys [blacklist-token blacklist-file]} @config]
     (if (= token blacklist-token)
       (do

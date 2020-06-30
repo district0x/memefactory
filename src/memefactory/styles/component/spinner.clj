@@ -1,12 +1,7 @@
 (ns memefactory.styles.component.spinner
-  (:require
-   [garden.def :refer [defstyles]]
-   [garden.stylesheet :refer [at-media at-keyframes]]
-   [clojure.string :as s]
-   [memefactory.styles.base.colors :refer [color]]
-   [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-   [memefactory.styles.base.fonts :refer [font]]
-   [garden.units :refer [px em pt]]))
+  (:require [garden.def :refer [defstyles]]
+            [garden.stylesheet :refer [at-keyframes]]
+            [garden.units :refer [px]]))
 
 (defstyles core
   [:.spinner-outer {:width (px 104)

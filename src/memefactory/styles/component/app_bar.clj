@@ -1,17 +1,11 @@
 (ns memefactory.styles.component.app-bar
-  (:require
-   [garden.def :refer [defstyles]]
-   [garden.stylesheet :refer [at-media]]
-   [clojure.string :as s]
-   [memefactory.styles.base.colors :refer [color]]
-   [memefactory.styles.base.fonts :refer [font]]
-   [memefactory.styles.base.icons :refer [icons]]
-   [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-   [memefactory.styles.component.overflow :refer [of-ellipsis]]
-   [garden.units :refer [rem px em]]))
+  (:require [garden.def :refer [defstyles]]
+            [garden.units :refer [em px rem]]
+            [memefactory.styles.base.colors :refer [color]]
+            [memefactory.styles.base.fonts :refer [font]]
+            [memefactory.styles.base.media :refer [for-media-max for-media-min]]))
 
 (def bar-height 50) ;; px
-
 
 (defstyles core
   [:.app-bar-mobile

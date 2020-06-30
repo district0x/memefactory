@@ -33,7 +33,7 @@
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
                  [district0x/district-server-smart-contracts "1.2.4"]
-                 [district0x/district-server-web3 "1.2.5"]
+                 [district0x/district-server-web3 "1.2.6"]
                  [district0x/district-server-web3-events "1.1.10"]
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
@@ -97,41 +97,10 @@
             [lein-figwheel "0.5.18"]
             [lein-shell "0.5.0"]
             [lein-doo "0.1.8"]
-            [lein-npm "0.6.2"]
             [lein-pdo "0.1.1"]
             [lein-garden "0.3.0"]]
 
   :doo {:paths {:karma "./node_modules/karma/bin/karma"}}
-
-  :npm {:dependencies [["@sentry/node" "4.2.1"]
-                       [better-sqlite3 "5.4.0"]
-                       [chalk "2.3.0"]
-                       [cors "2.8.4"]
-                       [eccjs "0.3.1"]
-                       [express "4.15.3"]
-                       ;; needed until v0.6.13 is officially released
-                       [express-graphql "./resources/libs/express-graphql-0.6.13.tgz"]
-                       [graphql "0.13.1"]
-                       [graphql-fields "1.0.2"]
-                       [graphql-tools "3.0.1"]
-                       [is-ipfs "0.4.8"]
-                       [source-map-support "0.5.3"]
-                       [ws "4.0.0"]
-                       [request-promise "4.2.2"]
-                       ;; truffle script deps
-                       [jsedn "0.4.1"]
-                       [web3-utils "1.0.0-beta.55"]
-                       ;; for twitter bot
-                       [twitter "1.7.1"]
-                       [tar-fs "2.0.0"]
-                       ;; For deploying to infura
-                       [truffle-hdwallet-provider "1.0.12"]
-                       [dotenv "8.0.0"]
-                       ;; before its in cljsjs
-                       [web3 "1.2.0"]]
-        :devDependencies [[karma "1.7.1"]
-                          [karma-cli "1.0.1"]
-                          [karma-cljs-test "0.1.0"]]}
 
   :source-paths ["src" "test"]
 
@@ -158,6 +127,7 @@
                                   [cider/piggieback "0.4.0"]
                                   [figwheel-sidecar "0.5.18"]
                                   [org.clojure/tools.reader "1.3.0"]
+                                  [refactor-nrepl "2.5.0"]
                                   [re-frisk "0.5.3"]
                                   [lein-doo "0.1.8"]]
                    :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
@@ -192,13 +162,23 @@
 
   :cljsbuild {:builds [{:id "dev-server"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared"]
-                        :figwheel {:on-jsload "memefactory.server.dev/on-jsload"}
-                        :compiler {:main "memefactory.server.dev"
+                        :figwheel {:on-jsload "memefactory.server.core/on-jsload"}
+                        :compiler {:main "memefactory.server.core"
                                    :output-to "dev-server/memefactory.js"
                                    :output-dir "dev-server"
                                    :target :nodejs
                                    :optimizations :none
                                    :source-map true}}
+
+                       {:id "server"
+                        :source-paths ["src"]
+                        :compiler {:main "memefactory.server.core"
+                                   :output-to "server/memefactory.js"
+                                   :output-dir "server"
+                                   :target :nodejs
+                                   :optimizations :simple
+                                   :closure-defines {goog.DEBUG false}
+                                   :pretty-print false}}
 
                        {:id "dev-ui"
                         :source-paths ["src/memefactory/ui" "src/memefactory/shared"]
@@ -211,15 +191,7 @@
                                    :preloads [print.foo.preloads.devtools
                                               re-frisk.preload]
                                    :external-config {:devtools/config {:features-to-install :all}}}}
-                       {:id "server"
-                        :source-paths ["src"]
-                        :compiler {:main "memefactory.server.core"
-                                   :output-to "server/memefactory.js"
-                                   :output-dir "server"
-                                   :target :nodejs
-                                   :optimizations :simple
-                                   :source-map "server/memefactory.js.map"
-                                   :pretty-print false}}
+
                        {:id "ui"
                         :source-paths ["src"]
                         :compiler {:main "memefactory.ui.core"
@@ -227,6 +199,7 @@
                                    :optimizations :advanced
                                    :pretty-print true
                                    :pseudo-names true}}
+
                        {:id "server-tests"
                         :source-paths ["src/memefactory/server" "src/memefactory/shared" "test/memefactory"]
                         :compiler {:main "memefactory.tests.runner"

@@ -1,8 +1,5 @@
 (ns memefactory.styles.base.grid
-  (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [garden.units :refer [px]]))
+  (:require [clojure.string :as s]))
 
 (defn grid-columns [& columns]
   {:grid-template-columns (s/join " " (map str columns))})

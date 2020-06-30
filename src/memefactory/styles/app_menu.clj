@@ -1,20 +1,17 @@
 (ns memefactory.styles.app-menu
   (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [memefactory.styles.base.icons :refer [icons]]
+            [garden.selectors :as sel]
+            [garden.units :refer [em pt px rem]]
             [memefactory.styles.base.borders :refer [border-top]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
-            [garden.selectors :as sel]
-            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-            [garden.units :refer [pt px em rem]]))
+            ;; [memefactory.styles.base.icons :refer [icons]]
+            [memefactory.styles.base.media :refer [for-media-max]]))
 
 (def menu-gutter (px 8))
 
 (def bar-height 50) ;; px
 (def tracker-width 270) ;; px
-
 
 (def account-section-style
   {:display :grid

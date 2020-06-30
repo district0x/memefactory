@@ -1,20 +1,20 @@
 (ns memefactory.server.conversion-rates
-  (:require [mount.core :as mount :refer [defstate]]
-            [taoensso.timbre :as log]
-            [cljs.nodejs :as nodejs]
+  (:require [cljs.nodejs :as nodejs]
+            [district.server.config :refer [config]]
             [goog.string :as gstring]
-            [district.server.config :refer [config]]))
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
 (def Https (nodejs/require "https"))
 
 (declare start)
 (declare stop)
+(declare conversion-rates)
 
 (defstate conversion-rates
   :start (start (merge (:conversion-rates @config)
                        (:conversion-rates (mount/args))))
   :stop (stop conversion-rates))
-
 
 (defn get-rate [currency1 currency2]
   (js/Promise.
@@ -57,7 +57,5 @@
     {:interval-ptr interval-ptr
      :rates rates}))
 
-
 (defn stop [conversion-rates]
-  (js/clearInterval (:interval-ptr @conversion-rates))
-  )
+  (js/clearInterval (:interval-ptr @conversion-rates)))

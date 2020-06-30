@@ -1,17 +1,10 @@
 (ns memefactory.styles.pages.leaderboard.curators
   (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.base.borders :refer [border-top border-bottom]]
+            [garden.units :refer [em px]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
-            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-            [memefactory.styles.component.search :refer [search-panel]]
-            [garden.selectors :as sel]
-            [garden.units :refer [pt px em rem]]
-            [memefactory.styles.component.panels :refer [panel-with-icon]]
-            [clojure.string :as str]))
+            [memefactory.styles.base.media :refer [for-media-max]]
+            [memefactory.styles.component.panels :refer [panel-with-icon]]))
 
 (defstyles core
   [:.leaderboard-curators-page
@@ -89,7 +82,6 @@
          [:span
           {:font-weight :normal}]]
 
-
         {:width (em 20)
          :display :block
          :height (em 30)
@@ -99,5 +91,4 @@
          :text-align :center
          :background-color (color :curator-card-bg)}
         [:&.account-tile {:background-color (color :light-green)}]
-        (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])
-        ]]]]]])
+        (for-media-max :tablet [:& {:margin-left 0 :margin-right 0}])]]]]]])

@@ -1,14 +1,8 @@
 (ns memefactory.styles.component.main-content
   (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.base.borders :refer [border-top]]
+            [garden.units :refer [em px]]
             [memefactory.styles.base.colors :refer [color]]
-            [garden.selectors :as sel]
-            [garden.units :refer [pt px em rem]]
-            [memefactory.styles.base.media :refer [for-media-min for-media-max]]))
-
+            [memefactory.styles.base.media :refer [for-media-max]]))
 
 (defstyles core
   [:.main-content
@@ -27,5 +21,4 @@
                      :margin-right (em 1)}])
     (for-media-max :tablet
                    [:&
-                    {:padding-top (em 1)}])
-    ]])
+                    {:padding-top (em 1)}])]])

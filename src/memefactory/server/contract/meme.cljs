@@ -3,8 +3,7 @@
             [cljs-web3-next.utils :as web3-utils]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [web3]]
-            [district.shared.async-helpers :refer [promise->]]
-            [memefactory.shared.utils :as shared-utils]))
+            [district.shared.async-helpers :refer [promise->]]))
 
 (defn construct [contract-addr {:keys [:creator/address :version :meta-hash :total-supply]} & [opts]]
   (smart-contracts/contract-send [:meme contract-addr] :construct [address (or version 1) (web3-utils/from-ascii @web3 meta-hash) total-supply] (merge {:from address :gas 6000000} opts)))

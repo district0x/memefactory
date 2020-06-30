@@ -1,14 +1,9 @@
 (ns memefactory.styles.component.account-balances
-  (:require 
-   [clojure.string :as s]
-   [garden.def :refer [defstyles]]
-   [garden.stylesheet :refer [at-media]]
-   [garden.units :refer [pt px em rem]]
-   [memefactory.styles.base.icons :refer [icons]]
-   [memefactory.styles.base.colors :refer [color]]
-   [memefactory.styles.base.fonts :refer [font]]
-   [memefactory.styles.base.media :refer [for-media-min for-media-max]]))
-
+  (:require [garden.def :refer [defstyles]]
+            [garden.units :refer [em px]]
+            [memefactory.styles.base.colors :refer [color]]
+            [memefactory.styles.base.fonts :refer [font]]
+            [memefactory.styles.base.icons :refer [icons]]))
 
 (def bar-height 50) ;; px
 (def account-balance-width 270) ;; px
@@ -25,11 +20,9 @@
    :height (px bar-height)
    :width (px (/ account-balance-width 2))})
 
-
 (def account-section-app-bar-style
   (assoc account-section-style
          :width (px (/ account-balance-app-bar-width 2))))
-
 
 (defstyles core
   [:.accounts

@@ -4,20 +4,18 @@
             [cljs-web3-next.eth :as web3-eth]
             [cljs-web3-next.evm :as web3-evm]
             [cljs-web3-next.utils :as web3-utils]
-            [cljs.core.async :as async]
-            [clojure.set :refer [difference]]
             [district.cljs-utils :refer [rand-str]]
             [district.format :as format]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [web3]]
-            [district.shared.async-helpers :refer [safe-go <?]]
+            [district.shared.async-helpers :refer [<? safe-go]]
             [memefactory.server.contract.eternal-db :as eternal-db]
             [memefactory.server.contract.meme :as meme]
             [memefactory.server.contract.meme-auction :as meme-auction]
             [memefactory.server.contract.meme-factory :as meme-factory]
             [memefactory.server.contract.meme-token :as meme-token]
             [memefactory.server.contract.registry-entry :as registry-entry]
-            [taoensso.timbre :refer [spy] :as log]))
+            [taoensso.timbre :as log]))
 
 (def fs (js/require "fs"))
 
@@ -28,8 +26,7 @@
      (zipmap meme-registry-db-keys meme-registry-db-values))))
 
 (defn upload-meme-image! [{:keys [:image-file]
-                           :or {image-file "resources/dev/pepe.png"}
-                           :as arguments}]
+                           :or {image-file "resources/dev/pepe.png"}}]
   (js/Promise.
    (fn [resolve reject]
      (.readFile fs
@@ -48,8 +45,7 @@
 
 (defn upload-meme-meta! [{:keys [:title :search-tags :image-hash]
                           :or {title "PepeSmile"
-                               search-tags ["pepe" "frog" "dank"]}
-                          :as arguments}]
+                               search-tags ["pepe" "frog" "dank"]}}]
   (let [meta-info (format/clj->json {:title title
                                      :image-hash image-hash
                                      :search-tags search-tags})]
@@ -65,21 +61,19 @@
             (resolve {:meta-hash meta-hash}))))))))
 
 (defn create-meme! [{:keys [:total-supply :accounts :from-account :meta-hash :deposit :max-total-supply]
-                     :or {from-account 0}
-                     :as arguments}]
+                     :or {from-account 0}}]
   (safe-go
-   (let [{:keys [:transaction-hash] :as tx-receipt} (<? (meme-factory/approve-and-create-meme {:meta-hash meta-hash
-                                                                                               :total-supply (or total-supply
-                                                                                                                 (inc (rand-int max-total-supply)))
-                                                                                               :amount deposit}
-                                                                                              {:from (if (string? from-account)
-                                                                                                       from-account
-                                                                                                       (nth accounts from-account))}))]
+   (let [tx-receipt (<? (meme-factory/approve-and-create-meme {:meta-hash meta-hash
+                                                               :total-supply (or total-supply
+                                                                                 (inc (rand-int max-total-supply)))
+                                                               :amount deposit}
+                                                              {:from (if (string? from-account)
+                                                                       from-account
+                                                                       (nth accounts from-account))}))]
      (<? (smart-contracts/contract-event-in-tx [:meme-registry :meme-registry-fwd] :MemeConstructedEvent tx-receipt)))))
 
 (defn upload-challenge-meta! [{:keys [:comment]
-                               :or {comment "did not like it"}
-                               :as arguments}]
+                               :or {comment "did not like it"}}]
   (let [challenge-meta (format/clj->json {:comment comment})]
     (js/Promise.
      (fn [resolve reject]
@@ -94,7 +88,6 @@
 
 (defn challenge-meme! [{:keys [:challenge-meta-hash
                                :deposit
-                               :amount
                                :from-account
                                :accounts]
                         :or {from-account 0}
@@ -108,25 +101,21 @@
                       :or {commit-votes [{:option :vote.option/vote-for
                                           :salt (rand-str 7)
                                           :amount 1
-                                          :from-account 0}]}
-                      :as arguments}]
+                                          :from-account 0}]}}]
   (js/Promise.all
-   (for [{:keys [:option :amount :salt :from-account]
-          :as vote} commit-votes]
+   (for [{:keys [:option :amount :salt :from-account]} commit-votes]
      (registry-entry/approve-and-commit-vote registry-entry
                                              {:amount amount
                                               :salt salt
                                               :vote-option option}
                                              {:from (nth accounts from-account)}))))
 
-(defn reveal-votes! [{:keys [:accounts :registry-entry :reveal-votes :commit-votes]
-                      :as args}]
+(defn reveal-votes! [{:keys [:accounts :registry-entry :reveal-votes :commit-votes]}]
   (let [votes (if (sequential? reveal-votes)
                 reveal-votes
                 commit-votes)]
     (js/Promise.all
-     (for [{:keys [:option :salt :from-account]
-            :as vote} votes]
+     (for [{:keys [:option :salt :from-account]} votes]
        (registry-entry/reveal-vote registry-entry
                                    {:vote-option option
                                     :salt salt}
@@ -135,7 +124,7 @@
 (defn get-meme-status [{:keys [:registry-entry]}]
   (registry-entry/status registry-entry))
 
-(defn claim-rewards! [{:keys [:accounts :registry-entry :claim-vote-rewards] :as args}]
+(defn claim-rewards! [{:keys [:accounts :registry-entry :claim-vote-rewards]}]
   (js/Promise.all
    (for [{:keys [:from-account]} claim-vote-rewards]
      (registry-entry/claim-rewards registry-entry {:from (nth accounts from-account)}))))
@@ -149,7 +138,7 @@
      (range (bn/number token-start-id) (inc (bn/number token-end-id))))))
 
 (defn start-auctions!
-  [{:keys [:accounts :minted-meme-tokens :creator :max-auction-duration :token-ids :start-price :end-price :duration :description :from-account]
+  [{:keys [:accounts :minted-meme-tokens :max-auction-duration :token-ids :start-price :end-price :description :from-account]
     :or {start-price 0.5
          end-price 0.1
          description "some auction"
@@ -174,14 +163,13 @@
                                      :value (web3-utils/to-wei @web3 price :ether)}))))
 
 (defn pause [millis]
-  (js/Promise. (fn [resolve reject]
+  (js/Promise. (fn [resolve _]
                  (js/setTimeout #(resolve millis)
                                 millis))))
 
 (defn generate-memes [{:keys [:create-meme :challenge-meme :commit-votes
                               :reveal-votes :claim-vote-rewards :mint-meme-tokens
-                              :start-auctions :buy-auctions]
-                       :as scenarios}]
+                              :start-auctions]}]
   (safe-go
    (let [accounts {:accounts (<? (web3-eth/accounts @web3))}
          {:keys [:commit-period-duration :reveal-period-duration] :as meme-db-values} (<? (get-meme-registry-db-values))
@@ -194,7 +182,7 @@
          to-reveal-time-increase (<? (web3-evm/increase-time @web3 (inc (bn/number commit-period-duration))))
          reveal-votes-txs (<? (reveal-votes! (merge accounts meme (:reveal-votes reveal-votes) {:commit-votes commit-votes})))
          to-claim-time-increase (<? (web3-evm/increase-time @web3 (bn/number (inc (bn/number reveal-period-duration)))))
-         block (<? (web3-evm/mine-block @web3))
+         _ (<? (web3-evm/mine-block @web3))
          status (<? (get-meme-status meme))
          claim-rewards-txs (<? (claim-rewards! (merge accounts meme {:claim-vote-rewards claim-vote-rewards})))
          meme-tokens (<? (mint-meme-tokens! (merge accounts meme mint-meme-tokens)))

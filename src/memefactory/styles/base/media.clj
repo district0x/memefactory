@@ -1,8 +1,5 @@
 (ns memefactory.styles.base.media
-  (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [garden.units :refer [px]]))
+  (:require [garden.stylesheet :refer [at-media]]))
 
 (def breakpoints {:mobile   320
                   :tablet   768

@@ -7,7 +7,7 @@
             [district.server.config :as config]
             [district.server.web3 :refer [web3]]
             [district.server.web3-events :as web3-events]
-            [district.shared.async-helpers :refer [safe-go <?]]
+            [district.shared.async-helpers :refer [<? safe-go]]
             [goog.string :as gstring]
             [memefactory.server.conversion-rates :as conversion-rates]
             [memefactory.server.db :as db]
@@ -26,7 +26,7 @@
       (.post twitter-obj
              "media/upload"
              #js {:media file-content}
-             (fn [error media response]
+             (fn [error media _]
                (if error
                  (async/put! out-ch (js/Error. error))
                  (async/put! out-ch (.-media_id_string media)))))
@@ -34,7 +34,9 @@
         (async/put! out-ch e)))
     out-ch))
 
-(defn tweet [twitter-obj {:keys [text media-id] :as tweet} {:keys [just-log-tweet?]}]
+(defn tweet [twitter-obj
+             {:keys [text media-id]}
+             {:keys [just-log-tweet?]}]
 
   (if just-log-tweet?
     (log/info "Fakely twitting " {:text text :media-id media-id} ::tweet)
@@ -47,7 +49,7 @@
              (cond-> {:status text}
                media-id (assoc :media_ids media-id)
                true     clj->js)
-             (fn [error tw resp]
+             (fn [error _ _]
                (if error
                  (log/error "Error sending tweet" {:error error} ::tweet)
                  (log/debug "Successfully twitted " {:text text :media-id media-id} ::tweet)))) )))
@@ -57,15 +59,15 @@
 (defn first-tar-obj
   "Given a buffer with tar content, returns a promise that will yield
   another buffer with the first object inside the tar"
-  [buffer]
+  [buffer write-directory]
   (let [out-ch (async/promise-chan)]
     (try
-      (let [tmp-dir "/tmp/memefactory"
-            ;; NOTE: Maybe instead of a random id we can create a folder with the same name as the ipfs hash
+      (let [;; NOTE: Maybe instead of a random id we can create a folder with the same name as the ipfs hash
             ;; easier to debug
             tmp-name (str (random-uuid))
-            tar-file (str tmp-dir "/" tmp-name ".tar")
-            img-tmp-dir (str tmp-dir "/" tmp-name)
+            ;; TODO : ensure slash
+            tar-file (str (format/ensure-trailing-slash write-directory) tmp-name ".tar")
+            img-tmp-dir (str (format/ensure-trailing-slash write-directory) tmp-name)
             extract-stream (.extract tar-fs img-tmp-dir)]
         (.writeFileSync fs tar-file buffer)
         (.pipe (.createReadStream fs tar-file) extract-stream)
@@ -76,7 +78,8 @@
         (async/put! out-ch e)))
     out-ch))
 
-(defn ensure-media-uploaded [twitter-obj {:keys [image-hash registry-entry]} {:keys [just-log-tweet?]}]
+(defn ensure-media-uploaded [twitter-obj {:keys [image-hash registry-entry]} {:keys [just-log-tweet? write-directory]
+                                                                              :or {write-directory "/tmp/memefactory"}}]
   (safe-go
    (if-let [media-id (db/get-meme-media-id registry-entry)]
      media-id
@@ -85,13 +88,11 @@
            _ (log/info "Uploading media " {:ipfs-hash ipfs-hash} ::ensure-media-uploaded)
            image-tar-file-content (<? (server-utils/get-ipfs-binary-file ipfs-hash))]
        (when-not just-log-tweet?
-         (let [image-file-content (<? (first-tar-obj image-tar-file-content))
+         (let [image-file-content (<? (first-tar-obj image-tar-file-content write-directory))
                media-id (<? (upload-file-to-twitter twitter-obj image-file-content))]
            media-id))))))
 
-
-(defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :timestamp :meta-hash
-                                                     :total-supply :version :deposit :challenge-period-end]
+(defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :meta-hash]
                                               :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme submitted event " ev ::tweet-meme-submitted)
@@ -108,8 +109,7 @@
              :media-id media-id}
             opts))))
 
-(defn tweet-meme-challenged [twitter-obj opts {:keys [:registry-entry :commit-period-end
-                                                      :reveal-period-end :reward-pool :metahash :timestamp :version] :as ev}]
+(defn tweet-meme-challenged [twitter-obj opts {:keys [:registry-entry] :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme challenged event " ev ::tweet-meme-challenged)
    (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
@@ -125,8 +125,7 @@
 ;; We need to watch out here tweet it just once, even if more cards of the same meme were offered at once.
 (def memes-offered-already-tweeted (atom #{}))
 
-(defn tweet-meme-offered [twitter-obj opts {:keys [:timestamp :token-id :start-price :end-price
-                                                   :duration :description :started-on :block-number] :as ev}]
+(defn tweet-meme-offered [twitter-obj opts {:keys [:token-id :block-number] :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme offered event " ev ::tweet-meme-offered)
    (let [{:keys [:reg-entry/address :meme/title]} (db/get-meme-by-token-id (bn/number token-id))
@@ -142,7 +141,7 @@
                 opts)
          (swap! memes-offered-already-tweeted conj meme-and-block))))))
 
-(defn tweet-meme-auction-bought [twitter-obj opts {:keys [:meme-auction :timestamp :buyer :price :auctioneer-cut :seller-proceeds] :as ev}]
+(defn tweet-meme-auction-bought [twitter-obj opts {:keys [:meme-auction :price] :as ev}]
   (safe-go
    (log/debug "Twitter bot processing auction bought event " ev ::tweet-meme-auction-bought)
    (let [{:keys [:reg-entry/address :meme/title]} (-> meme-auction
@@ -171,7 +170,7 @@
             opts))))
 
 (defn- dispatcher [twitter-obj opts callback]
-  (fn [_ {:keys [:latest-event? :args :block-number] :as ev}]
+  (fn [_ {:keys [:latest-event? :args :block-number]}]
     (when latest-event?
       (callback twitter-obj opts (assoc args :block-number block-number)))))
 

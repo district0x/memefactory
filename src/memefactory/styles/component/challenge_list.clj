@@ -1,14 +1,10 @@
 (ns memefactory.styles.component.challenge-list
-  (:require
-   [clojure.string :as s]
-   [garden.def :refer [defstyles]]
-   [garden.stylesheet :refer [at-media]]
-   [garden.units :refer [px em pt]]
-   [memefactory.styles.base.colors :refer [color]]
-   [memefactory.styles.base.fonts :refer [font]]
-   [memefactory.styles.base.fonts :refer [font]]
-   [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-   [memefactory.styles.component.buttons :refer [button tag]]))
+  (:require [garden.def :refer [defstyles]]
+            [garden.units :refer [em px]]
+            [memefactory.styles.base.colors :refer [color]]
+            [memefactory.styles.base.fonts :refer [font]]
+            [memefactory.styles.base.media :refer [for-media-max]]
+            [memefactory.styles.component.buttons :refer [tag]]))
 
 (defstyles core
   [:.challenges.panel

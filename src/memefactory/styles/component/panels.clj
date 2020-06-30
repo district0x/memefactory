@@ -1,15 +1,9 @@
 (ns memefactory.styles.component.panels
-  (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
-            [clojure.string :as s]
-            [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.base.borders :refer [border-top border-bottom]]
+  (:require [garden.units :refer [em px]]
+            [memefactory.styles.base.borders :refer [border-bottom]]
             [memefactory.styles.base.colors :as c]
             [memefactory.styles.base.fonts :refer [font]]
-            [memefactory.styles.base.media :refer [for-media-min for-media-max]]
-            [garden.selectors :as sel]
-            [garden.units :refer [pt px em rem]]
-            [clojure.string :as str]))
+            [memefactory.styles.base.media :refer [for-media-max]]))
 
 (defn panel-with-icon [{:keys [url color]}]
   [:&
