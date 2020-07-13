@@ -137,4 +137,12 @@ contract DankFaucet is usingOraclize, DSAuth {
   function withdrawEth() auth {
     msg.sender.transfer(address(this).balance);
   }
+
+  /**
+   * Allow the owner to set the gasPrice of the callback transaction
+   */
+  function setCustomGasPrice(uint gasPrice) auth {
+    oraclize_setCustomGasPrice(gasPrice);
+  }
+
 }
