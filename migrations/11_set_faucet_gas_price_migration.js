@@ -36,7 +36,7 @@ module.exports = function(deployer, network, accounts) {
     .then (async () => {
       // set last ran tx
       const migrations = Migrations.at (migrationsAddress);
-      await migrations.setCompleted (8, Object.assign(opts, {gas: 1e5, value: 0}));
+      await migrations.setCompleted (11, Object.assign(opts, {gas: 1e5, value: 0}));
 
       writeSmartContracts(smart_contracts_path, smartContracts, env);
       console.log ("Done");
