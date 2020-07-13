@@ -64,22 +64,22 @@ module.exports = {
     "ganache": {
       host: 'localhost',
       port: 8545,
-      gas: 6e6, // gas limit
+      gas: 1e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
     },
     "infura-ropsten": {
       provider: () => new HDWalletProvider(process.env.ROPSTEN_PRIV_KEY, "https://ropsten.infura.io/v3/" + process.env.INFURA_API_KEY),
       network_id: 1,
-      gas: 6e6,
-      gasPrice: 6e9,
+      gas: 1e6,
+      gasPrice: 20e9,
       skipDryRun: true
     },
     "infura-mainnet": {
       provider: () => new HDWalletProvider(process.env.MAINNET_PRIV_KEY, "https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY),
       network_id: 2,
-      gas: 6e6,
-      gasPrice: 9e9,
+      gas: 1e6,
+      gasPrice: 40e9,
       skipDryRun: true
     }
   }
