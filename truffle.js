@@ -15,7 +15,7 @@ let parameters = {
     memeRegistryDb : {challengePeriodDuration : 600, // seconds (10 minutes)
                       commitPeriodDuration : 600, // seconds
                       revealPeriodDuration : 600, // seconds
-                      deposit : 1e18, // 1e18 = 1 DANK
+                      deposit : "1000000000000000000", // 1e18 = 1 DANK
                       challengeDispensation : 50, // percent
                       maxTotalSupply : 10, // int
                       maxAuctionDuration : 1.21e6 // seconds
@@ -23,12 +23,12 @@ let parameters = {
     paramChangeRegistryDb : {challengePeriodDuration : 600, // seconds
                              commitPeriodDuration : 600, // seconds
                              revealPeriodDuration : 600, // seconds
-                             deposit : 1e18, // 1e18 = 1 DANK
+                             deposit : "1000000000000000000", // 1e18 = 1 DANK
                              challengeDispensation : 50 // percent
                             },
-    dankFaucet : {dank : 5000000e18, // how much DANK contract holds, 1e18 = 1 DANK
-                  eth : 0.1e18, // ETH, 1e18 = 1ETH
-                  allotment : 2000e18  // how much DANK faucet sends, 1e18 = 1 DANK
+    dankFaucet : {dank : "5000000000000000000000000", // how much DANK contract holds, 1e18 = 1 DANK
+                  eth : "100000000000000000", // ETH, 1e18 = 1ETH
+                  allotment : "2000000000000000000000"  // how much DANK faucet sends, 1e18 = 1 DANK
                  }
   },
   "prod" : {
@@ -64,23 +64,28 @@ module.exports = {
     "ganache": {
       host: 'localhost',
       port: 8545,
-      gas: 1e6, // gas limit
+      gas: 6e6, // gas limit
       gasPrice: 20e9, // 20 gwei, default for ganache
       network_id: '*'
     },
     "infura-ropsten": {
       provider: () => new HDWalletProvider(process.env.ROPSTEN_PRIV_KEY, "https://ropsten.infura.io/v3/" + process.env.INFURA_API_KEY),
-      network_id: 1,
-      gas: 1e6,
-      gasPrice: 20e9,
+      network_id: 3,
+      gas: 6e6,
+      gasPrice: 6e9,
       skipDryRun: true
     },
     "infura-mainnet": {
       provider: () => new HDWalletProvider(process.env.MAINNET_PRIV_KEY, "https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY),
       network_id: 2,
-      gas: 1e6,
-      gasPrice: 40e9,
+      gas: 6e6,
+      gasPrice: 9e9,
       skipDryRun: true
     }
-  }
+  },
+  compilers: {
+      solc: {
+        version: "0.4.24",
+      }
+    }
 };

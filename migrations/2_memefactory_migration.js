@@ -105,7 +105,7 @@ module.exports = function(deployer, network, accounts) {
       return instance.setAuthority(instance.address, Object.assign(opts, {gas: 100000}));
     })
     .then(() => deployer.deploy (MiniMeTokenFactory, Object.assign(opts, {gas: gas})))
-    .then (instance => deployer.deploy (DankToken, instance.address, 1e27, Object.assign(opts, {gas: gas})))
+    .then (instance => deployer.deploy (DankToken, instance.address, "1000000000000000000000000000", Object.assign(opts, {gas: gas})))
     .then (instance => instance.totalSupply())
     .then (res => console.log ("@@@ DankToken/totalSupply:", res))
     .then (() => deployer.deploy (DistrictConfig, address, address, 0, Object.assign(opts, {gas: 1000000})))
@@ -131,13 +131,17 @@ module.exports = function(deployer, network, accounts) {
     .then ((
       [memeRegistryDb,
        memeRegistryForwarder]) => {
-         var target = MemeRegistry.at (memeRegistryForwarder.address);
-         return target.construct (memeRegistryDb.address, Object.assign(opts, {gas: 100000}));
+         return MemeRegistry.at (memeRegistryForwarder.address)
+         .then((target) => {
+          return target.construct (memeRegistryDb.address, Object.assign(opts, {gas: 100000}));
+         })
        })
     .then (() => MemeRegistryForwarder.deployed ())
     .then (instance => {
-      var target = MemeRegistry.at (instance.address);
-      return target.db ();
+      return MemeRegistry.at (instance.address)
+      .then((target) => {
+        return target.db ();
+      })
     })
     .then ( (res) => console.log ("@@@ MemeRegistry/db :", res))
     .then ( () => Promise.all ([ParamChangeRegistryDb.deployed (),
@@ -145,8 +149,10 @@ module.exports = function(deployer, network, accounts) {
     .then ((
       [paramChangeRegistryDb,
        paramChangeRegistryForwarder]) => {
-         var target = ParamChangeRegistry.at (paramChangeRegistryForwarder.address);
-         return target.construct (paramChangeRegistryDb.address, Object.assign(opts, {gas: 100000}));
+         return ParamChangeRegistry.at (paramChangeRegistryForwarder.address)
+         .then((target) => {
+          return target.construct (paramChangeRegistryDb.address, Object.assign(opts, {gas: 100000}));
+         })
        })
     .then (() => Promise.all(
       [DSGuard.deployed (),
@@ -221,7 +227,7 @@ module.exports = function(deployer, network, accounts) {
                                                  [parameters.memeRegistryDb.challengePeriodDuration,
                                                   parameters.memeRegistryDb.commitPeriodDuration,
                                                   parameters.memeRegistryDb.revealPeriodDuration ,
-                                                  parameters.memeRegistryDb.deposit  ,
+                                                  parameters.memeRegistryDb.deposit,
                                                   parameters.memeRegistryDb.challengeDispensation,
                                                   parameters.memeRegistryDb.maxTotalSupply,
                                                   parameters.memeRegistryDb.maxAuctionDuration],
@@ -258,8 +264,8 @@ module.exports = function(deployer, network, accounts) {
     .then ((
       [memeRegistryDb,
        paramChangeRegistryDb]) => // after authority is set, we can clean owner. Not really essential, but extra safety measure
-           Promise.all ([memeRegistryDb.setOwner(0, Object.assign(opts, {gas: 100000})),
-                         paramChangeRegistryDb.setOwner (0, Object.assign(opts, {gas: 100000}))]))
+           Promise.all ([memeRegistryDb.setOwner("0x0000000000000000000000000000000000000000", Object.assign(opts, {gas: 100000})),
+                         paramChangeRegistryDb.setOwner ("0x0000000000000000000000000000000000000000", Object.assign(opts, {gas: 100000}))]))
     .then (() => Promise.all([DSGuard.deployed (),
                               MemeRegistryForwarder.deployed (),
                               MemeRegistryDb.deployed ()]))
@@ -290,24 +296,30 @@ module.exports = function(deployer, network, accounts) {
     .then ((
       [memeRegistryForwarder,
        memeFactory]) => {
-         var target = MemeRegistry.at (memeRegistryForwarder.address);
-         return target.setFactory (memeFactory.address, true, Object.assign(opts, {gas: 100000}));
+         return MemeRegistry.at (memeRegistryForwarder.address)
+         .then((target) => {
+          return target.setFactory (memeFactory.address, true, Object.assign(opts, {gas: 100000}));
+         })
        })
     .then (() => Promise.all ([MemeRegistryForwarder.deployed (),
                                MemeFactory.deployed ()]))
     .then ((
       [memeRegistryForwarder,
        memeFactory]) => {
-         var target = MemeRegistry.at (memeRegistryForwarder.address);
-         return target.isFactory (memeFactory.address);
+         return MemeRegistry.at (memeRegistryForwarder.address)
+         .then((target) => {
+          return target.isFactory (memeFactory.address);
+         })
        })
     .then (res => console.log ("@@@ MemeRegistry/isFactory", res))
     .then (() => Promise.all ([ParamChangeRegistryForwarder.deployed (),
                                ParamChangeFactory.deployed ()]))
     .then (([paramChangeRegistryForwarder,
              paramChangeFactory]) => {
-               var target = ParamChangeRegistry.at (paramChangeRegistryForwarder.address);
-               return target.setFactory (paramChangeFactory.address, true, Object.assign(opts, {gas: 100000}));
+               return ParamChangeRegistry.at (paramChangeRegistryForwarder.address)
+               .then((target) => {
+                return target.setFactory (paramChangeFactory.address, true, Object.assign(opts, {gas: 100000}));
+               })
              })
     .then (() => {
       return deployer.deploy (MemeAuctionFactoryForwarder, Object.assign(opts, {gas: gas}));
@@ -344,8 +356,10 @@ module.exports = function(deployer, network, accounts) {
     .then ((
       [memeToken,
        memeAuctionFactoryForwarder]) => {
-         var target = MemeAuctionFactory.at (memeAuctionFactoryForwarder.address);
-         return target.construct (memeToken.address, Object.assign(opts, {gas: 200000}));
+         return MemeAuctionFactory.at (memeAuctionFactoryForwarder.address)
+         .then((target) => {
+          return target.construct (memeToken.address, Object.assign(opts, {gas: 200000}));
+         })
        })
     .then (() => DankToken.deployed())
     .then ((instance) => {
