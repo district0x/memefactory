@@ -44,8 +44,8 @@ COPY --from=build_stage /build/node_modules /memefactory/node_modules
 COPY --from=build_stage /build/resources /memefactory/resources
 
 # ### --- DEBUG
-RUN ls memefactory/
-RUN ls memefactory/server/
+RUN ls /memefactory/
+RUN ls /memefactory/server/
 
 ENTRYPOINT ["node", "server/memefactory.js"]
 CMD ["--max-old-space-size=2048"]
