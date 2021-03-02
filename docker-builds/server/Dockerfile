@@ -33,7 +33,7 @@ RUN mkdir /tmp/memefactory
 RUN apt-get update -y \
     && apt-get install --no-install-recommends -y \
     -q python-pip python-setuptools
-RUN pip install cryptography base58
+RUN pip install --no-cache-dir cryptography base58
 
 # # ENV variables
 ENV CONFIG /configs/meme.config.edn

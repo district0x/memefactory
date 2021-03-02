@@ -28,7 +28,7 @@ FROM prerendercloud/webserver:latest
 MAINTAINER "Filip Bielejec" <filip@district0x.io>
 
 # get compiled JS
-COPY --from=build_stage resources/public /wwwroot
+COPY --from=build_stage /build/resources/public /wwwroot
 
 # setup redirects
 COPY docker-builds/ui/_redirects /app/_redirects
