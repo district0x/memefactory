@@ -80,15 +80,15 @@ function login {
   echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 }
 
-function before {
-  lein deps
-  yarn deps
-  truffle compile
-}
+# function before {
+#   lein deps
+#   yarn deps
+#   truffle compile
+# }
 
 #--- EXECUTE
 
-before
+# before
 login
 
 images=(
@@ -99,7 +99,7 @@ images=(
 for i in "${images[@]}"; do
   (
     build $i $BUILD_ENV
-    push $i $BUILD_ENV
+    # push $i $BUILD_ENV
   )
 
 done # END: i loop
