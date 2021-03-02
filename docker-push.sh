@@ -43,8 +43,10 @@ function build {
 
     case $SERVICE in
       "ui")
-        lein garden once
-        env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "ui"
+        # lein garden once
+        # env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "ui"
+        # env MEMEFACTORY_ENV=$BUILD_ENV
+        echo "build UI"
         ;;
       "server")
         env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "server"
@@ -55,7 +57,7 @@ function build {
         ;;
     esac
 
-    docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
+    docker build -t $IMG --build-arg build_environment=$BUILD_ENV -f docker-builds/$SERVICE/Dockerfile .
     docker tag $IMG $NAME:$TAG
 
   } || {
@@ -89,7 +91,7 @@ function login {
 #--- EXECUTE
 
 # before
-login
+# login
 
 images=(
   district0x/memefactory-server
