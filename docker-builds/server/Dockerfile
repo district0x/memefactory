@@ -1,6 +1,5 @@
-ARG BUILD_ENV=qa
-
 FROM node:11.14.0-stretch AS build_stage
+ARG BUILD_ENV=qa
 ENV BUILD_ENV=${BUILD_ENV}
 ENV MEMEFACTORY_ENV=${BUILD_ENV}
 ENV SMART_CONTRACTS=./src/memefactory/shared/smart_contracts_${BUILD_ENV}.cljs
@@ -25,7 +24,15 @@ RUN lein cljsbuild once "server"
 
 
 FROM node:11.14.0-stretch-slim
+
+ARG BUILD_ENV=qa
+
+ENV BUILD_ENV=${BUILD_ENV}
+ENV MEMEFACTORY_ENV=${BUILD_ENV}
+ENV CONFIG /configs/meme.config.edn
+
 WORKDIR /memefactory
+
 # # twitter-bot needs to be able to write here
 RUN mkdir /tmp/memefactory
 
@@ -36,7 +43,6 @@ RUN apt-get update -y \
 RUN pip install --no-cache-dir cryptography base58
 
 # # ENV variables
-ENV CONFIG /configs/meme.config.edn
 
 # # get compiled JS
 COPY --from=build_stage /build/server /memefactory/server
