@@ -109,8 +109,10 @@
                                           :access-token-secret "PLACEHOLDER"}
                             :web3-events {:events constants/web3-events}}}})
       (mount/start)
-      (as-> $ (log/warn "Started" {:components $
-                                   :config @district.server.config/config}))))
+      (as-> $ (log/warn "Started v1.0.0" {:components $
+                                          :smart-contracts-qa smart-contracts-qa/smart-contracts
+                                          :smart-contracts-prod smart-contracts-prod/smart-contracts
+                                          :config @district.server.config/config}))))
 
 (defn stop []
   (mount/stop))
