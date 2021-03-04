@@ -46,10 +46,11 @@ function build {
         # lein garden once
         # env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "ui"
         # env MEMEFACTORY_ENV=$BUILD_ENV
-        echo "build UI"
+        echo "building UI"
         ;;
       "server")
-        env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "server"
+        # env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "server"
+        echo "building server"
         ;;
       *)
         echo "ERROR: don't know what to do with SERVICE: "$SERVICE""
@@ -57,6 +58,7 @@ function build {
         ;;
     esac
 
+    echo "Running: docker build -t $IMG --build-arg build_environment=$BUILD_ENV -f docker-builds/$SERVICE/Dockerfile ."
     docker build -t $IMG --build-arg build_environment=$BUILD_ENV -f docker-builds/$SERVICE/Dockerfile .
     docker tag $IMG $NAME:$TAG
 
