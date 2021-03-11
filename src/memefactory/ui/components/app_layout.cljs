@@ -75,7 +75,7 @@
                       :class :faucet
                       :needs-account? true}
                      {:text "Discord"
-                      :url "https://discord.gg/p7yXakuR"
+                      :url "https://discord.com/invite/sS2AWYm"
                       :class :discord
                       :needs-account? false}
                      {:text "Telegram"
