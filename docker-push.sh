@@ -43,11 +43,14 @@ function build {
 
     case $SERVICE in
       "ui")
-        lein garden once
-        env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "ui"
+        # lein garden once
+        # env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "ui"
+        # env MEMEFACTORY_ENV=$BUILD_ENV
+        echo "building UI"
         ;;
       "server")
-        env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "server"
+        # env MEMEFACTORY_ENV=$BUILD_ENV lein cljsbuild once "server"
+        echo "building server"
         ;;
       *)
         echo "ERROR: don't know what to do with SERVICE: "$SERVICE""
@@ -55,7 +58,8 @@ function build {
         ;;
     esac
 
-    docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
+    echo "Running: docker build -t $IMG --build-arg build_environment=$BUILD_ENV -f docker-builds/$SERVICE/Dockerfile ."
+    docker build -t $IMG --build-arg build_environment=$BUILD_ENV -f docker-builds/$SERVICE/Dockerfile .
     docker tag $IMG $NAME:$TAG
 
   } || {
@@ -80,16 +84,16 @@ function login {
   echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 }
 
-function before {
-  lein deps
-  yarn deps
-  truffle compile
-}
+# function before {
+#   lein deps
+#   yarn deps
+#   truffle compile
+# }
 
 #--- EXECUTE
 
-before
-login
+# before
+# login
 
 images=(
   district0x/memefactory-server
@@ -99,7 +103,7 @@ images=(
 for i in "${images[@]}"; do
   (
     build $i $BUILD_ENV
-    push $i $BUILD_ENV
+    # push $i $BUILD_ENV
   )
 
 done # END: i loop
