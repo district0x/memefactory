@@ -36,14 +36,14 @@ WORKDIR /memefactory
 RUN mkdir /tmp/memefactory
 
 # Python dependencies
-RUN apt-get update -y \
-    && apt-get install --no-install-recommends -y \
-    -q python-pip python-setuptools
+RUN apt-get update && apt-get install upgrade -yqq \
+    && apt-get install --no-install-recommends -yq python-pip python-setuptools \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --no-cache-dir cryptography base58
 
-# # ENV variables
-
-# # get compiled JS
+# get compiled JS
 COPY --from=build_stage /build/server /memefactory/server
 COPY --from=build_stage /build/node_modules /memefactory/node_modules
 COPY --from=build_stage /build/resources /memefactory/resources
