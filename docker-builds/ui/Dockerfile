@@ -19,14 +19,16 @@ RUN mkdir -p /root/.config/truffle/
 RUN npm install --global truffle yarn
 
 RUN lein garden once
-
 RUN lein deps
 RUN yarn deps
 RUN truffle compile
-
 RUN lein cljsbuild once "ui"
+
 FROM prerendercloud/webserver:latest
 MAINTAINER "Filip Bielejec" <filip@district0x.io>
+RUN apt update && apt-get upgrade -yqq \
+    && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # get compiled JS
 COPY --from=build_stage /build/resources/public /wwwroot
