@@ -36,7 +36,7 @@ WORKDIR /memefactory
 RUN mkdir /tmp/memefactory
 
 # Python dependencies
-RUN apt-get update && apt-get install upgrade -yqq \
+RUN apt-get update && apt-get upgrade -yqq \
     && apt-get install --no-install-recommends -yq python-pip python-setuptools \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
