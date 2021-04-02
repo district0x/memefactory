@@ -42,8 +42,9 @@
 (def qa-config
   {:logging {:level :warn
              :console? true
-             :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"
-                      :environment "QA"}}
+            ;;  :sentry {:dsn "https://4bb89c9cdae14444819ff0ac3bcba253@sentry.io/1306960"
+            ;;           :environment "QA"}
+                      }
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-qa/smart-contracts skipped-contracts)
                      :load-method :use-loaded}
@@ -57,7 +58,7 @@
                  :etherscan-url "https://ropsten.etherscan.io"}
    :graphql {:schema graphql-schema
              :url "https://api.memefactory.qa.district0x.io/graphql"}
-   :ipfs {:host "https://ipfs.qa.district0x.io/api"
+   :ipfs {:host "https://ipfs.qa.district0x.io"
           :endpoint "/api/v0"
           :gateway "https://ipfs.qa.district0x.io/gateway/ipfs"}
    :router {:html5? true}
@@ -83,7 +84,7 @@
                  :etherscan-url "https://etherscan.io"}
    :graphql {:schema graphql-schema
              :url "https://api.memefactory.io/graphql"}
-   :ipfs {:host "https://ipfs.district0x.io/api"
+   :ipfs {:host "https://ipfs.district0x.io"
           :endpoint "/api/v0"
           :gateway "https://ipfs.district0x.io/gateway/ipfs"}
    :router {:html5? true}
