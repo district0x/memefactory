@@ -1,0 +1,19 @@
+name: Build and Test
+
+on: [push]
+
+jobs:
+  build_and_test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Scan project
+      uses: ShiftLeftSecurity/scan-action@master
