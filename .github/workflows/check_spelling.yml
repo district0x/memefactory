@@ -6,12 +6,12 @@ on:
     branches-ignore:
       - master
   pull_request:
-    paths:
-    - '**.js'
-    - '**.vue'
-    - '**.txt'
-    - '**.html'
-    - '**.md'
+    # paths:
+    # - '**.js'
+    # - '**.vue'
+    # - '**.txt'
+    # - '**.html'
+    # - '**.md'
 jobs:
   spelling:
     runs-on: ubuntu-latest

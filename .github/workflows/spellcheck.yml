@@ -2,6 +2,7 @@
 name: Typo CI
 
 on:
+  pull_request:
   push:
     branches-ignore:
       - master
@@ -10,7 +11,6 @@ jobs:
     name: Typo CI (GitHub Action)
     runs-on: ubuntu-latest
     timeout-minutes: 4
-    if: "!contains(github.event.head_commit.message, '[ci skip]')"
     steps:
     - name: TypoCheck
       uses: typoci/spellcheck-action@master
