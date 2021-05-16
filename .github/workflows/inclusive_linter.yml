@@ -1,31 +1,31 @@
-on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - master
+# on:
+#   pull_request:
+#   push:
+#     branches:
+#       - main
+#       - master
 
-jobs:
-  words-matter:
-    runs-on: ubuntu-latest
-    name: A job to remove problematic words
-    steps:
-      - name: Checking out our code
-        uses: actions/checkout@master
-      - name: Remove the problematic words
-        uses: jjasghar/actions-words-really-matter@v2.1.0
-      - name: Create Pull Request
-        id: cpr
-        uses: peter-evans/create-pull-request@v3
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          commit-message: Remove problematic words
-          title: '[Automated PR] Remove problematic words'
-          body: |
-            Found a problematic words that can be replaced
+# jobs:
+#   words-matter:
+#     runs-on: ubuntu-latest
+#     name: A job to remove problematic words
+#     steps:
+#       - name: Checking out our code
+#         uses: actions/checkout@master
+#       - name: Remove the problematic words
+#         uses: jjasghar/actions-words-really-matter@v2.1.0
+#       - name: Create Pull Request
+#         id: cpr
+#         uses: peter-evans/create-pull-request@v3
+#         with:
+#           token: ${{ secrets.GH_TOKEN }}
+#           commit-message: Remove problematic words
+#           title: '[Automated PR] Remove problematic words'
+#           body: |
+#             Found a problematic words that can be replaced
 
-            [1]: https://github.com/jjasghar/actions-words-really-matter
-      - name: Check outputs
-        run: |
-          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+#             [1]: https://github.com/jjasghar/actions-words-really-matter
+#       - name: Check outputs
+#         run: |
+#           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+#           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

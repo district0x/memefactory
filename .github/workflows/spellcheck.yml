@@ -1,18 +1,16 @@
-# Add to: .github/workflows/spellcheck.yml
-name: Typo CI
 
-on:
-  pull_request:
-  push:
-    branches-ignore:
-      - master
-jobs:
-  spellcheck:
-    name: Typo CI (GitHub Action)
-    runs-on: ubuntu-latest
-    timeout-minutes: 4
-    steps:
-    - name: TypoCheck
-      uses: typoci/spellcheck-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# name: Typo CI
+
+# on:
+#   pull_request:
+#   push:
+#     branches-ignore:
+#       - master
+# jobs:
+#   spellcheck:
+#     name: Typo CI (GitHub Action)
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 4
+#     steps:
+#     - name: TypoCheck
+#       uses: typoci/spellcheck-action@master
