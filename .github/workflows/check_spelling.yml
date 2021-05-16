@@ -1,0 +1,23 @@
+name: Check Spelling
+
+
+on:
+  push:
+    branches-ignore:
+      - master
+  pull_request:
+    paths:
+    - '**.js'
+    - '**.vue'
+    - '**.txt'
+    - '**.html'
+    - '**.md'
+jobs:
+  spelling:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}
+    - name: Check Spelling
+      uses: UnicornGlobal/spellcheck-github-actions@master
