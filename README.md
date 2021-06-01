@@ -1,6 +1,6 @@
 # [MemeFactory](https://memefactory.io)
 
-[![discord](https://img.shields.io/discord/356854079022039062?label=district0x&logo=discord)]()  [![CircleCI](https://circleci.com/gh/district0x/memefactory/tree/master.svg?style=svg)](https://circleci.com/gh/district0x/memefactory/tree/master)
+[![discord](https://img.shields.io/discord/356854079022039062?label=district0x&logo=discord)](https://discord.com/invite/sS2AWYm)  [![CircleCI](https://circleci.com/gh/district0x/memefactory/tree/master.svg?style=svg)](https://circleci.com/gh/district0x/memefactory/tree/master)
 
 MemeFactory is a platform for the decentralized creation, issuance, and exchange of provably rare digital collectibles on the Ethereum blockchain. Meme Factory strives to be the first self-governing digital collectibles marketplace. By utilizing a “token curated registry”, called the Dank Registry, Meme Factory users will be able to submit original memes to a community run list, where token holders of a newly minted token, the DANK token, decide what makes the cut.
 
