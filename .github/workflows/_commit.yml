@@ -1,0 +1,30 @@
+name: CI checks on commit
+
+
+on:
+  - push
+
+
+jobs:
+  Hadolint:
+    runs-on: ubuntu-latest
+    strategy:
+        matrix:
+          dockerfile: ["docker-builds/server/Dockerfile", "docker-builds/ui/Dockerfile"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hadolint/hadolint-action@v1.5.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+
+  Spellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GitHub Spellcheck
+        uses: igsekor/pyspelling-any@v1.0.4
+
+  Prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prettier Action
+        uses: creyD/prettier_action@v3.3
