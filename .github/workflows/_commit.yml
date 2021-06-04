@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ["14"]
+        node-version: ["11.14.0"]
     steps:
       - uses: actions/checkout@v2
       - name: Lint code using Node.js ${{ matrix.node-version }}
@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        images: [ 'base', 'ui', 'server' ]
+        image: [ 'base', 'ui', 'server' ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
