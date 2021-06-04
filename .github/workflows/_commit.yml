@@ -1,9 +1,7 @@
 name: CI checks on commit
 
-
 on:
   - push
-
 
 jobs:
   Hadolint:
