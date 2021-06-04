@@ -1,25 +1,20 @@
-name: CI checks on commit
+name: CI checks
 
 on:
   - push
+  - pull_request
 
 jobs:
   Hadolint:
     runs-on: ubuntu-latest
     strategy:
         matrix:
-          dockerfile: ["docker-builds/server/Dockerfile", "docker-builds/ui/Dockerfile"]
+          image: ["server", "ui", "base"]
     steps:
       - uses: actions/checkout@v2
       - uses: hadolint/hadolint-action@v1.5.0
         with:
-          dockerfile: ${{ matrix.dockerfile }}
-
-  Spellcheck:
-    runs-on: ubuntu-latest
-    steps:
-      - name: GitHub Spellcheck
-        uses: igsekor/pyspelling-any@v1.0.4
+          dockerfile: docker-builds/${{ matrix.image }}/Dockerfile
 
   Prettier:
     runs-on: ubuntu-latest
@@ -55,20 +50,27 @@ jobs:
 
   docker_checks:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        images: [ 'base', 'ui', 'server' ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Build an image from Dockerfile
         run: |
-          docker build -t dev_container:${{ github.sha }} -f docker-builds/base/Dockerfile .
+          docker build -t ${{ matrix.image }}:${{ github.sha }} -f docker-builds/${{ matrix.image }}/Dockerfile .
+        with:
+          image: ${{ matrix.image }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'dev_container:${{ github.sha }}'
+          image-ref: '${{ matrix.image }}:${{ github.sha }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL'
