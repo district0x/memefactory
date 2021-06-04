@@ -28,3 +28,49 @@ jobs:
     steps:
       - name: Prettier Action
         uses: creyD/prettier_action@v3.3
+
+  Code_security:
+    name: Code security
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Scan project
+      uses: ShiftLeftSecurity/scan-action@master
+
+  nodejs-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["14"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Lint code using Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i -g yarn
+      - run: yarn deps
+      - run: yarn lint
+
+  docker_checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build an image from Dockerfile
+        run: |
+          docker build -t dev_container:${{ github.sha }} -f docker-builds/base/Dockerfile .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'dev_container:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
