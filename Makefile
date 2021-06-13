@@ -12,11 +12,6 @@ SHELL=bash
 SHELL  := env DOCKER_REGISTRY=$(DOCKER_REGISTRY) $(SHELL)
 DOCKER_REGISTRY ?= "district0x"
 
-# preconfig [build dev, registry creds, clean-volumes, create volumes]
-# docker builds [dev, dev-ui, dev-server, prod-ui, prod-server, ]
-# docker start containers and attach to shell []
-# docker exec - runs a task and exit
-
 # HELP
 help: ## Print help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -61,19 +56,18 @@ compile-tests: build-dev-image  ## Run tests in base container
 	docker run -t --rm ${DOCKER_NET_PARAMS} ${DOCKER_VOL_PARAMS} ${DEV_IMAGE} bash -c "lein build-tests"
 
 server-test: compile-tests  ## Run tests in base container
-	docker run -t --rm ${DOCKER_NET_PARAMS} ${DOCKER_VOL_PARAMS} ${DEV_IMAGE}  bash -c "lein build-tests && lein server-test
+	docker run -t --rm ${DOCKER_NET_PARAMS} ${DOCKER_VOL_PARAMS} ${DEV_IMAGE} bash -c "lein build-tests && lein server-test"
 
 
 # MANAGE DEPENDENCIES
 deps: build-dev-image ## Install/update deps
-	docker run -ti --rm -v ${PWD}:/build/ -v --workdir /build ${NODEJS_IMAGE} bash -c "yarn deps"
+	docker run -t --rm ${DOCKER_NET_PARAMS} ${DOCKER_VOL_PARAMS} ${DEV_IMAGE} bash -c "yarn deps"
 
-# docker run -ti --rm -v ${PWD}:/build/ -v vol_m2_cache:/root/.m2 --workdir /build ${NODEJS_IMAGE} bash -c "rm -rf ./node_modules"
 clear-volumes: ## remove node_moules folder
 	docker volume rm memefactory_vol_tests memefactory_vol_node_modules memefactory_vol_m2_cache memefactory_vol_target_dir memefactory_vol_ipfs_data || true
 
 lint: deps ## Run lint
-	docker run -ti --rm -v ${PWD}:/build/ --workdir /build ${NODEJS_IMAGE} sh -c "yarn lint"
+	docker run -t --rm ${DOCKER_NET_PARAMS} ${DOCKER_VOL_PARAMS} ${DEV_IMAGE} bash -c "yarn lint"
 
 
 # SHORTCUTS
