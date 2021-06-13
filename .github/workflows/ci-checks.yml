@@ -1,0 +1,106 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+name: Standard CI checks
+
+jobs:
+  Hadolint:
+    runs-on: ubuntu-latest
+    strategy:
+        matrix:
+          image: ["server", "ui", "base"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hadolint/hadolint-action@v1.5.0
+        with:
+          dockerfile: docker-builds/${{ matrix.image }}/Dockerfile
+
+  Prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prettier Action
+        uses: creyD/prettier_action@v3.3
+
+  Code_security:
+    name: Code security
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Scan project
+      uses: ShiftLeftSecurity/scan-action@master
+
+  nodejs-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["11.14.0"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Lint code using Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i -g yarn
+      - run: yarn deps
+      - run: yarn lint
+
+  docker_checks:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [ 'server', 'ui' ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build QA ${{ matrix.image }} Docker image
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: "memefactory"
+        run: |
+          echo "Building on ${GITHUB_REF} branch"
+          DOCKER_BUILDKIT=1 docker build --build-arg BUILD_ENV=qa -t ${{ matrix.image }}:${{ github.sha }} -f docker-builds/${{ matrix.image }}/Dockerfile .
+          echo "Successfully built docker image"
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ matrix.image }}:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      - name: Push QA docker images
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: "memefactory"
+        run: |
+          echo "Pushing docker images"
+          if [[ ${GITHUB_REF} == "refs/heads/master" ]]; then
+            echo "On the default branch will push to the registry with latest and ${{ github.sha }} tags"
+            docker tag ${{ matrix.image }}:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:${{ github.sha }}
+            docker tag ${{ matrix.image }}:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:latest
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:${{ github.sha }}
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:latest
+          fi
