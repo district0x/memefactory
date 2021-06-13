@@ -1,0 +1,102 @@
+version: '3'
+services:
+    dev:
+        image: memefactory_base:local
+        build:
+            context: .
+            dockerfile: "docker-builds/base/Dockerfile"
+            args:
+                build_environment: "dev"
+        networks:
+            - dev_net
+        volumes:
+        - vol_m2_cache:/root/.m2
+        - vol_ipfs_data:/build
+        - vol_node_modules:/build/node_modules
+        - vol_target_dir:/build/target
+        - vol_tests:/build/tests
+        command:
+        - exit 0
+        environment:
+            MEMEFACTORY_ENV: "dev"
+            BUILD_ENV: "dev"
+
+    server:
+        image: memefactory-server:local
+        build:
+            context: .
+            dockerfile: "docker-builds/server/Dockerfile"
+            args:
+                BUILD_ENV: "dev"
+                MEMEFACTORY_ENV: "dev"
+        networks:
+            - dev_net
+        depends_on:
+        - ipfs
+        ports:
+            - 6300:6300
+        labels:
+        - "com.centurylinklabs.watchtower.stop-signal=SIGTERM"
+        - "com.centurylinklabs.watchtower.enable=true"
+        environment:
+            CONFIG: "/configs/meme.config.qa.edn"
+            MEMEFACTORY_ENV: "dev"
+            BUILD_ENV: "dev"
+
+    ui:
+        image: memefactory-ui:local
+        container_name: memefactory-ui
+        ports:
+            - 9000:9000
+        build:
+            context: .
+            dockerfile: "docker-builds/ui/Dockerfile"
+            args:
+                build_environment: "dev"
+        networks:
+            - dev_net
+        command:
+            --enable-middleware-cache
+            --disable-ajax-preload
+            --disable-ajax-bypass
+            --bots-only
+        depends_on:
+            - server
+        environment:
+            MEMEFACTORY_ENV: "dev"
+            BUILD_ENV: "dev"
+
+
+    ganache:
+        image: 0xorg/ganache-cli:latest
+        networks:
+        - dev_net
+        ports:
+            - 8545:8545
+            - 8549:8549
+        environment:
+            VERSION: 8.0.1
+            CHAIN_ID: 1337
+            NETWORK_ID: 1337
+
+    ipfs:
+        image: ipfs/go-ipfs:latest
+        volumes:
+            - vol_ipfs_data:/data/ipfs
+        networks:
+            - dev_net
+        ports:
+            - 4001:4001/tcp
+            - 4001:4001/udp
+            - 5001:5001
+            - 8080:8080
+
+networks:
+  dev_net:
+
+volumes:
+    vol_node_modules:
+    vol_m2_cache:
+    vol_target_dir:
+    vol_tests:
+    vol_ipfs_data:
