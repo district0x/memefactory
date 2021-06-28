@@ -5,7 +5,8 @@
    [print.foo :refer [look] :include-macros true]
    [reagent.core :as r]
    [re-frame.core :as re-frame]
-   [memefactory.ui.events :as mf-events])
+   [memefactory.ui.events :as mf-events]
+   [memefactory.ui.components.share-buttons :as share-buttons])
   (:require-macros [reagent.ratom :refer [reaction]]))
 
 
@@ -44,7 +45,8 @@
       [:div.icon]
       [:div.header
        [:h2 title]
-       [:h3 sub-title]]
+       [:h3 sub-title]
+       [share-buttons/share-buttons (. (. js/document -location) -href)]]
       [:div.body
        [:div.form
         [with-label
