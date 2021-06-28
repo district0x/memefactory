@@ -1,9 +1,6 @@
 (ns memefactory.ui.components.share-buttons
   (:require
-    [district.ui.window-size.subs :as w-size-subs]
-    [re-frame.core :refer [subscribe]]
     [reagent.core :as r]
-    [taoensso.timbre :as log :refer [spy]]
     [cljsjs.react-share]))
 
 (def twitter-share-button (r/adapt-react-class js/ReactShare.TwitterShareButton))
