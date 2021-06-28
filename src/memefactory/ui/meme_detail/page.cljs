@@ -26,6 +26,7 @@
             [memefactory.ui.components.search :as search]
             [memefactory.ui.components.spinner :as spinner]
             [memefactory.ui.components.tiles :as tiles]
+            [memefactory.ui.components.share-buttons :as share-buttons]
             [memefactory.ui.contract.registry-entry :as registry-entry]
             [memefactory.ui.dank-registry.vote-page :as vote-page]
             [memefactory.ui.events :as memefactory-events]
@@ -585,6 +586,7 @@
              [tiles/meme-image image-hash {:rejected? (-> (gql-utils/gql-name->kw status) (= :reg-entry.status/blacklisted))}]
              (if exists?
                [:div.registry {:key :registry}
+                [share-buttons/share-buttons (. (. js/document -location) -href)]
                 [:h1 title]
                 [:div.status (case status
                                :reg-entry.status/whitelisted [:label.in-registry "In Registry"]
@@ -632,7 +634,8 @@
                                 :params nil
                                 :query {:term title}
                                 :class "search memefolio"}
-                    "Search On Memefolio"])]]
+                    "Search On Memefolio"])]
+                [:div.share-buttons-bottom-container]]
                )))])]
       [:section.history
        [:div.history-component

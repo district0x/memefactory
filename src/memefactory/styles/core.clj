@@ -11,6 +11,7 @@
             [memefactory.styles.component.main-content :as main-content]
             [memefactory.styles.component.selling-panel :as selling-panel]
             [memefactory.styles.component.spinner :as spinner]
+            [memefactory.styles.component.share-buttons :as share-buttons]
             [memefactory.styles.container.tiles :as tiles]
             [memefactory.styles.pages.about :as page.about]
             [memefactory.styles.pages.dankregistry :as page.dankregistry]
@@ -41,6 +42,7 @@
   page.marketplace/core
   form/core
   spinner/core
+  share-buttons/core
   account-balances/core
   page.memefolio/core
   page.dankregistry/core
