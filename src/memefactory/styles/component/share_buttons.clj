@@ -5,6 +5,9 @@
 
 
 (defstyles core
+  [:.share-buttons
+   [:.react-share__ShareButton+.react-share__ShareButton
+    {:margin-left (em 0.5)}]]
   [:.meme-detail
    [:.share-buttons
     {:position "absolute"
