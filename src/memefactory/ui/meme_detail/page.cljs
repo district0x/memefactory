@@ -21,6 +21,7 @@
             [district.ui.web3-tx-id.subs :as tx-id-subs]
             [goog.string :as gstring]
             [memefactory.ui.components.app-layout :refer [app-layout]]
+            [memefactory.ui.components.ens-resolver :as ens]
             [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
             [memefactory.ui.components.panels :refer [panel]]
             [memefactory.ui.components.search :as search]
@@ -110,7 +111,7 @@
                    :query {:tab :created}
                    :class (str "address " (when (= address @(subscribe [::accounts-subs/active-account]))
                                             "active-address"))}
-       address]]]))
+       (ens/reverse-resolve address)]]]))
 
 
 (defn related-memes-container [address tags]

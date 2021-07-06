@@ -20,6 +20,7 @@
     [district.ui.web3-tx-id.subs :as tx-id-subs]
     [goog.string :as gstring]
     [memefactory.ui.components.app-layout :refer [app-layout]]
+    [memefactory.ui.components.ens-resolver :as ens]
     [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
     [memefactory.ui.components.panels :refer [panel no-items-found]]
@@ -708,7 +709,7 @@
                                                  [nav-anchor {:route :route.memefolio/index
                                                               :params {:address (:user/address (:meme-auction/buyer meme-auction))}
                                                               :query {:tab :collected}}
-                                                  (:user/address (:meme-auction/buyer meme-auction))]]
+                                                  (ens/reverse-resolve (:user/address (:meme-auction/buyer meme-auction)))]]
                                                 [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
                                                 [:li [:label "Bought:"] [:span (let [time-ago (format/time-ago (gql-utils/gql-date->date (:meme-auction/bought-on meme-auction))
                                                                                                                (t/date-time @(subscribe [::now-subs/now])))]
@@ -916,11 +917,13 @@
 
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
                     {:keys [:user-address :url-address?]} :user-account}]
-  (let [tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])]
+  (let [tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
+    ens-name (if url-address? @(subscribe [::ens/ens-name user-address]))]
     [:div.tabbed-pane
      [:section.search-form
       [search/search-tools (merge {:title (if url-address?
-                                            [:span (str "Memefolio " user-address)]
+                                            (if (some? ens-name) [:span (str ens-name " Memefolio")]
+                                              [:span (str "Memefolio " user-address)])
                                             [:span "My Memefolio" (let [loc-str (str (.-location js/window))
                                                                         loc (if-let [qidx (str/index-of loc-str "?")]
                                                                               (subs loc-str 0 qidx)
@@ -944,7 +947,7 @@
                                    :selected-tags-id :search-tags
                                    :search-id :term
                                    :sub-title (if url-address?
-                                                (str "User stats and current holdings for account " user-address)
+                                                (str "User stats and current holdings for account " (or ens-name user-address))
                                                 "A personal history of all memes bought, sold, created, and owned")
                                    :select-options (cond
                                                      (#{:collected :created} tab) collected-created-order

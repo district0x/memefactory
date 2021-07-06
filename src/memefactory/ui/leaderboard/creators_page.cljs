@@ -7,6 +7,7 @@
    [district.ui.web3-accounts.subs :as accounts-subs]
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.ens-resolver :as ens]
    [memefactory.ui.components.general :refer [nav-anchor]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [no-items-found]]
@@ -53,7 +54,7 @@
                   :params {:address address}
                   :query {:tab :created}
                   :class "user-address"}
-      address]
+      (ens/reverse-resolve address)]
      [:ul
       [:li "Earned: " [:span.earned (format-price creator-total-earned)]]
       [:li "Success Rate: " [:span.success-rate (gstring/format "%d/%d (%d%%)"

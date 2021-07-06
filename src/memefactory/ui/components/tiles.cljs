@@ -12,6 +12,7 @@
             [district.ui.web3-tx-id.subs :as tx-id-subs]
             [goog.string :as gstring]
             [memefactory.shared.utils :as shared-utils]
+            [memefactory.ui.components.ens-resolver :as ens]
             [memefactory.ui.components.general :refer [nav-anchor]]
             [memefactory.ui.contract.meme-auction :as meme-auction]
             [memefactory.ui.utils :as ui-utils :refer [format-price]]
@@ -149,8 +150,8 @@
             [nav-anchor {:route :route.memefolio/index
                          :params {:address (:user/address (:meme-auction/seller meme-auction))}
                          :query {:tab :selling}
-                         :title (str "Go to the Memefolio of " seller-address)}
-             seller-address]]
+                         :title (str "Go to the Memefolio of " (ens/reverse-resolve seller-address))}
+             (ens/reverse-resolve seller-address)]]
            [:li [:label "Current Price:"] [:span (format-price price)]]
            [:li [:label "Start Price:"] [:span (format-price (:meme-auction/start-price meme-auction))]]
            [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]
@@ -239,8 +240,8 @@
         [nav-anchor {:route :route.memefolio/index
                      :params {:address creator-address}
                      :query {:tab :created}
-                     :title (str "Go to the Memefolio of " creator-address)}
-         creator-address]]
+                     :title (str "Go to the Memefolio of " (ens/reverse-resolve creator-address))}
+         (ens/reverse-resolve creator-address)]]
        [:li [:label "Created:"]
         (let [formated-time (-> (time/time-remaining (t/date-time (gql-utils/gql-date->date created-on)) (t/now))
                                 (dissoc :seconds)

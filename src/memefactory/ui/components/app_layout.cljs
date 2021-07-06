@@ -1,6 +1,5 @@
 (ns memefactory.ui.components.app-layout
   (:require
-    [district.ui.component.active-account :refer [active-account]]
     [district.ui.component.active-account-balance :refer [active-account-balance]]
     [district.ui.component.form.input :refer [text-input*]]
     [district.ui.component.meta-tags :as meta-tags]
@@ -12,6 +11,7 @@
     [district.ui.web3-accounts.subs :as accounts-subs]
     [district.ui.web3-tx-log.subs :as tx-log-subs]
     [memefactory.ui.components.account-balances :refer [account-balances]]
+    [memefactory.ui.components.ens-active-account :refer [ens-active-account]]
     [memefactory.ui.contract.param-change :as param-change]
     [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.subs :as mf-subs]
@@ -121,7 +121,7 @@
     (fn []
       [:div.app-bar
        [:div.account-section
-        [active-account]]
+        [ens-active-account]]
        [:div.tracker-section
         {:on-click (fn []
                      (if (empty? @my-addresses)

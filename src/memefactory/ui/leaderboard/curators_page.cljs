@@ -6,6 +6,7 @@
    [district.ui.graphql.subs :as gql]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.ens-resolver :as ens]
    [memefactory.ui.components.general :refer [dank-with-logo]]
    [memefactory.ui.components.general :refer [nav-anchor]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
@@ -100,7 +101,7 @@
                                         :params {:address (:user/address curator)}
                                         :query {:tab :curated}}
                             [:h3.address
-                             (:user/address curator)]]
+                             (ens/reverse-resolve (:user/address curator))]]
 
                            [:h4.challenges "CHALLENGES"]
                            [:p "Success rate: "
