@@ -11,6 +11,7 @@
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
+   [memefactory.ui.components.ens-resolved-address :as ens-resolved-address]
    [memefactory.ui.utils :refer [format-price format-dank]]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -53,7 +54,7 @@
                   :params {:address address}
                   :query {:tab :created}
                   :class "user-address"}
-      address]
+        [ens-resolved-address/ens-resolved-address {:resolvedOnly true :showBlockies false :presetValue address}]]
      [:ul
       [:li "Earned: " [:span.earned (format-price creator-total-earned)]]
       [:li "Success Rate: " [:span.success-rate (gstring/format "%d/%d (%d%%)"

@@ -16,6 +16,7 @@
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.components.tiles :as tiles :refer [meme-image]]
+   [memefactory.ui.components.ens-resolved-address :as ens-resolved-address]
    [memefactory.shared.utils :as shared-utils]
    [memefactory.ui.utils :as ui-utils]
    [print.foo :refer [look] :include-macros true]
@@ -84,7 +85,7 @@
                  :query {:tab :created}
                  :class (str "address " (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
                                           "active-address"))}
-     (-> user :user/address)]]])
+     [ens-resolved-address/ens-resolved-address {:resolvedOnly false :showBlockies false :presetValue (-> user :user/address)}]]]])
 
 
 (defn challenger-info [user]
@@ -102,7 +103,7 @@
                  :query {:tab :curated}
                  :class (str "address " (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
                                           "active-address"))}
-     (-> user :user/address)]]])
+     [ens-resolved-address/ens-resolved-address {:resolvedOnly false :showBlockies false :presetValue (-> user :user/address)}]]]])
 
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child]}]

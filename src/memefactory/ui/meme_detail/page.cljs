@@ -26,6 +26,7 @@
             [memefactory.ui.components.search :as search]
             [memefactory.ui.components.spinner :as spinner]
             [memefactory.ui.components.tiles :as tiles]
+            [memefactory.ui.components.ens-resolved-address :as ens-resolved-address]
             [memefactory.ui.contract.registry-entry :as registry-entry]
             [memefactory.ui.dank-registry.vote-page :as vote-page]
             [memefactory.ui.events :as memefactory-events]
@@ -110,7 +111,7 @@
                    :query {:tab :created}
                    :class (str "address " (when (= address @(subscribe [::accounts-subs/active-account]))
                                             "active-address"))}
-       address]]]))
+       [ens-resolved-address/ens-resolved-address {:resolvedOnly false :showBlockies false :presetValue address}]]]]))
 
 
 (defn related-memes-container [address tags]

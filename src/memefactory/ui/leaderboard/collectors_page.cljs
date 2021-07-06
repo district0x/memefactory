@@ -10,6 +10,7 @@
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
+   [memefactory.ui.components.ens-resolved-address :as ens-resolved-address]
    [memefactory.ui.utils :refer [format-price format-dank]]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -52,7 +53,7 @@
                   :params {:address address}
                   :query {:tab :collected}
                   :class "user-address"}
-      address]
+        [ens-resolved-address/ens-resolved-address {:resolvedOnly true :showBlockies false :presetValue address}]]
      [:ul ;; TODO complete these after Matus comments
       [:li "Unique Memes: " [:span.unique (gstring/format "%d/%d (%d%%)"
                                                           total-collected-memes

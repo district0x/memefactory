@@ -11,6 +11,7 @@
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
+   [memefactory.ui.components.ens-resolved-address :as ens-resolved-address]
    [memefactory.ui.utils :as ui-utils]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -100,7 +101,7 @@
                                         :params {:address (:user/address curator)}
                                         :query {:tab :curated}}
                             [:h3.address
-                             (:user/address curator)]]
+                              [ens-resolved-address/ens-resolved-address {:resolvedOnly true :showBlockies false :presetValue (:user/address curator)}]]]
 
                            [:h4.challenges "CHALLENGES"]
                            [:p "Success rate: "

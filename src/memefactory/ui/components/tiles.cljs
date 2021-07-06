@@ -15,6 +15,7 @@
             [memefactory.ui.components.general :refer [nav-anchor]]
             [memefactory.ui.contract.meme-auction :as meme-auction]
             [memefactory.ui.utils :as ui-utils :refer [format-price]]
+            [memefactory.ui.components.ens-resolved-address :as ens-resolved-address]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [taoensso.timbre :as log :refer [spy]]))
@@ -150,7 +151,7 @@
                          :params {:address (:user/address (:meme-auction/seller meme-auction))}
                          :query {:tab :selling}
                          :title (str "Go to the Memefolio of " seller-address)}
-             seller-address]]
+             [ens-resolved-address/ens-resolved-address {:resolvedOnly true :showBlockies false :presetValue seller-address}]]]
            [:li [:label "Current Price:"] [:span (format-price price)]]
            [:li [:label "Start Price:"] [:span (format-price (:meme-auction/start-price meme-auction))]]
            [:li [:label "End Price:"] [:span (format-price (:meme-auction/end-price meme-auction))]]
@@ -240,7 +241,7 @@
                      :params {:address creator-address}
                      :query {:tab :created}
                      :title (str "Go to the Memefolio of " creator-address)}
-         creator-address]]
+         [ens-resolved-address/ens-resolved-address {:resolvedOnly true :showBlockies false :presetValue creator-address}]]]
        [:li [:label "Created:"]
         (let [formated-time (-> (time/time-remaining (t/date-time (gql-utils/gql-date->date created-on)) (t/now))
                                 (dissoc :seconds)

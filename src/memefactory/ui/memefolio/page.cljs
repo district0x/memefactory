@@ -26,6 +26,7 @@
     [memefactory.ui.components.search :as search]
     [memefactory.ui.components.spinner :as spinner]
     [memefactory.ui.components.tiles :as tiles]
+    [memefactory.ui.components.ens-resolved-address :as ens-resolved-address]
     [memefactory.ui.contract.meme :as meme]
     [memefactory.ui.contract.meme-token :as meme-token]
     [memefactory.shared.utils :as shared-utils]
@@ -708,7 +709,7 @@
                                                  [nav-anchor {:route :route.memefolio/index
                                                               :params {:address (:user/address (:meme-auction/buyer meme-auction))}
                                                               :query {:tab :collected}}
-                                                  (:user/address (:meme-auction/buyer meme-auction))]]
+                                                    [ens-resolved-address/ens-resolved-address {:resolvedOnly true :showBlockies false :presetValue (:user/address (:meme-auction/buyer meme-auction))}]]]
                                                 [:li [:label "Price:"] [:span (ui-utils/format-price (:meme-auction/bought-for meme-auction))]]
                                                 [:li [:label "Bought:"] [:span (let [time-ago (format/time-ago (gql-utils/gql-date->date (:meme-auction/bought-on meme-auction))
                                                                                                                (t/date-time @(subscribe [::now-subs/now])))]
@@ -920,7 +921,7 @@
     [:div.tabbed-pane
      [:section.search-form
       [search/search-tools (merge {:title (if url-address?
-                                            [:span (str "Memefolio " user-address)]
+                                            [:span (str "Memefolio of ") [ens-resolved-address/ens-resolved-address {:resolvedOnly true :showBlockies false :presetValue user-address} ]]
                                             [:span "My Memefolio" (let [loc-str (str (.-location js/window))
                                                                         loc (if-let [qidx (str/index-of loc-str "?")]
                                                                               (subs loc-str 0 qidx)

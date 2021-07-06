@@ -15,6 +15,7 @@
     [memefactory.ui.contract.param-change :as param-change]
     [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.subs :as mf-subs]
+    [memefactory.ui.components.ens-resolved-address :as ens-resolved-address]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
     [taoensso.timbre :as log :refer [spy]]
@@ -116,12 +117,16 @@
   (let [open? (r/atom nil)
         my-addresses (r/atom nil)
         accounts (subscribe [::accounts-subs/accounts])
+        active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
         search-term (r/atom {})
         tx-log-open? (subscribe [::tx-log-subs/open?])]
     (fn []
       [:div.app-bar
        [:div.account-section
-        [active-account]]
+        [:div.active-account
+         [:span.single-account
+          [ens-resolved-address/ens-resolved-address
+           {:resolvedOnly false :showBlockies false :presetValue (str @active-account)}]]]]
        [:div.tracker-section
         {:on-click (fn []
                      (if (empty? @my-addresses)
