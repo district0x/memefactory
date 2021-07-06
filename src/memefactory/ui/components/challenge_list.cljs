@@ -11,6 +11,7 @@
    [district.ui.now.subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [goog.string :as gstring]
+   [memefactory.ui.components.ens-resolver :as ens]
    [memefactory.ui.components.general :refer [nav-anchor]]
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [no-items-found]]
@@ -84,7 +85,7 @@
                  :query {:tab :created}
                  :class (str "address " (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
                                           "active-address"))}
-     (-> user :user/address)]]])
+     (ens/reverse-resolve (-> user :user/address))]]])
 
 
 (defn challenger-info [user]
@@ -102,7 +103,7 @@
                  :query {:tab :curated}
                  :class (str "address " (when (= (:user/address user) @(subscribe [::accounts-subs/active-account]))
                                           "active-address"))}
-     (-> user :user/address)]]])
+     (ens/reverse-resolve (-> user :user/address))]]])
 
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child]}]

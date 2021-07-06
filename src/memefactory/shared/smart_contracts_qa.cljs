@@ -20,4 +20,5 @@
    :meme-registry-fwd {:name "MutableForwarder" :address "0x798693bdb05e9359b8d30d8d052044974aedaa53" :forwards-to :meme-registry}
    :meme-auction-factory-fwd {:name "MutableForwarder" :address "0xa4681530e9826a36b70b18b3b35893788ebe1f4f" :forwards-to :meme-auction-factory}
    :district0x-emails {:name "District0xEmails" :address "0xaff9758d2693ce469da913dc7d64ed256f318eed"}
-   :dank-faucet {:name "DankFaucet" :address "0xb2295316e4012fa49bc4787157301abca9188ae4"}})
+   :dank-faucet {:name "DankFaucet" :address "0xb2295316e4012fa49bc4787157301abca9188ae4"}
+   :ens {:name "ENS" :address "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"}})

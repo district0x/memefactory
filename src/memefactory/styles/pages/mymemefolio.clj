@@ -53,7 +53,7 @@
                   :color :mymemefolio-green
                   :icon "/assets/icons/portfolio2.svg"})
    [:div.search-form
-    [:h2 {:max-width (em 13.5)
+    [:h2 {:max-width (em 33.5)
           :position :unset
           :text-overflow :ellipsis
           :margin-left :auto
