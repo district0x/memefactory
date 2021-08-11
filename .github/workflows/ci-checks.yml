@@ -73,7 +73,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build QA ${{ matrix.image }} Docker image
+      - name: Building ${{ matrix.environment }} ${{ matrix.image }} Docker image
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
           ECR_REPOSITORY: "memefactory"
@@ -85,7 +85,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ matrix.image }}:${{ github.sha }}'
+          image-ref: '${{ matrix.image }}:${{ github.sha }}-${{ matrix.environment }}'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
