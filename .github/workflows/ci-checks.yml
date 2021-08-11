@@ -82,7 +82,7 @@ jobs:
           DOCKER_BUILDKIT=1 docker build --build-arg BUILD_ENV=${{ matrix.environment }} -t ${{ matrix.image }}:${{ github.sha }}-${{ matrix.environment }} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:latest-${{ matrix.environment }} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:${{ github.sha }}-${{ matrix.environment }}  -f docker-builds/${{ matrix.image }}/Dockerfile .
           echo "Successfully built docker image"
 
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner for ${{ matrix.environment }} ${{ matrix.image }} Docker image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ matrix.image }}:${{ github.sha }}-${{ matrix.environment }}'
