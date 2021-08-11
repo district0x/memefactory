@@ -1,5 +1,5 @@
 FROM node:11.14.0-stretch AS build_stage
-ARG BUILD_ENV=qa
+ARG BUILD_ENV=prod
 ENV BUILD_ENV=${BUILD_ENV}
 ENV MEMEFACTORY_ENV=${BUILD_ENV}
 ENV SMART_CONTRACTS=./src/memefactory/shared/smart_contracts_${BUILD_ENV}.cljs
