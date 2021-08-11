@@ -57,6 +57,7 @@ jobs:
       fail-fast: false
       matrix:
         image: [ 'server', 'ui' ]
+        environment: ['qa', 'prod']
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -78,7 +79,7 @@ jobs:
           ECR_REPOSITORY: "memefactory"
         run: |
           echo "Building on ${GITHUB_REF} branch"
-          DOCKER_BUILDKIT=1 docker build --build-arg BUILD_ENV=qa -t ${{ matrix.image }}:${{ github.sha }} -f docker-builds/${{ matrix.image }}/Dockerfile .
+          DOCKER_BUILDKIT=1 docker build --build-arg BUILD_ENV=${{ matrix.environment }} -t ${{ matrix.image }}:${{ github.sha }}-${{ matrix.environment }} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:latest-${{ matrix.environment }} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:${{ github.sha }}-${{ matrix.environment }}  -f docker-builds/${{ matrix.image }}/Dockerfile .
           echo "Successfully built docker image"
 
       - name: Run Trivy vulnerability scanner
@@ -99,8 +100,9 @@ jobs:
           echo "Pushing docker images"
           if [[ ${GITHUB_REF} == "refs/heads/master" ]]; then
             echo "On the default branch will push to the registry with latest and ${{ github.sha }} tags"
-            docker tag ${{ matrix.image }}:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:${{ github.sha }}
-            docker tag ${{ matrix.image }}:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:latest
-            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:${{ github.sha }}
-            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:latest
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:${{ github.sha }}-prod
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:latest-prod
+          else
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:${{ github.sha }}-qa
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}-${{matrix.image}}:latest-qa
           fi
