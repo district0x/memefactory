@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "./auth/DSAuth.sol";
 import "./db/EternalDb.sol";
@@ -15,13 +16,13 @@ import "./proxy/MutableForwarder.sol"; // Keep it included despite not being use
 contract Registry is DSAuth {
   address private dummyTarget; // Keep it here, because this contract is deployed as MutableForwarder
 
-  bytes32 public constant challengePeriodDurationKey = sha3("challengePeriodDuration");
-  bytes32 public constant commitPeriodDurationKey = sha3("commitPeriodDuration");
-  bytes32 public constant revealPeriodDurationKey = sha3("revealPeriodDuration");
-  bytes32 public constant depositKey = sha3("deposit");
-  bytes32 public constant challengeDispensationKey = sha3("challengeDispensation");
-  bytes32 public constant maxTotalSupplyKey = sha3("maxTotalSupply");
-  bytes32 public constant maxAuctionDurationKey = sha3("maxAuctionDuration");
+  bytes32 public constant challengePeriodDurationKey = keccak256("challengePeriodDuration");
+  bytes32 public constant commitPeriodDurationKey = keccak256("commitPeriodDuration");
+  bytes32 public constant revealPeriodDurationKey = keccak256("revealPeriodDuration");
+  bytes32 public constant depositKey = keccak256("deposit");
+  bytes32 public constant challengeDispensationKey = keccak256("challengeDispensation");
+  bytes32 public constant maxTotalSupplyKey = keccak256("maxTotalSupply");
+  bytes32 public constant maxAuctionDurationKey = keccak256("maxAuctionDuration");
 
   event MemeConstructedEvent(address registryEntry, uint version, address creator, bytes metaHash, uint totalSupply, uint deposit, uint challengePeriodEnd);
   event MemeMintedEvent(address registryEntry, uint version, address creator, uint tokenStartId, uint tokenEndId, uint totalMinted);
@@ -38,6 +39,8 @@ contract Registry is DSAuth {
 
   EternalDb public db;
   bool private wasConstructed;
+  // nextTokenId is used to indicate the tokenId to use for the next brand-new minted token.
+  uint public nextTokenId;
 
   /**
    * @dev Constructor for this contract.
@@ -49,12 +52,17 @@ contract Registry is DSAuth {
   function construct(EternalDb _db)
   external
   {
-    require(address(_db) != 0x0, "Registry: Address can't be 0x0");
+    require(address(_db) != address(0), "Registry: Address can't be 0x0");
     require(!wasConstructed);
 
     db = _db;
     wasConstructed = true;
     owner = msg.sender;
+
+    // Each chain should have their own token id range so they do not collide when porting memes between chains
+    // so the first 2^64 bits of the tokenId is the chain identifier, andthe rest 2^192 are for the actual tokenIds
+    //  within each chain
+    nextTokenId = block.chainid << 192;
   }
 
   modifier onlyFactory() {
@@ -83,7 +91,7 @@ contract Registry is DSAuth {
   external
   auth
   {
-    db.setBooleanValue(sha3("isFactory", _factory), _isFactory);
+    db.setBooleanValue(keccak256(abi.encodePacked("isFactory", _factory)), _isFactory);
   }
 
   /**
@@ -97,7 +105,7 @@ contract Registry is DSAuth {
   onlyFactory
   notEmergency
   {
-    db.setBooleanValue(sha3("isRegistryEntry", _registryEntry), true);
+    db.setBooleanValue(keccak256(abi.encodePacked("isRegistryEntry", _registryEntry)), true);
   }
 
   /**
@@ -113,7 +121,7 @@ contract Registry is DSAuth {
     db.setBooleanValue("isEmergency", _isEmergency);
   }
 
-  function fireMemeConstructedEvent(uint version, address creator, bytes metaHash, uint totalSupply, uint deposit, uint challengePeriodEnd)
+  function fireMemeConstructedEvent(uint version, address creator, bytes memory metaHash, uint totalSupply, uint deposit, uint challengePeriodEnd)
   public
   onlyRegistryEntry
   {
@@ -124,10 +132,12 @@ contract Registry is DSAuth {
   public
   onlyRegistryEntry
   {
+    // keep tracks of the total minted token to know what should be the next tokenId
+    nextTokenId += totalMinted;
     emit MemeMintedEvent(msg.sender, version, creator, tokenStartId, tokenEndId, totalMinted);
   }
 
-  function fireChallengeCreatedEvent(uint version, address challenger, uint commitPeriodEnd, uint revealPeriodEnd, uint rewardPool, bytes metahash)
+  function fireChallengeCreatedEvent(uint version, address challenger, uint commitPeriodEnd, uint revealPeriodEnd, uint rewardPool, bytes memory metahash)
   public
   onlyRegistryEntry
   {
@@ -169,7 +179,7 @@ contract Registry is DSAuth {
     emit ChallengeRewardClaimedEvent(msg.sender, version, challenger, amount);
   }
 
-  function fireParamChangeConstructedEvent(uint version, address creator, address db, string key, uint value, uint deposit, uint challengePeriodEnd, bytes metaHash)
+  function fireParamChangeConstructedEvent(uint version, address creator, address db, string memory key, uint value, uint deposit, uint challengePeriodEnd, bytes memory metaHash)
   public
   onlyRegistryEntry
   {
@@ -188,8 +198,8 @@ contract Registry is DSAuth {
 
    * @return True if address is factory
    */
-  function isFactory(address factory) public constant returns (bool) {
-    return db.getBooleanValue(sha3("isFactory", factory));
+  function isFactory(address factory) public view returns (bool) {
+    return db.getBooleanValue(keccak256(abi.encodePacked("isFactory", factory)));
   }
 
   /**
@@ -197,8 +207,8 @@ contract Registry is DSAuth {
 
    * @return True if address is registry entry
    */
-  function isRegistryEntry(address registryEntry) public constant returns (bool) {
-    return db.getBooleanValue(sha3("isRegistryEntry", registryEntry));
+  function isRegistryEntry(address registryEntry) public view returns (bool) {
+    return db.getBooleanValue(keccak256(abi.encodePacked("isRegistryEntry", registryEntry)));
   }
 
   /**
@@ -206,7 +216,7 @@ contract Registry is DSAuth {
 
    * @return True if emergency is happening
    */
-  function isEmergency() public constant returns (bool) {
+  function isEmergency() public view returns (bool) {
     return db.getBooleanValue("isEmergency");
   }
 }

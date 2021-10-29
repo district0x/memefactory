@@ -77,13 +77,13 @@
     (fn []
       [app-layout
        {:meta {:title "MemeFactory - Dankest Memes"
-               :description "Memes traded for the most ETH. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
+               :description "Memes traded for the most MATIC. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
        [:div.leaderboard-dankest-page
         [:section.dankest
          [:div.dankest-panel
           [:div.icon]
           [:h2.title "LEADERBOARDS - DANKEST"]
-          [:h3.title "Memes traded for the most ETH"]
+          [:h3.title "Memes traded for the most MATIC"]
           [:div.order
            [select-input
             {:form-data form-data

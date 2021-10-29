@@ -151,7 +151,7 @@
          formatted-price-eth (format/format-eth  price-eth
                                                  {:max-fraction-digits 3
                                                   :min-fraction-digits 2})
-         price-dolar (* (conversion-rates/get-cached-rate-sync :ETH :USD) price-eth)
+         price-dolar (* (conversion-rates/get-cached-rate-sync :MATIC :USD) price-eth)
          formatted-price-dolar (format/format-currency price-dolar {:currency "USD"})
          text (rand-nth [(gstring/format "'%s' was just purchased for [%s] [%s]. Find, create, and sell more rare collectibles only on Meme Factory! %s"
                                          title

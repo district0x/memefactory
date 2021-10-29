@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const edn = require("jsedn");
 
 function smartContractsTemplate (map, env) {
@@ -94,6 +95,67 @@ const utils = {
     fs.writeFileSync(smartContractsPath, smartContractsTemplate(encodeSmartContracts(smartContracts), env));
   },
 
+  Status: class {
+    constructor(id) {
+      this.id = id;
+      this.currentStep = 0;
+      this.lastStep = -1;
+      this.values = {};
+      this._loadStatus();
+    }
+
+    async step(fn) {
+      if (this.lastStep < this.currentStep) {
+        console.log("Executing step: " + this.currentStep);
+        let values = await fn(this);
+        Object.assign(this.values, values);
+        this.lastStep++;
+        this._saveStatus();
+      } else {
+        console.log("Skipping previously executed step: " + this.currentStep);
+      }
+      this.currentStep++;
+    }
+
+    getValue(key) {
+      return this.values[key];
+    }
+
+    _filename() {
+      return path.resolve(__dirname, this.id + '_status.json');
+    }
+
+    _loadStatus() {
+      if (fs.existsSync(this._filename())) {
+        console.log("Previous execution detected. Loading status to resume")
+        try {
+          let data = fs.readFileSync(this._filename());
+          let st = JSON.parse(data.toString());
+          this.lastStep = st['lastStep'];
+          this.values = st['values'];
+        } catch (err) {
+          console.warn("Failed to load status");
+        }
+      }
+    }
+
+    _saveStatus() {
+      let data = JSON.stringify({'lastStep': this.lastStep, 'values': this.values});
+      try {
+        fs.writeFileSync(this._filename(), data)
+      } catch (err) {
+        console.warn("Cannot save state", err);
+      }
+    }
+
+    clean() {
+      try {
+        fs.unlinkSync(this._filename());
+      } catch (err) {
+        console.warn("Failed to clean status", err);
+      }
+    }
+  }
 
 };
 

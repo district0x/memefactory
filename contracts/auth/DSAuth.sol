@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -11,12 +12,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.4.13;
+pragma solidity ^0.8.0;
 
-contract DSAuthority {
+abstract contract DSAuthority {
   function canCall(
     address src, address dst, bytes4 sig
-  ) public view returns (bool);
+  ) public view virtual returns (bool);
 }
 
 contract DSAuthEvents {
@@ -28,9 +29,9 @@ contract DSAuth is DSAuthEvents {
   DSAuthority  public  authority;
   address      public  owner;
 
-  function DSAuth() public {
+  constructor() {
     owner = msg.sender;
-    LogSetOwner(msg.sender);
+    emit LogSetOwner(msg.sender);
   }
 
   function setOwner(address owner_)
@@ -38,7 +39,7 @@ contract DSAuth is DSAuthEvents {
   auth
   {
     owner = owner_;
-    LogSetOwner(owner);
+    emit LogSetOwner(owner);
   }
 
   function setAuthority(DSAuthority authority_)
@@ -46,7 +47,7 @@ contract DSAuth is DSAuthEvents {
   auth
   {
     authority = authority_;
-    LogSetAuthority(authority);
+    emit LogSetAuthority(address(authority));
   }
 
   modifier auth {
@@ -59,10 +60,10 @@ contract DSAuth is DSAuthEvents {
       return true;
     } else if (src == owner) {
       return true;
-    } else if (authority == DSAuthority(0)) {
+    } else if (authority == DSAuthority(address(0))) {
       return false;
     } else {
-      return authority.canCall(src, this, sig);
+      return authority.canCall(src, address(this), sig);
     }
   }
 }

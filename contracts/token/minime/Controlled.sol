@@ -1,4 +1,5 @@
-pragma solidity ^0.4.18;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity ^0.8.0;
 
 contract Controlled {
 
@@ -10,7 +11,7 @@ contract Controlled {
 
   address public controller;
 
-  function Controlled() public { controller = msg.sender;}
+  constructor () { controller = msg.sender;}
 
   /// @notice Changes the controller of the contract
   /// @param _newController The new controller of the contract

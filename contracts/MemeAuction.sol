@@ -1,6 +1,7 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-import "./token/ERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./MemeToken.sol";
 import "./Registry.sol";
 import "./Meme.sol";
@@ -8,7 +9,7 @@ import "./math/SafeMath.sol";
 import "./MemeAuctionFactory.sol";
 import "./DistrictConfig.sol";
 
-contract MemeAuction is ERC721Receiver {
+contract MemeAuction is IERC721Receiver {
   using SafeMath for uint;
 
   DistrictConfig public constant districtConfig = DistrictConfig(0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd);
@@ -32,13 +33,13 @@ contract MemeAuction is ERC721Receiver {
   external
   notEmergency
   {
-    require(_seller != 0x0,"MemeAuction: _seller is 0x0");
-    require(seller == 0x0, "MemeAcution: seller is 0x0");
+    require(_seller != address(0),"MemeAuction: _seller is 0x0");
+    require(seller == address(0), "MemeAcution: seller is 0x0");
     seller = _seller;
     tokenId = _tokenId;
   }
 
-  function startAuction(uint _startPrice, uint _endPrice, uint _duration, string _description)
+  function startAuction(uint _startPrice, uint _endPrice, uint _duration, string memory _description)
   external
   notEmergency
   {
@@ -53,7 +54,7 @@ contract MemeAuction is ERC721Receiver {
     description = _description;
     endPrice = _endPrice;
     duration = _duration;
-    startedOn = now;
+    startedOn = block.timestamp;
     memeAuctionFactory.fireMemeAuctionStartedEvent(tokenId,
                                                    seller,
                                                    startPrice,
@@ -75,7 +76,7 @@ contract MemeAuction is ERC721Receiver {
   notEmergency
   {
     require(startedOn > 0, "MemeAuction: Can't buy because not started");
-    var price = currentPrice();
+    uint256 price = currentPrice();
     require(msg.value >= price, "MemeAuction: Can't buy because money sent is lower than price");
     uint auctioneerCut = 0;
     uint sellerProceeds = 0;
@@ -83,15 +84,15 @@ contract MemeAuction is ERC721Receiver {
       auctioneerCut = computeCut(price);
       sellerProceeds = price.sub(auctioneerCut);
 
-      seller.transfer(sellerProceeds);
+      payable(seller).transfer(sellerProceeds);
       if (msg.value > price) {
-        msg.sender.transfer(msg.value.sub(price));
+        payable(msg.sender).transfer(msg.value.sub(price));
       }
       if (auctioneerCut > 0) {
-        districtConfig.memeAuctionCutCollector().transfer(auctioneerCut);
+        payable(districtConfig.memeAuctionCutCollector()).transfer(auctioneerCut);
       }
     }
-    memeToken.safeTransferFrom(this, msg.sender, tokenId);
+    memeToken.safeTransferFrom(address(this), msg.sender, tokenId);
 
     memeAuctionFactory.fireMemeAuctionBuyEvent(msg.sender,
                                                price,
@@ -105,19 +106,21 @@ contract MemeAuction is ERC721Receiver {
     require(startedOn > 0, "MemeAuction: Can't cancel because not started");
     require(msg.sender == seller, "MemeAuction: Can't cancel because sender is not seller");
 
-    memeToken.safeTransferFrom(this, seller, tokenId);
+    memeToken.safeTransferFrom(address(this), seller, tokenId);
     memeAuctionFactory.fireMemeAuctionCanceledEvent();
   }
 
-  function onERC721Received(address _from, uint256 _tokenId, bytes _data)
+  function onERC721Received(address operator, address _from, uint256 _tokenId, bytes calldata _data)
   public
+  override
   notEmergency
   returns (bytes4)
   {
     require(_tokenId == tokenId, "MemeAuction: _tokenId is not tokenId");
     require(startedOn == 0, "MemeAuction: Already started");
-    require(this.call(_data), "MemeAuction: No data to call");
-    return ERC721_RECEIVED;
+    (bool success,) = address(this).call(_data);
+    require(success, "MemeAuction: No data to call");
+    return IERC721Receiver.onERC721Received.selector;
   }
 
   /// @dev Returns current price of an NFT on auction. Broken into two
@@ -126,16 +129,16 @@ contract MemeAuction is ERC721Receiver {
   ///  can easily test that the price computation works correctly.
   function currentPrice()
   public
-  constant
+  view
   returns (uint256)
   {
     uint256 secondsPassed = 0;
 
     // A bit of insurance against negative values (or wraparound).
     // Probably not necessary (since Ethereum guarnatees that the
-    // now variable doesn't ever go backwards).
-    if (now > startedOn) {
-      secondsPassed = now - startedOn;
+    // block.timestamp variable doesn't ever go backwards).
+    if (block.timestamp > startedOn) {
+      secondsPassed = block.timestamp - startedOn;
     }
 
     return _computeCurrentPrice(
@@ -191,22 +194,22 @@ contract MemeAuction is ERC721Receiver {
   /// @param _price - Sale price of NFT.
   function computeCut(uint256 _price)
     public
-    constant
+    view
     returns (uint256) {
     return _price.mul(districtConfig.memeAuctionCut()).div(10000);
   }
 
-  function() public payable {
+  fallback () external payable {
     buy();
   }
 
-  function load() external constant returns (address,
+  function load() external view returns (address,
                                              uint,
                                              uint,
                                              uint,
                                              uint,
                                              uint,
-                                             string){
+                                             string memory){
     return(seller,
            tokenId,
            startPrice,

@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "./token/minime/MiniMeToken.sol";
 
@@ -9,10 +10,10 @@ import "./token/minime/MiniMeToken.sol";
  */
 
 contract DankToken is MiniMeToken {
-  function DankToken(address _tokenFactory, uint _mintedAmount)
+  constructor (address _tokenFactory, uint _mintedAmount)
   MiniMeToken(
     _tokenFactory,
-    0x0,
+    payable(address(0)),
     0,
     "Dank Token",
     18,
@@ -21,6 +22,6 @@ contract DankToken is MiniMeToken {
   )
   {
     generateTokens(msg.sender, _mintedAmount);
-    changeController(0x0);
+    changeController(address(0));
   }
 }

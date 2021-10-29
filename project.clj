@@ -7,7 +7,8 @@
   :dependencies [[akiroz.re-frame/storage "0.1.2"]
                  [camel-snake-kebab "0.4.0"]
                  [cljs-node-io "1.1.2"]
-                 [cljs-web3-next "0.1.2"]
+                 [cljs-web3-next "0.1.4"]
+                 [cljsjs/bignumber "9.0.0-0"]
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "4.12.0-0"]
                  [cljsjs/filesaverjs "1.3.3-0"]
@@ -52,7 +53,7 @@
                  [district0x/district-ui-reagent-render "1.0.1"]
                  [district0x/district-ui-router "1.0.5"]
                  [district0x/district-ui-router-google-analytics "1.0.1"]
-                 [district0x/district-ui-smart-contracts "1.0.8"]
+                 [district0x/district-ui-smart-contracts "1.0.9"]
                  [district0x/district-ui-web3 "1.3.2"]
                  [district0x/district-ui-web3-account-balances "1.0.2"]
                  [district0x/district-ui-web3-accounts "1.0.7"]
@@ -77,7 +78,7 @@
                  [reagent "0.8.1"]
 
                  ;; ui only dependencies before ui is migrated to cljs-web3-next
-                 [cljs-web3 "0.19.0-0-10"]
+                 [cljs-web3 "0.19.0-0-11"]
                  ;; this is now cljs-web3-next.utils/solidity-sha3
                  [district0x/cljs-solidity-sha3 "1.0.0"]
                  ;; this is now cljs-web3-next.helpers
@@ -144,7 +145,7 @@
                                       [re-frisk "0.5.3"]
                                       [lein-doo "0.1.8"]
                                       ;; ui-deps
-                                      [cljs-web3 "0.19.0-0-10"]
+                                      [cljs-web3 "0.19.0-0-11"]
                                       ;; this is now cljs-web3.utils/solidity-sha3
                                       [district0x/cljs-solidity-sha3 "1.0.0"]
                                       ;; this is now cljs-web3.helpers

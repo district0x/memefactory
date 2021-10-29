@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "./Registry.sol";
 import "./ParamChange.sol";
@@ -20,12 +21,12 @@ contract ParamChangeRegistry is Registry {
    * @param _paramChange Address of ParamChange contract
    */
 
-  function applyParamChange(ParamChange _paramChange) {
-    require(isRegistryEntry(_paramChange), "ParamChangeRegistry: not a registry entry");
-    DSGuard guard = DSGuard(_paramChange.db().authority());
-    guard.permit(_paramChange, _paramChange.db(), guard.ANY());
+  function applyParamChange(ParamChange _paramChange) public {
+    require(isRegistryEntry(address(_paramChange)), "ParamChangeRegistry: not a registry entry");
+    DSGuard guard = DSGuard(address(_paramChange.db().authority()));
+    guard.permit(address(_paramChange), address(_paramChange.db()), guard.ANY());
     _paramChange.applyChange();
-    guard.forbid(_paramChange, _paramChange.db(), guard.ANY());
+    guard.forbid(address(_paramChange), address(_paramChange.db()), guard.ANY());
   }
 }
 

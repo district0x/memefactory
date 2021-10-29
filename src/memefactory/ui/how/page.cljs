@@ -106,7 +106,7 @@
 
        [:p "On this page, you can enter your phone number with country code and press the “submit” button. This will initiate an SMS verification (text message) to your number with a 4 digit code. Enter the code into the prompt on the DANK faucet page, and voila! After a few moments, your DANK will arrive in your connected wallet’s address."]
 
-       [:p "Please note that by default, some wallets will not be tracking DANK balances, though they are stored correctly on the wallet’s address. You can always view your ETH and DANK balances for a connected address in the upper right hand corner of any "
+       [:p "Please note that by default, some wallets will not be tracking DANK balances, though they are stored correctly on the wallet’s address. You can always view your MATIC and DANK balances for a connected address in the upper right hand corner of any "
         [nav-anchor {:route :route/home} "Meme Factory"]
         " page."]
 

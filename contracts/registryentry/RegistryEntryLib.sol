@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "../Registry.sol";
 import "../math/SafeMath.sol";
@@ -59,65 +60,65 @@ library RegistryEntryLib {
 
   function isVoteRevealPeriodActive(Challenge storage self)
     internal
-    constant
+    view
     returns (bool) {
-    return !isVoteCommitPeriodActive(self) && now <= self.revealPeriodEnd;
+    return !isVoteCommitPeriodActive(self) && block.timestamp <= self.revealPeriodEnd;
   }
 
   function isVoteRevealed(Challenge storage self, address _voter)
     internal
-    constant
+    view
     returns (bool) {
     return self.vote[_voter].revealedOn > 0;
   }
 
   function isVoteRewardClaimed(Challenge storage self, address _voter)
     internal
-    constant
+    view
     returns (bool) {
     return self.vote[_voter].claimedRewardOn > 0;
   }
 
   function isVoteAmountReclaimed(Challenge storage self, address _voter)
     internal
-    constant
+    view
     returns (bool) {
     return self.vote[_voter].reclaimedVoteAmountOn > 0;
   }
 
   function isChallengeRewardClaimed(Challenge storage self)
     internal
-    constant
+    view
     returns (bool) {
     return self.claimedRewardOn > 0;
   }
 
   function isChallengePeriodActive(Challenge storage self)
     internal
-    constant
+    view
     returns (bool) {
-    return now <= self.challengePeriodEnd;
+    return block.timestamp <= self.challengePeriodEnd;
   }
 
   function isWhitelisted(Challenge storage self)
     internal
-    constant
+    view
     returns (bool) {
     return status(self) == Status.Whitelisted;
   }
 
   function isVoteCommitPeriodActive(Challenge storage self)
     internal
-    constant
+    view
     returns (bool) {
-    return now <= self.commitPeriodEnd;
+    return block.timestamp <= self.commitPeriodEnd;
   }
 
   function isVoteRevealPeriodOver(Challenge storage self)
     internal
-    constant
+    view
     returns (bool) {
-    return self.revealPeriodEnd > 0 && now > self.revealPeriodEnd;
+    return self.revealPeriodEnd > 0 && block.timestamp > self.revealPeriodEnd;
   }
 
   /**
@@ -127,23 +128,23 @@ library RegistryEntryLib {
    */
   function isWinningOptionVoteFor(Challenge storage self)
     internal
-    constant
+    view
     returns (bool) {
     return winningVoteOption(self) == VoteOption.VoteFor;
   }
 
   function hasVoted(Challenge storage self, address _voter)
     internal
-    constant
+    view
     returns (bool) {
     return self.vote[_voter].amount != 0;
   }
 
   function wasChallenged(Challenge storage self)
     internal
-    constant
+    view
     returns (bool) {
-    return self.challenger != 0x0;
+    return self.challenger != address(0);
   }
 
   /**
@@ -154,7 +155,7 @@ library RegistryEntryLib {
    */
   function votedWinningVoteOption(Challenge storage self, address _voter)
     internal
-    constant
+    view
     returns (bool) {
     return self.vote[_voter].option == winningVoteOption(self);
   }
@@ -166,7 +167,7 @@ library RegistryEntryLib {
    */
   function status(Challenge storage self)
     internal
-    constant
+    view
     returns (Status) {
     if (isChallengePeriodActive(self) && !wasChallenged(self)) {
       return Status.ChallengePeriod;
@@ -192,7 +193,7 @@ library RegistryEntryLib {
    */
   function challengeReward(Challenge storage self, uint deposit)
     internal
-    constant
+    view
     returns (uint) {
     return deposit.add(deposit.sub(self.rewardPool));
   }
@@ -205,7 +206,7 @@ library RegistryEntryLib {
    */
   function voteReward(Challenge storage self, address _voter)
     internal
-    constant
+    view
     returns (uint) {
     uint winningAmount = winningVotesAmount(self);
     uint voterAmount = 0;
@@ -224,7 +225,7 @@ library RegistryEntryLib {
    */
   function isChangeAllowed(Registry registry, bytes32 record, uint _value)
     internal
-    constant
+    view
     returns (bool) {
 
       if(record == registry.challengePeriodDurationKey() || record == registry.commitPeriodDurationKey() ||
@@ -251,37 +252,11 @@ library RegistryEntryLib {
     return false;
   }
 
-
-  function bytesToUint(bytes b)
-    internal
-    returns (uint256) {
-    uint256 number;
-    for(uint i = 0; i < b.length; i++){
-      number = number + uint(b[i]) * (2 ** (8 * (b.length - (i + 1))));
-    }
-    return number;
-  }
-
-  function stringToUint(string s)
-    internal
-    constant
-    returns (uint result) {
-    bytes memory b = bytes(s);
-    uint i;
-    result = 0;
-    for (i = 0; i < b.length; i++) {
-      uint c = uint(b[i]);
-      if (c >= 48 && c <= 57) {
-        result = result * 10 + (c - 48);
-      }
-    }
-  }
-
   // Private functions
 
   function isBlacklisted(Challenge storage self)
     private
-    constant
+    view
     returns (bool) {
     return status(self) == Status.Blacklisted;
   }
@@ -293,7 +268,7 @@ library RegistryEntryLib {
    */
   function winningVoteOption(Challenge storage self)
     private
-    constant
+    view
     returns (VoteOption) {
     if (!isVoteRevealPeriodOver(self)) {
       return VoteOption.NoVote;
@@ -313,7 +288,7 @@ library RegistryEntryLib {
    */
   function winningVotesAmount(Challenge storage self)
     private
-    constant
+    view
     returns (uint) {
     VoteOption voteOption = winningVoteOption(self);
 

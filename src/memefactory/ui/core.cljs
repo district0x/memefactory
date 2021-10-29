@@ -16,6 +16,7 @@
             [district.ui.router.queries :as router-queries]
             [district.ui.router]
             [district.ui.smart-contracts.events :as contracts-events]
+            [district.ui.smart-contracts.queries :as contracts-queries]
             [district.ui.smart-contracts]
             [district.ui.web3-account-balances]
             [district.ui.web3-accounts.events :as web3-accounts-events]
@@ -29,6 +30,7 @@
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.routes :refer [routes]]
             [memefactory.ui.about.page]
+            [memefactory.ui.bridge.page]
             [memefactory.ui.config :as config]
             [memefactory.ui.config :refer [config-map]]
             [memefactory.ui.contract.registry-entry]
@@ -74,6 +76,33 @@
        (assoc :nsfw-switch (:nsfw-switch store))
        (assoc :memefactory.ui.get-dank.page/stage 1))))
 
+;; This is a workaround to support new contract ABIs format until web3 1.x is supported in UI.
+;; Basically, the usage of "payable: true" and "constant: true" has been removed as they are specified in the
+;; stateMutability field. This workaround just sets the payable and constant fields back if they are not specified
+;; in the contract ABI
+(defn fix-abi [abi]
+  (let [abi (reduce (fn [all-methods method]
+                      (let [state-mutability (get method "stateMutability")]
+                        (case state-mutability
+                          "payable" (conj all-methods (merge {"payable" true} method))
+                          (or "view" "pure") (conj all-methods (merge {"constant" true} method))
+                          (conj all-methods method))))
+                    []
+                    (js->clj abi))]
+    (clj->js abi)))
+
+(re-frame/reg-event-fx
+  ::fix-contracts
+  interceptors
+  (fn [{:keys [:db]}]
+    (let [contracts (contracts-queries/contracts db)
+          new-db (reduce
+              (fn [r contract-key]
+                (contracts-queries/assoc-contract-abi r contract-key (fix-abi (contracts-queries/contract-abi db contract-key))))
+              (contracts-queries/merge-contracts db contracts)
+              (keys contracts))]
+      {:db new-db})))
+
 (re-frame/reg-event-fx
  ::route-initial-effects
  (fn [{:keys [:db]}]
@@ -92,10 +121,14 @@
  [(re-frame/inject-cofx :store)]
  (fn [{:keys [db store]}]
    (log/debug "Localstore content" store ::init)
-   {:dispatch [::init-defaults store]
-    :forward-events {:register :active-route-changed
-                     :events #{::router-events/active-page-changed}
-                     :dispatch-to [::route-initial-effects]}}))
+   {:dispatch       [::init-defaults store]
+    :forward-events [{:register    :active-route-changed
+                      :events      #{::router-events/active-page-changed}
+                      :dispatch-to [::route-initial-effects]}
+                     {:register    :fix-contracts
+                      :events      #{::contracts-events/contracts-loaded}
+                      :dispatch-to [::fix-contracts]}
+                     ]}))
 
 (defn ^:export init []
   (dev-setup)
@@ -103,7 +136,7 @@
                      config-map
                      {:smart-contracts {:format :truffle-json
                                         :contracts-path "/contracts/build/"}
-                      :web3-account-balances {:for-contracts [:ETH :DANK]}
+                      :web3-account-balances {:for-contracts [:ETH :DANK :DANK-root]} ;; should use :ETH here also MATIC in polygon
                       :web3-tx-log {:open-on-tx-hash? true}
                       :reagent-render {:id "app"
                                        :component-var #'router}

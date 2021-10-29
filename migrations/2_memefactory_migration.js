@@ -1,4 +1,4 @@
-const {last, copy, linkBytecode, smartContractsTemplate} = require ("./utils.js");
+const {last, copy, linkBytecode, smartContractsTemplate} = require ("../migrations_old/utils.js");
 const fs = require('fs');
 const edn = require("jsedn");
 const {env, contracts_build_directory, smart_contracts_path, parameters} = require ('../truffle.js');
@@ -161,7 +161,7 @@ module.exports = function(deployer, network, accounts) {
       [dSGuard,
        paramChangeRegistryForwarder]) =>
            // Allow :param-change-registry-fwd to grand permissions to other contracts (for ParamChanges to apply changes)
-           dSGuard.permit(paramChangeRegistryForwarder.address, dSGuard.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
+           dSGuard.methods['permit(address,address,bytes32)'].sendTransaction(paramChangeRegistryForwarder.address, dSGuard.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
     .then (() => MemeRegistryForwarder.deployed ())
     .then ((instance) => deployer.deploy (MemeToken, instance.address, Object.assign(opts, {gas: 3200000})))
     .then ((instance) => instance.registry())
@@ -273,7 +273,7 @@ module.exports = function(deployer, network, accounts) {
       [dSGuard,
        memeRegistryForwarder,
        memeRegistryDb]) => // allow :meme-registry-fwd to make changes into :meme-registry-db
-           dSGuard.permit(memeRegistryForwarder.address, memeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
+           dSGuard.methods['permit(address,address,bytes32)'].sendTransaction(memeRegistryForwarder.address, memeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
     .then (() => Promise.all ([DSGuard.deployed (),
                                ParamChangeRegistryForwarder.deployed (),
                                MemeRegistryDb.deployed ()]))
@@ -282,7 +282,7 @@ module.exports = function(deployer, network, accounts) {
       [dSGuard,
        paramChangeRegistryForwarder,
        memeRegistryDb]) => // allow :param-change-registry-fwd to make changes into :meme-registry-db (to apply ParamChanges)
-           dSGuard.permit(paramChangeRegistryForwarder.address, memeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
+           dSGuard.methods['permit(address,address,bytes32)'].sendTransaction(paramChangeRegistryForwarder.address, memeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
     .then (() => Promise.all ([DSGuard.deployed (),
                                ParamChangeRegistryForwarder.deployed (),
                                ParamChangeRegistryDb.deployed ()]))
@@ -290,7 +290,8 @@ module.exports = function(deployer, network, accounts) {
       [dSGuard,
        paramChangeRegistryForwarder,
        paramChangeRegistryDb]) => // allow :param-change-registry-fwd to make changes into :param-change-registry-db
-           dSGuard.permit(paramChangeRegistryForwarder.address, paramChangeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
+           dSGuard.methods['permit(address,address,bytes32)'].sendTransaction(paramChangeRegistryForwarder.address, paramChangeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
+
     .then (() => Promise.all ([MemeRegistryForwarder.deployed (),
                                MemeFactory.deployed ()]))
     .then ((

@@ -1,4 +1,5 @@
-pragma solidity ^0.4.18;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 contract DelegateProxy {
   /**
@@ -6,11 +7,11 @@ contract DelegateProxy {
   * @param _dst Destination address to perform the delegatecall
   * @param _calldata Calldata for the delegatecall
   */
-  function delegatedFwd(address _dst, bytes _calldata) internal {
+  function delegatedFwd(address _dst, bytes memory _calldata) internal {
     require(isContract(_dst));
     assembly {
-      let result := delegatecall(sub(gas, 10000), _dst, add(_calldata, 0x20), mload(_calldata), 0, 0)
-      let size := returndatasize
+      let result := delegatecall(sub(gas(), 10000), _dst, add(_calldata, 0x20), mload(_calldata), 0, 0)
+      let size := returndatasize()
 
       let ptr := mload(0x40)
       returndatacopy(ptr, 0, size)

@@ -50,21 +50,21 @@
    [:meme/meta-hash ipfs-hash not-nil]
    [:meme/total-supply :unsigned :integer not-nil]
    [:meme/total-minted :unsigned :integer not-nil]
-   [:meme/token-id-start :unsigned :integer default-nil]
+   [:meme/token-id-start :varchar default-nil]
    [:meme/total-trade-volume :BIG :INT default-zero]
    [:meme/first-mint-on :unsigned :integer default-nil]
    [(sql/call :primary-key :reg-entry/address)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]])
 
 (def meme-tokens-columns
-  [[:meme-token/token-id :unsigned :integer not-nil]
+  [[:meme-token/token-id :varchar not-nil]
    [:meme-token/number :unsigned :integer not-nil]
    [:reg-entry/address address not-nil]
    [(sql/call :primary-key :meme-token/token-id)]
    [(sql/call :foreign-key :reg-entry/address) (sql/call :references :reg-entries :reg-entry/address) (sql/raw "ON DELETE CASCADE")]])
 
 (def meme-token-owners-columns
-  [[:meme-token/token-id :unsigned :integer not-nil]
+  [[:meme-token/token-id :varchar not-nil]
    [:meme-token/owner address not-nil]
    [:meme-token/transferred-on :unsigned :integer default-nil]
    [(sql/call :primary-key :meme-token/token-id)]])
@@ -81,7 +81,7 @@
 
 (def meme-auctions-columns
   [[:meme-auction/address address not-nil]
-   [:meme-auction/token-id :unsigned :integer not-nil]
+   [:meme-auction/token-id :varchar not-nil]
    [:meme-auction/seller address not-nil]
    [:meme-auction/buyer address default-nil]
    [:meme-auction/start-price :BIG :INT not-nil]
@@ -242,20 +242,19 @@
 
 ;; MEME-TOKENS
 
-(defn insert-meme-tokens! [{:keys [:token-id-start :token-id-end :reg-entry/address]}]
+(defn insert-meme-tokens! [{:keys [:token-ids :reg-entry/address]}]
   (let [max-token-number (-> (db/get {:select [[(sql/call :max :meme-tokens.meme-token/number) :max-number]]
                                       :from [:meme-tokens]
                                       :where [:= :meme-tokens.reg-entry/address address]})
                              :max-number
                              (or 0))
-        token-id-range (range token-id-start (inc token-id-end))
-        token-number-range (range (inc max-token-number) (+ max-token-number (count token-id-range) 1))]
+        token-number-range (range (inc max-token-number) (+ max-token-number (count token-ids) 1))]
     (db/run! {:insert-into :meme-tokens
               :columns meme-tokens-column-names
               :values (map (fn [tnum tid]
                              [tid tnum address])
                            token-number-range
-                           token-id-range)})))
+                           token-ids)})))
 
 ;; MEME-TOKEN-OWNERS
 

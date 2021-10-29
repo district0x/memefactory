@@ -31,7 +31,7 @@
             [memefactory.shared.smart-contracts-prod :as smart-contracts-prod]
             [memefactory.shared.smart-contracts-qa :as smart-contracts-qa]
             [mount.core :as mount]
-            [taoensso.timbre :as log])
+            [taoensso.timbre :as log :refer [info warn error]])
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
 (nodejs/enable-util-print!)
@@ -60,7 +60,7 @@
                     #'district.server.web3-events/web3-events
                     #'district.server.web3/web3
                     #'memefactory.server.conversion-rates/conversion-rates
-                    #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
+                    ; #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
                     #'memefactory.server.db/memefactory-db
                     #'memefactory.server.emailer/emailer
                     #'memefactory.server.ipfs/ipfs
@@ -68,7 +68,8 @@
                     #'memefactory.server.syncer/syncer
                     #'memefactory.server.twitter-bot/twitter-bot})
       (mount/with-args
-        {:config {:default {:logging {:console? false}
+        {:config {:default {:logging {:level "info"
+                                      :console? false}
                             :time-source :js-date
                             :graphql {:port 6300
                                       :middlewares [logging-middlewares]
@@ -79,11 +80,11 @@
                                       :field-resolver (utils/build-default-field-resolver graphql-utils/gql-name->kw)
                                       :path "/graphql"
                                       :graphiql false}
-                            :web3 {:url "ws://127.0.0.1:8545"
+                            :web3 {:url "ws://127.0.0.1:8546"
                                    :on-offline (fn []
                                                  (log/warn "Ethereum node went offline, stopping syncing modules" {:resyncs @resync-count} ::web3-watcher)
                                                  (mount/stop #'district.server.web3-events/web3-events
-                                                             #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
+                                                             ; #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
                                                              #'memefactory.server.db/memefactory-db
                                                              #'memefactory.server.emailer/emailer
                                                              #'memefactory.server.syncer/syncer
@@ -91,7 +92,7 @@
                                    :on-online (fn []
                                                 (log/warn "Ethereum node went online again, starting syncing modules" {:resyncs (swap! resync-count inc)} ::web3-watcher)
                                                 (mount/start #'district.server.web3-events/web3-events
-                                                             #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
+                                                             ; #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
                                                              #'memefactory.server.db/memefactory-db
                                                              #'memefactory.server.emailer/emailer
                                                              #'memefactory.server.syncer/syncer

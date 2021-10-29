@@ -58,6 +58,10 @@
                       :route :route.memefolio/index
                       :class :memefolio
                       :needs-account? true}
+                     {:text "Bridge tokens"
+                      :route :route.bridge/index
+                      :class :bridge
+                      :needs-account? true}
                      {:text "My Settings"
                       :route :route.my-settings/index
                       :class :my-settings

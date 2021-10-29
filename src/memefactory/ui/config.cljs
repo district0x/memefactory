@@ -14,7 +14,7 @@
             [taoensso.timbre :as log])
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
-(def skipped-contracts [:ds-guard :minime-token-factory])
+(def skipped-contracts [:ds-guard :meme-auth :minime-token-factory])
 
 (def development-config
   {:debug? true
@@ -23,14 +23,14 @@
    :time-source :js-date
    :smart-contracts {:contracts (apply dissoc smart-contracts-dev/smart-contracts skipped-contracts)}
    :web3-accounts {:eip55? true}
-   :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK])}
-   :web3 {:url "http://localhost:8545"}
+   :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK :DANK-root])}
+   :web3 {:url "http://localhost:9545"}
    :web3-tx {:disable-loading-recommended-gas-prices? true
              :eip55? true}
    :web3-tx-log {:disable-using-localstorage? true
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
-                 :etherscan-url "https://ropsten.etherscan.io"}
+                 :etherscan-url "https://mumbai.polygonscan.com"}
    :graphql {:schema graphql-schema
              :url "http://localhost:6300/graphql"}
    :ipfs {:endpoint "/api/v0"
@@ -49,13 +49,13 @@
    :smart-contracts {:contracts (apply dissoc smart-contracts-qa/smart-contracts skipped-contracts)
                      :load-method :use-loaded}
    :web3-accounts {:eip55? true}
-   :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK])}
+   :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK :DANK-root])}
    :web3 {:url "https://ropsten.infura.io"}
    :web3-tx {:eip55? true}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
-                 :etherscan-url "https://ropsten.etherscan.io"}
+                 :etherscan-url "https://mumbai.polygonscan.com"}
    :graphql {:schema graphql-schema
              :url "https://api.memefactory.qa.district0x.io/graphql"}
    :ipfs {:host "https://ipfs.qa.district0x.io"
@@ -75,13 +75,13 @@
    :smart-contracts {:contracts (apply dissoc smart-contracts-prod/smart-contracts skipped-contracts)
                      :load-method :use-loaded}
    :web3-accounts {:eip55? true}
-   :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK])}
+   :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK :DANK-root])}
    :web3 {:url "https://mainnet.infura.io"}
    :web3-tx {:eip55? true}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
-                 :etherscan-url "https://etherscan.io"}
+                 :etherscan-url "https://polygonscan.com"}
    :graphql {:schema graphql-schema
              :url "https://api.memefactory.io/graphql"}
    :ipfs {:host "https://ipfs.district0x.io"

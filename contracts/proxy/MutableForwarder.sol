@@ -1,4 +1,5 @@
-pragma solidity ^0.4.18;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "../proxy/DelegateProxy.sol";
 import "../auth/DSAuth.sol";
@@ -27,7 +28,7 @@ contract MutableForwarder is DelegateProxy, DSAuth {
     target = _target;
   }
 
-  function() payable {
+  fallback () external payable {
     delegatedFwd(target, msg.data);
   }
 

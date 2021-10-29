@@ -10,8 +10,9 @@
             [reagent.ratom :refer [reaction]]))
 
 (defn format-price [price]
-  (format/format-eth (bn/number (web3/from-wei price :ether)) {:max-fraction-digits 3
-                                                               :min-fraction-digits 2}))
+  (format/format-token (bn/number (web3/from-wei price :ether)) {:max-fraction-digits 3
+                                                                 :token "MATIC"
+                                                                 :min-fraction-digits 2}))
 
 
 (defn format-dank [dank]

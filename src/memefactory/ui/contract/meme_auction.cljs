@@ -16,7 +16,7 @@
  ::buy
  [interceptors]
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :meme/title :value] :as args}]]
-   (let [tx-name (str (gstring/format "Buy %s for %.2f ETH"
+   (let [tx-name (str (gstring/format "Buy %s for %.2f MATIC"
                                       title
                                       (web3/from-wei value :ether)))
          active-account (account-queries/active-account db)]
