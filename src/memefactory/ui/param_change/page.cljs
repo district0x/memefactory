@@ -8,8 +8,8 @@
    [memefactory.ui.components.app-layout :refer [app-layout]]
    [memefactory.ui.components.general :refer [nav-anchor dank-with-logo]]
    [reagent.core :as r]
-   [district.ui.component.form.input :as inputs :refer [select-input with-label text-input textarea-input pending-button]]
-   [memefactory.ui.components.buttons :as buttons]
+   [district.ui.component.form.input :refer [select-input with-label text-input textarea-input]]
+   [memefactory.ui.components.buttons :as buttons :refer [chain-check-pending-button]]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [reagent.ratom :as ratom]
    [memefactory.ui.components.panes :refer [simple-tabbed-pane]]
@@ -205,7 +205,7 @@
                            :on-click #(.stopPropagation %)}]
           [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value) :ether)]]]]]
 
-       [pending-button {:pending? @tx-pending?
+       [chain-check-pending-button {:pending? @tx-pending?
                         :disabled (or @tx-pending?
                                       @tx-success?
                                       (when-let [validator (get-in param-info [@selected-param :validator])]
@@ -244,7 +244,7 @@
                        :on-click #(.stopPropagation %)}]
       [:div.footer
        [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value) :ether)]]
-       [inputs/pending-button {:disabled (or @tx-pending? @tx-success?)
+       [chain-check-pending-button {:disabled (or @tx-pending? @tx-success?)
                                :pending? @tx-pending?
                                :pending-text "Challenging"
                                :on-click #(dispatch [::memefactory-events/add-challenge
@@ -268,7 +268,7 @@
     (fn [param-change]
       [:div.reveal-action
        [:div.icon]
-       [:div [inputs/pending-button {:disabled (or @tx-success? @tx-pending? (not vote))
+       [:div [chain-check-pending-button {:disabled (or @tx-success? @tx-pending? (not vote))
                                      :pending? @tx-pending?
                                      :pending-text "Revealing..."
                                      :on-click #(dispatch [::registry-entry/reveal-vote
@@ -318,7 +318,7 @@
             :for (str address :amount-vote-for)
             :id :amount-vote-for}]
           [:span "DANK"]]
-         [inputs/pending-button
+         [chain-check-pending-button
           {:pending? @tx-pending?
            :disabled (or (-> @errors :local :vote/amount-vote-for empty? not)
                          @tx-pending?
@@ -347,7 +347,7 @@
             :for (str address :amount-vote-against)
             :id :amount-vote-against}]
           [:span "DANK"]]
-         [inputs/pending-button
+         [chain-check-pending-button
           {:pending? @tx-pending?
            :disabled (or (-> @errors :local :amount-vote-against empty? not)
                          @tx-pending?
@@ -373,7 +373,7 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {:param-change/apply-change tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {:param-change/apply-change tx-id}])]
     [:div.apply-change-action
-     [inputs/pending-button
+     [chain-check-pending-button
       {:pending? @tx-pending?
        :disabled (or @tx-pending?
                      @tx-success?)

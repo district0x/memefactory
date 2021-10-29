@@ -4,13 +4,14 @@
    [cljs-time.extend]
    [cljs-web3.core :as web3]
    [clojure.string :as str]
-   [district.ui.component.form.input :refer [select-input with-label text-input pending-button]]
+   [district.ui.component.form.input :refer [select-input with-label text-input]]
    [district.ui.component.page :refer [page]]
    [district.ui.web3-account-balances.subs :as balance-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
    [district.ui.web3-tx-id.subs :as tx-id-subs]
    [district.ui.window-size.subs :as w-size-subs]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.buttons :refer [chain-check-pending-button]]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
    [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
    [memefactory.ui.components.panes :refer [tabbed-pane]]
@@ -67,7 +68,7 @@
                          :class "challenge-reason"
                          :input-type :textarea
                          :maxLength 2000}]
-            [pending-button {:pending? @tx-pending?
+            [chain-check-pending-button {:pending? @tx-pending?
                              :disabled (or @tx-pending? @tx-success? (not (empty? (:local @errors))) (not @active-account))
                              :pending-text "Challenging ..."
                              :on-click #(dispatch [::memefactory-events/add-challenge

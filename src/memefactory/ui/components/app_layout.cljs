@@ -11,6 +11,7 @@
     [district.ui.web3-accounts.subs :as accounts-subs]
     [district.ui.web3-tx-log.subs :as tx-log-subs]
     [memefactory.ui.components.account-balances :refer [account-balances]]
+    [memefactory.ui.components.buttons :refer [switch-chain-button]]
     [memefactory.ui.components.ens-active-account :refer [ens-active-account]]
     [memefactory.ui.contract.param-change :as param-change]
     [memefactory.ui.components.general :refer [nav-anchor]]
@@ -126,6 +127,7 @@
       [:div.app-bar
        [:div.account-section
         [ens-active-account]]
+        [switch-chain-button]
        [:div.tracker-section
         {:on-click (fn []
                      (if (empty? @my-addresses)

@@ -24,6 +24,14 @@
    :smart-contracts {:contracts (apply dissoc smart-contracts-dev/smart-contracts skipped-contracts)}
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK :DANK-root])}
+   :web3-chain {:l1 {:chain-id "1337"}
+                :l2 {:chain-id "15001"
+                     :rpc-urls ["http://localhost:8545"]
+                     :chain-name "Bor"
+                     :native-currency {:name "Matic"
+                                       :symbol "MATIC"
+                                       :decimals 18}}
+                :deployed-on :l2}
    :web3 {:url "http://localhost:9545"}
    :web3-tx {:disable-loading-recommended-gas-prices? true
              :eip55? true}
@@ -50,6 +58,15 @@
                      :load-method :use-loaded}
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK :DANK-root])}
+   :web3-chain {:l1 {:chain-id "5"}
+                :l2 {:chain-id "80001"
+                     :rpc-urls ["https://rpc-mumbai.maticvigil.com"]
+                     :chain-name "Mumbai"
+                     :native-currency {:name "Matic"
+                                       :symbol "MATIC"
+                                       :decimals 18}
+                     :block-explorer-urls ["https://mumbai.polygonscan.com/"]}
+                :deployed-on :l2}
    :web3 {:url "https://ropsten.infura.io"}
    :web3-tx {:eip55? true}
    :web3-tx-log {:disable-using-localstorage? false
@@ -77,6 +94,16 @@
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK :DANK-root])}
    :web3 {:url "https://mainnet.infura.io"}
+   :web3-chain {:l1 {:chain-id "1"}
+                :l2 {:chain-id "137"
+                     :rpc-urls ["https://matic-mainnet.chainstacklabs.com"]
+                     :chain-name "Polygon"
+                     :native-currency {:name "Matic"
+                                       :symbol "MATIC"
+                                       :decimals 18}
+                     :block-explorer-urls ["https://polygonscan.com/"]
+                     }
+                :deployed-on :l2}
    :web3-tx {:eip55? true}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
