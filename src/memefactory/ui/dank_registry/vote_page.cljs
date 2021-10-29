@@ -6,7 +6,7 @@
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
    [district.parsers :as parsers]
-   [district.ui.component.form.input :refer [select-input with-label text-input amount-input pending-button file-drag-input]]
+   [district.ui.component.form.input :refer [select-input with-label text-input amount-input file-drag-input]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
    [district.ui.web3-account-balances.subs :as balance-subs]
@@ -16,7 +16,7 @@
    [goog.string :as gstring]
    [memefactory.ui.events :as events]
    [memefactory.ui.components.app-layout :refer [app-layout]]
-   [memefactory.ui.components.buttons :as buttons]
+   [memefactory.ui.components.buttons :as buttons :refer [chain-check-pending-button]]
    [memefactory.ui.components.challenge-list :refer [challenge-list]]
    [memefactory.ui.components.charts :as charts]
    [memefactory.ui.components.general :refer [nav-anchor]]
@@ -170,7 +170,7 @@
              :for (str address :amount-vote-for)
              :id :amount-vote-for}]
            [:span "DANK"]]
-          [pending-button {:pending? @tx-pending?
+          [chain-check-pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
                            :disabled (or voted? (-> @errors :local :amount-vote-for) disabled?)
                            :on-click (fn []
@@ -201,7 +201,7 @@
              :for (str address :amount-vote-against)
              :id :amount-vote-against}]
            [:span "DANK"]]
-          [pending-button {:pending? @tx-pending?
+          [chain-check-pending-button {:pending? @tx-pending?
                            :pending-text "Voting ..."
                            :disabled (or voted? (-> @errors :local :amount-vote-against) disabled?)
                            :on-click (fn []
@@ -240,7 +240,7 @@
         [:div.reveal
          [:img {:src "/assets/icons/mememouth.png"}]
          [:div.button-wrapper
-          [pending-button {:pending? @tx-pending?
+          [chain-check-pending-button {:pending? @tx-pending?
                            :pending-text "Revealing ..."
                            :disabled disabled?
                            :on-click (fn []

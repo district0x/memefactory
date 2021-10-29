@@ -21,6 +21,7 @@
             [district.ui.web3-tx-id.subs :as tx-id-subs]
             [goog.string :as gstring]
             [memefactory.ui.components.app-layout :refer [app-layout]]
+            [memefactory.ui.components.buttons :refer [chain-check-pending-button]]
             [memefactory.ui.components.ens-resolver :as ens]
             [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
             [memefactory.ui.components.panels :refer [panel]]
@@ -415,7 +416,7 @@
               :id :vote/amount-for}]
             [:span.unit "DANK"]]
 
-           [inputs/pending-button
+           [chain-check-pending-button
             {:pending? @tx-pending?
              :disabled (or (-> @errors :local :vote/amount-for empty? not)
                            @tx-pending?
@@ -450,7 +451,7 @@
               :for :vote/amount-against
               :id :vote/amount-against}]
             [:span.unit "DANK"]]
-           [inputs/pending-button
+           [chain-check-pending-button
             {:pending? @tx-pending?
              :disabled (or (-> @errors :local :vote/amount-against empty? not)
                            @tx-pending?

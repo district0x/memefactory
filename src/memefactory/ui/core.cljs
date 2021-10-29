@@ -20,8 +20,11 @@
             [district.ui.smart-contracts]
             [district.ui.web3-account-balances]
             [district.ui.web3-accounts.events :as web3-accounts-events]
+            [district.ui.web3-accounts.queries :as web3-accounts-queries]
             [district.ui.web3-accounts]
             [district.ui.web3-balances]
+            [district.ui.web3-chain.events :as chain-events]
+            [district.ui.web3-chain]
             [district.ui.web3-tx-id]
             [district.ui.web3-tx-log]
             [district.ui.web3-tx]
@@ -92,6 +95,16 @@
     (clj->js abi)))
 
 (re-frame/reg-event-fx
+  ::chain-changed
+  interceptors
+  (fn [{:keys [:db]}]
+    ; make sure accounts (balances) are re-loaded when chain is changed
+    {:dispatch [::web3-accounts-events/accounts-changed
+                {:new (web3-accounts-queries/accounts db)
+                 :old (web3-accounts-queries/accounts db)}]}
+    ))
+
+(re-frame/reg-event-fx
   ::fix-contracts
   interceptors
   (fn [{:keys [:db]}]
@@ -128,6 +141,9 @@
                      {:register    :fix-contracts
                       :events      #{::contracts-events/contracts-loaded}
                       :dispatch-to [::fix-contracts]}
+                     {:register    :chain-changed
+                      :events      #{::chain-events/chain-changed}
+                      :dispatch-to [::chain-changed]}
                      ]}))
 
 (defn ^:export init []

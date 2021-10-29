@@ -8,10 +8,11 @@
     [district.ui.web3-account-balances.subs :as balance-subs]
     [district.ui.web3-accounts.subs :as accounts-subs]
     [district.ui.web3-tx-id.subs :as tx-id-subs]
-    [district.ui.web3.queries :as web3-queries]
     [memefactory.ui.components.app-layout :refer [app-layout]]
+    [memefactory.ui.components.buttons :refer [chain-check-pending-button]]
     [memefactory.ui.components.general :refer [nav-anchor dank-with-logo]]
     [memefactory.ui.components.tiles :refer [meme-image]]
+    [memefactory.ui.config :refer [config-map]]
     [memefactory.ui.contract.bridge :as bridge-contracts]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
@@ -64,9 +65,9 @@
            {:form-data form-data
             :id :amount
             :for :amount}]
-          #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
           [:div.submit
-           [pending-button {:pending? @bridge-tx-pending?
+           [chain-check-pending-button {:for-chain (get-in config-map [:web3-chain :l1 :chain-id])
+                            :pending? @bridge-tx-pending?
                             :pending-text "Bridging tokens"
                             :disabled (or (not (empty? @critical-errors)) @bridge-tx-pending? @bridge-tx-success? (not @active-account))
                             :class (when-not @bridge-tx-success? "bridge-dank-to-l2")

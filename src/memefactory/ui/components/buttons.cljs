@@ -3,11 +3,32 @@
     [district.graphql-utils :as graphql-utils]
     [district.ui.component.form.input :refer [pending-button]]
     [district.ui.graphql.subs :as gql]
+    [district.ui.web3-chain.events :as chain-events]
+    [district.ui.web3-chain.subs :as chain-subs]
     [district.ui.web3-tx-id.subs :as tx-id-subs]
+    [memefactory.ui.config :refer [config-map]]
     [memefactory.ui.contract.registry-entry :as registry-entry]
     [print.foo :refer [look] :include-macros true]
     [re-frame.core :refer [subscribe dispatch]]))
 
+
+(defn chain-check-pending-button
+  [{:keys [:for-chain] :as opts
+    :or {for-chain (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-id])}} & children]
+  (let [chain (subscribe [::chain-subs/chain])
+        disabled (:disabled opts)]
+    [pending-button (merge (dissoc opts :for-chain) {:disabled (or (not= @chain for-chain) disabled)}) children]))
+
+(defn switch-chain-button []
+  (let [chain (subscribe [::chain-subs/chain])
+        for-chain (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-id])]
+    (when (not= @chain for-chain)
+      [:button {:on-click #(dispatch [::chain-events/request-switch-chain
+                                      (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-id])
+                                    {:chain-info (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on])])}])
+                :class "switch-chain-button"}
+       (str "Switch to " (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-name]))])
+    ))
 
 (defn reclaim-buttons [active-account {:keys [:reg-entry/address :challenge/all-rewards :challenge/vote :challenge/vote-winning-vote-option :challenge/challenger :challenge/votes-against :challenge/votes-for] :as meme}]
   (let [rewards-tx-id (str address "rewards")
@@ -22,7 +43,7 @@
           reward-amount (+ (:challenge/reward-amount all-rewards) (:vote/reward-amount all-rewards))]
       [:div
        (when (pos? reward-amount)
-         [pending-button {:pending? @claim-rewards-tx-pending?
+         [chain-check-pending-button {:pending? @claim-rewards-tx-pending?
                           :disabled (or @claim-rewards-tx-pending? @claim-rewards-tx-success?)
                           :pending-text [:div.label
                                          [:span "Claiming"]
@@ -46,7 +67,7 @@
              [:span "Reward"]])])
 
        (when (and vote not-revealed?)
-         [pending-button {:pending? @claim-vote-amount-tx-pending?
+         [chain-check-pending-button {:pending? @claim-vote-amount-tx-pending?
                           :disabled (or @claim-vote-amount-tx-pending? @claim-vote-amount-tx-success?)
                           :pending-text [:div.label
                                          [:span "Reclaiming"]

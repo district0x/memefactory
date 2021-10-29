@@ -4,7 +4,6 @@
             [district.format :as format]
             [district.graphql-utils :as gql-utils]
             [district.time :as time]
-            [district.ui.component.form.input :as inputs]
             [district.ui.graphql.subs :as gql]
             [district.ui.ipfs.subs :as ipfs-subs]
             [district.ui.mobile.subs :as mobile-subs]
@@ -13,6 +12,7 @@
             [goog.string :as gstring]
             [memefactory.shared.utils :as shared-utils]
             [memefactory.ui.components.ens-resolver :as ens]
+            [memefactory.ui.components.buttons :as buttons :refer [chain-check-pending-button]]
             [memefactory.ui.components.general :refer [nav-anchor]]
             [memefactory.ui.contract.meme-auction :as meme-auction]
             [memefactory.ui.utils :as ui-utils :refer [format-price]]
@@ -164,7 +164,7 @@
            (if (= (-> meme-auction :meme-auction/seller :user/address)
                   @active-account)
 
-             [inputs/pending-button {:pending? @cancel-tx-pending?
+             [chain-check-pending-button {:pending? @cancel-tx-pending?
                                      :pending-text "Cancelling"
                                      :disabled (or @cancel-tx-pending? @cancel-tx-success? (not @active-account))
                                      :on-click (fn [e]
@@ -174,7 +174,7 @@
                                                                                    :meme/title title}]))}
               (if @cancel-tx-success? "Canceled" "Cancel Sell")]
 
-             [inputs/pending-button {:pending? @buy-tx-pending?
+             [buttons/chain-check-pending-button {:pending? @buy-tx-pending?
                                      :pending-text "Buying"
                                      :disabled (or @buy-tx-pending? @buy-tx-success? (not @active-account))
                                      :class (when-not @buy-tx-success? "buy")
