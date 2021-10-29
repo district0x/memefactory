@@ -1,10 +1,12 @@
 (ns memefactory.server.syncer
   (:require [bignumber.core :as bn]
             [camel-snake-kebab.core :as camel-snake-kebab]
+            [cljsjs.bignumber :as bignumber]
             [cljs-web3-next.eth :as web3-eth]
             [cljs-web3-next.utils :as web3-utils]
             [cljs.core.async.impl.protocols :refer [ReadPort]]
             [cljs.core.async :as async :refer [<!]]
+            [clojure.string :as string]
             [district.server.config :refer [config]]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [ping-start ping-stop web3]]
@@ -134,13 +136,14 @@
          errors)
 
        (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs meta-hash))
-             {:keys [:title :image-hash :search-tags :comment]} meme-meta]
+             {:keys [:name :image :description] {:keys [:search-tags]} :attributes} meme-meta
+             image-hash (if (string/starts-with? image "ipfs://") (subs image 7) image)]
          (db/insert-registry-entry! registry-entry-data)
          (db/upsert-user! {:user/address creator})
          (db/insert-meme! (merge meme {:reg-entry/address registry-entry
-                                       :meme/comment comment
+                                       :meme/comment description
                                        :meme/image-hash image-hash
-                                       :meme/title title}))
+                                       :meme/title name}))
 
          (schedule-meme-number-assigner registry-entry (inc (- (bn/number challenge-period-end)
                                                                now-in-seconds)))
@@ -256,17 +259,23 @@
 
 (defn meme-minted-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :creator :token-start-id :token-end-id :total-minted :timestamp]} args
-        token-start-id (bn/number token-start-id)
-        token-end-id (bn/number token-end-id)
-        total-minted (bn/number total-minted)]
-    (db/insert-meme-tokens! {:token-id-start token-start-id
-                             :token-id-end token-end-id
+        token-start-id (bignumber/BigNumber token-start-id)
+        token-end-id (bignumber/BigNumber token-end-id)
+        total-minted (bn/number total-minted)
+        token-ids (loop [token-id token-start-id
+                         token-ids []]
+                    (do
+                      (if (bn/> token-id token-end-id)
+                       token-ids
+                       (recur (bn/+ token-id 1) (conj token-ids (bn/fixed token-id))))))
+        ]
+    (db/insert-meme-tokens! {:token-ids token-ids
                              :reg-entry/address registry-entry})
     (db/update-meme! {:reg-entry/address registry-entry
                       :meme/first-mint-on timestamp
-                      :meme/token-id-start token-start-id
+                      :meme/token-id-start (bn/fixed token-start-id)
                       :meme/total-minted total-minted})
-    (doseq [tid (range token-start-id (inc token-end-id))]
+    (doseq [tid token-ids]
       (db/upsert-meme-token-owner! {:meme-token/token-id tid
                                     :meme-token/owner creator
                                     :meme-token/transferred-on timestamp}))))
@@ -274,7 +283,7 @@
 (defn meme-auction-started-event [_ {:keys [:args]}]
   (let [{:keys [:meme-auction :token-id :seller :start-price :end-price :duration :description :started-on]} args]
     (db/insert-meme-auction! {:meme-auction/address meme-auction
-                              :meme-auction/token-id (bn/number token-id)
+                              :meme-auction/token-id token-id
                               :meme-auction/seller seller
                               :meme-auction/start-price (bn/number start-price)
                               :meme-auction/end-price (bn/number end-price)
@@ -308,10 +317,11 @@
                                :meme-auction/buyer buyer}))))
 
 (defn meme-token-transfer-event [_ {:keys [:args]}]
-  (let [{:keys [:_to :_token-id :_timestamp]} args]
-    (db/upsert-meme-token-owner! {:meme-token/token-id (bn/number _token-id)
-                                  :meme-token/owner _to
-                                  :meme-token/transferred-on (bn/number _timestamp)})))
+  (let [{:keys [:to :token-id :timestamp]} args]
+    (db/upsert-meme-token-owner! {:meme-token/token-id token-id
+                                  :meme-token/owner to
+                                  :meme-token/transferred-on timestamp})
+    ))
 
 (defn eternal-db-event [_ {:keys [:args :address]}]
   (let [{:keys [:records :values :timestamp]} args

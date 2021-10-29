@@ -46,9 +46,9 @@
 (defn start [{:keys [update-interval]}]
   (let [rates (atom {})
         interval-ptr (js/setInterval (fn []
-                                       (-> (get-rate :ETH :USD)
+                                       (-> (get-rate :MATIC :USD)
                                            (.then (fn [rate]
-                                                    (swap! rates assoc [:ETH :USD] rate)))
+                                                    (swap! rates assoc [:MATIC :USD] rate)))
                                            (.catch (fn [e] (log/error e)))))
                                      (or update-interval
                                          ;; 10 min default

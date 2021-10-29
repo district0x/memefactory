@@ -10,11 +10,13 @@
    [taoensso.timbre :as log]))
 
 (defn build-meme-meta-string [{:keys [title search-tags issuance comment]} image-hash]
-  (-> {:title title
-       :comment (string/trim (or comment ""))
-       :search-tags search-tags
-       :issuance issuance
-       :image-hash image-hash}
+  (-> {:name title
+       :description (string/trim (or comment ""))
+       :external_url "https://memefactory.io/"
+       :image (str "ipfs://" image-hash)
+       :attributes {
+                    :search-tags search-tags
+                    :issuance issuance}}
       clj->js
       js/JSON.stringify))
 

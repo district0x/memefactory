@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "./RegistryEntryFactory.sol";
 import "./Meme.sol";
@@ -14,7 +15,7 @@ contract MemeFactory is RegistryEntryFactory {
   uint public constant version = 1;
   MemeToken public memeToken;
 
-  function MemeFactory(Registry _registry, MiniMeToken _registryToken, MemeToken _memeToken)
+  constructor (Registry _registry, MiniMeToken _registryToken, MemeToken _memeToken)
   RegistryEntryFactory(_registry, _registryToken)
   {
     memeToken = _memeToken;
@@ -26,7 +27,7 @@ contract MemeFactory is RegistryEntryFactory {
    */
   function createMeme(
     address _creator,
-    bytes _metaHash,
+    bytes memory _metaHash,
     uint _totalSupply
   )
   public

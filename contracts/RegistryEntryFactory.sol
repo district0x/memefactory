@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "./Registry.sol";
 import "./proxy/Forwarder.sol";
@@ -14,7 +15,7 @@ contract RegistryEntryFactory is ApproveAndCallFallBack {
   Registry public registry;
   MiniMeToken public registryToken;
 
-  function RegistryEntryFactory(Registry _registry, MiniMeToken _registryToken) {
+  constructor (Registry _registry, MiniMeToken _registryToken) {
     registry = _registry;
     registryToken = _registryToken;
   }
@@ -30,8 +31,8 @@ contract RegistryEntryFactory is ApproveAndCallFallBack {
    */
   function createRegistryEntry(address _creator) internal returns (address) {
     uint deposit = registry.db().getUIntValue(registry.depositKey());
-    address regEntry = new Forwarder();
-    require(registryToken.transferFrom(_creator, this, deposit), "RegistryEntryFactory: couldn't transfer deposit");
+    address regEntry = address(new Forwarder());
+    require(registryToken.transferFrom(_creator, address(this), deposit), "RegistryEntryFactory: couldn't transfer deposit");
     require(registryToken.approve(regEntry, deposit), "RegistryEntryFactory: Deposit not approved");
     registry.addRegistryEntry(regEntry);
     return regEntry;
@@ -51,9 +52,10 @@ contract RegistryEntryFactory is ApproveAndCallFallBack {
     address _from,
     uint256 _amount,
     address _token,
-    bytes _data)
-  public
+    bytes memory _data)
+  public override
   {
-    require(this.call(_data), "RegistryEntryFactory: couldn't call data");
+    (bool success,) = address(this).call(_data);
+    require(success, "RegistryEntryFactory: couldn't call data");
   }
 }

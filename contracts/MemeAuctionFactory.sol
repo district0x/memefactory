@@ -1,11 +1,12 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-import "./token/ERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./MemeToken.sol";
 import "./proxy/Forwarder.sol";
 import "./MemeAuction.sol";
 
-contract MemeAuctionFactory is ERC721Receiver {
+contract MemeAuctionFactory is IERC721Receiver {
   address private dummyTarget; // Keep it here, because this contract is deployed as MutableForwarder
 
   event MemeAuctionStartedEvent(address indexed memeAuction,
@@ -36,22 +37,22 @@ contract MemeAuctionFactory is ERC721Receiver {
   }
 
   function construct(MemeToken _memeToken) public {
-    require(address(_memeToken) != 0x0, "MemeAuctionFactory: _memeToken address is 0x0");
+    require(address(_memeToken) != address(0), "MemeAuctionFactory: _memeToken address is 0x0");
     require(!wasConstructed, "MemeAuctionFactory: Was already constructed");
 
     memeToken = _memeToken;
     wasConstructed = true;
   }
 
-  function onERC721Received(address _from, uint256 _tokenId, bytes _data) public returns (bytes4) {
-    address memeAuction = new Forwarder();
+  function onERC721Received(address operator, address _from, uint256 _tokenId, bytes calldata _data) public override returns (bytes4) {
+    address payable memeAuction = payable(address(new Forwarder()));
     isMemeAuction[memeAuction] = true;
     MemeAuction(memeAuction).construct(_from, _tokenId);
     memeToken.safeTransferFrom(address(this), memeAuction, _tokenId, _data);
-    return ERC721_RECEIVED;
+    return IERC721Receiver.onERC721Received.selector;
   }
 
-  function fireMemeAuctionStartedEvent(uint tokenId, address seller, uint startPrice, uint endPrice, uint duration, string description, uint startedOn)
+  function fireMemeAuctionStartedEvent(uint tokenId, address seller, uint startPrice, uint endPrice, uint duration, string memory description, uint startedOn) public
     onlyMemeAuction
   {
     emit MemeAuctionStartedEvent(msg.sender,
@@ -64,13 +65,13 @@ contract MemeAuctionFactory is ERC721Receiver {
                                  startedOn);
   }
 
-  function fireMemeAuctionBuyEvent(address buyer, uint price, uint auctioneerCut, uint sellerProceeds)
+  function fireMemeAuctionBuyEvent(address buyer, uint price, uint auctioneerCut, uint sellerProceeds) public
     onlyMemeAuction
   {
     emit MemeAuctionBuyEvent(msg.sender, buyer, price, auctioneerCut, sellerProceeds);
   }
 
-  function fireMemeAuctionCanceledEvent()
+  function fireMemeAuctionCanceledEvent() public
     onlyMemeAuction
   {
     emit MemeAuctionCanceledEvent(msg.sender);

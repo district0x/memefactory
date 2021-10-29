@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "./Registry.sol";
 import "./token/minime/MiniMeToken.sol";
@@ -19,7 +20,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
   using RegistryEntryLib for RegistryEntryLib.Challenge;
 
   Registry internal constant registry = Registry(0xfEEDFEEDfeEDFEedFEEdFEEDFeEdfEEdFeEdFEEd);
-  MiniMeToken internal constant registryToken = MiniMeToken(0xDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaDDeaD);
+  MiniMeToken internal constant registryToken = MiniMeToken(payable(0xdeaDDeADDEaDdeaDdEAddEADDEAdDeadDEADDEaD));
 
   address internal creator;
   uint internal version;
@@ -60,9 +61,9 @@ contract RegistryEntry is ApproveAndCallFallBack {
   {
     require(challenge.challengePeriodEnd == 0);
     deposit = registry.db().getUIntValue(registry.depositKey());
-    require(registryToken.transferFrom(msg.sender, this, deposit));
+    require(registryToken.transferFrom(msg.sender, address(this), deposit));
 
-    challenge.challengePeriodEnd = now.add(registry.db().getUIntValue(registry.challengePeriodDurationKey()));
+    challenge.challengePeriodEnd = block.timestamp.add(registry.db().getUIntValue(registry.challengePeriodDurationKey()));
 
     creator = _creator;
     version = _version;
@@ -80,20 +81,20 @@ contract RegistryEntry is ApproveAndCallFallBack {
    */
   function createChallenge(
                            address _challenger,
-                           bytes _challengeMetaHash
+                           bytes memory _challengeMetaHash
                            )
     external
     notEmergency
   {
     require(challenge.isChallengePeriodActive());
     require(!challenge.wasChallenged());
-    require(registryToken.transferFrom(_challenger, this, deposit));
+    require(registryToken.transferFrom(_challenger, address(this), deposit));
 
     challenge.challenger = _challenger;
     uint commitDuration = registry.db().getUIntValue(registry.commitPeriodDurationKey());
     uint revealDuration = registry.db().getUIntValue(registry.revealPeriodDurationKey());
 
-    challenge.commitPeriodEnd = now.add(commitDuration);
+    challenge.commitPeriodEnd = block.timestamp.add(commitDuration);
     challenge.revealPeriodEnd = challenge.commitPeriodEnd.add(revealDuration);
     challenge.rewardPool = uint(100).sub(registry.db().getUIntValue(registry.challengeDispensationKey())).mul(deposit).div(uint(100));
     challenge.metaHash = _challengeMetaHash;
@@ -127,7 +128,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(challenge.isVoteCommitPeriodActive());
     require(_amount > 0);
     require(!challenge.hasVoted(_voter));
-    require(registryToken.transferFrom(_voter, this, _amount));
+    require(registryToken.transferFrom(_voter, address(this), _amount));
 
     challenge.vote[_voter].secretHash = _secretHash;
     challenge.vote[_voter].amount += _amount;
@@ -147,7 +148,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
    */
   function revealVote(
                       RegistryEntryLib.VoteOption _voteOption,
-                      string _salt
+                      string calldata _salt
                       )
     external
     notEmergency
@@ -157,7 +158,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     require(keccak256(abi.encodePacked(uint(_voteOption), _salt)) == challenge.vote[_voter].secretHash);
     require(!challenge.isVoteRevealed(_voter));
 
-    challenge.vote[_voter].revealedOn = now;
+    challenge.vote[_voter].revealedOn = block.timestamp;
     uint amount = challenge.vote[_voter].amount;
     require(registryToken.transfer(_voter, amount));
     challenge.vote[_voter].option = _voteOption;
@@ -193,7 +194,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
     uint amount = challenge.vote[_voter].amount;
     require(registryToken.transfer(_voter, amount));
 
-    challenge.vote[_voter].reclaimedVoteAmountOn = now;
+    challenge.vote[_voter].reclaimedVoteAmountOn = block.timestamp;
 
     registry.fireVoteAmountClaimedEvent(version, _voter);
   }
@@ -233,7 +234,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
 
       if(reward > 0){
         registryToken.transfer(_user, reward);
-        challenge.vote[_user].claimedRewardOn = now;
+        challenge.vote[_user].claimedRewardOn = block.timestamp;
 
         registry.fireVoteRewardClaimedEvent(version,
                                             _user,
@@ -247,7 +248,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
    */
   function status()
     external
-    constant
+    view
     returns (uint)
   {
     return uint(challenge.status());
@@ -267,20 +268,21 @@ contract RegistryEntry is ApproveAndCallFallBack {
                            address _from,
                            uint256 _amount,
                            address _token,
-                           bytes _data)
-    public
+                           bytes memory _data)
+    public override
   {
-    require(address(this).call(_data));
+    (bool success,) = address(this).call(_data);
+    require(success);
   }
 
-  function load() external constant returns (uint,
+  function load() external view returns (uint,
                                              address,
                                              uint,
                                              address,
                                              uint,
                                              uint,
                                              uint,
-                                             bytes,
+                                             bytes memory,
                                              uint){
     return (deposit,
             creator,
@@ -293,7 +295,7 @@ contract RegistryEntry is ApproveAndCallFallBack {
             challenge.claimedRewardOn);
   }
 
-  function loadVote(address voter) external constant returns (bytes32,
+  function loadVote(address voter) external view returns (bytes32,
                                                               uint,
                                                               uint,
                                                               uint,

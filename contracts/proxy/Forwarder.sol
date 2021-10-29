@@ -1,4 +1,5 @@
-pragma solidity ^0.4.18;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "../proxy/DelegateProxy.sol";
 
@@ -9,7 +10,7 @@ contract Forwarder is DelegateProxy {
   /*
   * @dev Forwards all calls to target
   */
-  function() payable {
+  fallback () external payable {
     delegatedFwd(target, msg.data);
   }
 }

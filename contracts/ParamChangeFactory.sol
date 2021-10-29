@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "./RegistryEntryFactory.sol";
 import "./ParamChange.sol";
@@ -12,7 +13,7 @@ import "./ParamChange.sol";
 contract ParamChangeFactory is RegistryEntryFactory {
   uint public constant version = 1;
 
-  function ParamChangeFactory(Registry _registry, MiniMeToken _registryToken)
+  constructor(Registry _registry, MiniMeToken _registryToken)
   RegistryEntryFactory(_registry, _registryToken)
   {}
 
@@ -23,9 +24,9 @@ contract ParamChangeFactory is RegistryEntryFactory {
   function createParamChange(
     address _creator,
     address _db,
-    string _key,
+    string memory _key,
     uint _value,
-    bytes _metaHash
+    bytes memory _metaHash
   )
   public
   {

@@ -69,7 +69,7 @@
          [nav-anchor {:route :route.meme-detail/index
                       :params {:address (:reg-entry/address meme)}
                       :class "best-sale"}
-          (gstring/format "%.2f ETH (#%d %s)"
+          (gstring/format "%.2f MATIC (#%d %s)"
                           (web3/from-wei (:meme-auction/bought-for largest-sale) :ether)
                           (-> largest-sale
                               :meme-auction/meme-token
@@ -121,13 +121,13 @@
             last-user (last @users-search)]
         [app-layout
          {:meta {:title "MemeFactory - Creators Leaderboard"
-                 :description "Meme makers ranked by registry success rate and total ETH earned. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
+                 :description "Meme makers ranked by registry success rate and total MATIC earned. MemeFactory is decentralized registry and marketplace for the creation, exchange, and collection of provably rare digital assets."}}
          [:div.leaderboard-creators-page
           [:section.creators
            [:div.creators-panel
             [:div.icon]
             [:h2.title "LEADERBOARDS - CREATORS"]
-            [:h3.title "Meme makers ranked by registry success rate and total ETH earned"]
+            [:h3.title "Meme makers ranked by registry success rate and total MATIC earned"]
             [:div.order
              (let [total (get-in last-user [:search-users :total-count])]
                [select-input

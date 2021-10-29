@@ -1,4 +1,5 @@
-pragma solidity ^0.4.18;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 /**
  * @title District0xEmails
@@ -11,11 +12,11 @@ contract District0xEmails {
 
     mapping(address => string) public emails;
 
-    function setEmail(string _encryptedEmail) {
+    function setEmail(string memory _encryptedEmail) public {
         emails[msg.sender] = _encryptedEmail;
     }
 
-    function getEmail(address _address) constant public returns(string) {
+    function getEmail(address _address) view public returns(string memory) {
        return emails[_address];
     }
 

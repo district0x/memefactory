@@ -40,7 +40,7 @@
         [:div.eth-logo
          [:img {:src "/assets/icons/ethereum.svg"}]]
         [active-account-balance
-         {:token-code :ETH
+         {:token-code :MATIC
           :locale "en-US"
           :class "eth"}]]
        (when with-tx-logs?

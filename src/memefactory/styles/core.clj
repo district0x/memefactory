@@ -14,6 +14,7 @@
             [memefactory.styles.component.share-buttons :as share-buttons]
             [memefactory.styles.container.tiles :as tiles]
             [memefactory.styles.pages.about :as page.about]
+            [memefactory.styles.pages.bridge :as page.bridge]
             [memefactory.styles.pages.dankregistry :as page.dankregistry]
             [memefactory.styles.pages.dankregistry.challenge
              :as
@@ -52,6 +53,7 @@
   page.my-settings/core
   page.get-dank/core
   page.about/core
+  page.bridge/core
   page.privacy-policy/core
   page.param-changes/core
   page.terms/core

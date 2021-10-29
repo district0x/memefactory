@@ -24,7 +24,7 @@
   (let [buyer-link (format-link buyer-url buyer-address)
         link (format-link meme-url title)
         price (format-token-amount price)]
-    (str "Your offering of " link " was sold for " price " ETH to " buyer-link)))
+    (str "Your offering of " link " was sold for " price " MATIC to " buyer-link)))
 
 (defn vote-reward-claimed-email-body [{:keys [:amount :meme/title :meme-url :vote/option]}]
   (let [link (format-link meme-url title)

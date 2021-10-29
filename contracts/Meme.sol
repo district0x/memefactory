@@ -1,8 +1,10 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "./RegistryEntry.sol";
 import "./MemeToken.sol";
 import "./DistrictConfig.sol";
+import "./math/SafeMath.sol";
 
 /**
  * @title Contract created for each submitted Meme into the MemeFactory TCR.
@@ -14,6 +16,7 @@ import "./DistrictConfig.sol";
  */
 
 contract Meme is RegistryEntry {
+  using SafeMath for uint;
 
   DistrictConfig private constant districtConfig = DistrictConfig(0xABCDabcdABcDabcDaBCDAbcdABcdAbCdABcDABCd);
   MemeToken private constant memeToken = MemeToken(0xdaBBdABbDABbDabbDaBbDabbDaBbdaBbdaBbDAbB);
@@ -35,7 +38,7 @@ contract Meme is RegistryEntry {
   function construct(
                      address _creator,
                      uint _version,
-                     bytes _metaHash,
+                     bytes memory _metaHash,
                      uint _totalSupply
                      )
     external
@@ -81,10 +84,11 @@ contract Meme is RegistryEntry {
 
     require(_amount > 0);
 
-    tokenIdStart = memeToken.totalSupply().add(1);
+    tokenIdStart = registry.nextTokenId();
     uint tokenIdEnd = tokenIdStart.add(_amount);
+    bytes memory metadata = buildMetadata();
     for (uint i = tokenIdStart; i < tokenIdEnd; i++) {
-      memeToken.mint(creator, i);
+      memeToken.mint(creator, i, metadata);
       totalMinted = totalMinted + 1;
     }
 
@@ -95,7 +99,12 @@ contract Meme is RegistryEntry {
                                  totalMinted);
   }
 
-  function loadMeme() external constant returns (bytes,
+  function buildMetadata() private view returns (bytes memory) {
+    string memory uri = string(abi.encodePacked("ipfs://", string(metaHash)));
+    return abi.encode(uri);
+  }
+
+  function loadMeme() external view returns (bytes memory,
                                                  uint,
                                                  uint,
                                                  uint){

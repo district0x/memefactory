@@ -112,6 +112,7 @@
                    [:how-it-works "how-it-works"]
                    [:leaderboard "leaderboard"]
                    [:memefolio "mymemefolio"]
+                   [:bridge "matic"]
                    [:my-settings "mysettings"]
                    [:faucet "dank-logo"]
                    [:privacy-policy "privacy-policy"]

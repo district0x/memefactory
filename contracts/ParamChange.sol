@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "./RegistryEntry.sol";
 import "./db/EternalDb.sol";
@@ -13,6 +14,7 @@ import "./db/EternalDb.sol";
  */
 
 contract ParamChange is RegistryEntry {
+  using RegistryEntryLib for RegistryEntryLib.Challenge;
 
   EternalDb public db;
   string private key;
@@ -39,13 +41,13 @@ contract ParamChange is RegistryEntry {
     address _creator,
     uint _version,
     address _db,
-    string _key,
+    string memory _key,
     uint _value,
-    bytes _metaHash
+    bytes memory _metaHash
   )
   external
   {
-    bytes32 record = sha3(_key);
+    bytes32 record = keccak256(abi.encodePacked(_key));
     require(RegistryEntryLib.isChangeAllowed(registry, record, _value), "Change is not allowed.");
 
     super.construct(_creator, _version);
@@ -59,7 +61,7 @@ contract ParamChange is RegistryEntry {
 
     registry.fireParamChangeConstructedEvent(version,
                                              _creator,
-                                             db,
+                                             address(db),
                                              _key,
                                              value,
                                              deposit,
@@ -80,23 +82,23 @@ contract ParamChange is RegistryEntry {
   external
   notEmergency
   {
-    require(db.getUIntValue(sha3(key)) == originalValue, "Value is not the same as the original value");
+    require(db.getUIntValue(keccak256(abi.encodePacked(key))) == originalValue, "Value is not the same as the original value");
     require(appliedOn <= 0, "Parameter change already applied");
     require(challenge.isWhitelisted(), "Can't apply parameter change, registry entry not whitelisted");
     require(registryToken.transfer(creator, deposit), "Couldn't transfer deposit back to creator");
 
-    db.setUIntValue(sha3(key), value);
-    appliedOn = now;
+    db.setUIntValue(keccak256(abi.encodePacked(key)), value);
+    appliedOn = block.timestamp;
 
     registry.fireParamChangeAppliedEvent(version);
   }
 
-  function loadParamChange() external constant returns (address,
-                                                        string,
+  function loadParamChange() external view returns (address,
+                                                        string memory,
                                                         uint,
-                                                        bytes)
+                                                        bytes memory)
   {
-    return (db, key, value, metaHash);
+    return (address(db), key, value, metaHash);
   }
 
 }

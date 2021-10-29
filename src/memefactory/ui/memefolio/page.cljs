@@ -212,7 +212,7 @@
          {:id :meme-auction/start-price
           :form-data form-data
           :for (str address :meme-auction/start-price)}]
-        [:span.unit "ETH"]]
+        [:span.unit "MATIC"]]
        [:div.outer
         [inputs/with-label
          "End Price"
@@ -225,7 +225,7 @@
          {:form-data form-data
           :for (str address :meme-auction/end-price)
           :id :meme-auction/end-price}]
-        [:span.unit "ETH"]]
+        [:span.unit "MATIC"]]
        [:div.outer
         [inputs/with-label
          "Duration"
@@ -266,7 +266,6 @@
                                                              :meme/title title
                                                              :reg-entry/address address
                                                              :meme-auction/token-ids (->> @token-ids
-                                                                                       (map int)
                                                                                        sort
                                                                                        (take (parsers/parse-int (:meme-auction/amount @form-data))))})]))}
          "Create Offering"]]
