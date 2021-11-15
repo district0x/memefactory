@@ -1,7 +1,7 @@
 (ns memefactory.shared.smart-contracts-qa)
 
 (def smart-contracts
-  ({:migrations {:name "Migrations" :address "0xA13f966373b1E8B14541496cA88C6149606dCc8c"}
+  {:migrations {:name "Migrations" :address "0xA13f966373b1E8B14541496cA88C6149606dCc8c"}
     :district-config {:name "DistrictConfig" :address "0x866C8207E0E6F66B5424008ec6Aa6a53bc7e0d50"}
     :ds-guard {:name "DSGuard" :address "0xFd73A17d55756974C683f6a30293991c7d1Ba459"}
     :ds-guard-root {:name "DSGuard" :address "0xe6D9C7fe47eeE2C032D38e01C951F9cF6F5fEc03"}
@@ -30,4 +30,4 @@
     :DANK-root-tunnel {:name "DankRootTunnel" :address "0x866C8207E0E6F66B5424008ec6Aa6a53bc7e0d50"}
     :DANK-child-tunnel {:name "DankChildTunnel" :address "0x7BB697Eff146b5F3e79FA5612bD00F0c03d8Bc74"}
     :meme-token-root-tunnel {:name "MemeTokenRootTunnel" :address "0x662e04d39d464270790b0777269C4Bb1e084f05c"}
-    :meme-token-child-tunnel {:name "MemeTokenChildTunnel" :address "0xb06059c2a9d0DfAAba8c91D106Bc99ee0b50BF14"}}))
+    :meme-token-child-tunnel {:name "MemeTokenChildTunnel" :address "0xb06059c2a9d0DfAAba8c91D106Bc99ee0b50BF14"}})
