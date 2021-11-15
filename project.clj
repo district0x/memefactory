@@ -69,6 +69,7 @@
                  [district0x/re-frame-ipfs-fx "1.1.1"]
                  [funcool/bide "1.6.1-SNAPSHOT"] ;; version with fix for duplicated query params
                  [garden "1.3.5"]
+                 [io.github.district0x/district-ui-web3-chain "1.0.0"]
                  [medley "1.0.0"]
                  [mount "0.1.16"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
