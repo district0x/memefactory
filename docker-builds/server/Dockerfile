@@ -11,13 +11,14 @@ RUN chmod +x /usr/bin/lein
 
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 RUN mkdir -p /root/.config/truffle/
-RUN npm install --global truffle@~5.3.0
+RUN npm install --global truffle@~5.4.0
 
 COPY  . /build/
 WORKDIR /build
 
 RUN lein deps
-RUN yarn deps
+# RUN yarn deps
+RUN yarn install --ignore-engines
 RUN truffle compile
 RUN lein cljsbuild once "server"
 
