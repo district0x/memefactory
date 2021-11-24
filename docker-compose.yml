@@ -6,7 +6,7 @@ services:
             context: .
             dockerfile: "docker-builds/base/Dockerfile"
             args:
-                build_environment: "dev"
+                BUILD_ENV: "dev"
         networks:
             - dev_net
         volumes:
@@ -52,7 +52,7 @@ services:
             context: .
             dockerfile: "docker-builds/ui/Dockerfile"
             args:
-                build_environment: "dev"
+                BUILD_ENV: "dev"
         networks:
             - dev_net
         command:
