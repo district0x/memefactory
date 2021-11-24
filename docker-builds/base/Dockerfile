@@ -11,7 +11,7 @@ RUN chmod +x /usr/bin/lein && lein version
 
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 RUN mkdir -p /root/.config/truffle/ \
-    && npm install --global truffle@~5.3.0
+    && npm install --global truffle@~5.4.0 npm-check-updates
 
 WORKDIR /build
 VOLUME [ "/root/.m2" ]
