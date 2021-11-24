@@ -55,7 +55,7 @@
                  [district0x/district-ui-router-google-analytics "1.0.1"]
                  [district0x/district-ui-smart-contracts "1.0.9"]
                  [district0x/district-ui-web3 "1.3.2"]
-                 [district0x/district-ui-web3-account-balances "1.0.2"]
+                 [district0x/district-ui-web3-account-balances "1.0.3"]
                  [district0x/district-ui-web3-accounts "1.0.7"]
                  [district0x/district-ui-web3-balances "1.0.2"]
                  [district0x/district-ui-web3-sync-now "1.0.3-2"]
@@ -68,7 +68,7 @@
                  [district0x/re-frame-ipfs-fx "1.1.1"]
                  [funcool/bide "1.6.1-SNAPSHOT"] ;; version with fix for duplicated query params
                  [garden "1.3.5"]
-                 [io.github.district0x/district-ui-web3-chain "1.0.0"]
+                 [io.github.district0x/district-ui-web3-chain "1.0.1"]
                  [medley "1.0.0"]
                  [mount "0.1.16"]
                  [org.clojars.mmb90/cljs-cache "0.1.4"]
