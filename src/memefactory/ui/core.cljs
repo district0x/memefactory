@@ -18,17 +18,20 @@
             [district.ui.smart-contracts.events :as contracts-events]
             [district.ui.smart-contracts.queries :as contracts-queries]
             [district.ui.smart-contracts]
+            [district.ui.web3-account-balances.events :as web3-balances-events]
             [district.ui.web3-account-balances]
             [district.ui.web3-accounts.events :as web3-accounts-events]
             [district.ui.web3-accounts.queries :as web3-accounts-queries]
             [district.ui.web3-accounts]
             [district.ui.web3-balances]
             [district.ui.web3-chain.events :as chain-events]
+            [district.ui.web3-chain.queries :as chain-queries]
             [district.ui.web3-chain]
             [district.ui.web3-tx-id]
             [district.ui.web3-tx-log]
             [district.ui.web3-tx]
             [district.ui.web3]
+            [district.ui.web3.queries :as web3-queries]
             [district.ui.window-size]
             [memefactory.shared.graphql-schema :refer [graphql-schema]]
             [memefactory.shared.routes :refer [routes]]
@@ -101,8 +104,22 @@
     ; make sure accounts (balances) are re-loaded when chain is changed
     {:dispatch [::web3-accounts-events/accounts-changed
                 {:new (web3-accounts-queries/accounts db)
-                 :old (web3-accounts-queries/accounts db)}]}
-    ))
+                 :old (web3-accounts-queries/accounts db)}]}))
+
+(re-frame/reg-event-fx
+  ::reload-balances
+  interceptors
+  (fn [{:keys [:db]}]
+    (let [chain (chain-queries/chain db)
+          dank-contract (if (= chain (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-id])) :DANK :DANK-root)
+          load-balances-event [::web3-balances-events/load-account-balances {:disable-watching? true
+                                                                             :for-contracts     [dank-contract]}]]
+      (when chain
+        {:dispatch load-balances-event
+         :web3/watch-blocks {:web3 (web3-queries/web3 db)
+                             :id :block-watcher-for-balances
+                             :block-filter-opts "latest"
+                             :on-success load-balances-event}}))))
 
 (re-frame/reg-event-fx
   ::fix-contracts
@@ -144,6 +161,9 @@
                      {:register    :chain-changed
                       :events      #{::chain-events/chain-changed}
                       :dispatch-to [::chain-changed]}
+                     {:register    :accounts-changed
+                      :events      #{::web3-accounts-events/accounts-changed}
+                      :dispatch-to [::reload-balances]}
                      ]}))
 
 (defn ^:export init []
@@ -152,7 +172,7 @@
                      config-map
                      {:smart-contracts {:format :truffle-json
                                         :contracts-path "/contracts/build/"}
-                      :web3-account-balances {:for-contracts [:ETH :DANK :DANK-root]} ;; should use :ETH here also MATIC in polygon
+                      :web3-account-balances {:for-contracts [:ETH]} ;; should use :ETH here also for MATIC in polygon
                       :web3-tx-log {:open-on-tx-hash? true}
                       :reagent-render {:id "app"
                                        :component-var #'router}

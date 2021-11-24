@@ -84,13 +84,14 @@
   (let [instance (contract-queries/instance db :ens)
     namehash (build-namehash (str (string/lower-case (web3-utils/remove-0x addr)) ".addr.reverse" ))
     data {:addr addr :namehash namehash}]
+    (when (not-empty (contract-queries/contract-abi db :ens))
       {:web3/call
         {:web3 (web3-queries/web3 db)
          :fns [{:instance instance
                 :fn :resolver
                 :args [namehash]
                 :on-success [::resolver-get-address data]
-                :on-error [::logging/error "Error calling ENS Registry" data ::reverse-resolve-address]}]}})))
+                :on-error [::logging/error "Error calling ENS Registry" data ::reverse-resolve-address]}]}}))))
 
 
 ;; Handler for processing the response coming from the ENS registry, which indicates
