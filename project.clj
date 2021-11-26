@@ -8,7 +8,6 @@
                  [camel-snake-kebab "0.4.0"]
                  [cljs-node-io "1.1.2"]
                  [cljs-web3-next "0.1.4"]
-                 [cljsjs/bignumber "9.0.0-0"]
                  [cljsjs/buffer "5.1.0-1"]
                  [cljsjs/d3 "4.12.0-0"]
                  [cljsjs/filesaverjs "1.3.3-0"]

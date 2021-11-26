@@ -1,7 +1,6 @@
 (ns memefactory.server.syncer
   (:require [bignumber.core :as bn]
             [camel-snake-kebab.core :as camel-snake-kebab]
-            [cljsjs.bignumber :as bignumber]
             [cljs-web3-next.eth :as web3-eth]
             [cljs-web3-next.utils :as web3-utils]
             [cljs.core.async.impl.protocols :refer [ReadPort]]
@@ -259,21 +258,21 @@
 
 (defn meme-minted-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :creator :token-start-id :token-end-id :total-minted :timestamp]} args
-        token-start-id (bignumber/BigNumber token-start-id)
-        token-end-id (bignumber/BigNumber token-end-id)
+        token-start-id (js/BigInt token-start-id)
+        token-end-id (js/BigInt token-end-id)
         total-minted (bn/number total-minted)
         token-ids (loop [token-id token-start-id
                          token-ids []]
                     (do
-                      (if (bn/> token-id token-end-id)
+                      (if (> token-id token-end-id)
                        token-ids
-                       (recur (bn/+ token-id 1) (conj token-ids (bn/fixed token-id))))))
+                       (recur (+ token-id (js/BigInt 1)) (conj token-ids (str token-id))))))
         ]
     (db/insert-meme-tokens! {:token-ids token-ids
                              :reg-entry/address registry-entry})
     (db/update-meme! {:reg-entry/address registry-entry
                       :meme/first-mint-on timestamp
-                      :meme/token-id-start (bn/fixed token-start-id)
+                      :meme/token-id-start (str token-start-id)
                       :meme/total-minted total-minted})
     (doseq [tid token-ids]
       (db/upsert-meme-token-owner! {:meme-token/token-id tid
