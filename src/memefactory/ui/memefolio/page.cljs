@@ -132,7 +132,6 @@
                                                              :reg-entry/address address
                                                              :meme-auction/token-ids
                                                              (->> @token-ids
-                                                               (map int)
                                                                sort
                                                                (take (parsers/parse-int (:send/amount @form-data))))})]))}
          "Send"]]])))
