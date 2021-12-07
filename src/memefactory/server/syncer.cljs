@@ -154,7 +154,7 @@
   (safe-go
    (let [{:keys [:registry-entry :creator :version :deposit :challenge-period-end :db :key :value :timestamp :meta-hash]} args
          hash (web3-utils/to-ascii @web3 meta-hash)
-         {:keys [reason]} (server-utils/get-ipfs-meta @ipfs/ipfs hash)]
+         {:keys [reason]} (<? (server-utils/get-ipfs-meta @ipfs/ipfs hash))]
      (add-registry-entry {:reg-entry/address registry-entry
                           :reg-entry/creator creator
                           :reg-entry/version version
