@@ -56,12 +56,14 @@
                                                              (re-frame/dispatch [::events/import-vote-secrets (-> e .-target .-result)])))
                                    (.readAsText reader file)))}]
            [:span "IMPORT VOTES"]]]
-         [nav-anchor {:route (when account-active? :route.get-dank/index)}
-          [:div.get-dank-button
-           {:class (when-not account-active? "disabled")}
-           [:span "Get Dank"]
-           [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
-           [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]]))))
+         [:div.placeholder]
+         ;[nav-anchor {:route (when account-active? :route.get-dank/index)}
+         ; [:div.get-dank-button
+         ;  {:class (when-not account-active? "disabled")}
+         ;  [:span "Get Dank"]
+         ;  [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+         ;  [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]
+         ]))))
 
 
 (defn collect-reward-action [{:keys [:reg-entry/address :challenge/all-rewards] :as meme}]

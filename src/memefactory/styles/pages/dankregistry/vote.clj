@@ -34,9 +34,11 @@
         :border-style :none
         :cursor :pointer
         :background-color "#9d0adb"
-        :border-radius (em 2)
+        :border-radius (em 0.5)
         :display :flex
-        :color :white}]]]]
+        :color :white}]]
+      [:div.placeholder
+       {:height (em 0.5)}]]]
    [:section.challenges
     {:max-width (px 985)
      :margin-left :auto
