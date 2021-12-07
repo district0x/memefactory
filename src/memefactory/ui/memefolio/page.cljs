@@ -780,7 +780,14 @@
                            :meme/number
                            :meme/title
                            :meme/total-minted
-                           :meme/total-supply]]]]]
+                           :meme/total-supply
+                           :reg-entry/created-on
+                           :reg-entry/challenge-period-end
+                           :challenge/commit-period-end
+                           :challenge/reveal-period-end
+                           [:challenge/challenger [:user/address]]
+                           :challenge/votes-for
+                           :challenge/votes-against]]]]]
       :curated [[:search-memes (merge {:curator user-address
                                        :first first}
                                       (cond
