@@ -1,7 +1,7 @@
 (ns memefactory.styles.component.app-bar
   (:require [garden.def :refer [defstyles]]
             [garden.units :refer [em px rem]]
-            [memefactory.styles.component.buttons :refer [button]]
+            [memefactory.styles.component.buttons :refer [switch-chain-button]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
             [memefactory.styles.base.media :refer [for-media-max for-media-min]]))
@@ -96,11 +96,7 @@
        :width (em 1.3)}]]]
 
    [:.switch-chain-button
-    (button {:background-color :purple
-             :color :white
-             :width (em 14)
-             :height (em 2.3)})
-    ]
+    (switch-chain-button)]
 
    [:.tracker-section
     {:cursor :pointer
