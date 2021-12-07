@@ -6,7 +6,8 @@
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.fonts :refer [font]]
             ;; [memefactory.styles.base.icons :refer [icons]]
-            [memefactory.styles.base.media :refer [for-media-max]]))
+            [memefactory.styles.base.media :refer [for-media-max for-media-min]]
+            [memefactory.styles.component.buttons :refer [switch-chain-button]]))
 
 (def menu-gutter (px 8))
 
@@ -131,6 +132,10 @@
                   :height (rem 2.1)
                   :width (rem 2.2)
                   :margin-top (px -6)}]]]]
+   [:.switch-chain-button
+    (switch-chain-button {:width "100%"})
+    (for-media-min :tablet [:&
+                            {:display :none}])]
    [:.district0x-banner
     (font :filson)
     {:padding-left (em 3)
@@ -156,5 +161,5 @@
              ;; :background-position "left bottom";
              ;; :background-repeat :no-repeat
              ;; :background-image ""
-             :margin-top (em -5)
+             :margin-top 0
              :margin-bottom (em 1)}]]])

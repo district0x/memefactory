@@ -117,7 +117,7 @@
                       (swap! drawer-open? not))}]]])))
 
 
-(defn app-bar [{:keys [search-atom]}]
+(defn app-bar [{:keys [:search-atom :active-page]}]
   (let [open? (r/atom nil)
         my-addresses (r/atom nil)
         accounts (subscribe [::accounts-subs/accounts])
@@ -127,7 +127,8 @@
       [:div.app-bar
        [:div.account-section
         [ens-active-account]]
-        [switch-chain-button]
+        (when-not (= active-page :route.bridge/index)
+          [switch-chain-button])
        [:div.tracker-section
         {:on-click (fn []
                      (if (empty? @my-addresses)
@@ -155,7 +156,10 @@
      [:<>
       ;; Account Balance Header for Mobile
       (when (and active-account (= depth 0))
-        [account-balances {:with-tx-logs? false}])
+        [account-balances {:with-tx-logs? false}]
+        (when-not (= active-page :route.bridge/index)
+          [switch-chain-button])
+        )
       [:ul.node {:key (str depth)}
        (doall
         (map-indexed (fn [idx {:keys [:text :route :params :query :class :url :children :needs-account? :counter]}]
@@ -220,8 +224,8 @@
          [app-menu nav-menu-items (:name @active-page) {:open-param-proposals (-> @open-param-proposals :search-param-changes :total-count)}]]
         [district0x-banner]]
        [:div.app-content
-        [app-bar {:search-atom search-atom}]
-        [app-bar-mobile drawer-open?]
+        [app-bar {:search-atom search-atom :active-page (:name @active-page)}]
+        [app-bar-mobile drawer-open? {:active-page (:name @active-page)}]
         (when (and (not @active-account) @mobile-device?)
          [:a.coinbase-promotion
           {:href @coinbase-appstore-link}

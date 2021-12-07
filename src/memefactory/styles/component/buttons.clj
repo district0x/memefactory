@@ -95,3 +95,14 @@
               :height (px 20)
               :top (px top)
               :left (px (or left 0))}])
+
+(defn switch-chain-button
+  ([] (switch-chain-button {}))
+  ([{:keys [:width]}]
+   (merge
+     (button {:background-color :purple
+              :color :white
+              :width (or width :auto)
+              :height (em 2.3)})
+     {:padding "0 1.5em"}))
+  )
