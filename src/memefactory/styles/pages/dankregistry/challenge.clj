@@ -19,7 +19,9 @@
      (panel-with-icon {:url "/assets/icons/memesubmiticon.svg"
                        :color :sky-blue})
      [:.get-dank-button
-      (get-dank-button)]]]
+      (get-dank-button)]]
+    [:div.placeholder
+     {:height (em 0.5)}]]
    [:.challenge-controls
     {:text-align :center}
     [:.help-block {:border-top :none}]

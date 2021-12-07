@@ -26,12 +26,14 @@
          [:div.icon]
          [:h2.title "Dank registry - Submit"]
          [:h3.title "Submit a new meme to the registry for consideration"]
-         [nav-anchor {:route (when account-active? :route.get-dank/index)}
-          [:div.get-dank-button
-           {:class (when-not account-active? "disabled")}
-           [:span "Get Dank"]
-           [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
-           [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]]))))
+         [:div.placeholder]
+         ;[nav-anchor {:route (when account-active? :route.get-dank/index)}
+         ; [:div.get-dank-button
+         ;  {:class (when-not account-active? "disabled")}
+         ;  [:span "Get Dank"]
+         ;  [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+         ;  [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]
+         ]))))
 
 
 (defn submit-panels [{:keys [deposit max-total-supply] :as params}]
