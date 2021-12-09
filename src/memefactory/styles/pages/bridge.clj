@@ -3,15 +3,19 @@
             [garden.units :refer [em px]]
             [memefactory.styles.base.colors :refer [color]]
             [memefactory.styles.base.media :refer [for-media-max]]
-            [memefactory.styles.component.buttons :refer [button get-dank-button]]
+            [memefactory.styles.component.buttons :refer [button switch-chain-button]]
             [memefactory.styles.component.compact-tile :as compact-tile]
-            [memefactory.styles.component.panels :refer [panel-with-icon]]))
+            [memefactory.styles.component.panels :refer [panel-with-icon tabs]]))
 
 (defstyles core
   [:.bridge-page
    [:.bridge-box
      (panel-with-icon {:url "/assets/icons/matic.svg"
                       :color :sky-blue})
+    [:section.bridge-header
+     {:text-align :center}
+     [:.switch-chain-button
+      {:display :inline-block}]]
     [:.icon {:background-size [(em 2.5) (em 2)]}]
     [:p
      {:margin-left (em 1)
@@ -42,11 +46,25 @@
         (button {:background-color :purple
                  :color :white
                  :height (em 3.3)
-                 :width (em 10)})]]
+                 :width "auto"})]]
       [:.not-enough-dank {:margin-top (em 1)
-                          :color (color :redish)}]]]
-
+                          :color (color :redish)}]
+      [:.no-pending-withdraw {:margin-top (em 1)
+                              :color (color :redish)}]]]
     ]
+   [:div.tokens
+    {:text-align :left}]
    [:.footer
     {:color :gray}]
+   [:.tabbed-pane
+    {:max-width (px 985)
+     :margin-right :auto
+     :margin-left :auto}]
+   [:section.tabs
+    (tabs)]
+   [:section.tabs
+    {:min-height (em 3)
+     :height :auto}]
+   [:.switch-chain-button
+    (switch-chain-button)]
    ])

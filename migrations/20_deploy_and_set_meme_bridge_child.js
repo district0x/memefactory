@@ -8,6 +8,7 @@ const fxChild = parameters.fxChild;
 const memeTokenChild = getSmartContractAddress(smartContracts, ":meme-token");
 const tunnelRoot = getSmartContractAddress(smartContracts, ":meme-token-root-tunnel");
 
+const ERC1967Proxy = artifacts.require("ERC1967Proxy");
 const MemeTokenChildTunnel = artifacts.require('MemeTokenChildTunnel');
 
 module.exports = async(deployer, network, accounts) => {
@@ -26,18 +27,28 @@ module.exports = async(deployer, network, accounts) => {
         throw new Error("Missing required contract address");
 
     await status.step(async ()=> {
-        const tunnelChild = await deployer.deploy(MemeTokenChildTunnel, fxChild, memeTokenChild, Object.assign(opts, {gas: 4000000}));
+        console.log('Deploying tunnelChild implementation');
+        const tunnelChild = await deployer.deploy(MemeTokenChildTunnel, Object.assign(opts, {gas: 4000000}));
         return {tunnelChild: tunnelChild.address};
     });
 
     await status.step(async ()=> {
+        console.log('Deploying tunnelChild proxy');
         const tunnelChildAddr = status.getValue('tunnelChild');
         const tunnelChild = await MemeTokenChildTunnel.at(tunnelChildAddr);
+        const data = tunnelChild.contract.methods.initialize(fxChild, memeTokenChild).encodeABI();
+        const tunnelChildProxy = await deployer.deploy(ERC1967Proxy, tunnelChildAddr, data, Object.assign(opts, {gas: 4000000}));
+        return {tunnelChildProxy: tunnelChildProxy.address};
+    });
+
+    await status.step(async ()=> {
+        const tunnelChildProxyAddr = status.getValue('tunnelChildProxy');
+        const tunnelChild = await MemeTokenChildTunnel.at(tunnelChildProxyAddr);
         console.log('Setting up MemeTokenChildTunnel. TunnelRoot:'+tunnelRoot);
         await tunnelChild.setFxRootTunnel(tunnelRoot, Object.assign(opts, {gas: 400000}));
     });
 
-    setSmartContractAddress(smartContracts, ":meme-token-child-tunnel", status.getValue('tunnelChild'));
+    setSmartContractAddress(smartContracts, ":meme-token-child-tunnel", status.getValue('tunnelChildProxy'));
 
     writeSmartContracts(smart_contracts_path, smartContracts, env);
 

@@ -69,6 +69,18 @@
                 after: String
     ): UserList
 
+    withdrawDank(tx: ID!): WithdrawDank
+    searchWithdrawDank(receiver: String,
+                       first: Int,
+                       after: String
+    ): WithdrawDankList
+
+    withdrawMeme(tx: ID!): WithdrawMeme
+    searchWithdrawMeme(receiver: String,
+                       first: Int,
+                       after: String
+    ): WithdrawMemeList
+
     param(db: String!, key: String!): Parameter
     params(db: String!, keys: [String!]): [Parameter]
     overallStats : OverallStats
@@ -479,6 +491,32 @@
     event_count: Int
     event_lastLogIndex: Int
     event_lastBlockNumber: Int
+  }
+
+  type WithdrawDank {
+    withdrawDank_tx: ID
+    withdrawDank_receiver: String
+    withdrawDank_amount: Float
+  }
+
+  type WithdrawDankList {
+    items: [WithdrawDank]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
+  }
+
+  type WithdrawMeme {
+    withdrawMeme_tx: ID
+    withdrawMeme_receiver: String
+    withdrawMeme_tokens: String
+  }
+
+  type WithdrawMemeList {
+    items: [WithdrawMeme]
+    totalCount: Int
+    endCursor: String
+    hasNextPage: Boolean
   }
   "
   )

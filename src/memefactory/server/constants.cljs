@@ -23,6 +23,8 @@
    :param-change-registry/vote-reward-claimed-event [:param-change-registry-fwd :VoteRewardClaimedEvent]
    :param-change-registry/challenge-reward-claimed-event [:param-change-registry-fwd :ChallengeRewardClaimedEvent]
    :param-change-registry/param-change-applied-event [:param-change-registry-fwd :ParamChangeAppliedEvent]
+   :DANK-child-tunnel/message-sent [:DANK-child-tunnel :MessageSent]
+   :meme-token-child-tunnel/message-sent [:meme-token-child-tunnel :MessageSent]
    ; :dank-faucet/dank-transfer-event [:dank-faucet :DankTransferEvent]
    ; :dank-faucet/oraclize-request-event [:dank-faucet :OraclizeRequestEvent]
    ; :dank-faucet/dank-reset-event [:dank-faucet :DankResetEvent]

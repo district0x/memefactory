@@ -146,6 +146,18 @@
    [:event/count :integer not-nil]
    [(sql/call :primary-key :event/contract-key :event/event-name)]])
 
+(def withdraw-dank-txs-columns
+  [[:withdraw-dank/tx :varchar not-nil]
+   [:withdraw-dank/receiver address not-nil]
+   [:withdraw-dank/amount :unsigned :BIG :INT not-nil]
+   [(sql/call :primary-key :withdraw-dank/tx)]])
+
+(def withdraw-meme-txs-columns
+  [[:withdraw-meme/tx :varchar not-nil]
+   [:withdraw-meme/receiver address not-nil]
+   [:withdraw-meme/tokens :varchar not-nil]
+   [(sql/call :primary-key :withdraw-meme/tx)]])
+
 (def registry-entry-column-names (map first registry-entries-columns))
 (def meme-column-names (filter keyword? (map first memes-columns)))
 (def meme-tokens-column-names (filter keyword? (map first meme-tokens-columns)))
@@ -160,6 +172,8 @@
 (def user-column-names (filter keyword? (map first user-columns)))
 (def twitter-media-column-names (filter keyword? (map first twitter-media-columns)))
 (def events-column-names (filter keyword? (map first events-columns)))
+(def withdraw-dank-txs-column-names (filter keyword? (map first withdraw-dank-txs-columns)))
+(def withdraw-meme-txs-column-names (filter keyword? (map first withdraw-meme-txs-columns)))
 
 (defn create-insert-fn [table-name column-names & [{:keys [:insert-or-replace?]}]]
   (fn [item]
@@ -363,6 +377,24 @@
             :upsert {:on-conflict [:event/event-name :event/contract-key]
                      :do-update-set [:event/last-log-index :event/last-block-number :event/count]}}))
 
+;; WITHDRAW DANK TXS
+
+(def insert-withdraw-dank-tx! (create-insert-fn :withdraw-dank-txs withdraw-dank-txs-column-names))
+
+(defn get-withdraw-dank-txs [receiver-address]
+  (db/get {:select [:*]
+           :from [[:withdraw-dank-txs :wdt]]
+           :where [:= :wdt.withdraw-dank/receiver receiver-address]}))
+
+;; WITHDRAW MEME TXS
+
+(def insert-withdraw-meme-tx! (create-insert-fn :withdraw-meme-txs withdraw-meme-txs-column-names))
+
+(defn get-withdraw-meme-txs [receiver-address]
+  (db/get {:select [:*]
+           :from [[:withdraw-meme-txs :wmt]]
+           :where [:= :wmt.withdraw-meme/receiver receiver-address]}))
+
 ;; LIFECYCLE
 
 (defn clean-db []
@@ -378,7 +410,9 @@
                 :users
                 :params
                 :twitter-media
-                :events]
+                :events
+                :withdraw-dank-txs
+                :withdraw-meme-txs]
         drop-table-if-exists (fn [t]
                                (psqlh/drop-table :if-exists t))]
     (doall
@@ -430,6 +464,12 @@
 
   (db/run! (-> (psqlh/create-table :events :if-not-exists)
                (psqlh/with-columns events-columns)))
+
+  (db/run! (-> (psqlh/create-table :withdraw-dank-txs :if-not-exists)
+               (psqlh/with-columns withdraw-dank-txs-columns)))
+
+  (db/run! (-> (psqlh/create-table :withdraw-meme-txs :if-not-exists)
+               (psqlh/with-columns withdraw-meme-txs-columns)))
 
   ;; TODO create indexes
   #_(doseq [column (rest registry-entry-column-names)]

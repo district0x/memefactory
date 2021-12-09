@@ -1,26 +1,37 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { FxBaseChildTunnel } from './tunnel/FxBaseChildTunnel.sol';
+import { FxBaseChildTunnelInitializable } from './tunnel/FxBaseChildTunnelInitializable.sol';
 import { MemeTokenChild } from '../MemeTokenChild.sol';
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";  // only for compiler
 
 /** 
  * @title MemeTokenChildTunnel
  */
-contract MemeTokenChildTunnel is FxBaseChildTunnel {
+contract MemeTokenChildTunnel is FxBaseChildTunnelInitializable, UUPSUpgradeable, OwnableUpgradeable {
     MemeTokenChild public childToken;
 
     uint256 public constant BATCH_LIMIT = 20;
     bytes4 public constant SINGLE = bytes4(keccak256("SINGLE"));
     bytes4 public constant BATCH = bytes4(keccak256("BATCH"));
 
-    constructor(address _fxChild, address _childToken) FxBaseChildTunnel(_fxChild) {
+    function initialize(address _fxChild, address _childToken) initializer public {
+        __Ownable_init();
+        __FxBaseChildTunnel_init(_fxChild);
         childToken = MemeTokenChild(_childToken);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner
+    {}
 
     function withdraw(uint256 tokenId) external {
         // send message to root regarding token burn so it allows tokens transfer
         _sendMessageToRoot(abi.encode(msg.sender, SINGLE, abi.encode(tokenId, childToken.encodeTokenMetadata(tokenId))));
+
+        // check owner of the NFT
+        require(msg.sender == childToken.ownerOf(tokenId), "MemeTokenChildTunnel: INVALID_OWNER");
 
         // withdraw tokens
         childToken.burn(tokenId);
