@@ -510,6 +510,26 @@
      (log/debug "events-query-resolver" sql-query)
      sql-query)))
 
+(defn search-withdraw-dank-query-resolver [_ {:keys [:receiver :first :after] :as args}]
+  (log/debug "withdraw-dank-query-resolver args" args)
+  (try-catch-throw
+    (let [page-start-idx (when after (js/parseInt after))
+          page-size first
+          query {:select [:*]
+                             :from [[:withdraw-dank-txs :wdt]]
+                             :where [:= :wdt.withdraw-dank/receiver receiver]}]
+      (paged-query query page-size page-start-idx))))
+
+(defn search-withdraw-meme-query-resolver [_ {:keys [:receiver :first :after] :as args}]
+  (log/debug "withdraw-meme-query-resolver args" args)
+  (try-catch-throw
+    (let [page-start-idx (when after (js/parseInt after))
+          page-size first
+          query {:select [:*]
+                             :from [[:withdraw-meme-txs :wmt]]
+                             :where [:= :wmt.withdraw-meme/receiver receiver]}]
+      (paged-query query page-size page-start-idx))))
+
 (defn overall-stats-resolver [_ _]
   {:total-memes-count (:count (db/get {:select [[(sql/call :count :*) :count]]
                                        :from [[:memes :m]]
@@ -1110,7 +1130,9 @@
            :params params-query-resolver
            :overall-stats overall-stats-resolver
            :config config-query-resolver
-           :events events-query-resolver}
+           :events events-query-resolver
+           :search-withdraw-dank search-withdraw-dank-query-resolver
+           :search-withdraw-meme search-withdraw-meme-query-resolver}
    :Mutation {:send-verification-code send-verification-code-resolver
               :encrypt-verification-payload encrypt-verification-payload-resolver
               :blacklist-reg-entry blacklist-reg-entry-resolver}

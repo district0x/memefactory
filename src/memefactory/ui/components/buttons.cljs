@@ -19,15 +19,17 @@
         disabled (:disabled opts)]
     [pending-button (merge (dissoc opts :for-chain) {:disabled (or (not= @chain for-chain) disabled)}) children]))
 
-(defn switch-chain-button []
+(defn switch-chain-button
+  [{:keys [:net]
+    :or {net (get-in config-map [:web3-chain :deployed-on])}}]
   (let [chain (subscribe [::chain-subs/chain])
-        for-chain (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-id])]
-    (when (not= @chain for-chain)
+        for-chain (get-in config-map [:web3-chain net :chain-id])]
+    (when (and @chain (not= @chain for-chain))
       [:button {:on-click #(dispatch [::chain-events/request-switch-chain
-                                      (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-id])
-                                    {:chain-info (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on])])}])
+                                      for-chain
+                                    {:chain-info (get-in config-map [:web3-chain net])}])
                 :class "switch-chain-button"}
-       (str "Switch to " (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-name]))])
+       (str "Switch to " (get-in config-map [:web3-chain net :chain-name]))])
     ))
 
 (defn reclaim-buttons [active-account {:keys [:reg-entry/address :challenge/all-rewards :challenge/vote :challenge/vote-winning-vote-option :challenge/challenger :challenge/votes-against :challenge/votes-for] :as meme}]

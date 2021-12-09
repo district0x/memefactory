@@ -24,7 +24,8 @@
    :smart-contracts {:contracts (apply dissoc smart-contracts-dev/smart-contracts skipped-contracts)}
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-dev/smart-contracts [:DANK :DANK-root])}
-   :web3-chain {:l1 {:chain-id "1337"}
+   :web3-chain {:l1 {:chain-id "1337"
+                     :chain-name "Ganache"}
                 :l2 {:chain-id "15001"
                      :rpc-urls ["http://localhost:8545"]
                      :chain-name "Bor"
@@ -32,7 +33,7 @@
                                        :symbol "MATIC"
                                        :decimals 18}}
                 :deployed-on :l2}
-   :web3 {:url "http://localhost:9545"}
+   :web3 {:url "http://localhost:8545"}
    :web3-tx {:disable-loading-recommended-gas-prices? true
              :eip55? true}
    :web3-tx-log {:disable-using-localstorage? true
@@ -58,7 +59,8 @@
                      :load-method :use-loaded}
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-qa/smart-contracts [:DANK :DANK-root])}
-   :web3-chain {:l1 {:chain-id "5"}
+   :web3-chain {:l1 {:chain-id "5"
+                     :chain-name "Goerli Testnet"}
                 :l2 {:chain-id "80001"
                      :rpc-urls ["https://rpc-mumbai.maticvigil.com"]
                      :chain-name "Mumbai"
@@ -94,7 +96,8 @@
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK :DANK-root])}
    :web3 {:url "https://mainnet.infura.io"}
-   :web3-chain {:l1 {:chain-id "1"}
+   :web3-chain {:l1 {:chain-id "1"
+                     :chain-name "Ethereum Mainnet"}
                 :l2 {:chain-id "137"
                      :rpc-urls ["https://matic-mainnet.chainstacklabs.com"]
                      :chain-name "Polygon"

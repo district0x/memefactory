@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { FxBaseRootTunnel } from "./tunnel/FxBaseRootTunnel.sol";
+import { FxBaseRootTunnelInitilializable } from "./tunnel/FxBaseRootTunnelInitializable.sol";
 import { MemeToken } from "../MemeToken.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /**
  * @title MemeTokenRootTunnel
  */
-contract MemeTokenRootTunnel is FxBaseRootTunnel, IERC721Receiver {
+contract MemeTokenRootTunnel is FxBaseRootTunnelInitilializable, IERC721Receiver, UUPSUpgradeable, OwnableUpgradeable {
     event FxWithdrawERC721(address indexed userAddress, uint256 id);
     event FxWithdrawERC721Batch(address indexed userAddress, uint256[] ids);
     event FxDepositERC721(address indexed depositor, address indexed userAddress, uint256 id);
@@ -20,13 +22,18 @@ contract MemeTokenRootTunnel is FxBaseRootTunnel, IERC721Receiver {
 
     MemeToken public rootToken;
 
-    constructor(address _checkpointManager, address _fxRoot, address _rootToken) FxBaseRootTunnel(_checkpointManager, _fxRoot) {
+    function initialize(address _checkpointManager, address _fxRoot, address _rootToken) initializer public {
+        __Ownable_init();
+        __FxBaseRootTunnel_init(_checkpointManager, _fxRoot);
         rootToken = MemeToken(_rootToken);
     }
 
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner
+    {}
+
     function deposit(address user, uint256 tokenId) external {
         // transfer from depositor to this contract
-        rootToken.safeTransferFrom(
+        rootToken.transferFrom(
             msg.sender,    // depositor
             address(this), // manager contract
             tokenId
@@ -43,7 +50,7 @@ contract MemeTokenRootTunnel is FxBaseRootTunnel, IERC721Receiver {
         bytes[] memory metadatas = new bytes[](length);
         for (uint256 i = 0; i < length; i++) {
             // transfer from depositor to this contract
-            rootToken.safeTransferFrom(
+            rootToken.transferFrom(
                 msg.sender,    // depositor
                 address(this), // manager contract
                 tokenIds[i]
@@ -55,7 +62,10 @@ contract MemeTokenRootTunnel is FxBaseRootTunnel, IERC721Receiver {
         emit FxDepositERC721Batch(msg.sender, user, tokenIds);
     }
 
-    function onERC721Received(address, address, uint256, bytes calldata) external pure override returns (bytes4) {
+    function onERC721Received(address, address from, uint256 tokenId, bytes calldata) external override returns (bytes4) {
+        bytes memory message = abi.encode(from, SINGLE, abi.encode(tokenId, rootToken.encodeTokenMetadata(tokenId)));
+        _sendMessageToChild(message);
+        emit FxDepositERC721(from, from, tokenId);
         return IERC721Receiver.onERC721Received.selector;
     }
 

@@ -171,6 +171,30 @@
        :param-change/reason reason
        :param-change/meta-hash hash}))))
 
+(defn dank-child-tunnel-message-sent [_ {:keys [:args] :as event}]
+  (let [{:keys [:message]} args
+        msg-params (js-invoke (aget @web3 "eth" "abi") "decodeParameters" (clj->js ["address" "uint256"]) message)
+        receiver (aget msg-params "0")
+        amount (aget msg-params "1")
+        tx (:transaction-hash event)]
+    (db/insert-withdraw-dank-tx! {:withdraw-dank/tx tx
+                                  :withdraw-dank/receiver receiver
+                                  :withdraw-dank/amount amount})))
+
+(defn meme-token-child-tunnel-message-sent [_ {:keys [:args] :as event}]
+  (let [{:keys [:message]} args
+        msg-params (js-invoke (aget @web3 "eth" "abi") "decodeParameters" (clj->js ["address" "bytes4" "bytes"]) message)
+        receiver (aget msg-params "0")
+        type (aget msg-params "1")
+        data (aget msg-params "2")
+        tokens (if (= type "0x6a81ec25")  ; bytes4(keccak256("SINGLE"))
+                 (aget (js-invoke (aget @web3 "eth" "abi") "decodeParameters" (clj->js ["uint256" "bytes"]) data) "0")
+                 (str (aget (js-invoke (aget @web3 "eth" "abi") "decodeParameters" (clj->js ["uint256[]" "bytes[]"]) data) "0")))
+        tx (:transaction-hash event)]
+      (db/insert-withdraw-meme-tx! {:withdraw-meme/tx tx
+                                    :withdraw-meme/receiver receiver
+                                    :withdraw-meme/tokens (str tokens)})))
+
 (defn param-change-applied-event [_ {:keys [:args]}]
   (let [{:keys [:registry-entry :timestamp]} args]
     (db/update-param-change! {:reg-entry/address registry-entry
@@ -365,47 +389,49 @@
 
 (defn- dispatcher [callback]
   (fn [err {:keys [:block-number] :as event}]
-    (safe-go
-     (try
-       (let [block-timestamp (<? (block-timestamp block-number))
-             event (-> event
-                       (update :event camel-snake-kebab/->kebab-case)
-                       (update-in [:args :version] bn/number)
-                       (update-in [:args :timestamp] (fn [timestamp]
-                                                       (if timestamp
-                                                         (bn/number timestamp)
-                                                         block-timestamp))))
-             {:keys [:event/contract-key :event/event-name :event/block-number :event/log-index]} (get-event event)
-             {:keys [:event/last-block-number :event/last-log-index :event/count]
-              :or {last-block-number -1
-                   last-log-index -1
-                   count 0}} (db/get-last-event {:event/contract-key contract-key :event/event-name event-name} [:event/last-log-index :event/last-block-number :event/count])
-             evt {:event/contract-key contract-key
-                  :event/event-name event-name
-                  :event/count count
-                  :last-block-number last-block-number
-                  :last-log-index last-log-index
-                  :block-number block-number
-                  :log-index log-index}]
-         (if (or (> block-number last-block-number)
-                 (and (= block-number last-block-number) (> log-index last-log-index)))
-           (let [result (callback err event)]
-             (log/info "Handling new event" evt)
-             ;; block if we need
-             (when (satisfies? ReadPort result)
-               (<! result))
-             (db/upsert-event! {:event/last-log-index log-index
-                                :event/last-block-number block-number
-                                :event/count (inc count)
-                                :event/event-name event-name
-                                :event/contract-key contract-key}))
+    (if-not event ; event is false when websocket is disconnected
+      (log/debug (str "Skipping event. error:" err))
+      (safe-go
+       (try
+         (let [block-timestamp (<? (block-timestamp block-number))
+               event (-> event
+                         (update :event camel-snake-kebab/->kebab-case)
+                         (update-in [:args :version] bn/number)
+                         (update-in [:args :timestamp] (fn [timestamp]
+                                                         (if timestamp
+                                                           (bn/number timestamp)
+                                                           block-timestamp))))
+               {:keys [:event/contract-key :event/event-name :event/block-number :event/log-index]} (get-event event)
+               {:keys [:event/last-block-number :event/last-log-index :event/count]
+                :or {last-block-number -1
+                     last-log-index -1
+                     count 0}} (db/get-last-event {:event/contract-key contract-key :event/event-name event-name} [:event/last-log-index :event/last-block-number :event/count])
+               evt {:event/contract-key contract-key
+                    :event/event-name event-name
+                    :event/count count
+                    :last-block-number last-block-number
+                    :last-log-index last-log-index
+                    :block-number block-number
+                    :log-index log-index}]
+           (if (or (> block-number last-block-number)
+                   (and (= block-number last-block-number) (> log-index last-log-index)))
+             (let [result (callback err event)]
+               (log/info "Handling new event" evt)
+               ;; block if we need
+               (when (satisfies? ReadPort result)
+                 (<! result))
+               (db/upsert-event! {:event/last-log-index log-index
+                                  :event/last-block-number block-number
+                                  :event/count (inc count)
+                                  :event/event-name event-name
+                                  :event/contract-key contract-key}))
 
-           (log/info "Skipping handling of a persisted event" evt)))
-       (catch js/Error error
-         (log/error "Exception when handling event" {:error error
-                                                     :event event})
-         ;; So we crash as fast as we can and don't drag errors that are harder to debug
-         (js/process.exit 1))))))
+             (log/info "Skipping handling of a persisted event" evt)))
+         (catch js/Error error
+           (log/error "Exception when handling event" {:error error
+                                                       :event event})
+           ;; So we crash as fast as we can and don't drag errors that are harder to debug
+           (js/process.exit 1)))))))
 
 (defn- assign-meme-registry-numbers!
   "if there are any memes with unassigned numbers but still assignable start the number assigners"
@@ -470,7 +496,9 @@
                             :param-change-registry/vote-amount-claimed-event vote-amount-claimed-event
                             :param-change-registry/vote-reward-claimed-event vote-reward-claimed-event
                             :param-change-registry/challenge-reward-claimed-event challenge-reward-claimed-event
-                            :param-change-registry/param-change-applied-event param-change-applied-event}
+                            :param-change-registry/param-change-applied-event param-change-applied-event
+                            :DANK-child-tunnel/message-sent dank-child-tunnel-message-sent
+                            :meme-token-child-tunnel/message-sent meme-token-child-tunnel-message-sent}
            callback-ids (doall (for [[event-key callback] event-callbacks]
                                  (web3-events/register-callback! event-key (dispatcher callback))))]
        (web3-events/register-after-past-events-dispatched-callback! (fn []
