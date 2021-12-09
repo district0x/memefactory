@@ -70,7 +70,8 @@
                      :block-explorer-urls ["https://mumbai.polygonscan.com/"]}
                 :deployed-on :l2}
    :web3 {:url "https://ropsten.infura.io"}
-   :web3-tx {:eip55? true}
+   :web3-tx {:disable-loading-recommended-gas-prices? true
+             :eip55? true}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
@@ -107,7 +108,8 @@
                      :block-explorer-urls ["https://polygonscan.com/"]
                      }
                 :deployed-on :l2}
-   :web3-tx {:eip55? true}
+   :web3-tx {:disable-loading-recommended-gas-prices? true
+             :eip55? true}
    :web3-tx-log {:disable-using-localstorage? false
                  :open-on-tx-hash? true
                  :tx-costs-currencies [:USD]
