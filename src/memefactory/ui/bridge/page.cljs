@@ -219,7 +219,6 @@
                                    :class (when-not @bridge-tx-success? "claim-withdraw-meme")
                                    :on-click (fn [e]
                                                (.stopPropagation e)
-                                               (println tx-id)
                                                (dispatch
                                                  [::bridge-contracts/build-exit-payload {:on-success [tx-event {:send-tx/id tx-id}]
                                                                                          :withdraw-tx (:withdraw-tx @form-data)
@@ -241,7 +240,7 @@
             withdraw-txs (subscribe [::gql/query {:queries [[:search-withdraw-dank {:receiver @active-account}
                                                              [[:items [:withdraw-dank/tx :withdraw-dank/amount :withdraw-dank/receiver]]]]]}])
             items (->> @withdraw-txs :search-withdraw-dank :items)
-            pending-withdraw-txs (if (l1-chain?) (set @(subscribe [::bridge-contracts/filter-withdraws (mapv :withdraw-dank/tx items) (not= (get-environment) "prod")])) [])
+            pending-withdraw-txs (if (l1-chain?) (set @(subscribe [::bridge-contracts/filter-withdraws (mapv :withdraw-dank/tx items) :DANK-root-tunnel (not= (get-environment) "prod")])) [])
             options (map #(merge {} {:key (:withdraw-dank/tx %) :value (str "Receive: " (/ (:withdraw-dank/amount %) 1e18) " DANK")})
                          (filter #(contains? pending-withdraw-txs (:withdraw-dank/tx %)) items))
             ]
@@ -374,7 +373,7 @@
             withdraw-txs (subscribe [::gql/query {:queries [[:search-withdraw-meme {:receiver @active-account}
                                                              [[:items [:withdraw-meme/tx :withdraw-meme/tokens :withdraw-meme/receiver]]]]]}])
             items (->> @withdraw-txs :search-withdraw-meme :items)
-            pending-withdraw-txs (if (l1-chain?) (set @(subscribe [::bridge-contracts/filter-withdraws (mapv :withdraw-meme/tx items) (not= (get-environment) "prod")])) [])
+            pending-withdraw-txs (if (l1-chain?) (set @(subscribe [::bridge-contracts/filter-withdraws (mapv :withdraw-meme/tx items) :meme-token-root-tunnel (not= (get-environment) "prod")])) [])
             options (map #(merge {} {:key (:withdraw-meme/tx %) :value (str "Receive: " (format-tokens (:withdraw-meme/tokens %)))})
                          (filter #(contains? pending-withdraw-txs (:withdraw-meme/tx %)) items))
             ]
