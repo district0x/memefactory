@@ -225,9 +225,9 @@
 (re-frame/reg-event-fx
   ::check-exited
   [interceptors]
-  (fn [{:keys [:db]} [{:keys [:withdraw-tx]} exit-hash]]
+  (fn [{:keys [:db]} [{:keys [:withdraw-tx :tunnel-contract]} exit-hash]]
     {:web3/call {:web3 (web3-queries/web3 db)
-                 :fns [{:instance (contract-queries/instance db :DANK-root-tunnel)
+                 :fns [{:instance (contract-queries/instance db tunnel-contract)
                         :fn :processed-exits
                         :args [exit-hash]
                         :on-success [::add-withdraw withdraw-tx]
@@ -237,14 +237,14 @@
 (re-frame/reg-event-fx
   ::build-exit-hash
   [interceptors]
-  (fn [{:keys [:db]} [{:keys [:withdraw-tx testnet?] :as args}]]
+  (fn [{:keys [:db]} [{:keys [:withdraw-tx :tunnel-contract testnet?] :as args}]]
     (let [[network version] (if testnet? ["testnet" "mumbai"] ["mainnet" "v1"])]
       {::call-exit-manager {:network network
                             :version version
                             :method :get-exit-hash
                             :web3 (web3-queries/web3 db)
                             :withdraw-tx withdraw-tx
-                            :on-success [::check-exited {:withdraw-tx withdraw-tx}]
+                            :on-success [::check-exited {:withdraw-tx withdraw-tx :tunnel-contract tunnel-contract}]
                             :on-error [::logging/error "build exit hash error"
                                        {:args args}
                                        ::build-exit-hash]}})))
@@ -253,15 +253,16 @@
 (re-frame/reg-event-fx
   ::build-exit-hashes
   [interceptors]
-  (fn [{:keys [:db]} [{:keys [:withdraw-txs testnet?]}]]
-    {:dispatch-n (mapv #(vec [::build-exit-hash {:withdraw-tx % :testnet? testnet?}]) withdraw-txs)
+  (fn [{:keys [:db]} [{:keys [:withdraw-txs :tunnel-contract testnet?]}]]
+    {:dispatch-n (mapv #(vec [::build-exit-hash {:withdraw-tx % :tunnel-contract tunnel-contract :testnet? testnet?}]) withdraw-txs)
      :db (assoc-in db [:bridge :filter-withdraws] (sorted-set))}))
 
 
 (re-frame/reg-sub-raw
   ::filter-withdraws
-  (fn [db [_ withdraw-txs testnet?]]
+  (fn [db [_ withdraw-txs tunnel-contract testnet?]]
     (re-frame/dispatch [::build-exit-hashes {:withdraw-txs withdraw-txs
+                                             :tunnel-contract tunnel-contract
                                              :testnet? testnet?}])
     (reaction (get-in @db [:bridge :filter-withdraws]))))
 
