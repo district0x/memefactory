@@ -29,11 +29,17 @@
     [district.format :as format])
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
-(defn format-token [token-id]
-  (str "0x..." (str/join (take-last 5 (web3/to-hex token-id)))))
+(defn format-token [token-id & shrink?]
+  (let [token-num (str "#"(web3/to-decimal (str/join (take-last 48 (web3/to-hex token-id)))))]
+  (if shrink?
+    (str token-num " (" (subs token-id 0 5) "..." (str/join (take-last 10 token-id)) ")")
+    (str token-num " (" token-id ")"))))
 
 (defn format-tokens [tokens]
-  (str/join ", " (map format-token (str/split tokens ","))))
+  (let [tokens-str (str/join ", " (map format-token (str/split tokens ",")))]
+    (if (> (count tokens-str) 150)
+      (str (subs tokens-str 0 (min (count tokens-str) 150)) " [...]")
+      tokens-str)))
 
 (def default-tab :deposit-dank)
 
@@ -336,7 +342,7 @@
                                 [:div.number-minted (str "Owning " token-count " out of " total-supply)])
                              [:div.tokens "Select NFTs"
                             (doall (map (fn [{:keys [:meme-token/token-id] :as meme-token}]
-                                          (let [token-title (format-token token-id)
+                                          (let [token-title (format-token token-id true)
                                                 cb-id token-id]
                                             [:div.single-check {:key token-id}
                                             [checkbox-input {:form-data form-token-data
