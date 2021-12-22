@@ -139,7 +139,7 @@
   ::call-exit-manager
   (fn [{:keys [:web3 :withdraw-tx :network :version version :on-success :on-error :on-complete :method] :as params}]
     (let [options {:network network :version version :parent-provider (aget web3 "currentProvider")}
-          pos (Matic.MaticPOSClient. (cljkk->js options))
+          pos (-> js/Matic (.MaticPOSClient (cljkk->js options)))
           method (name (cs/->camelCase method))]
       (-> (.. pos -posRootChainManager -exitManager)
           (js-invoke method withdraw-tx event-sig)
