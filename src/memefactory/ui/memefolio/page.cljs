@@ -11,7 +11,6 @@
     [district.time :as time]
     [district.ui.component.form.input :as inputs]
     [district.ui.component.page :refer [page]]
-    [district.ui.component.tx-button :as tx-button]
     [district.ui.graphql.events :as gql-events]
     [district.ui.graphql.subs :as gql]
     [district.ui.now.subs :as now-subs]
@@ -20,6 +19,7 @@
     [district.ui.web3-tx-id.subs :as tx-id-subs]
     [goog.string :as gstring]
     [memefactory.ui.components.app-layout :refer [app-layout]]
+    [memefactory.ui.components.buttons :refer [chain-check-tx-button]]
     [memefactory.ui.components.ens-resolver :as ens]
     [memefactory.ui.components.general :refer [nav-anchor]]
     [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
@@ -118,7 +118,7 @@
 
        [:div.buttons
         [:button.cancel {:on-click #(reset! send-sell-atom :sell)} "Cancel"]
-        [tx-button/tx-button {:primary true
+        [chain-check-tx-button {:primary true
                               :disabled (boolean (or (not-empty @critical-errors)
                                                      (not (pos? (count @token-ids)))))
                               :class "create-offering"
@@ -251,7 +251,7 @@
                                 :on-click #(.stopPropagation %)}]]
        [:div.buttons
         [:button.cancel "Cancel"]
-        [tx-button/tx-button {:primary true
+        [chain-check-tx-button {:primary true
                               :disabled (boolean (or (not-empty @critical-errors)
                                                      (not (< 0 (:meme-auction/amount @form-data) (inc (min (count @token-ids) max-supported-in-a-tx))))))
                               :class "create-offering"
@@ -421,7 +421,7 @@
          [inputs/int-input {:form-data form-data
                             :errors errors
                             :id :meme/amount}]
-         [tx-button/tx-button {:primary true
+         [chain-check-tx-button {:primary true
                                :disabled (or (not (pos? max-amount))
                                              (not (< 0 (:meme/amount @form-data) (inc max-amount))))
                                :pending? @tx-pending?

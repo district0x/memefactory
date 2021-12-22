@@ -2,6 +2,7 @@
   (:require
     [district.graphql-utils :as graphql-utils]
     [district.ui.component.form.input :refer [pending-button]]
+    [district.ui.component.tx-button :as tx-button]
     [district.ui.graphql.subs :as gql]
     [district.ui.web3-chain.events :as chain-events]
     [district.ui.web3-chain.subs :as chain-subs]
@@ -12,12 +13,20 @@
     [re-frame.core :refer [subscribe dispatch]]))
 
 
-(defn chain-check-pending-button
-  [{:keys [:for-chain] :as opts
+(defn chain-check-button
+  [button {:keys [:for-chain] :as opts
     :or {for-chain (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-id])}} & children]
   (let [chain (subscribe [::chain-subs/chain])
         disabled (:disabled opts)]
-    [pending-button (merge (dissoc opts :for-chain) {:disabled (or (not= @chain for-chain) disabled)}) children]))
+    [button (merge (dissoc opts :for-chain) {:disabled (or (not= @chain for-chain) disabled)}) children]))
+
+(defn chain-check-pending-button
+  [opts & children]
+  (chain-check-button pending-button opts children))
+
+(defn chain-check-tx-button
+  [opts & children]
+  (chain-check-button tx-button/tx-button opts children))
 
 (defn switch-chain-button
   [{:keys [:net]

@@ -11,7 +11,6 @@
             [district.time :as time]
             [district.ui.component.form.input :as inputs]
             [district.ui.component.page :refer [page]]
-            [district.ui.component.tx-button :as tx-button]
             [district.ui.graphql.subs :as gql]
             [district.ui.ipfs.subs :as ipfs-subs]
             [district.ui.now.subs :as now-subs]
@@ -21,7 +20,7 @@
             [district.ui.web3-tx-id.subs :as tx-id-subs]
             [goog.string :as gstring]
             [memefactory.ui.components.app-layout :refer [app-layout]]
-            [memefactory.ui.components.buttons :refer [chain-check-pending-button]]
+            [memefactory.ui.components.buttons :refer [chain-check-pending-button chain-check-tx-button]]
             [memefactory.ui.components.ens-resolver :as ens]
             [memefactory.ui.components.general :refer [dank-with-logo nav-anchor]]
             [memefactory.ui.components.panels :refer [panel]]
@@ -319,7 +318,7 @@
                                :errors errors}]
        [:div.controls
         [dank-with-logo (web3/from-wei dank-deposit :ether)]
-        [tx-button/tx-button {:primary true
+        [chain-check-tx-button {:primary true
                               :disabled (or @tx-success? (not (empty? (:local @errors))) (not @active-account))
                               :pending? @tx-pending?
                               :pending-text "Challenging..."
@@ -356,7 +355,7 @@
       [:div.reveal
        [:div "This meme has been challenged and voting has concluded. You can reveal any votes you made with the button below, before time runs out on the reveal period."]
        [remaining-time-component (gql-utils/gql-date->date reveal-period-end)]
-       [tx-button/tx-button {:primary true
+       [chain-check-tx-button {:primary true
                              :disabled (or @tx-success? (not vote))
                              :pending? @tx-pending?
                              :pending-text "Revealing..."

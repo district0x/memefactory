@@ -30,7 +30,7 @@
   (:require-macros [memefactory.shared.utils :refer [get-environment]]))
 
 (defn format-token [token-id & shrink?]
-  (let [token-num (str "#"(web3/to-decimal (str/join (take-last 48 (web3/to-hex token-id)))))]
+  (let [token-num (str "#"(web3/to-decimal (str "0x" (str/join (take-last 48 (web3/to-hex token-id))))))]
   (if shrink?
     (str token-num " (" (subs token-id 0 5) "..." (str/join (take-last 10 token-id)) ")")
     (str token-num " (" token-id ")"))))
