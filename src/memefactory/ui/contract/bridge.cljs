@@ -138,10 +138,10 @@
 (re-frame/reg-fx
   ::call-exit-manager
   (fn [{:keys [:web3 :withdraw-tx :network :version version :on-success :on-error :on-complete :method] :as params}]
-    (let [options {:network network :version version :parent-provider (aget web3 "currentProvider")}
-          pos (.call (goog.object/get js/Matic "MaticPOSClient") js/Matic (cljkk->js options))
+    (let [options (cljkk->js {:network network :version version :parent-provider (aget web3 "currentProvider")})
+          pos (js-invoke js/Matic "MaticPOSClient" options)
           method (name (cs/->camelCase method))]
-      (-> (.. pos -posRootChainManager -exitManager)
+      (-> (aget pos "posRootChainManager" "exitManager")
           (js-invoke method withdraw-tx event-sig)
           (.then (fn [result]
                     (re-frame/dispatch (conj (vec on-success) result))))
