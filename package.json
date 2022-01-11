@@ -40,7 +40,7 @@
     "karma": "1.7.1",
     "karma-cli": "1.0.1",
     "karma-cljs-test": "0.1.0",
-    "truffle": "4.1.17",
+    "truffle": "5.4.9",
     "truffle-hdwallet-provider": "1.0.12"
   },
   "engines": {
