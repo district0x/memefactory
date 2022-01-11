@@ -6,6 +6,7 @@ const fs = require('fs');
 const edn = require("jsedn");
 const {env, contracts_build_directory, smart_contracts_path, parameters} = require ('../truffle.js');
 const web3Utils = require('web3-utils');
+const {Status} = require("../migrations/utils.js");
 
 var smartContracts = readSmartContractsFile(smart_contracts_path);
 var dankRoot = getSmartContractAddress(smartContracts, ":DANK-root");
@@ -92,464 +93,528 @@ const memeAuctionFactoryPlaceholder = "daffdaffdaffdaffdaffdaffdaffdaffdaffdaff"
  *
  * Usage:
  * DEV
- * truffle migrate --network ganache --f 1 --to 3 --reset
+ * truffle migrate --network bor --f 13 --to 13 --reset
  *
  * QA
- * env MEMEFACTORY_ENV=qa truffle migrate --network infura-ropsten --f 1 --to 3
+ * env MEMEFACTORY_ENV=qa truffle migrate --network infura-polygon-mumbai --f 13 --to 31
  *
  * PROD
- * env MEMEFACTORY_ENV=prod truffle migrate --network infura-mainnet --f 1 --to 3
+ * env MEMEFACTORY_ENV=prod truffle migrate --network infura-polygon-mainnet --f 13 --to 13
  */
-module.exports = function(deployer, network, accounts) {
+module.exports = async(deployer, network, accounts) => {
 
   const address = accounts [0];
   const gas = 4e6;
   const opts = {gas: gas, from: address};
 
-  deployer.then (() => {
-    console.log ("@@@ using Web3 version:", web3.version.api);
-    console.log ("@@@ using address", address);
-    console.log ("@@@ using smart contracts file", smart_contracts_path);
+  await deployer;
+
+  console.log ("@@@ using Web3 version:", web3.version.api);
+  console.log ("@@@ using address", address);
+  console.log ("@@@ using smart contracts file", smart_contracts_path);
+
+  const migrations = await Migrations.deployed();
+
+  let status = new Status("13");
+
+  // enum for status entries
+  const sk = {
+    district0xEmailsAddr: "district0xEmailsAddr",
+    dsGuardAddr: "dsGuardAddr",
+    miniMeTokenFactoryAddr: "miniMeTokenFactoryAddr",
+    dankTokenChildAddr: "dankTokenChildAddr",
+    districtConfigAddr: "districtConfigAddr",
+    memeRegistryDbAddr: "memeRegistryDbAddr",
+    paramChangeRegistryDbAddr: "paramChangeRegistryDbAddr",
+    memeRegistryAddr: "memeRegistryAddr",
+    memeRegistryForwarderAddr: "memeRegistryForwarderAddr",
+    paramChangeRegistryAddr: "paramChangeRegistryAddr",
+    paramChangeRegistryForwarderAddr: "paramChangeRegistryForwarderAddr",
+    memeAuthAddr: "memeAuthAddr",
+    memeTokenChildAddr: "memeTokenChildAddr",
+    memeAddr: "memeAddr",
+    paramChangeAddr: "paramChangeAddr",
+    memeFactoryAddr: "memeFactoryAddr",
+    paramChangeFactoryAddr: "paramChangeFactoryAddr",
+    memeAuctionFactoryForwarderAddr: "memeAuctionFactoryForwarderAddr",
+    memeAuctionAddr: "memeAuctionAddr",
+    memeAuctionFactoryAddr: "memeAuctionFactoryAddr",
+    dankChildControllerAddr: "dankChildControllerAddr"
+  }
+
+  await status.step(async ()=> {
+    const district0xEmails = await deployer.deploy (District0xEmails, Object.assign(opts, {gas: 500000}));
+    return {[sk.district0xEmailsAddr]: district0xEmails.address};
   });
 
-  deployer.deploy (District0xEmails, Object.assign(opts, {gas: 500000}))
-    .then (() => deployer.deploy (DSGuard, Object.assign(opts, {gas: gas})))
-    .then (instance => {
-      // make deployed :ds-guard its own autority
-      return instance.setAuthority(instance.address, Object.assign(opts, {gas: 100000}));
-    })
-    .then(() => deployer.deploy (MiniMeTokenFactory, Object.assign(opts, {gas: gas})))
-    .then (instance => deployer.deploy (DankTokenChild, instance.address, Object.assign(opts, {gas: gas})))
-    .then (instance => instance.totalSupply())
-    .then (res => console.log ("@@@ DankToken/totalSupply:", res))
-    .then (() => deployer.deploy (DistrictConfig, address, address, 0, Object.assign(opts, {gas: 1000000})))
-    .then (() => Promise.all([DSGuard.deployed(), DistrictConfig.deployed()]))
-    .then ((
-      [dSGuard,
-       districtConfig]) => districtConfig.setAuthority(dSGuard.address, Object.assign(opts, {gas: 100000})))
-    .then (() => deployer.deploy (MemeRegistryDb, Object.assign(opts, {gas: gas})))
-    .then (() => deployer.deploy (ParamChangeRegistryDb, Object.assign(opts, {gas: gas})))
-    .then (() => deployer.deploy (MemeRegistry, Object.assign(opts, {gas: gas})))
-    .then (instance => {
-      linkBytecode(MemeRegistryForwarder, forwarderTargetPlaceholder, instance.address);
-      return deployer.deploy(MemeRegistryForwarder, Object.assign(opts, {gas: gas}))
-    })
-    .then (instance => instance.target())
-    .then (res => console.log ("@@@ MemeRegistryForwarder target:",  res))
-    .then (() => deployer.deploy (ParamChangeRegistry, Object.assign(opts, {gas: gas})))
-    .then (instance => {
-      linkBytecode(ParamChangeRegistryForwarder, forwarderTargetPlaceholder, instance.address);
-      return deployer.deploy(ParamChangeRegistryForwarder, Object.assign(opts, {gas: gas}));
-    })
-    .then (() => Promise.all([MemeRegistryDb.deployed(), MemeRegistryForwarder.deployed()]))
-    .then ((
-      [memeRegistryDb,
-       memeRegistryForwarder]) => {
-         return MemeRegistry.at (memeRegistryForwarder.address)
-         .then((target) => {
-          return target.construct (memeRegistryDb.address, Object.assign(opts, {gas: 100000}));
-         })
-       })
-    .then (() => MemeRegistryForwarder.deployed ())
-    .then (instance => {
-      return MemeRegistry.at (instance.address)
-      .then((target) => {
-        return target.db ();
-      })
-    })
-    .then ( (res) => console.log ("@@@ MemeRegistry/db :", res))
-    .then ( () => Promise.all ([ParamChangeRegistryDb.deployed (),
-                                ParamChangeRegistryForwarder.deployed ()]))
-    .then ((
-      [paramChangeRegistryDb,
-       paramChangeRegistryForwarder]) => {
-         return ParamChangeRegistry.at (paramChangeRegistryForwarder.address)
-         .then((target) => {
-          return target.construct (paramChangeRegistryDb.address, Object.assign(opts, {gas: 100000}));
-         })
-       })
-    .then (() => Promise.all(
-      [DSGuard.deployed (),
-       ParamChangeRegistryForwarder.deployed ()]))
-    .then ((
-      [dSGuard,
-       paramChangeRegistryForwarder]) =>
-           // Allow :param-change-registry-fwd to grand permissions to other contracts (for ParamChanges to apply changes)
-           dSGuard.methods['permit(address,address,bytes32)'].sendTransaction(paramChangeRegistryForwarder.address, dSGuard.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
-    .then (() => Promise.all([MemeRegistryForwarder.deployed (),
-                                    DSGuard.deployed()]))
-    .then ((
-        [registry,
-         dsGuard]) => deployer.deploy (MemeAuth, registry.address, dsGuard.address, Object.assign(opts, {gas: 3200000})))
-    .then (() => deployer.deploy (MemeTokenChild, Object.assign(opts, {gas: 5200000})))
-    .then (() => Promise.all([MemeAuth.deployed(), MemeTokenChild.deployed()]))
-    .then ((
-          [memeAuth,
-           memeTokenChild]) => memeTokenChild.setAuthority(memeAuth.address, Object.assign(opts, {gas: 100000})))
-    .then (() => Promise.all ([DankTokenChild.deployed (),
-                               MemeRegistryForwarder.deployed (),
-                               DistrictConfig.deployed (),
-                               MemeTokenChild.deployed ()]))
-    .then ((
-      [dankTokenChild,
-       memeRegistryForwarder,
-       districtConfig,
-       memeTokenChild]) => {
-         linkBytecode(Meme, dankTokenPlaceholder, dankTokenChild.address);
-         linkBytecode(Meme, registryPlaceholder, memeRegistryForwarder.address);
-         linkBytecode(Meme, districtConfigPlaceholder, districtConfig.address);
-         linkBytecode(Meme, memeTokenPlaceholder, memeTokenChild.address);
-         return deployer.deploy(Meme, Object.assign(opts, {gas: 6721975}));
-       })
-    .then (() => Promise.all ([DankTokenChild.deployed (),
-                               ParamChangeRegistryForwarder.deployed ()]))
-    .then ((
-      [dankTokenChild,
-       paramChangeRegistryForwarder]) => {
-         linkBytecode(ParamChange, dankTokenPlaceholder, dankTokenChild.address);
-         linkBytecode(ParamChange, registryPlaceholder, paramChangeRegistryForwarder.address);
-         return deployer.deploy (ParamChange, Object.assign(opts, {gas: 6000000}));
-       })
-    .then (() => Promise.all ([Meme.deployed (),
-                               MemeRegistryForwarder.deployed (),
-                               DankTokenChild.deployed (),
-                               MemeTokenChild.deployed ()]))
-    .then ((
-      [meme,
-       memeRegistryForwarder,
-       dankTokenChild,
-       memeTokenChild]) => {
-         linkBytecode(MemeFactory, forwarderTargetPlaceholder, meme.address);
-         return deployer.deploy (MemeFactory, memeRegistryForwarder.address, dankTokenChild.address, memeTokenChild.address,
-                                 Object.assign(opts, {gas: gas}));
-       })
-    .then (() => {
-      return Promise.all ([ParamChange.deployed (),
-                           ParamChangeRegistryForwarder.deployed (),
-                           DankTokenChild.deployed ()]);
-    })
-    .then ((
-      [paramChange,
-       paramChangeRegistryForwarder,
-       dankTokenChild]) => {
-         linkBytecode(ParamChangeFactory, forwarderTargetPlaceholder, paramChange.address);
-         return deployer.deploy (ParamChangeFactory, paramChangeRegistryForwarder.address, dankTokenChild.address,
-                                 Object.assign(opts, {gas: gas}));
-       })
-    .then (() => MemeRegistryDb.deployed ())
-    .then ((instance) => instance.setUIntValues (['challengePeriodDuration',
-                                                  'commitPeriodDuration',
-                                                  'revealPeriodDuration',
-                                                  'deposit',
-                                                  'challengeDispensation',
-                                                  'maxTotalSupply',
-                                                  'maxAuctionDuration'].map((k) => {return web3Utils.soliditySha3(k);}),
-                                                 [parameters.memeRegistryDb.challengePeriodDuration,
-                                                  parameters.memeRegistryDb.commitPeriodDuration,
-                                                  parameters.memeRegistryDb.revealPeriodDuration ,
-                                                  parameters.memeRegistryDb.deposit,
-                                                  parameters.memeRegistryDb.challengeDispensation,
-                                                  parameters.memeRegistryDb.maxTotalSupply,
-                                                  parameters.memeRegistryDb.maxAuctionDuration],
-                                                 Object.assign(opts, {gas: 500000})))
-    .then (() => MemeRegistryDb.deployed ())
-    .then (instance => instance.getUIntValue (web3Utils.soliditySha3 ("deposit")))
-    .then (res => console.log ("MemeRegistryDb/deposit:", res))
-    .then (() => ParamChangeRegistryDb.deployed ())
-    .then ((instance) => instance.setUIntValues (['challengePeriodDuration',
-                                                  'commitPeriodDuration',
-                                                  'revealPeriodDuration',
-                                                  'deposit',
-                                                  'challengeDispensation'].map((k) => {return web3Utils.soliditySha3(k);}),
-                                                 [parameters.paramChangeRegistryDb.challengePeriodDuration,
-                                                  parameters.paramChangeRegistryDb.commitPeriodDuration,
-                                                  parameters.paramChangeRegistryDb.revealPeriodDuration ,
-                                                  parameters.paramChangeRegistryDb.deposit  ,
-                                                  parameters.paramChangeRegistryDb.challengeDispensation],
-                                                 Object.assign(opts, {gas: 500000})))
-    .then (() => Promise.all ([DSGuard.deployed (),
-                               MemeRegistryDb.deployed ()]))
-    .then ((
-      [dSGuard,
-       memeRegistryDb]) => //  make :ds-guard authority of both :meme-registry-db and :param-change-registry-db
-           memeRegistryDb.setAuthority(dSGuard.address, Object.assign(opts, {gas: 100000})))
-    .then (() => Promise.all ([DSGuard.deployed (),
-                               ParamChangeRegistryDb.deployed ()]))
-    .then ((
-      [dSGuard,
-       paramChangeRegistryDb]) => //  make :ds-guard authority of both :meme-registry-db and :param-change-registry-db
-           paramChangeRegistryDb.setAuthority(dSGuard.address, Object.assign(opts, {gas: 100000})))
-    .then (() => Promise.all ([MemeRegistryDb.deployed (),
-                               ParamChangeRegistryDb.deployed ()]))
-    .then ((
-      [memeRegistryDb,
-       paramChangeRegistryDb]) => // after authority is set, we can clean owner. Not really essential, but extra safety measure
-           Promise.all ([memeRegistryDb.setOwner("0x0000000000000000000000000000000000000000", Object.assign(opts, {gas: 100000})),
-                         paramChangeRegistryDb.setOwner ("0x0000000000000000000000000000000000000000", Object.assign(opts, {gas: 100000}))]))
-    .then (() => Promise.all([DSGuard.deployed (),
-                              MemeRegistryForwarder.deployed (),
-                              MemeRegistryDb.deployed ()]))
-    .then ((
-      [dSGuard,
-       memeRegistryForwarder,
-       memeRegistryDb]) => // allow :meme-registry-fwd to make changes into :meme-registry-db
-           dSGuard.methods['permit(address,address,bytes32)'].sendTransaction(memeRegistryForwarder.address, memeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
-    .then (() => Promise.all ([DSGuard.deployed (),
-                               ParamChangeRegistryForwarder.deployed (),
-                               MemeRegistryDb.deployed ()]))
-
-    .then ((
-      [dSGuard,
-       paramChangeRegistryForwarder,
-       memeRegistryDb]) => // allow :param-change-registry-fwd to make changes into :meme-registry-db (to apply ParamChanges)
-           dSGuard.methods['permit(address,address,bytes32)'].sendTransaction(paramChangeRegistryForwarder.address, memeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
-    .then (() => Promise.all ([DSGuard.deployed (),
-                               ParamChangeRegistryForwarder.deployed (),
-                               ParamChangeRegistryDb.deployed ()]))
-    .then ((
-      [dSGuard,
-       paramChangeRegistryForwarder,
-       paramChangeRegistryDb]) => // allow :param-change-registry-fwd to make changes into :param-change-registry-db
-           dSGuard.methods['permit(address,address,bytes32)'].sendTransaction(paramChangeRegistryForwarder.address, paramChangeRegistryDb.address, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000})))
-
-    .then (() => Promise.all ([MemeRegistryForwarder.deployed (),
-                               MemeFactory.deployed ()]))
-    .then ((
-      [memeRegistryForwarder,
-       memeFactory]) => {
-         return MemeRegistry.at (memeRegistryForwarder.address)
-         .then((target) => {
-          return target.setFactory (memeFactory.address, true, Object.assign(opts, {gas: 100000}));
-         })
-       })
-    .then (() => Promise.all ([MemeRegistryForwarder.deployed (),
-                               MemeFactory.deployed ()]))
-    .then ((
-      [memeRegistryForwarder,
-       memeFactory]) => {
-         return MemeRegistry.at (memeRegistryForwarder.address)
-         .then((target) => {
-          return target.isFactory (memeFactory.address);
-         })
-       })
-    .then (res => console.log ("@@@ MemeRegistry/isFactory", res))
-    .then (() => Promise.all ([ParamChangeRegistryForwarder.deployed (),
-                               ParamChangeFactory.deployed ()]))
-    .then (([paramChangeRegistryForwarder,
-             paramChangeFactory]) => {
-               return ParamChangeRegistry.at (paramChangeRegistryForwarder.address)
-               .then((target) => {
-                return target.setFactory (paramChangeFactory.address, true, Object.assign(opts, {gas: 100000}));
-               })
-             })
-    .then (() => {
-      return deployer.deploy (MemeAuctionFactoryForwarder, Object.assign(opts, {gas: gas}));
-    }).then (() => Promise.all ([DSGuard.deployed (),
-                                 MemeAuctionFactoryForwarder.deployed ()]))
-    .then ((
-      [dSGuard,
-       memeAuctionFactoryForwarder]) => memeAuctionFactoryForwarder.setAuthority(dSGuard.address, Object.assign(opts, {gas: 100000})))
-    .then (() => Promise.all ([MemeAuctionFactoryForwarder.deployed (),
-                               MemeRegistryForwarder.deployed (),
-                               DistrictConfig.deployed (),
-                               MemeTokenChild.deployed ()]))
-    .then ((
-      [memeAuctionFactoryForwarder,
-       memeRegistryForwarder,
-       districtConfig,
-       memeTokenChild]
-    ) => {
-      linkBytecode(MemeAuction, memeAuctionFactoryPlaceholder, memeAuctionFactoryForwarder.address);
-      linkBytecode(MemeAuction, registryPlaceholder, memeRegistryForwarder.address);
-      linkBytecode(MemeAuction, districtConfigPlaceholder, districtConfig.address);
-      linkBytecode(MemeAuction, memeTokenPlaceholder, memeTokenChild.address);
-      return deployer.deploy(MemeAuction, Object.assign(opts, {gas: 4000000}));
-    })
-    .then ((instance) => {
-      linkBytecode(MemeAuctionFactory, forwarderTargetPlaceholder, instance.address);
-      return Promise.all ([deployer.deploy(MemeAuctionFactory, Object.assign(opts, {gas: 2000000})),
-                           MemeAuctionFactoryForwarder.deployed ()]);
-    }).then ((
-      [memeAuctionFactory,
-       memeAuctionFactoryForwarder]) => memeAuctionFactoryForwarder.setTarget(memeAuctionFactory.address, Object.assign(opts, {gas: 100000})))
-    .then (() => Promise.all([MemeTokenChild.deployed (),
-                              MemeAuctionFactoryForwarder.deployed ()]))
-    .then ((
-      [memeTokenChild,
-       memeAuctionFactoryForwarder]) => {
-         return MemeAuctionFactory.at (memeAuctionFactoryForwarder.address)
-         .then((target) => {
-          return target.construct (memeTokenChild.address, Object.assign(opts, {gas: 200000}));
-         })
-       })
-    .then (() => DankTokenChild.deployed())
-    .then ((dankTokenChild) => {
-      return deployer.deploy(DankChildController, dankTokenChild.address, Object.assign(opts, {gas: 4000000}));
-    })
-    .then (() => Promise.all ([DankChildController.deployed(), DankTokenChild.deployed()]))
-    .then (([dankChildController, dankTokenChild]) => {
-      return dankTokenChild.changeController(dankChildController.address, Object.assign(opts, {gas: 100000}));
-    })
-    .then (() => Promise.all ([DankChildController.deployed(), DSGuard.deployed()]))
-    .then (([dankChildController, dSGuard]) => Promise.all ([dankChildController.setAuthority(dSGuard.address, Object.assign(opts, {gas: 200000, value: 0})),
-                                                            dankChildController]))
-    .then (([tx,
-             dankChildController
-            ]) => dankChildController.authority ())
-    .then ((authority) => console.log ("@@@ DankChildController authority: ", authority))
-    .then ( () => [
-      Migrations.deployed(),
-      DSGuard.deployed (),
-      MemeAuth.deployed (),
-      MiniMeTokenFactory.deployed (),
-      DankTokenChild.deployed (),
-      DistrictConfig.deployed (),
-      MemeRegistryDb.deployed (),
-      ParamChangeRegistryDb.deployed (),
-      MemeRegistry.deployed (),
-      ParamChangeRegistry.deployed (),
-      MemeRegistryForwarder.deployed (),
-      ParamChangeRegistryForwarder.deployed (),
-      MemeTokenChild.deployed (),
-      Meme.deployed (),
-      ParamChange.deployed (),
-      MemeFactory.deployed (),
-      ParamChangeFactory.deployed (),
-      MemeAuctionFactoryForwarder.deployed (),
-      MemeAuctionFactory.deployed (),
-      MemeAuction.deployed (),
-      District0xEmails.deployed (),
-      DankChildController.deployed ()])
-    .then ((promises) => Promise.all(promises))
-    .then ((
-      [migrations,
-       dSGuard,
-       memeAuth,
-       miniMeTokenFactory,
-       dankTokenChild,
-       districtConfig,
-       memeRegistryDb,
-       paramChangeRegistryDb,
-       memeRegistry,
-       paramChangeRegistry,
-       memeRegistryForwarder,
-       paramChangeRegistryForwarder,
-       memeTokenChild,
-       meme,
-       paramChange,
-       memeFactory,
-       paramChangeFactory,
-       memeAuctionFactoryForwarder,
-       memeAuctionFactory,
-       memeAuction,
-       district0xEmails,
-       dankChildController]) => {
-
-         var smartContracts = edn.encode(
-           new edn.Map([
-
-             edn.kw(":migrations"), new edn.Map([edn.kw(":name"), "Migrations",
-                                                 edn.kw(":address"), migrations.address]),
-
-             edn.kw(":district-config"), new edn.Map([edn.kw(":name"), "DistrictConfig",
-                                                      edn.kw(":address"), districtConfig.address]),
-
-             edn.kw(":ds-guard"), new edn.Map([edn.kw(":name"), "DSGuard",
-                                               edn.kw(":address"), dSGuard.address]),
-
-             edn.kw(":ds-guard-root"), new edn.Map([edn.kw(":name"), "DSGuard",
-                                               edn.kw(":address"), dsGuardRoot]),
-
-             edn.kw(":meme-auth"), new edn.Map([edn.kw(":name"), "MemeAuth",
-                                               edn.kw(":address"), memeAuth.address]),
-
-             edn.kw(":param-change-registry"), new edn.Map([edn.kw(":name"), "ParamChangeRegistry",
-                                                            edn.kw(":address"), paramChangeRegistry.address]),
-
-             edn.kw(":param-change-registry-db"), new edn.Map([edn.kw(":name"), "EternalDb",
-                                                               edn.kw(":address"), paramChangeRegistryDb.address]),
-
-             edn.kw(":meme-registry-db"), new edn.Map([edn.kw(":name"), "EternalDb",
-                                                       edn.kw(":address"), memeRegistryDb.address]),
-
-             edn.kw(":param-change"), new edn.Map([edn.kw(":name"), "ParamChange",
-                                                   edn.kw(":address"), paramChange.address]),
-
-             edn.kw(":minime-token-factory"), new edn.Map([edn.kw(":name"), "MiniMeTokenFactory",
-                                                           edn.kw(":address"), miniMeTokenFactory.address]),
-
-             edn.kw(":meme-auction-factory"), new edn.Map([edn.kw(":name"), "MemeAuctionFactory",
-                                                           edn.kw(":address"), memeAuctionFactory.address]),
-
-             edn.kw(":meme-auction"), new edn.Map([edn.kw(":name"), "MemeAuction",
-                                                   edn.kw(":address"), memeAuction.address]),
-
-             edn.kw(":param-change-factory"), new edn.Map([edn.kw(":name"), "ParamChangeFactory",
-                                                           edn.kw(":address"), paramChangeFactory.address]),
-
-             edn.kw(":param-change-registry-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
-                                                                edn.kw(":address"), paramChangeRegistryForwarder.address,
-                                                                edn.kw(":forwards-to"), edn.kw(":param-change-registry")]),
-
-             edn.kw(":meme-factory"), new edn.Map([edn.kw(":name"), "MemeFactory",
-                                                   edn.kw(":address"), memeFactory.address]),
-
-             edn.kw(":meme-token-root"), new edn.Map([edn.kw(":name"), "MemeToken",
-                                                 edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
-
-             edn.kw(":meme-token"), new edn.Map([edn.kw(":name"), "MemeTokenChild",
-                                                 edn.kw(":address"), memeTokenChild.address]),
-
-             edn.kw(":DANK"), new edn.Map([edn.kw(":name"), "DankTokenChild",
-                                           edn.kw(":address"), dankTokenChild.address]),
-
-             edn.kw(":DANK-root"), new edn.Map([edn.kw(":name"), "DankToken",
-                                           edn.kw(":address"), dankRoot]),
-
-             edn.kw(":meme-registry"), new edn.Map([edn.kw(":name"), "Registry",
-                                                    edn.kw(":address"), memeRegistry.address]),
-
-             edn.kw(":meme"), new edn.Map([edn.kw(":name"), "Meme",
-                                           edn.kw(":address"), meme.address]),
-
-             edn.kw(":meme-registry-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
-                                                        edn.kw(":address"), memeRegistryForwarder.address,
-                                                        edn.kw(":forwards-to"), edn.kw(":meme-registry")]),
-
-             edn.kw(":meme-auction-factory-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
-                                                               edn.kw(":address"), memeAuctionFactoryForwarder.address,
-                                                               edn.kw(":forwards-to"), edn.kw(":meme-auction-factory")]),
-
-             edn.kw(":district0x-emails"), new edn.Map([edn.kw(":name"), "District0xEmails",
-                                                        edn.kw(":address"), district0xEmails.address]),
-
-             edn.kw(":ens"), new edn.Map([edn.kw(":name"), "ENS",
-                                                        edn.kw(":address"), parameters.ENS]),
-
-             edn.kw(":DANK-child-controller"), new edn.Map([edn.kw(":name"), "DankChildController",
-                                                  edn.kw(":address"), dankChildController.address]),
-
-             edn.kw(":DANK-root-tunnel"), new edn.Map([edn.kw(":name"), "DankRootTunnel",
-                 edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
-
-             edn.kw(":DANK-child-tunnel"), new edn.Map([edn.kw(":name"), "DankChildTunnel",
-                 edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
-
-             edn.kw(":meme-token-root-tunnel"), new edn.Map([edn.kw(":name"), "MemeTokenRootTunnel",
-                 edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
-
-             edn.kw(":meme-token-child-tunnel"), new edn.Map([edn.kw(":name"), "MemeTokenChildTunnel",
-                 edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
-
-           ]));
-
-         console.log (smartContracts);
-         fs.writeFileSync(smart_contracts_path, smartContractsTemplate (smartContracts, env));
-       })
-    .catch(console.error);
-
-  deployer.then (function () {
-    console.log ("Done");
+  await status.step(async ()=> {
+    const dsGuard = await deployer.deploy (DSGuard, Object.assign(opts, {gas: gas}));
+    return {[sk.dsGuardAddr]: dsGuard.address};
   });
+
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const dsGuard = await DSGuard.at(dsGuardAddr);
+    // make deployed :ds-guard its own autority
+    dsGuard.setAuthority(dsGuardAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const miniMeTokenFactory = await deployer.deploy (MiniMeTokenFactory, Object.assign(opts, {gas: gas}));
+    return {[sk.miniMeTokenFactoryAddr] : miniMeTokenFactory.address}
+  });
+
+  await status.step(async ()=> {
+    const miniMeTokenFactoryAddr = status.getValue(sk.miniMeTokenFactoryAddr);
+
+    const dankTokenChild = await deployer.deploy (DankTokenChild, miniMeTokenFactoryAddr, Object.assign(opts, {gas: gas}));
+    const totalSupply = await dankTokenChild.totalSupply();
+    console.log ("@@@ DankToken/totalSupply:", totalSupply);
+    return {[sk.dankTokenChildAddr]: dankTokenChild.address};
+  });
+
+  await status.step(async ()=> {
+    const districtConfig = await deployer.deploy (DistrictConfig, address, address, 0, Object.assign(opts, {gas: 1000000}));
+    return {[sk.districtConfigAddr]: districtConfig.address};
+  });
+
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const districtConfigAddr = status.getValue(sk.districtConfigAddr);
+    const districtConfig = await DistrictConfig.at(districtConfigAddr);
+
+    await districtConfig.setAuthority(dsGuardAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const memeRegistryDb = await deployer.deploy (MemeRegistryDb, Object.assign(opts, {gas: gas}));
+    return {[sk.memeRegistryDbAddr]: memeRegistryDb.address}
+  });
+
+  await status.step(async ()=> {
+    const paramChangeRegistryDb = await deployer.deploy (ParamChangeRegistryDb, Object.assign(opts, {gas: gas}));
+    return {[sk.paramChangeRegistryDbAddr]: paramChangeRegistryDb.address};
+  });
+
+  await status.step(async ()=> {
+    const memeRegistry = await deployer.deploy (MemeRegistry, Object.assign(opts, {gas: gas}));
+    return {[sk.memeRegistryAddr]: memeRegistry.address};
+  });
+
+  await status.step(async ()=> {
+    const memeRegistryAddr = status.getValue(sk.memeRegistryAddr);
+
+    linkBytecode(MemeRegistryForwarder, forwarderTargetPlaceholder, memeRegistryAddr);
+    const memeRegistryForwarder = await deployer.deploy(MemeRegistryForwarder, Object.assign(opts, {gas: gas}));
+    const target = await memeRegistryForwarder.target();
+    console.log ("@@@ MemeRegistryForwarder target:",  target);
+    return {[sk.memeRegistryForwarderAddr]: memeRegistryForwarder.address};
+  });
+
+  await status.step(async ()=> {
+    const paramChangeRegistry = await deployer.deploy (ParamChangeRegistry, Object.assign(opts, {gas: gas}));
+    return {[sk.paramChangeRegistryAddr]: paramChangeRegistry.address};
+  });
+
+  await status.step(async ()=> {
+    const paramChangeRegistryAddr = status.getValue(sk.paramChangeRegistryAddr);
+
+    linkBytecode(ParamChangeRegistryForwarder, forwarderTargetPlaceholder, paramChangeRegistryAddr);
+    const paramChangeRegistryForwarder = await deployer.deploy(ParamChangeRegistryForwarder, Object.assign(opts, {gas: gas}));
+    return {[sk.paramChangeRegistryForwarderAddr]: paramChangeRegistryForwarder.address};
+  });
+
+  await status.step(async ()=> {
+    const memeRegistryDbAddr = status.getValue(sk.memeRegistryDbAddr);
+    const memeRegistryForwarderAddr = status.getValue(sk.memeRegistryForwarderAddr);
+    const memeRegistry = await MemeRegistry.at (memeRegistryForwarderAddr);
+    await memeRegistry.construct (memeRegistryDbAddr, Object.assign(opts, {gas: 100000}));
+    const db = await memeRegistry.db();
+    console.log ("@@@ MemeRegistry/db :", db);
+  });
+
+  await status.step(async ()=> {
+    const paramChangeRegistryDbAddr = status.getValue(sk.paramChangeRegistryDbAddr);
+    const paramChangeRegistryForwarderAddr = status.getValue(sk.paramChangeRegistryForwarderAddr);
+
+    const paramChangeRegistry = await ParamChangeRegistry.at (paramChangeRegistryForwarderAddr);
+    await paramChangeRegistry.construct (paramChangeRegistryDbAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const paramChangeRegistryForwarderAddr = status.getValue(sk.paramChangeRegistryForwarderAddr);
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+
+    const dsGuard = await DSGuard.at(dsGuardAddr);
+    await dsGuard.methods['permit(address,address,bytes32)'].sendTransaction(paramChangeRegistryForwarderAddr, dsGuardAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const memeRegistryForwarderAddr = status.getValue(sk.memeRegistryForwarderAddr);
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+
+    const memeAuth = await deployer.deploy (MemeAuth, memeRegistryForwarderAddr, dsGuardAddr, Object.assign(opts, {gas: 3200000}));
+    return {[sk.memeAuthAddr]: memeAuth.address};
+  });
+
+  await status.step(async ()=> {
+    const memeTokenChild = await deployer.deploy (MemeTokenChild, Object.assign(opts, {gas: 5200000}));
+    return {[sk.memeTokenChildAddr]: memeTokenChild.address};
+  });
+
+  await status.step(async ()=> {
+    const memeAuthAddr = status.getValue(sk.memeAuthAddr);
+    const memeTokenChildAddr = status.getValue(sk.memeTokenChildAddr);
+
+    const memeTokenChild = await MemeTokenChild.at(memeTokenChildAddr);
+    await memeTokenChild.setAuthority(memeAuthAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const dankTokenChildAddr = status.getValue(sk.dankTokenChildAddr);
+    const memeRegistryForwarderAddr = status.getValue(sk.memeRegistryForwarderAddr);
+    const districtConfigAddr = status.getValue(sk.districtConfigAddr);
+    const memeTokenChildAddr = status.getValue(sk.memeTokenChildAddr);
+
+    linkBytecode(Meme, dankTokenPlaceholder, dankTokenChildAddr);
+    linkBytecode(Meme, registryPlaceholder, memeRegistryForwarderAddr);
+    linkBytecode(Meme, districtConfigPlaceholder, districtConfigAddr);
+    linkBytecode(Meme, memeTokenPlaceholder, memeTokenChildAddr);
+    const meme = await deployer.deploy(Meme, Object.assign(opts, {gas: 6721975}));
+    return {[sk.memeAddr]: meme.address};
+  });
+
+  await status.step(async ()=> {
+    const dankTokenChildAddr = status.getValue(sk.dankTokenChildAddr);
+    const paramChangeRegistryForwarderAddr = status.getValue(sk.paramChangeRegistryForwarderAddr);
+
+    linkBytecode(ParamChange, dankTokenPlaceholder, dankTokenChildAddr);
+    linkBytecode(ParamChange, registryPlaceholder, paramChangeRegistryForwarderAddr);
+    const paramChange = await deployer.deploy (ParamChange, Object.assign(opts, {gas: 6000000}));
+    return {[sk.paramChangeAddr]: paramChange.address};
+  });
+
+  await status.step(async ()=> {
+    const memeAddr = status.getValue(sk.memeAddr);
+    const memeRegistryForwarderAddr = status.getValue(sk.memeRegistryForwarderAddr);
+    const dankTokenChildAddr = status.getValue(sk.dankTokenChildAddr);
+    const memeTokenChildAddr = status.getValue(sk.memeTokenChildAddr);
+
+    linkBytecode(MemeFactory, forwarderTargetPlaceholder, memeAddr);
+    const memeFactory = await deployer.deploy (MemeFactory, memeRegistryForwarderAddr, dankTokenChildAddr, memeTokenChildAddr, Object.assign(opts, {gas: gas}));
+    return {[sk.memeFactoryAddr]: memeFactory.address};
+  });
+
+  await status.step(async ()=> {
+    const paramChangeAddr = status.getValue(sk.paramChangeAddr);
+    const paramChangeRegistryForwarderAddr = status.getValue(sk.paramChangeRegistryForwarderAddr);
+    const dankTokenChildAddr = status.getValue(sk.dankTokenChildAddr);
+
+    linkBytecode(ParamChangeFactory, forwarderTargetPlaceholder, paramChangeAddr);
+    const paramChangeFactory = await deployer.deploy (ParamChangeFactory, paramChangeRegistryForwarderAddr, dankTokenChildAddr, Object.assign(opts, {gas: gas}));
+    return {[sk.paramChangeFactoryAddr]: paramChangeFactory.address};
+  });
+
+  await status.step(async ()=> {
+    const memeRegistryDbAddr = status.getValue(sk.memeRegistryDbAddr);
+
+    const memeRegistryDb = await MemeRegistryDb.at(memeRegistryDbAddr);
+    await memeRegistryDb.setUIntValues (['challengePeriodDuration',
+          'commitPeriodDuration',
+          'revealPeriodDuration',
+          'deposit',
+          'challengeDispensation',
+          'maxTotalSupply',
+          'maxAuctionDuration'].map((k) => {return web3Utils.soliditySha3(k);}),
+        [parameters.memeRegistryDb.challengePeriodDuration,
+          parameters.memeRegistryDb.commitPeriodDuration,
+          parameters.memeRegistryDb.revealPeriodDuration ,
+          parameters.memeRegistryDb.deposit,
+          parameters.memeRegistryDb.challengeDispensation,
+          parameters.memeRegistryDb.maxTotalSupply,
+          parameters.memeRegistryDb.maxAuctionDuration],
+        Object.assign(opts, {gas: 500000}));
+
+    const deposit = await memeRegistryDb.getUIntValue (web3Utils.soliditySha3 ("deposit"));
+    console.log ("MemeRegistryDb/deposit:", deposit);
+  });
+
+  await status.step(async ()=> {
+    const paramChangeRegistryDbAddr = status.getValue(sk.paramChangeRegistryDbAddr);
+
+    const paramChangeRegistryDb = await ParamChangeRegistryDb.at(paramChangeRegistryDbAddr);
+    await paramChangeRegistryDb.setUIntValues (['challengePeriodDuration',
+          'commitPeriodDuration',
+          'revealPeriodDuration',
+          'deposit',
+          'challengeDispensation'].map((k) => {return web3Utils.soliditySha3(k);}),
+        [parameters.paramChangeRegistryDb.challengePeriodDuration,
+          parameters.paramChangeRegistryDb.commitPeriodDuration,
+          parameters.paramChangeRegistryDb.revealPeriodDuration ,
+          parameters.paramChangeRegistryDb.deposit  ,
+          parameters.paramChangeRegistryDb.challengeDispensation],
+        Object.assign(opts, {gas: 500000}));
+  });
+
+  //  make :ds-guard authority of both :meme-registry-db and :param-change-registry-db
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const memeRegistryDbAddr = status.getValue(sk.memeRegistryDbAddr);
+
+    const memeRegistryDb = await MemeRegistryDb.at(memeRegistryDbAddr);
+    await memeRegistryDb.setAuthority(dsGuardAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const paramChangeRegistryDbAddr = status.getValue(sk.paramChangeRegistryDbAddr);
+
+    const paramChangeRegistryDb = await ParamChangeRegistryDb.at(paramChangeRegistryDbAddr);
+    await paramChangeRegistryDb.setAuthority(dsGuardAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  // after authority is set, we can clean owner. Not really essential, but extra safety measure
+  await status.step(async ()=> {
+    const memeRegistryDbAddr = status.getValue(sk.memeRegistryDbAddr);
+
+    const memeRegistryDb = await MemeRegistryDb.at(memeRegistryDbAddr);
+    await memeRegistryDb.setOwner("0x0000000000000000000000000000000000000000", Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const paramChangeRegistryDbAddr = status.getValue(sk.paramChangeRegistryDbAddr);
+
+    const paramChangeRegistryDb = await ParamChangeRegistryDb.at(paramChangeRegistryDbAddr);
+    await paramChangeRegistryDb.setOwner("0x0000000000000000000000000000000000000000", Object.assign(opts, {gas: 100000}));
+  });
+
+  // allow :param-change-registry-fwd to make changes into :meme-registry-db (to apply ParamChanges)
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const memeRegistryForwarderAddr = status.getValue(sk.memeRegistryForwarderAddr);
+    const memeRegistryDbAddr = status.getValue(sk.memeRegistryDbAddr);
+
+    const dsGuard = await DSGuard.at(dsGuardAddr);
+    await dsGuard.methods['permit(address,address,bytes32)'].sendTransaction(memeRegistryForwarderAddr, memeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const paramChangeRegistryForwarderAddr = status.getValue(sk.paramChangeRegistryForwarderAddr);
+    const memeRegistryDbAddr = status.getValue(sk.memeRegistryDbAddr);
+
+    const dsGuard = await DSGuard.at(dsGuardAddr);
+    await dsGuard.methods['permit(address,address,bytes32)'].sendTransaction(paramChangeRegistryForwarderAddr, memeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
+  });
+
+  // allow :param-change-registry-fwd to make changes into :param-change-registry-db
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const paramChangeRegistryForwarderAddr = status.getValue(sk.paramChangeRegistryForwarderAddr);
+    const paramChangeRegistryDbAddr = status.getValue(sk.paramChangeRegistryDbAddr);
+
+    const dsGuard = await DSGuard.at(dsGuardAddr);
+    await dsGuard.methods['permit(address,address,bytes32)'].sendTransaction(paramChangeRegistryForwarderAddr, paramChangeRegistryDbAddr, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Object.assign(opts, {gas: 100000}));
+  });
+
+
+  await status.step(async ()=> {
+    const memeRegistryForwarderAddr = status.getValue(sk.memeRegistryForwarderAddr);
+    const memeFactoryAddr = status.getValue(sk.memeFactoryAddr);
+
+    const memeRegistry = await MemeRegistry.at(memeRegistryForwarderAddr);
+    await memeRegistry.setFactory (memeFactoryAddr, true, Object.assign(opts, {gas: 100000}));
+    const isFactory = await memeRegistry.isFactory (memeFactoryAddr);
+    console.log ("@@@ MemeRegistry/isFactory", isFactory);
+  });
+
+  await status.step(async ()=> {
+    const paramChangeRegistryForwarderAddr = status.getValue(sk.paramChangeRegistryForwarderAddr);
+    const paramChangeFactoryAddr = status.getValue(sk.paramChangeFactoryAddr);
+
+    const paramChangeRegistry = await ParamChangeRegistry.at (paramChangeRegistryForwarderAddr);
+    await paramChangeRegistry.setFactory (paramChangeFactoryAddr, true, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const memeAuctionFactoryForwarder = await deployer.deploy (MemeAuctionFactoryForwarder, Object.assign(opts, {gas: gas}));
+
+    return {[sk.memeAuctionFactoryForwarderAddr]: memeAuctionFactoryForwarder.address}
+  });
+
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const memeAuctionFactoryForwarderAddr = status.getValue(sk.memeAuctionFactoryForwarderAddr);
+
+    const memeAuctionFactoryForwarder = await MemeAuctionFactoryForwarder.at(memeAuctionFactoryForwarderAddr);
+    await memeAuctionFactoryForwarder.setAuthority(dsGuardAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const memeAuctionFactoryForwarderAddr = status.getValue(sk.memeAuctionFactoryForwarderAddr);
+    const memeRegistryForwarderAddr = status.getValue(sk.memeRegistryForwarderAddr);
+    const districtConfigAddr = status.getValue(sk.districtConfigAddr);
+    const memeTokenChildAddr = status.getValue(sk.memeTokenChildAddr);
+
+    linkBytecode(MemeAuction, memeAuctionFactoryPlaceholder, memeAuctionFactoryForwarderAddr);
+    linkBytecode(MemeAuction, registryPlaceholder, memeRegistryForwarderAddr);
+    linkBytecode(MemeAuction, districtConfigPlaceholder, districtConfigAddr);
+    linkBytecode(MemeAuction, memeTokenPlaceholder, memeTokenChildAddr);
+    const memeAuction = await deployer.deploy(MemeAuction, Object.assign(opts, {gas: 4000000}));
+    return {[sk.memeAuctionAddr]: memeAuction.address};
+  });
+
+  await status.step(async ()=> {
+    const memeAuctionAddr = status.getValue(sk.memeAuctionAddr);
+
+    linkBytecode(MemeAuctionFactory, forwarderTargetPlaceholder, memeAuctionAddr);
+    const memeAuctionFactory = await deployer.deploy(MemeAuctionFactory, Object.assign(opts, {gas: 2000000}));
+    return {[sk.memeAuctionFactoryAddr]: memeAuctionFactory.address};
+  });
+
+  await status.step(async ()=> {
+    const memeAuctionFactoryAddr = status.getValue(sk.memeAuctionFactoryAddr);
+    const memeAuctionFactoryForwarderAddr = status.getValue(sk.memeAuctionFactoryForwarderAddr);
+
+    const memeAuctionFactoryForwarder = await MemeAuctionFactoryForwarder.at(memeAuctionFactoryForwarderAddr);
+    await memeAuctionFactoryForwarder.setTarget(memeAuctionFactoryAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const memeTokenChildAddr = status.getValue(sk.memeTokenChildAddr);
+    const memeAuctionFactoryForwarderAddr = status.getValue(sk.memeAuctionFactoryForwarderAddr);
+
+    const memeAuctionFactory = await MemeAuctionFactory.at (memeAuctionFactoryForwarderAddr)
+    await memeAuctionFactory.construct (memeTokenChildAddr, Object.assign(opts, {gas: 200000}));
+  });
+
+  await status.step(async ()=> {
+    const dankTokenChildAddr = status.getValue(sk.dankTokenChildAddr);
+
+    const dankChildController = await deployer.deploy(DankChildController, dankTokenChildAddr, Object.assign(opts, {gas: 4000000}));
+    return {[sk.dankChildControllerAddr]: dankChildController.address};
+  });
+
+  await status.step(async ()=> {
+    const dankChildControllerAddr = status.getValue(sk.dankChildControllerAddr);
+    const dankTokenChildAddr = status.getValue(sk.dankTokenChildAddr);
+
+    const dankTokenChild = await DankTokenChild.at(dankTokenChildAddr);
+    await dankTokenChild.changeController(dankChildControllerAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const dankChildControllerAddr = status.getValue(sk.dankChildControllerAddr);
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+
+    const dankChildController = await DankChildController.at(dankChildControllerAddr);
+    await dankChildController.setAuthority(dsGuardAddr, Object.assign(opts, {gas: 200000, value: 0}));
+    const authority = await dankChildController.authority ();
+    console.log ("@@@ DankChildController authority: ", authority);
+  });
+
+  var smartContracts = edn.encode(
+   new edn.Map([
+
+     edn.kw(":migrations"), new edn.Map([edn.kw(":name"), "Migrations",
+                                         edn.kw(":address"), migrations.address]),
+
+     edn.kw(":district-config"), new edn.Map([edn.kw(":name"), "DistrictConfig",
+                                              edn.kw(":address"), status.getValue(sk.districtConfigAddr)]),
+
+     edn.kw(":ds-guard"), new edn.Map([edn.kw(":name"), "DSGuard",
+                                       edn.kw(":address"), status.getValue(sk.dsGuardAddr)]),
+
+     edn.kw(":ds-guard-root"), new edn.Map([edn.kw(":name"), "DSGuard",
+                                       edn.kw(":address"), dsGuardRoot]),
+
+     edn.kw(":meme-auth"), new edn.Map([edn.kw(":name"), "MemeAuth",
+                                       edn.kw(":address"), status.getValue(sk.memeAuthAddr)]),
+
+     edn.kw(":param-change-registry"), new edn.Map([edn.kw(":name"), "ParamChangeRegistry",
+                                                    edn.kw(":address"), status.getValue(sk.paramChangeRegistryAddr)]),
+
+     edn.kw(":param-change-registry-db"), new edn.Map([edn.kw(":name"), "EternalDb",
+                                                       edn.kw(":address"), status.getValue(sk.paramChangeRegistryDbAddr)]),
+
+     edn.kw(":meme-registry-db"), new edn.Map([edn.kw(":name"), "EternalDb",
+                                               edn.kw(":address"), status.getValue(sk.memeRegistryDbAddr)]),
+
+     edn.kw(":param-change"), new edn.Map([edn.kw(":name"), "ParamChange",
+                                           edn.kw(":address"), status.getValue(sk.paramChangeAddr)]),
+
+     edn.kw(":minime-token-factory"), new edn.Map([edn.kw(":name"), "MiniMeTokenFactory",
+                                                   edn.kw(":address"), status.getValue(sk.miniMeTokenFactoryAddr)]),
+
+     edn.kw(":meme-auction-factory"), new edn.Map([edn.kw(":name"), "MemeAuctionFactory",
+                                                   edn.kw(":address"), status.getValue(sk.memeAuctionFactoryAddr)]),
+
+     edn.kw(":meme-auction"), new edn.Map([edn.kw(":name"), "MemeAuction",
+                                           edn.kw(":address"), status.getValue(sk.memeAuctionAddr)]),
+
+     edn.kw(":param-change-factory"), new edn.Map([edn.kw(":name"), "ParamChangeFactory",
+                                                   edn.kw(":address"), status.getValue(sk.paramChangeFactoryAddr)]),
+
+     edn.kw(":param-change-registry-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
+                                                        edn.kw(":address"), status.getValue(sk.paramChangeRegistryForwarderAddr),
+                                                        edn.kw(":forwards-to"), edn.kw(":param-change-registry")]),
+
+     edn.kw(":meme-factory"), new edn.Map([edn.kw(":name"), "MemeFactory",
+                                           edn.kw(":address"), status.getValue(sk.memeFactoryAddr)]),
+
+     edn.kw(":meme-token-root"), new edn.Map([edn.kw(":name"), "MemeToken",
+                                         edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
+
+     edn.kw(":meme-token"), new edn.Map([edn.kw(":name"), "MemeTokenChild",
+                                         edn.kw(":address"), status.getValue(sk.memeTokenChildAddr)]),
+
+     edn.kw(":DANK"), new edn.Map([edn.kw(":name"), "DankTokenChild",
+                                   edn.kw(":address"), status.getValue(sk.dankTokenChildAddr)]),
+
+     edn.kw(":DANK-root"), new edn.Map([edn.kw(":name"), "DankToken",
+                                   edn.kw(":address"), dankRoot]),
+
+     edn.kw(":meme-registry"), new edn.Map([edn.kw(":name"), "Registry",
+                                            edn.kw(":address"), status.getValue(sk.memeRegistryAddr)]),
+
+     edn.kw(":meme"), new edn.Map([edn.kw(":name"), "Meme",
+                                   edn.kw(":address"), status.getValue(sk.memeAddr)]),
+
+     edn.kw(":meme-registry-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
+                                                edn.kw(":address"), status.getValue(sk.memeRegistryForwarderAddr),
+                                                edn.kw(":forwards-to"), edn.kw(":meme-registry")]),
+
+     edn.kw(":meme-auction-factory-fwd"), new edn.Map([edn.kw(":name"), "MutableForwarder",
+                                                       edn.kw(":address"), status.getValue(sk.memeAuctionFactoryForwarderAddr),
+                                                       edn.kw(":forwards-to"), edn.kw(":meme-auction-factory")]),
+
+     edn.kw(":district0x-emails"), new edn.Map([edn.kw(":name"), "District0xEmails",
+                                                edn.kw(":address"), status.getValue(sk.district0xEmailsAddr)]),
+
+     edn.kw(":ens"), new edn.Map([edn.kw(":name"), "ENS",
+                                                edn.kw(":address"), parameters.ENS]),
+
+     edn.kw(":DANK-child-controller"), new edn.Map([edn.kw(":name"), "DankChildController",
+                                          edn.kw(":address"), status.getValue(sk.dankChildControllerAddr)]),
+
+     edn.kw(":DANK-root-tunnel"), new edn.Map([edn.kw(":name"), "DankRootTunnel",
+         edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
+
+     edn.kw(":DANK-child-tunnel"), new edn.Map([edn.kw(":name"), "DankChildTunnel",
+         edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
+
+     edn.kw(":meme-token-root-tunnel"), new edn.Map([edn.kw(":name"), "MemeTokenRootTunnel",
+         edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
+
+     edn.kw(":meme-token-child-tunnel"), new edn.Map([edn.kw(":name"), "MemeTokenChildTunnel",
+         edn.kw(":address"), "0x0000000000000000000000000000000000000000"]),
+
+  ]));
+
+  console.log (smartContracts);
+  fs.writeFileSync(smart_contracts_path, smartContractsTemplate (smartContracts, env));
+
+  status.clean();
+  console.log ("Done");
 
 }
