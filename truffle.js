@@ -3,6 +3,7 @@
 const MEMEFACTORY_ENV = process.env.MEMEFACTORY_ENV || "dev";
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 require('dotenv').config()  // Store environment-specific variable from '.env' to process.env
+const BigNumber = require('bignumber.js');
 
 const smartContractsPaths = {
   "dev" : '/src/memefactory/shared/smart_contracts_dev.cljs',
@@ -67,7 +68,7 @@ let parameters = {
     memeRegistryDb : {challengePeriodDuration : 86400, // seconds (24h)
                       commitPeriodDuration : 86400, // seconds
                       revealPeriodDuration : 86400, // seconds
-                      deposit : 100e18, // 1e18 = 1 DANK
+                      deposit : new BigNumber("100e18"), // 1e18 = 1 DANK
                       challengeDispensation : 50, // percent
                       maxTotalSupply : 100, // int
                       maxAuctionDuration : (30 * 86400) // seconds
@@ -75,12 +76,12 @@ let parameters = {
     paramChangeRegistryDb : {challengePeriodDuration : 86400, // seconds
                              commitPeriodDuration : 86400, // seconds
                              revealPeriodDuration : 86400, // seconds
-                             deposit : 1000000000e18, // 1e18 = 1 DANK
+                             deposit : new BigNumber("1000000000e18"), // 1e18 = 1 DANK
                              challengeDispensation : 50 // percent
                             },
-    dankFaucet : {dank : 5000000e18, // how much DANK contract holds, 1e18 = 1 DANK
-                  eth : 0.2e18, // ETH, 1e18 = 1ETH
-                  allotment : 2000e18  // how much DANK faucet sends, 1e18 = 1 DANK
+    dankFaucet : {dank : new BigNumber("5000000e18"), // how much DANK contract holds, 1e18 = 1 DANK
+                  eth : new BigNumber("0.2e18"), // ETH, 1e18 = 1ETH
+                  allotment : new BigNumber("2000e18")  // how much DANK faucet sends, 1e18 = 1 DANK
                  }
   }
 };
