@@ -1,5 +1,6 @@
 (ns memefactory.ui.config
   (:require [ajax.core :as ajax]
+            [clojure.string :as string]
             [district.graphql-utils :as graphql-utils]
             [district.ui.logging.events :as logging]
             [district.ui.smart-contracts.queries :as contract-queries]
@@ -86,6 +87,12 @@
 
 (def qa-dev-config (assoc-in qa-config [:router :html5?] false))
 
+(defn build-graphql-url []
+  (let [hostname (aget js/window "location" "hostname")]
+    (if (and (not (string/blank? hostname)) (string/starts-with? hostname "v2:" ))
+      "https://apiv2.memefactory.io/graphql"
+      "https://api.memefactory.io/graphql")))
+
 (def production-config
   {:logging {:level :warn
              :console? false
@@ -115,7 +122,7 @@
                  :tx-costs-currencies [:USD]
                  :etherscan-url "https://polygonscan.com"}
    :graphql {:schema graphql-schema
-             :url "https://api.memefactory.io/graphql"}
+             :url (build-graphql-url)}
    :ipfs {:host "https://ipfs.district0x.io"
           :endpoint "/api/v0"
           :gateway "https://ipfs.district0x.io/gateway/ipfs"}
