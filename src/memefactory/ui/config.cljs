@@ -89,7 +89,7 @@
 
 (defn build-graphql-url []
   (let [hostname (aget js/window "location" "hostname")]
-    (if (and (not (string/blank? hostname)) (string/starts-with? hostname "v2:" ))
+    (if (and (not (string/blank? hostname)) (string/starts-with? hostname "v2." ))
       "https://apiv2.memefactory.io/graphql"
       "https://api.memefactory.io/graphql")))
 
