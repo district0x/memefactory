@@ -4,7 +4,7 @@
             [cljs-web3-next.eth :as web3-eth]
             [cljs-web3-next.utils :as web3-utils]
             [cljs.core.async.impl.protocols :refer [ReadPort]]
-            [cljs.core.async :as async :refer [<!]]
+            [cljs.core.async :as async :refer [<! go]]
             [clojure.string :as string]
             [district.server.config :refer [config]]
             [district.server.smart-contracts :as smart-contracts]
@@ -24,6 +24,9 @@
 
 (declare start)
 (declare stop)
+
+(defonce block-tracker-timeout (atom nil))
+(defonce last-block-number (atom -1))
 
 (defstate ^{:on-reload :noop} syncer
   :start (start (merge (:syncer @config)
@@ -467,6 +470,25 @@
                                                        reveal-period-end)
                                                      now))))))
 
+(defn- block-tracker [interval]
+  (js/setInterval
+    (fn []
+      (go
+        (let [connected? (true? (<! (web3-eth/is-listening? @web3)))]
+          (when connected?
+            (web3-eth/get-block-number @web3 (fn [_ block-number]
+                                               (log/debug "block-tracker" {:block-number block-number})
+                                               (when block-number
+                                                    (reset! last-block-number block-number))))))))
+    interval))
+
+(defn block-tracker-start [{:keys [:ping-interval]
+                   :or {ping-interval 60000}}]
+  (reset! block-tracker-timeout (block-tracker ping-interval)))
+
+(defn block-tracker-stop []
+  (js/clearInterval @block-tracker-timeout))
+
 (defn start [opts]
   (safe-go
    (when-not (:disabled? opts)
@@ -505,9 +527,11 @@
                                                                       (log/warn "Syncing past events finished" (time/time-units (- (server-utils/now) start-time)) ::start)
                                                                       (apply-blacklist-patches!)
                                                                       (assign-meme-registry-numbers!)
-                                                                      (ping-start {:ping-interval 10000})))
+                                                                      (ping-start {:ping-interval 10000})
+                                                                      (block-tracker-start {:ping-interval 120000})))
        (assoc opts :callback-ids callback-ids)))))
 
 (defn stop [syncer]
+  (block-tracker-stop)
   (ping-stop)
   (web3-events/unregister-callbacks! (:callback-ids @syncer)))
