@@ -91,6 +91,12 @@
                                                              #'memefactory.server.twitter-bot/twitter-bot))
                                    :on-online (fn []
                                                 (log/warn "Ethereum node went online again, starting syncing modules" {:resyncs (swap! resync-count inc)} ::web3-watcher)
+                                                (when (> @memefactory.server.syncer/last-block-number 0)
+                                                  (let [from-block (- @memefactory.server.syncer/last-block-number 100)]
+                                                    (do
+                                                      (log/info (str "Syncing from block " from-block))
+                                                      (mount/with-args {:web3-events {:from-block from-block}}))))
+
                                                 (mount/start #'district.server.web3-events/web3-events
                                                              ; #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
                                                              #'memefactory.server.db/memefactory-db
