@@ -92,7 +92,8 @@
                                    :on-online (fn []
                                                 (log/warn "Ethereum node went online again, starting syncing modules" {:resyncs (swap! resync-count inc)} ::web3-watcher)
                                                 (when (> @memefactory.server.syncer/last-block-number 0)
-                                                  (let [from-block (- @memefactory.server.syncer/last-block-number 100)]
+                                                  (let [threshold (if (= 0 (mod @resync-count 10)) 40000 1000)
+                                                        from-block (- @memefactory.server.syncer/last-block-number threshold)]
                                                     (do
                                                       (log/info (str "Syncing from block " from-block))
                                                       (mount/with-args {:web3-events {:from-block from-block}}))))
@@ -103,6 +104,7 @@
                                                              #'memefactory.server.emailer/emailer
                                                              #'memefactory.server.syncer/syncer
                                                              #'memefactory.server.twitter-bot/twitter-bot))}
+                            :syncer {:reload-interval 7200000}
                             :ipfs {:host "http://127.0.0.1:5001" :endpoint "/api/v0" :gateway "http://127.0.0.1:8080/ipfs"}
                             :smart-contracts {:contracts-var contracts-var}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
