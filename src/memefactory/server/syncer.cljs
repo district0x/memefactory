@@ -1,6 +1,7 @@
 (ns memefactory.server.syncer
   (:require [bignumber.core :as bn]
             [camel-snake-kebab.core :as camel-snake-kebab]
+            [cljs-web3-next.core :as web3-core]
             [cljs-web3-next.eth :as web3-eth]
             [cljs-web3-next.utils :as web3-utils]
             [cljs.core.async.impl.protocols :refer [ReadPort]]
@@ -25,7 +26,7 @@
 (declare start)
 (declare stop)
 
-(defonce block-tracker-timeout (atom nil))
+(defonce reload-timeout (atom nil))
 (defonce last-block-number (atom -1))
 
 (defstate ^{:on-reload :noop} syncer
@@ -396,6 +397,7 @@
       (log/debug (str "Skipping event. error:" err))
       (safe-go
        (try
+         (swap! last-block-number #(max %1 block-number))
          (let [block-timestamp (<? (block-timestamp block-number))
                event (-> event
                          (update :event camel-snake-kebab/->kebab-case)
@@ -470,24 +472,22 @@
                                                        reveal-period-end)
                                                      now))))))
 
-(defn- block-tracker [interval]
+(defn- reload-handler [interval]
   (js/setInterval
     (fn []
       (go
         (let [connected? (true? (<! (web3-eth/is-listening? @web3)))]
           (when connected?
-            (web3-eth/get-block-number @web3 (fn [_ block-number]
-                                               (log/debug "block-tracker" {:block-number block-number})
-                                               (when block-number
-                                                    (reset! last-block-number block-number))))))))
+            (do
+              (log/debug (str "disconnecting from provider to force reload. Last block: " @last-block-number))
+              (web3-core/disconnect @web3))))))
     interval))
 
-(defn block-tracker-start [{:keys [:ping-interval]
-                   :or {ping-interval 60000}}]
-  (reset! block-tracker-timeout (block-tracker ping-interval)))
+(defn reload-timeout-start [{:keys [:reload-interval]}]
+  (reset! reload-timeout (reload-handler reload-interval)))
 
-(defn block-tracker-stop []
-  (js/clearInterval @block-tracker-timeout))
+(defn reload-timeout-stop []
+  (js/clearInterval @reload-timeout))
 
 (defn start [opts]
   (safe-go
@@ -528,10 +528,11 @@
                                                                       (apply-blacklist-patches!)
                                                                       (assign-meme-registry-numbers!)
                                                                       (ping-start {:ping-interval 10000})
-                                                                      (block-tracker-start {:ping-interval 120000})))
+                                                                      (when (> (:reload-interval opts) 0)
+                                                                        (reload-timeout-start (select-keys opts [:reload-interval])))))
        (assoc opts :callback-ids callback-ids)))))
 
 (defn stop [syncer]
-  (block-tracker-stop)
+  (reload-timeout-stop)
   (ping-stop)
   (web3-events/unregister-callbacks! (:callback-ids @syncer)))
