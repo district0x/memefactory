@@ -921,20 +921,22 @@
   "Amount of different votes user voted for winning option"
   [{:keys [:user/address] :as user}]
   (log/debug "user->total-participated-votes-success-resolver args" user)
-  (let [sql-query (when address
-                    (db/all {:select [:*]
-                             :from [:votes]
-                             :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
-                             :where [:= address :votes.vote/voter]}))]
-    (log/debug "user->total-participated-votes-success-resolver query" sql-query)
-    (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
-              (let [ status (shared-utils/reg-entry-status (utils/now-in-seconds) reg-entry)]
-                (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
-                        (and (= :reg-entry.status/blacklisted status) (= 2 option)))
-                  (inc total)
-                  total)))
-            0
-            sql-query)))
+  (promise-> (utils/now-in-seconds)
+             (fn [now]
+    (let [sql-query (when address
+                      (db/all {:select [:*]
+                               :from [:votes]
+                               :join [:reg-entries [:= :reg-entries.reg-entry/address :votes.reg-entry/address]]
+                               :where [:= address :votes.vote/voter]}))]
+      (log/debug "user->total-participated-votes-success-resolver query" sql-query)
+      (reduce (fn [total {:keys [:vote/option] :as reg-entry}]
+                (let [ status (shared-utils/reg-entry-status now reg-entry)]
+                  (if (or (and (= :reg-entry.status/whitelisted status) (= 1 option))
+                          (and (= :reg-entry.status/blacklisted status) (= 2 option)))
+                    (inc total)
+                    total)))
+              0
+              sql-query)))))
 
 (defn user->curator-total-earned-resolver
   [{:keys [:user/voter-total-earned

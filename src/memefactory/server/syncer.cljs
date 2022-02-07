@@ -441,36 +441,37 @@
 (defn- assign-meme-registry-numbers!
   "if there are any memes with unassigned numbers but still assignable start the number assigners"
   []
-  (let [now (server-utils/now-in-seconds)
-        assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period
-                                                     :reg-entry.status/commit-period
-                                                     :reg-entry.status/reveal-period}
-                                                   (shared-utils/reg-entry-status now %))
-                                       (db/all-meme-reg-entries))
-        assignable-whitelisted-reg-entries (filter #(and (not (:meme/number %))
-                                                         (= :reg-entry.status/whitelisted (shared-utils/reg-entry-status now %)))
-                                                   (db/all-meme-reg-entries))]
+  (safe-go
+    (let [now (<? (server-utils/now-in-seconds))
+          assignable-reg-entries (filter #(contains? #{:reg-entry.status/challenge-period
+                                                       :reg-entry.status/commit-period
+                                                       :reg-entry.status/reveal-period}
+                                                     (shared-utils/reg-entry-status now %))
+                                         (db/all-meme-reg-entries))
+          assignable-whitelisted-reg-entries (filter #(and (not (:meme/number %))
+                                                           (= :reg-entry.status/whitelisted (shared-utils/reg-entry-status now %)))
+                                                     (db/all-meme-reg-entries))]
 
-    (log/info "Assigning numbers to whitelisted memes already on db "
-              {:count (count assignable-whitelisted-reg-entries)
-               :current-meme-number (db/current-meme-number)}
-              ::assign-meme-registry-numbers!)
+      (log/info "Assigning numbers to whitelisted memes already on db "
+                {:count (count assignable-whitelisted-reg-entries)
+                 :current-meme-number (db/current-meme-number)}
+                ::assign-meme-registry-numbers!)
 
-    ;; add numbers to all assignable whitelisteds
-    (doseq [{:keys [:reg-entry/address]} assignable-whitelisted-reg-entries]
-      (assign-next-number! address))
+      ;; add numbers to all assignable whitelisteds
+      (doseq [{:keys [:reg-entry/address]} assignable-whitelisted-reg-entries]
+        (assign-next-number! address))
 
-    (log/info "Schedulling number assigner to memes already on db "
-              {:count (count assignable-reg-entries)
-               :current-meme-number (db/current-meme-number)}
-              ::assign-meme-registry-numbers!)
+      (log/info "Schedulling number assigner to memes already on db "
+                {:count (count assignable-reg-entries)
+                 :current-meme-number (db/current-meme-number)}
+                ::assign-meme-registry-numbers!)
 
-    ;; schedule meme number assigners for all memes that need it
-    (doseq [{:keys [:reg-entry/address :reg-entry/challenge-period-end :challenge/reveal-period-end]} assignable-reg-entries]
-      (schedule-meme-number-assigner address (inc (- (if (> challenge-period-end now)
-                                                       challenge-period-end
-                                                       reveal-period-end)
-                                                     now))))))
+      ;; schedule meme number assigners for all memes that need it
+      (doseq [{:keys [:reg-entry/address :reg-entry/challenge-period-end :challenge/reveal-period-end]} assignable-reg-entries]
+        (schedule-meme-number-assigner address (inc (- (if (> challenge-period-end now)
+                                                         challenge-period-end
+                                                         reveal-period-end)
+                                                       now)))))))
 
 (defn- reload-handler [interval]
   (js/setInterval
