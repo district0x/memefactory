@@ -28,19 +28,23 @@
       :background-position-x (em 0.2)}]
 
     [:.body
-     {:min-height (em 13)}
+     {:min-height (em 9)}
      [:.form
       {:display :flex
        :flex-direction :row
        :font-size (px 14)
-       :padding-top (em 4)
+       :padding-top (em 2)
        :padding-left (em 1)
        :padding-right (em 1)
        :height (em 4)
        :justify-content :center}
       [:.labeled-input-group
        {:padding-left (em 1)
-        :padding-right (em 1)}]
+        :padding-right (em 1)
+        :width "100%"}
+       [:label {:position "relative"
+                :display "unset"}]
+       ]
       [:.country-code {:width (em 6.1)}]
       (for-media-max :tablet
                      [:&

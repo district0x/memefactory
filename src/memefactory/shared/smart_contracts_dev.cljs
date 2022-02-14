@@ -93,4 +93,7 @@
    :meme-auction-factory-fwd
    {:name "MutableForwarder"
     :address "0x0000000000000000000000000000000000000000"
-    :forwards-to :meme-auction-factory}})
+    :forwards-to :meme-auction-factory}
+   :dank-faucet
+   {:name "DankFaucet"
+    :address "0x0000000000000000000000000000000000000000"}})

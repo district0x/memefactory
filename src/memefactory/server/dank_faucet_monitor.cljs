@@ -11,15 +11,15 @@
 
 (defn log-dank-event [{:keys [:event :args]}]
   (case event
-    :DankResetEvent (log/info "DANK Faucet allotment for a phone number has been reset" args)
-    :OraclizeRequestEvent (log/info "Oraclize query" args)
-    :DankTransferEvent (log/info "DANK succesfully transferred from the Faucet" args)
+    :DankResetEvent (log/info "DANK Faucet allotment for an account has been reset" args)
+    :ResetAllotmentEvent (log/info "DANK Faucet allotment has been reset" args)
+    :DankTransferEvent (log/info "DANK successfully transferred from the Faucet" args)
     nil))
 
 (defn start [opts]
   (let [callback-ids
         [(web3-events/register-callback! :dank-faucet/dank-reset-event (dispatcher log-dank-event))
-         (web3-events/register-callback! :dank-faucet/oraclize-request-event (dispatcher log-dank-event))
+         (web3-events/register-callback! :dank-faucet/reset-allotment-event (dispatcher log-dank-event))
          (web3-events/register-callback! :dank-faucet/dank-transfer-event (dispatcher log-dank-event))]]
     (assoc opts :callback-ids callback-ids)))
 

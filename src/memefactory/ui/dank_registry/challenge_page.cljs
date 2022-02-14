@@ -31,13 +31,12 @@
          [:div.icon]
          [:h2.title "Dank registry - Challenge"]
          [:h3.title "View and Challenge new entries to the registry"]
-         [:div.placeholder]
-         ;[nav-anchor {:route (when account-active? :route.get-dank/index)}
-         ; [:div.get-dank-button
-         ;  {:class (when-not account-active? "disabled")}
-         ;  [:span "Get Dank"]
-         ;  [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
-         ;  [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]
+         [nav-anchor {:route (when account-active? :route.get-dank/index)}
+          [:div.get-dank-button
+           {:class (when-not account-active? "disabled")}
+           [:span "Get Dank"]
+           [:img.dank-logo {:src "/assets/icons/dank-logo.svg"}]
+           [:img.arrow-icon {:src "/assets/icons/arrow-white-right.svg"}]]]
          ]))))
 
 

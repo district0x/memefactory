@@ -78,3 +78,5 @@
 (defn reg-entry-dates-to-seconds [entry]
   (second-date-keys entry #{:reg-entry/created-on :reg-entry/challenge-period-end
                             :challenge/commit-period-end :challenge/reveal-period-end}))
+
+(def tweet-url-regex #"(?:https?://)?(?:www\.)?twitter\.com/@?(?:[a-zA-Z0-9_]{1,15})/?status/([0-9]+)/?(?:\?.+)?")

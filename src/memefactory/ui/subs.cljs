@@ -30,9 +30,9 @@
    (:memefactory.ui.get-dank.events/spinner db)))
 
 (re-frame/reg-sub
- ::dank-faucet-stage
+ ::dank-faucet-succeeded
  (fn [db _]
-   (:memefactory.ui.get-dank.page/stage db)))
+   (:memefactory.ui.get-dank.events/succeeded db)))
 
 (re-frame/reg-sub
  ::mobile-coinbase-appstore-link

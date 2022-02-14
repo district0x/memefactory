@@ -38,6 +38,9 @@ const DistrictConfig = artifacts.require("DistrictConfigCp");
 copy ("District0xEmails", "District0xEmailsCp", contracts_build_directory);
 const District0xEmails = artifacts.require ("District0xEmailsCp");
 
+copy ("DankFaucet", "DankFaucetCp", contracts_build_directory);
+const DankFaucet = artifacts.require ("DankFaucetCp");
+
 copy ("ParamChangeRegistry", "ParamChangeRegistryCp", contracts_build_directory);
 const ParamChangeRegistry = artifacts.require("ParamChangeRegistryCp");
 
@@ -139,7 +142,8 @@ module.exports = async(deployer, network, accounts) => {
     memeAuctionFactoryForwarderAddr: "memeAuctionFactoryForwarderAddr",
     memeAuctionAddr: "memeAuctionAddr",
     memeAuctionFactoryAddr: "memeAuctionFactoryAddr",
-    dankChildControllerAddr: "dankChildControllerAddr"
+    dankChildControllerAddr: "dankChildControllerAddr",
+    dankFaucetAddr: "dankFaucetAddr"
   }
 
   await status.step(async ()=> {
@@ -513,6 +517,39 @@ module.exports = async(deployer, network, accounts) => {
     console.log ("@@@ DankChildController authority: ", authority);
   });
 
+  await status.step(async ()=> {
+    const dankTokenChildAddr = status.getValue(sk.dankTokenChildAddr);
+
+    linkBytecode(DankFaucet, dankTokenPlaceholder, dankTokenChildAddr);
+    const dankFaucet = await deployer.deploy (DankFaucet, parameters.dankFaucet.allotment, Object.assign(opts, {gas: 1000000}));
+    return {[sk.dankFaucetAddr]: dankFaucet.address};
+  });
+
+  await status.step(async ()=> {
+    const dankFaucetAddr = status.getValue(sk.dankFaucetAddr);
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+
+    const dankFaucet = await DankFaucet.at(dankFaucetAddr);
+    await dankFaucet.setAuthority(dsGuardAddr, Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const dankFaucetAddr = status.getValue(sk.dankFaucetAddr);
+
+    const dsGuard = await DSGuard.at(dsGuardAddr);
+    await dsGuard.methods['permit(address,address,bytes32)'].sendTransaction(address, dankFaucetAddr, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", Object.assign(opts, {gas: 100000}));
+  });
+
+  await status.step(async ()=> {
+    const dsGuardAddr = status.getValue(sk.dsGuardAddr);
+    const dankFaucetAddr = status.getValue(sk.dankFaucetAddr);
+
+    const sigSendDank = web3.utils.sha3('sendDank(bytes32,address)').substring(0, 10);
+    const dsGuard = await DSGuard.at(dsGuardAddr);
+    await dsGuard.methods['permit(address,address,bytes32)'].sendTransaction(parameters.dankFaucet.sender, dankFaucetAddr, sigSendDank, Object.assign(opts, {gas: 100000}));
+  });
+
   var smartContracts = edn.encode(
    new edn.Map([
 
@@ -590,6 +627,9 @@ module.exports = async(deployer, network, accounts) => {
 
      edn.kw(":district0x-emails"), new edn.Map([edn.kw(":name"), "District0xEmails",
                                                 edn.kw(":address"), status.getValue(sk.district0xEmailsAddr)]),
+
+     edn.kw(":dank-faucet"), new edn.Map([edn.kw(":name"), "DankFaucet",
+                                            edn.kw(":address"), status.getValue(sk.dankFaucetAddr)]),
 
      edn.kw(":ens"), new edn.Map([edn.kw(":name"), "ENS",
                                                 edn.kw(":address"), parameters.ENS]),

@@ -17,6 +17,7 @@
     "better-sqlite3": "^5.4.3",
     "chalk": "2.4.2",
     "cors": "2.8.5",
+    "defender-relay-client": "^1.12.1",
     "eccjs": "0.3.1",
     "express": "4.17.1",
     "express-graphql": "./resources/libs/express-graphql-0.6.13.tgz",

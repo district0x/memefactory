@@ -46,6 +46,7 @@
    :ipfs {:endpoint "/api/v0"
           :host "http://127.0.0.1:5001"
           :gateway "http://127.0.0.1:8080/ipfs"}
+   :dank-faucet-twitter {:url "http://127.0.0.1:6400/dank-faucet-twitter"}
    :router {:html5? false}
    :router-google-analytics {:enabled? false}})
 
@@ -82,6 +83,7 @@
    :ipfs {:host "https://ipfs.qa.district0x.io"
           :endpoint "/api/v0"
           :gateway "https://ipfs.qa.district0x.io/gateway/ipfs"}
+   :dank-faucet-twitter {:url "https://faucet.memefactory.qa.district0x.io/dank-faucet-twitter"}
    :router {:html5? true}
    :router-google-analytics {:enabled? false}})
 
@@ -126,6 +128,7 @@
    :ipfs {:host "https://ipfs.district0x.io"
           :endpoint "/api/v0"
           :gateway "https://ipfs.district0x.io/gateway/ipfs"}
+   :dank-faucet-twitter {:url "https://faucet.memefactory.io/dank-faucet-twitter"}
    :router {:html5? true}
    :router-google-analytics {:enabled? true}})
 
