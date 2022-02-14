@@ -33,7 +33,8 @@ let parameters = {
       },
       dankFaucet : {dank : "5000000000000000000000000", // how much DANK contract holds, 1e18 = 1 DANK
         eth : "100000000000000000", // ETH, 1e18 = 1ETH
-        allotment : "2000000000000000000000"  // how much DANK faucet sends, 1e18 = 1 DANK
+        allotment : "20000000000000000000",  // how much DANK faucet sends, 1e18 = 1 DANK
+        sender: "0x0000000000000000000000000000000000000000"
       }
     },
   "qa" : {
@@ -57,8 +58,9 @@ let parameters = {
                             },
     dankFaucet : {dank : "5000000000000000000000000", // how much DANK contract holds, 1e18 = 1 DANK
                   eth : "100000000000000000", // ETH, 1e18 = 1ETH
-                  allotment : "2000000000000000000000"  // how much DANK faucet sends, 1e18 = 1 DANK
-                 }
+                  allotment : "20000000000000000000", // how much DANK faucet sends, 1e18 = 1 DANK
+                  sender: "0x7532413a93eb86554c67fdd86eded3642cf68289"
+    }
   },
   "prod" : {
     polygonCheckpointManager: "0x86E4Dc95c7FBdBf52e33D563BbDB00823894C287",
@@ -81,8 +83,9 @@ let parameters = {
                             },
     dankFaucet : {dank : new BigNumber("5000000e18"), // how much DANK contract holds, 1e18 = 1 DANK
                   eth : new BigNumber("0.2e18"), // ETH, 1e18 = 1ETH
-                  allotment : new BigNumber("2000e18")  // how much DANK faucet sends, 1e18 = 1 DANK
-                 }
+                  allotment : new BigNumber("2000e18"),  // how much DANK faucet sends, 1e18 = 1 DANK
+                  sender: "0x0000000000000000000000000000000000000000"
+    }
   }
 };
 

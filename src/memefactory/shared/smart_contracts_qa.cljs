@@ -91,4 +91,8 @@
    :meme-auction-factory-fwd
    {:name "MutableForwarder"
     :address "0x5454FBAc6EDEfC8e597cC0f9E272c9076DBd674D"
-    :forwards-to :meme-auction-factory}})
+    :forwards-to :meme-auction-factory}
+   :dank-faucet
+   {:name "DankFaucet"
+    :address "0xf479C1c109f01E7b9CdA37c5d051A04FD0787f4A"
+    }})

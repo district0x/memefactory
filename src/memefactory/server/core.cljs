@@ -19,6 +19,9 @@
             [memefactory.server.dank-faucet-monitor
              :as
              memefactory.server.dank-faucet-monitor]
+            [memefactory.server.dank-faucet-twitter
+             :as
+             memefactory.server.dank-faucet-twitter]
             [memefactory.server.db :as memefactory.server.db]
             [memefactory.server.emailer :as memefactory.server.emailer]
             [memefactory.server.graphql-resolvers :refer [resolvers-map]]
@@ -60,7 +63,8 @@
                     #'district.server.web3-events/web3-events
                     #'district.server.web3/web3
                     #'memefactory.server.conversion-rates/conversion-rates
-                    ; #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
+                    #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
+                    #'memefactory.server.dank-faucet-twitter/dank-faucet-twitter
                     #'memefactory.server.db/memefactory-db
                     #'memefactory.server.emailer/emailer
                     #'memefactory.server.ipfs/ipfs
@@ -84,7 +88,7 @@
                                    :on-offline (fn []
                                                  (log/warn "Ethereum node went offline, stopping syncing modules" {:resyncs @resync-count} ::web3-watcher)
                                                  (mount/stop #'district.server.web3-events/web3-events
-                                                             ; #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
+                                                             #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
                                                              #'memefactory.server.db/memefactory-db
                                                              #'memefactory.server.emailer/emailer
                                                              #'memefactory.server.syncer/syncer
@@ -99,7 +103,7 @@
                                                       (mount/with-args {:web3-events {:from-block from-block}}))))
 
                                                 (mount/start #'district.server.web3-events/web3-events
-                                                             ; #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
+                                                             #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
                                                              #'memefactory.server.db/memefactory-db
                                                              #'memefactory.server.emailer/emailer
                                                              #'memefactory.server.syncer/syncer
@@ -116,6 +120,15 @@
                                           :consumer-secret "PLACEHOLDER"
                                           :access-token-key "PLACEHOLDER"
                                           :access-token-secret "PLACEHOLDER"}
+                            :dank-faucet-twitter {:port 6400
+                                                  :path "/dank-faucet-twitter"
+                                                  :send-interval (t/in-millis (t/seconds 30))
+                                                  :account-hash-nonce ""
+                                                  :consumer-key "PLACEHOLDER"
+                                                  :consumer-secret "PLACEHOLDER"
+                                                  :bearer-token "PLACEHOLDER"
+                                                  :relay-api-key "PLACEHOLDER"
+                                                  :relay-secret-key "PLACEHOLDER"}
                             :web3-events {:events constants/web3-events}}}})
       (mount/start)
       (as-> $ (log/warn "Started v1.0.0" {:components $
