@@ -96,11 +96,12 @@
                                    :on-online (fn []
                                                 (log/warn "Ethereum node went online again, starting syncing modules" {:resyncs (swap! resync-count inc)} ::web3-watcher)
                                                 (when (> @memefactory.server.syncer/last-block-number 0)
-                                                  (let [threshold (if (= 0 (mod @resync-count 10)) 40000 1000)
-                                                        from-block (- @memefactory.server.syncer/last-block-number threshold)]
+                                                  (let [backtrack (if (= 0 (mod @resync-count 10)) 40000 1000)
+                                                        from-block (- @memefactory.server.syncer/last-block-number backtrack)]
                                                     (do
                                                       (log/info (str "Syncing from block " from-block))
-                                                      (mount/with-args {:web3-events {:from-block from-block}}))))
+                                                      (mount/with-args {:web3-events {:from-block from-block
+                                                                                      :backtrack backtrack}}))))
 
                                                 (mount/start #'district.server.web3-events/web3-events
                                                              #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
@@ -129,7 +130,8 @@
                                                   :bearer-token "PLACEHOLDER"
                                                   :relay-api-key "PLACEHOLDER"
                                                   :relay-secret-key "PLACEHOLDER"}
-                            :web3-events {:events constants/web3-events}}}})
+                            :web3-events {:events constants/web3-events
+                                          :backtrack 40000}}}})
       (mount/start)
       (as-> $ (log/warn "Started v1.0.0" {:components $
                                           :smart-contracts-qa smart-contracts-qa/smart-contracts

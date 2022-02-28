@@ -9,7 +9,7 @@
 (defstyles core
   [:.app-container
    {:display :grid
-    :min-height (em 90)
+    :min-height (em 93)
     :-webkit-font-smoothing :antialiased
     :-moz-osx-font-smoothing :grayscale}
    (grid-columns "200px" "1fr")
