@@ -49,9 +49,11 @@
 
 (defn fetch-tweet [twitter-obj tweet-id]
   (safe-go
-    (let [tweet (js->clj (<? (.get twitter-obj
-                          (str "/statuses/show.json?id=" tweet-id)
-                          {})) :keywordize-keys true)]
+    (let [tweet (js->clj (<? (-> (.get twitter-obj
+                                       (str "/statuses/show.json?id=" tweet-id)
+                                       {})
+                                 (.catch (fn[e] (log/error "Failed to request Twitter API" {:error e}))))
+                             ) :keywordize-keys true)]
       (if tweet
         (let [address (last (re-matches tweet-body-regex (:text tweet)))]
           {:valid? (not (string/blank? address))

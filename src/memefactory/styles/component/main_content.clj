@@ -6,7 +6,7 @@
 
 (defstyles core
   [:.main-content
-   {:min-height (em 90)
+   {:min-height (em 93)
     :padding-bottom (em 3)
     :box-shadow "inset 20px 20px 30px rgba(0,0,0,0.05)"
     :background (color :main-content-bg)}

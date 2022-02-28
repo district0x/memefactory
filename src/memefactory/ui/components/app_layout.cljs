@@ -75,7 +75,7 @@
                       :route :route.about/index
                       :class :about
                       :needs-account? false}
-                     #_ {:text "Get DANK"
+                     {:text "Get DANK"
                       :route :route.get-dank/index
                       :class :faucet
                       :needs-account? true}
