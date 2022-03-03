@@ -83,8 +83,8 @@ let parameters = {
                             },
     dankFaucet : {dank : new BigNumber("5000000e18"), // how much DANK contract holds, 1e18 = 1 DANK
                   eth : new BigNumber("0.2e18"), // ETH, 1e18 = 1ETH
-                  allotment : new BigNumber("2000e18"),  // how much DANK faucet sends, 1e18 = 1 DANK
-                  sender: "0x0000000000000000000000000000000000000000"
+                  allotment : new BigNumber("1e18"),  // how much DANK faucet sends, 1e18 = 1 DANK
+                  sender: "0xd519a24d465a1f8b9b83f9c3948f9d5d29eddeac"
     }
   }
 };
