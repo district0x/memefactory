@@ -64,7 +64,7 @@
    :web3-chain {:l1 {:chain-id "5"
                      :chain-name "Goerli Testnet"}
                 :l2 {:chain-id "80001"
-                     :rpc-urls ["https://rpc-mumbai.maticvigil.com"]
+                     :rpc-urls ["https://rpc-mumbai.matic.today"]
                      :chain-name "Mumbai"
                      :native-currency {:name "Matic"
                                        :symbol "MATIC"
@@ -109,7 +109,7 @@
    :web3-chain {:l1 {:chain-id "1"
                      :chain-name "Ethereum Mainnet"}
                 :l2 {:chain-id "137"
-                     :rpc-urls ["https://matic-mainnet.chainstacklabs.com"]
+                     :rpc-urls ["https://polygon-rpc.com"]
                      :chain-name "Polygon"
                      :native-currency {:name "Matic"
                                        :symbol "MATIC"
