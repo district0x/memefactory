@@ -1,4 +1,34 @@
 (ns memefactory.shared.smart-contracts-prod)
 
 (def smart-contracts
-  {:migrations {:name "Migrations" :address "0xC9495C793aBb513CAcfEB961D5063ADdD363ad0B"} :district-config {:name "DistrictConfig" :address "0x82798CF7fCe9Ed8d29C2E35Ffc2Ccb8c418EEEae"} :ds-guard {:name "DSGuard" :address "0xEaf3391B5964eECe3712cA4ECdaa55Fb9AccAF83"} :ds-guard-root {:name "DSGuard" :address "0x5d0457f58ed4c115610a2253070a11fb82065403"} :meme-auth {:name "MemeAuth" :address "0x633be70EffC87a3c3E85385CCa074a365Fc250c2"} :param-change-registry {:name "ParamChangeRegistry" :address "0x7b303e6D1C55CF313cd8b6E5498aA8d2e6d94FAF"} :param-change-registry-db {:name "EternalDb" :address "0xBdA5d40Cf1B9bb7eBcB697f575af59db3f6795F1"} :meme-registry-db {:name "EternalDb" :address "0x8b6Da18BD8aD1D49788111a97D911F8B315e5A28"} :param-change {:name "ParamChange" :address "0x8aF932B6BDF72acbf50C766aeF578bF5AB6791af"} :minime-token-factory {:name "MiniMeTokenFactory" :address "0x712d0AE6E3Ed8e4AA75C82F077022bce2E02AE8D"} :meme-auction-factory {:name "MemeAuctionFactory" :address "0xd5556dDf99FE2C57e2474F758000dF299914bA86"} :meme-auction {:name "MemeAuction" :address "0x11F3E171D7C2207778acFc04CAD99E48f8e0Ba5c"} :param-change-factory {:name "ParamChangeFactory" :address "0x6B492561857065C1bfa90b1e825A227d2227F74f"} :param-change-registry-fwd {:name "MutableForwarder" :address "0xA8c97474dfb6d6AcAD543dA794eeE4Dbaec43512" :forwards-to :param-change-registry} :meme-factory {:name "MemeFactory" :address "0xe435223B32DE91226f14D87FF2214F46De185255"} :meme-token-root {:name "MemeToken" :address "0xCf946623619a362B66a386709E4898f168D46583"} :meme-token {:name "MemeTokenChild" :address "0x9051cC58C54D094a155091b4b84FaCa3ccfDbC1B"} :DANK {:name "DankTokenChild" :address "0xc055262B77167723270cC67CF4cD8af42999077B"} :DANK-root {:name "DankToken" :address "0x0cb8d0b37c7487b11d57f1f33defa2b1d3cfccfe"} :meme-registry {:name "Registry" :address "0x9C6c4fF54eC920bB07020061b4f7B8415C94cC9d"} :meme {:name "Meme" :address "0x6746A9Ad8f39682491E770b475fB3c66FF67568E"} :meme-registry-fwd {:name "MutableForwarder" :address "0x037e91F5c5CA26Ba67605ca8cDeA12ce9ef4e9F7" :forwards-to :meme-registry} :meme-auction-factory-fwd {:name "MutableForwarder" :address "0x475BbE7104EF34739422aCEaa88ADAedd0f38691" :forwards-to :meme-auction-factory} :district0x-emails {:name "District0xEmails" :address "0xaf64755d7bF19628fe58A5a4B51e3ecd0a1C9347"} :ens {:name "ENS" :address "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"} :DANK-child-controller {:name "DankChildController" :address "0x5f2932ccf547c87109Fd39083f2CfC258057e31C"} :DANK-root-tunnel {:name "DankRootTunnel" :address "0xa697Dae09E90Be09d3c214596F9030aF423BeF19"} :DANK-child-tunnel {:name "DankChildTunnel" :address "0xAca88bbDedede5e8B385773760A5eF3847C3254A"} :meme-token-root-tunnel {:name "MemeTokenRootTunnel" :address "0xF1C3757cbddb574Cafb9375a7Eb50a0b24Ea625a"} :meme-token-child-tunnel {:name "MemeTokenChildTunnel" :address "0x2CCA62Cc08C9f2A1064A08a9ef2f84266135118b"} :dank-faucet {:name "DankFaucet" :address "0x5377A156a125363292Fe73A7f82f83dfb833FCfb"}})
+  {:migrations {:name "Migrations" :address "0xB09b37814D9175B05727b257A2E86d7726E1557c"}
+   :district-config {:name "DistrictConfig" :address "0x0B8c889DF1597BAc870eB9543AcB0CD38588F7f2"}
+   :ds-guard {:name "DSGuard" :address "0xb0F0C547c6988075b939dc45d24A8924e6971555"}
+   :ds-guard-root {:name "DSGuard" :address "0x5d0457f58ed4c115610a2253070a11fb82065403"}
+   :meme-auth {:name "MemeAuth" :address "0x713cB16a8F0a2e898c605a309cEc4585Ca1712aE"}
+   :param-change-registry {:name "ParamChangeRegistry" :address "0x9AB3cD06f8770dC1DedA74eCdF928c1CD5E26303"}
+   :param-change-registry-db {:name "EternalDb" :address "0x01bF2878cA523b24acb4575B79AB81fCcaF928AA"}
+   :meme-registry-db {:name "EternalDb" :address "0xdf8bCb12b4bC2A5beE67A6ec7e9Eda48ABD0B0eB"}
+   :param-change {:name "ParamChange" :address "0x585A984669C2335495Bd69D6E9af058a19E475Cb"}
+   :minime-token-factory {:name "MiniMeTokenFactory" :address "0x9D735BAF702f09ef7b89081E7a67D141866461d2"}
+   :meme-auction-factory {:name "MemeAuctionFactory" :address "0x4284a10162BF37502c0F5Ec176D9675196275726"}
+   :meme-auction {:name "MemeAuction" :address "0x209afEEa326618B3C4E2310251dF0e54E3972d59"}
+   :param-change-factory {:name "ParamChangeFactory" :address "0x74D3af8d53C8dE0631d79F6ADB207d290415985F"}
+   :param-change-registry-fwd {:name "MutableForwarder" :address "0xb25D7CE835B90C8Af70bA5a587975c5D9a95a907" :forwards-to :param-change-registry}
+   :meme-factory {:name "MemeFactory" :address "0x0406942908050A5d51e7D15812083A4039F9F9ec"}
+   :meme-token-root {:name "MemeToken" :address "0x4EDa5f84afAa6E3a89061AADa05138a6Be2e077d"}
+   :meme-token {:name "MemeTokenChild" :address "0x5F50028E3D68Bb9F26b837229212dddBe5f36a14"}
+   :DANK {:name "DankTokenChild" :address "0xfdF80c001f182E76894DEA7dD10e52D9Fb0F9715"}
+   :DANK-root {:name "DankToken" :address "0x0cb8d0b37c7487b11d57f1f33defa2b1d3cfccfe"}
+   :meme-registry {:name "Registry" :address "0x55b35217E038e7Dd33a5cd87d22EA6C123f25820"}
+   :meme {:name "Meme" :address "0x9052e2a9965b53F09FA0B0E6A6BCe2ABA245682b"}
+   :meme-registry-fwd {:name "MutableForwarder" :address "0x57F2A4115c2B6dD89eC8AFD258454B1352444FEE" :forwards-to :meme-registry}
+   :meme-auction-factory-fwd {:name "MutableForwarder" :address "0xdBFacb099360DeF2234B0F42EfEFE7D0cc2275f6" :forwards-to :meme-auction-factory}
+   :district0x-emails {:name "District0xEmails" :address "0x4c6Bcd0bD6764B915B8C4E18B6f5b8B6624b2581"}
+   :dank-faucet {:name "DankFaucet" :address "0xD306FE7B7C85D788a124A680F1c24CCE9DCF927b"}
+   :ens {:name "ENS" :address "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"}
+   :DANK-child-controller {:name "DankChildController" :address "0x6B4B3D15F6A79bAE881A039c4484BC9eA05b73Bc"}
+   :DANK-root-tunnel {:name "DankRootTunnel" :address "0x1baaF795cCA4c8aE6C4844d5BabF4994287a4E22"}
+   :DANK-child-tunnel {:name "DankChildTunnel" :address "0x29Cdaf567a12e5e1C23f82AaD03E3D45d0ed86EC"}
+   :meme-token-root-tunnel {:name "MemeTokenRootTunnel" :address "0x79fa3Ab4eABe55A7BF0B1E1D27B74a5365F30a4A"}
+   :meme-token-child-tunnel {:name "MemeTokenChildTunnel" :address "0x4650103D7585008AA20D8b9a23dd789b2B633bEe"}})

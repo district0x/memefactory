@@ -72,18 +72,18 @@ let parameters = {
                       revealPeriodDuration : 86400, // seconds
                       deposit : new BigNumber("100e18"), // 1e18 = 1 DANK
                       challengeDispensation : 50, // percent
-                      maxTotalSupply : 100, // int
+                      maxTotalSupply : 10, // int
                       maxAuctionDuration : (30 * 86400) // seconds
                      },
-    paramChangeRegistryDb : {challengePeriodDuration : 86400, // seconds
-                             commitPeriodDuration : 86400, // seconds
-                             revealPeriodDuration : 86400, // seconds
-                             deposit : new BigNumber("1000000000e18"), // 1e18 = 1 DANK
+    paramChangeRegistryDb : {challengePeriodDuration : (10 * 86400), // seconds
+                             commitPeriodDuration : (10 * 86400), // seconds
+                             revealPeriodDuration : (10 * 86400), // seconds
+                             deposit : new BigNumber("1000000e18"), // 1e18 = 1 DANK
                              challengeDispensation : 50 // percent
                             },
     dankFaucet : {dank : new BigNumber("5000000e18"), // how much DANK contract holds, 1e18 = 1 DANK
                   eth : new BigNumber("0.2e18"), // ETH, 1e18 = 1ETH
-                  allotment : new BigNumber("1e18"),  // how much DANK faucet sends, 1e18 = 1 DANK
+                  allotment : new BigNumber("2000e18"),  // how much DANK faucet sends, 1e18 = 1 DANK
                   sender: "0xd519a24d465a1f8b9b83f9c3948f9d5d29eddeac"
     }
   }
