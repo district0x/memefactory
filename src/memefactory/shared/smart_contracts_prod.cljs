@@ -25,7 +25,7 @@
    :meme-registry-fwd {:name "MutableForwarder" :address "0x57F2A4115c2B6dD89eC8AFD258454B1352444FEE" :forwards-to :meme-registry}
    :meme-auction-factory-fwd {:name "MutableForwarder" :address "0xdBFacb099360DeF2234B0F42EfEFE7D0cc2275f6" :forwards-to :meme-auction-factory}
    :district0x-emails {:name "District0xEmails" :address "0x4c6Bcd0bD6764B915B8C4E18B6f5b8B6624b2581"}
-   :dank-faucet {:name "DankFaucet" :address "0xD306FE7B7C85D788a124A680F1c24CCE9DCF927b"}
+   :dank-faucet {:name "DankFaucet" :address "0x3B793548292cD4C4bd955629FBf482ef25E8d998"}
    :ens {:name "ENS" :address "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"}
    :DANK-child-controller {:name "DankChildController" :address "0x6B4B3D15F6A79bAE881A039c4484BC9eA05b73Bc"}
    :DANK-root-tunnel {:name "DankRootTunnel" :address "0x1baaF795cCA4c8aE6C4844d5BabF4994287a4E22"}
