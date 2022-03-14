@@ -187,7 +187,7 @@
                                                    :option-desc {:vote.option/vote-against "stank"
                                                                  :vote.option/vote-for     "dank"}
                                                    :type :meme}]))}
-           [:i.vote-dank]
+           [:i.vote-dank {:key tx-id}]
            (if voted? "Voted ""Vote Dank")]]
          [:div.vote-stank
           [:div.vote-input

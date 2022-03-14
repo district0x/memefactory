@@ -5,6 +5,7 @@
    [district.ui.component.page :refer [page]]
    [memefactory.shared.utils :refer [tweet-url-regex]]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.buttons :refer [chain-check-button]]
    [memefactory.ui.components.spinner :as spinner]
    [memefactory.ui.get-dank.events :as dank-events]
    [re-frame.core :refer [subscribe dispatch]]
@@ -40,8 +41,9 @@
           [:div.get-dank-box
            [:div.icon]
            [:h2.title "Receive initial DANK tokens"]
-           [:h3.title "Make a tweet with your Polygon address as shown below. Copy-paste the tweets URL into the above input box and we'll send you a one-time allotment of DANK tokens. Using your address instead, the content of the tweet should follow the format:"]
-           [:h3.title "@MemeFactory0x $DANK 0x1234...aBcD"]
+           [:h3.buttons (chain-check-button :button.button {:on-click (fn [] (dispatch [::dank-events/import-dank]))} "Add DANK to your wallet" ) ]
+           [:h3.title "To get DANK, make a tweet including your Polygon address as shown below. Copy-paste the tweet URL into the input box below and you'll receive a one-time allotment of DANK tokens. The content of the tweet should follow the format below, but using your wallet address:"]
+           [:h3.title "@MemeFactory0x $DANK 0x1a2b3c4d...5e6f"]
            [:div.body
             [:div.form
               [with-label
