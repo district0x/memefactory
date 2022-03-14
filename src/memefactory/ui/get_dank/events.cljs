@@ -1,9 +1,11 @@
 (ns memefactory.ui.get-dank.events
   (:require
     [ajax.core :as ajax]
+    [cljs-web3.utils :refer [cljkk->js]]
     [day8.re-frame.http-fx]
     [district.ui.logging.events :as logging]
     [district.ui.notification.events :as notification-events]
+    [district.ui.smart-contracts.queries :as contract-queries]
     [memefactory.ui.config :refer [config-map]]
     [re-frame.core :as re-frame]
     [taoensso.timbre :as log]))
@@ -66,3 +68,28 @@
                   [::notification-events/show {:show-duration 8000
                                                :message "DANK allotment requested. You should receive your DANK shortly"}]]}))
 
+
+(re-frame/reg-event-fx
+  ::import-dank
+  (fn [{:keys [db]} [_]]
+    {::rpc-request {:method "wallet_watchAsset"
+                            :params {:type "ERC20"
+                                      :options {
+                                                :address (contract-queries/contract-address db :DANK)
+                                                :symbol "DANK"
+                                                :decimals 18
+                                                :image "https://memefactory.io/assets/icons/dank-logo.svg"}}
+                            :on-error [::logging/error "Failed to importing DANK to wallet"]}}))
+
+
+(re-frame/reg-fx
+  ::rpc-request
+  (fn [{:keys [:method :params :on-error]}]
+    (.catch
+      (js-invoke
+        (aget js/window "ethereum")
+        "request"
+        (cljkk->js {:method method :params params}))
+      (fn [error#]
+        (when on-error
+          (re-frame/dispatch (conj on-error (js->clj error# :keywordize-keys true))))))))

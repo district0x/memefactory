@@ -23,6 +23,29 @@
       :padding-left (em 2)
       :padding-right (em 2)}]
 
+    [:.buttons
+     {:display :flex
+      :flex-direction :row
+      :flex-wrap :nowrap
+      :justify-content :space-around
+      :margin (em 1)}
+     ["input"
+      {:display :none}]
+     [:.button
+      {:font-family "'Bungee',cursive"
+       :justify-content :center
+       :align-items :center
+       :padding "0.7em 1.6em"
+       :white-space :nowrap
+       :border-style :none
+       :cursor :pointer
+       :background-color "#9d0adb"
+       :border-radius (em 0.5)
+       :display :flex
+       :color :white}
+      [:&:disabled
+       {:opacity 0.3}]]]
+
     [:.icon
      {:background-size [(em 4) (em 4)]
       :background-position-x (em 0.2)}]
