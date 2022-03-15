@@ -83,7 +83,7 @@
                  :tx-costs-currencies [:USD]
                  :etherscan-url "https://etherscan.io"}
    :graphql {:schema graphql-schema
-             :url "https://api.memefactory.io/graphql"}
+             :url "https://apiv1.memefactory.io/graphql"}
    :ipfs {:host "https://ipfs.district0x.io"
           :endpoint "/api/v0"
           :gateway "https://ipfs.district0x.io/gateway/ipfs"}
