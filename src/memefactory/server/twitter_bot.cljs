@@ -99,7 +99,7 @@
    (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs (web3-utils/to-ascii @web3 meta-hash)))
          {:keys [title image-hash]} meme-meta
          media-id (<? (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts))
-         meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
+         meme-detail-url (str "https://v1.memefactory.io/meme-detail/" registry-entry)
          text (rand-nth [(gstring/format "Introducing '%s', The latest submission to vie for a place in the DANK registry. %s" title meme-detail-url)
                          (gstring/format "The newest entry to the DANK registry, meet '%s'. Will it pass the bar? %s" title meme-detail-url)])]
      (log/info "Media uploladed, we got " {:media-id media-id} ::tweet-meme-submitted)
@@ -112,7 +112,7 @@
 (defn tweet-meme-challenged [twitter-obj opts {:keys [:registry-entry] :as ev}]
   (safe-go
    (log/debug "Twitter bot processing meme challenged event " ev ::tweet-meme-challenged)
-   (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
+   (let [meme-detail-url (str "https://v1.memefactory.io/meme-detail/" registry-entry)
          title (:meme/title (db/get-meme registry-entry))
          text (rand-nth [(gstring/format "A challenger appears... '%s' has had it's place in the DANK registry contested. DANK or STANK? %s" title meme-detail-url)
                          (gstring/format "%s has been challenged. DANK or STANK? Vote today %s" title meme-detail-url)])
@@ -131,7 +131,7 @@
    (let [{:keys [:reg-entry/address :meme/title]} (db/get-meme-by-token-id (bn/number token-id))
          meme-and-block [address block-number]]
      (when-not (contains? @memes-offered-already-tweeted meme-and-block)
-       (let [meme-detail-url (str "https://memefactory.io/meme-detail/" address)
+       (let [meme-detail-url (str "https://v1.memefactory.io/meme-detail/" address)
              text (rand-nth [(gstring/format "The exalted '%s' has been offered for sale. Get em while they last! %s" title meme-detail-url)
                              (gstring/format "Fresh off the factory lines, '%s' is up the latest sell offering on Meme Factory. Grab yours today! %s" title meme-detail-url)])
              media-id (<? (ensure-media-uploaded twitter-obj {:registry-entry address} opts))]
@@ -146,7 +146,7 @@
    (log/debug "Twitter bot processing auction bought event " ev ::tweet-meme-auction-bought)
    (let [{:keys [:reg-entry/address :meme/title]} (-> meme-auction
                                                       db/get-meme-by-auction-address)
-         meme-detail-url (str "https://memefactory.io/meme-detail/" address)
+         meme-detail-url (str "https://v1.memefactory.io/meme-detail/" address)
          price-eth (bn/number (web3-utils/from-wei @web3 price :ether))
          formatted-price-eth (format/format-eth  price-eth
                                                  {:max-fraction-digits 3

@@ -100,7 +100,7 @@
                             :smart-contracts {:contracts-var contracts-var}
                             :ranks-cache {:ttl (t/in-millis (t/minutes 60))}
                             :ui {:public-key "PLACEHOLDER"
-                                 :root-url "https://memefactory.io"}
+                                 :root-url "https://v1.memefactory.io"}
                             :twilio-api-key "PLACEHOLDER"
                             :blacklist-file "blacklist.edn"
                             :twitter-bot {:consumer-key "PLACEHOLDER"
