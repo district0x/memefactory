@@ -96,9 +96,9 @@
 (defn account-in-relayer? [tweet-account-id]
   (safe-go
     (let [hash-tweet-account (hash-account-id tweet-account-id)
-          pending-txs (<? (.list @relayer {:status "pending"}))]
-      (some #(= (get-account-from-tx (js->clj % :keywordize-keys true)) hash-tweet-account) pending-txs)
-      )))
+          pending-txs (<? (-> (.list @relayer {:status "pending"})
+                              (.catch (fn[e] (do (log/error "Error on relayer" {:error e}) (throw e))))))]
+      (some #(= (get-account-from-tx (js->clj % :keywordize-keys true)) hash-tweet-account) pending-txs))))
 
 (defn account-in-chain? [tweet-account-id]
   (safe-go
