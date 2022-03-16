@@ -13,13 +13,13 @@
      (panel-with-icon {:url "/assets/icons/matic.svg"
                       :color :sky-blue})
     [:section.bridge-header
-     {:text-align :center}
+     {:text-align :center
+      :padding-bottom (em 2)}
      [:.switch-chain-button
       {:display :inline-block}]]
     [:.icon {:background-size [(em 2.5) (em 2)]}]
     [:p
      {:margin-left (em 1)
-      :padding-top (em 2)
       :padding-left (em 3)
       :padding-right (em 3)}
      ]
@@ -50,7 +50,16 @@
       [:.not-enough-dank {:margin-top (em 1)
                           :color (color :redish)}]
       [:.no-pending-withdraw {:margin-top (em 1)
-                              :color (color :redish)}]]]
+                              :color (color :redish)}]
+      [:.tx-complete {:margin-top (em 1)
+                          :color (color :green)}]
+      [:div.tx-complete-switch
+       {:text-align :center
+        :margin-top (em 1.5)}
+       [:button.switch-chain-button {
+                                     :display :inline-block}]
+       ]
+      ]]
     ]
    [:div.tokens
     {:text-align :left}]
