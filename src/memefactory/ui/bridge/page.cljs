@@ -70,8 +70,10 @@
         [:div.icon]
         [:h2.title (str "Transfer DANK ETH → Polygon")]
         [:h3.title "Bring your DANK tokens from Ethereum to Polygon network"]
-        [switch-chain-button {:net :l1}]]
+        (when-not @bridge-tx-success?
+          [switch-chain-button {:net :l1}])]
        [:p "You can bring the DANK tokens you have on Ethereum Mainnet to Polygon. Select the amount of tokens you want to transfer. Once the transaction succeed, switch your wallet to Polygon Mainnet where you'll receive your DANK in a few minutes."]
+       [:p "Once the transaction succeed, switch your wallet to Polygon Mainnet where you'll receive your DANK within 15 minutes. If you have trouble receiving DANK, please try to refresh the page or contact us."]
        [:div.form-panel
         [with-label "Amount"
          [text-input {:form-data form-data
@@ -95,11 +97,15 @@
                                                                                                                :to @active-account
                                                                                                                :amount (min @account-balance ; deal with rounding
                                                                                                                             (* (:amount @form-data) 1e18))}]))}
-          (if @bridge-tx-success? "Tokens Transferred" "Transfer Tokens")]
+          (if @bridge-tx-success? "Tokens Transferred" "Transfer Tokens")]]
+        (when (l1-chain?)
+          (if @bridge-tx-success?
+            [:div
+              [:div.tx-complete "DANK are on the way. Switch your wallet to Polygon. You should receive DANK in around 15 minutes there"]
+              [:div.tx-complete-switch [switch-chain-button] ]]
+            (when (< @account-balance 1)
+              [:div.not-enough-dank "You don't have DANK tokens on Ethereum"])))
          ]
-        (when (< @account-balance 1)
-          [:div.not-enough-dank "You don't have DANK tokens on Ethereum"])
-        ]
        [:div.footer "Make sure your wallet is connected to Ethereum Mainnet network"]])))
 
 
