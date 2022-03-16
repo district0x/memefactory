@@ -23,6 +23,24 @@
       :padding-left (em 2)
       :padding-right (em 2)}]
 
+    [:.share-button
+     {:text-align :center
+      :margin-bottom (em 2)
+
+      }
+     [:button {:display :inline-flex
+               :align-items :center
+               :background-color "#00aced !important"
+               :font-size "larger !important"
+               :font-weight "bold !important"
+               :border-radius (px 14)
+               :color "white !important"
+               :width (em 10)
+               :text-align :center
+               }
+      [:svg {:margin-right (px 6)
+             :margin-left (px 6)}]]]
+
     [:.buttons
      {:display :flex
       :flex-direction :row

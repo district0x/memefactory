@@ -33,7 +33,7 @@
 (def Twitter (nodejs/require "twitter"))
 (def Relayer (.-Relayer (nodejs/require "defender-relay-client")))
 
-(def tweet-body-regex #"(?:.* )?@MemeFactory0x +\$DANK +(0x[a-fA-F0-9]{40})(?: .*)?")
+(def tweet-body-regex #"(?:.|\n)*I'm verifying my address \[?(0x[a-fA-F0-9]{40})]? and claiming my free \$DANK tokens on @memefactory0x so I can vote and challenge memes(?:.|\n)*")
 (def hashed-account-data-regex #"0x22d58044([a-fA-F0-9]{64})[a-fA-F0-9]+") ; sha3("sendDank(bytes32,address)"): 0x22d58044
 (def account-min-age (* 90 24 60 60 1000)) ; 90 days in milliseconds
 
