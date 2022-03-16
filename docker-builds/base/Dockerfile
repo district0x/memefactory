@@ -8,7 +8,7 @@ RUN apt-get update \
 
 ADD https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein /usr/bin/lein
 RUN chmod +x /usr/bin/lein && lein version
-
+RUN git config --global url."https://".insteadOf git://
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 RUN mkdir -p /root/.config/truffle/ \
     && npm install --global truffle@~5.3.0
