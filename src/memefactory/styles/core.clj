@@ -7,6 +7,7 @@
             [memefactory.styles.component.app-bar :as app-bar]
             [memefactory.styles.component.challenge-list :as challenge-list]
             [memefactory.styles.component.compact-tile :as compact-tile]
+            [memefactory.styles.component.discord :as discord]
             [memefactory.styles.component.form :as form]
             [memefactory.styles.component.main-content :as main-content]
             [memefactory.styles.component.selling-panel :as selling-panel]
@@ -43,6 +44,7 @@
   page.marketplace/core
   form/core
   spinner/core
+  discord/core
   share-buttons/core
   account-balances/core
   page.memefolio/core
