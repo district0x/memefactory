@@ -114,18 +114,17 @@
     (apply keyword (str/split str-key #","))))
 
 (defn parameter-table []
-  (let [open? (r/atom true)
+  (let [open? (r/atom false)
         all-params (subscribe [:memefactory.ui.config/all-params])]
     (fn []
       [:div.panel.param-table-panel {:class (if @open? "open" "closed")}
        [:table.param-table
-        [:thead
+        [:thead {:on-click #(swap! open? not)}
          [:tr
           [:th "Parameter"]
           [:th.optional "Current Value"]
           [:th.optional "Last Change"]
-          [:th [:div.collapse-icon {:on-click #(swap! open? not)
-                                    :class (when @open? "flipped")}]]]]
+          [:th [:div.collapse-icon {:class (when @open? "flipped")}]]]]
         [:tbody
          (let [param-val (into {} (map (fn [p] [(:key p) p]) @all-params))]
            (when @all-params
