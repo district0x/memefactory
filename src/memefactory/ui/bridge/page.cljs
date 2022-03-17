@@ -72,7 +72,7 @@
         [:h3.title "Bring your DANK tokens from Ethereum to Polygon network"]
         (when-not @bridge-tx-success?
           [switch-chain-button {:net :l1}])]
-       [:p "You can bring the DANK tokens you have on Ethereum Mainnet to Polygon. Select the amount of tokens you want to transfer. Once the transaction succeed, switch your wallet to Polygon Mainnet where you'll receive your DANK in a few minutes."]
+       [:p "You can bring the DANK tokens you have on Ethereum Mainnet to Polygon. Select the amount of tokens you want to transfer."]
        [:p "Once the transaction succeed, switch your wallet to Polygon Mainnet where you'll receive your DANK within 15 minutes. If you have trouble receiving DANK, please try to refresh the page or contact us."]
        [:div.form-panel
         [with-label "Amount"
