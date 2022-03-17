@@ -51,11 +51,11 @@
   (safe-go
     (let [tweet (js->clj (<? (-> (.get twitter-obj
                                        (str "/statuses/show.json?id=" tweet-id)
-                                       {})
+                                       (clj->js {:tweet_mode "extended"}))
                                  (.catch (fn[e] (log/error "Failed to request Twitter API" {:error e}))))
                              ) :keywordize-keys true)]
       (if tweet
-        (let [address (last (re-matches tweet-body-regex (:text tweet)))]
+        (let [address (last (re-matches tweet-body-regex (:full_text tweet)))]
           {:valid? (not (string/blank? address))
            :address address
            :tweet-id tweet-id
