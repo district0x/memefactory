@@ -35,14 +35,14 @@
    (:memefactory.ui.get-dank.events/succeeded db)))
 
 (re-frame/reg-sub
- ::mobile-coinbase-appstore-link
+ ::mobile-metamask-appstore-link
  :<- [::mobile-subs/android?]
  :<- [::mobile-subs/ios?]
  (fn [[android? ios?]]
    (cond
-     android? (:android-mobile-link ui.mobile/coinbase-appstore-links)
-     ios? (:ios-mobile-link ui.mobile/coinbase-appstore-links)
-     :else (:main-mobile-link ui.mobile/coinbase-appstore-links))))
+     android? (:android-mobile-link ui.mobile/metamask-appstore-links)
+     ios? (:ios-mobile-link ui.mobile/metamask-appstore-links)
+     :else (:main-mobile-link ui.mobile/metamask-appstore-links))))
 
 (re-frame/reg-sub
  ::nsfw-switch

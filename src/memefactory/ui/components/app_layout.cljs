@@ -199,7 +199,7 @@
         drawer-open? (r/atom false)
         active-account (subscribe [:district.ui.web3-accounts.subs/active-account])
         mobile-device? (subscribe [::mobile-subs/coinbase-compatible?])
-        coinbase-appstore-link (subscribe [::mf-subs/mobile-coinbase-appstore-link])
+        metamask-appstore-link (subscribe [::mf-subs/mobile-metamask-appstore-link])
         open-param-proposals (subscribe [::gql/query {:queries [[:search-param-changes {;;:order-dir :desc
                                                                                         ;;:order-by :param-changes.order-by/created-on
                                                                                         :statuses [:reg-entry.status/commit-period
@@ -228,8 +228,8 @@
         [app-bar-mobile drawer-open? {:active-page (:name @active-page)}]
         (when (and (not @active-account) @mobile-device?)
          [:a.coinbase-promotion
-          {:href @coinbase-appstore-link}
-          [:span "Submit Memes with "] [:img {:src "/images/coinbase_logo.png"}]])
+          {:href @metamask-appstore-link}
+          [:span "Submit Memes with "] [:img {:src "/images/metamask-logo.svg"}]])
         [:div.main-content
          [:div.main-content-inner
           (map-indexed (fn [index item]
