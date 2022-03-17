@@ -6,7 +6,6 @@
             [cljs-web3-next.utils :as web3-utils]
             [cljs.core.async.impl.protocols :refer [ReadPort]]
             [cljs.core.async :as async :refer [<! go]]
-            [clojure.string :as string]
             [district.server.config :refer [config]]
             [district.server.smart-contracts :as smart-contracts]
             [district.server.web3 :refer [ping-start ping-stop web3]]
@@ -140,7 +139,7 @@
 
        (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs meta-hash))
              {:keys [:name :image :description] {:keys [:search-tags]} :attributes} meme-meta
-             image-hash (if (string/starts-with? image "ipfs://") (subs image 7) image)]
+             image-hash (server-utils/get-hash-from-ipfs-url image)]
          (db/insert-registry-entry! registry-entry-data)
          (db/upsert-user! {:user/address creator})
          (db/insert-meme! (merge meme {:reg-entry/address registry-entry

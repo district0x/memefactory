@@ -95,14 +95,15 @@
 (defn tweet-meme-submitted [twitter-obj opts {:keys [:registry-entry :meta-hash]
                                               :as ev}]
   (safe-go
-   (log/debug "Twitter bot processing meme submitted event " ev ::tweet-meme-submitted)
+   (log/info "Twitter bot processing meme submitted event " ev ::tweet-meme-submitted)
    (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs (web3-utils/to-ascii @web3 meta-hash)))
          {:keys [title image-hash]} meme-meta
+         image-hash (server-utils/get-hash-from-ipfs-url image-hash)
          media-id (<? (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts))
          meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
          text (rand-nth [(gstring/format "Introducing '%s', The latest submission to vie for a place in the DANK registry. %s" title meme-detail-url)
                          (gstring/format "The newest entry to the DANK registry, meet '%s'. Will it pass the bar? %s" title meme-detail-url)])]
-     (log/info "Media uploladed, we got " {:media-id media-id} ::tweet-meme-submitted)
+     (log/info "Media uploaded, we got " {:media-id media-id} ::tweet-meme-submitted)
      (when media-id (db/save-meme-media-id! registry-entry (str media-id)))
      (tweet twitter-obj
             {:text text
@@ -111,7 +112,7 @@
 
 (defn tweet-meme-challenged [twitter-obj opts {:keys [:registry-entry] :as ev}]
   (safe-go
-   (log/debug "Twitter bot processing meme challenged event " ev ::tweet-meme-challenged)
+   (log/info "Twitter bot processing meme challenged event " ev ::tweet-meme-challenged)
    (let [meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
          title (:meme/title (db/get-meme registry-entry))
          text (rand-nth [(gstring/format "A challenger appears... '%s' has had it's place in the DANK registry contested. DANK or STANK? %s" title meme-detail-url)
@@ -127,7 +128,7 @@
 
 (defn tweet-meme-offered [twitter-obj opts {:keys [:token-id :block-number] :as ev}]
   (safe-go
-   (log/debug "Twitter bot processing meme offered event " ev ::tweet-meme-offered)
+   (log/info "Twitter bot processing meme offered event " ev ::tweet-meme-offered)
    (let [{:keys [:reg-entry/address :meme/title]} (db/get-meme-by-token-id (bn/number token-id))
          meme-and-block [address block-number]]
      (when-not (contains? @memes-offered-already-tweeted meme-and-block)
@@ -143,7 +144,7 @@
 
 (defn tweet-meme-auction-bought [twitter-obj opts {:keys [:meme-auction :price] :as ev}]
   (safe-go
-   (log/debug "Twitter bot processing auction bought event " ev ::tweet-meme-auction-bought)
+   (log/info "Twitter bot processing auction bought event " ev ::tweet-meme-auction-bought)
    (let [{:keys [:reg-entry/address :meme/title]} (-> meme-auction
                                                       db/get-meme-by-auction-address)
          meme-detail-url (str "https://memefactory.io/meme-detail/" address)
