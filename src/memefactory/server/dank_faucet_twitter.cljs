@@ -91,12 +91,12 @@
 
 (defn get-account-from-tx [tx]
   (let [data (:data tx)]
-    (last (re-matches hashed-account-data-regex data))))
+    (str "0x" (last (re-matches hashed-account-data-regex data)))))
 
 (defn account-in-relayer? [tweet-account-id]
   (safe-go
     (let [hash-tweet-account (hash-account-id tweet-account-id)
-          pending-txs (<? (-> (.list @relayer {:status "pending"})
+          pending-txs (<? (-> (.list @relayer (clj->js {:status "pending"}))
                               (.catch (fn[e] (do (log/error "Error on relayer" {:error e}) (throw e))))))]
       (some #(= (get-account-from-tx (js->clj % :keywordize-keys true)) hash-tweet-account) pending-txs))))
 
