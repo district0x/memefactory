@@ -24,14 +24,20 @@ RUN lein garden once  \
 RUN truffle compile
 RUN lein cljsbuild once "ui"
 
-FROM prerendercloud/webserver:latest
-RUN apt-get update && apt-get upgrade -yqq \
-    && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+FROM nginx:alpine
+ENV BUILD_ENV=${BUILD_ENV}
+ENV MEMEFACTORY_ENV=${BUILD_ENV}
+
+# replace nginx config
+COPY docker-builds/ui/nginx.conf /etc/nginx/nginx.conf
+
+# replace default server
+COPY docker-builds/ui/default /etc/nginx/conf.d/default.conf
 
 # get compiled JS
-COPY --from=build_stage /build/resources/public /wwwroot
+COPY --from=builder  /wwwroot /memefactory/resources/public/
 
-# setup redirects
-COPY docker-builds/ui/_redirects /app/_redirects
-EXPOSE 9000
+# test config
+RUN ls /memefactory/resources/public/
+
+EXPOSE 80
