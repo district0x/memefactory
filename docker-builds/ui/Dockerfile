@@ -36,7 +36,7 @@ ENV MEMEFACTORY_ENV=${BUILD_ENV}
 COPY docker-builds/ui/default /etc/nginx/conf.d/default.conf
 
 # get compiled JS
-COPY --from=build_stage  /wwwroot /memefactory/resources/public/
+COPY --from=build_stage  /build/resources/public /memefactory/resources/public/
 RUN ls /memefactory/resources/public/
 
 EXPOSE 80
