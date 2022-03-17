@@ -4,11 +4,11 @@ ENV BUILD_ENV=${BUILD_ENV}
 ENV MEMEFACTORY_ENV=${BUILD_ENV}
 ENV SMART_CONTRACTS=./src/memefactory/shared/smart_contracts_${BUILD_ENV}.cljs
 ENV SMART_CONTRACTS_BUILD_PATH=./resources/public/contracts/build/
+RUN git config --global url."https://".insteadOf git://
 
 RUN apt-get update && apt-get install -yqq --no-install-recommends clojure
 ADD https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein /usr/bin/lein
 RUN chmod +x /usr/bin/lein
-
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 RUN mkdir -p /root/.config/truffle/
 RUN npm install --global truffle@~5.4.0

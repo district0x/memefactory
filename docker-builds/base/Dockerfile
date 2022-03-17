@@ -5,7 +5,7 @@ RUN apt-get update \
     && apt-get install -yqq --no-install-recommends clojure \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
+RUN git config --global url."https://".insteadOf git://
 ADD https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein /usr/bin/lein
 RUN chmod +x /usr/bin/lein && lein version
 

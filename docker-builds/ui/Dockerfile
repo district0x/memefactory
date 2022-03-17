@@ -4,6 +4,7 @@ ENV BUILD_ENV=${BUILD_ENV}
 ENV MEMEFACTORY_ENV=${BUILD_ENV}
 ENV SMART_CONTRACTS=./src/memefactory/shared/smart_contracts_${BUILD_ENV}.cljs
 ENV SMART_CONTRACTS_BUILD_PATH=./resources/public/contracts/build/
+RUN git config --global url."https://".insteadOf git://
 
 RUN apt-get update && apt-get install -yqq --no-install-recommends clojure
 ADD https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein /usr/bin/lein
