@@ -55,7 +55,8 @@
             :padding-left (px 15)
             :padding-top (px 20)
             :padding-bottom (px 20)
-            :text-align :left}
+            :text-align :left
+            :cursor :pointer}
 
        [:.collapse-icon
         {:background-color :white
