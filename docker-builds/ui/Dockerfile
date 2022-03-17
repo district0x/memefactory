@@ -1,5 +1,5 @@
 FROM node:11.14.0-stretch AS build_stage
-ARG BUILD_ENV=qa
+ARG BUILD_ENV=prod
 ENV BUILD_ENV=${BUILD_ENV}
 ENV MEMEFACTORY_ENV=${BUILD_ENV}
 ENV SMART_CONTRACTS=./src/memefactory/shared/smart_contracts_${BUILD_ENV}.cljs
@@ -36,10 +36,7 @@ ENV MEMEFACTORY_ENV=${BUILD_ENV}
 COPY docker-builds/ui/default /etc/nginx/conf.d/default.conf
 
 # get compiled JS
-COPY --from=builder  /wwwroot /memefactory/resources/public/
-
-# test config
+COPY --from=build_stage  /wwwroot /memefactory/resources/public/
 RUN ls /memefactory/resources/public/
-    # && nginx -t
 
 EXPOSE 80
