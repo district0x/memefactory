@@ -3,6 +3,7 @@
             [cljs-web3-next.eth :as web3-eth]
             [cljs.nodejs :as nodejs]
             [cljs.reader :refer [read-string]]
+            [clojure.string :as string]
             [district.server.config :refer [config]]
             [district.server.web3 :refer [web3]]
             [taoensso.timbre :as log]
@@ -101,3 +102,7 @@
                             (reject (str err-txt " : " err)))
 
                           :else (resolve content)))))))
+
+
+(defn get-hash-from-ipfs-url [ipfs-url]
+  (if (string/starts-with? ipfs-url "ipfs://") (subs ipfs-url 7) ipfs-url))
