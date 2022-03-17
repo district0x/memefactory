@@ -8,8 +8,8 @@ ENV SMART_CONTRACTS=./src/memefactory/shared/smart_contracts_${BUILD_ENV}.cljs
 ENV SMART_CONTRACTS_BUILD_PATH=./resources/public/contracts/build/
 RUN git config --global url."https://".insteadOf git://
 
-# RUN apk add -U nodejs yarn npm python3 make gcc
-# RUN apt-get update && apt-get install -yqq --no-install-recommends clojure
+# RUN apt-get update  -U  make gcc
+RUN apt-get update && apt-get install -yqq --no-install-recommends nodejs yarn npm python3
 # ADD https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein /usr/bin/lein
 # RUN chmod +x /usr/bin/lein
 
