@@ -45,7 +45,8 @@
     [:span
      {}]
     [:img
-     {:width "120px"}]]
+     {:width "120px"
+      :margin-left (em 0.8)}]]
    [:div.notification
     {:color (color :meme-info-text)
      :background-color (color :deep-purple)

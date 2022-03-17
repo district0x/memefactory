@@ -1,7 +1,7 @@
 (ns memefactory.ui.mobile)
 
 
-(def coinbase-appstore-links
-  {:main-mobile-link "https://wallet.coinbase.com/"
-   :android-mobile-link "https://play.google.com/store/apps/details?id=org.toshi"
-   :ios-mobile-link "https://itunes.apple.com/app/coinbase-wallet/id1278383455?ls=1&mt=8"})
+(def metamask-appstore-links
+  {:main-mobile-link "https://metamask.io/"
+   :android-mobile-link "https://play.google.com/store/apps/details?id=io.metamask"
+   :ios-mobile-link "https://apps.apple.com/app/metamask-blockchain-wallet/id1438144202"})
