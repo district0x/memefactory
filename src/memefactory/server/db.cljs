@@ -329,6 +329,13 @@
                                                        param-change-column-names
                                                        {:insert-or-replace? true}))
 
+(defn get-param-change [address]
+  (db/get {:select [:*]
+           :from [[:reg-entries :re]]
+           :join [[:param-changes :pc] [:= :re.reg-entry/address :pc.reg-entry/address]]
+           :where [:= :pc.reg-entry/address address]}))
+
+
 ;; VOTES
 
 (def insert-vote! (create-insert-fn :votes votes-column-names))
