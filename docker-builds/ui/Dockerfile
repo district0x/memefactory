@@ -1,9 +1,10 @@
 FROM node:11.14.0-stretch AS build_stage
-ARG BUILD_ENV=qa
+ARG BUILD_ENV=prod
 ENV BUILD_ENV=${BUILD_ENV}
 ENV MEMEFACTORY_ENV=${BUILD_ENV}
 ENV SMART_CONTRACTS=./src/memefactory/shared/smart_contracts_${BUILD_ENV}.cljs
 ENV SMART_CONTRACTS_BUILD_PATH=./resources/public/contracts/build/
+RUN git config --global url."https://".insteadOf git://
 
 RUN apt-get update && apt-get install -yqq --no-install-recommends clojure
 ADD https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein /usr/bin/lein
@@ -23,14 +24,19 @@ RUN lein garden once  \
 RUN truffle compile
 RUN lein cljsbuild once "ui"
 
-FROM prerendercloud/webserver:latest
-RUN apt-get update && apt-get upgrade -yqq \
-    && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+#########################
+FROM nginx:alpine
+ENV BUILD_ENV=${BUILD_ENV}
+ENV MEMEFACTORY_ENV=${BUILD_ENV}
+
+# replace nginx config
+# COPY docker-builds/ui/nginx.conf /etc/nginx/nginx.conf
+
+# replace default server
+COPY docker-builds/ui/default /etc/nginx/conf.d/default.conf
 
 # get compiled JS
-COPY --from=build_stage /build/resources/public /wwwroot
+COPY --from=build_stage  /build/resources/public /memefactory/resources/public/
+RUN ls /memefactory/resources/public/
 
-# setup redirects
-COPY docker-builds/ui/_redirects /app/_redirects
-EXPOSE 9000
+EXPOSE 80
