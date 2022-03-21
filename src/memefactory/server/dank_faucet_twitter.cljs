@@ -37,7 +37,7 @@
 (def hashed-account-data-regex #"0x22d58044([a-fA-F0-9]{64})[a-fA-F0-9]+") ; sha3("sendDank(bytes32,address)"): 0x22d58044
 (def account-min-age (* 90 24 60 60 1000)) ; 90 days in milliseconds
 
-(defonce relayer (atom nil))
+(defonce relayer-params (atom nil))
 (defonce requests-queue (atom #queue []))
 (defonce hash-nonce (atom ""))
 (defonce in-progress? (atom false))
@@ -96,7 +96,8 @@
 (defn account-in-relayer? [tweet-account-id]
   (safe-go
     (let [hash-tweet-account (hash-account-id tweet-account-id)
-          pending-txs (<? (-> (.list @relayer (clj->js {:status "pending"}))
+          pending-txs (<? (-> (Relayer. @relayer-params)
+                              (.list (clj->js {:status "pending"}))
                               (.catch (fn[e] (do (log/error "Error on relayer" {:error e}) (throw e))))))]
       (some #(= (get-account-from-tx (js->clj % :keywordize-keys true)) hash-tweet-account) pending-txs))))
 
@@ -120,7 +121,8 @@
 
 (defn submit-send-dank-tx [hashed-account-id address tx-speed]
   (log/info (str "Submitting Dank Faucet requests: " hashed-account-id " " address))
-  (-> (.sendTransaction @relayer #js {:to (smart-contracts/contract-address :dank-faucet)
+  (-> (Relayer. @relayer-params)
+      (.sendTransaction #js {:to (smart-contracts/contract-address :dank-faucet)
                        :data (build-tx-data hashed-account-id address)
                        :speed tx-speed
                        :gasLimit "200000"
@@ -200,11 +202,11 @@
   (let [twitter-obj (Twitter. #js {:consumer_key consumer-key
                                    :consumer_secret consumer-secret
                                    :bearer_token bearer-token})
-        relayer-obj (Relayer. #js {:apiKey relay-api-key,
-                                   :apiSecret relay-secret-key})
+        relayer-params-js #js {:apiKey relay-api-key,
+                                   :apiSecret relay-secret-key}
         server (start-server port path twitter-obj)
         queue-timeout (start-queue-processor send-interval tx-speed)]
-    (reset! relayer relayer-obj)
+    (reset! relayer-params relayer-params-js)
     (reset! hash-nonce account-hash-nonce)
   {:server server
    :queue-timeout queue-timeout}))
