@@ -64,6 +64,12 @@
       [:&:disabled
        {:opacity 0.3}]]]
 
+    [:.discord-link-container
+     {:justify-content :space-around
+      :display :flex
+      :padding-bottom (em 2)
+      }]
+
     [:.icon
      {:background-size [(em 4) (em 4)]
       :background-position-x (em 0.2)}]
