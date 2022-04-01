@@ -4,6 +4,15 @@
             [garden.units :refer [px]]
             [memefactory.styles.base.media :refer [for-media-max]]))
 
+(defn discord-img []
+      [:img {
+             :height "44%"
+             :position "relative"
+             :top "50%"
+             :-webkit-transform "translateY(-50%)"
+             :-ms-transform "translateY(-50%)"
+             :transform "translateY(-50%)"}])
+
 (defstyles core
   [:.discord-button {
                      :position "fixed"
@@ -23,10 +32,13 @@
                    :height (px 40)
                    :width (px 40)
                    :border-radius (px 40)}])
-   [:img {
-          :height "44%"
-          :position "relative"
-          :top "50%"
-          :-webkit-transform "translateY(-50%)"
-          :-ms-transform "translateY(-50%)"
-          :transform "translateY(-50%)"}]])
+   (discord-img)]
+  [:.discord-link {
+                  :height (px 80)
+                  :width (px 80)
+                  :border-radius (px 20)
+                  :background-color "rgb(88, 101, 242)"
+                  :text-align "center"
+                  }
+    (discord-img)
+  ])
