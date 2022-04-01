@@ -100,8 +100,8 @@
   (safe-go
    (log/info "Twitter bot processing meme submitted event " ev ::tweet-meme-submitted)
    (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs (web3-utils/to-ascii @web3 meta-hash)))
-         {:keys [name image-hash]} meme-meta
-         image-hash (server-utils/get-hash-from-ipfs-url image-hash)
+         {:keys [:name :image]} meme-meta
+         image-hash (server-utils/get-hash-from-ipfs-url image)
          media-id (<? (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts))
          meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
          text (rand-nth [(gstring/format "Introducing '%s', The latest submission to vie for a place in the DANK registry. %s" name meme-detail-url)
