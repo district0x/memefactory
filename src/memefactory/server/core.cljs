@@ -13,15 +13,10 @@
             [district.server.web3-events :as district.server.web3-events]
             [district.shared.async-helpers :as async-helpers]
             [memefactory.server.constants :as constants]
-            [memefactory.server.conversion-rates
-             :as
-             memefactory.server.conversion-rates]
-            [memefactory.server.dank-faucet-monitor
-             :as
-             memefactory.server.dank-faucet-monitor]
-            [memefactory.server.dank-faucet-twitter
-             :as
-             memefactory.server.dank-faucet-twitter]
+            [memefactory.server.conversion-rates :as memefactory.server.conversion-rates]
+            [memefactory.server.dank-faucet-discord-bot :as memefactory.server.dank-faucet-discord-bot]
+            [memefactory.server.dank-faucet-monitor :as memefactory.server.dank-faucet-monitor]
+            [memefactory.server.dank-faucet-twitter :as memefactory.server.dank-faucet-twitter]
             [memefactory.server.db :as memefactory.server.db]
             [memefactory.server.emailer :as memefactory.server.emailer]
             [memefactory.server.graphql-resolvers :refer [resolvers-map]]
@@ -63,6 +58,7 @@
                     #'district.server.web3-events/web3-events
                     #'district.server.web3/web3
                     #'memefactory.server.conversion-rates/conversion-rates
+                    #'memefactory.server.dank-faucet-discord-bot/dank-faucet-discord-bot
                     #'memefactory.server.dank-faucet-monitor/dank-faucet-monitor
                     #'memefactory.server.dank-faucet-twitter/dank-faucet-twitter
                     #'memefactory.server.db/memefactory-db
@@ -121,6 +117,11 @@
                                           :consumer-secret "PLACEHOLDER"
                                           :access-token-key "PLACEHOLDER"
                                           :access-token-secret "PLACEHOLDER"}
+                            :dank-faucet-discord-bot {:token "PLACEHOLDER"
+                                                      :twitter-faucet-url "http://127.0.0.1:6400/dank-faucet-twitter"
+                                                      :admin-roles ["admin"]
+                                                      :channels ["general"]
+                                                      :persistence-file "/tmp/faucet-discord-bot.data"}
                             :dank-faucet-twitter {:port 6400
                                                   :path "/dank-faucet-twitter"
                                                   :send-interval (t/in-millis (t/seconds 30))
