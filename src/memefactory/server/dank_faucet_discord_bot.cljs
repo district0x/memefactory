@@ -194,7 +194,7 @@
           (cond
             (= @status :shut) :do-nothing
             (not= @status :enabled) (reply message "Faucet temporarily disabled")
-            (and (reach-limits?) (not (has-any-role? message admin-roles))) (reply message "Faucet is becoming very warm! Let it cold down for a bit and try again later")
+            (and (reach-limits?) (not (has-any-role? message admin-roles))) (reply message "Faucet is becoming very warm! Let it cold down for a few minutes")
             :else
               (let [tweet-url (first (re-find tweet-url-regex (-> message (.-cleanContent)) ))]
                 (cond
