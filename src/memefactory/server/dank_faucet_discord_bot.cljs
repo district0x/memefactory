@@ -90,6 +90,13 @@
   (str "@" (.. client -user -username)))
 
 
+(defn usage-text [client]
+  (str "To get DANK, make a tweet following the instructions at <https://memefactory.io/get-dank>\n"
+       "Make sure you follow the proper tweet format, including a valid wallet address.\n"
+       "Then copy the link to the tweet here mentioning " (.-user client) "\n"
+       "For example: " (.-user client) " https://twitter.com/username/status/12345678901234567890"))
+
+
 (defn send-faucet-request [client message tweet-url {:keys [:twitter-faucet-url] :as opts}]
   (try
     (let [data (atom "")
@@ -111,7 +118,10 @@
                                  (let [response (js->clj (js/JSON.parse @data) :keywordize-keys true)
                                        status (:status response)]
                                      (if (not= status "success")
-                                       (reply message (:message response))
+                                       (let [error-message (:message response)]
+                                         (if (= error-message "tweet format not valid")
+                                           (reply message (str "Tweet format not valid. " (usage-text client)))
+                                           (reply message error-message)))
                                        (do
                                          (reply message "DANK allotment requested. You should receive your DANK shortly")
                                          (on-success message opts)))
@@ -194,11 +204,11 @@
           (cond
             (= @status :shut) :do-nothing
             (not= @status :enabled) (reply message "Faucet temporarily disabled")
-            (and (reach-limits?) (not (has-any-role? message admin-roles))) (reply message "Faucet is becoming very warm! Let it cold down for a few minutes")
+            (and (reach-limits?) (not (has-any-role? message admin-roles))) (reply message "Faucet is becoming very warm! Let it cool down for a few minutes")
             :else
               (let [tweet-url (first (re-find tweet-url-regex (-> message (.-cleanContent)) ))]
                 (cond
-                  (not tweet-url) (reply message (str "Invalid tweet URL. Usage:\n" (.-user client) " https://twitter.com/username/status/12345678901234567890"))
+                  (not tweet-url) (reply message (str "Invalid tweet URL. " (usage-text client)))
                   (and (not (has-any-role? message admin-roles)) (contains? @users (-> message (.-author) (.-id)))) (reply message "You have already requested faucet")
                   :else
                   (do
