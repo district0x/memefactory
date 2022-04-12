@@ -594,7 +594,7 @@
                                :reg-entry.status/blacklisted [:label.rejected "Rejected from Registry"]
                                :reg-entry.status/challenge-period [:label.rejected "Open for Challenge"]
                                [:label.challenged "Challenged"])]
-                [:div.description (case (gql-utils/gql-name->kw status)
+                [:div.description (case status
                                     :reg-entry.status/whitelisted      "This meme has passed through the challenge phase and has been placed into the Dank Registry."
                                     :reg-entry.status/blacklisted      "This meme was challenged and lost. It's ineligible for the Dank Registry unless resubmitted."
                                     :reg-entry.status/challenge-period (gstring/format "This meme has been submitted to the Dank Registry, but is still open to be challenged. The challenge window closes in %s"
