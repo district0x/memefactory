@@ -128,7 +128,8 @@
          [:h2.title (str "Transfer Meme NFTs ETH → Polygon")]
          [:h3.title "Bring your Meme tokens from Ethereum to Polygon network"]
          [switch-chain-button {:net :l1}]]
-        [:p "You can bring the Meme NFT you have on Ethereum Mainnet to Polygon. Select the tokens you want to transfer. Once the transaction succeed, switch your wallet to Polygon Mainnet where you'll receive your Meme NFTs in a few minutes."]
+        [:p "You can bring the Meme Factory NFTs you have on Ethereum Mainnet to Polygon. Select the tokens you want to transfer."]
+        [:p "Once the transaction succeed, switch your wallet to Polygon Mainnet where you'll receive your NFTs within 15 minutes. If you have trouble receiving your Meme Factory NFTs, please try to refresh the page or contact us."]
         [:div.form-panel
          (doall (map (fn [token-id]
                        (let [token-title (format-token token-id)
@@ -325,7 +326,7 @@
          [:h2.title (str "1. Withdraw Meme tokens Polygon → ETH")]
          [:h3.title "Withdraw Meme NFT from Polygon to be claimed on Ethereum network"]
          [switch-chain-button]]
-        [:p "You can send your Meme NFTs from Polygon to Ethereum. Select the tokens you want to transfer and trigger the button to start the withdrawal process"]
+        [:p "You can send your Meme Factory NFTs from Polygon to Ethereum. Select the tokens you want to transfer and trigger the button to start the withdrawal process"]
          (if (and (empty? state)
                   (not loading-first?))
            [no-items-found]
@@ -395,7 +396,7 @@
            [:h2.title (str "2. Complete withdrawing Meme tokens Polygon → ETH")]
            [:h3.title "Claim the meme tokens you have previously withdraw from Polygon to Ethereum network"]
            [switch-chain-button {:net :l1}]]
-          [:p "Once the Polygon transaction receipt is confirmed on Ethereum (up to 3 hours), switch your wallet to Ethereum Mainnet and complete the withdrawal to claim the Meme NFT you transferred"]
+          [:p "Once the Polygon transaction receipt is confirmed on Ethereum (up to 3 hours), switch your wallet to Ethereum Mainnet and complete the withdrawal to claim the Meme Factory NFTs you transferred"]
           [withdraw-form form-data options tx-id ::bridge-contracts/exit-meme-token]
           [:div.footer "Make sure your wallet is connected to Ethereum Mainnet network"]]]))))
 
