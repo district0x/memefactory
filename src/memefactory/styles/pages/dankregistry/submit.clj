@@ -53,7 +53,8 @@
                      [:&
                       {:margin-right 0}])
       [:img {:width (px compact-tile/card-width)
-             :height (px compact-tile/card-height)}]
+             :height (px compact-tile/card-height)
+             :object-fit :cover}]
       [:.input-group
        [:.dropzone {:width (px compact-tile/card-width)
                     :height (px compact-tile/card-height)}]
