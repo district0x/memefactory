@@ -8,10 +8,13 @@
    [district.ui.graphql.subs :as gql]
    [district.ui.web3-account-balances.subs :as balance-subs]
    [district.ui.web3-accounts.subs :as accounts-subs]
+   [district.ui.web3-tx-id.subs :as tx-id-subs]
    [goog.string :as gstring]
    [memefactory.ui.components.app-layout :refer [app-layout]]
+   [memefactory.ui.components.buttons :refer [chain-check-pending-button]]
    [memefactory.ui.components.general :refer [nav-anchor dank-with-logo]]
    [memefactory.ui.components.tiles :refer [meme-image]]
+   [memefactory.ui.contract.meme-factory :as meme-factory]
    [memefactory.ui.dank-registry.events :as dr-events]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -81,7 +84,10 @@
                                       (assoc-in [:search-tags] (:error search-tags))))})
         critical-errors (reaction (index-by-type @errors :error))
         account-balance (subscribe [::balance-subs/active-account-balance :DANK])
-        active-account @(subscribe [::accounts-subs/active-account])]
+        active-account @(subscribe [::accounts-subs/active-account])
+        tx-id (str active-account "upload-meme" (random-uuid))
+        tx-pending? (subscribe [::tx-id-subs/tx-pending? {::meme-factory/approve-and-create-meme tx-id}])
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::meme-factory/approve-and-create-meme tx-id}])]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory - Submit to Dank Registry"
@@ -149,12 +155,17 @@
                         :maxLength 500}]]
           #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
           [:div.submit
-           [:button {:on-click (fn []
-                                 (dispatch [::dr-events/upload-meme @form-data deposit-value])
-                                 (reset! form-data {}))
-                     :disabled (or (not (empty? @critical-errors))
-                                   (< @account-balance deposit-value))}
-            "Submit"]
+           [chain-check-pending-button {:pending? @tx-pending?
+                                        :disabled (or @tx-pending? @tx-success? (not (empty? @critical-errors))
+                                                      (< @account-balance deposit-value) (not active-account))
+                                        :pending-text "Submitting ..."
+                                        :on-click #(dispatch [::dr-events/upload-meme
+                                                              {:send-tx/id tx-id
+                                                               :form-data @form-data
+                                                               :deposit deposit-value}])}
+            (if @tx-success?
+              "Submitted"
+              "Submit")]
            [dank-with-logo (web3/from-wei deposit-value :ether)]]
           (when (< @account-balance deposit-value)
             [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])]]]])))
