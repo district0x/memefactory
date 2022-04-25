@@ -22,31 +22,29 @@
 
 (re-frame/reg-event-fx
  ::upload-meme
- (fn [_ [_ {:keys [file-info] :as data} deposit]]
-   (log/info "Uploading meme image" {:file file-info} ::upload-meme)
+ (fn [_ [_ {:keys [:form-data :deposit] :as data}]]
+   (log/info "Uploading meme image" {:file (:file-info form-data)} ::upload-meme)
    {:ipfs/call {:func "add"
-                :args [(:file file-info)]
+                :args [(:file (:file-info form-data))]
                 :opts {:wrap-with-directory true}
-                :on-success [::upload-meme-meta data deposit]
-                :on-error [::logging/error "upload-meme ipfs call error" {:data data
-                                                                          :deposit deposit}
+                :on-success [::upload-meme-meta data]
+                :on-error [::logging/error "upload-meme ipfs call error" {:data form-data}
                            ::upload-meme]}}))
 
 (re-frame/reg-event-fx
  ::upload-meme-meta
- (fn [{:keys [db]} [_ data deposit ipfs-response]]
+ (fn [{:keys [db]} [_ data ipfs-response]]
    (log/info "Meme image uploaded" {:ipfs-response ipfs-response} ::upload-meme-meta)
    (try-catch
     (let [resp (utils/parse-ipfs-response ipfs-response)
           image-hash (str (-> resp last :Hash) "/" (-> resp first :Name))
-          meme-meta (build-meme-meta-string data image-hash)
+          meme-meta (build-meme-meta-string (:form-data data) image-hash)
           buffer-data (js/buffer.Buffer.from meme-meta)]
       (log/info "Uploading meme meta" {:meme-meta meme-meta} ::upload-meme-meta)
       {:ipfs/call {:func "add"
                    :args [buffer-data]
-                   :on-success [::meme-factory/approve-and-create-meme data deposit]
+                   :on-success [::meme-factory/approve-and-create-meme data]
                    :on-error [::logging/error "upload-meme-meta ipfs call error"
-                              {:data data
-                               :deposit deposit
+                              {:data (:form-data data)
                                :meme-meta meme-meta}
                               ::upload-meme-meta]}}))))
