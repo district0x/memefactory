@@ -35,6 +35,7 @@
     [:items [:reg-entry/address
              [:reg-entry/creator [:user/address :user/creator-rank]]
              :meme/image-hash
+             :meme/animation-hash
              :reg-entry/created-on
              :meme/title
              :meme/number

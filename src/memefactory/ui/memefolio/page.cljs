@@ -314,7 +314,7 @@
                         :has-more? has-more?
                         :load-fn re-search}
        (when-not loading-first?
-         (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
+         (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/animation-hash :meme/number
                                   :meme/title :meme/total-supply :meme/owned-meme-tokens] :as meme}]
                        (when address
                          (let [token-ids (map :meme-token/token-id owned-meme-tokens)
@@ -323,7 +323,7 @@
                                                 count)
                                active-user-page? (or (empty? url-address) (= url-address active-account))]
                            [:div.compact-tile {:key address}
-                            [tiles/flippable-tile {:front [tiles/meme-image image-hash
+                            [tiles/flippable-tile {:front [tiles/meme-image image-hash animation-hash
                                                            {:class "collected-tile-front"}]
                                                    :back (if active-user-page?
                                                            [collected-tile-back {:meme/number number
@@ -361,6 +361,7 @@
                                                                  :reg-entry/address
                                                                  :meme/number
                                                                  :meme/image-hash
+                                                                 :meme/animation-hash
                                                                  :meme/total-minted]]]]]]]]
                                        [:search-memes [:total-count]]
                                        [:search-meme-tokens [:total-count]]]}])
@@ -452,14 +453,14 @@
                                                     [:div.spinner-container [spinner/spin]])
                         :load-fn re-search}
        (when-not loading-first?
-         (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
+         (doall (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/animation-hash :meme/number
                                   :meme/title :meme/total-supply :meme/total-minted] :as meme}]
                        (when address
                          (let [status (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds meme))
                                rejected? (= status :reg-entry.status/blacklisted)]
                            ^{:key address} [:div.compact-tile
                                             [:div.container
-                                             [tiles/meme-image image-hash {:rejected? rejected?}]]
+                                             [tiles/meme-image image-hash animation-hash {:rejected? rejected?}]]
                                             [nav-anchor {:route :route.meme-detail/index
                                                          :params {:address address}
                                                          :query nil
@@ -554,7 +555,7 @@
                       :load-fn re-search}
      (when-not loading-first?
        (doall
-        (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/number
+        (map (fn [{:keys [:reg-entry/address :meme/image-hash :meme/animation-hash :meme/number
                           :meme/title :challenge/vote] :as meme}]
                (when address
                  (let [{:keys [:vote/option]} vote
@@ -565,7 +566,7 @@
                    [:div.compact-tile
                     [:div.container
                      [:div.meme-card-front
-                      [tiles/meme-image image-hash {:rejected? rejected?}]]]
+                      [tiles/meme-image image-hash animation-hash {:rejected? rejected?}]]]
                     [nav-anchor {:route :route.meme-detail/index
                                  :params {:address address}
                                  :query nil
@@ -687,7 +688,7 @@
                     {:keys [:meme/title :meme/total-minted] :as meme} :meme-token/meme :as meme-token} :meme-auction/meme-token
                    :as meme-auction}]
                [:div.compact-tile {:key address}
-                [tiles/flippable-tile {:front [tiles/meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
+                [tiles/flippable-tile {:front [tiles/meme-image (get-in meme-token [:meme-token/meme :meme/image-hash]) (get-in meme-token [:meme-token/meme :meme/animation-hash])]
                                        :back [:div.meme-card
                                               [:div.overlay
 
@@ -747,6 +748,7 @@
                     [:items (remove nil? [:reg-entry/address
                                           :reg-entry/created-on
                                           :meme/image-hash
+                                          :meme/animation-hash
                                           :meme/meta-hash
                                           :meme/number
                                           :meme/title
@@ -775,6 +777,7 @@
                   :has-next-page
                   [:items [:reg-entry/address
                            :meme/image-hash
+                           :meme/animation-hash
                            :meme/meta-hash
                            :meme/number
                            :meme/title
@@ -808,6 +811,7 @@
                   :has-next-page
                   [:items [:reg-entry/address
                            :meme/image-hash
+                           :meme/animation-hash
                            :meme/meta-hash
                            :meme/number
                            :meme/title
@@ -849,6 +853,7 @@
                                :meme/title
                                :meme/number
                                :meme/image-hash
+                               :meme/animation-hash
                                :meme/meta-hash
                                :meme/total-minted]]]]]]]]]
       :sold [[:search-meme-auctions (merge {:seller user-address
@@ -879,6 +884,7 @@
                            [:reg-entry/address
                             :meme/title
                             :meme/image-hash
+                            :meme/animation-hash
                             :meme/meta-hash
                             :meme/number
                             :meme/total-minted]]]]]]]]])))

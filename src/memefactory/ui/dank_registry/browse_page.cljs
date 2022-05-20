@@ -40,6 +40,7 @@
     [:items [:reg-entry/address
              :reg-entry/created-on
              :meme/image-hash
+             :meme/animation-hash
              :meme/title
              :meme/total-minted
              :meme/number

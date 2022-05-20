@@ -48,6 +48,7 @@
    [:meme/number :integer default-nil]
    [:meme/image-hash ipfs-hash not-nil]
    [:meme/meta-hash ipfs-hash not-nil]
+   [:meme/animation-hash ipfs-hash default-nil]
    [:meme/total-supply :unsigned :integer not-nil]
    [:meme/total-minted :unsigned :integer not-nil]
    [:meme/token-id-start :varchar default-nil]
@@ -247,7 +248,10 @@
 (defn patch-forbidden-reg-entry-image! [address]
   (db/run! {:update :memes
             :set {:meme/image-hash "forbidden-image-hash"}
-            :where [:= :reg-entry/address address]}))
+            :where [:= :reg-entry/address address]})
+  (db/run! {:update :memes
+            :set {:meme/animation-hash "forbidden-animation-hash"}
+            :where [:and [:= :reg-entry/address address] [:<> :meme/animation-hash nil]]}))
 
 (defn assign-meme-number! [address n]
   (db/run! {:update :memes

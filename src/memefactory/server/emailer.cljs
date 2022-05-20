@@ -61,7 +61,7 @@
 
 (defn send-challenge-created-email [{:keys [:registry-entry :commit-period-end] :as ev}]
   (safe-go
-   (let [{:keys [:reg-entry/creator :meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
+   (let [{:keys [:reg-entry/creator :meme/title :meme/image-hash :meme/animation-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
          ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
@@ -69,7 +69,7 @@
          [unit value] (time/time-remaining-biggest-unit (cljs-time/now)
                                                         (-> commit-period-end time/epoch->long time-coerce/from-long))
          time-remaining (format/format-time-units {unit value})
-         meme-image-url (str ipfs-gateway-url image-hash)
+         meme-image-url (str ipfs-gateway-url (or animation-hash image-hash))
          email (<? (district0x-emails/get-email {:district0x-emails/address creator}))]
      (if-let [to (validate-email email)]
        (do
@@ -127,11 +127,11 @@
 (defn send-auction-bought-email [{:keys [:meme-auction :buyer :price] :as ev}]
   (safe-go
    (let [{:keys [:meme-auction/seller :meme-auction/address] :as meme-auction} (db/get-meme-auction meme-auction)
-         {:keys [:reg-entry/address :meme/title :meme/image-hash]} (db/get-meme-by-auction-address address)
+         {:keys [:reg-entry/address :meme/title :meme/image-hash :meme/animation-hash]} (db/get-meme-by-auction-address address)
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
          ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
-         meme-image-url (str ipfs-gateway-url image-hash)
+         meme-image-url (str ipfs-gateway-url (or animation-hash image-hash))
          buyer-url (str root-url "memefolio/" buyer)
          meme-url (str root-url "meme-detail/" address)
          button-url (str root-url "memefolio/?tab=sold")
@@ -194,14 +194,14 @@
 
 (defn send-vote-reward-claimed-email [{:keys [:registry-entry :voter :amount] :as ev}]
   (safe-go
-   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
+   (let [{:keys [:meme/title :meme/image-hash :meme/animation-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:vote/option]} (db/get-vote {:reg-entry/address registry-entry :vote/voter voter} [:vote/option])
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer ])
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
          ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
          button-url (str root-url "memefolio/?tab=curated")
          meme-url (str root-url "meme-detail/" registry-entry)
-         meme-image-url (str ipfs-gateway-url image-hash)
+         meme-image-url (str ipfs-gateway-url (or animation-hash image-hash))
          email (<? (district0x-emails/get-email {:district0x-emails/address voter}))]
      (if-let [to (validate-email email)]
        (do
@@ -257,12 +257,12 @@
 
 (defn send-challenge-reward-claimed-email [{:keys [:registry-entry :challenger :amount] :as ev}]
   (safe-go
-   (let [{:keys [:meme/title :meme/image-hash] :as meme} (db/get-meme registry-entry)
+   (let [{:keys [:meme/title :meme/image-hash :meme/animation-hash] :as meme} (db/get-meme registry-entry)
          {:keys [:from :template-id :api-key :print-mode?]} (get-in @config/config [:emailer])
          root-url (format/ensure-trailing-slash (get-in @config/config [:ui :root-url]))
          ipfs-gateway-url (format/ensure-trailing-slash (get-in @config/config [:ipfs :gateway]))
          meme-url (str root-url "meme-detail/" registry-entry)
-         meme-image-url (str ipfs-gateway-url image-hash)
+         meme-image-url (str ipfs-gateway-url (or animation-hash image-hash))
          button-url (str root-url "memefolio/?tab=curated")
          email (<? (district0x-emails/get-email {:district0x-emails/address challenger}))]
      (if-let [to (validate-email email)]

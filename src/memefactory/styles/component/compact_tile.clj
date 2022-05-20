@@ -313,7 +313,29 @@
       :height (px card-height)
       :margin :auto}
      no-select-style
-     no-drag-style)]]
+     no-drag-style)]
+
+   [:video.meme-image
+    {:object-fit :fill}]
+
+   [:div.video-thumbnail
+    [:i.play-button
+     {:background-image "url('/assets/icons/play-button.svg')"
+      :position :absolute
+      ; right-bottom corner:
+      :bottom (px 20)
+      :right (px 20)
+      ; or center:
+      ;:top "50%"
+      ;:left "50%"
+      ;:transform "translate(-50%, -50%)"
+      ;
+      :height (px 45)
+      :width (px 45)
+      :border-radius "50%"
+      :background-color "rgba(0,0,0,0.5)"}]
+    [:i.play-button:hover {:filter "invert(25%)"
+                           :background-color "rgb(0,0,0)"}]]]
 
   [:.compact-tile-container
    {:display :flex

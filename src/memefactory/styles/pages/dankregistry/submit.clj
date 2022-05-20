@@ -55,6 +55,7 @@
       [:img {:width (px compact-tile/card-width)
              :height (px compact-tile/card-height)
              :object-fit :cover}]
+      [:video {:object-fit :fill}]
       [:.input-group
        [:.dropzone {:width (px compact-tile/card-width)
                     :height (px compact-tile/card-height)}]

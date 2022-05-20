@@ -50,6 +50,7 @@
                        :reg-entry/created-on
                        :reg-entry/challenge-period-end
                        :meme/image-hash
+                       :meme/animation-hash
                        :meme/meta-hash
                        :meme/number
                        :meme/title
@@ -147,6 +148,7 @@
                                       :meme/title
                                       :meme/number
                                       :meme/image-hash
+                                      :meme/animation-hash
                                       :meme/meta-hash
                                       :meme/total-minted]]]]]]]]])]
     (fn [address tags]
@@ -553,7 +555,7 @@
                                             :meme
                                             (shared-utils/reg-entry-dates-to-seconds))]
                               (assoc meme :reg-entry/status (shared-utils/reg-entry-status @now (shared-utils/reg-entry-dates-to-seconds meme)))))
-        {:keys [:reg-entry/status :meme/image-hash :meme/title :meme/number :reg-entry/status :meme/total-supply :reg-entry/created-on
+        {:keys [:reg-entry/status :meme/image-hash :meme/animation-hash :meme/title :meme/number :reg-entry/status :meme/total-supply :reg-entry/created-on
                 :meme/tags :meme/owned-meme-tokens :reg-entry/creator :challenge/challenger :reg-entry/challenge-period-end :challenge/reveal-period-end]} meme
         token-count (->> owned-meme-tokens
                          (map :meme-token/token-id)
@@ -584,7 +586,7 @@
              (when number
                [:div.meme-number {:key :meme-number} (str "#" number)])
              ^{:key :container}
-             [tiles/meme-image image-hash {:rejected? (-> (gql-utils/gql-name->kw status) (= :reg-entry.status/blacklisted))}]
+             [tiles/meme-image image-hash animation-hash {:rejected? (-> (gql-utils/gql-name->kw status) (= :reg-entry.status/blacklisted))}]
              (if exists?
                [:div.registry {:key :registry}
                 [share-buttons/share-buttons (. (. js/document -location) -href)]

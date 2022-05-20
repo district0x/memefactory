@@ -48,6 +48,7 @@
                        :challenge/votes-against
                        :meme/total-supply
                        :meme/image-hash
+                       :meme/animation-hash
                        :meme/title
                        :meme/comment
                        [:meme/tags [:tag/name]]
@@ -108,7 +109,7 @@
 
 (defn challenge [{:keys [:entry :include-challenger-info? :action-child]}]
   (let [{:keys [:reg-entry/address :reg-entry/created-on :reg-entry/challenge-period-end
-                :meme/total-supply :meme/image-hash :reg-entry/creator :meme/title
+                :meme/total-supply :meme/image-hash :meme/animation-hash :reg-entry/creator :meme/title
                 :meme/tags :challenge/challenger :challenge/comment :challenge/commit-period-end :challenge/reveal-period-end]} entry]
 
     (let [status (shared-utils/reg-entry-status @(ui-utils/now-in-seconds)
@@ -167,7 +168,7 @@
                           name]])]]))
 
        [:div.meme-tile
-        [tiles/meme-image image-hash {:rejected? (= status :reg-entry.status/blacklisted)}]]
+        [tiles/meme-image image-hash animation-hash {:rejected? (= status :reg-entry.status/blacklisted)}]]
        [:div.action
         (if (and (= 0 days hours minutes seconds)
                  (not (#{:reg-entry.status/whitelisted :reg-entry.status/blacklisted} status)))

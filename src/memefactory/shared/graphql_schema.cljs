@@ -268,6 +268,7 @@
     meme_number: Int
     meme_metaHash: String
     meme_imageHash: String
+    meme_animationHash: String
     meme_totalSupply: Int
     meme_totalMinted: Int
     meme_tokenIdStart: Int
