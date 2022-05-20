@@ -81,13 +81,15 @@
         (async/put! out-ch e)))
     out-ch))
 
-(defn ensure-media-uploaded [twitter-obj {:keys [image-hash registry-entry]} {:keys [just-log-tweet? write-directory]
+(defn ensure-media-uploaded [twitter-obj {:keys [image-or-video-hash registry-entry]} {:keys [just-log-tweet? write-directory]
                                                                               :or {write-directory "/tmp/memefactory"}}]
   (safe-go
    (if-let [media-id (db/get-meme-media-id registry-entry)]
      media-id
-     (let [ipfs-hash (or image-hash
-                         (:meme/image-hash (db/get-meme registry-entry)))
+     (let [ipfs-hash (or image-or-video-hash
+                         (let [meme (db/get-meme registry-entry)]
+                           (or (:meme/animation-hash meme)
+                               (:meme/image-hash meme))))
            _ (log/info "Uploading media " {:ipfs-hash ipfs-hash} ::ensure-media-uploaded)
            image-tar-file-content (<? (server-utils/get-ipfs-binary-file ipfs-hash))]
        (when-not just-log-tweet?
@@ -100,9 +102,11 @@
   (safe-go
    (log/info "Twitter bot processing meme submitted event " ev ::tweet-meme-submitted)
    (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs (web3-utils/to-ascii @web3 meta-hash)))
-         {:keys [:name :image]} meme-meta
-         image-hash (server-utils/get-hash-from-ipfs-url image)
-         media-id (<? (ensure-media-uploaded twitter-obj {:image-hash image-hash} opts))
+         {:keys [:name :image :animation-url]} meme-meta
+         image-or-video-hash (if animation-url
+                      (server-utils/get-hash-from-ipfs-url animation-url)
+                      (server-utils/get-hash-from-ipfs-url image))
+         media-id (<? (ensure-media-uploaded twitter-obj {:image-or-video-hash image-or-video-hash} opts))
          meme-detail-url (str "https://memefactory.io/meme-detail/" registry-entry)
          text (rand-nth [(gstring/format "Introducing '%s', The latest submission to vie for a place in the DANK registry. %s" name meme-detail-url)
                          (gstring/format "The newest entry to the DANK registry, meet '%s'. Will it pass the bar? %s" name meme-detail-url)])]

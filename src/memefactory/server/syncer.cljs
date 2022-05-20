@@ -138,14 +138,16 @@
          errors)
 
        (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs meta-hash))
-             {:keys [:name :image :description] {:keys [:search-tags]} :attributes} meme-meta
-             image-hash (server-utils/get-hash-from-ipfs-url image)]
+             {:keys [:name :image :description :animation_url] {:keys [:search-tags]} :attributes} meme-meta
+             image-hash (server-utils/get-hash-from-ipfs-url image)
+             animation-hash (if animation_url (server-utils/get-hash-from-ipfs-url animation_url) nil)]
          (db/insert-registry-entry! registry-entry-data)
          (db/upsert-user! {:user/address creator})
          (db/insert-meme! (merge meme {:reg-entry/address registry-entry
                                        :meme/comment description
                                        :meme/image-hash image-hash
-                                       :meme/title name}))
+                                       :meme/title name
+                                       :meme/animation-hash animation-hash}))
 
          (schedule-meme-number-assigner registry-entry (inc (- (bn/number challenge-period-end)
                                                                now-in-seconds)))

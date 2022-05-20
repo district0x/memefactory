@@ -20,30 +20,43 @@
             [reagent.core :as r]
             [taoensso.timbre :as log :refer [spy]]))
 
+(defn meme-video [animation-url thumbnail show-video]
+  (let []
+    (if @show-video
+      [:video.meme-image.initial-fade-in-delay {:controls true
+                                                :loop true
+                                                :autoPlay true
+                                                :muted true
+                                                :width 290
+                                                :height 435}
+       [:source {:src animation-url
+                 :type "video/mp4"}]
+       [:span "Your browser does not support video tags"]]
+      [:div.video-thumbnail
+       [:img.meme-image.initial-fade-in-delay {:src thumbnail}]
+       [:i.play-button {:on-click (fn [e]
+                                    (.stopPropagation e)
+                                    (reset! show-video true)
+                                    )}]])))
+
 (defn meme-image [& _]
-  (let [url (:gateway @(subscribe [::ipfs-subs/ipfs]))]
-    (fn [image-hash & [{:keys [rejected?] :as props}]]
+  (let [url (:gateway @(subscribe [::ipfs-subs/ipfs]))
+        show-video (r/atom false)]
+    (fn [image-hash animation-hash & [{:keys [rejected?] :as props}]]
       (let [props (dissoc props :rejected?)
-            src-url (str (format/ensure-trailing-slash url) image-hash)]
+            image-url (str (format/ensure-trailing-slash url) image-hash)
+            animation-url (when animation-hash (str (format/ensure-trailing-slash url) animation-hash))]
         [:div.meme-card
          props
          (cond
 
-           (string/includes? src-url "forbidden")
+           (string/includes? image-url "forbidden")
            [:div.meme-placeholder.initial-fade-in [:img {:src "/assets/icons/mememouth.png"}]]
 
-           (string/includes? src-url ".mp4")
-           [:video.meme-image.initial-fade-in-delay {:controls false
-                                                     :loop true
-                                                     :autoPlay true
-                                                     :muted true
-                                                     :width 290
-                                                     :height 435}
-            [:source {:src src-url
-                      :type "video/mp4"}]
-            [:span "Your browser does not support video tags"]]
+           (some? animation-hash)
+           [meme-video animation-url image-url show-video]
 
-           :else [:img.meme-image.initial-fade-in-delay {:src src-url}])
+           :else [:img.meme-image.initial-fade-in-delay {:src image-url}])
          (when rejected?
            [:div.image-tape-container.initial-fade-in-delay
             [:div.image-tape
@@ -199,7 +212,7 @@
                                                                                                     :reg-entry/address)}
                                                                                      [[:items [:meme-auction/address]]]]]}]))]
         [:div.compact-tile
-         [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash])]
+         [flippable-tile {:front [meme-image (get-in meme-token [:meme-token/meme :meme/image-hash]) (get-in meme-token [:meme-token/meme :meme/animation-hash])]
                           :back [auction-back-tile opts meme-auction]}]
 
          [nav-anchor {:route :route.meme-detail/index
@@ -256,9 +269,9 @@
        [:li [:label "Highest Single Sale:"] (ui-utils/format-price highest-single-sale)]]]]))
 
 
-(defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/number] :as meme}]
+(defn meme-tile [{:keys [:reg-entry/address :meme/image-hash :meme/animation-hash :meme/number] :as meme}]
   [:div.compact-tile
-   [flippable-tile {:front [meme-image image-hash]
+   [flippable-tile {:front [meme-image image-hash animation-hash]
                     :back [meme-back-tile meme]}]
    [nav-anchor {:route :route.meme-detail/index
                 :params {:address address}}

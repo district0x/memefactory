@@ -28,9 +28,9 @@
 
        :else
        (let [meme-meta (<? (server-utils/get-ipfs-meta @ipfs/ipfs meta-hash))
-             {:keys [:image-hash]} meme-meta]
-         (if-not (ipfs/ipfs-hash? image-hash)
-           (log/error (str "Meme image hash is not valid IPFS hash " image-hash) ::invalid-image-hash)
+             {:keys [:image :animation-url]} meme-meta]
+         (if-not (ipfs/ipfs-hash? image)
+           (log/error (str "Meme image hash is not valid IPFS hash " image) ::invalid-image-hash)
 
            (do
              (pin/add meta-hash
@@ -39,11 +39,18 @@
                           (log/error (str "Pinning meme meta hash failed " meta-hash) ::pin-meta-hash)
                           (log/info (str "Pinned meme meta hash " meta-hash) ::pin-meta-hash))))
 
-             (pin/add image-hash
+             (pin/add image
                       (fn [err]
                         (if err
-                          (log/error (str "Pinning meme image hash failed " image-hash " " err) ::pin-image-hash)
-                          (log/info (str "Pinned meme image hash " image-hash) ::pin-image-hash)))))))))))
+                          (log/error (str "Pinning meme image hash failed " image " " err) ::pin-image-hash)
+                          (log/info (str "Pinned meme image hash " image) ::pin-image-hash))))
+
+             (when animation-url
+               (pin/add animation-url
+                      (fn [err]
+                        (if err
+                          (log/error (str "Pinning meme image hash failed " animation-url " " err) ::pin-animation-url-hash)
+                          (log/info (str "Pinned meme image hash " animation-url) ::pin-animation-url-hash))))))))))))
 
 (defn challenge-created-event [err {:keys [:args]}]
   (let [{:keys [:metahash]} args

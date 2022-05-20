@@ -38,12 +38,12 @@
                                          :show-cards-left? true} auc])))]))]))
 
 
-(defn trending-vote-tile [{:keys [:reg-entry/address :meme/image-hash :reg-entry/creator :challenge/commit-period-end
+(defn trending-vote-tile [{:keys [:reg-entry/address :meme/image-hash :meme/animation-hash :reg-entry/creator :challenge/commit-period-end
                                   :challenge/challenger :challenge/comment] :as meme}]
 
   (let [{:keys [:user/total-created-challenges-success :user/total-created-challenges]} challenger]
     [:div.compact-tile
-     [tiles/flippable-tile {:front [tiles/meme-image image-hash]
+     [tiles/flippable-tile {:front [tiles/meme-image image-hash animation-hash]
                             :back [:div.meme-card.back
                                    [:div.overlay
 
@@ -111,6 +111,7 @@
                             [:reg-entry/address
                              :meme/title
                              :meme/image-hash
+                             :meme/animation-hash
                              :meme/total-minted
                              :meme/number]]]]])
 
@@ -159,6 +160,7 @@
                :user/total-created-challenges]]
              :meme/title
              :meme/image-hash
+             :meme/animation-hash
              :challenge/votes-total
              :challenge/commit-period-end
              :challenge/comment]]]])
