@@ -87,7 +87,8 @@
         active-account @(subscribe [::accounts-subs/active-account])
         tx-id (str active-account "upload-meme" (random-uuid))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::meme-factory/approve-and-create-meme tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {::meme-factory/approve-and-create-meme tx-id}])]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::meme-factory/approve-and-create-meme tx-id}])
+        uploading? (subscribe [:memefactory.ui.subs/uploading tx-id])]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory - Submit to Dank Registry"
@@ -175,16 +176,17 @@
           #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
           [:div.submit
            [chain-check-pending-button {:pending? @tx-pending?
-                                        :disabled (or @tx-pending? @tx-success? (not (empty? @critical-errors))
+                                        :disabled (or @uploading? @tx-pending? @tx-success? (not (empty? @critical-errors))
                                                       (< @account-balance deposit-value) (not active-account))
                                         :pending-text "Submitting ..."
                                         :on-click #(dispatch [::dr-events/upload-meme
                                                               {:send-tx/id tx-id
                                                                :form-data @form-data
                                                                :deposit deposit-value}])}
-            (if @tx-success?
-              "Submitted"
-              "Submit")]
+            (cond
+              @tx-success? "Submitted"
+              @uploading? "Processing ..."
+              :default "Submit")]
            [dank-with-logo (web3/from-wei deposit-value :ether)]]
           (when (< @account-balance deposit-value)
             [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])

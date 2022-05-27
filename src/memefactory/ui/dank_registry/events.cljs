@@ -29,10 +29,11 @@
 
 (re-frame/reg-event-fx
  ::upload-meme
- (fn [_ [_ {:keys [:form-data] :as data}]]
-   (if (is-video? (:file-info form-data))
-     {:dispatch [::upload-thumbnail data]}
-     {:dispatch [::upload-meme-image data nil]})))
+ (fn [{:keys [db]} [_ {:keys [:form-data :send-tx/id] :as data}]]
+   (merge {:db (assoc-in db [:uploading id] true)}
+     (if (is-video? (:file-info form-data))
+       {:dispatch [::upload-thumbnail data]}
+       {:dispatch [::upload-meme-image data nil]}))))
 
 
 (re-frame/reg-event-fx
@@ -43,8 +44,14 @@
                  :args [(:video-thumbnail form-data)]
                  :opts {:wrap-with-directory true}
                  :on-success [::upload-meme-image data]
-                 :on-error [::logging/error "upload-thumbnail ipfs call error" {:data form-data}
-                            ::upload-meme]}}))
+                 :on-error [::upload-error "upload-thumbnail ipfs call error" data]}}))
+
+
+(re-frame/reg-event-fx
+  ::upload-error
+  (fn [{:keys [db]} [_ msg data]]
+    {:db (update-in db [:uploading] dissoc (:send-tx/id data))
+     :dispatch [::logging/error msg {:data (:form-data data)} ::upload-meme]}))
 
 
 (defn get-thumbnail-hash [ipfs-thumbnail-response]
@@ -63,8 +70,7 @@
                   :args [(:file (:file-info form-data))]
                   :opts {:wrap-with-directory true}
                   :on-success [::upload-meme-meta (merge data {:thumbnail-hash thumbnail-hash})]
-                  :on-error [::logging/error "upload-meme ipfs call error" {:data form-data}
-                             ::upload-meme]}})))
+                  :on-error [::upload-error "upload-meme ipfs call error" data]}})))
 
 (re-frame/reg-event-fx
  ::upload-meme-meta
@@ -78,8 +84,11 @@
       (log/info "Uploading meme meta" {:meme-meta meme-meta} ::upload-meme-meta)
       {:ipfs/call {:func "add"
                    :args [buffer-data]
-                   :on-success [::meme-factory/approve-and-create-meme data]
-                   :on-error [::logging/error "upload-meme-meta ipfs call error"
-                              {:data form-data
-                               :meme-meta meme-meta}
-                              ::upload-meme-meta]}}))))
+                   :on-success [::upload-complete data]
+                   :on-error [::upload-error "upload-meme-meta ipfs call error" data]}}))))
+
+(re-frame/reg-event-fx
+  ::upload-complete
+  (fn [{:keys [db]} [_ data ipfs-response]]
+    {:db (update-in db [:uploading] dissoc (:send-tx/id data))
+     :dispatch [::meme-factory/approve-and-create-meme data ipfs-response]}))
