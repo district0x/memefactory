@@ -68,6 +68,7 @@
                 [:meme/title
                  :reg-entry/address
                  :meme/image-hash
+                 :meme/animation-hash
                  :meme/number
                  :meme/total-minted]]]]]]]])
 

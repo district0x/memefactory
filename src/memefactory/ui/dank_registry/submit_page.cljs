@@ -87,7 +87,8 @@
         active-account @(subscribe [::accounts-subs/active-account])
         tx-id (str active-account "upload-meme" (random-uuid))
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::meme-factory/approve-and-create-meme tx-id}])
-        tx-success? (subscribe [::tx-id-subs/tx-success? {::meme-factory/approve-and-create-meme tx-id}])]
+        tx-success? (subscribe [::tx-id-subs/tx-success? {::meme-factory/approve-and-create-meme tx-id}])
+        uploading? (subscribe [:memefactory.ui.subs/uploading tx-id])]
     (fn []
       [app-layout
        {:meta {:title "MemeFactory - Submit to Dank Registry"
@@ -101,16 +102,35 @@
                             :id :file-info
                             :errors errors
                             :label "Upload a file"
-                            :comment "Upload image with ratio 2:3 and size less than 1.5MB"
+                            :comment "Upload image with ratio 2:3 and size less than 25MB"
+                            :video-attributes {:controls true
+                                               :autoPlay false
+                                               :on-loadedData (fn [e]
+                                                                (let [video (.-target e)]
+                                                                  ;; sets time to trigger on-seeked, to make sure video is rendered before building thumbnail
+                                                                  (set! (.-currentTime video) 0)))
+                                               :on-seeked (fn [e]
+                                                            ;; builds video thumbnail right after video is loaded and rendered
+                                                            (let [video (.-target e)]
+                                                              (def canvas (.getElementById js/document "thumbnail-id"))
+                                                              (set! (.-width canvas) (.-videoWidth video))
+                                                              (set! (.-height canvas) (.-videoHeight video))
+                                                              (def ctx (.getContext canvas "2d"))
+                                                              (.drawImage ctx video 0 0)
+                                                              (.toBlob canvas (fn [blob]
+                                                                                (swap! form-data assoc :video-thumbnail
+                                                                                       (js/File. [blob] (str (-> @form-data :file-info :file .-name) "-thumbnail.png")))))))}
                             :file-accept-pred (fn [{:keys [name type size] :as props}]
-                                                (log/debug "Veryfing acceptance of file" {:name name :type type :size size})
+                                                (log/debug "Verifying acceptance of file" {:name name :type type :size size})
                                                 (and (#{"image/png" "image/gif" "image/jpeg" "image/svg+xml" "video/mp4"} type)
-                                                     (< size 1500000)))
+                                                     (< size 25000000)))
                             :on-file-accepted (fn [{:keys [name type size array-buffer] :as props}]
                                                 (swap! form-data update-in [:file-info] dissoc :error)
+                                                (swap! form-data dissoc :video-thumbnail)
                                                 (log/info "Accepted file" {:name name :type type :size size} ::file-accepted))
                             :on-file-rejected (fn [{:keys [name type size] :as props}]
                                                 (swap! form-data assoc :file-info {:error "Non .png .jpeg .gif .svg or .mp4 file selected with size less than 1.5 Mb"})
+                                                (swap! form-data dissoc :video-thumbnail)
                                                 (log/warn "Rejected file" {:name name :type type :size size :user {:id active-account}} ::file-rejected))}]]
          [:div.form-panel
           [with-label "Title"
@@ -156,19 +176,21 @@
           #_[:span.max-issuance (str "Max " max-meme-issuance)] ;; we are showing it on input focus
           [:div.submit
            [chain-check-pending-button {:pending? @tx-pending?
-                                        :disabled (or @tx-pending? @tx-success? (not (empty? @critical-errors))
+                                        :disabled (or @uploading? @tx-pending? @tx-success? (not (empty? @critical-errors))
                                                       (< @account-balance deposit-value) (not active-account))
                                         :pending-text "Submitting ..."
                                         :on-click #(dispatch [::dr-events/upload-meme
                                                               {:send-tx/id tx-id
                                                                :form-data @form-data
                                                                :deposit deposit-value}])}
-            (if @tx-success?
-              "Submitted"
-              "Submit")]
+            (cond
+              @tx-success? "Submitted"
+              @uploading? "Processing ..."
+              :default "Submit")]
            [dank-with-logo (web3/from-wei deposit-value :ether)]]
           (when (< @account-balance deposit-value)
-            [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])]]]])))
+            [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])
+          [:canvas {:hidden true :id "thumbnail-id"}]]]]])))
 
 
 (defmethod page :route.dank-registry/submit []

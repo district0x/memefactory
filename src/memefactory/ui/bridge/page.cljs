@@ -280,6 +280,7 @@
      [:items (remove nil? [:reg-entry/address
                            :reg-entry/created-on
                            :meme/image-hash
+                           :meme/animation-hash
                            :meme/meta-hash
                            :meme/number
                            :meme/title
@@ -337,10 +338,10 @@
                              :has-more? has-more?
                              :load-fn #(re-search end-cursor)}
            (when-not loading-first?
-             (doall (map (fn [{:keys [:reg-entry/address :meme/title :meme/number :meme/number :meme/owned-meme-tokens :meme/image-hash :meme/total-supply] :as meme}]
+             (doall (map (fn [{:keys [:reg-entry/address :meme/title :meme/number :meme/number :meme/owned-meme-tokens :meme/image-hash :meme/animation-hash :meme/total-supply] :as meme}]
                            (let [token-count (count owned-meme-tokens)]
                            [:div.compact-tile {:key address}
-                            [tiles/flippable-tile {:front [tiles/meme-image image-hash
+                            [tiles/flippable-tile {:front [tiles/meme-image image-hash animation-hash
                                                            {:class "collected-tile-front"}]
                                                    :back [tiles/meme-back-tile meme]
                                                    }]

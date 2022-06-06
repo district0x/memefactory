@@ -48,3 +48,8 @@
  ::nsfw-switch
  (fn [db _]
    (:nsfw-switch db)))
+
+(re-frame/reg-sub
+  ::uploading
+  (fn [db [_ tx-id]]
+    (get-in db [:uploading tx-id])))
