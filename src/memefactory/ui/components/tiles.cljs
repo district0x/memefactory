@@ -23,15 +23,17 @@
 (defn meme-video [animation-url thumbnail show-video]
   (let []
     (if @show-video
-      [:video.meme-image.initial-fade-in-delay {:controls true
-                                                :loop true
-                                                :autoPlay true
-                                                :muted true
-                                                :width 290
-                                                :height 435}
-       [:source {:src animation-url
-                 :type "video/mp4"}]
-       [:span "Your browser does not support video tags"]]
+      [:div.video-flippable
+       [:div.video-flip-area]
+       [:video.meme-image.initial-fade-in-delay {:controls true
+                                                 :loop true
+                                                 :autoPlay true
+                                                 :muted true
+                                                 :width 290
+                                                 :height 435}
+         [:source {:src animation-url
+                   :type "video/mp4"}]
+         [:span "Your browser does not support video tags"]]]
       [:div.video-thumbnail
        [:img.meme-image.initial-fade-in-delay {:src thumbnail}]
        [:i.play-button {:on-click (fn [e]

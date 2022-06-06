@@ -315,6 +315,15 @@
      no-select-style
      no-drag-style)]
 
+   [:div.video-flippable
+    {:position :relative}]
+
+   [:div.video-flip-area
+    {:height "85%"
+     :width "100%"
+     :z-index 1
+     :position :absolute}]
+
    [:video.meme-image
     {:object-fit :fill}]
 
