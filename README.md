@@ -87,7 +87,7 @@ UI part of MF is written in ClojurScript, using these most notable technologies:
 -   [district-ui-modules](https://github.com/search?q=topic%3Adistrict-ui-module+org%3Adistrict0x&type=Repositories) to provide general purpose features for decentralised applications
 -   [ReactSemanticUI](https://react.semantic-ui.com/introduction) for simpler styling of components
 -   [GraphQL](https://graphql.org/) for communication between server and client
--   [CSS Grid Layout](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout) as layout systen
+-   [CSS Grid Layout](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout) as layout system
 
 ### Styling
 
@@ -167,7 +167,7 @@ lein test-dev
 
 ### Docker builds
 
-CI deploys the so-called nightly builds on every succesfull commit to the `master` branch.
+CI deploys the so-called nightly builds on every successful commit to the `master` branch.
 These builds target our QA (ropsten) environment, where a `watchtower` service watches and re-deploys images tagged as `latest`.
 These images are versioned based on the corresponding github commit hash.
 
@@ -198,9 +198,9 @@ will build for the appropriate environment.
 
 ### Dank Faucet
 
-Naviagting to `/#/get-dank/index` allows you to verify your phone
+Navigating to `/#/get-dank/index` allows you to verify your phone
 number and receive an initial allotment of DANK. Using the feature is
-pretty easy and straight forward, however maintaining it and deploying
+pretty easy and straightforward, however maintaining it and deploying
 it are not. To get the feature working locally you need the following
 pieces:
 
