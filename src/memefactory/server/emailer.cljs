@@ -1,6 +1,7 @@
 (ns memefactory.server.emailer
   (:require [cljs-time.coerce :as time-coerce]
             [cljs-time.core :as cljs-time]
+            [cljs.nodejs :as nodejs]
             [clojure.string :as string]
             [district.encryption :as encryption]
             [district.format :as format]
@@ -15,6 +16,8 @@
             [memefactory.server.emailer.templates :as templates]
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
+
+(set! js/XMLHttpRequest (nodejs/require "xhr2"))
 
 (defn validate-email [base64-encrypted-email]
   (when-not (empty? base64-encrypted-email)

@@ -2,7 +2,7 @@
   (:require
    [bignumber.core :as bn]
    [cljs-time.extend]
-   [cljs-web3.core :as web3]
+   [cljs-web3-next.core :as web3]
    [district.format :as format]
    [district.graphql-utils :as graphql-utils]
    [district.parsers :as parsers]
@@ -102,17 +102,17 @@
                [:li
                 (gstring/format "Voted Dank: %s (%f) "
                                 (format/format-percentage (or votes-for 0) votes-total)
-                                (format/format-number (bn/number (web3/from-wei (or votes-for 0) :ether))))]
+                                (format/format-number (bn/number (web3/from-wei (str (or votes-for 0)) :ether))))]
                [:li
                 (gstring/format "Voted Stank: %s (%f) "
                                 (format/format-percentage (or votes-against 0) votes-total)
-                                (format/format-number (bn/number (web3/from-wei (or votes-against 0) :ether))))]
-               [:li (gstring/format "Total voted: %f" (format/format-number (bn/number (web3/from-wei (or votes-total 0) :ether))))]
+                                (format/format-number (bn/number (web3/from-wei (str (or votes-against 0)) :ether))))]
+               [:li (gstring/format "Total voted: %f" (format/format-number (bn/number (web3/from-wei (str (or votes-total 0)) :ether))))]
                (when-not (or (= option :vote-option/not-revealed)
                              (= option :vote-option/no-vote))
                  [:li (str "You voted: " (gstring/format "%f for %s (%s)"
                                                          (if (pos? amount)
-                                                           (format/format-number (bn/number (web3/from-wei amount :ether)))
+                                                           (format/format-number (bn/number (web3/from-wei (str amount) :ether)))
                                                            0)
                                                          (case option
                                                            :vote-option/vote-for "DANK"
@@ -181,7 +181,7 @@
                                                    :vote/option :vote.option/vote-for
                                                    :vote/amount (-> @form-data
                                                                   :amount-vote-for
-                                                                  parsers/parse-float
+                                                                  str
                                                                   (web3/to-wei :ether))
                                                    :tx-description title
                                                    :option-desc {:vote.option/vote-against "stank"
@@ -216,7 +216,7 @@
                                                                  :vote.option/vote-for     "dank"}
                                                    :vote/amount (-> @form-data
                                                                   :amount-vote-against
-                                                                  parsers/parse-float
+                                                                  str
                                                                   (web3/to-wei :ether))}]))}
            (if voted? "Voted" "Vote Stank")]]
          (if (bn/> account-balance 0)

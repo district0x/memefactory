@@ -1,7 +1,7 @@
-(ns memefactory.ui.param_change.page
+(ns memefactory.ui.param-change.page
   (:require
    [bignumber.core :as bn]
-   [cljs-web3.core :as web3]
+   [cljs-web3-next.core :as web3]
    [district.parsers :as parsers]
    [district.ui.component.page :refer [page]]
    [district.ui.web3-account-balances.subs :as balance-subs]
@@ -94,11 +94,11 @@
                           :param-change/challenge-period-duration :param-change/commit-period-duration :param-change/reveal-period-duration])
 
 (when-not (= (set (keys param-info)) (set param-display-order))
-  (js/console.warn "memefactory.ui.param_change.page/parm-info and memefactory.ui.param_change.page/param-display-order keys differ"))
+  (js/console.warn "memefactory.ui.param-change.page/parm-info and memefactory.ui.param-change.page/param-display-order keys differ"))
 
 (defn scale-param-change-value [k v]
   (if (#{:meme/deposit :param-change/deposit} k)
-    (web3/from-wei v :ether)
+    (web3/from-wei (str v) :ether)
     v))
 
 (defn unscale-param-change-value [k v]
@@ -176,6 +176,7 @@
         [select-input {:form-data form-data
                        :id :param-change/key
                        :group-class :options
+                       :value js/undefined
                        :options (mapv (fn [{:keys [key] :as p}]
                                         {:key (param-split-keys p) :value (:title (get param-info key))})
                                       @all-params)}]
@@ -202,7 +203,7 @@
                            :maxLength 100
                            :id :param-change/comment
                            :on-click #(.stopPropagation %)}]
-          [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value) :ether)]]]]]
+          [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value str) :ether)]]]]]
 
        [chain-check-pending-button {:pending? @tx-pending?
                         :disabled (or @tx-pending?
@@ -242,7 +243,7 @@
                        :id :param-change/comment
                        :on-click #(.stopPropagation %)}]
       [:div.footer
-       [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value) :ether)]]
+       [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value str) :ether)]]
        [chain-check-pending-button {:disabled (or @tx-pending? @tx-success?)
                                :pending? @tx-pending?
                                :pending-text "Challenging"
@@ -291,11 +292,14 @@
         tx-pending? (subscribe [::tx-id-subs/tx-pending? {::registry-entry/approve-and-commit-vote tx-id}])
         tx-success? (subscribe [::tx-id-subs/tx-success? {::registry-entry/approve-and-commit-vote tx-id}])]
     (fn [param-change]
-      (let [vote-fn (fn [option amount]
+      (let [vote-fn (fn [option amount-field]
                       (dispatch [::registry-entry/approve-and-commit-vote {:send-tx/id tx-id
                                                                            :reg-entry/address (:reg-entry/address param-change)
                                                                            :vote/option option
-                                                                           :vote/amount amount
+                                                                           :vote/amount (-> @form-data
+                                                                                            amount-field
+                                                                                            str
+                                                                                            (web3/to-wei :ether))
                                                                            :tx-description (:title (get param-info (:param-change/key param-change)))
                                                                            :type :param-change
                                                                            :option-desc {:vote.option/vote-against "NO"
@@ -325,10 +329,7 @@
            :pending-text "Voting..."
            :on-click (partial vote-fn
                               :vote.option/vote-for
-                              (-> @form-data
-                                  :amount-vote-for
-                                  parsers/parse-float
-                                  (web3/to-wei :ether)))}
+                              :amount-vote-for)}
           (if @tx-success?
             "VOTED"
             "VOTE YES")]]
@@ -354,10 +355,7 @@
            :pending-text "Voting..."
            :on-click (partial vote-fn
                               :vote.option/vote-against
-                              (-> @form-data
-                                  :amount-vote-against
-                                  parsers/parse-float
-                                  (web3/to-wei :ether)))}
+                              :amount-vote-against)}
           (if @tx-success?
             "VOTED"
             "VOTE NO")]]
@@ -389,7 +387,7 @@
   (let [format-votes (fn [n tot]
                        (gstring/format "%s (%f)"
                                        (if (pos? tot) (format/format-percentage (or n 0) tot) 0)
-                                       (format/format-number (bn/number (web3/from-wei (or n 0) :ether)))))
+                                       (format/format-number (bn/number (web3/from-wei (str (or n 0)) :ether)))))
         active-account (subscribe [::accounts-subs/active-account])]
 
     (if (pos? votes-total)
@@ -398,11 +396,11 @@
        [:ul
         [:li [:label "Voted Yes:"] [:span (format-votes votes-for votes-total)]]
         [:li [:label "Voted No:"] [:span (format-votes votes-against votes-total)]]
-        [:li [:label "Total Voted:"] [:span (format/format-number (bn/number (web3/from-wei (or votes-total 0) :ether)))]]
+        [:li [:label "Total Voted:"] [:span (format/format-number (bn/number (web3/from-wei (str (or votes-total 0)) :ether)))]]
 
         (when (#{:vote-option/vote-for :vote-option/vote-against} (gql-utils/gql-name->kw (:vote/option vote)))
           [:li [:label "You Voted:"] [:span (gstring/format "%d for %s (%s)"
-                                                            (format/format-number (bn/number (web3/from-wei (or (:vote/amount vote) 0) :ether)))
+                                                            (format/format-number (bn/number (web3/from-wei (str (or (:vote/amount vote) 0)) :ether)))
                                                             ({:vote-option/vote-for "Yes"
                                                               :vote-option/vote-against "No"}
                                                              (gql-utils/gql-name->kw (:vote/option vote)))

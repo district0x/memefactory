@@ -1,6 +1,6 @@
 (ns memefactory.ui.my-settings.events
   (:require [ajax.core :as ajax]
-            [cljs-web3.core :as web3]
+            [cljs-web3-next.core :as web3]
             [clojure.string :as string]
             [day8.re-frame.http-fx]
             [district.ui.logging.events :as logging]

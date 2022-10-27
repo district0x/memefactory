@@ -68,11 +68,11 @@
                                                   :reg-entry/address address
                                                   :meme/title (:meme/title meme)}]))}
           (if @claim-rewards-tx-success?
-            [:div.label
+            [:div.label {:key address}
              [:span "Claimed"]
              [:img {:src "/assets/icons/dank-logo.svg"}]]
 
-            [:div.label
+            [:div.label {:key address}
              [:span "Claim"]
              [:img {:src "/assets/icons/dank-logo.svg"}]
              [:span "Reward"]])])
@@ -93,11 +93,11 @@
                                                   :meme/title (:meme/title meme)}]))}
 
           (if @claim-vote-amount-tx-success?
-            [:div.label
+            [:div.label {:key address}
              [:span "Reclaimed"]
              [:img {:src "/assets/icons/dank-logo.svg"}]]
 
-            [:div.label
+            [:div.label {:key address}
              [:span "Reclaim"]
              [:img {:src "/assets/icons/dank-logo.svg"}]
              [:span "Votes"]])])])))

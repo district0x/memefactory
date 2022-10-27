@@ -1,6 +1,6 @@
 (ns memefactory.ui.bridge.page
   (:require
-    [cljs-web3.core :as web3]
+    [cljs-web3-next.core :as web3]
     [clojure.string :as str]
     [district.parsers :as parsers]
     [district.ui.component.form.input :refer [index-by-type file-drag-input with-label chip-input text-input int-input pending-button select-input checkbox-input]]
@@ -8,9 +8,9 @@
     [district.ui.graphql.events :as gql-events]
     [district.ui.graphql.subs :as gql]
     [district.ui.router.subs :as router-subs]
+    [district.ui.smart-contracts.subs :as contract-subs]
     [district.ui.web3-account-balances.subs :as balance-subs]
     [district.ui.web3-accounts.subs :as accounts-subs]
-    [district.ui.web3-chain.subs :as chain-subs]
     [district.ui.web3-tx-id.subs :as tx-id-subs]
     [memefactory.ui.components.app-layout :refer [app-layout]]
     [memefactory.ui.components.buttons :refer [chain-check-pending-button switch-chain-button]]
@@ -21,7 +21,7 @@
     [memefactory.ui.components.tiles :as tiles]
     [memefactory.ui.config :refer [config-map]]
     [memefactory.ui.contract.bridge :as bridge-contracts]
-    [memefactory.ui.utils :as ui-utils]
+    [memefactory.ui.utils :as ui-utils :refer [l1-chain?]]
     [re-frame.core :refer [subscribe dispatch]]
     [reagent.core :as r]
     [reagent.ratom :refer [reaction]]
@@ -45,8 +45,6 @@
 
 (def page-size 6)
 
-(defn l1-chain? []
-  (= @(subscribe [::chain-subs/chain]) (get-in config-map [:web3-chain :l1 :chain-id])))
 
 (defn deposit-dank []
   (let [account-balance (subscribe [::balance-subs/active-account-balance :DANK-root])
@@ -117,7 +115,8 @@
         bridge-tx-success? (subscribe [::tx-id-subs/tx-success? {::bridge-contracts/bridge-meme-to-l2 tx-id}])
         ]
     (fn []
-      (let [state (if (l1-chain?) @(subscribe [::bridge-contracts/meme-token-ids @active-account]) [])
+      (let [state (if (and (l1-chain?) @(subscribe [::contract-subs/contract-abi :meme-token-root]))
+                    @(subscribe [::bridge-contracts/meme-token-ids @active-account]) [])
             token-ids (keys (filter (fn[[_ v]] (true? v)) @form-token-data))
             errors (cond-> []
                            (> (count token-ids) 20) (conj "Cannot bridge more than 20 tokens at once"))]

@@ -1,6 +1,6 @@
 (ns memefactory.ui.dank-registry.submit-page
   (:require
-   [cljs-web3.core :as web3]
+   [cljs-web3-next.core :as web3]
    [clojure.string :as str]
    [district.parsers :as parsers]
    [district.ui.component.form.input :refer [index-by-type file-drag-input with-label chip-input text-input int-input]]
@@ -187,7 +187,7 @@
               @tx-success? "Submitted"
               @uploading? "Processing ..."
               :default "Submit")]
-           [dank-with-logo (web3/from-wei deposit-value :ether)]]
+           [dank-with-logo (web3/from-wei (str deposit-value) :ether)]]
           (when (< @account-balance deposit-value)
             [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])
           [:canvas {:hidden true :id "thumbnail-id"}]]]]])))

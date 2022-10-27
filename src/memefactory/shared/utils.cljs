@@ -3,6 +3,7 @@
             [cljs-time.coerce :as time-coerce]
             [cljs-time.core :as time]
             [cljs.core.match :refer-macros [match]]
+            [cljsjs.d3]
             [cljsjs.filesaverjs]
             [district.graphql-utils :as gql-utils])
   (:import goog.async.Debouncer))

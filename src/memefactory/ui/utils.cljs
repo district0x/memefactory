@@ -1,22 +1,22 @@
 (ns memefactory.ui.utils
   (:require [bignumber.core :as bn]
-            [cljs-time.core :as t]
-            [cljs-web3.core :as web3]
-            [cljs-web3.eth :as web3-eth]
+            [cljs-web3-next.core :as web3]
             [clojure.string :as string]
             [district.format :as format]
             [district.ui.now.subs]
-            [memefactory.ui.config :refer [config]]
-            [reagent.ratom :refer [reaction]]))
+            [district.ui.web3-chain.subs :as chain-subs]
+            [memefactory.ui.config :refer [config-map]]
+            [reagent.ratom :refer [reaction]]
+            [re-frame.core :refer [subscribe]]))
 
 (defn format-price [price]
-  (format/format-token (bn/number (web3/from-wei price :ether)) {:max-fraction-digits 3
+  (format/format-token (bn/number (web3/from-wei (str price) :ether)) {:max-fraction-digits 3
                                                                  :token "MATIC"
                                                                  :min-fraction-digits 2}))
 
 
 (defn format-dank [dank]
-  (format/format-token (bn/number (web3/from-wei dank :ether)) {:max-fraction-digits 2
+  (format/format-token (bn/number (web3/from-wei (str dank) :ether)) {:max-fraction-digits 2
                                                                 :token "DANK"
                                                                 :min-fraction-digits 0}))
 
@@ -38,10 +38,7 @@
         order-vec))
 
 (defn parse-ipfs-response [s]
-  (->> s
-       (string/split-lines)
-       (mapv #(.parse js/JSON %))
-       (mapv #(js->clj % :keywordize-keys true))))
+  (if (seq? s) s [s]))
 
 (defn build-order-by [prefix order-by]
   (keyword (str
@@ -59,3 +56,6 @@
   []
   (let [now-subs (re-frame.core/subscribe [:district.ui.now.subs/now])]
     (reaction (quot (.getTime @now-subs) 1000))))
+
+(defn l1-chain? []
+  (= @(subscribe [::chain-subs/chain]) (get-in config-map [:web3-chain :l1 :chain-id])))

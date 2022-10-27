@@ -40,7 +40,7 @@
        ", and then minted into existence through an open auction. Once the initial supply of any given meme is made, no more will be created. Meme owners and collectors are then free to trade and resell these rare memes - and thanks to the power of the blockchain, this can be done on or off the site through a system of "
        [a "https://education.district0x.io/general-topics/understanding-ethereum/what-are-smart-contracts/"
         "smart contracts"]
-       "."
+       "."]
 
        [:h2.title.secondary "Setting up"]
 
@@ -177,4 +177,4 @@
 
        [:p "With all the fields filled, press the “SUBMIT” button, and your meme will be uploaded and enter the challenging phase."]
 
-       ]]]]])
+       ]]]])

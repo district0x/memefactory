@@ -25,7 +25,8 @@
   [{:keys [with-tx-logs? app-bar-width?]}]
   (let [tx-log-open? (re/subscribe [::tx-log-subs/open?])
         chain (re/subscribe [::chain-subs/chain])
-        chain-root (get-in config-map [:web3-chain :l1 :chain-id])]
+        chain-root (get-in config-map [:web3-chain :l1 :chain-id])
+        chain-child (get-in config-map [:web3-chain :l2 :chain-id])]
     (fn []
       [:div.accounts
        {:class (when app-bar-width? "app-bar-width")}
@@ -33,12 +34,15 @@
         {:on-click (when with-tx-logs? #(re/dispatch [::tx-log-events/set-open (not @tx-log-open?)]))}
         [:div.dank-logo
          [:img {:src "/assets/icons/dank-logo.svg"}]]
+        (if (or (= @chain chain-root) (= @chain chain-child))
         [active-account-balance
          {:token-code :DANK
           :contract (if (= @chain chain-root) :DANK-root :DANK)
           :class "dank"
           :locale "en-US"
-          :max-fraction-digits 0}]]
+          :max-fraction-digits 0}]
+        [:div.active-account-balance
+         [:span.balance "N/A"] " " [:span.token-code :DANK]])]
        [:div.eth-section
         {:on-click (when with-tx-logs? #(re/dispatch [::tx-log-events/set-open (not @tx-log-open?)]))}
         [:div.eth-logo

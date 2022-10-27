@@ -1,6 +1,6 @@
 (ns memefactory.ui.contract.meme-auction
   (:require
-    [cljs-web3.core :as web3]
+    [cljs-web3-next.core :as web3]
     [district.ui.logging.events :as logging]
     [district.ui.notification.events :as notification-events]
     [district.ui.smart-contracts.queries :as contract-queries]
@@ -18,7 +18,7 @@
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :meme/title :value] :as args}]]
    (let [tx-name (str (gstring/format "Buy %s for %.2f MATIC"
                                       title
-                                      (web3/from-wei value :ether)))
+                                      (web3/from-wei (str value) :ether)))
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-auction address)
                                       :fn :buy

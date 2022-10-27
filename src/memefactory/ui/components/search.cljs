@@ -74,6 +74,7 @@
         [select-input {:form-data form-data
                        :id :order-by
                        :group-class :options
+                       :value js/undefined
                        :options select-options
                        :on-change on-select-change}]
         [with-label

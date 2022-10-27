@@ -34,7 +34,6 @@
                                        :symbol "MATIC"
                                        :decimals 18}}
                 :deployed-on :l2}
-   :web3 {:url "http://localhost:8545"}
    :web3-tx {:disable-loading-recommended-gas-prices? true
              :eip55? true}
    :web3-tx-log {:disable-using-localstorage? true
@@ -71,7 +70,6 @@
                                        :decimals 18}
                      :block-explorer-urls ["https://mumbai.polygonscan.com/"]}
                 :deployed-on :l2}
-   :web3 {:url "https://ropsten.infura.io"}
    :web3-tx {:disable-loading-recommended-gas-prices? true
              :eip55? true}
    :web3-tx-log {:disable-using-localstorage? false
@@ -105,7 +103,6 @@
                      :load-method :use-loaded}
    :web3-accounts {:eip55? true}
    :web3-balances {:contracts (select-keys smart-contracts-prod/smart-contracts [:DANK :DANK-root])}
-   :web3 {:url "https://mainnet.infura.io"}
    :web3-chain {:l1 {:chain-id "1"
                      :chain-name "Ethereum Mainnet"}
                 :l2 {:chain-id "137"

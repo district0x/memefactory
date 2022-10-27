@@ -1,6 +1,7 @@
 (ns memefactory.ui.contract.meme-factory
   (:require [bignumber.core :as bn]
-            [cljs-web3.eth :as web3-eth]
+            [cljs-web3-next.eth :as web3-eth]
+            [cljs-web3-next.core :as web3-core]
             [district.shared.error-handling :refer [try-catch]]
             [district.ui.logging.events :as logging]
             [district.ui.notification.events :as notification-events]
@@ -21,13 +22,13 @@
     (let [[{:keys [Name Hash Size] :as meme-meta}] (utils/parse-ipfs-response ipfs-response)
           tx-id (:send-tx/id data)
           form-data (:form-data data)
-          deposit (:deposit data)
+          deposit (str (:deposit data))
           tx-name (gstring/format "%s submitted" (:title form-data))
           active-account (account-queries/active-account db)
           extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme-factory)
                                                  :create-meme
                                                  active-account
-                                                 Hash
+                                                 (web3-core/to-hex Hash)
                                                  (bn/number (:issuance form-data)))]
       {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                        :fn :approve-and-call

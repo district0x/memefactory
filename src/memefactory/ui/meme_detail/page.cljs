@@ -2,7 +2,7 @@
   (:require [bignumber.core :as bn]
             [cljs-time.core :as t]
             [cljs-time.format :as time-format]
-            [cljs-web3.core :as web3]
+            [cljs-web3-next.core :as web3]
             [cljs.core.match :refer-macros [match]]
             [district.cljs-utils :as cljs-utils]
             [district.format :as format]
@@ -96,14 +96,13 @@
                                       [[:items [:meme-auction/start-price
                                                 :meme-auction/end-price
                                                 :meme-auction/bought-for]]]]]}])
-        creator-total-earned (web3/from-wei (reduce (fn [total-earned {:keys [:meme-auction/end-price]}]
-                                                      (+ total-earned end-price))
+        creator-total-earned (str (reduce (fn [total-earned {:keys [:meme-auction/bought-for]}]
+                                                      (+ total-earned bought-for))
                                                     0
-                                                    (-> @query :search-meme-auctions :items))
-                                            :ether)]
+                                                    (-> @query :search-meme-auctions :items)))]
     [:div.creator
      [:b "Creator"]
-     [:div.rank (str "Rank: #" creator-rank " (" (ui-utils/format-dank creator-total-earned) ")")]
+     [:div.rank (str "Rank: #" creator-rank " (" (ui-utils/format-price creator-total-earned) ")")]
      [:div.success (str "Success rate: " total-created-memes-whitelisted "/" total-created-memes " ("
                         (format/format-percentage total-created-memes-whitelisted total-created-memes) ")")]
      [:div {}
@@ -319,7 +318,7 @@
                                :maxLength 2000
                                :errors errors}]
        [:div.controls
-        [dank-with-logo (web3/from-wei dank-deposit :ether)]
+        [dank-with-logo (web3/from-wei (str dank-deposit) :ether)]
         [chain-check-tx-button {:primary true
                               :disabled (or @tx-success? (not (empty? (:local @errors))) (not @active-account))
                               :pending? @tx-pending?
@@ -384,7 +383,7 @@
 
         errors (ratom/reaction {:local (let [amount-for (-> @form-data :vote/amount-for parsers/parse-float)
                                              amount-against (-> @form-data :vote/amount-against parsers/parse-float)
-                                             balance (if (pos? @balance-dank) (web3/from-wei @balance-dank :ether) 0)]
+                                             balance (if (pos? @balance-dank) (web3/from-wei (str @balance-dank) :ether) 0)]
                                          (cond-> {}
                                            (or (not (pos? amount-for))
                                                (< balance amount-for))
@@ -428,7 +427,7 @@
                                                                              :vote/option :vote.option/vote-for
                                                                              :vote/amount (-> @form-data
                                                                                               :vote/amount-for
-                                                                                              parsers/parse-float
+                                                                                              str
                                                                                               (web3/to-wei :ether))
                                                                              :type :meme
                                                                              :option-desc {:vote.option/vote-against "stank"
@@ -463,7 +462,7 @@
                                                                              :vote/option :vote.option/vote-against
                                                                              :vote/amount (-> @form-data
                                                                                             :vote/amount-against
-                                                                                            parsers/parse-float
+                                                                                            str
                                                                                             (web3/to-wei :ether))
                                                                              :tx-description title
                                                                              :option-desc {:vote.option/vote-against "stank"

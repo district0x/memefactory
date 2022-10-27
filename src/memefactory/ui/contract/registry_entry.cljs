@@ -2,7 +2,8 @@
   (:require
    [akiroz.re-frame.storage :as storage]
    [cljs-solidity-sha3.core :refer [solidity-sha3]]
-   [cljs-web3.eth :as web3-eth]
+   [cljs-web3-next.eth :as web3-eth]
+   [cljs-web3-next.core :as web3-core]
    [cljs.spec.alpha :as s]
    [district.cljs-utils :as cljs-utils]
    [district.ui.logging.events :as logging]
@@ -10,6 +11,7 @@
    [district.ui.smart-contracts.queries :as contract-queries]
    [district.ui.web3-accounts.queries :as account-queries]
    [district.ui.web3-tx.events :as tx-events]
+   [district.ui.web3.queries :as web3-queries]
    [goog.string :as gstring]
    [clojure.set :as set]
    [memefactory.shared.contract.registry-entry :refer [vote-options vote-option->num]]
@@ -35,11 +37,11 @@
          extra-data (web3-eth/contract-get-data (contract-queries/instance db type address)
                                                 :create-challenge
                                                 active-account
-                                                meta-hash)]
+                                                (web3-core/to-hex meta-hash))]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args [address
-                                             deposit
+                                             (str deposit)
                                              extra-data]
                                       :tx-opts {:from active-account}
                                       :tx-id {::approve-and-create-challenge id}
@@ -70,17 +72,17 @@
                                  (option-desc option)
                                  tx-description)
          active-account (account-queries/active-account db)
-         salt (cljs-utils/rand-str 5)
-         secret-hash (solidity-sha3 (vote-option->num option) salt)
+         salt (or (get-in store [:votes active-account address :salt]) (cljs-utils/rand-str 5))
+         secret-hash (solidity-sha3 (web3-queries/web3 db) (vote-option->num option) salt)
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
                                                 :commit-vote
                                                 active-account
-                                                amount
+                                                (str amount)
                                                 secret-hash)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args [address
-                                             amount
+                                             (str amount)
                                              extra-data]
                                       :tx-opts {:from active-account}
                                       :tx-id {::approve-and-commit-vote id}

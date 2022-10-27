@@ -199,7 +199,7 @@
                                                                                 :meme-auction/address (:meme-auction/address meme-auction)
                                                                                 :meme/title title
                                                                                 ;; Add little bit extra reserve, so the transaction doesn't revert
-                                                                                :value (+ price (* 0.0001 price))}]))}
+                                                                                :value (Math/round (+ price (* 0.0001 price)))}]))}
               (if @buy-tx-success? "Bought" "Buy")])]]]))))
 
 

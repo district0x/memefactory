@@ -1,13 +1,14 @@
 (ns memefactory.ui.components.ens-resolver
   (:require
-    [cljs-web3.core :as web3-core]
-    [cljs-web3.eth :as web3-eth]
+    [cljs-web3-next.core :as web3-core]
+    [cljs-web3-next.eth :as web3-eth]
     [clojure.string :as string]
     [district.ui.logging.events :as logging]
     [district.ui.smart-contracts.queries :as contract-queries]
     [district.ui.smart-contracts.subs :as contract-subs]
     [district.ui.web3.queries :as web3-queries]
     [district.web3-utils :as web3-utils]
+    [memefactory.ui.utils :refer [l1-chain?]]
     [re-frame.core :as re-frame]
     [re-frame.core :refer [subscribe dispatch]])
 
@@ -57,7 +58,7 @@
    addr       - the address to be reverse-resolved
   "
   [addr]
-  (or (and @(subscribe [::contract-subs/contract-abi :ens]) ; make sure contract is already loaded
+  (or (and (l1-chain?) @(subscribe [::contract-subs/contract-abi :ens]) ; make sure contract is already loaded
         (some? addr)
         @(subscribe [::ens-name addr]))
       addr))
@@ -67,7 +68,7 @@
 (def abi-resolver (js/JSON.parse "[{\"constant\":true,\"inputs\":[{\"name\":\"node\",\"type\":\"bytes32\"}],\"name\":\"addr\",\"outputs\":[{\"name\":\"ret\",\"type\":\"address\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"node\",\"type\":\"bytes32\"}],\"name\":\"name\",\"outputs\":[{\"name\":\"ret\",\"type\":\"string\"}],\"payable\":false,\"type\":\"function\"}]"))
 
 (defn namehash-join [node name]
-  (subs (web3-core/sha3 (str node (subs (web3-core/sha3 name) 2)) {:encoding :hex}) 2))
+  (subs (web3-core/sha3 (str node (subs (web3-core/sha3 name) 2)) ) 2))
 
 (defn build-namehash [name]
   (str "0x" (reduce namehash-join (apply str (repeat 32 "00")) (rseq (string/split name #"\.")))))

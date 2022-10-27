@@ -4,8 +4,7 @@
     [district.ui.web3-accounts.subs :as accounts-subs]
     [memefactory.ui.components.ens-resolver :as ens]
     [re-frame.core :refer [subscribe dispatch]]
-    [reagent.core :as r]
-    [soda-ash.core :as ui]))
+    [reagent.core :as r]))
 
 ;; This is a copy of district.ui.component.active-account but using ENS to resolve the accounts addresses
 
@@ -19,17 +18,16 @@
            [:span.single-account
             single-account-props
             (ens/reverse-resolve @active-acc)]
-           [ui/Select
+           [:select
             (r/merge-props
-             {:select-on-blur false
-              :class "active-account-select"
-              :value @active-acc
-              :on-change (fn [e data]
-                           (dispatch [::accounts-events/set-active-account (aget data "value")]))
-              :fluid true
-              :options (doall (for [acc @accounts]
-                                {:value acc :text (ens/reverse-resolve acc)}))}
-             select-props)])]
+              {:class "active-account-select"
+               :value @active-acc
+               :on-change (fn [item]
+                            (let [val (-> item .-target .-value)]
+                              (dispatch [::accounts-events/set-active-account val])))}
+              select-props)
+            (map (fn [account]
+                   [:option {:key account :value account} (ens/reverse-resolve account)]) @accounts)])]
         [:div
          "Ethereum wallet not connected"]))))
 

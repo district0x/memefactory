@@ -7,7 +7,8 @@
             [district.ui.notification.events :as notification-events]
             [district.ui.web3-accounts.queries :as account-queries]
             [memefactory.ui.utils :as utils]
-            [cljs-web3.eth :as web3-eth]
+            [cljs-web3-next.core :as web3-core]
+            [cljs-web3-next.eth :as web3-eth]
             [district.ui.smart-contracts.queries :as contract-queries]
             [print.foo :refer [look] :include-macros true]
             [district.graphql-utils :as gql-utils]))
@@ -48,11 +49,11 @@
                                                 (contract-queries/contract-address db param-db)
                                                 (gql-utils/kw->gql-name key)
                                                 value
-                                                meta-hash)]
+                                                (web3-core/to-hex meta-hash))]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args [(contract-queries/contract-address db :param-change-factory)
-                                             deposit
+                                             (str deposit)
                                              extra-data]
                                       :tx-opts {:from active-account}
                                       :tx-id {::submit-param-change tx-id}

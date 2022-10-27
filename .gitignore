@@ -34,6 +34,8 @@ pom.xml
 pom.xml.asc
 resources/public/contracts/build/
 resources/public/js/compiled/
+/resources/public/js/manifest.edn
+/resources/public/js/main.js
 yarn-error.log
 
 node_modules

@@ -311,7 +311,7 @@
                      {:items paged-result
                       :total-count total-count
                       :end-cursor last-idx
-                      :has-next-page (< (inc last-idx) total-count)})
+                      :has-next-page (< last-idx total-count)})
 
                    ;; everything SQL
                    (paged-query query page-size page-start-idx))))))

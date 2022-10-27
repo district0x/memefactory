@@ -1,7 +1,7 @@
 (ns memefactory.ui.memefolio.page
   (:require
     [cljs-time.core :as t]
-    [cljs-web3.core :as web3]
+    [cljs-web3-next.core :as web3]
     [cljs.core.match :refer-macros [match]]
     [clojure.string :as str]
     [district.cljs-utils :as cljs-utils]
@@ -50,9 +50,9 @@
 
 (def curated-order
   [{:key :memes.order-by/created-on :value "Newest" :order-dir :desc}
-   {:key :memes.order-by/reveal-period-end :value "Recently Revealed" :order-dir :asc}
-   {:key :memes.order-by/commit-period-end :value "Recently Commited" :order-dir :asc}
-   {:key :memes.order-by/challenge-period-end :value "Recently challenged" :order-dir :asc}])
+   {:key :memes.order-by/reveal-period-end :value "Recently Revealed" :order-dir :desc}
+   {:key :memes.order-by/commit-period-end :value "Recently Committed" :order-dir :desc}
+   {:key :memes.order-by/challenge-period-end :value "Recently challenged" :order-dir :desc}])
 
 (def selling-sold-order
   [{:key :meme-auctions.order-by/started-on :value "Newest" :order-dir :desc}
@@ -334,7 +334,7 @@
                                                                                  :meme-auction/token-ids token-ids}]
                                                            [tiles/meme-back-tile meme])
                                                    :flippable-classes (when active-user-page?
-                                                                        #{"meme-image" "cancel" "info" "create-offering"})}]
+                                                                        #{"meme-image" "cancel" "info" "create-offering" "video-flip-area"})}]
                             [nav-anchor {:route :route.meme-detail/index
                                          :params {:address address}
                                          :query nil
@@ -926,6 +926,11 @@
        :form-data form-data}]]))
 
 
+(defn reactize-order-dir
+  [opts]
+  (map #(clojure.set/rename-keys % {:order-dir :orderdir}) opts))
+
+
 (defn tabbed-pane [{:keys [:tab :prefix :form-data]
                     {:keys [:user-address :url-address?]} :user-account}]
   (let [tags (subscribe [::gql/query {:queries [[:search-tags [[:items [:tag/name]]]]]}])
@@ -961,9 +966,9 @@
                                                 (str "User stats and current holdings for account " (or ens-name user-address))
                                                 "A personal history of all memes bought, sold, created, and owned")
                                    :select-options (cond
-                                                     (#{:collected :created} tab) collected-created-order
-                                                     (#{:curated}            tab) curated-order
-                                                     (#{:selling :sold}      tab) selling-sold-order)}
+                                                     (#{:collected :created} tab) (reactize-order-dir collected-created-order)
+                                                     (#{:curated}            tab) (reactize-order-dir curated-order)
+                                                     (#{:selling :sold}      tab) (reactize-order-dir selling-sold-order))}
                                   (when (= :curated tab)
                                     {:check-filters [{:label "Voted"
                                                       :id :voted?}

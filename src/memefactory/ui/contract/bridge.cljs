@@ -1,15 +1,8 @@
 (ns memefactory.ui.contract.bridge
   (:require
-    [akiroz.re-frame.storage :as storage]
-    [bignumber.core :as bn]
     [camel-snake-kebab.core :as cs]
-    [cljs-solidity-sha3.core :refer [solidity-sha3]]
-    [cljs-web3-next.helpers :as web3-helpers]
-    [cljs-web3.eth :as web3-eth]
-    [cljs-web3.utils :refer [cljkk->js]]
-    [cljs.spec.alpha :as s]
-    [district.cljs-utils :as cljs-utils]
-    [district.shared.async-helpers :refer [promise-> <?]]
+    [cljs-web3-next.eth :as web3-eth]
+    [cljs-web3-next.utils :refer [cljkk->js]]
     [district.ui.logging.events :as logging]
     [district.ui.notification.events :as notification-events]
     [district.ui.smart-contracts.queries :as contract-queries]
@@ -17,13 +10,8 @@
     [district.ui.web3.queries :as web3-queries]
     [district.ui.web3-tx.events :as tx-events]
     [goog.string :as gstring]
-    [clojure.set :as set]
-    [memefactory.shared.contract.registry-entry :refer [vote-options vote-option->num]]
     [re-frame.core :as re-frame]
-    [memefactory.ui.utils :as utils]
-    [taoensso.timbre :as log]
-    [memefactory.ui.utils :as ui-utils]
-    [district.format :as format])
+    [memefactory.ui.utils :as ui-utils])
 
   (:require-macros [reagent.ratom :refer [reaction]]))
 
@@ -44,11 +32,11 @@
                                                 :deposit-from
                                                 to
                                                 to
-                                                amount)]
+                                                (str amount))]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK-root)
                                       :fn :approve-and-call
                                       :args [address
-                                             amount
+                                             (str amount)
                                              extra-data]
                                       :tx-opts {:from active-account}
                                       :tx-id {::approve-and-bridge-dank-to-l2 id}
@@ -72,7 +60,7 @@
          to (contract-queries/contract-address db :meme-token-root-tunnel)
          [fn args] (if (= 1 (count token-ids))
                           [:safe-transfer-from [active-account to (first token-ids)]]
-                          [:safe-transfer-from-multi [active-account to token-ids nil]])]
+                          [:safe-transfer-from-multi [active-account to token-ids "0x"]])]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-token-root)
                                       :fn fn
                                       :args args
@@ -97,7 +85,7 @@
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK-child-tunnel)
                                       :fn :withdraw
-                                      :args [amount]
+                                      :args [(str amount)]
                                       :tx-opts {:from active-account}
                                       :tx-id {::start-withdraw-dank id}
                                       :tx-log {:name tx-name
@@ -315,4 +303,4 @@
   ::assoc-tokens-ids
   interceptors
   (fn [{:keys [:db]} [account token-id]]
-    {:db (assoc-token-id db account (bn/fixed token-id))}))
+    {:db (assoc-token-id db account token-id)}))

@@ -219,13 +219,14 @@
             re-search (fn [after]
                         (dispatch [:district.ui.graphql.events/query
                                    {:query {:queries [(build-challenge-query (assoc params :after after) sort-options)]}
-                                    :id {:params params :key key}}]))]
+                                    :id {:params params :key key}}]))
+            sort-options-react (map #(clojure.set/rename-keys % {:order-dir :orderdir}) sort-options)]
         [:div.challenges.panel
          [:div.controls
           [select-input {:form-data form-data
                          :class :white-select
                          :id :order-by
-                         :options sort-options}]]
+                         :options sort-options-react}]]
          [meme-tiles meme-search re-search {:include-challenger-info? include-challenger-info?
                                             :action-child action-child
                                             :element-height element-height}]]))))

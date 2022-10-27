@@ -82,20 +82,6 @@
        (assoc :nsfw-switch (:nsfw-switch store))
        (assoc :memefactory.ui.get-dank.page/stage 1))))
 
-;; This is a workaround to support new contract ABIs format until web3 1.x is supported in UI.
-;; Basically, the usage of "payable: true" and "constant: true" has been removed as they are specified in the
-;; stateMutability field. This workaround just sets the payable and constant fields back if they are not specified
-;; in the contract ABI
-(defn fix-abi [abi]
-  (let [abi (reduce (fn [all-methods method]
-                      (let [state-mutability (get method "stateMutability")]
-                        (case state-mutability
-                          "payable" (conj all-methods (merge {"payable" true} method))
-                          (or "view" "pure") (conj all-methods (merge {"constant" true} method))
-                          (conj all-methods method))))
-                    []
-                    (js->clj abi))]
-    (clj->js abi)))
 
 (re-frame/reg-event-fx
   ::chain-changed
@@ -106,32 +92,27 @@
                 {:new (web3-accounts-queries/accounts db)
                  :old (web3-accounts-queries/accounts db)}]}))
 
+
+(re-frame/reg-event-fx
+  ::load-dank-balances-on-block
+  interceptors
+  (fn [{:keys [:db]} [dank-contract _]]
+    (re-frame/dispatch [::web3-balances-events/load-account-balances {:disable-watching? true
+                                                                      :for-contracts     [dank-contract]}])))
+
+
 (re-frame/reg-event-fx
   ::reload-balances
   interceptors
   (fn [{:keys [:db]}]
     (let [chain (chain-queries/chain db)
-          dank-contract (if (= chain (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-id])) :DANK :DANK-root)
-          load-balances-event [::web3-balances-events/load-account-balances {:disable-watching? true
-                                                                             :for-contracts     [dank-contract]}]]
+          dank-contract (if (= chain (get-in config-map [:web3-chain (get-in config-map [:web3-chain :deployed-on]) :chain-id])) :DANK :DANK-root)]
       (when chain
-        {:dispatch load-balances-event
+        {:dispatch [::load-dank-balances-on-block dank-contract]
          :web3/watch-blocks {:web3 (web3-queries/web3 db)
                              :id :block-watcher-for-balances
                              :block-filter-opts "latest"
-                             :on-success load-balances-event}}))))
-
-(re-frame/reg-event-fx
-  ::fix-contracts
-  interceptors
-  (fn [{:keys [:db]}]
-    (let [contracts (contracts-queries/contracts db)
-          new-db (reduce
-              (fn [r contract-key]
-                (contracts-queries/assoc-contract-abi r contract-key (fix-abi (contracts-queries/contract-abi db contract-key))))
-              (contracts-queries/merge-contracts db contracts)
-              (keys contracts))]
-      {:db new-db})))
+                             :on-success [::load-dank-balances-on-block dank-contract]}}))))
 
 (re-frame/reg-event-fx
  ::route-initial-effects
@@ -143,7 +124,8 @@
                                                      :rules [{:when :seen-all-of?
                                                               :events [::web3-accounts-events/active-account-changed
                                                                        ::contracts-events/contracts-loaded]
-                                                              :dispatch [::my-settings-events/load-email-settings]}]}}
+                                                              :dispatch [::my-settings-events/load-email-settings]
+                                                              :halt? true}]}}
                nil)))))
 
 (re-frame/reg-event-fx
@@ -155,9 +137,6 @@
     :forward-events [{:register    :active-route-changed
                       :events      #{::router-events/active-page-changed}
                       :dispatch-to [::route-initial-effects]}
-                     {:register    :fix-contracts
-                      :events      #{::contracts-events/contracts-loaded}
-                      :dispatch-to [::fix-contracts]}
                      {:register    :chain-changed
                       :events      #{::chain-events/chain-changed}
                       :dispatch-to [::chain-changed]}

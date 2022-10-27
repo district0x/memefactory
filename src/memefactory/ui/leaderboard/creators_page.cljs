@@ -1,6 +1,6 @@
 (ns memefactory.ui.leaderboard.creators-page
   (:require
-   [cljs-web3.core :as web3]
+   [cljs-web3-next.core :as web3]
    [district.ui.component.form.input :refer [select-input with-label]]
    [district.ui.component.page :refer [page]]
    [district.ui.graphql.subs :as gql]
@@ -70,7 +70,7 @@
                       :params {:address (:reg-entry/address meme)}
                       :class "best-sale"}
           (gstring/format "%.2f MATIC (#%d %s)"
-                          (web3/from-wei (:meme-auction/bought-for largest-sale) :ether)
+                          (web3/from-wei (str (:meme-auction/bought-for largest-sale)) :ether)
                           (-> largest-sale
                               :meme-auction/meme-token
                               :meme-token/number)

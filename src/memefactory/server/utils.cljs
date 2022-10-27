@@ -62,7 +62,7 @@
    (fn [resolve reject]
      (log/info (str "Downloading: " "/ipfs/" meta-hash) ::get-ipfs-meta)
      (ipfs-files/fget (str "/ipfs/" meta-hash)
-                      {:req-opts {:compress false}}
+                      {:compress false}
                       (fn [err content]
                         (cond
                           err
@@ -88,8 +88,8 @@
    (fn [resolve reject]
      (log/info (str "Downloading: " "/ipfs/" file-hash) ::get-ipfs-file)
      (ipfs-files/fget (str "/ipfs/" file-hash)
-                      {:req-opts {:compress false
-                                  :archive :false}
+                      {:compress false
+                       :archive false
                        :binary? true}
                       (fn [err content]
 

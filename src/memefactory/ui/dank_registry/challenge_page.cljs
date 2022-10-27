@@ -2,7 +2,7 @@
   (:require
    [bignumber.core :as bn]
    [cljs-time.extend]
-   [cljs-web3.core :as web3]
+   [cljs-web3-next.core :as web3]
    [clojure.string :as str]
    [district.ui.component.form.input :refer [select-input with-label text-input]]
    [district.ui.component.page :refer [page]]
@@ -83,7 +83,7 @@
                "Challenged"
                "Challenge")]
 
-            [dank-with-logo (web3/from-wei dank-deposit :ether)]]
+            [dank-with-logo (web3/from-wei (str dank-deposit) :ether)]]
            [:button.open-challenge
             {:on-click (when @active-account #(swap! open? not))
              :class [(when (not @active-account) "disabled")]} "Challenge"])

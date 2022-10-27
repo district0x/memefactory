@@ -1,7 +1,7 @@
 (ns memefactory.ui.get-dank.events
   (:require
     [ajax.core :as ajax]
-    [cljs-web3.utils :refer [cljkk->js]]
+    [cljs-web3-next.utils :refer [cljkk->js]]
     [day8.re-frame.http-fx]
     [district.ui.logging.events :as logging]
     [district.ui.notification.events :as notification-events]

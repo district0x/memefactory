@@ -1,7 +1,7 @@
 (ns memefactory.ui.contract.meme-token
   (:require
-    [cljs-web3.core :as web3]
-    [cljs-web3.eth :as web3-eth]
+    [cljs-web3-next.core :as web3]
+    [cljs-web3-next.eth :as web3-eth]
     [district.ui.graphql.events :as gql-events]
     [district.ui.logging.events :as logging]
     [district.ui.notification.events :as notification-events]
@@ -13,6 +13,17 @@
     [re-frame.core :as re-frame :refer [reg-event-fx]]))
 
 (def interceptors [re-frame/trim-v])
+
+(reg-event-fx
+  ::meme-transfer-success
+  [interceptors]
+  (fn [{:keys [:db]} [{:keys [:address] :as args}]]
+    {:dispatch-later [{:ms 3500
+                       :dispatch [::gql-events/query
+                                  {:query {:queries [[:meme {:reg-entry/address address}
+                                                      [:meme/total-supply
+                                                       [:meme/owned-meme-tokens {:owner (account-queries/active-account db)}
+                                                        [:meme-token/token-id]]]]]}}]}]}))
 
 (reg-event-fx
  ::transfer-multi-and-start-auction
@@ -36,7 +47,8 @@
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index
                                                               :query {:tab "selling" :term title}}}
-                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::transfer-multi]
+                                      :on-tx-success-n [[::meme-transfer-success {:address address}]
+                                                        [::logging/info (str tx-name " tx success") ::transfer-multi]
                                                         [::notification-events/show (gstring/format "Offering for %s was successfully created" title)]
                                                         [::gql-events/query
                                                          {:query {:queries [[:meme {:reg-entry/address address}
@@ -60,14 +72,15 @@
                                       :args [active-account
                                              address
                                              token-ids
-                                             nil]
+                                             "0x"]
                                       :tx-opts {:from active-account}
                                       :tx-id {:meme-token/safe-transfer-from-multi id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.meme-detail/index
                                                               :params {:address (:reg-entry/address args)}}}
 
-                                      :on-tx-success-n [[::logging/info (str tx-name " tx success") ::transfer-multi]
+                                      :on-tx-success-n [[::meme-transfer-success]
+                                                        [::logging/info (str tx-name " tx success") ::transfer-multi]
                                                         [::notification-events/show (gstring/format "%s tokens were successfully sent" title)]
                                                         [::gql-events/query
                                                          {:query {:queries [[:meme {:reg-entry/address (:reg-entry/address args)}
