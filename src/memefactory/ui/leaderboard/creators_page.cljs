@@ -12,7 +12,7 @@
    [memefactory.ui.components.infinite-scroll :refer [infinite-scroll]]
    [memefactory.ui.components.panels :refer [no-items-found]]
    [memefactory.ui.components.spinner :as spinner]
-   [memefactory.ui.utils :refer [format-price format-dank]]
+   [memefactory.ui.utils :refer [format-price format-dank safe-from-wei]]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [taoensso.timbre :as log]))
@@ -70,7 +70,7 @@
                       :params {:address (:reg-entry/address meme)}
                       :class "best-sale"}
           (gstring/format "%.2f MATIC (#%d %s)"
-                          (web3/from-wei (str (:meme-auction/bought-for largest-sale)) :ether)
+                          (safe-from-wei (str (:meme-auction/bought-for largest-sale)) :ether)
                           (-> largest-sale
                               :meme-auction/meme-token
                               :meme-token/number)

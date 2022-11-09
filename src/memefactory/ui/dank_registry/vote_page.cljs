@@ -102,17 +102,17 @@
                [:li
                 (gstring/format "Voted Dank: %s (%f) "
                                 (format/format-percentage (or votes-for 0) votes-total)
-                                (format/format-number (bn/number (web3/from-wei (str (or votes-for 0)) :ether))))]
+                                (format/format-number (bn/number (ui-utils/safe-from-wei (or votes-for 0) :ether))))]
                [:li
                 (gstring/format "Voted Stank: %s (%f) "
                                 (format/format-percentage (or votes-against 0) votes-total)
-                                (format/format-number (bn/number (web3/from-wei (str (or votes-against 0)) :ether))))]
-               [:li (gstring/format "Total voted: %f" (format/format-number (bn/number (web3/from-wei (str (or votes-total 0)) :ether))))]
+                                (format/format-number (bn/number (ui-utils/safe-from-wei (or votes-against 0) :ether))))]
+               [:li (gstring/format "Total voted: %f" (format/format-number (bn/number (ui-utils/safe-from-wei (or votes-total 0) :ether))))]
                (when-not (or (= option :vote-option/not-revealed)
                              (= option :vote-option/no-vote))
                  [:li (str "You voted: " (gstring/format "%f for %s (%s)"
                                                          (if (pos? amount)
-                                                           (format/format-number (bn/number (web3/from-wei (str amount) :ether)))
+                                                           (format/format-number (bn/number (ui-utils/safe-from-wei amount :ether)))
                                                            0)
                                                          (case option
                                                            :vote-option/vote-for "DANK"

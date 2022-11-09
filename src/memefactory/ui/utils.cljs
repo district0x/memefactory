@@ -7,16 +7,28 @@
             [district.ui.web3-chain.subs :as chain-subs]
             [memefactory.ui.config :refer [config-map]]
             [reagent.ratom :refer [reaction]]
-            [re-frame.core :refer [subscribe]]))
+            [re-frame.core :refer [subscribe]]
+            [clojure.string :as str]))
+
+
+(defn safe-number-str [amount]
+  (cond (nil? amount) ""
+        (and (= (type amount) "string") (not (str/includes? amount "e"))) amount
+        :else (.toLocaleString (bn/number amount) "fullwide" #js {:useGrouping false})))
+
+
+(defn safe-from-wei [price unit]
+  (web3/from-wei (safe-number-str price) unit))
+
 
 (defn format-price [price]
-  (format/format-token (bn/number (web3/from-wei (str price) :ether)) {:max-fraction-digits 3
-                                                                 :token "MATIC"
-                                                                 :min-fraction-digits 2}))
+  (format/format-token (bn/number (safe-from-wei price :ether)) {:max-fraction-digits 3
+                                           :token "MATIC"
+                                           :min-fraction-digits 2}))
 
 
 (defn format-dank [dank]
-  (format/format-token (bn/number (web3/from-wei (str dank) :ether)) {:max-fraction-digits 2
+  (format/format-token (bn/number (safe-from-wei dank :ether)) {:max-fraction-digits 2
                                                                 :token "DANK"
                                                                 :min-fraction-digits 0}))
 

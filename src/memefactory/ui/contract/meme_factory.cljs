@@ -22,7 +22,7 @@
     (let [[{:keys [Name Hash Size] :as meme-meta}] (utils/parse-ipfs-response ipfs-response)
           tx-id (:send-tx/id data)
           form-data (:form-data data)
-          deposit (str (:deposit data))
+          deposit (utils/safe-number-str (:deposit data))
           tx-name (gstring/format "%s submitted" (:title form-data))
           active-account (account-queries/active-account db)
           extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme-factory)

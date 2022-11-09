@@ -3,10 +3,11 @@
             [cljs-web3-next.utils :as web3-utils]
             [clojure.string :as string]
             [district.server.web3 :refer [web3]]
+            [memefactory.server.utils :as server-utils]
             [garden.core :as garden]))
 
 (defn- format-token-amount [amount]
-  (-> (web3-utils/from-wei @web3 (str amount) :ether) bn/number (.toFixed 3)))
+  (-> (web3-utils/from-wei @web3 (server-utils/safe-number-str amount) :ether) bn/number (.toFixed 3)))
 
 (def link-style
   (garden/style

@@ -41,7 +41,7 @@
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args [address
-                                             (str deposit)
+                                             (utils/safe-number-str deposit)
                                              extra-data]
                                       :tx-opts {:from active-account}
                                       :tx-id {::approve-and-create-challenge id}
@@ -77,12 +77,12 @@
          extra-data (web3-eth/contract-get-data (contract-queries/instance db :meme address)
                                                 :commit-vote
                                                 active-account
-                                                (str amount)
+                                                (utils/safe-number-str amount)
                                                 secret-hash)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args [address
-                                             (str amount)
+                                             (utils/safe-number-str amount)
                                              extra-data]
                                       :tx-opts {:from active-account}
                                       :tx-id {::approve-and-commit-vote id}

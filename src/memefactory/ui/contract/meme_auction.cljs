@@ -7,6 +7,7 @@
     [district.ui.web3-accounts.queries :as account-queries]
     [district.ui.web3-tx.events :as tx-events]
     [goog.string :as gstring]
+    [memefactory.ui.utils :as utils]
     [print.foo :refer [look] :include-macros true]
     [re-frame.core :as re-frame :refer [reg-event-fx]]))
 
@@ -18,13 +19,13 @@
  (fn [{:keys [:db]} [{:keys [:send-tx/id :meme-auction/address :meme/title :value] :as args}]]
    (let [tx-name (str (gstring/format "Buy %s for %.2f MATIC"
                                       title
-                                      (web3/from-wei (str value) :ether)))
+                                      (utils/safe-from-wei value :ether)))
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :meme-auction address)
                                       :fn :buy
                                       :args []
                                       :tx-opts {:from active-account
-                                                :value value}
+                                                :value (utils/safe-number-str value)}
                                       :tx-id {:meme-auction/buy id}
                                       :tx-log {:name tx-name
                                                :related-href {:name :route.memefolio/index

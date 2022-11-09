@@ -155,7 +155,7 @@
    (let [{:keys [:reg-entry/address :meme/title]} (-> meme-auction
                                                       db/get-meme-by-auction-address)
          meme-detail-url (str "https://memefactory.io/meme-detail/" address)
-         price-matic (bn/number (web3-utils/from-wei @web3 (str price) :ether))
+         price-matic (bn/number (web3-utils/from-wei @web3 (server-utils/safe-number-str price) :ether))
          formatted-price-matic (format/format-token  price-matic
                                                  {:max-fraction-digits 3
                                                   :min-fraction-digits 2

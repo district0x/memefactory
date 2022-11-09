@@ -32,11 +32,11 @@
                                                 :deposit-from
                                                 to
                                                 to
-                                                (str amount))]
+                                                (ui-utils/safe-number-str amount))]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK-root)
                                       :fn :approve-and-call
                                       :args [address
-                                             (str amount)
+                                             (ui-utils/safe-number-str amount)
                                              extra-data]
                                       :tx-opts {:from active-account}
                                       :tx-id {::approve-and-bridge-dank-to-l2 id}
@@ -85,7 +85,7 @@
          active-account (account-queries/active-account db)]
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK-child-tunnel)
                                       :fn :withdraw
-                                      :args [(str amount)]
+                                      :args [(ui-utils/safe-number-str amount)]
                                       :tx-opts {:from active-account}
                                       :tx-id {::start-withdraw-dank id}
                                       :tx-log {:name tx-name

@@ -419,13 +419,14 @@
                     :last-log-index last-log-index
                     :block-number block-number
                     :log-index log-index}]
+           (log/debug "Handling new event" evt)
            (if (or (> block-number last-block-number)
                    (and (= block-number last-block-number) (> log-index last-log-index)))
              (let [result (callback err event)]
-               (log/info "Handling new event" evt)
                ;; block if we need
                (when (satisfies? ReadPort result)
                  (<! result))
+               (log/info "Handled new event" evt)
                (db/upsert-event! {:event/last-log-index log-index
                                   :event/last-block-number block-number
                                   :event/count (inc count)

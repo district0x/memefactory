@@ -7,7 +7,9 @@
             [district.server.config :refer [config]]
             [district.server.web3 :refer [web3]]
             [taoensso.timbre :as log]
-            [district.shared.async-helpers :refer [promise->]]))
+            [district.shared.async-helpers :refer [promise->]]
+            [clojure.string :as str]
+            [bignumber.core :as bn]))
 
 (defonce fs (nodejs/require "fs"))
 
@@ -106,3 +108,9 @@
 
 (defn get-hash-from-ipfs-url [ipfs-url]
   (if (string/starts-with? ipfs-url "ipfs://") (subs ipfs-url 7) ipfs-url))
+
+
+(defn safe-number-str [amount]
+  (cond (nil? amount) ""
+        (and (= (type amount) "string") (not (str/includes? amount "e"))) amount
+        :else (.toLocaleString (bn/number amount) "fullwide" #js {:useGrouping false})))

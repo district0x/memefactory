@@ -21,10 +21,10 @@
            ;:optimizations :none
            :source-map true
            :source-map-timestamp true
-           ;:devtools {:ignore-warnings true}
-           :preloads [devtools.preload
-                      re-frisk.preload]
-           :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true
+           :devtools {:ignore-warnings true
+                      :preloads [devtools.preload
+                                 re-frisk.preload]}
+           :closure-defines {re-frame.trace.trace-enabled? true
                              goog.DEBUG true}}
 
           :dev-server
@@ -33,7 +33,7 @@
            ;:js-options {:js-package-dirs ["./server/node_modules"]}
            :js-options {:keep-as-import #{"d3"}}
            :output-dir "server/"
-           :output-to "server/memfactory_server.js"
+           :output-to "server/memefactory_server.js"
            ;:optimizations :none
            ;:source-map true
            ;:source-map-timestamp true

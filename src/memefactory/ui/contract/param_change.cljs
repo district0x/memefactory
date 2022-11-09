@@ -53,7 +53,7 @@
      {:dispatch [::tx-events/send-tx {:instance (contract-queries/instance db :DANK)
                                       :fn :approve-and-call
                                       :args [(contract-queries/contract-address db :param-change-factory)
-                                             (str deposit)
+                                             (utils/safe-number-str deposit)
                                              extra-data]
                                       :tx-opts {:from active-account}
                                       :tx-id {::submit-param-change tx-id}

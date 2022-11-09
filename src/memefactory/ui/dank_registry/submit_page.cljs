@@ -16,6 +16,7 @@
    [memefactory.ui.components.tiles :refer [meme-image]]
    [memefactory.ui.contract.meme-factory :as meme-factory]
    [memefactory.ui.dank-registry.events :as dr-events]
+   [memefactory.ui.utils :as utils]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
    [reagent.ratom :refer [reaction]]
@@ -182,12 +183,12 @@
                                         :on-click #(dispatch [::dr-events/upload-meme
                                                               {:send-tx/id tx-id
                                                                :form-data @form-data
-                                                               :deposit deposit-value}])}
+                                                               :deposit (utils/safe-number-str deposit-value)}])}
             (cond
               @tx-success? "Submitted"
               @uploading? "Processing ..."
               :default "Submit")]
-           [dank-with-logo (web3/from-wei (str deposit-value) :ether)]]
+           [dank-with-logo (utils/safe-from-wei deposit-value :ether)]]
           (when (< @account-balance deposit-value)
             [:div.not-enough-dank "You don't have enough DANK tokens to submit a meme"])
           [:canvas {:hidden true :id "thumbnail-id"}]]]]])))

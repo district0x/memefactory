@@ -17,6 +17,7 @@
    [memefactory.ui.components.panes :refer [tabbed-pane]]
    [memefactory.ui.contract.registry-entry :as registry-entry]
    [memefactory.ui.events :as memefactory-events]
+   [memefactory.ui.utils :as utils]
    [print.foo :refer [look] :include-macros true]
    [re-frame.core :refer [subscribe dispatch]]
    [reagent.core :as r]
@@ -77,13 +78,13 @@
                                                     :reg-entry/address address
                                                     :tx-description title
                                                     :comment (:comment @form-data)
-                                                    :deposit dank-deposit
+                                                    :deposit (utils/safe-number-str dank-deposit)
                                                     :type :meme}])}
              (if @tx-success?
                "Challenged"
                "Challenge")]
 
-            [dank-with-logo (web3/from-wei (str dank-deposit) :ether)]]
+            [dank-with-logo (utils/safe-from-wei (str dank-deposit) :ether)]]
            [:button.open-challenge
             {:on-click (when @active-account #(swap! open? not))
              :class [(when (not @active-account) "disabled")]} "Challenge"])

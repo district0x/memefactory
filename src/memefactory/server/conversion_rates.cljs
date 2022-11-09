@@ -20,7 +20,7 @@
   (js/Promise.
    (fn [resolve reject]
      (let [data (atom "")]
-       (.get Https (gstring/format "https://min-api.cryptocompare.com/data/pricemulti?fsyms=%s&tsyms=%s"
+       (-> (.get Https (gstring/format "https://min-api.cryptocompare.com/data/pricemulti?fsyms=%s&tsyms=%s"
                                    (name currency1)
                                    (name currency2))
              (fn [resp]
@@ -36,7 +36,8 @@
 
                          (resolve rates))
                         (catch js/Error e
-                                (reject e)))))))))))
+                                (reject e)))))))
+           (.on "error" #(reject %1)))))))
 
 (defn get-cached-rate-sync
   "Currencies should be a keyword like :ETH, :USD, :EUR, etc"
@@ -49,7 +50,7 @@
                                        (-> (get-rate :MATIC :USD)
                                            (.then (fn [rate]
                                                     (swap! rates assoc [:MATIC :USD] rate)))
-                                           (.catch (fn [e] (log/error e)))))
+                                           (.catch (fn [e] (log/error "Failed to fetch conversion rates" {:error e})))))
                                      (or update-interval
                                          ;; 10 min default
                                          (* 10 60 1000)))]

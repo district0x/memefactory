@@ -98,7 +98,7 @@
 
 (defn scale-param-change-value [k v]
   (if (#{:meme/deposit :param-change/deposit} k)
-    (web3/from-wei (str v) :ether)
+    (ui-utils/safe-from-wei v :ether)
     v))
 
 (defn unscale-param-change-value [k v]
@@ -203,7 +203,7 @@
                            :maxLength 100
                            :id :param-change/comment
                            :on-click #(.stopPropagation %)}]
-          [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value str) :ether)]]]]]
+          [:div.dank [dank-with-logo (ui-utils/safe-from-wei (-> (get @pc-params :deposit) :value) :ether)]]]]]
 
        [chain-check-pending-button {:pending? @tx-pending?
                         :disabled (or @tx-pending?
@@ -243,7 +243,7 @@
                        :id :param-change/comment
                        :on-click #(.stopPropagation %)}]
       [:div.footer
-       [:div.dank [dank-with-logo (web3/from-wei (-> (get @pc-params :deposit) :value str) :ether)]]
+       [:div.dank [dank-with-logo (ui-utils/safe-from-wei (-> (get @pc-params :deposit) :value) :ether)]]
        [chain-check-pending-button {:disabled (or @tx-pending? @tx-success?)
                                :pending? @tx-pending?
                                :pending-text "Challenging"
@@ -387,7 +387,7 @@
   (let [format-votes (fn [n tot]
                        (gstring/format "%s (%f)"
                                        (if (pos? tot) (format/format-percentage (or n 0) tot) 0)
-                                       (format/format-number (bn/number (web3/from-wei (str (or n 0)) :ether)))))
+                                       (format/format-number (bn/number (ui-utils/safe-from-wei (or n 0) :ether)))))
         active-account (subscribe [::accounts-subs/active-account])]
 
     (if (pos? votes-total)
@@ -396,11 +396,11 @@
        [:ul
         [:li [:label "Voted Yes:"] [:span (format-votes votes-for votes-total)]]
         [:li [:label "Voted No:"] [:span (format-votes votes-against votes-total)]]
-        [:li [:label "Total Voted:"] [:span (format/format-number (bn/number (web3/from-wei (str (or votes-total 0)) :ether)))]]
+        [:li [:label "Total Voted:"] [:span (format/format-number (bn/number (ui-utils/safe-from-wei (or votes-total 0) :ether)))]]
 
         (when (#{:vote-option/vote-for :vote-option/vote-against} (gql-utils/gql-name->kw (:vote/option vote)))
           [:li [:label "You Voted:"] [:span (gstring/format "%d for %s (%s)"
-                                                            (format/format-number (bn/number (web3/from-wei (str (or (:vote/amount vote) 0)) :ether)))
+                                                            (format/format-number (bn/number (ui-utils/safe-from-wei (or (:vote/amount vote) 0) :ether)))
                                                             ({:vote-option/vote-for "Yes"
                                                               :vote-option/vote-against "No"}
                                                              (gql-utils/gql-name->kw (:vote/option vote)))

@@ -33,7 +33,7 @@
             [memefactory.ui.events :as memefactory-events]
             [memefactory.ui.spec :as spec]
             [memefactory.ui.components.general :as gen-comps]
-            [memefactory.ui.utils :as ui-utils :refer [format-price format-dank]]
+            [memefactory.ui.utils :as ui-utils :refer [format-price format-dank safe-from-wei safe-number-str]]
             [memefactory.shared.utils :as shared-utils]
             [memefactory.ui.subs :as mf-subs]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
@@ -318,7 +318,7 @@
                                :maxLength 2000
                                :errors errors}]
        [:div.controls
-        [dank-with-logo (web3/from-wei (str dank-deposit) :ether)]
+        [dank-with-logo (safe-from-wei dank-deposit :ether)]
         [chain-check-tx-button {:primary true
                               :disabled (or @tx-success? (not (empty? (:local @errors))) (not @active-account))
                               :pending? @tx-pending?
@@ -326,7 +326,7 @@
                               :on-click #(dispatch [::memefactory-events/add-challenge {:send-tx/id tx-id
                                                                                         :reg-entry/address (:reg-entry/address meme)
                                                                                         :comment (:challenge/comment @form-data)
-                                                                                        :deposit dank-deposit
+                                                                                        :deposit (safe-number-str dank-deposit)
                                                                                         :tx-description title
                                                                                         :type :meme}])}
          (if @tx-success?
@@ -383,7 +383,7 @@
 
         errors (ratom/reaction {:local (let [amount-for (-> @form-data :vote/amount-for parsers/parse-float)
                                              amount-against (-> @form-data :vote/amount-against parsers/parse-float)
-                                             balance (if (pos? @balance-dank) (web3/from-wei (str @balance-dank) :ether) 0)]
+                                             balance (if (pos? @balance-dank) (safe-from-wei @balance-dank :ether) 0)]
                                          (cond-> {}
                                            (or (not (pos? amount-for))
                                                (< balance amount-for))
@@ -427,7 +427,7 @@
                                                                              :vote/option :vote.option/vote-for
                                                                              :vote/amount (-> @form-data
                                                                                               :vote/amount-for
-                                                                                              str
+                                                                                              safe-number-str
                                                                                               (web3/to-wei :ether))
                                                                              :type :meme
                                                                              :option-desc {:vote.option/vote-against "stank"
@@ -462,7 +462,7 @@
                                                                              :vote/option :vote.option/vote-against
                                                                              :vote/amount (-> @form-data
                                                                                             :vote/amount-against
-                                                                                            str
+                                                                                            safe-number-str
                                                                                             (web3/to-wei :ether))
                                                                              :tx-description title
                                                                              :option-desc {:vote.option/vote-against "stank"
