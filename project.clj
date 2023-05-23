@@ -33,9 +33,9 @@
                  [district0x/district-server-graphql "1.0.18"]
                  [district0x/district-server-logging "1.0.5"]
                  [district0x/district-server-middleware-logging "1.0.0"]
-                 [district0x/district-server-smart-contracts "1.2.9"]
+                 [is.d0x/district-server-smart-contracts "23.5.22"]
                  [district0x/district-server-web3 "1.2.7"]
-                 [district0x/district-server-web3-events "1.1.12"]
+                 [is.d0x/district-server-web3-events "23.5.22"]
                  [district0x/district-time "1.0.1"]
                  [district0x/district-ui-component-active-account "1.0.1"]
                  [district0x/district-ui-component-active-account-balance "1.0.1"]
@@ -87,7 +87,7 @@
                  [district0x/district-parsers "1.0.0"]
 
                  ;; only for tests
-                 [org.clojure/core.async "0.4.490"]
+                 [org.clojure/core.async "1.5.648"]
                  [jamesmacaulay/cljs-promises "0.1.0"]]
 
   :exclusions [funcool/bide
