@@ -1,4 +1,4 @@
-FROM buildpack-deps:20.04 as nvm_base
+FROM buildpack-deps:22.04 as nvm_base
 
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 11.14.0
@@ -66,7 +66,7 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 #hadolint ignore=DL3008
 RUN apt-get update \
   && apt-get upgrade -y \
-  && apt-get install -yqq --no-install-recommends ca-certificates clojure git leiningen python2 \ 
+  && apt-get install -yqq --no-install-recommends ca-certificates clojure git leiningen python2 python-pip python2-dev \ 
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
   && ln -s /usr/bin/python2 /usr/bin/python

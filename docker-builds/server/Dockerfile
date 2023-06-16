@@ -1,4 +1,4 @@
-FROM buildpack-deps:20.04 as nvm_base
+FROM buildpack-deps:22.04 as nvm_base
 
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 11.14.0
@@ -66,7 +66,7 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 #hadolint ignore=DL3008
 RUN apt-get update \
   && apt-get upgrade -y \
-  && apt-get install -yqq --no-install-recommends ca-certificates clojure git leiningen python2 \ 
+  && apt-get install -yqq --no-install-recommends ca-certificates clojure git leiningen python2 python-pip python2-dev \ 
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
   && ln -s /usr/bin/python2 /usr/bin/python
@@ -90,8 +90,6 @@ FROM nvm_base AS build_stage
 ARG BUILD_ENV=prod
 ENV BUILD_ENV=${BUILD_ENV}
 ENV MEMEFACTORY_ENV=${BUILD_ENV}
-ENV PYTHON=/usr/bin/python
-ENV npm_config_user=root
 ENV SMART_CONTRACTS=./src/memefactory/shared/smart_contracts_${BUILD_ENV}.cljs
 ENV SMART_CONTRACTS_BUILD_PATH=./resources/public/contracts/build/
 
@@ -116,15 +114,8 @@ ENV CONFIG /configs/meme.config.edn
 
 # WORKDIR /memefactory
 
-# # # twitter-bot needs to be able to write here
-# Python dependencies
-RUN apt-get update && apt-get upgrade -yqq \
-    && apt-get install --no-install-recommends -yq python-pip python-setuptools \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /tmp/memefactory
-
 RUN pip2 install --no-cache-dir cryptography base58
+RUN mkdir /tmp/memefactory
 
 # # get compiled JS
 COPY --from=build_stage /build/server /memefactory/server
