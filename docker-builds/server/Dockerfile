@@ -106,9 +106,9 @@ RUN truffle compile
 RUN lein cljsbuild once "server"
 
 
-FROM memefactory_base:local
+FROM nvm_base
 
-ARG BUILD_ENV=qa
+ARG BUILD_ENV=prod
 
 ENV BUILD_ENV=${BUILD_ENV}
 ENV MEMEFACTORY_ENV=${BUILD_ENV}
