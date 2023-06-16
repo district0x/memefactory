@@ -1,5 +1,3 @@
-# FROM ubuntu:20.04 as nvm_base
-# FROM buildpack-deps:bullseye as nvm_base
 FROM buildpack-deps:20.04 as nvm_base
 
 ENV NVM_DIR /usr/local/nvm
