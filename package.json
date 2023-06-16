@@ -8,8 +8,8 @@
     "deps": "yarn install --ignore-engines"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.3.3",
-    "@openzeppelin/contracts-upgradeable": "^4.3.3",
+    "@openzeppelin/contracts": "4.7.3",
+    "@openzeppelin/contracts-upgradeable": "4.7.3",
     "@sentry/node": "4.6.6",
     "@truffle/hdwallet-provider": "^1.7.0",
     "babel-polyfill": "^6.26.0",

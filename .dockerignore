@@ -1,4 +1,5 @@
-code -a memefa-a gimeme/senappusls./bui./dockpteleqagitignore dockerclonode# Logs
+.git
+Logs
 logs
 *.log
 npm-debug.log*
