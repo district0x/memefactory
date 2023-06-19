@@ -112,7 +112,6 @@ ENV BUILD_ENV=${BUILD_ENV}
 ENV MEMEFACTORY_ENV=${BUILD_ENV}
 ENV CONFIG /configs/meme.config.edn
 
-# WORKDIR /memefactory
 
 RUN pip2 install --no-cache-dir cryptography base58
 RUN mkdir /tmp/memefactory
@@ -121,6 +120,7 @@ RUN mkdir /tmp/memefactory
 COPY --from=build_stage /build/server /memefactory/server
 COPY --from=build_stage /build/node_modules /memefactory/node_modules
 COPY --from=build_stage /build/resources /memefactory/resources
+WORKDIR /memefactory
 
 ENTRYPOINT ["node", "server/memefactory.js"]
 CMD ["--max-old-space-size=2048"]
