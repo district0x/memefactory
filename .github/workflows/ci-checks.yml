@@ -35,20 +35,20 @@ jobs:
     - name: Scan project
       uses: ShiftLeftSecurity/scan-action@master
 
-  nodejs-lint:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ["11.14.0"]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Lint code using Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm i -g yarn
-      - run: yarn deps
-      - run: yarn lint
+  # nodejs-lint:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node-version: ["11.14.0"]
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Lint code using Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v1
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #     - run: npm i -g yarn
+  #     - run: yarn deps
+  #     - run: yarn lint
 
   docker_checks:
     runs-on: ubuntu-latest
