@@ -8,8 +8,8 @@
     "deps": "yarn install --ignore-engines"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.3.3",
-    "@openzeppelin/contracts-upgradeable": "^4.3.3",
+    "@openzeppelin/contracts": "4.7.3",
+    "@openzeppelin/contracts-upgradeable": "4.7.3",
     "@sentry/node": "4.6.6",
     "@truffle/hdwallet-provider": "^1.7.0",
     "babel-polyfill": "^6.26.0",
@@ -32,7 +32,7 @@
     "source-map-support": "0.5.21",
     "tar-fs": "2.1.1",
     "twitter": "1.7.1",
-    "web3": "^1.6.1",
+    "web3": "1.6.1",
     "web3-utils": "1.6.1",
     "ws": "4.1.0"
   },
